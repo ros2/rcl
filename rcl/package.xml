@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rcl</name>
+  <version>0.0.0</version>
+  <description>The ROS client library common implementation.
+    This package contains an API which builds on the ROS middleware API and is optionally built upon by the other ROS client libraries.
+  </description>
+  <maintainer email="william@osrfoundation.org">William Woodall</maintainer>
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <build_depend>ros_middleware_interface</build_depend>
+
+  <build_export_depend>ros_middleware_interface</build_export_depend>
+
+</package>
