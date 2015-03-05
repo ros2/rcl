@@ -10,8 +10,8 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>ros_middleware_interface</build_depend>
+  <build_depend>rmw</build_depend>
 
-  <build_export_depend>ros_middleware_interface</build_export_depend>
+  <build_export_depend>rmw</build_export_depend>
 
 </package>
