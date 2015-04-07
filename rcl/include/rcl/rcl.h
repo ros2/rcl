@@ -25,7 +25,7 @@
 
 /// Global initialization for rcl; should be called once per process.
 rcl_ret_t
-rcl_init(int argc, char **argv);
+rcl_init(int argc, char ** argv);
 
 /// Creates a rcl_node_t; used to implement a ROS Node.
 rcl_node_t *
@@ -37,10 +37,11 @@ rcl_destroy_node(rcl_node_t * node);
 
 /// Creates a rcl_publisher_t; used to implement a ROS Publisher.
 rcl_publisher_t *
-rcl_create_publisher(const rcl_node_t * node,
-                     const rosidl_message_type_support_t * type_support,
-                     const char * topic_name,
-                     size_t queue_size);
+rcl_create_publisher(
+  const rcl_node_t * node,
+  const rosidl_message_type_support_t * type_support,
+  const char * topic_name,
+  size_t queue_size);
 
 /// Destroys a rcl_publisher_t.
 rcl_ret_t
@@ -52,10 +53,11 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
 
 /// Creates a rcl_subscription_t; used to implement a ROS Subscription.
 rcl_subscription_t *
-rcl_create_subscription(const rcl_node_t * node,
-                        const rosidl_message_type_support_t * type_support,
-                        const char * topic_name,
-                        size_t queue_size);
+rcl_create_subscription(
+  const rcl_node_t * node,
+  const rosidl_message_type_support_t * type_support,
+  const char * topic_name,
+  size_t queue_size);
 
 /// Destroys a rcl_subscription_t.
 rcl_ret_t
@@ -90,8 +92,9 @@ rcl_destroy_callback_group(rcl_callback_group_t * callback_group);
 /// Creates a rcl_subscription_info_t, which associates rcl_subscription_t's
 /// to a callback group.
 rcl_subscription_info_t *
-rcl_create_subscription_info(rcl_subscription_t * const subscription,
-                             rcl_callback_group_t * const callback_group);
+rcl_create_subscription_info(
+  rcl_subscription_t * const subscription,
+  rcl_callback_group_t * const callback_group);
 
 /// Destroys a rcl_subscription_info_t.
 rcl_ret_t
@@ -100,8 +103,9 @@ rcl_destroy_subscription_info(rcl_subscription_info_t * subscription_info);
 /// Creates a rcl_timer_info_t, which associates a ROS Timer's guard condition
 /// with a callback group.
 rcl_timer_info_t *
-rcl_create_timer_info(rcl_guard_condition_t * const guard_condition,
-                      rcl_callback_group_t * const callback_group);
+rcl_create_timer_info(
+  rcl_guard_condition_t * const guard_condition,
+  rcl_callback_group_t * const callback_group);
 
 /// Destroys a rcl_timer_info_t.
 rcl_ret_t
@@ -117,28 +121,33 @@ rcl_destroy_executor_helper(rcl_executor_helper_t * executor_helper);
 
 /// Add a rcl_subscription_info_t to the collection of callable items.
 rcl_ret_t
-rcl_add_subscription_info(rcl_executor_helper_t * executor_helper,
-                          rcl_subscription_info_t * subscription_info);
+rcl_add_subscription_info(
+  rcl_executor_helper_t * executor_helper,
+  rcl_subscription_info_t * subscription_info);
 
 /// Removes a rcl_subscription_t from the collection of callable items.
 rcl_ret_t
-rcl_remove_subscription_info(rcl_executor_helper_t * executor_helper,
-                             rcl_subscription_info_t * subscription_info);
+rcl_remove_subscription_info(
+  rcl_executor_helper_t * executor_helper,
+  rcl_subscription_info_t * subscription_info);
 
 /// Add a rcl_timer_info_t to the collection of callable items.
 rcl_ret_t
-rcl_add_timer_info(rcl_executor_helper_t * executor_helper,
-                   rcl_timer_info_t * timer_info);
+rcl_add_timer_info(
+  rcl_executor_helper_t * executor_helper,
+  rcl_timer_info_t * timer_info);
 
 /// Removes a rcl_subscription_t from the collection of callable items.
 rcl_ret_t
-rcl_remove_timer_info(rcl_executor_helper_t * executor_helper,
-                      rcl_timer_info_t * timer_info);
+rcl_remove_timer_info(
+  rcl_executor_helper_t * executor_helper,
+  rcl_timer_info_t * timer_info);
 
 /// Finds the next ready to be called item if one exists; optionally blocking.
 rcl_ret_t
-rcl_get_next_any_executable(rcl_executor_helper_t * executor_helper,
-                            rcl_any_executable_t * any_executable,
-                            bool non_blocking);
+rcl_get_next_any_executable(
+  rcl_executor_helper_t * executor_helper,
+  rcl_any_executable_t * any_executable,
+  bool non_blocking);
 
 #endif  /* RCL_RCL_RCL_H_ */
