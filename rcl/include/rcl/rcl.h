@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_RCL_RCL_H_
-#define RCL_RCL_RCL_H_
+#ifndef RCL__RCL_H_
+#define RCL__RCL_H_
 
 #include <stdbool.h>  // For bool
 #include <stddef.h>  // For size_t
@@ -21,7 +21,7 @@
 // For rosidl_message_type_support_t
 #include <rosidl_generator_c/message_type_support.h>
 
-#include "types.h"  // For rcl_*_t types
+#include "rcl/types.h"  // For rcl_*_t types
 
 /// Global initialization for rcl; should be called once per process.
 rcl_ret_t
@@ -151,4 +151,4 @@ rcl_get_next_any_executable(
   rcl_any_executable_t * any_executable,
   bool non_blocking);
 
-#endif  /* RCL_RCL_RCL_H_ */
+#endif  // RCL__RCL_H_

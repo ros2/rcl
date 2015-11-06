@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_RCL_TYPES_H_
-#define RCL_RCL_TYPES_H_
+#ifndef RCL__TYPES_H_
+#define RCL__TYPES_H_
 
 #include <rmw/types.h>
 
@@ -46,7 +46,7 @@ typedef struct rcl_timer_info_t
 
 typedef struct rcl_executor_helper_t
 {
-  // TODO: fill with something
+  // TODO(wjwwood): fill with something
 } rcl_executor_helper_t;
 
 typedef struct rcl_any_executable_t
@@ -55,4 +55,4 @@ typedef struct rcl_any_executable_t
   rcl_timer_info_t ** timer_info;
 } rcl_any_executable_t;
 
-#endif  /* RCL_RCL_TYPES_H_ */
+#endif  // RCL__TYPES_H_
