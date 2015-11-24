@@ -76,6 +76,11 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
 rcl_ret_t
 rcl_fini();
 
+/// Returns an uint64_t number that is unique for the latest rcl_init call.
+/* If called before rcl_init or after rcl_fini then 0 will be returned. */
+uint64_t
+rcl_get_instance_id();
+
 /// Return true until rcl_fini is called, then false.
 /* This function is thread safe. */
 bool

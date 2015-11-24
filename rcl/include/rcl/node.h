@@ -161,6 +161,24 @@ rcl_node_get_options(const rcl_node_t * node);
 rmw_node_t *
 rcl_node_get_rmw_node_handle(const rcl_node_t * node);
 
+/// Return the associated rcl instance id.
+/* This id is stored when rcl_node_init is called and can be compared with the
+ * value returned by rcl_get_instance_id() to check if this node was created in
+ * the current rcl context (since the latest call to rcl_init().
+ *
+ * This function can fail, and therefore return 0, if:
+ *   - node is NULL
+ *   - node has not been initialized (the implementation is invalid)
+ *
+ * This function will succeed, however, even if rcl_fini has been called since
+ * the node was created.
+ *
+ * \param[in] node pointer to the rcl node
+ * \return rcl instance id captured at node creation or 0 if there was an error
+ */
+uint64_t
+rcl_node_get_rcl_instance_id(const rcl_node_t * node);
+
 #if __cplusplus
 }
 #endif
