@@ -43,14 +43,17 @@ extern "C"
  * program.
  * rcl specific arguments will be parsed and removed, but other arguments will
  * be ignored.
+ * If argc is 0 and argv is NULL no parameters will be parsed.
  *
  * \param[in] argc number of strings in argv
  * \param[in] argv command line arguments; rcl specific arguments are removed
- * \return RCL_RET_OK if initialization is successful, otherwise RCL_RET_ERROR
- *         or RCL_RET_ALREADY_INIT if rcl_init has already been called
+ * \param[in] allocator allocator to be used during rcl_init and rcl_fini
+ * \return RCL_RET_OK if initialization is successful, or
+ *         RCL_RET_ALREADY_INIT if rcl_init has already been called, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
-rcl_init(int argc, char ** argv);
+rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
 
 /// Signal global shutdown of rcl.
 /* This function does not have to be called on exit, but does have to be called
