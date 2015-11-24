@@ -29,13 +29,13 @@ extern "C"
 /* Unless otherwise noted, this must be called before using any rcl functions.
  *
  * This function can only be run once after starting the program, and once
- * after each call to rcl_shutdown.
+ * after each call to rcl_fini.
  * Repeated calls will fail with RCL_RET_ALREADY_INIT.
  * This function is not thread safe.
  *
- * This function can be called any time after rcl_shutdown is called, but it
+ * This function can be called any time after rcl_fini is called, but it
  * cannot be called from within a callback being executed by an rcl executor.
- * For example, you can call rcl_shutdown from within a timer callback, but
+ * For example, you can call rcl_fini from within a timer callback, but
  * you have to return from the callback, and therefore exit any in-progress
  * call to a spin function, before calling rcl_init again.
  *
@@ -71,9 +71,9 @@ rcl_init(int argc, char ** argv);
  *         RCL_RET_NOT_INIT if rcl_init has not yet been called
  */
 rcl_ret_t
-rcl_shutdown();
+rcl_fini();
 
-/// Return true until rcl_shutdown is called, then false.
+/// Return true until rcl_fini is called, then false.
 /* This function is thread safe. */
 bool
 rcl_ok();

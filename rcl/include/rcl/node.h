@@ -29,7 +29,7 @@ struct rcl_node_impl_t;
 /* This handle can be in one a few stats, which are referred to below:
  * - uninitialized: memory allocated, but not initialized to anything
  * - invalid: memory allocated but not usable
- *   - either zero initialized or shutdown (rcl_shutdown() or rcl_node_fini())
+ *   - either zero initialized or shutdown (rcl_fini() or rcl_node_fini())
  * - valid: memory allocated and usable
  */
 typedef struct rcl_node_t {
@@ -55,7 +55,7 @@ rcl_node_t
 rcl_get_zero_initialized_node();
 
 /// Initialize a ROS node.
-/* Calling this on a rcl_node_t makes it a valid node handle until rcl_shutdown
+/* Calling this on a rcl_node_t makes it a valid node handle until rcl_fini
  * is called or until rcl_node_fini is called on it.
  *
  * After calling the ROS node object can be used to create other middleware
