@@ -19,40 +19,19 @@
 
 typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_OK RMW_RET_OK
-
-typedef rmw_node_t rcl_node_t;
-typedef rmw_publisher_t rcl_publisher_t;
-typedef rmw_subscription_t rcl_subscription_t;
-typedef rmw_guard_condition_t rcl_guard_condition_t;
-typedef rmw_subscriptions_t rcl_subscriptions_t;
-typedef rmw_guard_conditions_t rcl_guard_conditions_t;
-
-typedef struct rcl_callback_group_t
-{
-  rcl_node_t ** node;
-} rcl_callback_group_t;
-
-typedef struct rcl_subscription_info_t
-{
-  rcl_subscription_t ** subscription;
-  rcl_callback_group_t ** callback_group;
-} rcl_subscription_info_t;
-
-typedef struct rcl_timer_info_t
-{
-  rcl_guard_condition_t ** guard_condition;
-  rcl_callback_group_t ** callback_group;
-} rcl_timer_info_t;
-
-typedef struct rcl_executor_helper_t
-{
-  // TODO(wjwwood): fill with something
-} rcl_executor_helper_t;
-
-typedef struct rcl_any_executable_t
-{
-  rcl_subscription_info_t ** subscription_info;
-  rcl_timer_info_t ** timer_info;
-} rcl_any_executable_t;
+#define RCL_RET_ERROR RMW_RET_ERROR
+#define RCL_RET_TIMEOUT RMW_RET_TIMEOUT
+// rcl specific ret codes start at 100
+#define RCL_RET_ALREADY_INIT 100
+#define RCL_RET_NOT_INIT 101
+// rcl node specific ret codes in 2XX
+// rcl publisher specific ret codes in 3XX
+// rcl subscription specific ret codes in 4XX
+// rcl service client specific ret codes in 5XX
+// rcl service server specific ret codes in 6XX
+// rcl guard condition specific ret codes in 7XX
+// rcl wait and wait set specific ret codes in 8XX
+#define RCL_RET_WAIT_SET_EMPTY 800
+#define RCL_RET_WAIT_SET_FULL 801
 
 #endif  // RCL__TYPES_H_

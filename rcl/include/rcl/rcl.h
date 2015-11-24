@@ -15,140 +15,71 @@
 #ifndef RCL__RCL_H_
 #define RCL__RCL_H_
 
-#include <stdbool.h>  // For bool
-#include <stddef.h>  // For size_t
+#if __cplusplus
+extern "C"
+{
+#endif
 
-// For rosidl_message_type_support_t
-#include <rosidl_generator_c/message_type_support.h>
+#include "rcl/node.h"
+#include "rcl/publisher.h"
+#include "rcl/subscription.h"
+#include "rcl/types.h"
 
-#include "rcl/types.h"  // For rcl_*_t types
-
-/// Global initialization for rcl; should be called once per process.
+/// Global initialization of rcl.
+/* Unless otherwise noted, this must be called before using any rcl functions.
+ *
+ * This function can only be run once after starting the program, and once
+ * after each call to rcl_shutdown.
+ * Repeated calls will fail with RCL_RET_ALREADY_INIT.
+ * This function is not thread safe.
+ *
+ * This function can be called any time after rcl_shutdown is called, but it
+ * cannot be called from within a callback being executed by an rcl executor.
+ * For example, you can call rcl_shutdown from within a timer callback, but
+ * you have to return from the callback, and therefore exit any in-progress
+ * call to a spin function, before calling rcl_init again.
+ *
+ * The argc and argv parameters can contain command line arguments for the
+ * program.
+ * rcl specific arguments will be parsed and removed, but other arguments will
+ * be ignored.
+ *
+ * \param[in] argc number of strings in argv
+ * \param[in] argv command line arguments; rcl specific arguments are removed
+ * \return RCL_RET_OK if initialization is successful, otherwise RCL_RET_ERROR
+ *         or RCL_RET_ALREADY_INIT if rcl_init has already been called
+ */
 rcl_ret_t
 rcl_init(int argc, char ** argv);
 
-/// Creates a rcl_node_t; used to implement a ROS Node.
-rcl_node_t *
-rcl_create_node(const char * name);
-
-/// Destroys a rcl_node_t.
+/// Signal global shutdown of rcl.
+/* This function does not have to be called on exit, but does have to be called
+ * making a repeat call to rcl_init.
+ *
+ * This function can only be called once after each call to rcl_init.
+ * Repeated calls will fail with RCL_RET_NOT_INIT.
+ * This function is not thread safe.
+ *
+ * When this function is called:
+ *  - Any rcl objects created since the last call to rcl_init are invalidated.
+ *  - Calls to rcl_ok will return false.
+ *  - Any executors waiting for work (within a call to spin) are interrupted.
+ *  - No new work (executing callbacks) will be done in executors.
+ *  - Currently running work in executors will be finished.
+ *
+ * \return RCL_RET_OK if shutdown is successful, otherwise RCL_RET_ERROR or
+ *         RCL_RET_NOT_INIT if rcl_init has not yet been called
+ */
 rcl_ret_t
-rcl_destroy_node(rcl_node_t * node);
+rcl_shutdown();
 
-/// Creates a rcl_publisher_t; used to implement a ROS Publisher.
-rcl_publisher_t *
-rcl_create_publisher(
-  const rcl_node_t * node,
-  const rosidl_message_type_support_t * type_support,
-  const char * topic_name,
-  size_t queue_size);
+/// Return true until rcl_shutdown is called, then false.
+/* This function is thread safe. */
+bool
+rcl_ok();
 
-/// Destroys a rcl_publisher_t.
-rcl_ret_t
-rcl_destroy_publisher(rcl_publisher_t * publisher);
-
-/// Publishes a ROS message to a ROS Topic using a rcl_publisher_t.
-rcl_ret_t
-rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
-
-/// Creates a rcl_subscription_t; used to implement a ROS Subscription.
-rcl_subscription_t *
-rcl_create_subscription(
-  const rcl_node_t * node,
-  const rosidl_message_type_support_t * type_support,
-  const char * topic_name,
-  size_t queue_size,
-  bool ignore_local_publications);
-
-/// Destroys a rcl_subscription_t.
-rcl_ret_t
-rcl_destroy_subscription(rcl_subscription_t * subscription);
-
-/// Takes a ROS message from a given rcl_subscription_t if one is available.
-rcl_ret_t
-rcl_take(const rcl_subscription_t * subscriber, void * ros_message);
-
-/// Creates a rcl_guard_condition_t; is used by the implementation to
-/// asynchronously interrupt rmw_wait.
-rcl_guard_condition_t *
-rcl_create_guard_condition();
-
-/// Destroys a rcl_guard_condition_t.
-rcl_ret_t
-rcl_destroy_guard_condition(rcl_guard_condition_t * guard_condition);
-
-/// Triggers the condition, which will interrupt rmw_wait asynchronously.
-rcl_ret_t
-rcl_trigger_guard_condition(const rcl_guard_condition_t * guard_condition);
-
-/// Creates a rcl_callback_group_t, which provides hints about how to execute
-/// groups of callbacks to an executor.
-rcl_callback_group_t *
-rcl_create_callback_group(rcl_node_t * node);
-
-/// Destroys a rcl_callback_group_t.
-rcl_ret_t
-rcl_destroy_callback_group(rcl_callback_group_t * callback_group);
-
-/// Creates a rcl_subscription_info_t, which associates rcl_subscription_t's
-/// to a callback group.
-rcl_subscription_info_t *
-rcl_create_subscription_info(
-  rcl_subscription_t * const subscription,
-  rcl_callback_group_t * const callback_group);
-
-/// Destroys a rcl_subscription_info_t.
-rcl_ret_t
-rcl_destroy_subscription_info(rcl_subscription_info_t * subscription_info);
-
-/// Creates a rcl_timer_info_t, which associates a ROS Timer's guard condition
-/// with a callback group.
-rcl_timer_info_t *
-rcl_create_timer_info(
-  rcl_guard_condition_t * const guard_condition,
-  rcl_callback_group_t * const callback_group);
-
-/// Destroys a rcl_timer_info_t.
-rcl_ret_t
-rcl_destroy_timer_info(rcl_timer_info_t * timer_info);
-
-/// Creates a rcl_executor_helper_t, which is a collection of callable items.
-rcl_executor_helper_t *
-rcl_create_executor_helper();
-
-/// Destroys a rcl_executor_helper_t.
-rcl_ret_t
-rcl_destroy_executor_helper(rcl_executor_helper_t * executor_helper);
-
-/// Add a rcl_subscription_info_t to the collection of callable items.
-rcl_ret_t
-rcl_add_subscription_info(
-  rcl_executor_helper_t * executor_helper,
-  rcl_subscription_info_t * subscription_info);
-
-/// Removes a rcl_subscription_t from the collection of callable items.
-rcl_ret_t
-rcl_remove_subscription_info(
-  rcl_executor_helper_t * executor_helper,
-  rcl_subscription_info_t * subscription_info);
-
-/// Add a rcl_timer_info_t to the collection of callable items.
-rcl_ret_t
-rcl_add_timer_info(
-  rcl_executor_helper_t * executor_helper,
-  rcl_timer_info_t * timer_info);
-
-/// Removes a rcl_subscription_t from the collection of callable items.
-rcl_ret_t
-rcl_remove_timer_info(
-  rcl_executor_helper_t * executor_helper,
-  rcl_timer_info_t * timer_info);
-
-/// Finds the next ready to be called item if one exists; optionally blocking.
-rcl_ret_t
-rcl_get_next_any_executable(
-  rcl_executor_helper_t * executor_helper,
-  rcl_any_executable_t * any_executable,
-  bool non_blocking);
+#if __cplusplus
+}
+#endif
 
 #endif  // RCL__RCL_H_
