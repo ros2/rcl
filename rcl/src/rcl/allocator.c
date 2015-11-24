@@ -30,8 +30,15 @@ __default_deallocate(void * pointer, void * state)
   return free(pointer);
 }
 
+static void *
+__default_reallocate(void * pointer, size_t size, void * state)
+{
+  (void)state;  // unused
+  return realloc(pointer, size);
+}
+
 rcl_allocator_t
 rcl_get_default_allocator()
 {
-  return {__default_allocate, __default_deallocate, NULL};
+  return {__default_allocate, __default_deallocate, __default_reallocate, NULL};
 }

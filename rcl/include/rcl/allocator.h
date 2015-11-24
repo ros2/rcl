@@ -31,7 +31,11 @@ typedef struct rcl_allocator_t {
   /// Deallocate previously allocated memory, mimicking free().
   void (*deallocate)(void * pointer, void * state);
   /// Reallocates if possible, otherwise it deallocates and allocates.
-  /* If unsupported then do deallocate and then allocate. */
+  /* If unsupported then do deallocate and then allocate.
+   * This should behave as realloc is described, as opposed to reallocf, i.e.
+   * the memory given by pointer will not be free'd automatically if realloc
+   * fails.
+   */
   void * (*reallocate)(void * pointer, size_t size, void * state);
   /// Implementation defined state storage.
   /* This is passed as the second parameter to the (de)allocate functions. */
