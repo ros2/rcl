@@ -81,10 +81,10 @@ fail:
 }
 
 rcl_ret_t
-rcl_fini()
+rcl_shutdown()
 {
   if (!atomic_load(&__rcl_is_initialized)) {
-    RCL_SET_ERROR_MSG("rcl_fini called before rcl_init");
+    RCL_SET_ERROR_MSG("rcl_shutdown called before rcl_init");
     return RCL_RET_NOT_INIT;
   }
   __clean_up_init();

@@ -72,10 +72,16 @@ rcl_get_zero_initialized_guard_condition();
  *
  * This function is not thread-safe.
  *
+ * \TODO(wjwwood): does this function need a node to be passed to it? (same for fini)
+ *
  * \param[inout] guard_condition preallocated guard_condition structure
  * \param[in] node valid rcl node handle
  * \param[in] options the guard_condition's options
- * \return RMW_RET_OK if guard_condition was initialized successfully, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if guard_condition was initialized successfully, or
+ *         RCL_RET_ALREADY_INIT if the guard condition is already initialized, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_guard_condition_init(
@@ -83,16 +89,18 @@ rcl_guard_condition_init(
   const rcl_node_t * node,
   const rcl_guard_condition_options_t * options);
 
-/// Deinitialize a rcl_guard_condition_t.
+/// Finalize a rcl_guard_condition_t.
 /* After calling, calls to rcl_trigger_guard_condition will fail when using
  * this guard condition.
  * However, the given node handle is still valid.
  *
  * This function is not thread-safe.
  *
- * \param[inout] guard_condition handle to the guard_condition to be deinitialized
+ * \param[inout] guard_condition handle to the guard_condition to be finalized
  * \param[in] node handle to the node used to create the guard_condition
- * \return RMW_RET_OK if guard_condition was deinitialized successfully, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if guard_condition was finalized successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition, rcl_node_t * node);
@@ -104,7 +112,7 @@ rcl_guard_condition_get_default_options();
 /// Trigger a rcl guard condition.
 /* This function can fail, and therefore return NULL, if the:
  *   - guard condition is NULL
- *   - guard condition is invalid (never called init, called fini, or invalid node)
+ *   - guard condition is invalid (never called init or called fini)
  *
  * A guard condition can be triggered from any thread.
  *
@@ -112,7 +120,9 @@ rcl_guard_condition_get_default_options();
  * with rcl_guard_condition_fini() on the same guard condition.
  *
  * \param[in] guard_condition handle to the guard_condition to be triggered
- * \return RMW_RET_OK if the message was published, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if the guard condition was triggered, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_trigger_guard_condition(const rcl_guard_condition_t * guard_condition);

@@ -23,6 +23,9 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/types.h"
 
+// Intentional underflow to get max size_t.
+#define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID (size_t)-1
+
 struct rcl_node_impl_t;
 
 /// Handle for a ROS node.
@@ -42,6 +45,16 @@ typedef struct rcl_node_options_t {
   // rmw_qos_profile_t parameter_qos;
   /// If true, no parameter infrastructure will be setup.
   bool no_parameters;
+  /// If set, then this value overrides the ROS_DOMAIN_ID environment variable.
+  /* It defaults to RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, which will cause the
+   * node to use the ROS domain ID set in the ROS_DOMAIN_ID environment
+   * variable, or on some systems 0 if the environment variable is not set.
+   *
+   * \TODO(wjwwood): Should we put a limit on the ROS_DOMAIN_ID value, that way
+   *                 we can have a safe value for the default
+   *                 RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID? (currently max size_t)
+   */
+  size_t domain_id;
   /// Custom allocator used for incidental allocations, e.g. node name string.
   rcl_allocator_t allocator;
 } rcl_node_options_t;
@@ -66,11 +79,13 @@ rcl_get_zero_initialized_node();
  *
  * A node contains infrastructure for ROS parameters, which include advertising
  * publishers and service servers.
- * So this function will create those external parameter interfaces even if
+ * This function will create those external parameter interfaces even if
  * parameters are not used later.
  *
- * This function should be called on a rcl_node_t exactly once, and calling it
- * multiple times is undefined behavior.
+ * The rcl_node_t given must be allocated and zero initalized.
+ * Passing an rcl_node_t which has already had this function called on it, more
+ * recently than rcl_node_fini, will fail.
+ * An allocated rcl_node_t with uninitialized memory is undefined behavior.
  *
  * Expected usage:
  *
@@ -89,22 +104,28 @@ rcl_get_zero_initialized_node();
  * \param[inout] node a preallocated node structure
  * \param[in] name the name of the node
  * \param[in] options the node options; pass null to use default options
- * \return RMW_RET_OK if node was initialized successfully, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if node was initialized successfully, or
+ *         RCL_RET_ALREADY_INIT if the node has already be initialized, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * options);
 
-/// Deinitialize a rcl_node_t.
+/// Finalized a rcl_node_t.
 /* Shuts down any automatically created infrastructure and deallocates memory.
- * After calling, the rcl_node_t can be safely released.
+ * After calling, the rcl_node_t can be safely deallocated.
  *
  * Any middleware primitives created by the user, e.g. publishers, services, etc.,
  * are invalid after deinitialization.
  *
  * This function is not thread-safe.
  *
- * \param[in] node handle to the node to be deinitialized
- * \return RMW_RET_OK if node was deinitialized successfully, otherwise RMW_RET_ERROR
+ * \param[in] node handle to the node to be finalized
+ * \return RCL_RET_OK if node was finalized successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_node_fini(rcl_node_t * node);
@@ -144,6 +165,27 @@ rcl_node_get_name(const rcl_node_t * node);
  */
 const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node);
+
+/// Return the ROS domain ID that the node is using.
+/* This function returns the ROS domain ID that the node is in.
+ *
+ * This function should be used to determine what domain_id was used rather
+ * than checking the domin_id field in the node options, because if
+ * RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID is used when creating the node then
+ * it is not changed after creation, but this function will return the actual
+ * domain_id used.
+ *
+ * The domain_id field must point to an allocated size_t object to which the
+ * ROS domain ID will be written.
+ *
+ * \param[in] node the handle to the node being queried
+ * \return RCL_RET_OK if node the domain ID was retrieved successfully, or
+ *         RCL_RET_NODE_INVALID if the node is invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+rcl_ret_t
+rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
 
 /// Return the rmw node handle.
 /* The handle returned is a pointer to the internally held rmw handle.

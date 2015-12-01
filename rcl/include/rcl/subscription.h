@@ -117,7 +117,10 @@ rcl_get_zero_initialized_subscription();
  * \param[in] type_support type support object for the topic's type
  * \param[in] topic_name the name of the topic
  * \param[in] options subscription options, including quality of service settings
- * \return RMW_RET_OK if subscription was initialized successfully, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if subscription was initialized successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_subscription_init(
@@ -140,7 +143,9 @@ rcl_subscription_init(
  *
  * \param[inout] subscription handle to the subscription to be deinitialized
  * \param[in] node handle to the node used to create the subscription
- * \return RMW_RET_OK if subscription was deinitialized successfully, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if subscription was deinitialized successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node);
@@ -157,7 +162,7 @@ rcl_subscription_get_default_options();
  * be checked by this function and therefore no deliberate error will occur.
  *
  * TODO(wjwwood) blocking of take?
- * TODO(wjwwood) pre- and post-conditions for message ownership?
+ * TODO(wjwwood) pre-, during-, and post-conditions for message ownership?
  * TODO(wjwwood) is rcl_take thread-safe?
  *
  * The ros_message pointer should point to an already allocated ROS message
@@ -184,7 +189,10 @@ rcl_subscription_get_default_options();
  * \param[inout] ros_message type-erased ptr to a allocated ROS message
  * \param[out] taken pointer to a bool, if set to false a message was not taken
  * \param[out] message_info rmw struct which contains meta-data for the message
- * \return RMW_RET_OK if the message was published, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if the message was published, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_take(

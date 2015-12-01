@@ -256,10 +256,6 @@ rcl_publisher_get_options(rcl_publisher_t * publisher);
 rmw_publisher_t *
 rcl_publisher_get_rmw_publisher_handle(rcl_publisher_t * publisher);
 
-int main() {
-
-}
-
 #if __cplusplus
 }
 #endif

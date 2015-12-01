@@ -24,7 +24,10 @@ typedef rmw_ret_t rcl_ret_t;
 // rcl specific ret codes start at 100
 #define RCL_RET_ALREADY_INIT 100
 #define RCL_RET_NOT_INIT 101
+#define RCL_RET_BAD_ALLOC 102
+#define RCL_RET_INVALID_ARGUMENT 103
 // rcl node specific ret codes in 2XX
+#define RCL_RET_NODE_INVALID 200
 // rcl publisher specific ret codes in 3XX
 // rcl subscription specific ret codes in 4XX
 // rcl service client specific ret codes in 5XX

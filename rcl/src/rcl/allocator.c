@@ -40,5 +40,11 @@ __default_reallocate(void * pointer, size_t size, void * state)
 rcl_allocator_t
 rcl_get_default_allocator()
 {
-  return {__default_allocate, __default_deallocate, __default_reallocate, NULL};
+  static rcl_allocator_t default_allocator = {
+    __default_allocate,
+    __default_deallocate,
+    __default_reallocate,
+    NULL
+  };
+  return default_allocator;
 }
