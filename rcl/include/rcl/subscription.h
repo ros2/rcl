@@ -156,7 +156,7 @@ rcl_subscription_get_default_options();
 
 /// Take a ROS message from a topic using a rcl subscription.
 /* It is the job of the caller to ensure that the type of the ros_message
- * parameter and the type associate with the subscription, via the type
+ * argument and the type associate with the subscription, via the type
  * support, match.
  * Passing a different type to rcl_take produces undefined behavior and cannot
  * be checked by this function and therefore no deliberate error will occur.
@@ -164,6 +164,7 @@ rcl_subscription_get_default_options();
  * TODO(wjwwood) blocking of take?
  * TODO(wjwwood) pre-, during-, and post-conditions for message ownership?
  * TODO(wjwwood) is rcl_take thread-safe?
+ * TODO(wjwwood) Should there be an rcl_message_info_t?
  *
  * The ros_message pointer should point to an already allocated ROS message
  * struct of the correct type, into which the taken ROS message will be copied
@@ -181,9 +182,9 @@ rcl_subscription_get_default_options();
  * message instance, like what the GUID of the publisher which published it
  * originally or whether or not the message received from within the same
  * process.
- * The message_info parameter should be an already allocated rmw_message_info_t
+ * The message_info argument should be an already allocated rmw_message_info_t
  * structure.
- * Passing NULL for message_info will be ignored.
+ * Passing NULL for message_info will result in the argument being ignored.
  *
  * \param[in] subscription the handle to the subscription from which to take
  * \param[inout] ros_message type-erased ptr to a allocated ROS message
@@ -191,6 +192,7 @@ rcl_subscription_get_default_options();
  * \param[out] message_info rmw struct which contains meta-data for the message
  * \return RCL_RET_OK if the message was published, or
  *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_SUBSCRIPTION_INVALID if the subscription is invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -205,7 +207,7 @@ rcl_take(
 /* This function returns the subscription's internal topic name string.
  * This function can fail, and therefore return NULL, if the:
  *   - subscription is NULL
- *   - subscription is invalid (never called init, called fini, or invalid node)
+ *   - subscription is invalid (never called init, called fini, or invalid)
  *
  * The returned string is only valid as long as the subscription is valid.
  * The value of the string may change if the topic name changes, and therefore
@@ -224,7 +226,7 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription);
 /* This function returns the subscription's internal options struct.
  * This function can fail, and therefore return NULL, if the:
  *   - subscription is NULL
- *   - subscription is invalid (never called init, called fini, or invalid node)
+ *   - subscription is invalid (never called init, called fini, or invalid)
  *
  * The returned struct is only valid as long as the subscription is valid.
  * The values in the struct may change if the subscription's options change,
@@ -243,7 +245,7 @@ rcl_subscription_get_options(rcl_subscription_t * subscription);
 /* The handle returned is a pointer to the internally held rmw handle.
  * This function can fail, and therefore return NULL, if the:
  *   - subscription is NULL
- *   - subscription is invalid (never called init, called fini, or invalid node)
+ *   - subscription is invalid (never called init, called fini, or invalid)
  *
  * The returned handle is only valid as long as the rcl subscription is valid.
  *

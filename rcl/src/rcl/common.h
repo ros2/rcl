@@ -23,8 +23,8 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
-#define RCL_CHECK_ARGUMENT_FOR_NULL(parameter, error_return_type) \
-  RCL_CHECK_FOR_NULL_WITH_MSG(parameter, #parameter " argument is null", return error_return_type)
+#define RCL_CHECK_ARGUMENT_FOR_NULL(argument, error_return_type) \
+  RCL_CHECK_FOR_NULL_WITH_MSG(argument, #argument " argument is null", return error_return_type)
 
 #define RCL_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement) if (!value) { \
   RCL_SET_ERROR_MSG(msg); \

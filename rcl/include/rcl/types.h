@@ -31,6 +31,7 @@ typedef rmw_ret_t rcl_ret_t;
 // rcl publisher specific ret codes in 3XX
 #define RCL_RET_PUBLISHER_INVALID 300
 // rcl subscription specific ret codes in 4XX
+#define RCL_RET_SUBSCRIPTION_INVALID 400
 // rcl service client specific ret codes in 5XX
 // rcl service server specific ret codes in 6XX
 // rcl guard condition specific ret codes in 7XX
