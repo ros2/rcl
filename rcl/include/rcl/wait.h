@@ -33,11 +33,11 @@ struct rcl_wait_set_impl_t;
 /// Container for subscription's, guard condition's, etc to be waited on.
 typedef struct rcl_wait_set_t {
   /// Storage for subscription pointers.
-  rcl_subscription_t ** subscriptions;
+  const rcl_subscription_t ** subscriptions;
   size_t size_of_subscriptions;
   size_t __current_subscription_offset;
   /// Storage for guard condition pointers.
-  rcl_guard_condition_t ** guard_conditions;
+  const rcl_guard_condition_t ** guard_conditions;
   size_t size_of_guard_conditions;
   size_t __current_guard_condition_offset;
   /// Allocator for storage.
@@ -55,7 +55,7 @@ rcl_get_zero_initialized_wait_set();
 /// Initialize a rcl wait set with space for items to be waited on.
 /* This function allocates space for the subscriptions and other wait-able
  * entities that can be stored in the wait set.
- * It also sets the allocator to the given one and initializes the pruned
+ * It also sets the allocator to the given allocator and initializes the pruned
  * member to be false.
  *
  * The wait_set struct should be allocated and initialized to NULL.
@@ -73,7 +73,7 @@ rcl_get_zero_initialized_wait_set();
  *
  *   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
  *   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 42, 42, rcl_get_default_allocator());
- *   // ... error handling, and then after using call matching fini:
+ *   // ... error handling, then use it, then call the matching fini:
  *   ret = rcl_wait_set_fini(&wait_set);
  *   // ... error handling
  *
@@ -82,12 +82,12 @@ rcl_get_zero_initialized_wait_set();
  * allocator is shared with other parts of the system.
  *
  * \param[inout] wait_set the wait set struct to be initialized
- * \param[in] number_of_subscriptions size of the subscriptions set
- * \param[in] number_of_guard_conditions size of the guard conditions set
+ * \param[in] number_of_subscriptions non-zero size of the subscriptions set
+ * \param[in] number_of_guard_conditions non-zero size of the guard conditions set
  * \param[in] allocator the allocator to use when allocating space in the sets
  * \return RCL_RET_OK if the wait set is initialized successfully, or
  *         RCL_RET_ALREADY_INIT if the wait set is not zero initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -113,13 +113,13 @@ rcl_wait_set_init(
  *
  * \param[inout] wait_set the wait set struct to be finalized.
  * \return RCL_RET_OK if the finalization was successful, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_wait_set_fini(rcl_wait_set_t * wait_set);
 
-/// Stores a pointer to the given subscription in next empty spot in the set.
+/// Stores a pointer to the given subscription in the next empty spot in the set.
 /* This function does not guarantee that the subscription is not already in the
  * wait set.
  *
@@ -128,9 +128,9 @@ rcl_wait_set_fini(rcl_wait_set_t * wait_set);
  * \param[inout] wait_set struct in which the subscription is to be stored
  * \param[in] subscription the subscription to be added to the wait set
  * \return RCL_RET_OK if added successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
  *         RCL_RET_WAIT_SET_FULL if the subscription set is full, or
- *         RCL_RET_NOT_INIT if the wait set is zero initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
@@ -148,8 +148,8 @@ rcl_wait_set_add_subscription(
  *
  * \param[inout] wait_set struct to have its subscriptions cleared
  * \return RCL_RET_OK if cleared successfully, or
- *         RCL_RET_NOT_INIT if the wait set is zero initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
@@ -176,14 +176,14 @@ rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set);
  * \param[inout] wait_set struct to have its subscriptions cleared
  * \param[in] size a size for the new set
  * \return RCL_RET_OK if resized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_wait_set_resize_subscriptions(rcl_wait_set_t * wait_set, size_t size);
 
-/// Stores a pointer to the guard condition in next empty spot in the set.
+/// Stores a pointer to the guard condition in the next empty spot in the set.
 /* This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_add_subscription
  */
@@ -281,6 +281,9 @@ rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
  * The timeout's value is not changed.
  * Passing a timeout struct with uninitialized memory is undefined behavior.
  *
+ * \TODO(wjwwood) this function should probably be thread-safe with itself but
+ *                it's not clear to me what happens if the wait sets being
+ *                waited on can be overlapping or not or if we can even check.
  * This function is not thread-safe and cannot be called concurrently, even if
  * the given wait sets are not the same and non-overlapping in contents.
  *
@@ -290,7 +293,7 @@ rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
  *         RCL_RET_TIMEOUT timeout expired before something was ready, or
  *         RCL_RET_NOT_INIT wait set is zero initialized, or
  *         RCL_RET_WAIT_SET_EMPTY wait set contains no items, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
 rcl_ret_t

@@ -36,7 +36,8 @@ typedef rmw_ret_t rcl_ret_t;
 // rcl service server specific ret codes in 6XX
 // rcl guard condition specific ret codes in 7XX
 // rcl wait and wait set specific ret codes in 8XX
-#define RCL_RET_WAIT_SET_EMPTY 800
-#define RCL_RET_WAIT_SET_FULL 801
+#define RCL_RET_WAIT_SET_INVALID 800
+#define RCL_RET_WAIT_SET_EMPTY 801
+#define RCL_RET_WAIT_SET_FULL 802
 
 #endif  // RCL__TYPES_H_

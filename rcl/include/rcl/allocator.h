@@ -35,6 +35,7 @@ typedef struct rcl_allocator_t {
    * This should behave as realloc is described, as opposed to reallocf, i.e.
    * the memory given by pointer will not be free'd automatically if realloc
    * fails.
+   * This function must be able to take an input pointer of NULL and succeed.
    */
   void * (*reallocate)(void * pointer, size_t size, void * state);
   /// Implementation defined state storage.
