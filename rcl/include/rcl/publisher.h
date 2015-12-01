@@ -114,7 +114,12 @@ rcl_get_zero_initialized_publisher();
  * \param[in] type_support type support object for the topic's type
  * \param[in] topic_name the name of the topic to publish on
  * \param[in] options publisher options, including quality of service settings
- * \return RMW_RET_OK if publisher was initialized successfully, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if the publisher was initialized successfully, or
+ *         RCL_RET_NODE_INVALID if the node is invalid, or
+ *         RCL_RET_ALREADY_INIT if the publisher is already initialized, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_BAD_ALLOC if any arugments are invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_publisher_init(
@@ -135,7 +140,9 @@ rcl_publisher_init(
  *
  * \param[inout] publisher handle to the publisher to be deinitialized
  * \param[in] node handle to the node used to create the publisher
- * \return RMW_RET_OK if publisher was deinitialized successfully, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if publisher was finalized successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node);
@@ -143,13 +150,6 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node);
 /// Return the default publisher options in a rcl_publisher_options_t.
 rcl_publisher_options_t
 rcl_publisher_get_default_options();
-
-// TODO(wjwwood): I have an idea on how to do a type-checking macro version of
-//                publish using C11's _Generic "generic selection", but it
-//                needs support from the generated code (look into it later)
-//                It might also use static assert, see:
-//                  http://www.robertgamble.net/2012/01/c11-static-assertions.html
-// #define RCL_PUBLISH(publisher, ros_message) ...
 
 /// Publish a ROS message on a topic using a publisher.
 /* It is the job of the caller to ensure that the type of the ros_message
@@ -190,7 +190,10 @@ rcl_publisher_get_default_options();
  *
  * \param[in] publisher handle to the publisher which will do the publishing
  * \param[in] ros_message type-erased pointer to the ROS message
- * \return RMW_RET_OK if the message was published, otherwise RMW_RET_ERROR
+ * \return RCL_RET_OK if the message was published successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_PUBLISHER_INVALID if the publisher is invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
@@ -231,7 +234,7 @@ rcl_publisher_get_topic_name(const rcl_publisher_t * publisher);
  * \return options struct if successful, otherwise NULL
  */
 const rcl_publisher_options_t *
-rcl_publisher_get_options(rcl_publisher_t * publisher);
+rcl_publisher_get_options(const rcl_publisher_t * publisher);
 
 /// Return the rmw publisher handle.
 /* The handle returned is a pointer to the internally held rmw handle.
@@ -254,7 +257,7 @@ rcl_publisher_get_options(rcl_publisher_t * publisher);
  * \return rmw publisher handle if successful, otherwise NULL
  */
 rmw_publisher_t *
-rcl_publisher_get_rmw_publisher_handle(rcl_publisher_t * publisher);
+rcl_publisher_get_rmw_publisher_handle(const rcl_publisher_t * publisher);
 
 #if __cplusplus
 }

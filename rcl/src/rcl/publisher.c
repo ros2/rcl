@@ -86,6 +86,78 @@ fail:
   return fail_ret;
 }
 
+rcl_ret_t
+rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
+{
+  rcl_ret_t result = RCL_RET_OK;
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (publisher->impl) {
+    rmw_ret_t ret =
+      rmw_destroy_publisher(rcl_node_get_rmw_node_handle(node), publisher->impl->rmw_handle);
+    if (ret != RMW_RET_OK) {
+      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+      result = RCL_RET_ERROR;
+    }
+    rcl_allocator_t allocator = publisher->impl->options.allocator;
+    allocator.deallocate(publisher->impl, allocator.state);
+  }
+  return result;
+}
+
+rcl_publisher_options_t
+rcl_publisher_get_default_options()
+{
+  static rcl_publisher_options_t default_options = {
+    .qos = rmw_qos_profile_default,
+  };
+  default_options.allocator = rcl_get_default_allocator();
+  return default_options;
+}
+
+rcl_ret_t
+rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    publisher->impl, "publisher is invalid", return RCL_RET_PUBLISHER_INVALID);
+  if (rmw_publish(publisher->impl->rmw_handle, ros_message) != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    return RCL_RET_ERROR;
+  }
+  return RCL_RET_OK;
+}
+
+const char *
+rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    publisher->impl, "publisher is invalid", return NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    publisher->impl->rmw_handle, "publisher is invalid", return NULL);
+  return publisher->impl->rmw_handle->topic_name;
+}
+
+const rcl_publisher_options_t *
+rcl_publisher_get_options(const rcl_publisher_t * publisher)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    publisher->impl, "publisher is invalid", return NULL);
+  return &publisher->impl->options;
+}
+
+rmw_publisher_t *
+rcl_publisher_get_rmw_publisher_handle(const rcl_publisher_t * publisher)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    publisher->impl, "publisher is invalid", return NULL);
+  return publisher->impl->rmw_handle;
+}
+
 #if __cplusplus
 }
 #endif

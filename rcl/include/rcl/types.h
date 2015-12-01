@@ -29,6 +29,7 @@ typedef rmw_ret_t rcl_ret_t;
 // rcl node specific ret codes in 2XX
 #define RCL_RET_NODE_INVALID 200
 // rcl publisher specific ret codes in 3XX
+#define RCL_RET_PUBLISHER_INVALID 300
 // rcl subscription specific ret codes in 4XX
 // rcl service client specific ret codes in 5XX
 // rcl service server specific ret codes in 6XX

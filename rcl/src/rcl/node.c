@@ -108,8 +108,8 @@ rcl_node_fini(rcl_node_t * node)
     return RCL_RET_OK;
   }
   rcl_ret_t result = RCL_RET_OK;
-  rmw_ret_t node_ret = rmw_destroy_node(node->impl->rmw_node_handle);
-  if (node_ret != RMW_RET_OK) {
+  rmw_ret_t ret = rmw_destroy_node(node->impl->rmw_node_handle);
+  if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
     result = RCL_RET_ERROR;
   }
