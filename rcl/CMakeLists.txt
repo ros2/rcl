@@ -5,9 +5,9 @@ project(rcl)
 find_package(ament_cmake REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rmw REQUIRED)
-find_package(rosidl_generator_cpp REQUIRED)
+find_package(rosidl_generator_c REQUIRED)
 
-ament_export_dependencies(rmw rosidl_generator_cpp)
+ament_export_dependencies(rmw rosidl_generator_c)
 ament_export_include_directories(include)
 
 include_directories(include)
@@ -30,7 +30,7 @@ add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_sources})
 ament_target_dependencies(${PROJECT_NAME}
   "rcl_interfaces"
   "rmw"
-  "rosidl_generator_cpp"
+  "rosidl_generator_c"
 )
 
 if(AMENT_ENABLE_TESTING)
