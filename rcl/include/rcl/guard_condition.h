@@ -141,7 +141,7 @@ rcl_trigger_guard_condition(const rcl_guard_condition_t * guard_condition);
  * \return rmw guard_condition handle if successful, otherwise NULL
  */
 rmw_guard_condition_t *
-rcl_guard_condition_get_rmw_guard_condition_handle(rcl_guard_condition_t * guard_condition);
+rcl_guard_condition_get_rmw_guard_condition_handle(const rcl_guard_condition_t * guard_condition);
 
 #if __cplusplus
 }

@@ -157,7 +157,7 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription)
 }
 
 const rcl_subscription_options_t *
-rcl_subscription_get_options(rcl_subscription_t * subscription)
+rcl_subscription_get_options(const rcl_subscription_t * subscription)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -166,7 +166,7 @@ rcl_subscription_get_options(rcl_subscription_t * subscription)
 }
 
 rmw_subscription_t *
-rcl_subscription_get_rmw_subscription_handle(rcl_subscription_t * subscription)
+rcl_subscription_get_rmw_subscription_handle(const rcl_subscription_t * subscription)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(

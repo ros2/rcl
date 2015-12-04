@@ -12,34 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__TIME_H_
-#define RCL__TIME_H_
-
 #if __cplusplus
 extern "C"
 {
 #endif
 
-#include "rmw/rmw.h"
-
-#define RCL_S_TO_NS(seconds) seconds * 1000000000
-#define RCL_MS_TO_NS(milliseconds) milliseconds * 1000000
-#define RCL_US_TO_NS(microseconds) microseconds * 1000
-
-#define RCL_NS_TO_S(nanoseconds) nanoseconds / 1000000000
-#define RCL_NS_TO_MS(nanoseconds) nanoseconds / 1000000
-#define RCL_NS_TO_US(nanoseconds) nanoseconds / 1000
-
-typedef rmw_time_t rcl_time_t;
+#include "rcl/time.h"
 
 rcl_time_t
-rcl_time_t_from_int64_t_nanoseconds(int64_t nanoseconds);
+rcl_time_t_from_int64_t_nanoseconds(int64_t nanoseconds)
+{
+  rcl_time_t result;
+  result.sec = RCL_NS_TO_S(nanoseconds);
+  result.nsec = nanoseconds % 1000000000;
+  return result;
+}
 
 rcl_time_t
-rcl_time_t_from_uint64_t_nanoseconds(uint64_t nanoseconds);
+rcl_time_t_from_uint64_t_nanoseconds(uint64_t nanoseconds)
+{
+  rcl_time_t result;
+  result.sec = RCL_NS_TO_S(nanoseconds);
+  result.nsec = nanoseconds % 1000000000;
+  return result;
+}
 
 #if __cplusplus
 }
 #endif
-
-#endif  // RCL__TIME_H_

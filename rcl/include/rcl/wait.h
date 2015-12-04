@@ -25,7 +25,6 @@ extern "C"
 
 #include "rcl/subscription.h"
 #include "rcl/guard_condition.h"
-#include "rcl/time.h"
 #include "rcl/types.h"
 
 struct rcl_wait_set_impl_t;
@@ -35,11 +34,9 @@ typedef struct rcl_wait_set_t {
   /// Storage for subscription pointers.
   const rcl_subscription_t ** subscriptions;
   size_t size_of_subscriptions;
-  size_t __current_subscription_offset;
   /// Storage for guard condition pointers.
   const rcl_guard_condition_t ** guard_conditions;
   size_t size_of_guard_conditions;
-  size_t __current_guard_condition_offset;
   /// Allocator for storage.
   rcl_allocator_t allocator;
   /// If set to true, actions like add_subscription will fail until cleared.
@@ -240,8 +237,7 @@ rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
  *     // ... error handling
  *     ret = rcl_wait_set_add_guard_condition(&wait_set, &gc1);
  *     // ... error handling
- *     rcl_time_t timeout = {1, 0};  // 1 second and 0 nanoseconds.
- *     ret = rcl_wait(&wait_set, &timeout);
+ *     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1000));  // 1000ms == 1s, passed as ns
  *     if (ret == RCL_RET_TIMEOUT) {
  *       continue;
  *     }
@@ -271,14 +267,14 @@ rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
  * Passing an uninitialized (zero initialized) wait set struct will fail.
  * Passing a wait set struct with uninitialized memory is undefined behavior.
  *
- * If the timeout pointer is NULL then this function will block indefinitely
- * until something in the wait set is valid or it is interrupted.
- * If the timeout contains 0 for seconds and nanoseconds this function will be
- * non-blocking; checking what's ready but not waiting if nothing is ready yet.
- * If the timeout contains a non-zero time then this function will return after
- * that period of time has elapsed if something in the wait set does not become
- * ready before then.
- * The timeout's value is not changed.
+ * The unit of timeout is nanoseconds.
+ * If the timeout is negative then this function will block indefinitely until
+ * something in the wait set is valid or it is interrupted.
+ * If the timeout is 0 then this function will be non-blocking; checking what's
+ * ready now, but not waiting if nothing is ready yet.
+ * If the timeout is greater than 0 then this function will return after
+ * that period of time has elapsed or the wait set becomes ready, which ever
+ * comes first.
  * Passing a timeout struct with uninitialized memory is undefined behavior.
  *
  * \TODO(wjwwood) this function should probably be thread-safe with itself but
@@ -288,16 +284,16 @@ rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
  * the given wait sets are not the same and non-overlapping in contents.
  *
  * \param[inout] wait_set the set of things to be waited on and to be pruned if not ready
- * \param[in] timeout the time duration to wait something in the wait set to be ready
+ * \param[in] timeout the duration to wait for the wait set to be ready, in nanoseconds
  * \return RCL_RET_OK something in the wait set became ready, or
- *         RCL_RET_TIMEOUT timeout expired before something was ready, or
- *         RCL_RET_NOT_INIT wait set is zero initialized, or
- *         RCL_RET_WAIT_SET_EMPTY wait set contains no items, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
+ *         RCL_RET_WAIT_SET_EMPTY if the wait set contains no items, or
+ *         RCL_RET_TIMEOUT if the timeout expired before something was ready, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
 rcl_ret_t
-rcl_wait(rcl_wait_set_t * wait_set, const rcl_time_t * timeout);
+rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
 
 #if __cplusplus
 }

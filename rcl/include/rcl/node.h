@@ -29,12 +29,6 @@ extern "C"
 struct rcl_node_impl_t;
 
 /// Handle for a ROS node.
-/* This handle can be in one a few stats, which are referred to below:
- * - uninitialized: memory allocated, but not initialized to anything
- * - invalid: memory allocated but not usable
- *   - either zero initialized or shutdown (rcl_fini() or rcl_node_fini())
- * - valid: memory allocated and usable
- */
 typedef struct rcl_node_t {
   /// Private implementation pointer.
   struct rcl_node_impl_t * impl;

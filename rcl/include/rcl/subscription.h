@@ -239,7 +239,7 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription);
  * \return options struct if successful, otherwise NULL
  */
 const rcl_subscription_options_t *
-rcl_subscription_get_options(rcl_subscription_t * subscription);
+rcl_subscription_get_options(const rcl_subscription_t * subscription);
 
 /// Return the rmw subscription handle.
 /* The handle returned is a pointer to the internally held rmw handle.
@@ -257,7 +257,7 @@ rcl_subscription_get_options(rcl_subscription_t * subscription);
  * \return rmw subscription handle if successful, otherwise NULL
  */
 rmw_subscription_t *
-rcl_subscription_get_rmw_subscription_handle(rcl_subscription_t * subscription);
+rcl_subscription_get_rmw_subscription_handle(const rcl_subscription_t * subscription);
 
 #if __cplusplus
 }

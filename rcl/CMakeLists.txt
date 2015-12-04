@@ -25,6 +25,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/rcl.c
   src/rcl/subscription.c
   src/rcl/wait.c
+  src/rcl/time.c
 )
 add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_sources})
 ament_target_dependencies(${PROJECT_NAME}
