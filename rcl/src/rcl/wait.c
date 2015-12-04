@@ -281,7 +281,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // Create dummy sets for currently unsupported wait-ables.
   static rmw_services_t dummy_services = {0, NULL};
   static rmw_clients_t dummy_clients = {0, NULL};
-  rmw_time_t rmw_timeout = rcl_time_t_from_int64_t_nanoseconds(timeout);
+  rmw_time_t rmw_timeout = rcl_time_from_int64_t_nanoseconds(timeout);
   // Wait.
   rmw_ret_t ret = rmw_wait(
     &wait_set->impl->rmw_subscriptions,
