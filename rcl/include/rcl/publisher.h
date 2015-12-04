@@ -84,8 +84,8 @@ rcl_get_zero_initialized_publisher();
  * format.
  *
  * The options struct allows the user to set the quality of service settings as
- * well as a custom allocator which is used when (de)initializing the publisher
- * to allocate space for incidental things, e.g. the topic name string.
+ * well as a custom allocator which is used when initializing/finalizing the
+ * publisher to allocate space for incidentals, e.g. the topic name string.
  *
  * Expected usage (for C messages):
  *
@@ -101,7 +101,7 @@ rcl_get_zero_initialized_publisher();
  *    rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
  *    rcl_publisher_options_t publisher_ops = rcl_publisher_get_default_options();
  *    ret = rcl_publisher_init(&publisher, &node, ts, "chatter", &publisher_ops);
- *    // ... error handling, and on shutdown do deinitialization:
+ *    // ... error handling, and on shutdown do finalization:
  *    ret = rcl_publisher_fini(&publisher, &node);
  *    // ... error handling for rcl_publisher_fini()
  *    ret = rcl_node_fini(&node);
@@ -117,8 +117,8 @@ rcl_get_zero_initialized_publisher();
  * \return RCL_RET_OK if the publisher was initialized successfully, or
  *         RCL_RET_NODE_INVALID if the node is invalid, or
  *         RCL_RET_ALREADY_INIT if the publisher is already initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
- *         RCL_RET_BAD_ALLOC if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_BAD_ALLOC if allocating memory fails, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
@@ -129,7 +129,7 @@ rcl_publisher_init(
   const char * topic_name,
   const rcl_publisher_options_t * options);
 
-/// Deinitialize a rcl_publisher_t.
+/// Finalize a rcl_publisher_t.
 /* After calling, the node will no longer be advertising that it is publishing
  * on this topic (assuming this is the only publisher on this topic).
  *
@@ -138,10 +138,10 @@ rcl_publisher_init(
  *
  * This function is not thread-safe.
  *
- * \param[inout] publisher handle to the publisher to be deinitialized
+ * \param[inout] publisher handle to the publisher to be finalized
  * \param[in] node handle to the node used to create the publisher
  * \return RCL_RET_OK if publisher was finalized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 rcl_ret_t
@@ -191,7 +191,7 @@ rcl_publisher_get_default_options();
  * \param[in] publisher handle to the publisher which will do the publishing
  * \param[in] ros_message type-erased pointer to the ROS message
  * \return RCL_RET_OK if the message was published successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_PUBLISHER_INVALID if the publisher is invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
