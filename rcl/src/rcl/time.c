@@ -57,6 +57,15 @@ rcl_time_from_uint64_t_nanoseconds(uint64_t nanoseconds)
   return result;
 }
 
+uint64_t
+rcl_time_to_uint64_t_nanoseconds(const rcl_time_t * rcl_time)
+{
+  if (!rcl_time) {
+    return 0;
+  }
+  return RCL_S_TO_NS(rcl_time->sec) + rcl_time->nsec;
+}
+
 static void
 __timespec_get_now(struct timespec * timespec_now)
 {

@@ -23,13 +23,13 @@ extern "C"
 #include "rcl/types.h"
 #include "rmw/rmw.h"
 
-#define RCL_S_TO_NS(seconds) seconds * 1000000000
-#define RCL_MS_TO_NS(milliseconds) milliseconds * 1000000
-#define RCL_US_TO_NS(microseconds) microseconds * 1000
+#define RCL_S_TO_NS(seconds) (seconds * 1000000000)
+#define RCL_MS_TO_NS(milliseconds) (milliseconds * 1000000)
+#define RCL_US_TO_NS(microseconds) (microseconds * 1000)
 
-#define RCL_NS_TO_S(nanoseconds) nanoseconds / 1000000000
-#define RCL_NS_TO_MS(nanoseconds) nanoseconds / 1000000
-#define RCL_NS_TO_US(nanoseconds) nanoseconds / 1000
+#define RCL_NS_TO_S(nanoseconds) (nanoseconds / 1000000000)
+#define RCL_NS_TO_MS(nanoseconds) (nanoseconds / 1000000)
+#define RCL_NS_TO_US(nanoseconds) (nanoseconds / 1000)
 
 typedef rmw_time_t rcl_time_t;
 
@@ -40,6 +40,11 @@ rcl_time_from_int64_t_nanoseconds(int64_t nanoseconds);
 /// Create a rcl_time_t struct with a given unsigned number of nanoseconds.
 rcl_time_t
 rcl_time_from_uint64_t_nanoseconds(uint64_t nanoseconds);
+
+/// Convert a rcl_time_t struct into an unsigned number of nanoseconds.
+/* This function will return 0 if the time argument is NULL. */
+uint64_t
+rcl_time_to_uint64_t_nanoseconds(const rcl_time_t * time);
 
 /// Retrieve the current time as a rcl_time_t struct.
 /* The now argument must point to an allocated rcl_time_t struct, as the
