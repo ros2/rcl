@@ -25,6 +25,7 @@ extern "C"
 
 #include "rcl/subscription.h"
 #include "rcl/guard_condition.h"
+#include "rcl/timer.h"
 #include "rcl/types.h"
 
 struct rcl_wait_set_impl_t;
@@ -37,10 +38,9 @@ typedef struct rcl_wait_set_t {
   /// Storage for guard condition pointers.
   const rcl_guard_condition_t ** guard_conditions;
   size_t size_of_guard_conditions;
-  /// Allocator for storage.
-  rcl_allocator_t allocator;
-  /// If set to true, actions like add_subscription will fail until cleared.
-  bool pruned;
+  /// Storage for timer pointers.
+  const rcl_timer_t ** timers;
+  size_t size_of_timers;
   /// Implementation specific storage.
   struct rcl_wait_set_impl_t * impl;
 } rcl_wait_set_t;
@@ -81,6 +81,7 @@ rcl_get_zero_initialized_wait_set();
  * \param[inout] wait_set the wait set struct to be initialized
  * \param[in] number_of_subscriptions non-zero size of the subscriptions set
  * \param[in] number_of_guard_conditions non-zero size of the guard conditions set
+ * \param[in] number_of_timers non-zero size of the timers set
  * \param[in] allocator the allocator to use when allocating space in the sets
  * \return RCL_RET_OK if the wait set is initialized successfully, or
  *         RCL_RET_ALREADY_INIT if the wait set is not zero initialized, or
@@ -93,6 +94,7 @@ rcl_wait_set_init(
   rcl_wait_set_t * wait_set,
   size_t number_of_subscriptions,
   size_t number_of_guard_conditions,
+  size_t number_of_timers,
   rcl_allocator_t allocator);
 
 /// Finalize a rcl wait set.
@@ -107,6 +109,7 @@ rcl_wait_set_init(
  * succeed.
  *
  * This function is not thread-safe.
+ * This function is lock-free.
  *
  * \param[inout] wait_set the wait set struct to be finalized.
  * \return RCL_RET_OK if the finalization was successful, or
@@ -116,11 +119,28 @@ rcl_wait_set_init(
 rcl_ret_t
 rcl_wait_set_fini(rcl_wait_set_t * wait_set);
 
+/// Retrieve the wait set's allocator.
+/* The allocator must be an allocated rcl_allocator_t struct, as the result is
+ * copied into this variable.
+ *
+ * This function is not thread-safe.
+ * This function is lock-free.
+ *
+ * \param[in] wait_set the handle to the wait set
+ * \param[out] allocator the rcl_allocator_t struct to which the result is copied
+ * \return RCL_RET_OK if the allocator was successfully retrieved, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+rcl_ret_t
+rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * allocator);
+
 /// Stores a pointer to the given subscription in the next empty spot in the set.
 /* This function does not guarantee that the subscription is not already in the
  * wait set.
  *
  * This function is not thread-safe.
+ * This function is lock-free.
  *
  * \param[inout] wait_set struct in which the subscription is to be stored
  * \param[in] subscription the subscription to be added to the wait set
@@ -142,6 +162,7 @@ rcl_wait_set_add_subscription(
  * Calling this on an uninitialized (zero initialized) wait set will fail.
  *
  * This function is not thread-safe.
+ * This function is lock-free.
  *
  * \param[inout] wait_set struct to have its subscriptions cleared
  * \return RCL_RET_OK if cleared successfully, or
@@ -196,12 +217,35 @@ rcl_wait_set_add_guard_condition(
 rcl_ret_t
 rcl_wait_set_clear_guard_conditions(rcl_wait_set_t * wait_set);
 
-/// Reallocates space for the subscriptions in the wait set.
+/// Reallocates space for the guard conditions in the wait set.
 /* This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_resize_subscriptions
  */
 rcl_ret_t
 rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
+
+/// Stores a pointer to the timer in the next empty spot in the set.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_add_subscription
+ */
+rcl_ret_t
+rcl_wait_set_add_timer(
+  rcl_wait_set_t * wait_set,
+  const rcl_timer_t * timer);
+
+/// Removes (sets to NULL) the timers in the wait set.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_clear_subscriptions
+ */
+rcl_ret_t
+rcl_wait_set_clear_timers(rcl_wait_set_t * wait_set);
+
+/// Reallocates space for the timers in the wait set.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_resize_subscriptions
+ */
+rcl_ret_t
+rcl_wait_set_resize_timers(rcl_wait_set_t * wait_set, size_t size);
 
 /// Block until the wait set is ready or until the timeout has been exceeded.
 /* This function will collect the items in the rcl_wait_set_t and pass them

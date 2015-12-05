@@ -122,6 +122,9 @@ rcl_timer_init(
  * This function is not thread-safe with any rcl_timer_* functions used on the
  * same timer object.
  *
+ * This function is not thread-safe.
+ * This function is lock-free.
+ *
  * \param[inout] timer the handle to the timer to be finalized.
  * \return RCL_RET_OK if the timer was finalized successfully, or
  *         RCL_RET_ERROR an unspecified error occur.
