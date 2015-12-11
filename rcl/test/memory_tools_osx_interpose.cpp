@@ -20,16 +20,17 @@
 // used an interposition table like the following:
 //
 
-typedef struct interpose_s {
+typedef struct interpose_s
+{
   void * new_func;
   void * orig_func;
 } interpose_t;
 
-#define OSX_INTERPOSE(newf,oldf) \
+#define OSX_INTERPOSE(newf, oldf) \
   __attribute__((used)) static const interpose_t \
-  macinterpose##newf##oldf __attribute__ ((section("__DATA, __interpose"))) = { \
-    (void *)newf, \
-    (void *)oldf, \
+  macinterpose ## newf ## oldf __attribute__ ((section("__DATA, __interpose"))) = { \
+    reinterpret_cast<void *>(newf), \
+    reinterpret_cast<void *>(oldf), \
   }
 
 // End Interpose.

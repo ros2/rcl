@@ -28,7 +28,8 @@ extern "C"
 
 #include "./common.h"
 
-typedef struct rcl_node_impl_t {
+typedef struct rcl_node_impl_t
+{
   rcl_node_options_t options;
   rmw_node_t * rmw_node_handle;
   uint64_t rcl_instance_id;
@@ -80,7 +81,7 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
     goto fail;
   }
   if (ros_domain_id) {
-    unsigned long number = strtoul(ros_domain_id, NULL, 0);
+    unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
     if (number == ULONG_MAX) {
       RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number");
       goto fail;

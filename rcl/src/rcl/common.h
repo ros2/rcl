@@ -27,8 +27,8 @@ extern "C"
   RCL_CHECK_FOR_NULL_WITH_MSG(argument, #argument " argument is null", return error_return_type)
 
 #define RCL_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement) if (!value) { \
-  RCL_SET_ERROR_MSG(msg); \
-  error_statement; \
+    RCL_SET_ERROR_MSG(msg); \
+    error_statement; \
 }
 
 // This value put in env_value is only valid until the next call to rcl_impl_getenv (on Windows).

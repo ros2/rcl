@@ -29,12 +29,14 @@ extern "C"
 struct rcl_node_impl_t;
 
 /// Handle for a ROS node.
-typedef struct rcl_node_t {
+typedef struct rcl_node_t
+{
   /// Private implementation pointer.
   struct rcl_node_impl_t * impl;
 } rcl_node_t;
 
-typedef struct rcl_node_options_t {
+typedef struct rcl_node_options_t
+{
   // bool anonymous_name;
   // rmw_qos_profile_t parameter_qos;
   /// If true, no parameter infrastructure will be setup.

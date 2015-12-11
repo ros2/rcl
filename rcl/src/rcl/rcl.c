@@ -65,7 +65,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   memset(__rcl_argv, 0, sizeof(char **) * argc);
   for (size_t i = 0; i < argc; ++i) {
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);
-    strcpy(__rcl_argv[i], argv[i]);
+    strcpy(__rcl_argv[i], argv[i]);  // NOLINT(runtime/printf)
   }
   atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
   if (atomic_load(&__rcl_instance_id) == 0) {

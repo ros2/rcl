@@ -41,7 +41,7 @@ if(AMENT_ENABLE_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  set(extra_test_libraries )
+  set(extra_test_libraries)
   ament_find_gtest()  # For GTEST_LIBRARIES
   if(APPLE)
     add_library(${PROJECT_NAME}_memory_tools_interpose SHARED test/memory_tools_osx_interpose.cpp)

@@ -31,7 +31,8 @@ extern "C"
 struct rcl_wait_set_impl_t;
 
 /// Container for subscription's, guard condition's, etc to be waited on.
-typedef struct rcl_wait_set_t {
+typedef struct rcl_wait_set_t
+{
   /// Storage for subscription pointers.
   const rcl_subscription_t ** subscriptions;
   size_t size_of_subscriptions;

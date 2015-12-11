@@ -155,7 +155,7 @@ rcl_system_time_point_now(rcl_system_time_point_t * now)
 #else
     start_li.QuadPart -= 116444736000000000ULL;
 #endif
-    start.sec = (uint64_t)(start_li.QuadPart / 10000000); // 100-ns units. odd.
+    start.sec = (uint64_t)(start_li.QuadPart / 10000000);  // 100-ns units. odd.
     start.nsec = (start_li.LowPart % 10000000) * 100;
     if (atomic_compare_exchange_strong(&start_ns, 0, RCL_S_TO_NS(start.sec) + start.nsec)) {
       // If it matched 0 this call was first to setup, set the cpu_freq and init_cpu_time globals.

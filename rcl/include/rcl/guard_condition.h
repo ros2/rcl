@@ -26,12 +26,14 @@ extern "C"
 struct rcl_guard_condition_impl_t;
 
 /// Handle for a rcl guard condition.
-typedef struct rcl_guard_condition_t {
+typedef struct rcl_guard_condition_t
+{
   struct rcl_guard_condition_impl_t * impl;
 } rcl_guard_condition_t;
 
 /// Options available for a rcl guard condition.
-typedef struct rcl_guard_condition_options_t {
+typedef struct rcl_guard_condition_options_t
+{
   /// Custom allocator for the guard condition, used for incidental allocations.
   /* For default behavior (malloc/free), use: rcl_get_default_allocator() */
   rcl_allocator_t allocator;

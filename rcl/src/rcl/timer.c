@@ -23,7 +23,8 @@ extern "C"
 
 #include "./common.h"
 
-typedef struct rcl_timer_impl_t {
+typedef struct rcl_timer_impl_t
+{
   // The user supplied callback.
   atomic_uintptr_t callback;
   // This is a duration in nanoseconds.

@@ -23,7 +23,8 @@ extern "C"
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
 
-typedef struct rcl_guard_condition_impl_t {
+typedef struct rcl_guard_condition_impl_t
+{
   rmw_guard_condition_t * rmw_handle;
   rcl_guard_condition_options_t options;
 } rcl_guard_condition_impl_t;

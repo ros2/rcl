@@ -42,7 +42,8 @@ extern "C"
  * The struct is capable of representing any time until the year 2554 with
  * nanosecond precisions.
  */
-typedef struct rcl_system_time_point_t {
+typedef struct rcl_system_time_point_t
+{
   uint64_t nanoseconds;
 } rcl_system_time_point_t;
 
@@ -56,7 +57,8 @@ typedef struct rcl_system_time_point_t {
  *
  * The struct represents time as nanoseconds in an unsigned 64-bit integer.
  */
-typedef struct rcl_steady_time_point_t {
+typedef struct rcl_steady_time_point_t
+{
   uint64_t nanoseconds;
 } rcl_steady_time_point_t;
 
@@ -64,7 +66,8 @@ typedef struct rcl_steady_time_point_t {
 /* The struct can represent any time within the range [~292 years, ~-292 years]
  * with nanosecond precision.
  */
-typedef struct rcl_duration_t {
+typedef struct rcl_duration_t
+{
   int64_t nanoseconds;
 } rcl_duration_t;
 

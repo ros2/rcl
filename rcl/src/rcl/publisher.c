@@ -24,7 +24,8 @@ extern "C"
 #include "./common.h"
 #include "rmw/rmw.h"
 
-typedef struct rcl_publisher_impl_t {
+typedef struct rcl_publisher_impl_t
+{
   rcl_publisher_options_t options;
   rmw_publisher_t * rmw_handle;
 } rcl_publisher_impl_t;

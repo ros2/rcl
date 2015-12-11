@@ -39,7 +39,8 @@ void set_on_unepexcted_malloc_callback(UnexpectedCallbackType callback)
     return;
   }
   if (!unexpected_malloc_callback) {
-    unexpected_malloc_callback = (UnexpectedCallbackType *)malloc(sizeof(UnexpectedCallbackType));
+    unexpected_malloc_callback =
+      reinterpret_cast<UnexpectedCallbackType *>(malloc(sizeof(UnexpectedCallbackType)));
     if (!unexpected_malloc_callback) {
       throw std::bad_alloc();
     }
@@ -51,7 +52,7 @@ void set_on_unepexcted_malloc_callback(UnexpectedCallbackType callback)
 void *
 custom_malloc(size_t size)
 {
-  if (!enabled.load()) return malloc(size);
+  if (!enabled.load()) {return malloc(size);}
   auto foo = SCOPE_EXIT(enabled.store(true););
   enabled.store(false);
   if (!malloc_expected) {
@@ -78,7 +79,8 @@ void set_on_unepexcted_realloc_callback(UnexpectedCallbackType callback)
     return;
   }
   if (!unexpected_realloc_callback) {
-    unexpected_realloc_callback = (UnexpectedCallbackType *)malloc(sizeof(UnexpectedCallbackType));
+    unexpected_realloc_callback =
+      reinterpret_cast<UnexpectedCallbackType *>(malloc(sizeof(UnexpectedCallbackType)));
     if (!unexpected_realloc_callback) {
       throw std::bad_alloc();
     }
@@ -90,7 +92,7 @@ void set_on_unepexcted_realloc_callback(UnexpectedCallbackType callback)
 void *
 custom_realloc(void * memory_in, size_t size)
 {
-  if (!enabled.load()) return realloc(memory_in, size);
+  if (!enabled.load()) {return realloc(memory_in, size);}
   auto foo = SCOPE_EXIT(enabled.store(true););
   enabled.store(false);
   if (!realloc_expected) {
@@ -118,7 +120,8 @@ void set_on_unepexcted_free_callback(UnexpectedCallbackType callback)
     return;
   }
   if (!unexpected_free_callback) {
-    unexpected_free_callback = (UnexpectedCallbackType *)malloc(sizeof(UnexpectedCallbackType));
+    unexpected_free_callback =
+      reinterpret_cast<UnexpectedCallbackType *>(malloc(sizeof(UnexpectedCallbackType)));
     if (!unexpected_free_callback) {
       throw std::bad_alloc();
     }
@@ -130,7 +133,7 @@ void set_on_unepexcted_free_callback(UnexpectedCallbackType callback)
 void
 custom_free(void * memory)
 {
-  if (!enabled.load()) return free(memory);
+  if (!enabled.load()) {return free(memory);}
   auto foo = SCOPE_EXIT(enabled.store(true););
   enabled.store(false);
   if (!free_expected) {

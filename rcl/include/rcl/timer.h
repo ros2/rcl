@@ -30,7 +30,8 @@ extern "C"
 struct rcl_timer_impl_t;
 
 /// Handle for a ROS timer.
-typedef struct rcl_timer_t {
+typedef struct rcl_timer_t
+{
   /// Private implementation pointer.
   struct rcl_timer_impl_t * impl;
 } rcl_timer_t;

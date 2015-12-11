@@ -18,7 +18,8 @@
 
 #include "../memory_tools.hpp"
 
-class TestAllocatorFixture : public ::testing::Test {
+class TestAllocatorFixture : public::testing::Test
+{
 public:
   TestAllocatorFixture()
   {
@@ -47,17 +48,22 @@ public:
 
 /* Tests the default allocator.
  */
-TEST_F(TestAllocatorFixture, test_default_allocator_normal)
-{
+TEST_F(TestAllocatorFixture, test_default_allocator_normal) {
   ASSERT_NO_MALLOC(
     rcl_allocator_t allocator = rcl_get_default_allocator();
   )
   size_t mallocs = 0;
   size_t reallocs = 0;
   size_t frees = 0;
-  set_on_unepexcted_malloc_callback([&mallocs]() {mallocs++;});
-  set_on_unepexcted_realloc_callback([&reallocs]() {reallocs++;});
-  set_on_unepexcted_free_callback([&frees]() {frees++;});
+  set_on_unepexcted_malloc_callback([&mallocs]() {
+    mallocs++;
+  });
+  set_on_unepexcted_realloc_callback([&reallocs]() {
+    reallocs++;
+  });
+  set_on_unepexcted_free_callback([&frees]() {
+    frees++;
+  });
   assert_no_malloc_begin();
   assert_no_realloc_begin();
   assert_no_free_begin();

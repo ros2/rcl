@@ -28,12 +28,14 @@ extern "C"
 struct rcl_subscription_impl_t;
 
 /// Handle for a rcl subscription.
-typedef struct rcl_subscription_t {
+typedef struct rcl_subscription_t
+{
   struct rcl_subscription_impl_t * impl;
 } rcl_subscription_t;
 
 /// Options available for a rcl subscription.
-typedef struct rcl_subscription_options_t {
+typedef struct rcl_subscription_options_t
+{
   /// Middleware quality of service settings for the subscription.
   rmw_qos_profile_t qos;
   /// If true, messages published from within the same node are ignored.

@@ -21,7 +21,8 @@
 
 #include "../memory_tools.hpp"
 
-class TestTimeFixture : public ::testing::Test {
+class TestTimeFixture : public::testing::Test
+{
 public:
   void SetUp()
   {
@@ -45,8 +46,7 @@ public:
 
 /* Tests the rcl_system_time_point_now() function.
  */
-TEST_F(TestTimeFixture, test_rcl_system_time_point_now)
-{
+TEST_F(TestTimeFixture, test_rcl_system_time_point_now) {
   assert_no_realloc_begin();
   rcl_ret_t ret = RCL_RET_OK;
   // Check for invalid argument error condition (allowed to alloc).
@@ -78,8 +78,7 @@ TEST_F(TestTimeFixture, test_rcl_system_time_point_now)
 
 /* Tests the rcl_steady_time_point_now() function.
  */
-TEST_F(TestTimeFixture, test_rcl_steady_time_point_now)
-{
+TEST_F(TestTimeFixture, test_rcl_steady_time_point_now) {
   assert_no_realloc_begin();
   rcl_ret_t ret = RCL_RET_OK;
   // Check for invalid argument error condition (allowed to alloc).

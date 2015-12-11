@@ -24,12 +24,13 @@ extern "C"
 
 /// Encapsulation of an allocator.
 /* To use malloc, free, and realloc use rcl_get_default_allocator */
-typedef struct rcl_allocator_t {
+typedef struct rcl_allocator_t
+{
   /// Allocate memory, given a size and state structure.
   /* An error should be indicated by returning null. */
   void * (*allocate)(size_t size, void * state);
   /// Deallocate previously allocated memory, mimicking free().
-  void (*deallocate)(void * pointer, void * state);
+  void (* deallocate)(void * pointer, void * state);
   /// Reallocates if possible, otherwise it deallocates and allocates.
   /* If unsupported then do deallocate and then allocate.
    * This should behave as realloc is described, as opposed to reallocf, i.e.

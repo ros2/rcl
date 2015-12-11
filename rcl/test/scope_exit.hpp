@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TEST__SCOPE_EXIT_HPP_
-#define TEST__SCOPE_EXIT_HPP_
+#ifndef SCOPE_EXIT_HPP_
+#define SCOPE_EXIT_HPP_
 
 #include <functional>
 
@@ -37,4 +37,4 @@ make_scope_exit(Callable callable)
 
 #define SCOPE_EXIT(code) make_scope_exit([&]() {code; })
 
-#endif  // TEST__SCOPE_EXIT_HPP_
+#endif  // SCOPE_EXIT_HPP_
