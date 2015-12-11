@@ -21,67 +21,13 @@ extern "C"
 {
 #endif
 
-// Appropriate check accorind to:
-//   http://man7.org/linux/man-pages/man2/clock_gettime.2.html
-#define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
-
 #include "rcl/time.h"
 
-#include <math.h>
-#include <sys/time.h>
-#include <time.h>
-
-#if defined(__MACH__)
-#include <mach/clock.h>
-#include <mach/mach.h>
-#endif
-#if defined(WIN32)
 #include <stdatomic.h>
 #include <windows.h>
-#endif
 
 #include "./common.h"
 #include "rcl/error_handling.h"
-
-static void
-__timespec_get_now_system(struct timespec * timespec_now)
-{
-#if defined(__MACH__)
-  // On OS X use clock_get_time.
-  clock_serv_t cclock;
-  mach_timespec_t mts;
-  host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-  clock_get_time(cclock, &mts);
-  mach_port_deallocate(mach_task_self(), cclock);
-  timespec_now->tv_sec = mts.tv_sec;
-  timespec_now->tv_nsec = mts.tv_nsec;
-#else  // if defined(__MACH__)
-  // Otherwise use clock_gettime.
-  clock_gettime(CLOCK_REALTIME, timespec_now);
-#endif  // if defined(__MACH__)
-}
-
-static void
-__timespec_get_now_monotonic(struct timespec * timespec_now)
-{
-#if defined(__MACH__)
-  // On OS X use clock_get_time.
-  clock_serv_t cclock;
-  mach_timespec_t mts;
-  host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
-  clock_get_time(cclock, &mts);
-  mach_port_deallocate(mach_task_self(), cclock);
-  timespec_now->tv_sec = mts.tv_sec;
-  timespec_now->tv_nsec = mts.tv_nsec;
-#else  // if defined(__MACH__)
-  // Otherwise use clock_gettime.
-#ifdef CLOCK_MONOTONIC_RAW
-  clock_gettime(CLOCK_MONOTONIC_RAW, timespec_now);
-#else
-  clock_gettime(CLOCK_MONOTONIC, timespec_now);
-#endif  // CLOCK_MONOTONIC_RAW
-#endif  // if defined(__MACH__)
-}
 
 #define __WOULD_BE_NEGATIVE(seconds, subseconds) (seconds < 0 || (subseconds < 0 && seconds == 0))
 
@@ -89,28 +35,6 @@ rcl_ret_t
 rcl_system_time_point_now(rcl_system_time_point_t * now)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
-#ifndef WIN32
-  // Unix implementations
-#if HAS_CLOCK_GETTIME || defined(__MACH__)
-  // If clock_gettime is available or on OS X, use a timespec.
-  struct timespec timespec_now;
-  __timespec_get_now_system(&timespec_now);
-  if (__WOULD_BE_NEGATIVE(timespec_now.tv_sec, timespec_now.tv_nsec)) {
-    RCL_SET_ERROR_MSG("unexpected negative time");
-    return RCL_RET_ERROR;
-  }
-  now->nanoseconds = RCL_S_TO_NS(timespec_now.tv_sec) + timespec_now.tv_nsec;
-#else  // if HAS_CLOCK_GETTIME || defined(__MACH__)
-  // Otherwise we have to fallback to gettimeofday.
-  struct timeval timeofday;
-  gettimeofday(&timeofday, NULL);
-  if (__WOULD_BE_NEGATIVE(timeofday.tv_sec, timeofday.tv_usec)) {
-    RCL_SET_ERROR_MSG("unexpected negative time");
-    return RCL_RET_ERROR;
-  }
-  now->nanoseconds = RCL_S_TO_NS(timeofday.tv_sec) + timeofday.tv_usec * 1000;
-#endif  // if HAS_CLOCK_GETTIME || defined(__MACH__)
-#else
   /* Windows implementation adapted from roscpp_core (3-clause BSD), see:
    *   https://github.com/ros/roscpp_core/blob/0.5.6/rostime/src/time.cpp#L96
    *
@@ -185,7 +109,6 @@ rcl_system_time_point_now(rcl_system_time_point_t * now)
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
-#endif
   return RCL_RET_OK;
 }
 

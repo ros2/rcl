@@ -28,7 +28,7 @@ static char __env_buffer[1024];
 rcl_ret_t
 rcl_impl_getenv(const char * env_name, char ** env_value)
 {
-  env_value = NULL;
+  *env_value = NULL;
 #if !defined(WIN32)
   *env_value = getenv(env_name);
 #else

@@ -28,9 +28,9 @@ public:
   }
   void SetUp()
   {
-    set_on_unepexcted_malloc_callback([]() {EXPECT_FALSE(true) << "unexpected malloc";});
-    set_on_unepexcted_realloc_callback([]() {EXPECT_FALSE(true) << "unexpected realloc";});
-    set_on_unepexcted_free_callback([]() {EXPECT_FALSE(true) << "unexpected free";});
+    set_on_unepexcted_malloc_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED MALLOC";});
+    set_on_unepexcted_realloc_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED REALLOC";});
+    set_on_unepexcted_free_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED FREE";});
     start_memory_checking();
   }
 

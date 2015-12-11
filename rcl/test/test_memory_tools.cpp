@@ -35,12 +35,14 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   });
   set_on_unepexcted_free_callback(on_unexpected_free);
   void * mem = nullptr;
+  void * remem = nullptr;
   // First try before enabling, should have no effect.
   mem = malloc(1024);
   ASSERT_NE(mem, nullptr);
-  mem = realloc(mem, 2048);
-  ASSERT_NE(mem, nullptr);
-  free(mem);
+  remem = realloc(mem, 2048);
+  ASSERT_NE(remem, nullptr);
+  if (!remem) {free(mem);}
+  free(remem);
   EXPECT_EQ(unexpected_mallocs, 0);
   EXPECT_EQ(unexpected_reallocs, 0);
   EXPECT_EQ(unexpected_frees, 0);
@@ -48,9 +50,10 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   start_memory_checking();
   mem = malloc(1024);
   ASSERT_NE(mem, nullptr);
-  mem = realloc(mem, 2048);
-  ASSERT_NE(mem, nullptr);
-  free(mem);
+  remem = realloc(mem, 2048);
+  ASSERT_NE(remem, nullptr);
+  if (!remem) {free(mem);}
+  free(remem);
   EXPECT_EQ(unexpected_mallocs, 0);
   EXPECT_EQ(unexpected_reallocs, 0);
   EXPECT_EQ(unexpected_frees, 0);
@@ -61,10 +64,11 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   mem = malloc(1024);
   assert_no_malloc_end();
   ASSERT_NE(mem, nullptr);
-  mem = realloc(mem, 2048);
+  remem = realloc(mem, 2048);
   assert_no_realloc_end();
-  ASSERT_NE(mem, nullptr);
-  free(mem);
+  ASSERT_NE(remem, nullptr);
+  if (!remem) {free(mem);}
+  free(remem);
   assert_no_free_end();
   EXPECT_EQ(unexpected_mallocs, 1);
   EXPECT_EQ(unexpected_reallocs, 1);
@@ -74,9 +78,10 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   mem = malloc(1024);
   assert_no_malloc_end();
   ASSERT_NE(mem, nullptr);
-  mem = realloc(mem, 2048);
-  ASSERT_NE(mem, nullptr);
-  free(mem);
+  remem = realloc(mem, 2048);
+  ASSERT_NE(remem, nullptr);
+  if (!remem) {free(mem);}
+  free(remem);
   EXPECT_EQ(unexpected_mallocs, 2);
   EXPECT_EQ(unexpected_reallocs, 1);
   EXPECT_EQ(unexpected_frees, 1);
@@ -84,10 +89,11 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   assert_no_realloc_begin();
   mem = malloc(1024);
   ASSERT_NE(mem, nullptr);
-  mem = realloc(mem, 2048);
+  remem = realloc(mem, 2048);
   assert_no_realloc_end();
-  ASSERT_NE(mem, nullptr);
-  free(mem);
+  ASSERT_NE(remem, nullptr);
+  if (!remem) {free(mem);}
+  free(remem);
   EXPECT_EQ(unexpected_mallocs, 2);
   EXPECT_EQ(unexpected_reallocs, 2);
   EXPECT_EQ(unexpected_frees, 1);
@@ -95,9 +101,10 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   assert_no_free_begin();
   mem = malloc(1024);
   ASSERT_NE(mem, nullptr);
-  mem = realloc(mem, 2048);
-  ASSERT_NE(mem, nullptr);
-  free(mem);
+  remem = realloc(mem, 2048);
+  ASSERT_NE(remem, nullptr);
+  if (!remem) {free(mem);}
+  free(remem);
   assert_no_free_end();
   EXPECT_EQ(unexpected_mallocs, 2);
   EXPECT_EQ(unexpected_reallocs, 2);
@@ -105,9 +112,10 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   // Go again, after disabling asserts, should have no effect.
   mem = malloc(1024);
   ASSERT_NE(mem, nullptr);
-  mem = realloc(mem, 2048);
-  ASSERT_NE(mem, nullptr);
-  free(mem);
+  remem = realloc(mem, 2048);
+  ASSERT_NE(remem, nullptr);
+  if (!remem) {free(mem);}
+  free(remem);
   EXPECT_EQ(unexpected_mallocs, 2);
   EXPECT_EQ(unexpected_reallocs, 2);
   EXPECT_EQ(unexpected_frees, 2);
@@ -115,9 +123,10 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   stop_memory_checking();
   mem = malloc(1024);
   ASSERT_NE(mem, nullptr);
-  mem = realloc(mem, 2048);
-  ASSERT_NE(mem, nullptr);
-  free(mem);
+  remem = realloc(mem, 2048);
+  ASSERT_NE(remem, nullptr);
+  if (!remem) {free(mem);}
+  free(remem);
   EXPECT_EQ(unexpected_mallocs, 2);
   EXPECT_EQ(unexpected_reallocs, 2);
   EXPECT_EQ(unexpected_frees, 2);
