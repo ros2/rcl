@@ -89,6 +89,22 @@ if(AMENT_ENABLE_TESTING)
     set_target_properties(test_time PROPERTIES COMPILE_FLAGS "-std=c++11")
     target_link_libraries(test_time ${PROJECT_NAME} ${extra_test_libraries})
   endif()
+
+  ament_add_gtest(test_common
+    test/rcl/test_common.cpp
+    ENV
+      DYLD_INSERT_LIBRARIES=$<TARGET_FILE:${PROJECT_NAME}_memory_tools_interpose>
+      EMPTY_TEST=
+      NORMAL_TEST=foo
+  )
+  if(TARGET test_common)
+    target_include_directories(test_common PUBLIC
+      ${rcl_interfaces_INCLUDE_DIRS}
+      ${rmw_INCLUDE_DIRS}
+    )
+    set_target_properties(test_common PROPERTIES COMPILE_FLAGS "-std=c++11")
+    target_link_libraries(test_common ${PROJECT_NAME} ${extra_test_libraries})
+  endif()
 endif()
 
 ament_package()

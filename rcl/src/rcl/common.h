@@ -31,9 +31,25 @@ extern "C"
     error_statement; \
 }
 
-// This value put in env_value is only valid until the next call to rcl_impl_getenv (on Windows).
+/// Retrieve the value of the given environment variable if it exists, or NULL.
+/* The returned char is only valid until the next time this function is called,
+ * because the returned char * is a direct pointer to the static storage.
+ * The returned value char * variable should never have free() called on it.
+ *
+ * Environment variable values will be truncated at 2048 characters on Windows.
+ *
+ * This function does not allocate heap memory, but the system calls might.
+ * This function is not thread-safe.
+ * This function is not lock-free.
+ *
+ * \param[in] env_name the name of the environment variable
+ * \param[out] env_value pointer to the value cstring
+ * \return RCL_RET_OK if the value is retrieved successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
 rcl_ret_t
-rcl_impl_getenv(const char * env_name, char ** env_value);
+rcl_impl_getenv(const char * env_name, const char ** env_value);
 
 #if __cplusplus
 }

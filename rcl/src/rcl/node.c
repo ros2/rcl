@@ -46,7 +46,7 @@ rcl_ret_t
 rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * options)
 {
   size_t domain_id = 0;
-  char * ros_domain_id;
+  const char * ros_domain_id;
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT);

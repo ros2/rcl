@@ -22,12 +22,15 @@ extern "C"
 #include <stdlib.h>
 
 #if defined(WIN32)
-static char __env_buffer[1024];
+#define WINDOWS_ENV_BUFFER_SIZE 2048
+static char __env_buffer[WINDOWS_ENV_BUFFER_SIZE];
 #endif
 
 rcl_ret_t
-rcl_impl_getenv(const char * env_name, char ** env_value)
+rcl_impl_getenv(const char * env_name, const char ** env_value)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(env_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(env_value, RCL_RET_INVALID_ARGUMENT);
   *env_value = NULL;
 #if !defined(WIN32)
   *env_value = getenv(env_name);
@@ -38,7 +41,8 @@ rcl_impl_getenv(const char * env_name, char ** env_value)
     RCL_SET_ERROR_MSG("value in env variable too large to read in");
     return RCL_RET_ERROR;
   }
-  env_value = __env_buffer;
+  __env_buffer[WINDOWS_ENV_BUFFER_SIZE - 1] = '\0';
+  *env_value = __env_buffer;
 #endif
   return RCL_RET_OK;
 }
