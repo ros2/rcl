@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifdef WIN32
 #ifndef WIN32
 #error time_win32.c is only intended to be used with win32 based systems
 #endif
@@ -33,6 +34,10 @@ extern "C"
 
 rcl_ret_t
 rcl_system_time_point_now(rcl_system_time_point_t * now)
+{
+
+}
+#if 0
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
   /* Windows implementation adapted from roscpp_core (3-clause BSD), see:
@@ -111,31 +116,18 @@ rcl_system_time_point_now(rcl_system_time_point_t * now)
   }
   return RCL_RET_OK;
 }
+#endif
 
 rcl_ret_t
 rcl_steady_time_point_now(rcl_steady_time_point_t * now)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
-#ifndef WIN32
-  // Unix implementations
-#if HAS_CLOCK_GETTIME || defined(__MACH__)
-  // If clock_gettime is available or on OS X, use a timespec.
-  struct timespec timespec_now;
-  __timespec_get_now_monotonic(&timespec_now);
-  if (__WOULD_BE_NEGATIVE(timespec_now.tv_sec, timespec_now.tv_nsec)) {
-    RCL_SET_ERROR_MSG("unexpected negative time");
-    return RCL_RET_ERROR;
-  }
-  now->nanoseconds = RCL_S_TO_NS(timespec_now.tv_sec) + timespec_now.tv_nsec;
-#else  // if HAS_CLOCK_GETTIME || defined(__MACH__)
-  // Cannot fallback to gettimeofday because it is not monotonic.
-#error No monotonic clock detected.
-#endif  // if HAS_CLOCK_GETTIME || defined(__MACH__)
-#else
-#endif
+  WINAPI ret = QueryPerformanceFrequency();
   return RCL_RET_OK;
 }
 
 #if __cplusplus
 }
+#endif
+
 #endif

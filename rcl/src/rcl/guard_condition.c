@@ -40,13 +40,12 @@ rcl_ret_t
 rcl_guard_condition_init(
   rcl_guard_condition_t * guard_condition,
   const rcl_node_t * node,
-  const rcl_guard_condition_options_t * options)
+  const rcl_guard_condition_options_t options)
 {
   // Perform argument validation.
   RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  const rcl_allocator_t * allocator = &options->allocator;
+  const rcl_allocator_t * allocator = &options.allocator;
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator->allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -77,7 +76,7 @@ rcl_guard_condition_init(
     return RCL_RET_ERROR;
   }
   // Copy options into impl.
-  guard_condition->impl->options = *options;
+  guard_condition->impl->options = options;
   return RCL_RET_OK;
 }
 

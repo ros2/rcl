@@ -20,11 +20,12 @@ extern "C"
 {
 #endif
 
+#include <stdint.h>
+
 #include "rcl/allocator.h"
 #include "rcl/types.h"
 
-// Intentional underflow to get max size_t.
-#define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID (size_t)-1
+#define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID SIZE_MAX
 
 struct rcl_node_impl_t;
 
@@ -51,15 +52,11 @@ typedef struct rcl_node_options_t
    *                 RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID? (currently max size_t)
    */
   size_t domain_id;
-  /// Custom allocator used for incidental allocations, e.g. node name string.
+  /// Custom allocator used for internal allocations.
   rcl_allocator_t allocator;
 } rcl_node_options_t;
 
 /// Return a rcl_node_t struct with members initialized to NULL.
-/* Should be called to get rcl_node_t before passing to rcl_node_init().
- * It's also possible to use calloc() instead of this if the rcl_node is being
- * allocated on the heap.
- */
 rcl_node_t
 rcl_get_zero_initialized_node();
 

@@ -23,16 +23,17 @@ extern "C"
 #include "rcl/types.h"
 
 /// Encapsulation of an allocator.
-/* To use malloc, free, and realloc use rcl_get_default_allocator */
+/* To use malloc, free, and realloc use rcl_get_default_allocator(). */
 typedef struct rcl_allocator_t
 {
   /// Allocate memory, given a size and state structure.
-  /* An error should be indicated by returning null. */
+  /* An error should be indicated by returning NULL. */
   void * (*allocate)(size_t size, void * state);
   /// Deallocate previously allocated memory, mimicking free().
   void (* deallocate)(void * pointer, void * state);
   /// Reallocates if possible, otherwise it deallocates and allocates.
   /* If unsupported then do deallocate and then allocate.
+   * \TODO(wjwwood): should this behave as reallocf?
    * This should behave as realloc is described, as opposed to reallocf, i.e.
    * the memory given by pointer will not be free'd automatically if realloc
    * fails.
@@ -40,12 +41,12 @@ typedef struct rcl_allocator_t
    */
   void * (*reallocate)(void * pointer, size_t size, void * state);
   /// Implementation defined state storage.
-  /* This is passed as the second parameter to the (de)allocate functions. */
+  /* This is passed as the second parameter to other allocator functions. */
   void * state;
 } rcl_allocator_t;
 
 /// Return a properly initialized rcl_allocator_t with default values.
-/* This function does not allocate memory.
+/* This function does not allocate heap memory.
  * This function is thread-safe.
  * This function is lock-free.
  */
