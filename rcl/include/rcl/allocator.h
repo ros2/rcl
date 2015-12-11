@@ -23,7 +23,7 @@ extern "C"
 #include "rcl/types.h"
 
 /// Encapsulation of an allocator.
-/* NULL for allocate implies that the system should use malloc and free. */
+/* To use malloc, free, and realloc use rcl_get_default_allocator */
 typedef struct rcl_allocator_t {
   /// Allocate memory, given a size and state structure.
   /* An error should be indicated by returning null. */
@@ -44,7 +44,10 @@ typedef struct rcl_allocator_t {
 } rcl_allocator_t;
 
 /// Return a properly initialized rcl_allocator_t with default values.
-/* This function does not allocate memory. */
+/* This function does not allocate memory.
+ * This function is thread-safe.
+ * This function is lock-free.
+ */
 rcl_allocator_t
 rcl_get_default_allocator();
 

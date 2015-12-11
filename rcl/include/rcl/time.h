@@ -21,7 +21,6 @@ extern "C"
 #endif
 
 #include "rcl/types.h"
-#include "rmw/rmw.h"
 
 #define RCL_S_TO_NS(seconds) (seconds * 1000000000)
 #define RCL_MS_TO_NS(milliseconds) (milliseconds * 1000000)
@@ -31,55 +30,89 @@ extern "C"
 #define RCL_NS_TO_MS(nanoseconds) (nanoseconds / 1000000)
 #define RCL_NS_TO_US(nanoseconds) (nanoseconds / 1000)
 
-typedef rmw_time_t rcl_time_t;
-
-/// Create a rcl_time_t struct with a given signed number of nanoseconds.
-rcl_time_t
-rcl_time_from_int64_t_nanoseconds(int64_t nanoseconds);
-
-/// Create a rcl_time_t struct with a given unsigned number of nanoseconds.
-rcl_time_t
-rcl_time_from_uint64_t_nanoseconds(uint64_t nanoseconds);
-
-/// Convert a rcl_time_t struct into an unsigned number of nanoseconds.
-/* This function will return 0 if the time argument is NULL. */
-uint64_t
-rcl_time_to_uint64_t_nanoseconds(const rcl_time_t * time);
-
-/// Retrieve the current time as a rcl_time_t struct.
-/* The now argument must point to an allocated rcl_time_t struct, as the
- * result is copied into this variable.
+/// Struct which encapsulates a point in time according to a system clock.
+/* The system clock's point of reference is the Unix Epoch (January 1st, 1970).
+ * See: http://stackoverflow.com/a/32189845/671658
+ * Therefore all times in this struct are positive and count the nanoseconds
+ * since the Unix epoch and this struct cannot be used on systems which report
+ * a current time before the Unix Epoch.
+ * Leap seconds are not considered.
  *
+ * The struct represents time as nanoseconds in an unsigned 64-bit integer.
+ * The struct is capable of representing any time until the year 2554 with
+ * nanosecond precisions.
+ */
+typedef struct rcl_system_time_point_t {
+  uint64_t nanoseconds;
+} rcl_system_time_point_t;
+
+/// Struct which encapsulates a point in time according to a steady clock.
+/* The steady clock's point of reference is system defined, but often the time
+ * that the process started plus a signed random offset.
+ * See: http://stackoverflow.com/a/32189845/671658
+ * However, the clock is guaranteed to be monotonically increasing.
+ * Therefore all times in this struct are positive and count nanoseconds
+ * since an unspecified, but constant point in time.
+ *
+ * The struct represents time as nanoseconds in an unsigned 64-bit integer.
+ */
+typedef struct rcl_steady_time_point_t {
+  uint64_t nanoseconds;
+} rcl_steady_time_point_t;
+
+/// Struct which encapsulates a duration of time between two points in time.
+/* The struct can represent any time within the range [~292 years, ~-292 years]
+ * with nanosecond precision.
+ */
+typedef struct rcl_duration_t {
+  int64_t nanoseconds;
+} rcl_duration_t;
+
+/// Retrieve the current time as a rcl_system_time_point_t struct.
+/* This function returns the time from a system clock.
+ * The closest equivalent would be to std::chrono::system_clock::now();
+ *
+ * The resolution (e.g. nanoseconds vs microseconds) is not guaranteed.
+ *
+ * The now argument must point to an allocated rcl_system_time_point_t struct,
+ * as the result is copied into this variable.
+ *
+ * This function may allocate heap memory when an error occurs.
  * This function is thread-safe.
  * This function is lock-free, with an exception on Windows.
  * On Windows this is lock-free if the C11's stdatomic.h function
  * atomic_is_lock_free() returns true for atomic_int_least64_t.
  *
- * \param[out] now a rcl_time_t struct in which the current time is stored
+ * \param[out] now a struct in which the current time is stored
  * \return RCL_RET_OK if the current time was successfully obtained, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
 rcl_ret_t
-rcl_time_now(rcl_time_t * now);
+rcl_system_time_point_now(rcl_system_time_point_t * now);
 
-/// Normalize a time struct.
-/* If there are more than 10^9 nanoseconds in the nsec field, the extra seconds
- * are removed from the nsec field and added to the sec field.
- * Overflow of the sec field due to this normalization is ignored.
+/// Retrieve the current time as a rcl_steady_time_point_t struct.
+/* This function returns the time from a monotonically increasing clock.
+ * The closest equivalent would be to std::chrono::steady_clock::now();
  *
+ * The resolution (e.g. nanoseconds vs microseconds) is not guaranteed.
+ *
+ * The now argument must point to an allocated rcl_steady_time_point_t struct,
+ * as the result is copied into this variable.
+ *
+ * This function may allocate heap memory when an error occurs.
  * This function is thread-safe.
  * This function is lock-free, with an exception on Windows.
  * On Windows this is lock-free if the C11's stdatomic.h function
  * atomic_is_lock_free() returns true for atomic_int_least64_t.
  *
- * \param[out] now a rcl_time_t struct to be normalized
- * \return RCL_RET_OK if the struct was normalized successfully, or
+ * \param[out] now a struct in which the current time is stored
+ * \return RCL_RET_OK if the current time was successfully obtained, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
 rcl_ret_t
-rcl_time_normalize(rcl_time_t * now);
+rcl_steady_time_point_now(rcl_steady_time_point_t * now);
 
 #if __cplusplus
 }

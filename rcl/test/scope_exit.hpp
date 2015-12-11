@@ -12,8 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef WIN32
-#include "./time_win32.c"
-#else
-#include "./time_unix.c"
-#endif
+#ifndef TEST__SCOPE_EXIT_HPP_
+#define TEST__SCOPE_EXIT_HPP_
+
+#include <functional>
+
+template<typename Callable>
+struct ScopeExit
+{
+  explicit ScopeExit(Callable callable)
+  : callable_(callable) {}
+  ~ScopeExit() {callable_(); }
+
+private:
+  Callable callable_;
+};
+
+template<typename Callable>
+ScopeExit<Callable>
+make_scope_exit(Callable callable)
+{
+  return ScopeExit<Callable>(callable);
+}
+
+#define SCOPE_EXIT(code) make_scope_exit([&]() {code; })
+
+#endif  // TEST__SCOPE_EXIT_HPP_

@@ -355,31 +355,49 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // Create dummy sets for currently unsupported wait-ables.
   static rmw_services_t dummy_services = {0, NULL};
   static rmw_clients_t dummy_clients = {0, NULL};
-  // Calculate the timeout.
-  int64_t min_timeout = timeout;
-  if (min_timeout == 0) {  // Do not consider timer timeouts if non-blocking.
-    for (size_t i = 0; i < wait_set->size_of_timers; ++i) {
-      if (!wait_set->timers[i]) {
-        continue;  // Skip NULL timers.
-      }
-      int64_t timer_timeout;
-      rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
-      if (ret != RCL_RET_OK) {
-        return ret;  // The rcl error state should already be set.
-      }
-      if (timer_timeout < min_timeout) {
-        min_timeout = timer_timeout;
+  // Calculate the timeout argument.
+  rmw_time_t * timeout_argument;
+  rmw_time_t temporary_timeout_storage;
+  if (timeout < 0) {
+    // Pass NULL to wait to indicate block indefinitely.
+    timeout_argument = NULL;
+  }
+  if (timeout > 0) {
+    // Determine the nearest timeout (given or a timer).
+    uint64_t min_timeout = timeout;
+    if (min_timeout > 0) {  // Do not consider timer timeouts if non-blocking.
+      for (size_t i = 0; i < wait_set->size_of_timers; ++i) {
+        if (!wait_set->timers[i]) {
+          continue;  // Skip NULL timers.
+        }
+        int64_t timer_timeout;
+        rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
+        if (ret != RCL_RET_OK) {
+          return ret;  // The rcl error state should already be set.
+        }
+        if (timer_timeout < min_timeout) {
+          min_timeout = timer_timeout;
+        }
       }
     }
+    // Set that in the temporary storage and point to that for the argument.
+    temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
+    temporary_timeout_storage.nsec = min_timeout % 1000000000;
+    timeout_argument = &temporary_timeout_storage;
   }
-  rmw_time_t rmw_timeout = rcl_time_from_int64_t_nanoseconds(min_timeout);
+  if (timeout == 0) {
+    // Then it is non-blocking, so set the temporary storage to 0, 0 and pass it.
+    temporary_timeout_storage.sec = 0;
+    temporary_timeout_storage.nsec = 0;
+    timeout_argument = &temporary_timeout_storage;
+  }
   // Wait.
   rmw_ret_t ret = rmw_wait(
     &wait_set->impl->rmw_subscriptions,
     &wait_set->impl->rmw_guard_conditions,
     &dummy_services,
     &dummy_clients,
-    &rmw_timeout
+    timeout_argument
   );
   // Check for error.
   if (ret != RMW_RET_OK) {
