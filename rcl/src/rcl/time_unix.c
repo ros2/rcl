@@ -40,28 +40,6 @@ extern "C"
 #error no monotonic clock function available
 #endif
 
-static void
-__timespec_get_now_steady(struct timespec * timespec_now)
-{
-#if defined(__MACH__)
-  // On OS X use clock_get_time.
-  clock_serv_t cclock;
-  mach_timespec_t mts;
-  host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
-  clock_get_time(cclock, &mts);
-  mach_port_deallocate(mach_task_self(), cclock);
-  timespec_now->tv_sec = mts.tv_sec;
-  timespec_now->tv_nsec = mts.tv_nsec;
-#else  // if defined(__MACH__)
-  // Otherwise use clock_gettime.
-#ifdef CLOCK_MONOTONIC_RAW
-  clock_gettime(CLOCK_MONOTONIC_RAW, timespec_now);
-#else
-  clock_gettime(CLOCK_MONOTONIC, timespec_now);
-#endif  // CLOCK_MONOTONIC_RAW
-#endif  // if defined(__MACH__)
-}
-
 #define __WOULD_BE_NEGATIVE(seconds, subseconds) (seconds < 0 || (subseconds < 0 && seconds == 0))
 
 rcl_ret_t
@@ -94,23 +72,30 @@ rcl_ret_t
 rcl_steady_time_point_now(rcl_steady_time_point_t * now)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
-#ifndef WIN32
-  // Unix implementations
-#if HAS_CLOCK_GETTIME || defined(__MACH__)
   // If clock_gettime is available or on OS X, use a timespec.
   struct timespec timespec_now;
-  __timespec_get_now_steady(&timespec_now);
+#if defined(__MACH__)
+  // On OS X use clock_get_time.
+  clock_serv_t cclock;
+  mach_timespec_t mts;
+  host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
+  clock_get_time(cclock, &mts);
+  mach_port_deallocate(mach_task_self(), cclock);
+  timespec_now.tv_sec = mts.tv_sec;
+  timespec_now.tv_nsec = mts.tv_nsec;
+#else
+  // Otherwise use clock_gettime.
+#ifdef CLOCK_MONOTONIC_RAW
+  clock_gettime(CLOCK_MONOTONIC_RAW, &timespec_now);
+#else
+  clock_gettime(CLOCK_MONOTONIC, &timespec_now);
+#endif  // CLOCK_MONOTONIC_RAW
+#endif  // if defined(__MACH__)
   if (__WOULD_BE_NEGATIVE(timespec_now.tv_sec, timespec_now.tv_nsec)) {
     RCL_SET_ERROR_MSG("unexpected negative time");
     return RCL_RET_ERROR;
   }
   now->nanoseconds = RCL_S_TO_NS(timespec_now.tv_sec) + timespec_now.tv_nsec;
-#else  // if HAS_CLOCK_GETTIME || defined(__MACH__)
-  // Cannot fallback to gettimeofday because it is not monotonic.
-#error No monotonic clock detected.
-#endif  // if HAS_CLOCK_GETTIME || defined(__MACH__)
-#else
-#endif
   return RCL_RET_OK;
 }
 
