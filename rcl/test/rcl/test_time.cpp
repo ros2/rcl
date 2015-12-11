@@ -72,7 +72,7 @@ TEST_F(TestTimeFixture, test_rcl_system_time_point_now)
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
     int64_t now_ns_int = now_ns.count();
     int64_t now_diff = now.nanoseconds - now_ns_int;
-    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(100)) << "system_clock differs";
+    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(1000)) << "system_clock differs";
   }
 }
 
@@ -105,6 +105,6 @@ TEST_F(TestTimeFixture, test_rcl_steady_time_point_now)
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
     int64_t now_ns_int = now_ns.count();
     int64_t now_diff = now.nanoseconds - now_ns_int;
-    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(100)) << "steady_clock differs";
+    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(1000)) << "steady_clock differs";
   }
 }
