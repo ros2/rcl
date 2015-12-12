@@ -28,7 +28,7 @@ static atomic_bool __rcl_is_initialized = ATOMIC_VAR_INIT(false);
 static rcl_allocator_t __rcl_allocator = {0};
 static int __rcl_argc = 0;
 static char ** __rcl_argv = NULL;
-static atomic_uint_fast64_t __rcl_instance_id = ATOMIC_VAR_INIT(0);
+static atomic_uint_least64_t __rcl_instance_id = ATOMIC_VAR_INIT(0);
 static uint64_t __rcl_next_unique_id = 0;
 
 static void
@@ -49,9 +49,7 @@ __clean_up_init()
 rcl_ret_t
 rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
 {
-  bool was_initialized;
-  rcl_atomic_exchange(&__rcl_is_initialized, was_initialized, true);
-  if (was_initialized) {
+  if (rcl_atomic_exchange_bool(&__rcl_is_initialized, true)) {
     RCL_SET_ERROR_MSG("rcl_init called while already initialized");
     return RCL_RET_ALREADY_INIT;
   }
@@ -66,7 +64,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   memset(__rcl_argv, 0, sizeof(char **) * argc);
   for (size_t i = 0; i < argc; ++i) {
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);
-    strcpy(__rcl_argv[i], argv[i]);  // NOLINT(runtime/printf)
+    memcpy(__rcl_argv[i], argv[i], strlen(argv[i]));
   }
   rcl_atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
   if (rcl_atomic_load_uint64_t(&__rcl_instance_id) == 0) {

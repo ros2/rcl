@@ -124,7 +124,7 @@ rcl_ret_t
 rcl_steady_time_point_now(rcl_steady_time_point_t * now)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
-  WINAPI ret = QueryPerformanceFrequency();
+  // WINAPI ret = QueryPerformanceFrequency();
   return RCL_RET_OK;
 }
 

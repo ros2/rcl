@@ -28,14 +28,25 @@
 
 #define rcl_atomic_store(object, desired) atomic_store(object, desired)
 
-#else
+#else  // !defined(WIN32)
 
-#endif
+#include "./stdatomic_helper/win32/stdatomic.h"
+
+#define rcl_atomic_load(object, out) rcl_win32_atomic_load(object, out)
+
+#define rcl_atomic_compare_exchange_strong(object, out, expected, desired) \
+  rcl_win32_atomic_compare_exchange_strong(object, out, expected, desired)
+
+#define rcl_atomic_exchange(object, out, desired) rcl_win32_atomic_exchange(object, out, desired)
+
+#define rcl_atomic_store(object, desired) rcl_win32_atomic_store(object, desired)
+
+#endif  // !defined(WIN32)
 
 static inline bool
 rcl_atomic_load_bool(atomic_bool * a_bool)
 {
-  bool result;
+  bool result = false;
   rcl_atomic_load(a_bool, result);
   return result;
 }
@@ -43,7 +54,7 @@ rcl_atomic_load_bool(atomic_bool * a_bool)
 static inline uint64_t
 rcl_atomic_load_uint64_t(atomic_uint_least64_t * a_uint64_t)
 {
-  uint64_t result;
+  uint64_t result = 0;
   rcl_atomic_load(a_uint64_t, result);
   return result;
 }
@@ -51,7 +62,7 @@ rcl_atomic_load_uint64_t(atomic_uint_least64_t * a_uint64_t)
 static inline uintptr_t
 rcl_atomic_load_uintptr_t(atomic_uintptr_t * a_uintptr_t)
 {
-  uintptr_t result;
+  uintptr_t result = 0;
   rcl_atomic_load(a_uintptr_t, result);
   return result;
 }
@@ -62,6 +73,14 @@ rcl_atomic_compare_exchange_strong_uint_least64_t(
 {
   bool result;
   rcl_atomic_compare_exchange_strong(a_uint_least64_t, result, expected, desired);
+  return result;
+}
+
+static inline bool
+rcl_atomic_exchange_bool(atomic_bool * a_bool, bool desired)
+{
+  bool result;
+  rcl_atomic_exchange(a_bool, result, desired);
   return result;
 }
 
