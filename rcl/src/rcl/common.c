@@ -36,7 +36,7 @@ rcl_impl_getenv(const char * env_name, const char ** env_value)
   *env_value = getenv(env_name);
 #else
   size_t required_size;
-  error_t ret = getenv_s(&required_size, __env_buffer, sizeof(__env_buffer), env_name);
+  errno_t ret = getenv_s(&required_size, __env_buffer, sizeof(__env_buffer), env_name);
   if (ret != 0) {
     RCL_SET_ERROR_MSG("value in env variable too large to read in");
     return RCL_RET_ERROR;

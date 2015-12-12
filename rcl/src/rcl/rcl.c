@@ -19,19 +19,23 @@ extern "C"
 
 #include "rcl/rcl.h"
 
+#ifndef WIN32
 #include <stdatomic.h>
+#else
+#include "./stdatomic/win32/stdatomic.h"
+#endif
 #include <string.h>
 
 #include "rcl/error_handling.h"
 
-static atomic_bool __rcl_is_initialized = false;
+static atomic_bool __rcl_is_initialized = ATOMIC_VAR_INIT(false);
 static rcl_allocator_t __rcl_allocator = {0};
 static int __rcl_argc = 0;
 static char ** __rcl_argv = NULL;
-static atomic_uint_fast64_t __rcl_instance_id = 0;
+static atomic_uint_fast64_t __rcl_instance_id = ATOMIC_VAR_INIT(0);
 static uint64_t __rcl_next_unique_id = 0;
 
-static inline void
+static void
 __clean_up_init()
 {
   if (__rcl_argv) {
