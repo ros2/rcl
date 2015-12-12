@@ -42,14 +42,15 @@ __clean_up_init()
     }
     __rcl_allocator.deallocate(__rcl_argv, __rcl_allocator.state);
   }
-  atomic_store(&__rcl_instance_id, 0);
-  atomic_store(&__rcl_is_initialized, false);
+  rcl_atomic_store(&__rcl_instance_id, 0);
+  rcl_atomic_store(&__rcl_is_initialized, false);
 }
 
 rcl_ret_t
 rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
 {
-  bool was_initialized = atomic_exchange(&__rcl_is_initialized, true);
+  bool was_initialized;
+  rcl_atomic_exchange(&__rcl_is_initialized, was_initialized, true);
   if (was_initialized) {
     RCL_SET_ERROR_MSG("rcl_init called while already initialized");
     return RCL_RET_ALREADY_INIT;
@@ -67,8 +68,8 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);
     strcpy(__rcl_argv[i], argv[i]);  // NOLINT(runtime/printf)
   }
-  atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
-  if (atomic_load(&__rcl_instance_id) == 0) {
+  rcl_atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
+  if (rcl_atomic_load_uint64_t(&__rcl_instance_id) == 0) {
     // Roll over occurred.
     __rcl_next_unique_id--;  // roll back to avoid the next call succeeding.
     RCL_SET_ERROR_MSG("unique rcl instance ids exhausted");
@@ -83,7 +84,7 @@ fail:
 rcl_ret_t
 rcl_shutdown()
 {
-  if (!atomic_load(&__rcl_is_initialized)) {
+  if (!rcl_ok()) {
     RCL_SET_ERROR_MSG("rcl_shutdown called before rcl_init");
     return RCL_RET_NOT_INIT;
   }
@@ -94,13 +95,13 @@ rcl_shutdown()
 uint64_t
 rcl_get_instance_id()
 {
-  return atomic_load(&__rcl_instance_id);
+  return rcl_atomic_load_uint64_t(&__rcl_instance_id);
 }
 
 bool
 rcl_ok()
 {
-  return atomic_load(&__rcl_is_initialized);
+  return rcl_atomic_load_bool(&__rcl_is_initialized);
 }
 
 #if __cplusplus

@@ -24,10 +24,10 @@ extern "C"
 
 #include "rcl/time.h"
 
-#include <stdatomic.h>
 #include <windows.h>
 
 #include "./common.h"
+#include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 
 #define __WOULD_BE_NEGATIVE(seconds, subseconds) (seconds < 0 || (subseconds < 0 && seconds == 0))
@@ -63,7 +63,7 @@ rcl_system_time_point_now(rcl_system_time_point_t * now)
   static atomic_uint_least64_t start_ns = ATOMIC_VAR_INIT(0);
   rcl_time_t start = {0, 0};
   // If start_ns (static/global) is 0, then set it up on the first call.
-  uint64_t start_ns_loaded = atomic_load(&start_ns);
+  uint64_t start_ns_loaded = rcl_atomic_load(&start_ns);
   if (start_ns_loaded == 0) {
     QueryPerformanceFrequency(&cpu_freq);
     if (cpu_freq.QuadPart == 0) {
@@ -86,7 +86,9 @@ rcl_system_time_point_now(rcl_system_time_point_t * now)
 #endif
     start.sec = (uint64_t)(start_li.QuadPart / 10000000);  // 100-ns units. odd.
     start.nsec = (start_li.LowPart % 10000000) * 100;
-    if (atomic_compare_exchange_strong(&start_ns, 0, RCL_S_TO_NS(start.sec) + start.nsec)) {
+    static uint64_t expected = 0;
+    uint64_t desired = RCL_S_TO_NS(start.sec) + start.nsec;
+    if (rcl_atomic_compare_exchange_strong_uint_least64_t(&start_ns, &expected, desired)) {
       // If it matched 0 this call was first to setup, set the cpu_freq and init_cpu_time globals.
       init_cpu_time_global = init_cpu_time;
       cpu_freq_global = cpu_freq;

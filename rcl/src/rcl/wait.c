@@ -20,14 +20,14 @@ extern "C"
 #include "rcl/wait.h"
 
 #include <assert.h>
-#include <stdatomic.h>
 #include <stdbool.h>
 #include <string.h>
 
+#include "./common.h"
+#include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 #include "rcl/time.h"
 #include "rmw/rmw.h"
-#include "./common.h"
 
 typedef struct rcl_wait_set_impl_t
 {

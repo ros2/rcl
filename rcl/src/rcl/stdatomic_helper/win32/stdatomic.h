@@ -1,3 +1,17 @@
+// Copyright 2015 Open Source Robotics Foundation, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /*
  * An implementation of C11 stdatomic.h for Win32, part borrowed from FreeBSD
  * (original copyright follows), with major modifications for
@@ -42,17 +56,17 @@
  * $FreeBSD: src/include/stdatomic.h,v 1.10.2.2 2012/05/30 19:21:54 theraven Exp $
  */
 
-#ifndef _STDATOMIC_H_
-#define _STDATOMIC_H_
+#if !defined(WIN32)
+#error "this stdatomic.h does not support your compiler"
+#endif
+
+#ifndef RCL__STDATOMIC_HELPER__WIN32__STDATOMIC_H_
+#define RCL__STDATOMIC_HELPER__WIN32__STDATOMIC_H_
 
 #include <Windows.h>
 
 #include <stddef.h>
 #include <stdint.h>
-
-#if !defined(WIN32)
-#error "this stdatomic.h does not support your compiler"
-#endif
 
 // In MSVC, correct alignment of each type is already ensured.
 #define _Atomic(T) struct { T __val; }
@@ -61,9 +75,9 @@
  * 7.17.2 Initialization.
  */
 
-#define ATOMIC_VAR_INIT(value) { .__val = (value) }
+#define ATOMIC_VAR_INIT(value) {.__val = (value)}
 #define atomic_init(obj, value) do { \
-  (obj)->__val = (value); \
+    (obj)->__val = (value); \
 } while (0)
 
 /*
@@ -98,7 +112,8 @@
  * atomic operations.
  */
 
-enum memory_order {
+enum memory_order
+{
   memory_order_relaxed = __ATOMIC_RELAXED,
   memory_order_consume = __ATOMIC_CONSUME,
   memory_order_acquire = __ATOMIC_ACQUIRE,
@@ -126,47 +141,47 @@ typedef enum memory_order memory_order;
  * 7.17.6 Atomic integer types.
  */
 
-typedef _Atomic(_Bool) atomic_bool;
-typedef _Atomic(char) atomic_char;
-typedef _Atomic(signed char) atomic_schar;
-typedef _Atomic(unsigned char) atomic_uchar;
-typedef _Atomic(short) atomic_short;
-typedef _Atomic(unsigned short) atomic_ushort;
-typedef _Atomic(int) atomic_int;
-typedef _Atomic(unsigned int) atomic_uint;
-typedef _Atomic(long) atomic_long;
-typedef _Atomic(unsigned long) atomic_ulong;
-typedef _Atomic(long long) atomic_llong;
-typedef _Atomic(unsigned long long) atomic_ullong;
+typedef _Atomic (_Bool) atomic_bool;
+typedef _Atomic (char) atomic_char;
+typedef _Atomic (signed char) atomic_schar;
+typedef _Atomic (unsigned char) atomic_uchar;
+typedef _Atomic (short) atomic_short;  // NOLINT
+typedef _Atomic (unsigned short) atomic_ushort;  // NOLINT
+typedef _Atomic (int) atomic_int;
+typedef _Atomic (unsigned int) atomic_uint;
+typedef _Atomic (long) atomic_long;  // NOLINT
+typedef _Atomic (unsigned long) atomic_ulong;  // NOLINT
+typedef _Atomic (long long) atomic_llong;  // NOLINT
+typedef _Atomic (unsigned long long) atomic_ullong;  // NOLINT
 #if 0
-typedef _Atomic(char16_t) atomic_char16_t;
-typedef _Atomic(char32_t) atomic_char32_t;
-typedef _Atomic(wchar_t) atomic_wchar_t;
-typedef _Atomic(int_least8_t) atomic_int_least8_t;
-typedef _Atomic(uint_least8_t) atomic_uint_least8_t;
+typedef _Atomic (char16_t) atomic_char16_t;
+typedef _Atomic (char32_t) atomic_char32_t;
+typedef _Atomic (wchar_t) atomic_wchar_t;
+typedef _Atomic (int_least8_t) atomic_int_least8_t;
+typedef _Atomic (uint_least8_t) atomic_uint_least8_t;
 #endif
-typedef _Atomic(int_least16_t) atomic_int_least16_t;
-typedef _Atomic(uint_least16_t) atomic_uint_least16_t;
-typedef _Atomic(int_least32_t) atomic_int_least32_t;
-typedef _Atomic(uint_least32_t) atomic_uint_least32_t;
-typedef _Atomic(int_least64_t) atomic_int_least64_t;
-typedef _Atomic(uint_least64_t) atomic_uint_least64_t;
+typedef _Atomic (int_least16_t) atomic_int_least16_t;
+typedef _Atomic (uint_least16_t) atomic_uint_least16_t;
+typedef _Atomic (int_least32_t) atomic_int_least32_t;
+typedef _Atomic (uint_least32_t) atomic_uint_least32_t;
+typedef _Atomic (int_least64_t) atomic_int_least64_t;
+typedef _Atomic (uint_least64_t) atomic_uint_least64_t;
 #if 0
-typedef _Atomic(int_fast8_t) atomic_int_fast8_t;
-typedef _Atomic(uint_fast8_t) atomic_uint_fast8_t;
+typedef _Atomic (int_fast8_t) atomic_int_fast8_t;
+typedef _Atomic (uint_fast8_t) atomic_uint_fast8_t;
 #endif
-typedef _Atomic(int_fast16_t) atomic_int_fast16_t;
-typedef _Atomic(uint_fast16_t) atomic_uint_fast16_t;
-typedef _Atomic(int_fast32_t) atomic_int_fast32_t;
-typedef _Atomic(uint_fast32_t) atomic_uint_fast32_t;
-typedef _Atomic(int_fast64_t) atomic_int_fast64_t;
-typedef _Atomic(uint_fast64_t) atomic_uint_fast64_t;
-typedef _Atomic(intptr_t) atomic_intptr_t;
-typedef _Atomic(uintptr_t) atomic_uintptr_t;
-typedef _Atomic(size_t) atomic_size_t;
-typedef _Atomic(ptrdiff_t) atomic_ptrdiff_t;
-typedef _Atomic(intmax_t) atomic_intmax_t;
-typedef _Atomic(uintmax_t) atomic_uintmax_t;
+typedef _Atomic (int_fast16_t) atomic_int_fast16_t;
+typedef _Atomic (uint_fast16_t) atomic_uint_fast16_t;
+typedef _Atomic (int_fast32_t) atomic_int_fast32_t;
+typedef _Atomic (uint_fast32_t) atomic_uint_fast32_t;
+typedef _Atomic (int_fast64_t) atomic_int_fast64_t;
+typedef _Atomic (uint_fast64_t) atomic_uint_fast64_t;
+typedef _Atomic (intptr_t) atomic_intptr_t;
+typedef _Atomic (uintptr_t) atomic_uintptr_t;
+typedef _Atomic (size_t) atomic_size_t;
+typedef _Atomic (ptrdiff_t) atomic_ptrdiff_t;
+typedef _Atomic (intmax_t) atomic_intmax_t;
+typedef _Atomic (uintmax_t) atomic_uintmax_t;
 
 /*
  * 7.17.7 Operations on atomic types. (pruned modified for Windows' crappy C compiler)
@@ -174,128 +189,128 @@ typedef _Atomic(uintmax_t) atomic_uintmax_t;
 
 #define rcl_win32_atomic_compare_exchange_strong(object, out, expected, desired) \
   do { \
-    switch(sizeof(object)) { \
-    case sizeof(uint64_t): \
-      out = _InterlockedCompareExchange64((LONGLONG *) object, desired, expected); \
-      break; \
-    case sizeof(uint32_t): \
-      out = _InterlockedCompareExchange((LONG *) object, desired, expected); \
-      break; \
-    case sizeof(uint16_t): \
-      out = _InterlockedCompareExchange16((SHORT *) object, desired, expected); \
-      break; \
-    default: \
-      break; \
-    }; \
-  } while(0)
+    switch (sizeof(object)) { \
+      case sizeof(uint64_t): \
+        out = _InterlockedCompareExchange64((LONGLONG *) object, desired, expected); \
+        break; \
+      case sizeof(uint32_t): \
+        out = _InterlockedCompareExchange((LONG *) object, desired, expected); \
+        break; \
+      case sizeof(uint16_t): \
+        out = _InterlockedCompareExchange16((SHORT *) object, desired, expected); \
+        break; \
+      default: \
+        break; \
+    } \
+  } while (0)
 
 #define rcl_win32_atomic_compare_exchange_weak(object, out, expected, desired) \
   rcl_win32_atomic_compare_exchange_strong(object, out, expected, desired)
 
 #define rcl_win32_atomic_exchange((object), out, desired) \
   do { \
-    switch(sizeof(object)) { \
-    case sizeof(uint64_t): \
-      out = _InterlockedExchange64((LONGLONG *) object, desired); \
-      break; \
-    case sizeof(uint32_t): \
-      out = _InterlockedExchange((LONG *) object, desired); \
-      break; \
-    case sizeof(uint16_t): \
-      out = _InterlockedExchange16((SHORT *) object, desired); \
-      break; \
-    default: \
-      break; \
-    }; \
-  } while(0)
+    switch (sizeof(object)) { \
+      case sizeof(uint64_t): \
+        out = _InterlockedExchange64((LONGLONG *) object, desired); \
+        break; \
+      case sizeof(uint32_t): \
+        out = _InterlockedExchange((LONG *) object, desired); \
+        break; \
+      case sizeof(uint16_t): \
+        out = _InterlockedExchange16((SHORT *) object, desired); \
+        break; \
+      default: \
+        break; \
+    } \
+  } while (0)
 
 #define rcl_win32_atomic_fetch_add(object, out, operand) \
   do { \
-    switch(sizeof(object)) { \
-    case sizeof(uint64_t): \
-      out = _InterlockedExchangeAdd64((LONGLONG *) object, operand); \
-      break; \
-    case sizeof(uint32_t): \
-      out = _InterlockedExchangeAdd((LONG *) object, operand); \
-      break; \
-    case sizeof(uint16_t): \
-      out = _InterlockedExchangeAdd16((SHORT *) object, operand); \
-      break; \
-    default: \
-      break; \
-    }; \
-  } while(0)
+    switch (sizeof(object)) { \
+      case sizeof(uint64_t): \
+        out = _InterlockedExchangeAdd64((LONGLONG *) object, operand); \
+        break; \
+      case sizeof(uint32_t): \
+        out = _InterlockedExchangeAdd((LONG *) object, operand); \
+        break; \
+      case sizeof(uint16_t): \
+        out = _InterlockedExchangeAdd16((SHORT *) object, operand); \
+        break; \
+      default: \
+        break; \
+    } \
+  } while (0)
 
 #define rcl_win32_atomic_fetch_and(object, out, operand) \
   do { \
-    switch(sizeof(object)) { \
-    case sizeof(uint64_t): \
-      out = _InterlockedAnd64((LONGLONG *) object, operand); \
-      break; \
-    case sizeof(uint32_t): \
-      out = _InterlockedAnd((LONG *) object, operand); \
-      break; \
-    case sizeof(uint16_t): \
-      out = _InterlockedAnd16((SHORT *) object, operand); \
-      break; \
-    default: \
-      break; \
-    }; \
-  } while(0)
+    switch (sizeof(object)) { \
+      case sizeof(uint64_t): \
+        out = _InterlockedAnd64((LONGLONG *) object, operand); \
+        break; \
+      case sizeof(uint32_t): \
+        out = _InterlockedAnd((LONG *) object, operand); \
+        break; \
+      case sizeof(uint16_t): \
+        out = _InterlockedAnd16((SHORT *) object, operand); \
+        break; \
+      default: \
+        break; \
+    } \
+  } while (0)
 
 #define rcl_win32_atomic_fetch_or(object, out, operand) \
   do { \
-    switch(sizeof(object)) { \
-    case sizeof(uint64_t): \
-      out = _InterlockedOr64((LONGLONG *) object, operand); \
-      break; \
-    case sizeof(uint32_t): \
-      out = _InterlockedOr((LONG *) object, operand); \
-      break; \
-    case sizeof(uint16_t): \
-      out = _InterlockedOr16((SHORT *) object, operand); \
-      break; \
-    default: \
-      break; \
-    }; \
-  } while(0)
+    switch (sizeof(object)) { \
+      case sizeof(uint64_t): \
+        out = _InterlockedOr64((LONGLONG *) object, operand); \
+        break; \
+      case sizeof(uint32_t): \
+        out = _InterlockedOr((LONG *) object, operand); \
+        break; \
+      case sizeof(uint16_t): \
+        out = _InterlockedOr16((SHORT *) object, operand); \
+        break; \
+      default: \
+        break; \
+    } \
+  } while (0)
 
 #define rcl_win32_atomic_fetch_sub(object, out, operand) \
   rcl_win32_atomic_fetch_add(object, out, -(operand))
 
 #define rcl_win32_atomic_fetch_xor(object, out, operand) \
   do { \
-    switch(sizeof(object)) { \
-    case sizeof(uint64_t): \
-      out = _InterlockedXor64((LONGLONG *) object, operand); \
-      break; \
-    case sizeof(uint32_t): \
-      out = _InterlockedXor((LONG *) object, operand); \
-      break; \
-    case sizeof(uint16_t): \
-      out = _InterlockedXor16((SHORT *) object, operand); \
-      break; \
-    default: \
-      break; \
-    }; \
-  } while(0)
+    switch (sizeof(object)) { \
+      case sizeof(uint64_t): \
+        out = _InterlockedXor64((LONGLONG *) object, operand); \
+        break; \
+      case sizeof(uint32_t): \
+        out = _InterlockedXor((LONG *) object, operand); \
+        break; \
+      case sizeof(uint16_t): \
+        out = _InterlockedXor16((SHORT *) object, operand); \
+        break; \
+      default: \
+        break; \
+    } \
+  } while (0)
 
 #define rcl_win32_atomic_load(object) \
   do { \
-    switch(sizeof(object)) { \
-    case sizeof(uint64_t): \
-      out = _InterlockedExchangeAdd64((LONGLONG *) object, 0); \
-      break; \
-    case sizeof(uint32_t): \
-      out = _InterlockedExchangeAdd((LONG *) object, 0); \
-      break; \
-    case sizeof(uint16_t): \
-      out = _InterlockedExchangeAdd16((SHORT *) object, 0); \
-      break; \
-    default: \
-      break; \
-    }; \
-  } while(0)
+    switch (sizeof(object)) { \
+      case sizeof(uint64_t): \
+        out = _InterlockedExchangeAdd64((LONGLONG *) object, 0); \
+        break; \
+      case sizeof(uint32_t): \
+        out = _InterlockedExchangeAdd((LONG *) object, 0); \
+        break; \
+      case sizeof(uint16_t): \
+        out = _InterlockedExchangeAdd16((SHORT *) object, 0); \
+        break; \
+      default: \
+        break; \
+    } \
+  } while (0)
 
 #define rcl_win32_atomic_store(object, desired) \
   do { \
@@ -322,4 +337,4 @@ typedef _Atomic(uintmax_t) atomic_uintmax_t;
 // #define atomic_flag_test_and_set(object) \
 //   atomic_flag_test_and_set_explicit(object, memory_order_seq_cst)
 
-#endif /* !_STDATOMIC_H_ */
+#endif  // RCL__STDATOMIC_HELPER__WIN32__STDATOMIC_H_

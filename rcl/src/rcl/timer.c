@@ -19,9 +19,8 @@ extern "C"
 
 #include "rcl/timer.h"
 
-#include <stdatomic.h>
-
 #include "./common.h"
+#include "./stdatomic_helper.h"
 
 typedef struct rcl_timer_impl_t
 {
@@ -97,7 +96,7 @@ rcl_timer_call(rcl_timer_t * timer)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  if (atomic_load(&timer->impl->canceled)) {
+  if (rcl_atomic_load_bool(&timer->impl->canceled)) {
     RCL_SET_ERROR_MSG("timer is canceled");
     return RCL_RET_TIMER_CANCELED;
   }
@@ -106,9 +105,11 @@ rcl_timer_call(rcl_timer_t * timer)
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
-  uint64_t previous_ns = atomic_exchange(&timer->impl->last_call_time, now_steady.nanoseconds);
+  uint64_t previous_ns =
+    rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now_steady.nanoseconds);
   uint64_t since_last_call = now_steady.nanoseconds - previous_ns;
-  rcl_timer_callback_t typed_callback = (rcl_timer_callback_t)atomic_load(&timer->impl->callback);
+  rcl_timer_callback_t typed_callback =
+    (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
   typed_callback(timer, since_last_call);
   return RCL_RET_OK;
 }
@@ -124,7 +125,7 @@ rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready)
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
-  *is_ready = (time_until_next_call <= 0) && !atomic_load(&timer->impl->canceled);
+  *is_ready = (time_until_next_call <= 0) && !rcl_atomic_load_bool(&timer->impl->canceled);
   return RCL_RET_OK;
 }
 
@@ -139,8 +140,9 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
-  uint64_t period = atomic_load(&timer->impl->period);
-  *time_until_next_call = (atomic_load(&timer->impl->last_call_time) + period) - now.nanoseconds;
+  uint64_t period = rcl_atomic_load_uint64_t(&timer->impl->period);
+  *time_until_next_call =
+    (rcl_atomic_load_uint64_t(&timer->impl->last_call_time) + period) - now.nanoseconds;
   return RCL_RET_OK;
 }
 
@@ -155,7 +157,8 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_si
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
-  *time_since_last_call = (now.nanoseconds - atomic_load(&timer->impl->last_call_time));
+  *time_since_last_call =
+    (now.nanoseconds - rcl_atomic_load_uint64_t(&timer->impl->last_call_time));
   return RCL_RET_OK;
 }
 
@@ -165,7 +168,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period)
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(period, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  *period = atomic_load(&timer->impl->period);
+  *period = rcl_atomic_load_uint64_t(&timer->impl->period);
   return RCL_RET_OK;
 }
 
@@ -175,7 +178,7 @@ rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  *old_period = atomic_exchange(&timer->impl->period, new_period);
+  *old_period = rcl_atomic_exchange_uint64_t(&timer->impl->period, new_period);
   return RCL_RET_OK;
 }
 
@@ -184,7 +187,7 @@ rcl_timer_get_callback(const rcl_timer_t * timer)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
-  return (rcl_timer_callback_t)atomic_load(&timer->impl->callback);
+  return (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
 }
 
 rcl_timer_callback_t
@@ -193,7 +196,8 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
   RCL_CHECK_ARGUMENT_FOR_NULL(new_callback, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
-  return (rcl_timer_callback_t)atomic_exchange(&timer->impl->callback, (uintptr_t)new_callback);
+  return (rcl_timer_callback_t)rcl_atomic_exchange_uintptr_t(
+    &timer->impl->callback, (uintptr_t)new_callback);
 }
 
 rcl_ret_t
@@ -201,7 +205,7 @@ rcl_timer_cancel(rcl_timer_t * timer)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  atomic_store(&timer->impl->canceled, true);
+  rcl_atomic_store(&timer->impl->canceled, true);
   return RCL_RET_OK;
 }
 
@@ -211,7 +215,7 @@ rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled)
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_canceled, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  *is_canceled = atomic_load(&timer->impl->canceled);
+  *is_canceled = rcl_atomic_load_bool(&timer->impl->canceled);
   return RCL_RET_OK;
 }
 
@@ -225,8 +229,8 @@ rcl_timer_reset(rcl_timer_t * timer)
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
-  atomic_store(&timer->impl->last_call_time, now.nanoseconds);
-  atomic_store(&timer->impl->canceled, false);
+  rcl_atomic_store(&timer->impl->last_call_time, now.nanoseconds);
+  rcl_atomic_store(&timer->impl->canceled, false);
   return RCL_RET_OK;
 }
 
