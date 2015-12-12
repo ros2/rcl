@@ -19,13 +19,9 @@ extern "C"
 
 #include "rcl/rcl.h"
 
-#ifndef WIN32
-#include <stdatomic.h>
-#else
-#include "./stdatomic/win32/stdatomic.h"
-#endif
 #include <string.h>
 
+#include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 
 static atomic_bool __rcl_is_initialized = ATOMIC_VAR_INIT(false);

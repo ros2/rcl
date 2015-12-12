@@ -17,7 +17,7 @@
 
 #if !defined(WIN32)
 
-
+// #include <stdatomic.h>
 
 #else
 
