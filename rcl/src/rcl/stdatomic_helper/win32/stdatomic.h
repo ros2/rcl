@@ -188,8 +188,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
  */
 
 #define rcl_win32_atomic_compare_exchange_strong(object, out, expected, desired) \
-  __pragma(warning( push )) \
-  __pragma(warning( disable : 4244 )) \
+  __pragma(warning(push)) \
+  __pragma(warning(disable: 4244)) \
   do { \
     switch (sizeof(object)) { \
       case sizeof(uint64_t): \
@@ -204,15 +204,15 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
       default: \
         break; \
     } \
-  } while (0) \
-  __pragma(warning( pop ))
+  } while (0); \
+  __pragma(warning(pop))
 
 #define rcl_win32_atomic_compare_exchange_weak(object, out, expected, desired) \
   rcl_win32_atomic_compare_exchange_strong(object, out, expected, desired)
 
 #define rcl_win32_atomic_exchange(object, out, desired) \
-  __pragma(warning( push )) \
-  __pragma(warning( disable : 4244 )) \
+  __pragma(warning(push)) \
+  __pragma(warning(disable: 4244)) \
   do { \
     switch (sizeof(object)) { \
       case sizeof(uint64_t): \
@@ -227,12 +227,12 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
       default: \
         break; \
     } \
-  } while (0) \
-  __pragma(warning( pop ))
+  } while (0); \
+  __pragma(warning(pop))
 
 #define rcl_win32_atomic_fetch_add(object, out, operand) \
-  __pragma(warning( push )) \
-  __pragma(warning( disable : 4244 )) \
+  __pragma(warning(push)) \
+  __pragma(warning(disable: 4244)) \
   do { \
     switch (sizeof(object)) { \
       case sizeof(uint64_t): \
@@ -247,12 +247,12 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
       default: \
         break; \
     } \
-  } while (0) \
-  __pragma(warning( pop ))
+  } while (0); \
+  __pragma(warning(pop))
 
 #define rcl_win32_atomic_fetch_and(object, out, operand) \
-  __pragma(warning( push )) \
-  __pragma(warning( disable : 4244 )) \
+  __pragma(warning(push)) \
+  __pragma(warning(disable: 4244)) \
   do { \
     switch (sizeof(object)) { \
       case sizeof(uint64_t): \
@@ -267,12 +267,12 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
       default: \
         break; \
     } \
-  } while (0) \
-  __pragma(warning( pop ))
+  } while (0); \
+  __pragma(warning(pop))
 
 #define rcl_win32_atomic_fetch_or(object, out, operand) \
-  __pragma(warning( push )) \
-  __pragma(warning( disable : 4244 )) \
+  __pragma(warning(push)) \
+  __pragma(warning(disable: 4244)) \
   do { \
     switch (sizeof(object)) { \
       case sizeof(uint64_t): \
@@ -287,15 +287,15 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
       default: \
         break; \
     } \
-  } while (0) \
-  __pragma(warning( pop ))
+  } while (0); \
+  __pragma(warning(pop))
 
 #define rcl_win32_atomic_fetch_sub(object, out, operand) \
   rcl_win32_atomic_fetch_add(object, out, -(operand))
 
 #define rcl_win32_atomic_fetch_xor(object, out, operand) \
-  __pragma(warning( push )) \
-  __pragma(warning( disable : 4244 )) \
+  __pragma(warning(push)) \
+  __pragma(warning(disable: 4244)) \
   do { \
     switch (sizeof(object)) { \
       case sizeof(uint64_t): \
@@ -310,12 +310,12 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
       default: \
         break; \
     } \
-  } while (0) \
-  __pragma(warning( pop ))
+  } while (0); \
+  __pragma(warning(pop))
 
 #define rcl_win32_atomic_load(object, out) \
-  __pragma(warning( push )) \
-  __pragma(warning( disable : 4244 )) \
+  __pragma(warning(push)) \
+  __pragma(warning(disable: 4244)) \
   do { \
     switch (sizeof(object)) { \
       case sizeof(uint64_t): \
@@ -330,8 +330,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
       default: \
         break; \
     } \
-  } while (0) \
-  __pragma(warning( pop ))
+  } while (0); \
+  __pragma(warning(pop))
 
 #define rcl_win32_atomic_store(object, desired) \
   do { \
