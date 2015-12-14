@@ -50,6 +50,7 @@ typedef struct rcl_timer_t
 typedef void (* rcl_timer_callback_t)(rcl_timer_t *, uint64_t);
 
 /// Return a zero initialized timer.
+RCL_PUBLIC
 rcl_timer_t
 rcl_get_zero_initialized_timer();
 
@@ -110,6 +111,7 @@ rcl_get_zero_initialized_timer();
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_init(
   rcl_timer_t * timer,
@@ -133,6 +135,7 @@ rcl_timer_init(
  * \return RCL_RET_OK if the timer was finalized successfully, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_fini(rcl_timer_t * timer);
 
@@ -165,6 +168,7 @@ rcl_timer_fini(rcl_timer_t * timer);
  *         RCL_RET_TIMER_CANCELED if the timer has been canceled, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_call(rcl_timer_t * timer);
 
@@ -188,6 +192,7 @@ rcl_timer_call(rcl_timer_t * timer);
  *         RCL_RET_TIMER_INVALID if the timer is invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready);
 
@@ -216,6 +221,7 @@ rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready);
  *         RCL_RET_TIMER_INVALID if the timer is invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_until_next_call);
 
@@ -241,6 +247,7 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
  *         RCL_RET_TIMER_INVALID if the timer is invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_since_last_call);
 
@@ -260,6 +267,7 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_si
  *         RCL_RET_TIMER_INVALID if the timer is invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
 
@@ -283,6 +291,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
  *         RCL_RET_TIMER_INVALID if the timer is invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64_t * old_period);
 
@@ -298,6 +307,7 @@ rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64
  * \param[in] timer handle to the timer from the callback should be returned
  * \return function pointer to the callback, or NULL if an error occurred
  */
+RCL_PUBLIC
 rcl_timer_callback_t
 rcl_timer_get_callback(const rcl_timer_t * timer);
 
@@ -315,6 +325,7 @@ rcl_timer_get_callback(const rcl_timer_t * timer);
  * \param[in] new_callback the callback to be exchanged into the timer
  * \return function pointer to the old callback, or NULL if an error occurred
  */
+RCL_PUBLIC
 rcl_timer_callback_t
 rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_callback);
 
@@ -335,6 +346,7 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
  *         RCL_RET_TIMER_INVALID if the timer is invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_cancel(rcl_timer_t * timer);
 
@@ -355,6 +367,7 @@ rcl_timer_cancel(rcl_timer_t * timer);
  *         RCL_RET_TIMER_INVALID if the timer is invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled);
 
@@ -373,6 +386,7 @@ rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled);
  *         RCL_RET_TIMER_INVALID if the timer is invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer);
 

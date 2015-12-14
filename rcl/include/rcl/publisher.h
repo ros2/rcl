@@ -23,6 +23,7 @@ extern "C"
 #include "rosidl_generator_c/message_type_support.h"
 
 #include "rcl/node.h"
+#include "rcl/visibility_control.h"
 
 /// Internal rcl publisher implementation struct.
 struct rcl_publisher_impl_t;
@@ -49,6 +50,7 @@ typedef struct rcl_publisher_options_t
  * It's also possible to use calloc() instead of this if the rcl_publisher is
  * being allocated on the heap.
  */
+RCL_PUBLIC
 rcl_publisher_t
 rcl_get_zero_initialized_publisher();
 
@@ -123,6 +125,7 @@ rcl_get_zero_initialized_publisher();
  *         RCL_RET_BAD_ALLOC if allocating memory fails, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_publisher_init(
   rcl_publisher_t * publisher,
@@ -146,10 +149,12 @@ rcl_publisher_init(
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node);
 
 /// Return the default publisher options in a rcl_publisher_options_t.
+RCL_PUBLIC
 rcl_publisher_options_t
 rcl_publisher_get_default_options();
 
@@ -197,6 +202,7 @@ rcl_publisher_get_default_options();
  *         RCL_RET_PUBLISHER_INVALID if the publisher is invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
 
@@ -216,6 +222,7 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
  * \param[in] publisher pointer to the publisher
  * \return name string if successful, otherwise NULL
  */
+RCL_PUBLIC
 const char *
 rcl_publisher_get_topic_name(const rcl_publisher_t * publisher);
 
@@ -235,6 +242,7 @@ rcl_publisher_get_topic_name(const rcl_publisher_t * publisher);
  * \param[in] publisher pointer to the publisher
  * \return options struct if successful, otherwise NULL
  */
+RCL_PUBLIC
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher);
 
@@ -258,6 +266,7 @@ rcl_publisher_get_options(const rcl_publisher_t * publisher);
  * \param[in] publisher pointer to the rcl publisher
  * \return rmw publisher handle if successful, otherwise NULL
  */
+RCL_PUBLIC
 rmw_publisher_t *
 rcl_publisher_get_rmw_publisher_handle(const rcl_publisher_t * publisher);
 

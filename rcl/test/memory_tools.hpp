@@ -19,35 +19,89 @@
 #ifndef MEMORY_TOOLS_HPP_
 #define MEMORY_TOOLS_HPP_
 
-#include <gtest/gtest.h>
 #include <stddef.h>
 
 #include <functional>
 
+// This logic was borrowed (then namespaced) from the examples on the gcc wiki:
+//     https://gcc.gnu.org/wiki/Visibility
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef __GNUC__
+    #define RCL_MEMORY_TOOLS_EXPORT __attribute__ ((dllexport))
+    #define RCL_MEMORY_TOOLS_IMPORT __attribute__ ((dllimport))
+  #else
+    #define RCL_MEMORY_TOOLS_EXPORT __declspec(dllexport)
+    #define RCL_MEMORY_TOOLS_IMPORT __declspec(dllimport)
+  #endif
+  #ifdef RCL_MEMORY_TOOLS_BUILDING_DLL
+    #define RCL_MEMORY_TOOLS_PUBLIC RCL_MEMORY_TOOLS_EXPORT
+  #else
+    #define RCL_MEMORY_TOOLS_PUBLIC RCL_MEMORY_TOOLS_IMPORT
+  #endif
+  #define RCL_MEMORY_TOOLS_PUBLIC_TYPE RCL_MEMORY_TOOLS_PUBLIC
+  #define RCL_MEMORY_TOOLS_LOCAL
+#else
+  #define RCL_MEMORY_TOOLS_EXPORT __attribute__ ((visibility("default")))
+  #define RCL_MEMORY_TOOLS_IMPORT
+  #if __GNUC__ >= 4
+    #define RCL_MEMORY_TOOLS_PUBLIC __attribute__ ((visibility("default")))
+    #define RCL_MEMORY_TOOLS_LOCAL  __attribute__ ((visibility("hidden")))
+  #else
+    #define RCL_MEMORY_TOOLS_PUBLIC
+    #define RCL_MEMORY_TOOLS_LOCAL
+  #endif
+  #define RCL_MEMORY_TOOLS_PUBLIC_TYPE
+#endif
+
 typedef std::function<void ()> UnexpectedCallbackType;
 
-void start_memory_checking();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+start_memory_checking();
 
 #define ASSERT_NO_MALLOC(statements) \
   assert_no_malloc_begin(); statements; assert_no_malloc_end();
-void assert_no_malloc_begin();
-void assert_no_malloc_end();
-void set_on_unepexcted_malloc_callback(UnexpectedCallbackType callback);
+RCL_MEMORY_TOOLS_PUBLIC
+void
+assert_no_malloc_begin();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+assert_no_malloc_end();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+set_on_unepexcted_malloc_callback(UnexpectedCallbackType callback);
 
 #define ASSERT_NO_REALLOC(statements) \
   assert_no_realloc_begin(); statements; assert_no_realloc_end();
-void assert_no_realloc_begin();
-void assert_no_realloc_end();
-void set_on_unepexcted_realloc_callback(UnexpectedCallbackType callback);
+RCL_MEMORY_TOOLS_PUBLIC
+void
+assert_no_realloc_begin();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+assert_no_realloc_end();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+set_on_unepexcted_realloc_callback(UnexpectedCallbackType callback);
 
 #define ASSERT_NO_FREE(statements) \
   assert_no_free_begin(); statements; assert_no_free_end();
-void assert_no_free_begin();
-void assert_no_free_end();
-void set_on_unepexcted_free_callback(UnexpectedCallbackType callback);
+RCL_MEMORY_TOOLS_PUBLIC
+void
+assert_no_free_begin();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+assert_no_free_end();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+set_on_unepexcted_free_callback(UnexpectedCallbackType callback);
 
-void stop_memory_checking();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+stop_memory_checking();
 
-void memory_checking_thread_init();
+RCL_MEMORY_TOOLS_PUBLIC
+void
+memory_checking_thread_init();
 
 #endif  // MEMORY_TOOLS_HPP_

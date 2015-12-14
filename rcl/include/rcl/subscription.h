@@ -23,6 +23,7 @@ extern "C"
 #include "rosidl_generator_c/message_type_support.h"
 
 #include "rcl/node.h"
+#include "rcl/visibility_control.h"
 
 /// Internal rcl implementation struct.
 struct rcl_subscription_impl_t;
@@ -51,6 +52,7 @@ typedef struct rcl_subscription_options_t
  * It's also possible to use calloc() instead of this if the rcl_subscription_t
  * is being allocated on the heap.
  */
+RCL_PUBLIC
 rcl_subscription_t
 rcl_get_zero_initialized_subscription();
 
@@ -124,6 +126,7 @@ rcl_get_zero_initialized_subscription();
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_subscription_init(
   rcl_subscription_t * subscription,
@@ -149,10 +152,12 @@ rcl_subscription_init(
  *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node);
 
 /// Return the default subscription options in a rcl_subscription_options_t.
+RCL_PUBLIC
 rcl_subscription_options_t
 rcl_subscription_get_default_options();
 
@@ -198,6 +203,7 @@ rcl_subscription_get_default_options();
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_take(
   const rcl_subscription_t * subscription,
@@ -221,6 +227,7 @@ rcl_take(
  * \param[in] subscription the pointer to the subscription
  * \return name string if successful, otherwise NULL
  */
+RCL_PUBLIC
 const char *
 rcl_subscription_get_topic_name(const rcl_subscription_t * subscription);
 
@@ -240,6 +247,7 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription);
  * \param[in] subscription pointer to the subscription
  * \return options struct if successful, otherwise NULL
  */
+RCL_PUBLIC
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription);
 
@@ -258,6 +266,7 @@ rcl_subscription_get_options(const rcl_subscription_t * subscription);
  * \param[in] subscription pointer to the rcl subscription
  * \return rmw subscription handle if successful, otherwise NULL
  */
+RCL_PUBLIC
 rmw_subscription_t *
 rcl_subscription_get_rmw_subscription_handle(const rcl_subscription_t * subscription);
 

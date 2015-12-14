@@ -40,6 +40,9 @@ macro(target)
   if(NOT WIN32)
     set_target_properties(${PROJECT_NAME}${target_suffix} PROPERTIES COMPILE_FLAGS "-std=c11")
   endif()
+  # Causes the visibility macros to use dllexport rather than dllimport,
+  # which is appropriate when building the dll but not consuming it.
+  target_compile_definitions(${PROJECT_NAME}${target_suffix} PRIVATE "RCL_BUILDING_LIBRARY")
 
   install(
     TARGETS ${PROJECT_NAME}${target_suffix}

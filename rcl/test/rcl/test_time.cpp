@@ -96,14 +96,14 @@ TEST_F(TestTimeFixture, test_rcl_steady_time_point_now) {
   stop_memory_checking();
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_NE(now.nanoseconds, 0);
-  // Compare to std::chrono::steady_clock time (within a second).
+  // Compare to std::chrono::steady_clock difference of two times (within a second).
   now = {0};
   ret = rcl_steady_time_point_now(&now);
-  {
-    std::chrono::steady_clock::time_point now_sc = std::chrono::steady_clock::now();
-    auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
-    int64_t now_ns_int = now_ns.count();
-    int64_t now_diff = now.nanoseconds - now_ns_int;
-    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(1000)) << "steady_clock differs";
-  }
+  std::chrono::steady_clock::time_point now_sc = std::chrono::steady_clock::now();
+  rcl_steady_time_point_t later;
+  ret = rcl_steady_time_point_now(&later);
+  std::chrono::steady_clock::time_point later_sc = std::chrono::steady_clock::now();
+  uint64_t steady_diff = later.nanoseconds - now.nanoseconds;
+  uint64_t sc_diff = (now_sc - later_sc).count();
+  EXPECT_LE(llabs(steady_diff - sc_diff), RCL_MS_TO_NS(1000)) << "steady_clock differs";
 }

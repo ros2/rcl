@@ -21,6 +21,7 @@ extern "C"
 #endif
 
 #include "rcl/types.h"
+#include "rcl/visibility_control.h"
 
 #define RCL_S_TO_NS(seconds) (seconds * 1000000000)
 #define RCL_MS_TO_NS(milliseconds) (milliseconds * 1000000)
@@ -91,6 +92,7 @@ typedef struct rcl_duration_t
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_system_time_point_now(rcl_system_time_point_t * now);
 
@@ -114,6 +116,7 @@ rcl_system_time_point_now(rcl_system_time_point_t * now);
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR an unspecified error occur.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_steady_time_point_now(rcl_steady_time_point_t * now);
 

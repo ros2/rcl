@@ -16,18 +16,22 @@ if(AMENT_ENABLE_TESTING)
     set_target_properties(${PROJECT_NAME}_memory_tools PROPERTIES COMPILE_FLAGS "-std=c++11")
   endif()
   target_link_libraries(${PROJECT_NAME}_memory_tools ${GTEST_LIBRARIES} ${extra_test_libraries})
+  target_compile_definitions(${PROJECT_NAME}_memory_tools
+    PRIVATE "RCL_MEMORY_TOOLS_BUILDING_DLL")
   list(APPEND extra_test_libraries ${PROJECT_NAME}_memory_tools)
 
-  ament_add_gtest(test_memory_tools test_memory_tools.cpp ENV ${extra_memory_tools_env})
-  if(TARGET test_memory_tools)
-    target_include_directories(test_memory_tools PUBLIC
-      ${rcl_interfaces_INCLUDE_DIRS}
-      ${rmw_INCLUDE_DIRS}
-    )
-    if(NOT WIN32)
-      set_target_properties(test_memory_tools PROPERTIES COMPILE_FLAGS "-std=c++11")
+  if(NOT WIN32)
+    ament_add_gtest(test_memory_tools test_memory_tools.cpp ENV ${extra_memory_tools_env})
+    if(TARGET test_memory_tools)
+      target_include_directories(test_memory_tools PUBLIC
+        ${rcl_interfaces_INCLUDE_DIRS}
+        ${rmw_INCLUDE_DIRS}
+      )
+      if(NOT WIN32)
+        set_target_properties(test_memory_tools PROPERTIES COMPILE_FLAGS "-std=c++11")
+      endif()
+      target_link_libraries(test_memory_tools ${PROJECT_NAME} ${extra_test_libraries})
     endif()
-    target_link_libraries(test_memory_tools ${PROJECT_NAME} ${extra_test_libraries})
   endif()
 
   ament_add_gtest(test_allocator rcl/test_allocator.cpp ENV ${extra_memory_tools_env})

@@ -24,6 +24,7 @@ extern "C"
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
 #include "rcl/types.h"
+#include "rcl/visibility_control.h"
 
 /// Global initialization of rcl.
 /* Unless otherwise noted, this must be called before using any rcl functions.
@@ -52,6 +53,7 @@ extern "C"
  *         RCL_RET_ALREADY_INIT if rcl_init has already been called, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
 
@@ -73,16 +75,19 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
  * \return RCL_RET_OK if shutdown is successful, otherwise RCL_RET_ERROR or
  *         RCL_RET_NOT_INIT if rcl_init has not yet been called
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_shutdown();
 
 /// Returns an uint64_t number that is unique for the latest rcl_init call.
 /* If called before rcl_init or after rcl_shutdown then 0 will be returned. */
+RCL_PUBLIC
 uint64_t
 rcl_get_instance_id();
 
 /// Return true until rcl_shutdown is called, then false.
 /* This function is thread safe. */
+RCL_PUBLIC
 bool
 rcl_ok();
 

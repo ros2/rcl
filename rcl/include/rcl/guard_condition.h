@@ -21,6 +21,7 @@ extern "C"
 #endif
 
 #include "rcl/node.h"
+#include "rcl/visibility_control.h"
 
 /// Internal rcl guard condition implementation struct.
 struct rcl_guard_condition_impl_t;
@@ -39,6 +40,7 @@ typedef struct rcl_guard_condition_options_t
 } rcl_guard_condition_options_t;
 
 /// Return a rcl_guard_condition_t struct with members set to NULL.
+RCL_PUBLIC
 rcl_guard_condition_t
 rcl_get_zero_initialized_guard_condition();
 
@@ -81,6 +83,7 @@ rcl_get_zero_initialized_guard_condition();
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_guard_condition_init(
   rcl_guard_condition_t * guard_condition,
@@ -102,6 +105,7 @@ rcl_guard_condition_init(
  *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition, rcl_node_t * node);
 
@@ -110,6 +114,7 @@ rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition, rcl_node_t * n
  * This function is thread-safe.
  * This function is lock-free.
  */
+RCL_PUBLIC
 rcl_guard_condition_options_t
 rcl_guard_condition_get_default_options();
 
@@ -130,6 +135,7 @@ rcl_guard_condition_get_default_options();
  *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_guard_condition_trigger(const rcl_guard_condition_t * guard_condition);
 
@@ -144,6 +150,7 @@ rcl_guard_condition_trigger(const rcl_guard_condition_t * guard_condition);
  * \param[in] guard_condition pointer to the rcl guard_condition
  * \return rmw guard_condition handle if successful, otherwise NULL
  */
+RCL_PUBLIC
 rmw_guard_condition_t *
 rcl_guard_condition_get_rmw_guard_condition_handle(const rcl_guard_condition_t * guard_condition);
 

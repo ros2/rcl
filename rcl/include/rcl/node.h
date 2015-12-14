@@ -24,6 +24,7 @@ extern "C"
 
 #include "rcl/allocator.h"
 #include "rcl/types.h"
+#include "rcl/visibility_control.h"
 
 #define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID SIZE_MAX
 
@@ -57,6 +58,7 @@ typedef struct rcl_node_options_t
 } rcl_node_options_t;
 
 /// Return a rcl_node_t struct with members initialized to NULL.
+RCL_PUBLIC
 rcl_node_t
 rcl_get_zero_initialized_node();
 
@@ -103,6 +105,7 @@ rcl_get_zero_initialized_node();
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * options);
 
@@ -120,10 +123,12 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
  *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_node_fini(rcl_node_t * node);
 
 /// Return the default node options in a rcl_node_options_t.
+RCL_PUBLIC
 rcl_node_options_t
 rcl_node_get_default_options();
 
@@ -140,6 +145,7 @@ rcl_node_get_default_options();
  * \param[in] node pointer to the node
  * \return name string if successful, otherwise NULL
  */
+RCL_PUBLIC
 const char *
 rcl_node_get_name(const rcl_node_t * node);
 
@@ -156,6 +162,7 @@ rcl_node_get_name(const rcl_node_t * node);
  * \param[in] node pointer to the node
  * \return options struct if successful, otherwise NULL
  */
+RCL_PUBLIC
 const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node);
 
@@ -177,6 +184,7 @@ rcl_node_get_options(const rcl_node_t * node);
  *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
 rcl_ret_t
 rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
 
@@ -193,6 +201,7 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
  * \param[in] node pointer to the rcl node
  * \return rmw node handle if successful, otherwise NULL
  */
+RCL_PUBLIC
 rmw_node_t *
 rcl_node_get_rmw_node_handle(const rcl_node_t * node);
 
@@ -211,6 +220,7 @@ rcl_node_get_rmw_node_handle(const rcl_node_t * node);
  * \param[in] node pointer to the rcl node
  * \return rcl instance id captured at node creation or 0 if there was an error
  */
+RCL_PUBLIC
 uint64_t
 rcl_node_get_rcl_instance_id(const rcl_node_t * node);
 

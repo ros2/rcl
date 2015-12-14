@@ -21,6 +21,7 @@ extern "C"
 #endif
 
 #include "rcl/types.h"
+#include "rcl/visibility_control.h"
 
 /// Encapsulation of an allocator.
 /* To use malloc, free, and realloc use rcl_get_default_allocator(). */
@@ -50,6 +51,7 @@ typedef struct rcl_allocator_t
  * This function is thread-safe.
  * This function is lock-free.
  */
+RCL_PUBLIC
 rcl_allocator_t
 rcl_get_default_allocator();
 

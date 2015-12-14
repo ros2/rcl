@@ -34,6 +34,9 @@ rcl_impl_getenv(const char * env_name, const char ** env_value)
   *env_value = NULL;
 #if !defined(WIN32)
   *env_value = getenv(env_name);
+  if (*env_value == NULL) {
+    *env_value = "";
+  }
 #else
   size_t required_size;
   errno_t ret = getenv_s(&required_size, __env_buffer, sizeof(__env_buffer), env_name);
