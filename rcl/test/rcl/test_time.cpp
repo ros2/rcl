@@ -103,7 +103,7 @@ TEST_F(TestTimeFixture, test_rcl_steady_time_point_now) {
   rcl_steady_time_point_t later;
   ret = rcl_steady_time_point_now(&later);
   std::chrono::steady_clock::time_point later_sc = std::chrono::steady_clock::now();
-  uint64_t steady_diff = later.nanoseconds - now.nanoseconds;
-  uint64_t sc_diff = (now_sc - later_sc).count();
+  int64_t steady_diff = later.nanoseconds - now.nanoseconds;
+  int64_t sc_diff = (now_sc - later_sc).count();
   EXPECT_LE(llabs(steady_diff - sc_diff), RCL_MS_TO_NS(1000)) << "steady_clock differs";
 }
