@@ -17,7 +17,15 @@
 
 #if !defined(WIN32)
 
+#if defined(__GNUC__) && __GNUC__ <= 4 && __GNUC_MINOR__ <= 9
+// If GCC and below GCC-4.9, use the compatability header.
+#include "stdatomic_helper/gcc/stdatomic.h"
+#elif defined(__clang__) && defined(__has_feature) && !__has_feature(c_atomic)
+// If Clang and no c_atomics (true for some older versions), use the compatability header.
+#include "stdatomic_helper/gcc/stdatomic.h"
+#else
 #include <stdatomic.h>
+#endif
 
 #define rcl_atomic_load(object, out) (out) = atomic_load(object)
 
