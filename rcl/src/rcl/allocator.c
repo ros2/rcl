@@ -27,7 +27,7 @@ static void
 __default_deallocate(void * pointer, void * state)
 {
   (void)state;  // unused
-  return free(pointer);
+  free(pointer);
 }
 
 static void *
