@@ -142,8 +142,8 @@ custom_free(void * memory)
       (*unexpected_free_callback)();
     }
   }
-  free(memory);
   MALLOC_PRINTF("free    expected(%s): %p\n", malloc_expected ? "true " : "false", memory);
+  free(memory);
 }
 
 void assert_no_malloc_begin() {malloc_expected = false;}

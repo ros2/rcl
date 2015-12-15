@@ -35,7 +35,8 @@ static void
 __clean_up_init()
 {
   if (__rcl_argv) {
-    for (size_t i = 0; i < __rcl_argc; ++i) {
+    size_t i;
+    for (i = 0; i < __rcl_argc; ++i) {
       if (__rcl_argv[i]) {
         __rcl_allocator.deallocate(__rcl_argv[i], __rcl_allocator.state);
       }
@@ -62,7 +63,8 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
     goto fail;
   }
   memset(__rcl_argv, 0, sizeof(char **) * argc);
-  for (size_t i = 0; i < argc; ++i) {
+  size_t i;
+  for (i = 0; i < argc; ++i) {
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);
     memcpy(__rcl_argv[i], argv[i], strlen(argv[i]));
   }

@@ -17,9 +17,53 @@
  * Begin Linux
  *****************************************************************************/
 
-// TODO(wjwwood): install custom malloc (and others) for Linux.
+#include <dlfcn.h>
+#include <stdio.h>
+#include <malloc.h>
 
 #include "./memory_tools_common.cpp"
+
+void *
+malloc(size_t size)
+{
+  void * (* libc_malloc)(size_t) = (void *(*)(size_t))dlsym(RTLD_NEXT, "malloc");
+  if (enabled.load()) {
+    return custom_malloc(size);
+  }
+  return libc_malloc(size);
+}
+
+void *
+realloc(void * pointer, size_t size)
+{
+  void * (* libc_realloc)(void *, size_t) = (void *(*)(void *, size_t))dlsym(RTLD_NEXT, "realloc");
+  if (enabled.load()) {
+    return custom_realloc(pointer, size);
+  }
+  return libc_realloc(pointer, size);
+}
+
+void
+free(void * pointer)
+{
+  void (* libc_free)(void *) = (void (*)(void *))dlsym(RTLD_NEXT, "free");
+  if (enabled.load()) {
+    return custom_free(pointer);
+  }
+  return libc_free(pointer);
+}
+
+void start_memory_checking()
+{
+  printf("starting memory checking...\n");
+  enabled.store(true);
+}
+
+void stop_memory_checking()
+{
+  printf("stopping memory checking...\n");
+  enabled.store(false);
+}
 
 /******************************************************************************
  * End Linux

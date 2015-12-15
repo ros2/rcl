@@ -20,6 +20,8 @@
  *   https://github.com/freebsd/freebsd/blob/release/10.2.0/sys/sys/stdatomic.h
  */
 
+// *INDENT-OFF* (disable uncrustify)
+
 /**** Start included file. ****/
 
 /*
@@ -69,7 +71,7 @@
  * $FreeBSD: src/include/stdatomic.h,v 1.10.2.2 2012/05/30 19:21:54 theraven Exp $
  */
 
-#ifndef _STDATOMIC_H_
+#ifndef _STDATOMIC_H_  // NOLINT
 #define _STDATOMIC_H_
 
 #include <stddef.h>
@@ -199,14 +201,14 @@ typedef _Atomic(_Bool)      atomic_bool;
 typedef _Atomic(char)     atomic_char;
 typedef _Atomic(signed char)    atomic_schar;
 typedef _Atomic(unsigned char)    atomic_uchar;
-typedef _Atomic(short)      atomic_short;
-typedef _Atomic(unsigned short)   atomic_ushort;
+typedef _Atomic(short)      atomic_short;  // NOLINT
+typedef _Atomic(unsigned short)   atomic_ushort;  // NOLINT
 typedef _Atomic(int)      atomic_int;
 typedef _Atomic(unsigned int)   atomic_uint;
-typedef _Atomic(long)     atomic_long;
-typedef _Atomic(unsigned long)    atomic_ulong;
-typedef _Atomic(long long)    atomic_llong;
-typedef _Atomic(unsigned long long) atomic_ullong;
+typedef _Atomic(long)     atomic_long;  // NOLINT
+typedef _Atomic(unsigned long)    atomic_ulong;  // NOLINT
+typedef _Atomic(long long)    atomic_llong;  // NOLINT
+typedef _Atomic(unsigned long long) atomic_ullong;  // NOLINT
 #if 0
 typedef _Atomic(char16_t)   atomic_char16_t;
 typedef _Atomic(char32_t)   atomic_char32_t;
@@ -390,4 +392,4 @@ typedef atomic_bool     atomic_flag;
 #define atomic_flag_test_and_set(object)        \
   atomic_flag_test_and_set_explicit(object, memory_order_seq_cst)
 
-#endif /* !_STDATOMIC_H_ */
+#endif /* !_STDATOMIC_H_ */  // NOLINT

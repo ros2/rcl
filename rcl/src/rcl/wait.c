@@ -369,7 +369,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     // Determine the nearest timeout (given or a timer).
     uint64_t min_timeout = timeout;
     if (min_timeout > 0) {  // Do not consider timer timeouts if non-blocking.
-      for (size_t i = 0; i < wait_set->size_of_timers; ++i) {
+      size_t i;
+      for (i = 0; i < wait_set->size_of_timers; ++i) {
         if (!wait_set->timers[i]) {
           continue;  // Skip NULL timers.
         }
@@ -407,7 +408,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     return RCL_RET_ERROR;
   }
   // Check for ready timers next, and set not ready timers to NULL.
-  for (size_t i = 0; i < wait_set->size_of_timers; ++i) {
+  size_t i;
+  for (i = 0; i < wait_set->size_of_timers; ++i) {
     bool is_ready = false;
     rcl_ret_t ret = rcl_timer_is_ready(wait_set->timers[i], &is_ready);
     if (ret != RCL_RET_OK) {
@@ -425,14 +427,14 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     return RCL_RET_TIMEOUT;
   }
   // Set corresponding rcl subscription handles NULL.
-  for (size_t i = 0; i < wait_set->size_of_subscriptions; ++i) {
+  for (i = 0; i < wait_set->size_of_subscriptions; ++i) {
     assert(i < wait_set->impl->rmw_subscriptions.subscriber_count);  // Defensive.
     if (!wait_set->impl->rmw_subscriptions.subscribers[i]) {
       wait_set->subscriptions[i] = NULL;
     }
   }
   // Set corresponding rcl guard_condition handles NULL.
-  for (size_t i = 0; i < wait_set->size_of_guard_conditions; ++i) {
+  for (i = 0; i < wait_set->size_of_guard_conditions; ++i) {
     assert(i < wait_set->impl->rmw_guard_conditions.guard_condition_count);  // Defensive.
     if (!wait_set->impl->rmw_guard_conditions.guard_conditions[i]) {
       wait_set->guard_conditions[i] = NULL;

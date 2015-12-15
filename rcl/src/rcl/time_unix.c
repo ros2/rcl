@@ -29,15 +29,17 @@ extern "C"
 #endif
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "./common.h"
 #include "rcl/error_handling.h"
 
+#if !defined(__MACH__)  // Assume clock_get_time is available on OS X.
 // This id an appropriate check for clock_gettime() according to:
 //   http://man7.org/linux/man-pages/man2/clock_gettime.2.html
-#define HAS_CLOCK_GETTIME (_POSIX_C_SOURCE >= 199309L)
-#if !HAS_CLOCK_GETTIME && !defined(__MACH__)
+#if (!defined(_POSIX_TIMERS) || !_POSIX_TIMERS)
 #error no monotonic clock function available
+#endif
 #endif
 
 #define __WOULD_BE_NEGATIVE(seconds, subseconds) (seconds < 0 || (subseconds < 0 && seconds == 0))
