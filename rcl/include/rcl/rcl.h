@@ -46,11 +46,17 @@ extern "C"
  * be ignored.
  * If argc is 0 and argv is NULL no parameters will be parsed.
  *
+ * This function allocates heap memory.
+ * This function is not thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ *
  * \param[in] argc number of strings in argv
  * \param[in] argv command line arguments; rcl specific arguments are removed
  * \param[in] allocator allocator to be used during rcl_init and rcl_shutdown
  * \return RCL_RET_OK if initialization is successful, or
  *         RCL_RET_ALREADY_INIT if rcl_init has already been called, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -72,21 +78,39 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
  *  - No new work (executing callbacks) will be done in executors.
  *  - Currently running work in executors will be finished.
  *
- * \return RCL_RET_OK if shutdown is successful, otherwise RCL_RET_ERROR or
- *         RCL_RET_NOT_INIT if rcl_init has not yet been called
+ * This function does not allocate heap memory.
+ * This function is thread-safe, except with rcl_init().
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ *
+ * \return RCL_RET_OK if the shutdown was completed successfully, or
+ *         RCL_RET_NOT_INIT if rcl is not currently initialized, or
+ *         RCL_RET_ERROR if an unspecified error occur.
  */
 RCL_PUBLIC
 rcl_ret_t
 rcl_shutdown();
 
 /// Returns an uint64_t number that is unique for the latest rcl_init call.
-/* If called before rcl_init or after rcl_shutdown then 0 will be returned. */
+/* If called before rcl_init or after rcl_shutdown then 0 will be returned.
+ *
+ * This function does not allocate memory.
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ *
+ * \return a unique id specific to this rcl instance, or 0 if not initialized.
+ */
 RCL_PUBLIC
 uint64_t
 rcl_get_instance_id();
 
-/// Return true until rcl_shutdown is called, then false.
-/* This function is thread safe. */
+/// Return true if rcl is currently initialized, otherwise false.
+/* This function does not allocate memory.
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ */
 RCL_PUBLIC
 bool
 rcl_ok();

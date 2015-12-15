@@ -79,4 +79,16 @@ if(AMENT_ENABLE_TESTING)
     endif()
     target_link_libraries(test_common ${PROJECT_NAME} ${extra_test_libraries})
   endif()
+
+  ament_add_gtest(test_rcl rcl/test_rcl.cpp ENV ${extra_memory_tools_env})
+  if(TARGET test_rcl)
+    target_include_directories(test_rcl PUBLIC
+      ${rcl_interfaces_INCLUDE_DIRS}
+      ${rmw_INCLUDE_DIRS}
+    )
+    if(NOT WIN32)
+      set_target_properties(test_rcl PROPERTIES COMPILE_FLAGS "-std=c++11")
+    endif()
+    target_link_libraries(test_rcl ${PROJECT_NAME} ${extra_test_libraries})
+  endif()
 endif()

@@ -63,7 +63,7 @@ custom_malloc(size_t size)
   }
   void * memory = malloc(size);
   MALLOC_PRINTF(
-    "malloc  expected(%s): %p %zu\n", malloc_expected ? "true " : "false", memory, size);
+    "malloc  expected(%s): %p %llu\n", malloc_expected ? "true " : "false", memory, size);
   return memory;
 }
 
@@ -103,7 +103,7 @@ custom_realloc(void * memory_in, size_t size)
   }
   void * memory = realloc(memory_in, size);
   MALLOC_PRINTF(
-    "realloc expected(%s): %p %p %zu\n",
+    "realloc expected(%s): %p %p %llu\n",
     malloc_expected ? "true " : "false", memory_in, memory, size);
   return memory;
 }

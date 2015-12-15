@@ -21,6 +21,7 @@ extern "C"
 
 #include <string.h>
 
+#include "./common.h"
 #include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 
@@ -38,11 +39,15 @@ __clean_up_init()
     size_t i;
     for (i = 0; i < __rcl_argc; ++i) {
       if (__rcl_argv[i]) {
+        // Use the old allocator.
         __rcl_allocator.deallocate(__rcl_argv[i], __rcl_allocator.state);
       }
     }
+    // Use the old allocator.
     __rcl_allocator.deallocate(__rcl_argv, __rcl_allocator.state);
   }
+  __rcl_argc = 0;
+  __rcl_argv = NULL;
   rcl_atomic_store(&__rcl_instance_id, 0);
   rcl_atomic_store(&__rcl_is_initialized, false);
 }
@@ -50,16 +55,28 @@ __clean_up_init()
 rcl_ret_t
 rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
 {
+  rcl_ret_t fail_ret = RCL_RET_ERROR;
+  if (argc > 0) {
+    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
+  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator.allocate,
+    "invalid allocator, allocate not set", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator.deallocate,
+    "invalid allocator, deallocate not set", return RCL_RET_INVALID_ARGUMENT);
   if (rcl_atomic_exchange_bool(&__rcl_is_initialized, true)) {
     RCL_SET_ERROR_MSG("rcl_init called while already initialized");
     return RCL_RET_ALREADY_INIT;
   }
   // TODO(wjwwood): Remove rcl specific command line arguments.
   // For now just copy the argc and argv.
+  __rcl_allocator = allocator;  // Set the new allocator.
   __rcl_argc = argc;
   __rcl_argv = (char **)__rcl_allocator.allocate(sizeof(char *) * argc, __rcl_allocator.state);
   if (!__rcl_argv) {
     RCL_SET_ERROR_MSG("allocation failed");
+    fail_ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
   memset(__rcl_argv, 0, sizeof(char **) * argc);
@@ -78,7 +95,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   return RCL_RET_OK;
 fail:
   __clean_up_init();
-  return RCL_RET_ERROR;
+  return fail_ret;
 }
 
 rcl_ret_t
