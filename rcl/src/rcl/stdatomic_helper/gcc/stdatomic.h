@@ -74,6 +74,11 @@
 #ifndef _STDATOMIC_H_  // NOLINT
 #define _STDATOMIC_H_
 
+#if __cplusplus
+// This will suppress warnings about _Bool not being defined.
+typedef bool _Bool;
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 
