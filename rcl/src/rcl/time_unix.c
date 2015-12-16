@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #if defined(WIN32)
-#error time_unix.c is not intended to be used with win32 based systems
+# error time_unix.c is not intended to be used with win32 based systems
 #endif  // defined(WIN32)
 
 #if __cplusplus
@@ -37,9 +37,9 @@ extern "C"
 #if !defined(__MACH__)  // Assume clock_get_time is available on OS X.
 // This id an appropriate check for clock_gettime() according to:
 //   http://man7.org/linux/man-pages/man2/clock_gettime.2.html
-#if !defined(_POSIX_TIMERS) || !_POSIX_TIMERS
-#error no monotonic clock function available
-#endif  // !defined(_POSIX_TIMERS) || !_POSIX_TIMERS
+# if !defined(_POSIX_TIMERS) || !_POSIX_TIMERS
+#   error no monotonic clock function available
+# endif  // !defined(_POSIX_TIMERS) || !_POSIX_TIMERS
 #endif  // !defined(__MACH__)
 
 #define __WOULD_BE_NEGATIVE(seconds, subseconds) (seconds < 0 || (subseconds < 0 && seconds == 0))

@@ -22,7 +22,7 @@ extern "C"
 #include <stdlib.h>
 
 #if defined(WIN32)
-#define WINDOWS_ENV_BUFFER_SIZE 2048
+# define WINDOWS_ENV_BUFFER_SIZE 2048
 static char __env_buffer[WINDOWS_ENV_BUFFER_SIZE];
 #endif  // defined(WIN32)
 

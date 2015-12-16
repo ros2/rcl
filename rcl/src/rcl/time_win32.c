@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #ifndef WIN32
-#error time_win32.c is only intended to be used with win32 based systems
+# error time_win32.c is only intended to be used with win32 based systems
 #endif
 
 #if __cplusplus
