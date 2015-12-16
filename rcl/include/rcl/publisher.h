@@ -217,7 +217,6 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
  * copying the string is recommended if this is a concern.
  *
  * This function is not thread-safe, and copying the result is not thread-safe.
- * \TODO(wjwwood): should we provide a thread-safe copy_topic_name?
  *
  * \param[in] publisher pointer to the publisher
  * \return name string if successful, otherwise NULL
@@ -237,7 +236,6 @@ rcl_publisher_get_topic_name(const rcl_publisher_t * publisher);
  * and therefore copying the struct is recommended if this is a concern.
  *
  * This function is not thread-safe, and copying the result is not thread-safe.
- * \TODO(wjwwood): should we provide a thread-safe copy_publisher_options?
  *
  * \param[in] publisher pointer to the publisher
  * \return options struct if successful, otherwise NULL
