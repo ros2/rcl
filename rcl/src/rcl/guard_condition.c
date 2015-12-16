@@ -137,7 +137,7 @@ rcl_trigger_guard_condition(const rcl_guard_condition_t * guard_condition)
 }
 
 rmw_guard_condition_t *
-rcl_guard_condition_get_rmw_guard_condition_handle(const rcl_guard_condition_t * guard_condition)
+rcl_guard_condition_get_rmw_handle(const rcl_guard_condition_t * guard_condition)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(

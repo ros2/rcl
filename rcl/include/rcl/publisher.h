@@ -263,7 +263,7 @@ rcl_publisher_get_options(const rcl_publisher_t * publisher);
  */
 RCL_PUBLIC
 rmw_publisher_t *
-rcl_publisher_get_rmw_publisher_handle(const rcl_publisher_t * publisher);
+rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 
 #if __cplusplus
 }

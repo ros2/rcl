@@ -208,7 +208,7 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
  */
 RCL_PUBLIC
 rmw_node_t *
-rcl_node_get_rmw_node_handle(const rcl_node_t * node);
+rcl_node_get_rmw_handle(const rcl_node_t * node);
 
 /// Return the associated rcl instance id.
 /* This id is stored when rcl_node_init is called and can be compared with the

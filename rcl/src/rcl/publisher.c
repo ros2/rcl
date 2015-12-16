@@ -69,7 +69,7 @@ rcl_publisher_init(
   // rmw handle (create rmw publisher)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
   publisher->impl->rmw_handle = rmw_create_publisher(
-    rcl_node_get_rmw_node_handle(node),
+    rcl_node_get_rmw_handle(node),
     type_support,
     topic_name,
     &rmw_qos_profile_default);
@@ -95,7 +95,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (publisher->impl) {
     rmw_ret_t ret =
-      rmw_destroy_publisher(rcl_node_get_rmw_node_handle(node), publisher->impl->rmw_handle);
+      rmw_destroy_publisher(rcl_node_get_rmw_handle(node), publisher->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
       result = RCL_RET_ERROR;
@@ -151,7 +151,7 @@ rcl_publisher_get_options(const rcl_publisher_t * publisher)
 }
 
 rmw_publisher_t *
-rcl_publisher_get_rmw_publisher_handle(const rcl_publisher_t * publisher)
+rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(

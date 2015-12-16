@@ -67,7 +67,7 @@ rcl_subscription_init(
   // rmw_handle
   // TODO(wjwwood): pass allocator once supported in rmw api.
   subscription->impl->rmw_handle = rmw_create_subscription(
-    rcl_node_get_rmw_node_handle(node),
+    rcl_node_get_rmw_handle(node),
     type_support,
     topic_name,
     &rmw_qos_profile_default,
@@ -94,7 +94,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (subscription->impl) {
     rmw_ret_t ret =
-      rmw_destroy_subscription(rcl_node_get_rmw_node_handle(node), subscription->impl->rmw_handle);
+      rmw_destroy_subscription(rcl_node_get_rmw_handle(node), subscription->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
       result = RCL_RET_ERROR;
@@ -167,7 +167,7 @@ rcl_subscription_get_options(const rcl_subscription_t * subscription)
 }
 
 rmw_subscription_t *
-rcl_subscription_get_rmw_subscription_handle(const rcl_subscription_t * subscription)
+rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(

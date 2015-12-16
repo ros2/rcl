@@ -158,7 +158,7 @@ rcl_guard_condition_trigger(const rcl_guard_condition_t * guard_condition);
  */
 RCL_PUBLIC
 rmw_guard_condition_t *
-rcl_guard_condition_get_rmw_guard_condition_handle(const rcl_guard_condition_t * guard_condition);
+rcl_guard_condition_get_rmw_handle(const rcl_guard_condition_t * guard_condition);
 
 #if __cplusplus
 }

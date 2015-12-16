@@ -158,7 +158,7 @@ rcl_node_get_options(const rcl_node_t * node)
 }
 
 rmw_node_t *
-rcl_node_get_rmw_node_handle(const rcl_node_t * node)
+rcl_node_get_rmw_handle(const rcl_node_t * node)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return NULL);

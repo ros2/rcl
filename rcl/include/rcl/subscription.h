@@ -270,7 +270,7 @@ rcl_subscription_get_options(const rcl_subscription_t * subscription);
  */
 RCL_PUBLIC
 rmw_subscription_t *
-rcl_subscription_get_rmw_subscription_handle(const rcl_subscription_t * subscription);
+rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
 
 #if __cplusplus
 }
