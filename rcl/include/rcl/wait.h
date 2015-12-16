@@ -162,7 +162,7 @@ rcl_wait_set_add_subscription(
   rcl_wait_set_t * wait_set,
   const rcl_subscription_t * subscription);
 
-/// Removes (sets to NULL) the subscriptions in the wait set.
+/// Remove (sets to NULL) the subscriptions in the wait set.
 /* This function should be used after passing using rcl_wait, but before
  * adding new subscriptions to the set.
  *
@@ -181,7 +181,7 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set);
 
-/// Reallocates space for the subscriptions in the wait set.
+/// Reallocate space for the subscriptions in the wait set.
 /* This function will deallocate and reallocate the memory for the
  * subscriptions set.
  *
@@ -210,7 +210,7 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_wait_set_resize_subscriptions(rcl_wait_set_t * wait_set, size_t size);
 
-/// Stores a pointer to the guard condition in the next empty spot in the set.
+/// Store a pointer to the guard condition in the next empty spot in the set.
 /* This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_add_subscription
  */
@@ -220,7 +220,7 @@ rcl_wait_set_add_guard_condition(
   rcl_wait_set_t * wait_set,
   const rcl_guard_condition_t * guard_condition);
 
-/// Removes (sets to NULL) the guard conditions in the wait set.
+/// Remove (sets to NULL) the guard conditions in the wait set.
 /* This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_clear_subscriptions
  */
@@ -228,7 +228,7 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_wait_set_clear_guard_conditions(rcl_wait_set_t * wait_set);
 
-/// Reallocates space for the guard conditions in the wait set.
+/// Reallocate space for the guard conditions in the wait set.
 /* This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_resize_subscriptions
  */
@@ -236,7 +236,7 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
 
-/// Stores a pointer to the timer in the next empty spot in the set.
+/// Store a pointer to the timer in the next empty spot in the set.
 /* This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_add_subscription
  */
@@ -246,7 +246,7 @@ rcl_wait_set_add_timer(
   rcl_wait_set_t * wait_set,
   const rcl_timer_t * timer);
 
-/// Removes (sets to NULL) the timers in the wait set.
+/// Remove (sets to NULL) the timers in the wait set.
 /* This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_clear_subscriptions
  */
@@ -254,7 +254,7 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_wait_set_clear_timers(rcl_wait_set_t * wait_set);
 
-/// Reallocates space for the timers in the wait set.
+/// Reallocate space for the timers in the wait set.
 /* This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_resize_subscriptions
  */
