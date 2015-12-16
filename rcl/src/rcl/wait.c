@@ -85,12 +85,6 @@ rcl_wait_set_init(
     return RCL_RET_ALREADY_INIT;
   }
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    number_of_subscriptions,
-    "number_of_subscriptions cannot be 0", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    number_of_guard_conditions,
-    "number_of_guard_conditions cannot be 0", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator.allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator.deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
