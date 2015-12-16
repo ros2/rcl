@@ -141,7 +141,7 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * allocator);
 
-/// Stores a pointer to the given subscription in the next empty spot in the set.
+/// Store a pointer to the given subscription in the next empty spot in the set.
 /* This function does not guarantee that the subscription is not already in the
  * wait set.
  *
