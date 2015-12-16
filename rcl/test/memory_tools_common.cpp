@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <stdlib.h>
+#include <inttypes.h>
+
 #include <atomic>
+#include <cstdlib>
 
 #if defined(__APPLE__)
 #include <malloc/malloc.h>
@@ -62,8 +64,10 @@ custom_malloc(size_t size)
     }
   }
   void * memory = malloc(size);
+  uint64_t fw_size = size;
   MALLOC_PRINTF(
-    "malloc  expected(%s): %p %llu\n", malloc_expected ? "true " : "false", memory, size);
+    "malloc  expected(%s): %p %" PRIu64 "\n",
+    malloc_expected ? "true " : "false", memory, fw_size);
   return memory;
 }
 
@@ -102,9 +106,10 @@ custom_realloc(void * memory_in, size_t size)
     }
   }
   void * memory = realloc(memory_in, size);
+  uint64_t fw_size = size;
   MALLOC_PRINTF(
-    "realloc expected(%s): %p %p %llu\n",
-    malloc_expected ? "true " : "false", memory_in, memory, size);
+    "realloc expected(%s): %p %p %" PRIu64 "\n",
+    malloc_expected ? "true " : "false", memory_in, memory, fw_size);
   return memory;
 }
 

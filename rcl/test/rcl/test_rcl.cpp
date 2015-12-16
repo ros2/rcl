@@ -64,27 +64,28 @@ failing_free(void * pointer, void * state)
 {
   (void)pointer;
   (void)state;
-  return;
 }
 
 struct FakeTestArgv
 {
-  FakeTestArgv() : argc(2)
+  FakeTestArgv()
+  : argc(2)
   {
-    this->argv = (char **)malloc(2 * sizeof(char *));
+    this->argv = reinterpret_cast<char **>(malloc(2 * sizeof(char *)));
     if (!this->argv) {
       throw std::bad_alloc();
     }
-    this->argv[0] = (char *)malloc(10 * sizeof(char));
-    sprintf(this->argv[0], "foo");
-    this->argv[1] = (char *)malloc(10 * sizeof(char));
-    sprintf(this->argv[1], "bar");
+    static const size_t size = 10;
+    this->argv[0] = reinterpret_cast<char *>(malloc(size * sizeof(char)));
+    snprintf(this->argv[0], size, "foo");
+    this->argv[1] = reinterpret_cast<char *>(malloc(size * sizeof(char)));
+    snprintf(this->argv[1], size, "bar");
   }
 
   ~FakeTestArgv()
   {
     if (this->argv) {
-      if (this->argv > 0) {
+      if (this->argc > 0) {
         size_t unsigned_argc = this->argc;
         for (size_t i = 0; i < unsigned_argc; --i) {
           free(this->argv[i]);
@@ -100,8 +101,7 @@ struct FakeTestArgv
 
 /* Tests the rcl_init() and rcl_shutdown() functions.
  */
-TEST_F(TestRCLFixture, test_rcl_init_and_shutdown)
-{
+TEST_F(TestRCLFixture, test_rcl_init_and_shutdown) {
   rcl_ret_t ret;
   // A shutdown before any init has been called should fail.
   ret = rcl_shutdown();
