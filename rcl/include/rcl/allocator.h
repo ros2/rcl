@@ -24,7 +24,16 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 /// Encapsulation of an allocator.
-/* To use malloc, free, and realloc use rcl_get_default_allocator(). */
+/* To use malloc, free, and realloc use rcl_get_default_allocator().
+ *
+ * The allocator should be trivially copyable.
+ * Meaning that the struct should continue to work after being assignment
+ * copied into a new struct.
+ * Specifically the object pointed to by the state pointer should remain valid
+ * until all uses of the allocator have been made.
+ * Particular care should be taken when giving an allocator to rcl_init_* where
+ * it is stored within another object and used later.
+ */
 typedef struct rcl_allocator_t
 {
   /// Allocate memory, given a size and state structure.
