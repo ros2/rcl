@@ -32,7 +32,7 @@ typedef struct rcl_allocator_t
   void * (*allocate)(size_t size, void * state);
   /// Deallocate previously allocated memory, mimicking free().
   void (* deallocate)(void * pointer, void * state);
-  /// Reallocates if possible, otherwise it deallocates and allocates.
+  /// Reallocate if possible, otherwise it deallocates and allocates.
   /* If unsupported then do deallocate and then allocate.
    * \TODO(wjwwood): should this behave as reallocf?
    * This should behave as realloc is described, as opposed to reallocf, i.e.
