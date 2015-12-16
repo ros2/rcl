@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef WIN32
+#if defined(WIN32)
 #include "./time_win32.c"
-#else
+#else  // defined(WIN32)
 #include "./time_unix.c"
-#endif
+#endif  // defined(WIN32)

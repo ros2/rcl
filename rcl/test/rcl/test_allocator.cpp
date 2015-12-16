@@ -49,10 +49,10 @@ public:
 /* Tests the default allocator.
  */
 TEST_F(TestAllocatorFixture, test_default_allocator_normal) {
-#ifdef WIN32
+#if defined(WIN32)
   printf("Allocator tests disabled on Windows.\n");
   return;
-#endif
+#endif  // defined(WIN32)
   ASSERT_NO_MALLOC(
     rcl_allocator_t allocator = rcl_get_default_allocator();
   )

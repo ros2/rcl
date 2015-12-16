@@ -24,7 +24,7 @@ extern "C"
 #if defined(WIN32)
 #define WINDOWS_ENV_BUFFER_SIZE 2048
 static char __env_buffer[WINDOWS_ENV_BUFFER_SIZE];
-#endif
+#endif  // defined(WIN32)
 
 rcl_ret_t
 rcl_impl_getenv(const char * env_name, const char ** env_value)
@@ -37,7 +37,7 @@ rcl_impl_getenv(const char * env_name, const char ** env_value)
   if (*env_value == NULL) {
     *env_value = "";
   }
-#else
+#else  // !defined(WIN32)
   size_t required_size;
   errno_t ret = getenv_s(&required_size, __env_buffer, sizeof(__env_buffer), env_name);
   if (ret != 0) {
@@ -46,7 +46,7 @@ rcl_impl_getenv(const char * env_name, const char ** env_value)
   }
   __env_buffer[WINDOWS_ENV_BUFFER_SIZE - 1] = '\0';
   *env_value = __env_buffer;
-#endif
+#endif  // !defined(WIN32)
   return RCL_RET_OK;
 }
 

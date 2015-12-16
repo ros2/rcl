@@ -20,9 +20,9 @@
 #if defined(__APPLE__)
 #include <malloc/malloc.h>
 #define MALLOC_PRINTF malloc_printf
-#else
+#else  // defined(__APPLE__)
 #define MALLOC_PRINTF printf
-#endif
+#endif  // defined(__APPLE__)
 
 #include "./memory_tools.hpp"
 #include "./scope_exit.hpp"

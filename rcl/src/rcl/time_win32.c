@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef WIN32
 #ifndef WIN32
 #error time_win32.c is only intended to be used with win32 based systems
 #endif
@@ -67,6 +66,4 @@ rcl_steady_time_point_now(rcl_steady_time_point_t * now)
 
 #if __cplusplus
 }
-#endif
-
 #endif

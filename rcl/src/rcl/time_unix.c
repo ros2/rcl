@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef WIN32
+#if defined(WIN32)
 #error time_unix.c is not intended to be used with win32 based systems
-#endif
+#endif  // defined(WIN32)
 
 #if __cplusplus
 extern "C"
@@ -26,7 +26,7 @@ extern "C"
 #if defined(__MACH__)
 #include <mach/clock.h>
 #include <mach/mach.h>
-#endif
+#endif  // defined(__MACH__)
 #include <math.h>
 #include <time.h>
 #include <unistd.h>
@@ -37,10 +37,10 @@ extern "C"
 #if !defined(__MACH__)  // Assume clock_get_time is available on OS X.
 // This id an appropriate check for clock_gettime() according to:
 //   http://man7.org/linux/man-pages/man2/clock_gettime.2.html
-#if (!defined(_POSIX_TIMERS) || !_POSIX_TIMERS)
+#if !defined(_POSIX_TIMERS) || !_POSIX_TIMERS
 #error no monotonic clock function available
-#endif
-#endif
+#endif  // !defined(_POSIX_TIMERS) || !_POSIX_TIMERS
+#endif  // !defined(__MACH__)
 
 #define __WOULD_BE_NEGATIVE(seconds, subseconds) (seconds < 0 || (subseconds < 0 && seconds == 0))
 
@@ -58,10 +58,10 @@ rcl_system_time_point_now(rcl_system_time_point_t * now)
   mach_port_deallocate(mach_task_self(), cclock);
   timespec_now.tv_sec = mts.tv_sec;
   timespec_now.tv_nsec = mts.tv_nsec;
-#else
+#else  // defined(__MACH__)
   // Otherwise use clock_gettime.
   clock_gettime(CLOCK_REALTIME, &timespec_now);
-#endif  // if defined(__MACH__)
+#endif  // defined(__MACH__)
   if (__WOULD_BE_NEGATIVE(timespec_now.tv_sec, timespec_now.tv_nsec)) {
     RCL_SET_ERROR_MSG("unexpected negative time");
     return RCL_RET_ERROR;
@@ -85,14 +85,14 @@ rcl_steady_time_point_now(rcl_steady_time_point_t * now)
   mach_port_deallocate(mach_task_self(), cclock);
   timespec_now.tv_sec = mts.tv_sec;
   timespec_now.tv_nsec = mts.tv_nsec;
-#else
+#else  // defined(__MACH__)
   // Otherwise use clock_gettime.
-#ifdef CLOCK_MONOTONIC_RAW
+#if defined(CLOCK_MONOTONIC_RAW)
   clock_gettime(CLOCK_MONOTONIC_RAW, &timespec_now);
-#else
+#else  // defined(CLOCK_MONOTONIC_RAW)
   clock_gettime(CLOCK_MONOTONIC, &timespec_now);
-#endif  // CLOCK_MONOTONIC_RAW
-#endif  // if defined(__MACH__)
+#endif  // defined(CLOCK_MONOTONIC_RAW)
+#endif  // defined(__MACH__)
   if (__WOULD_BE_NEGATIVE(timespec_now.tv_sec, timespec_now.tv_nsec)) {
     RCL_SET_ERROR_MSG("unexpected negative time");
     return RCL_RET_ERROR;

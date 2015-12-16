@@ -138,4 +138,4 @@ void set_on_unepexcted_free_callback(UnexpectedCallbackType callback) {}
 
 void memory_checking_thread_init() {}
 
-#endif  // !defined(WIN32)
+#endif  // if defined(__linux__) elif defined(__APPLE__) elif defined(WIN32) else ...
