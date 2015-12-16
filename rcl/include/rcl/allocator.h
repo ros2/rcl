@@ -43,10 +43,10 @@ typedef struct rcl_allocator_t
   void (* deallocate)(void * pointer, void * state);
   /// Reallocate if possible, otherwise it deallocates and allocates.
   /* If unsupported then do deallocate and then allocate.
-   * \TODO(wjwwood): should this behave as reallocf?
    * This should behave as realloc is described, as opposed to reallocf, i.e.
    * the memory given by pointer will not be free'd automatically if realloc
    * fails.
+   * For reallocf behavior use rcl_reallocf().
    * This function must be able to take an input pointer of NULL and succeed.
    */
   void * (*reallocate)(void * pointer, size_t size, void * state);
@@ -63,6 +63,14 @@ typedef struct rcl_allocator_t
 RCL_PUBLIC
 rcl_allocator_t
 rcl_get_default_allocator();
+
+/// Emulate the behavior of reallocf.
+/* This function will return NULL if the allocator is NULL or has NULL for
+ * function pointer fields.
+ */
+RCL_PUBLIC
+void *
+rcl_reallocf(void * pointer, size_t size, rcl_allocator_t * allocator);
 
 #if __cplusplus
 }

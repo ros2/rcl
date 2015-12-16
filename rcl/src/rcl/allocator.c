@@ -15,6 +15,7 @@
 #include <stdlib.h>
 
 #include "rcl/allocator.h"
+#include "rcl/error_handling.h"
 
 static void *
 __default_allocate(size_t size, void * state)
@@ -47,4 +48,18 @@ rcl_get_default_allocator()
     NULL
   };
   return default_allocator;
+}
+
+void *
+rcl_reallocf(void * pointer, size_t size, rcl_allocator_t * allocator)
+{
+  if (!allocator || !allocator->reallocate || !allocator->deallocate) {
+    RCL_SET_ERROR_MSG("invalid allocator or allocator function pointers");
+    return NULL;
+  }
+  void * new_pointer = allocator->reallocate(pointer, size, allocator->state);
+  if (!new_pointer) {
+    allocator->deallocate(pointer, allocator->state);
+  }
+  return new_pointer;
 }
