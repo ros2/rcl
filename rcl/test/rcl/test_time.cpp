@@ -14,7 +14,10 @@
 
 #include <gtest/gtest.h>
 
+#include <inttypes.h>
+
 #include <chrono>
+#include <thread>
 
 #include "rcl/error_handling.h"
 #include "rcl/time.h"
@@ -48,7 +51,7 @@ public:
  */
 TEST_F(TestTimeFixture, test_rcl_system_time_point_now) {
   assert_no_realloc_begin();
-  rcl_ret_t ret = RCL_RET_OK;
+  rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
   ret = rcl_system_time_point_now(nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
@@ -72,7 +75,8 @@ TEST_F(TestTimeFixture, test_rcl_system_time_point_now) {
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
     int64_t now_ns_int = now_ns.count();
     int64_t now_diff = now.nanoseconds - now_ns_int;
-    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(1000)) << "system_clock differs";
+    const int k_tolerance_ms = 1000;
+    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "system_clock differs";
   }
 }
 
@@ -80,7 +84,7 @@ TEST_F(TestTimeFixture, test_rcl_system_time_point_now) {
  */
 TEST_F(TestTimeFixture, test_rcl_steady_time_point_now) {
   assert_no_realloc_begin();
-  rcl_ret_t ret = RCL_RET_OK;
+  rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
   ret = rcl_steady_time_point_now(nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
@@ -100,10 +104,17 @@ TEST_F(TestTimeFixture, test_rcl_steady_time_point_now) {
   now = {0};
   ret = rcl_steady_time_point_now(&now);
   std::chrono::steady_clock::time_point now_sc = std::chrono::steady_clock::now();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  // Wait for a little while.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Then take a new timestamp with each and compare.
   rcl_steady_time_point_t later;
   ret = rcl_steady_time_point_now(&later);
   std::chrono::steady_clock::time_point later_sc = std::chrono::steady_clock::now();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   int64_t steady_diff = later.nanoseconds - now.nanoseconds;
-  int64_t sc_diff = (now_sc - later_sc).count();
-  EXPECT_LE(llabs(steady_diff - sc_diff), RCL_MS_TO_NS(1000)) << "steady_clock differs";
+  int64_t sc_diff =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(later_sc - now_sc).count();
+  const int k_tolerance_ms = 1;
+  EXPECT_LE(llabs(steady_diff - sc_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "steady_clock differs";
 }
