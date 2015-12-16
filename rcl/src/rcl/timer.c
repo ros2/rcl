@@ -158,7 +158,7 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_si
     return ret;  // rcl error state should already be set.
   }
   *time_since_last_call =
-    (now.nanoseconds - rcl_atomic_load_uint64_t(&timer->impl->last_call_time));
+    now.nanoseconds - rcl_atomic_load_uint64_t(&timer->impl->last_call_time);
   return RCL_RET_OK;
 }
 
