@@ -28,9 +28,9 @@ public:
   }
   void SetUp()
   {
-    set_on_unepexcted_malloc_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unepexcted_realloc_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unepexcted_free_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED FREE";});
+    set_on_unexpected_malloc_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED MALLOC";});
+    set_on_unexpected_realloc_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED REALLOC";});
+    set_on_unexpected_free_callback([]() {EXPECT_FALSE(true) << "UNEXPECTED FREE";});
     start_memory_checking();
   }
 
@@ -40,9 +40,9 @@ public:
     assert_no_realloc_end();
     assert_no_free_end();
     stop_memory_checking();
-    set_on_unepexcted_malloc_callback(nullptr);
-    set_on_unepexcted_realloc_callback(nullptr);
-    set_on_unepexcted_free_callback(nullptr);
+    set_on_unexpected_malloc_callback(nullptr);
+    set_on_unexpected_realloc_callback(nullptr);
+    set_on_unexpected_free_callback(nullptr);
   }
 };
 
@@ -59,13 +59,13 @@ TEST_F(TestAllocatorFixture, test_default_allocator_normal) {
   size_t mallocs = 0;
   size_t reallocs = 0;
   size_t frees = 0;
-  set_on_unepexcted_malloc_callback([&mallocs]() {
+  set_on_unexpected_malloc_callback([&mallocs]() {
     mallocs++;
   });
-  set_on_unepexcted_realloc_callback([&reallocs]() {
+  set_on_unexpected_realloc_callback([&reallocs]() {
     reallocs++;
   });
-  set_on_unepexcted_free_callback([&frees]() {
+  set_on_unexpected_free_callback([&frees]() {
     frees++;
   });
   assert_no_malloc_begin();

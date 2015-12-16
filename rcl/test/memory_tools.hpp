@@ -70,7 +70,7 @@ void
 assert_no_malloc_end();
 RCL_MEMORY_TOOLS_PUBLIC
 void
-set_on_unepexcted_malloc_callback(UnexpectedCallbackType callback);
+set_on_unexpected_malloc_callback(UnexpectedCallbackType callback);
 
 #define ASSERT_NO_REALLOC(statements) \
   assert_no_realloc_begin(); statements; assert_no_realloc_end();
@@ -82,7 +82,7 @@ void
 assert_no_realloc_end();
 RCL_MEMORY_TOOLS_PUBLIC
 void
-set_on_unepexcted_realloc_callback(UnexpectedCallbackType callback);
+set_on_unexpected_realloc_callback(UnexpectedCallbackType callback);
 
 #define ASSERT_NO_FREE(statements) \
   assert_no_free_begin(); statements; assert_no_free_end();
@@ -94,7 +94,7 @@ void
 assert_no_free_end();
 RCL_MEMORY_TOOLS_PUBLIC
 void
-set_on_unepexcted_free_callback(UnexpectedCallbackType callback);
+set_on_unexpected_free_callback(UnexpectedCallbackType callback);
 
 RCL_MEMORY_TOOLS_PUBLIC
 void

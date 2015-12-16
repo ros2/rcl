@@ -26,9 +26,9 @@ class TestTimeFixture : public::testing::Test
 public:
   void SetUp()
   {
-    set_on_unepexcted_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unepexcted_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unepexcted_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
+    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
+    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
+    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
     start_memory_checking();
   }
 
@@ -38,9 +38,9 @@ public:
     assert_no_realloc_end();
     assert_no_free_end();
     stop_memory_checking();
-    set_on_unepexcted_malloc_callback(nullptr);
-    set_on_unepexcted_realloc_callback(nullptr);
-    set_on_unepexcted_free_callback(nullptr);
+    set_on_unexpected_malloc_callback(nullptr);
+    set_on_unexpected_realloc_callback(nullptr);
+    set_on_unexpected_free_callback(nullptr);
   }
 };
 

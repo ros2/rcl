@@ -50,7 +50,7 @@ rcl_subscription_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   if (subscription->impl) {
-    RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninialized");
+    RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
   }
   const rcl_allocator_t * allocator = &options->allocator;

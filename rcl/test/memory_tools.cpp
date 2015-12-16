@@ -122,19 +122,19 @@ void assert_no_malloc_begin() {}
 
 void assert_no_malloc_end() {}
 
-void set_on_unepexcted_malloc_callback(UnexpectedCallbackType callback) {}
+void set_on_unexpected_malloc_callback(UnexpectedCallbackType callback) {}
 
 void assert_no_realloc_begin() {}
 
 void assert_no_realloc_end() {}
 
-void set_on_unepexcted_realloc_callback(UnexpectedCallbackType callback) {}
+void set_on_unexpected_realloc_callback(UnexpectedCallbackType callback) {}
 
 void assert_no_free_begin() {}
 
 void assert_no_free_end() {}
 
-void set_on_unepexcted_free_callback(UnexpectedCallbackType callback) {}
+void set_on_unexpected_free_callback(UnexpectedCallbackType callback) {}
 
 void memory_checking_thread_init() {}
 

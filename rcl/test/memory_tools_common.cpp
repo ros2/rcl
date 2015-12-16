@@ -31,7 +31,7 @@ static std::atomic<bool> enabled(false);
 
 static __thread bool malloc_expected = true;
 static __thread UnexpectedCallbackType * unexpected_malloc_callback = nullptr;
-void set_on_unepexcted_malloc_callback(UnexpectedCallbackType callback)
+void set_on_unexpected_malloc_callback(UnexpectedCallbackType callback)
 {
   if (unexpected_malloc_callback) {
     unexpected_malloc_callback->~UnexpectedCallbackType();
@@ -73,7 +73,7 @@ custom_malloc(size_t size)
 
 static __thread bool realloc_expected = true;
 static __thread UnexpectedCallbackType * unexpected_realloc_callback = nullptr;
-void set_on_unepexcted_realloc_callback(UnexpectedCallbackType callback)
+void set_on_unexpected_realloc_callback(UnexpectedCallbackType callback)
 {
   if (unexpected_realloc_callback) {
     unexpected_realloc_callback->~UnexpectedCallbackType();
@@ -115,7 +115,7 @@ custom_realloc(void * memory_in, size_t size)
 
 static __thread bool free_expected = true;
 static __thread UnexpectedCallbackType * unexpected_free_callback = nullptr;
-void set_on_unepexcted_free_callback(UnexpectedCallbackType callback)
+void set_on_unexpected_free_callback(UnexpectedCallbackType callback)
 {
   if (unexpected_free_callback) {
     unexpected_free_callback->~UnexpectedCallbackType();
