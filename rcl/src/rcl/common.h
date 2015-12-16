@@ -26,10 +26,11 @@ extern "C"
 #define RCL_CHECK_ARGUMENT_FOR_NULL(argument, error_return_type) \
   RCL_CHECK_FOR_NULL_WITH_MSG(argument, #argument " argument is null", return error_return_type)
 
-#define RCL_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement) if (!value) { \
+#define RCL_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement) \
+  if (!(value)) { \
     RCL_SET_ERROR_MSG(msg); \
     error_statement; \
-}
+  }
 
 /// Retrieve the value of the given environment variable if it exists, or "".
 /* The returned cstring is only valid until the next time this function is
