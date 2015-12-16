@@ -1,3 +1,5 @@
+find_package(ament_cmake_gtest REQUIRED)
+
 set(extra_test_libraries)
 set(extra_memory_tools_env PHONY=)  # Use a phony env var so there is always at least one.
 ament_find_gtest()  # For GTEST_LIBRARIES
