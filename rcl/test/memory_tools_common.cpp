@@ -66,8 +66,8 @@ custom_malloc(size_t size)
   void * memory = malloc(size);
   uint64_t fw_size = size;
   MALLOC_PRINTF(
-    "malloc  expected(%s): %p %" PRIu64 "\n",
-    malloc_expected ? "true " : "false", memory, fw_size);
+    " malloc (%s) %p %" PRIu64 "\n",
+    malloc_expected ? "    expected" : "not expected", memory, fw_size);
   return memory;
 }
 
@@ -108,8 +108,8 @@ custom_realloc(void * memory_in, size_t size)
   void * memory = realloc(memory_in, size);
   uint64_t fw_size = size;
   MALLOC_PRINTF(
-    "realloc expected(%s): %p %p %" PRIu64 "\n",
-    malloc_expected ? "true " : "false", memory_in, memory, fw_size);
+    "realloc (%s) %p %p %" PRIu64 "\n",
+    malloc_expected ? "    expected" : "not expected", memory_in, memory, fw_size);
   return memory;
 }
 
@@ -147,7 +147,8 @@ custom_free(void * memory)
       (*unexpected_free_callback)();
     }
   }
-  MALLOC_PRINTF("free    expected(%s): %p\n", malloc_expected ? "true " : "false", memory);
+  MALLOC_PRINTF(
+    "   free (%s) %p\n", malloc_expected ? "    expected" : "not expected", memory);
   free(memory);
 }
 
