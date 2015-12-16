@@ -145,7 +145,13 @@ rcl_guard_condition_trigger(const rcl_guard_condition_t * guard_condition);
  *   - guard_condition is NULL
  *   - guard_condition is invalid (never called init, called fini, or invalid node)
  *
- * The returned handle is only valid as long as the given guard_condition is valid.
+ * The returned handle is made invalid if the guard condition is finalized or
+ * if rcl_shutdown() is called.
+ * The returned handle is not guaranteed to be valid for the life time of the
+ * guard condition as it may be finalized and recreated itself.
+ * Therefore it is recommended to get the handle from the guard condition using
+ * this function each time it is needed and avoid use of the handle
+ * concurrently with functions that might change it.
  *
  * \param[in] guard_condition pointer to the rcl guard_condition
  * \return rmw guard_condition handle if successful, otherwise NULL

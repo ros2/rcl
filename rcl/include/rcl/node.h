@@ -63,7 +63,7 @@ rcl_node_t
 rcl_get_zero_initialized_node();
 
 /// Initialize a ROS node.
-/* Calling this on a rcl_node_t makes it a valid node handle until rcl_fini
+/* Calling this on a rcl_node_t makes it a valid node handle until rcl_shutdown
  * is called or until rcl_node_fini is called on it.
  *
  * After calling the ROS node object can be used to create other middleware
@@ -194,9 +194,14 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
  *   - node is NULL
  *   - node has not been initialized (the implementation is invalid)
  *
- * The returned handle is only valid as long as the given node is valid.
+ * The returned handle is made invalid if the node is finalized or if
+ * rcl_shutdown() is called.
+ * The returned handle is not guaranteed to be valid for the life time of the
+ * node as it may be finalized and recreated itself.
+ * Therefore it is recommended to get the handle from the node using
+ * this function each time it is needed and avoid use of the handle
+ * concurrently with functions that might change it.
  *
- * \TODO(wjwwood) should the return value of this be const?
  *
  * \param[in] node pointer to the rcl node
  * \return rmw node handle if successful, otherwise NULL
@@ -214,8 +219,8 @@ rcl_node_get_rmw_node_handle(const rcl_node_t * node);
  *   - node is NULL
  *   - node has not been initialized (the implementation is invalid)
  *
- * This function will succeed, however, even if rcl_fini has been called since
- * the node was created.
+ * This function will succeed, however, even if rcl_shutdown has been called
+ * since the node was created.
  *
  * \param[in] node pointer to the rcl node
  * \return rcl instance id captured at node creation or 0 if there was an error

@@ -250,16 +250,13 @@ rcl_publisher_get_options(const rcl_publisher_t * publisher);
  *   - publisher is NULL
  *   - publisher is invalid (never called init, called fini, or invalid node)
  *
- * The returned handle is only valid as long as the given publisher is valid.
- *
- * \TODO(wjwwood) will the publisher ever need to remove and recreate the rmw
- *                handle under the hood? Perhaps not now, but if we add the
- *                ability to reconfigure, alias, or remap topics, and don't
- *                implement that into rmw, then we should consider the
- *                implications here. This argument applies to other parts of
- *                the interface, but I'll just mention it here.
- *
- * \TODO(wjwwood) should the return value of this be const?
+ * The returned handle is made invalid if the publisher is finalized or if
+ * rcl_shutdown() is called.
+ * The returned handle is not guaranteed to be valid for the life time of the
+ * publisher as it may be finalized and recreated itself.
+ * Therefore it is recommended to get the handle from the publisher using
+ * this function each time it is needed and avoid use of the handle
+ * concurrently with functions that might change it.
  *
  * \param[in] publisher pointer to the rcl publisher
  * \return rmw publisher handle if successful, otherwise NULL

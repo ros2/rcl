@@ -222,7 +222,6 @@ rcl_take(
  * copying the string is recommended if this is a concern.
  *
  * This function is not thread-safe, and copying the result is not thread-safe.
- * \TODO(wjwwood): should we provide a thread-safe copy_topic_name?
  *
  * \param[in] subscription the pointer to the subscription
  * \return name string if successful, otherwise NULL
@@ -242,7 +241,6 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription);
  * and therefore copying the struct is recommended if this is a concern.
  *
  * This function is not thread-safe, and copying the result is not thread-safe.
- * \TODO(wjwwood): should we provide a thread-safe copy_subscription_options?
  *
  * \param[in] subscription pointer to the subscription
  * \return options struct if successful, otherwise NULL
@@ -257,9 +255,13 @@ rcl_subscription_get_options(const rcl_subscription_t * subscription);
  *   - subscription is NULL
  *   - subscription is invalid (never called init, called fini, or invalid)
  *
- * The returned handle is only valid as long as the rcl subscription is valid.
- *
- * \TODO(wjwwood) should the return value of this be const?
+ * The returned handle is made invalid if the subscription is finalized or if
+ * rcl_shutdown() is called.
+ * The returned handle is not guaranteed to be valid for the life time of the
+ * subscription as it may be finalized and recreated itself.
+ * Therefore it is recommended to get the handle from the subscription using
+ * this function each time it is needed and avoid use of the handle
+ * concurrently with functions that might change it.
  *
  * This function is not thread-safe.
  *
