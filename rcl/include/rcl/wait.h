@@ -23,8 +23,9 @@ extern "C"
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "rcl/subscription.h"
 #include "rcl/guard_condition.h"
+#include "rcl/macros.h"
+#include "rcl/subscription.h"
 #include "rcl/timer.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
@@ -49,6 +50,7 @@ typedef struct rcl_wait_set_t
 
 /// Return a rcl_wait_set_t struct with members set to NULL.
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_wait_set_t
 rcl_get_zero_initialized_wait_set();
 
@@ -93,6 +95,7 @@ rcl_get_zero_initialized_wait_set();
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_init(
   rcl_wait_set_t * wait_set,
@@ -121,6 +124,7 @@ rcl_wait_set_init(
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_fini(rcl_wait_set_t * wait_set);
 
@@ -138,6 +142,7 @@ rcl_wait_set_fini(rcl_wait_set_t * wait_set);
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * allocator);
 
@@ -157,6 +162,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_add_subscription(
   rcl_wait_set_t * wait_set,
@@ -178,6 +184,7 @@ rcl_wait_set_add_subscription(
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set);
 
@@ -207,6 +214,7 @@ rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set);
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_resize_subscriptions(rcl_wait_set_t * wait_set, size_t size);
 
@@ -215,6 +223,7 @@ rcl_wait_set_resize_subscriptions(rcl_wait_set_t * wait_set, size_t size);
  * \see rcl_wait_set_add_subscription
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_add_guard_condition(
   rcl_wait_set_t * wait_set,
@@ -225,6 +234,7 @@ rcl_wait_set_add_guard_condition(
  * \see rcl_wait_set_clear_subscriptions
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_clear_guard_conditions(rcl_wait_set_t * wait_set);
 
@@ -233,6 +243,7 @@ rcl_wait_set_clear_guard_conditions(rcl_wait_set_t * wait_set);
  * \see rcl_wait_set_resize_subscriptions
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
 
@@ -241,6 +252,7 @@ rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
  * \see rcl_wait_set_add_subscription
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_add_timer(
   rcl_wait_set_t * wait_set,
@@ -251,6 +263,7 @@ rcl_wait_set_add_timer(
  * \see rcl_wait_set_clear_subscriptions
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_clear_timers(rcl_wait_set_t * wait_set);
 
@@ -259,6 +272,7 @@ rcl_wait_set_clear_timers(rcl_wait_set_t * wait_set);
  * \see rcl_wait_set_resize_subscriptions
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_resize_timers(rcl_wait_set_t * wait_set, size_t size);
 
@@ -352,6 +366,7 @@ rcl_wait_set_resize_timers(rcl_wait_set_t * wait_set, size_t size);
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
 

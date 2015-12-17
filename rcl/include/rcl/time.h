@@ -20,6 +20,7 @@ extern "C"
 {
 #endif
 
+#include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
@@ -93,6 +94,7 @@ typedef struct rcl_duration_t
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_system_time_point_now(rcl_system_time_point_t * now);
 
@@ -117,6 +119,7 @@ rcl_system_time_point_now(rcl_system_time_point_t * now);
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_steady_time_point_now(rcl_steady_time_point_t * now);
 

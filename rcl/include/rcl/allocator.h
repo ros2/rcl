@@ -20,6 +20,7 @@ extern "C"
 {
 #endif
 
+#include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
@@ -61,6 +62,7 @@ typedef struct rcl_allocator_t
  * This function is lock-free.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_allocator_t
 rcl_get_default_allocator();
 
@@ -69,6 +71,7 @@ rcl_get_default_allocator();
  * function pointer fields.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 void *
 rcl_reallocf(void * pointer, size_t size, rcl_allocator_t * allocator);
 

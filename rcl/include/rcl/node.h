@@ -23,6 +23,7 @@ extern "C"
 #include <stdint.h>
 
 #include "rcl/allocator.h"
+#include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
@@ -59,6 +60,7 @@ typedef struct rcl_node_options_t
 
 /// Return a rcl_node_t struct with members initialized to NULL.
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_node_t
 rcl_get_zero_initialized_node();
 
@@ -106,6 +108,7 @@ rcl_get_zero_initialized_node();
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * options);
 
@@ -124,6 +127,7 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_node_fini(rcl_node_t * node);
 
@@ -146,6 +150,7 @@ rcl_node_get_default_options();
  * \return name string if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 const char *
 rcl_node_get_name(const rcl_node_t * node);
 
@@ -163,6 +168,7 @@ rcl_node_get_name(const rcl_node_t * node);
  * \return options struct if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node);
 
@@ -185,6 +191,7 @@ rcl_node_get_options(const rcl_node_t * node);
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
 
@@ -207,6 +214,7 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
  * \return rmw node handle if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rmw_node_t *
 rcl_node_get_rmw_handle(const rcl_node_t * node);
 
@@ -226,6 +234,7 @@ rcl_node_get_rmw_handle(const rcl_node_t * node);
  * \return rcl instance id captured at node creation or 0 if there was an error
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 uint64_t
 rcl_node_get_rcl_instance_id(const rcl_node_t * node);
 

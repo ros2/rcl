@@ -23,6 +23,7 @@ extern "C"
 #include <stdbool.h>
 
 #include "rcl/allocator.h"
+#include "rcl/macros.h"
 #include "rcl/time.h"
 #include "rcl/types.h"
 #include "rmw/rmw.h"
@@ -51,6 +52,7 @@ typedef void (* rcl_timer_callback_t)(rcl_timer_t *, uint64_t);
 
 /// Return a zero initialized timer.
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_timer_t
 rcl_get_zero_initialized_timer();
 
@@ -112,6 +114,7 @@ rcl_get_zero_initialized_timer();
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_init(
   rcl_timer_t * timer,
@@ -136,6 +139,7 @@ rcl_timer_init(
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_fini(rcl_timer_t * timer);
 
@@ -169,6 +173,7 @@ rcl_timer_fini(rcl_timer_t * timer);
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_call(rcl_timer_t * timer);
 
@@ -193,6 +198,7 @@ rcl_timer_call(rcl_timer_t * timer);
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready);
 
@@ -222,6 +228,7 @@ rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready);
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_until_next_call);
 
@@ -248,6 +255,7 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_since_last_call);
 
@@ -268,6 +276,7 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_si
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
 
@@ -292,6 +301,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64_t * old_period);
 
@@ -308,6 +318,7 @@ rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64
  * \return function pointer to the callback, or NULL if an error occurred
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_timer_callback_t
 rcl_timer_get_callback(const rcl_timer_t * timer);
 
@@ -326,6 +337,7 @@ rcl_timer_get_callback(const rcl_timer_t * timer);
  * \return function pointer to the old callback, or NULL if an error occurred
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_timer_callback_t
 rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_callback);
 
@@ -347,6 +359,7 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_cancel(rcl_timer_t * timer);
 
@@ -368,6 +381,7 @@ rcl_timer_cancel(rcl_timer_t * timer);
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled);
 
@@ -387,6 +401,7 @@ rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled);
  *         RCL_RET_ERROR an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer);
 

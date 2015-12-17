@@ -22,6 +22,7 @@ extern "C"
 
 #include "rosidl_generator_c/message_type_support.h"
 
+#include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
 
@@ -53,6 +54,7 @@ typedef struct rcl_subscription_options_t
  * is being allocated on the heap.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_subscription_t
 rcl_get_zero_initialized_subscription();
 
@@ -127,6 +129,7 @@ rcl_get_zero_initialized_subscription();
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_init(
   rcl_subscription_t * subscription,
@@ -153,11 +156,13 @@ rcl_subscription_init(
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node);
 
 /// Return the default subscription options in a rcl_subscription_options_t.
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_subscription_options_t
 rcl_subscription_get_default_options();
 
@@ -204,6 +209,7 @@ rcl_subscription_get_default_options();
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_take(
   const rcl_subscription_t * subscription,
@@ -227,6 +233,7 @@ rcl_take(
  * \return name string if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 const char *
 rcl_subscription_get_topic_name(const rcl_subscription_t * subscription);
 
@@ -246,6 +253,7 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription);
  * \return options struct if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription);
 
@@ -269,6 +277,7 @@ rcl_subscription_get_options(const rcl_subscription_t * subscription);
  * \return rmw subscription handle if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rmw_subscription_t *
 rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
 

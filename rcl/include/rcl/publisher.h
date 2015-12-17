@@ -22,6 +22,7 @@ extern "C"
 
 #include "rosidl_generator_c/message_type_support.h"
 
+#include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
 
@@ -51,6 +52,7 @@ typedef struct rcl_publisher_options_t
  * being allocated on the heap.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_publisher_t
 rcl_get_zero_initialized_publisher();
 
@@ -126,6 +128,7 @@ rcl_get_zero_initialized_publisher();
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publisher_init(
   rcl_publisher_t * publisher,
@@ -150,11 +153,13 @@ rcl_publisher_init(
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node);
 
 /// Return the default publisher options in a rcl_publisher_options_t.
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_publisher_options_t
 rcl_publisher_get_default_options();
 
@@ -203,6 +208,7 @@ rcl_publisher_get_default_options();
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
 
@@ -222,6 +228,7 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
  * \return name string if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 const char *
 rcl_publisher_get_topic_name(const rcl_publisher_t * publisher);
 
@@ -241,6 +248,7 @@ rcl_publisher_get_topic_name(const rcl_publisher_t * publisher);
  * \return options struct if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher);
 
@@ -262,6 +270,7 @@ rcl_publisher_get_options(const rcl_publisher_t * publisher);
  * \return rmw publisher handle if successful, otherwise NULL
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rmw_publisher_t *
 rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 

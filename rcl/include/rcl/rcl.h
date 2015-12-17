@@ -20,6 +20,7 @@ extern "C"
 {
 #endif
 
+#include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
@@ -60,6 +61,7 @@ extern "C"
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
 
@@ -88,6 +90,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
  *         RCL_RET_ERROR if an unspecified error occur.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_shutdown();
 
@@ -102,6 +105,7 @@ rcl_shutdown();
  * \return a unique id specific to this rcl instance, or 0 if not initialized.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 uint64_t
 rcl_get_instance_id();
 
@@ -112,6 +116,7 @@ rcl_get_instance_id();
  * atomic_is_lock_free() returns true for atomic_uint_least64_t.
  */
 RCL_PUBLIC
+RCL_WARN_UNUSED
 bool
 rcl_ok();
 

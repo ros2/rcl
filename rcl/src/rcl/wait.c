@@ -55,14 +55,18 @@ __wait_set_is_valid(const rcl_wait_set_t * wait_set)
 static void
 __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 {
+  rcl_ret_t ret;
   if (wait_set->subscriptions) {
-    rcl_wait_set_resize_subscriptions(wait_set, 0);
+    ret = rcl_wait_set_resize_subscriptions(wait_set, 0);
+    assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
   }
   if (wait_set->guard_conditions) {
-    rcl_wait_set_resize_guard_conditions(wait_set, 0);
+    ret = rcl_wait_set_resize_guard_conditions(wait_set, 0);
+    assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
   }
   if (wait_set->timers) {
-    rcl_wait_set_resize_timers(wait_set, 0);
+    ret = rcl_wait_set_resize_timers(wait_set, 0);
+    assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
   }
   if (wait_set->impl) {
     allocator.deallocate(wait_set->impl, allocator.state);
@@ -416,8 +420,11 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // Check for timeout.
   if (ret == RMW_RET_TIMEOUT) {
     // Assume none were set (because timeout was reached first), and clear all.
-    rcl_wait_set_clear_subscriptions(wait_set);
-    rcl_wait_set_clear_guard_conditions(wait_set);
+    rcl_ret_t rcl_ret;
+    rcl_ret = rcl_wait_set_clear_subscriptions(wait_set);
+    assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
+    rcl_ret = rcl_wait_set_clear_guard_conditions(wait_set);
+    assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
     return RCL_RET_TIMEOUT;
   }
   // Set corresponding rcl subscription handles NULL.
