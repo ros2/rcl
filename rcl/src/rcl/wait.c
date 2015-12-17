@@ -177,7 +177,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
 
 #define SET_ADD_RMW(Type, RMWStorage) \
   /* Also place into rmw storage. */ \
-  rmw_ ## Type ## _t * rmw_handle = rcl_ ## Type ## _get_rmw_ ## Type ## _handle(Type); \
+  rmw_ ## Type ## _t * rmw_handle = rcl_ ## Type ## _get_rmw_handle(Type); \
   RCL_CHECK_FOR_NULL_WITH_MSG( \
     rmw_handle, rcl_get_error_string_safe(), return RCL_RET_ERROR); \
   wait_set->impl->RMWStorage[current_index] = rmw_handle->data;
