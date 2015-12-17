@@ -33,10 +33,11 @@ typedef struct rcl_node_impl_t
   rcl_node_options_t options;
   rmw_node_t * rmw_node_handle;
   uint64_t rcl_instance_id;
+  size_t actual_domain_id;
 } rcl_node_impl_t;
 
 rcl_node_t
-rcl_get_uninitialized_node()
+rcl_get_zero_initialized_node()
 {
   static rcl_node_t null_node = {0};
   return null_node;
@@ -56,6 +57,11 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
     RCL_SET_ERROR_MSG("node already initialized, or struct memory was unintialized");
     return RCL_RET_ALREADY_INIT;
   }
+  // Make sure rcl has been initialized.
+  if (!rcl_ok()) {
+    RCL_SET_ERROR_MSG("rcl_init() has not been called");
+    return RCL_RET_NOT_INIT;
+  }
   const rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator->allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
@@ -71,23 +77,27 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
     RCL_SET_ERROR_MSG("node name cannot be empty string");
     goto fail;
   }
-  // node options
+  // node options (assume it is trivially copyable)
   node->impl->options = *options;
   // node rmw_node_handle
-  // First determine the ROS_DOMAIN_ID.
-  // The result of rcl_impl_getenv on Windows is only valid until the next call to rcl_impl_getenv.
-  ret = rcl_impl_getenv("ROS_DOMAIN_ID", &ros_domain_id);
-  if (ret != RCL_RET_OK) {
-    goto fail;
-  }
-  if (ros_domain_id) {
-    unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
-    if (number == ULONG_MAX) {
-      RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number");
+  if (node->impl->options.domain_id == RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID) {
+    // Find the domain ID set by the environment.
+    ret = rcl_impl_getenv("ROS_DOMAIN_ID", &ros_domain_id);
+    if (ret != RCL_RET_OK) {
       goto fail;
     }
-    domain_id = (size_t)number;
+    if (ros_domain_id) {
+      unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
+      if (number == ULONG_MAX) {
+        RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number");
+        goto fail;
+      }
+      domain_id = (size_t)number;
+    }
+  } else {
+    domain_id = node->impl->options.domain_id;
   }
+  node->impl->actual_domain_id = domain_id;
   node->impl->rmw_node_handle = rmw_create_node(name, domain_id);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail);
@@ -118,6 +128,7 @@ rcl_node_fini(rcl_node_t * node)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator.deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
   allocator.deallocate(node->impl, allocator.state);
+  node->impl = NULL;
   return result;
 }
 
@@ -125,7 +136,6 @@ rcl_node_options_t
 rcl_node_get_default_options()
 {
   static rcl_node_options_t default_options = {
-    .no_parameters = false,
     .domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID,
   };
   // Must set the allocator after because it is not a compile time constant.
@@ -155,6 +165,21 @@ rcl_node_get_options(const rcl_node_t * node)
     return NULL;
   }
   return &node->impl->options;
+}
+
+rcl_ret_t
+rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl, "node implementation is invalid", return RCL_RET_NODE_INVALID);
+  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
+    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+    return RCL_RET_NODE_INVALID;
+  }
+  *domain_id = node->impl->actual_domain_id;
+  return RCL_RET_OK;
 }
 
 rmw_node_t *

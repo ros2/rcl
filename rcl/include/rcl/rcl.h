@@ -80,7 +80,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
  *  - No new work (executing callbacks) will be done in executors.
  *  - Currently running work in executors will be finished.
  *
- * This function does not allocate heap memory.
+ * This function manipulates heap memory.
  * This function is thread-safe, except with rcl_init().
  * This function is lock-free so long as the C11's stdatomic.h function
  * atomic_is_lock_free() returns true for atomic_uint_least64_t.

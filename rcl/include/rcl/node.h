@@ -43,7 +43,7 @@ typedef struct rcl_node_options_t
   // bool anonymous_name;
   // rmw_qos_profile_t parameter_qos;
   /// If true, no parameter infrastructure will be setup.
-  bool no_parameters;
+  // bool no_parameters;
   /// If set, then this value overrides the ROS_DOMAIN_ID environment variable.
   /* It defaults to RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, which will cause the
    * node to use the ROS domain ID set in the ROS_DOMAIN_ID environment
@@ -93,7 +93,10 @@ rcl_get_zero_initialized_node();
  *    ret = rcl_node_fini(&node);
  *    // ... error handling for rcl_node_fini()
  *
+ * This function allocates heap memory.
  * This function is not thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uint_least64_t.
  *
  * \pre the node handle must be allocated, zero initialized, and invalid
  * \post the node handle is valid and can be used to in other rcl_* functions
@@ -119,7 +122,10 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
  * Any middleware primitives created by the user, e.g. publishers, services, etc.,
  * are invalid after deinitialization.
  *
+ * This function manipulates heap memory.
  * This function is not thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uint_least64_t.
  *
  * \param[in] node handle to the node to be finalized
  * \return RCL_RET_OK if node was finalized successfully, or
@@ -146,6 +152,10 @@ rcl_node_get_default_options();
  * The value of the string may change if the value in the rcl_node_t changes,
  * and therefore copying the string is recommended if this is a concern.
  *
+ * This function does not manipulate heap memory.
+ * This function is thread-safe for different nodes.
+ * This function is lock-free.
+ *
  * \param[in] node pointer to the node
  * \return name string if successful, otherwise NULL
  */
@@ -163,6 +173,10 @@ rcl_node_get_name(const rcl_node_t * node);
  * The returned struct is only valid as long as the given rcl_node_t is valid.
  * The values in the struct may change if the options of the rcl_node_t changes,
  * and therefore copying the struct is recommended if this is a concern.
+ *
+ * This function does not manipulate heap memory.
+ * This function is thread-safe for different nodes.
+ * This function is lock-free.
  *
  * \param[in] node pointer to the node
  * \return options struct if successful, otherwise NULL
@@ -183,6 +197,10 @@ rcl_node_get_options(const rcl_node_t * node);
  *
  * The domain_id field must point to an allocated size_t object to which the
  * ROS domain ID will be written.
+ *
+ * This function does not manipulate heap memory.
+ * This function is thread-safe for different nodes.
+ * This function is lock-free.
  *
  * \param[in] node the handle to the node being queried
  * \return RCL_RET_OK if node the domain ID was retrieved successfully, or
@@ -209,6 +227,9 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
  * this function each time it is needed and avoid use of the handle
  * concurrently with functions that might change it.
  *
+ * This function does not manipulate heap memory.
+ * This function is thread-safe for different nodes.
+ * This function is lock-free.
  *
  * \param[in] node pointer to the rcl node
  * \return rmw node handle if successful, otherwise NULL
@@ -229,6 +250,10 @@ rcl_node_get_rmw_handle(const rcl_node_t * node);
  *
  * This function will succeed, however, even if rcl_shutdown has been called
  * since the node was created.
+ *
+ * This function does not manipulate heap memory.
+ * This function is thread-safe for different nodes.
+ * This function is lock-free.
  *
  * \param[in] node pointer to the rcl node
  * \return rcl instance id captured at node creation or 0 if there was an error
