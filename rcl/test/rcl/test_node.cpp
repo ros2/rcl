@@ -130,7 +130,7 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   assert_no_realloc_end();
   assert_no_free_end();
   stop_memory_checking();
-  EXPECT_TRUE(actual_node_name);
+  EXPECT_TRUE(actual_node_name ? true : false);
   if (actual_node_name) {
     EXPECT_EQ(std::string(name), std::string(actual_node_name));
   }
