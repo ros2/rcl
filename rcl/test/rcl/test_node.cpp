@@ -17,6 +17,8 @@
 #include "rcl/rcl.h"
 #include "rcl/node.h"
 
+#include <string>
+
 #include "../memory_tools.hpp"
 #include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
