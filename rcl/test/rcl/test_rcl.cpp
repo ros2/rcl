@@ -167,7 +167,7 @@ TEST_F(TestRCLFixture, test_rcl_init_and_ok_and_shutdown) {
     FakeTestArgv test_args;
     ret = rcl_init(test_args.argc, test_args.argv, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_OK, ret);
-    rcl_ok());
+    ASSERT_TRUE(rcl_ok());
     ret = rcl_init(test_args.argc, test_args.argv, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_ALREADY_INIT, ret);
     rcl_reset_error();
