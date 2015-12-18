@@ -14,10 +14,10 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "rcl/rcl.h"
 #include "rcl/node.h"
-
-#include <string>
 
 #include "../memory_tools.hpp"
 #include "../scope_exit.hpp"
