@@ -1,0 +1,412 @@
+// Copyright 2015 Open Source Robotics Foundation, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef RCL__TIMER_H_
+#define RCL__TIMER_H_
+
+#if __cplusplus
+extern "C"
+{
+#endif
+
+#include <stdbool.h>
+
+#include "rcl/allocator.h"
+#include "rcl/macros.h"
+#include "rcl/time.h"
+#include "rcl/types.h"
+#include "rmw/rmw.h"
+
+struct rcl_timer_impl_t;
+
+/// Handle for a ROS timer.
+typedef struct rcl_timer_t
+{
+  /// Private implementation pointer.
+  struct rcl_timer_impl_t * impl;
+} rcl_timer_t;
+
+/// User callback signature for timers.
+/* The first argument the callback gets is a pointer to the timer.
+ * This can be used to cancel the timer, query the time until the next
+ * timer callback, exchange the callback with a different one, etc.
+ *
+ * The only caveat is that the function rcl_timer_get_time_since_last_call will
+ * return the time since just before this callback was called, not the last.
+ * Therefore the second argument given is the time since the previous callback
+ * was called, because that information is no longer accessible via the timer.
+ * The time since the last callback call is given in nanoseconds.
+ */
+typedef void (* rcl_timer_callback_t)(rcl_timer_t *, uint64_t);
+
+/// Return a zero initialized timer.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_timer_t
+rcl_get_zero_initialized_timer();
+
+/// Initialize a timer.
+/* A timer consists of a callback function and a period.
+ * A timer can be added to a wait set and waited on, such that the wait set
+ * will wake up when a timer is ready to be executed.
+ *
+ * A timer simply holds state and does not automatically call callbacks.
+ * It does not create any threads, register interrupts, or consume signals.
+ * For blocking behavior it can be used in conjunction with a wait set and
+ * rcl_wait().
+ * When rcl_timer_is_ready() returns true, the timer must still be called
+ * explicitly using rcl_timer_call().
+ *
+ * The timer handle must be a pointer to an allocated and zero initialized
+ * rcl_timer_t struct.
+ * Calling this function on an already initialized timer will fail.
+ * Calling this function on a timer struct which has been allocated but not
+ * zero initialized is undefined behavior.
+ *
+ * The period is a duration (rather an absolute time in the future).
+ * If the period is 0 then it will always be ready.
+ *
+ * The callback must be a function which returns void and takes two arguments,
+ * the first being a pointer to the associated timer, and the second a uint64_t
+ * which is the time since the previous call, or since the timer was created
+ * if it is the first call to the callback.
+ *
+ * Expected usage:
+ *
+ *   #include <rcl/rcl.h>
+ *
+ *   void my_timer_callback(rcl_timer_t * timer, uint64_t last_call_time)
+ *   {
+ *     // Do timer work...
+ *     // Optionally reconfigure, cancel, or reset the timer...
+ *   }
+ *
+ *   rcl_timer_t timer = rcl_get_zero_initialized_timer();
+ *   rcl_ret_t ret =
+ *     rcl_timer_init(&timer, RCL_MS_TO_NS(100), my_timer_callback, rcl_get_default_allocator());
+ *   // ... error handling, use the timer with a wait set, or poll it manually, then cleanup
+ *   ret = rcl_timer_fini(&timer);
+ *   // ... error handling
+ *
+ * This function does allocate heap memory.
+ * This function is not thread-safe.
+ * This function is not lock-free.
+ *
+ * \param[inout] timer the timer handle to be initialized
+ * \param[in] period the duration between calls to the callback in nanoseconds
+ * \param[in] callback the user defined function to be called every period
+ * \param[in] allocator the allocator to use for allocations
+ * \return RCL_RET_OK if the timer was initialized successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_ALREADY_INIT if the timer was already initialized, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_init(
+  rcl_timer_t * timer,
+  uint64_t period,
+  const rcl_timer_callback_t callback,
+  rcl_allocator_t allocator);
+
+/// Finalize a timer.
+/* This function will deallocate any memory and make the timer invalid.
+ *
+ * A timer that is already invalid (zero initialized) or NULL will not fail.
+ *
+ * This function is not thread-safe with any rcl_timer_* functions used on the
+ * same timer object.
+ *
+ * This function may allocate heap memory when an error occurs.
+ * This function is not thread-safe.
+ * This function is not lock-free.
+ *
+ * \param[inout] timer the handle to the timer to be finalized.
+ * \return RCL_RET_OK if the timer was finalized successfully, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_fini(rcl_timer_t * timer);
+
+/// Call the timer's callback and set the last call time.
+/* This function will call the callback and change the last call time even if
+ * the timer's period has not yet elapsed.
+ * It is up to the calling code to make sure the period has elapsed by first
+ * calling rcl_timer_is_ready().
+ * The order of operations in this command are as follows:
+ *
+ *  - Ensure the timer has not been canceled.
+ *  - Get the current time into a temporary rcl_steady_time_point_t.
+ *  - Exchange the current time with the last call time of the timer.
+ *  - Call the callback, passing this timer and the time since the last call.
+ *  - Return after the callback has completed.
+ *
+ * During the callback the timer can be canceled or have its period and/or
+ * callback modified.
+ *
+ * This function may allocate heap memory when an error occurs.
+ * This function is thread-safe, but the user's callback may not be.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_int_least64_t, but the user's
+ * callback may not be lock-free.
+ *
+ * \param[inout] timer the handle to the timer to call
+ * \return RCL_RET_OK if the timer was called successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_TIMER_CANCELED if the timer has been canceled, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_call(rcl_timer_t * timer);
+
+/// Calculates whether or not the timer should be called.
+/* The result is true if the time until next call is less than, or equal to, 0
+ * and the timer has not been canceled.
+ * Otherwise the result is false, indicating the timer should not be called.
+ *
+ * The is_ready argument must point to an allocated bool object, as the result
+ * is copied into it.
+ *
+ * This function may allocate heap memory when an error occurs.
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_int_least64_t.
+ *
+ * \param[in] timer the handle to the timer which is being checked
+ * \param[out] is_ready the bool used to store the result of the calculation
+ * \return RCL_RET_OK if the last call time was retrieved successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready);
+
+/// Calculate and retrieve the time until the next call in nanoseconds.
+/* This function calculates the time until the next call by adding the timer's
+ * period to the last call time and subtracting that sum from the current time.
+ * The calculated time until the next call can be positive, indicating that it
+ * is not ready to be called as the period has not elapsed since the last call.
+ * The calculated time until the next call can also be 0 or negative,
+ * indicating that the period has elapsed since the last call and the timer
+ * should be called.
+ * A negative value indicates the timer call is overdue by that amount.
+ *
+ * The time_until_next_call argument must point to an allocated int64_t, as the
+ * the time until is coped into that instance.
+ *
+ * This function may allocate heap memory when an error occurs.
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_int_least64_t.
+ *
+ * \param[in] timer the handle to the timer that is being queried
+ * \param[out] time_until_next_call the output variable for the result
+ * \return RCL_RET_OK if the timer until next call was successfully calculated, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_until_next_call);
+
+/// Retrieve the time since the previous call to rcl_timer_call() occurred.
+/* This function calculates the time since the last call and copies it into
+ * the given uint64_t variable.
+ *
+ * Calling this function within a callback will not return the time since the
+ * previous call but instead the time since the current callback was called.
+ *
+ * The time_since_last_call argument must be a pointer to an already allocated
+ * uint64_t.
+ *
+ * This function may allocate heap memory when an error occurs.
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_int_least64_t.
+ *
+ * \param[in] timer the handle to the timer which is being queried
+ * \param[out] time_since_last_call the struct in which the time is stored
+ * \return RCL_RET_OK if the last call time was retrieved successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_since_last_call);
+
+/// Retrieve the period of the timer.
+/* This function retrieves the period and copies it into the give variable.
+ *
+ * The period argument must be a pointer to an already allocated uint64_t.
+ *
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_int_least64_t.
+ *
+ * \param[in] timer the handle to the timer which is being queried
+ * \param[out] period the uint64_t in which the period is stored
+ * \return RCL_RET_OK if the period was retrieved successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
+
+/// Exchange the period of the timer and return the previous period.
+/* This function exchanges the period in the timer and copies the old one into
+ * the give variable.
+ *
+ * Exchanging (changing) the period will not affect already waiting wait sets.
+ *
+ * The old_period argument must be a pointer to an already allocated uint64_t.
+ *
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_int_least64_t.
+ *
+ * \param[in] timer the handle to the timer which is being modified
+ * \param[out] new_period the uint64_t to exchange into the timer
+ * \param[out] old_period the uint64_t in which the previous period is stored
+ * \return RCL_RET_OK if the period was retrieved successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64_t * old_period);
+
+/// Return the current timer callback.
+/* This function can fail, and therefore return NULL, if:
+ *   - timer is NULL
+ *   - timer has not been initialized (the implementation is invalid)
+ *
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uintptr_t.
+ *
+ * \param[in] timer handle to the timer from the callback should be returned
+ * \return function pointer to the callback, or NULL if an error occurred
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_timer_callback_t
+rcl_timer_get_callback(const rcl_timer_t * timer);
+
+/// Exchange the current timer callback and return the current callback.
+/* This function can fail, and therefore return NULL, if:
+ *   - timer is NULL
+ *   - timer has not been initialized (the implementation is invalid)
+ *   - the new_callback argument is NULL
+ *
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uintptr_t.
+ *
+ * \param[inout] timer handle to the timer from the callback should be exchanged
+ * \param[in] new_callback the callback to be exchanged into the timer
+ * \return function pointer to the old callback, or NULL if an error occurred
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_timer_callback_t
+rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_callback);
+
+/// Cancel a timer.
+/* When a timer is canceled, rcl_timer_is_ready() will return false for that
+ * timer, and rcl_timer_call() will fail with RCL_RET_TIMER_CANCELED.
+ *
+ * A canceled timer can be reset with rcl_timer_reset(), and then used again.
+ * Calling this function on an already canceled timer will succeed.
+ *
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_bool.
+ *
+ * \param[inout] timer the timer to be canceled
+ * \return RCL_RET_OK if the last call time was retrieved successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_cancel(rcl_timer_t * timer);
+
+/// Retrieve the canceled state of a timer.
+/* If the timer is canceled true will be stored in the is_canceled argument.
+ * Otherwise false will be stored in the is_canceled argument.
+ *
+ * The is_canceled argument must point to an allocated bool, as the result is
+ * copied into this variable.
+ *
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_bool.
+ *
+ * \param[in] timer the timer to be queried
+ * \return RCL_RET_OK if the last call time was retrieved successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled);
+
+/// Reset a timer.
+/* This function can be called on a timer, canceled or not.
+ * For all timers it will reset the last call time to now.
+ * For canceled timers it will additionally make the timer not canceled.
+ *
+ * This function is thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_int_least64_t.
+ *
+ * \param[inout] timer the timer to be reset
+ * \return RCL_RET_OK if the last call time was retrieved successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_TIMER_INVALID if the timer is invalid, or
+ *         RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_reset(rcl_timer_t * timer);
+
+#if __cplusplus
+}
+#endif
+
+#endif  // RCL__TIMER_H_
