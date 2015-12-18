@@ -26,7 +26,7 @@ extern "C"
 #include "rcl/error_handling.h"
 
 static atomic_bool __rcl_is_initialized = ATOMIC_VAR_INIT(false);
-static rcl_allocator_t __rcl_allocator = {0};
+static rcl_allocator_t __rcl_allocator;
 static int __rcl_argc = 0;
 static char ** __rcl_argv = NULL;
 static atomic_uint_least64_t __rcl_instance_id = ATOMIC_VAR_INIT(0);
@@ -36,7 +36,7 @@ static void
 __clean_up_init()
 {
   if (__rcl_argv) {
-    size_t i;
+    int i;
     for (i = 0; i < __rcl_argc; ++i) {
       if (__rcl_argv[i]) {
         // Use the old allocator.
@@ -69,9 +69,14 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
     RCL_SET_ERROR_MSG("rcl_init called while already initialized");
     return RCL_RET_ALREADY_INIT;
   }
+  // There is a race condition between the time __rcl_is_initialized is set true,
+  // and when the allocator is set, in which rcl_shutdown() could get rcl_ok() as
+  // true and try to use the allocator, but it isn't set yet...
+  // A very unlikely race condition, but it is possile I think.
+  // I've documented that rcl_init() and rcl_shutdown() are not thread-safe with each other.
+  __rcl_allocator = allocator;  // Set the new allocator.
   // TODO(wjwwood): Remove rcl specific command line arguments.
   // For now just copy the argc and argv.
-  __rcl_allocator = allocator;  // Set the new allocator.
   __rcl_argc = argc;
   __rcl_argv = (char **)__rcl_allocator.allocate(sizeof(char *) * argc, __rcl_allocator.state);
   if (!__rcl_argv) {
@@ -80,7 +85,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
     goto fail;
   }
   memset(__rcl_argv, 0, sizeof(char **) * argc);
-  size_t i;
+  int i;
   for (i = 0; i < argc; ++i) {
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);
     memcpy(__rcl_argv[i], argv[i], strlen(argv[i]));

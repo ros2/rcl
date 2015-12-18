@@ -42,7 +42,15 @@ typedef struct rcl_wait_set_impl_t
 rcl_wait_set_t
 rcl_get_zero_initialized_wait_set()
 {
-  static rcl_wait_set_t null_wait_set = {0};
+  static rcl_wait_set_t null_wait_set = {
+    .subscriptions = NULL,
+    .size_of_subscriptions = 0,
+    .guard_conditions = NULL,
+    .size_of_guard_conditions = 0,
+    .timers = NULL,
+    .size_of_timers = 0,
+    .impl = NULL,
+  };
   return null_wait_set;
 }
 

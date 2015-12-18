@@ -113,8 +113,7 @@ rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition, rcl_node_t * n
 rcl_guard_condition_options_t
 rcl_guard_condition_get_default_options()
 {
-  static rcl_guard_condition_options_t default_options = {0};
-  // Must set the allocator after because it is not a compile time constant.
+  static rcl_guard_condition_options_t default_options;
   default_options.allocator = rcl_get_default_allocator();
   return default_options;
 }

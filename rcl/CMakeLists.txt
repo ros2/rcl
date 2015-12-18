@@ -13,6 +13,7 @@ include_directories(include)
 
 if(NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 endif()
 
 set(${PROJECT_NAME}_sources

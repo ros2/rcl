@@ -137,7 +137,7 @@ rcl_take(
   rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
   // Call rmw_take_with_info.
   rmw_ret_t ret =
-    rmw_take_with_info(subscription->impl->rmw_handle, ros_message, taken, message_info);
+    rmw_take_with_info(subscription->impl->rmw_handle, ros_message, taken, message_info_local);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
     return RCL_RET_ERROR;
