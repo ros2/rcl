@@ -107,25 +107,25 @@ TEST_F(TestRCLFixture, test_rcl_init_and_ok_and_shutdown) {
   ret = rcl_shutdown();
   EXPECT_EQ(RCL_RET_NOT_INIT, ret);
   rcl_reset_error();
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // If argc is not 0, but argv is, it should be an invalid argument.
   ret = rcl_init(42, nullptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // If either the allocate or deallocate function pointers are not set, it should be invalid arg.
   rcl_allocator_t invalid_allocator = rcl_get_default_allocator();
   invalid_allocator.allocate = nullptr;
   ret = rcl_init(0, nullptr, invalid_allocator);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   invalid_allocator.allocate = rcl_get_default_allocator().allocate;
   invalid_allocator.deallocate = nullptr;
   ret = rcl_init(0, nullptr, invalid_allocator);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // If the malloc call fails (with some valid arguments to copy), it should be a bad alloc.
   {
     FakeTestArgv test_args;
@@ -136,47 +136,47 @@ TEST_F(TestRCLFixture, test_rcl_init_and_ok_and_shutdown) {
     ret = rcl_init(test_args.argc, test_args.argv, failing_allocator);
     EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
     rcl_reset_error();
-    ASSERT_EQ(false, rcl_ok());
+    ASSERT_FALSE(rcl_ok());
   }
   // If argc is 0 and argv is nullptr and the allocator is valid, it should succeed.
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret);
-  ASSERT_EQ(true, rcl_ok());
+  ASSERT_TRUE(rcl_ok());
   // Then shutdown should work.
   ret = rcl_shutdown();
   EXPECT_EQ(ret, RCL_RET_OK);
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // Valid argc/argv values and a valid allocator should succeed.
   {
     FakeTestArgv test_args;
     ret = rcl_init(test_args.argc, test_args.argv, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_OK, ret);
-    ASSERT_EQ(true, rcl_ok());
+    ASSERT_TRUE(rcl_ok());
   }
   // Then shutdown should work.
   ret = rcl_shutdown();
   EXPECT_EQ(RCL_RET_OK, ret);
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // A repeat call to shutdown should not work.
   ret = rcl_shutdown();
   EXPECT_EQ(RCL_RET_NOT_INIT, ret);
   rcl_reset_error();
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // Repeat, but valid, calls to rcl_init() should fail.
   {
     FakeTestArgv test_args;
     ret = rcl_init(test_args.argc, test_args.argv, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_OK, ret);
-    ASSERT_EQ(true, rcl_ok());
+    rcl_ok());
     ret = rcl_init(test_args.argc, test_args.argv, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_ALREADY_INIT, ret);
     rcl_reset_error();
-    ASSERT_EQ(true, rcl_ok());
+    ASSERT_TRUE(rcl_ok());
   }
   // But shutdown should still work.
   ret = rcl_shutdown();
   EXPECT_EQ(ret, RCL_RET_OK);
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
 }
 
 /* Tests the rcl_get_instance_id() and rcl_ok() functions.
@@ -185,18 +185,18 @@ TEST_F(TestRCLFixture, test_rcl_get_instance_id_and_ok) {
   rcl_ret_t ret;
   // Instance id should be 0 before rcl_init().
   EXPECT_EQ(0, rcl_get_instance_id());
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // It should still return 0 after an invalid init.
   ret = rcl_init(1, nullptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   EXPECT_EQ(0, rcl_get_instance_id());
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // A non-zero instance id should be returned after a valid init.
   {
     FakeTestArgv test_args;
     ret = rcl_init(test_args.argc, test_args.argv, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_OK, ret);
-    ASSERT_EQ(true, rcl_ok());
+    ASSERT_TRUE(rcl_ok());
   }
   // And it should be allocation free.
   uint64_t first_instance_id;
@@ -214,20 +214,20 @@ TEST_F(TestRCLFixture, test_rcl_get_instance_id_and_ok) {
   ret = rcl_shutdown();
   EXPECT_EQ(ret, RCL_RET_OK);
   EXPECT_EQ(0, rcl_get_instance_id());
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
   // It should return a different value after another valid init.
   {
     FakeTestArgv test_args;
     ret = rcl_init(test_args.argc, test_args.argv, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_OK, ret);
-    ASSERT_EQ(true, rcl_ok());
+    ASSERT_TRUE(rcl_ok());
   }
   EXPECT_NE(0, rcl_get_instance_id());
   EXPECT_NE(first_instance_id, rcl_get_instance_id());
-  ASSERT_EQ(true, rcl_ok());
+  ASSERT_TRUE(rcl_ok());
   // Shutting down a second time should result in 0 again.
   ret = rcl_shutdown();
   EXPECT_EQ(ret, RCL_RET_OK);
   EXPECT_EQ(0, rcl_get_instance_id());
-  ASSERT_EQ(false, rcl_ok());
+  ASSERT_FALSE(rcl_ok());
 }
