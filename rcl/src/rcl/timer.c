@@ -56,15 +56,15 @@ rcl_timer_init(
     RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
   }
-  rcl_steady_time_point_t now_steady;
-  rcl_ret_t now_ret = rcl_steady_time_point_now(&now_steady);
+  rcl_time_point_value_t now_steady;
+  rcl_ret_t now_ret = rcl_steady_time_now(&now_steady);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
   rcl_timer_impl_t impl = {
     .callback = ATOMIC_VAR_INIT((uintptr_t)callback),
     .period = ATOMIC_VAR_INIT(period),
-    .last_call_time = ATOMIC_VAR_INIT(now_steady.nanoseconds),
+    .last_call_time = ATOMIC_VAR_INIT(now_steady),
     .canceled = ATOMIC_VAR_INIT(false),
     .allocator = allocator,
   };
@@ -100,14 +100,14 @@ rcl_timer_call(rcl_timer_t * timer)
     RCL_SET_ERROR_MSG("timer is canceled");
     return RCL_RET_TIMER_CANCELED;
   }
-  rcl_steady_time_point_t now_steady;
-  rcl_ret_t now_ret = rcl_steady_time_point_now(&now_steady);
+  rcl_time_point_value_t now_steady;
+  rcl_ret_t now_ret = rcl_steady_time_now(&now_steady);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
-  uint64_t previous_ns =
-    rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now_steady.nanoseconds);
-  uint64_t since_last_call = now_steady.nanoseconds - previous_ns;
+  rcl_time_point_value_t previous_ns =
+    rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now_steady);
+  uint64_t since_last_call = now_steady - previous_ns;
   rcl_timer_callback_t typed_callback =
     (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
   typed_callback(timer, since_last_call);
@@ -135,30 +135,32 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(time_until_next_call, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  rcl_steady_time_point_t now;
-  rcl_ret_t ret = rcl_steady_time_point_now(&now);
+  rcl_time_point_value_t now;
+  rcl_ret_t ret = rcl_steady_time_now(&now);
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
   uint64_t period = rcl_atomic_load_uint64_t(&timer->impl->period);
   *time_until_next_call =
-    (rcl_atomic_load_uint64_t(&timer->impl->last_call_time) + period) - now.nanoseconds;
+    (rcl_atomic_load_uint64_t(&timer->impl->last_call_time) + period) - now;
   return RCL_RET_OK;
 }
 
 rcl_ret_t
-rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_since_last_call)
+rcl_timer_get_time_since_last_call(
+  const rcl_timer_t * timer,
+  rcl_time_point_value_t * time_since_last_call)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(time_since_last_call, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  rcl_steady_time_point_t now;
-  rcl_ret_t ret = rcl_steady_time_point_now(&now);
+  rcl_time_point_value_t now;
+  rcl_ret_t ret = rcl_steady_time_now(&now);
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
   *time_since_last_call =
-    now.nanoseconds - rcl_atomic_load_uint64_t(&timer->impl->last_call_time);
+    now - rcl_atomic_load_uint64_t(&timer->impl->last_call_time);
   return RCL_RET_OK;
 }
 
@@ -224,12 +226,12 @@ rcl_timer_reset(rcl_timer_t * timer)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  rcl_steady_time_point_t now;
-  rcl_ret_t now_ret = rcl_steady_time_point_now(&now);
+  rcl_time_point_value_t now;
+  rcl_ret_t now_ret = rcl_steady_time_now(&now);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
-  rcl_atomic_store(&timer->impl->last_call_time, now.nanoseconds);
+  rcl_atomic_store(&timer->impl->last_call_time, now);
   rcl_atomic_store(&timer->impl->canceled, false);
   return RCL_RET_OK;
 }

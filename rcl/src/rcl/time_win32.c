@@ -30,7 +30,7 @@ extern "C"
 #include "rcl/error_handling.h"
 
 rcl_ret_t
-rcl_system_time_point_now(rcl_system_time_point_t * now)
+rcl_system_time_now(rcl_time_point_value_t * now)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
   FILETIME ft;
@@ -42,12 +42,12 @@ rcl_system_time_point_now(rcl_system_time_point_t * now)
   //   https://support.microsoft.com/en-us/kb/167296
   uli.QuadPart -= 116444736000000000;
   // Convert to nanoseconds from 100's of nanoseconds.
-  now->nanoseconds = uli.QuadPart * 100;
+  *now = uli.QuadPart * 100;
   return RCL_RET_OK;
 }
 
 rcl_ret_t
-rcl_steady_time_point_now(rcl_steady_time_point_t * now)
+rcl_steady_time_now(rcl_time_point_value_t * now)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
   LARGE_INTEGER cpu_frequency, performance_count;
@@ -59,8 +59,8 @@ rcl_steady_time_point_now(rcl_steady_time_point_t * now)
   QueryPerformanceFrequency(&cpu_frequency);
   QueryPerformanceCounter(&performance_count);
   // Convert to nanoseconds before converting from ticks to avoid precision loss.
-  now->nanoseconds = RCL_S_TO_NS(performance_count.QuadPart);
-  now->nanoseconds /= cpu_frequency.QuadPart;
+  rcl_time_point_value_t intermediate = RCL_S_TO_NS(performance_count.QuadPart);
+  *now = intermediate / cpu_frequency.QuadPart;
   return RCL_RET_OK;
 }
 
