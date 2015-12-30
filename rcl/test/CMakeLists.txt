@@ -2,11 +2,10 @@ find_package(ament_cmake_gtest REQUIRED)
 
 set(extra_test_libraries)
 set(extra_memory_tools_env PHONY=)  # Use a phony env var so there is always at least one.
-# The binary dir that rcl's libraries are in is one up from the current one.
-# rcl_lib_dir is passed as APPEND_LIBRARY_DIRS to each ament_add_gtest call so the librcl
-# that they link against is on the library path.
+# rcl_lib_dir is passed as APPEND_LIBRARY_DIRS for each ament_add_gtest call so
+# the librcl that they link against is on the library path.
 # This is especially improtant on Windows.
-get_filename_component(rcl_lib_dir ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+set(rcl_lib_dir $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 ament_find_gtest()  # For GTEST_LIBRARIES
 if(APPLE)
   add_library(${PROJECT_NAME}_memory_tools_interpose SHARED memory_tools_osx_interpose.cpp)
