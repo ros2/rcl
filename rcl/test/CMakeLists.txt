@@ -2,6 +2,11 @@ find_package(ament_cmake_gtest REQUIRED)
 
 set(extra_test_libraries)
 set(extra_memory_tools_env PHONY=)  # Use a phony env var so there is always at least one.
+# The binary dir that rcl's libraries are in is one up from the current one.
+# rcl_lib_dir is passed as APPEND_LIBRARY_DIRS to each ament_add_gtest call so the librcl
+# that they link against is on the library path.
+# This is especially improtant on Windows.
+get_filename_component(rcl_lib_dir ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
 ament_find_gtest()  # For GTEST_LIBRARIES
 if(APPLE)
   add_library(${PROJECT_NAME}_memory_tools_interpose SHARED memory_tools_osx_interpose.cpp)
@@ -26,7 +31,8 @@ target_compile_definitions(${PROJECT_NAME}_memory_tools
 list(APPEND extra_test_libraries ${PROJECT_NAME}_memory_tools)
 
 if(NOT WIN32)
-  ament_add_gtest(test_memory_tools test_memory_tools.cpp ENV ${extra_memory_tools_env})
+  ament_add_gtest(test_memory_tools test_memory_tools.cpp
+    ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
   if(TARGET test_memory_tools)
     target_include_directories(test_memory_tools PUBLIC
       ${rcl_interfaces_INCLUDE_DIRS}
@@ -39,7 +45,8 @@ if(NOT WIN32)
   endif()
 endif()
 
-ament_add_gtest(test_allocator rcl/test_allocator.cpp ENV ${extra_memory_tools_env})
+ament_add_gtest(test_allocator rcl/test_allocator.cpp
+  ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
 if(TARGET test_allocator)
   target_include_directories(test_allocator PUBLIC
     ${rcl_interfaces_INCLUDE_DIRS}
@@ -51,7 +58,8 @@ if(TARGET test_allocator)
   target_link_libraries(test_allocator ${PROJECT_NAME} ${extra_test_libraries})
 endif()
 
-ament_add_gtest(test_time rcl/test_time.cpp ENV ${extra_memory_tools_env})
+ament_add_gtest(test_time rcl/test_time.cpp
+  ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
 if(TARGET test_time)
   target_include_directories(test_time PUBLIC
     ${rcl_interfaces_INCLUDE_DIRS}
@@ -69,6 +77,8 @@ ament_add_gtest(test_common
     ${extra_memory_tools_env}
     EMPTY_TEST=
     NORMAL_TEST=foo
+  APPEND_LIBRARY_DIRS
+    ${rcl_lib_dir}
 )
 if(TARGET test_common)
   target_include_directories(test_common PUBLIC
@@ -81,7 +91,8 @@ if(TARGET test_common)
   target_link_libraries(test_common ${PROJECT_NAME} ${extra_test_libraries})
 endif()
 
-ament_add_gtest(test_rcl rcl/test_rcl.cpp ENV ${extra_memory_tools_env})
+ament_add_gtest(test_rcl rcl/test_rcl.cpp
+  ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
 if(TARGET test_rcl)
   target_include_directories(test_rcl PUBLIC
     ${rcl_interfaces_INCLUDE_DIRS}
@@ -93,7 +104,8 @@ if(TARGET test_rcl)
   target_link_libraries(test_rcl ${PROJECT_NAME} ${extra_test_libraries})
 endif()
 
-ament_add_gtest(test_node rcl/test_node.cpp ENV ${extra_memory_tools_env})
+ament_add_gtest(test_node rcl/test_node.cpp
+  ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
 if(TARGET test_node)
   target_include_directories(test_node PUBLIC
     ${rcl_interfaces_INCLUDE_DIRS}
