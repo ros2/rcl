@@ -18,6 +18,7 @@
 
 #include "rcl/rcl.h"
 #include "rcl/node.h"
+#include "rmw/rmw.h"  // For rmw_get_implementation_identifier.
 
 #include "../memory_tools.hpp"
 #include "../scope_exit.hpp"
@@ -70,6 +71,14 @@ failing_free(void * pointer, void * state)
   (void)state;
 }
 
+bool is_opensplice =
+  std::string(rmw_get_implementation_identifier()).find("opensplice") != std::string::npos;
+#if defined(WIN32)
+bool is_windows = true;
+#else
+bool is_windows = false;
+#endif
+
 /* Tests the node accessors, i.e. rcl_node_get_* functions.
  */
 TEST_F(TestNodeFixture, test_rcl_node_accessors) {
@@ -84,7 +93,17 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   rcl_node_options_t default_options = rcl_node_get_default_options();
   default_options.domain_id = 42;  // Set the domain id to something explicit.
   ret = rcl_node_init(&invalid_node, name, &default_options);
-  ASSERT_EQ(RCL_RET_OK, ret);
+  if (is_windows && is_opensplice) {
+    // On Windows with OpenSplice, setting the domain id is not expected to work.
+    ASSERT_NE(RCL_RET_OK, ret);
+    // So retry with the default domain id setting (uses the environment as is).
+    default_options.domain_id = rcl_node_get_default_options().domain_id;
+    ret = rcl_node_init(&invalid_node, name, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+  } else {
+    // This is the normal check (not windows and windows if not opensplice)
+    ASSERT_EQ(RCL_RET_OK, ret);
+  }
   auto rcl_invalid_node_exit = make_scope_exit([&invalid_node]() {
     stop_memory_checking();
     rcl_ret_t ret = rcl_node_fini(&invalid_node);
@@ -180,7 +199,8 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   assert_no_free_end();
   stop_memory_checking();
   EXPECT_EQ(RCL_RET_OK, ret);
-  if (RCL_RET_OK == ret) {
+  if (RCL_RET_OK == ret && (!is_windows || !is_opensplice)) {
+    // Can only expect the domain id to be 42 if not windows or not opensplice.
     EXPECT_EQ(42, actual_domain_id);
   }
   // Test rcl_node_get_rmw_handle().
@@ -302,8 +322,15 @@ TEST_F(TestNodeFixture, test_rcl_node_life_cycle) {
   rcl_node_options_t options_with_custom_domain_id = rcl_node_get_default_options();
   options_with_custom_domain_id.domain_id = 42;
   ret = rcl_node_init(&node, name, &options_with_custom_domain_id);
-  EXPECT_EQ(RCL_RET_OK, ret);
-  ret = rcl_node_fini(&node);
-  EXPECT_EQ(RCL_RET_OK, ret);
-  node = rcl_get_zero_initialized_node();
+  if (is_windows && is_opensplice) {
+    // A custom domain id is not expected to work on Windows with Opensplice.
+    EXPECT_NE(RCL_RET_OK, ret);
+    node = rcl_get_zero_initialized_node();
+  } else {
+    // This is the normal check.
+    EXPECT_EQ(RCL_RET_OK, ret);
+    ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_OK, ret);
+    node = rcl_get_zero_initialized_node();
+  }
 }
