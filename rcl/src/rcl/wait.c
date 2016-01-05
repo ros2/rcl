@@ -63,18 +63,19 @@ __wait_set_is_valid(const rcl_wait_set_t * wait_set)
 static void
 __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 {
-  rcl_ret_t ret;
-  (void)ret;  // NO LINT
   if (wait_set->subscriptions) {
-    ret = rcl_wait_set_resize_subscriptions(wait_set, 0);
+    rcl_ret_t ret = rcl_wait_set_resize_subscriptions(wait_set, 0);
+    (void)ret;  // NO LINT
     assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
   }
   if (wait_set->guard_conditions) {
-    ret = rcl_wait_set_resize_guard_conditions(wait_set, 0);
+    rcl_ret_t ret = rcl_wait_set_resize_guard_conditions(wait_set, 0);
+    (void)ret;  // NO LINT
     assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
   }
   if (wait_set->timers) {
-    ret = rcl_wait_set_resize_timers(wait_set, 0);
+    rcl_ret_t ret = rcl_wait_set_resize_timers(wait_set, 0);
+    (void)ret;  // NO LINT
     assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
   }
   if (wait_set->impl) {
