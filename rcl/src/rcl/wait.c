@@ -64,6 +64,7 @@ static void
 __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 {
   rcl_ret_t ret;
+  (void)ret;  // NO LINT
   if (wait_set->subscriptions) {
     ret = rcl_wait_set_resize_subscriptions(wait_set, 0);
     assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
@@ -429,6 +430,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   if (ret == RMW_RET_TIMEOUT) {
     // Assume none were set (because timeout was reached first), and clear all.
     rcl_ret_t rcl_ret;
+    (void)rcl_ret;  // NO LINT
     rcl_ret = rcl_wait_set_clear_subscriptions(wait_set);
     assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
     rcl_ret = rcl_wait_set_clear_guard_conditions(wait_set);
