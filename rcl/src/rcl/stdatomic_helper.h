@@ -20,9 +20,11 @@
 #if defined(__GNUC__) && __GNUC__ <= 4 && __GNUC_MINOR__ <= 9
 // If GCC and below GCC-4.9, use the compatability header.
 #include "stdatomic_helper/gcc/stdatomic.h"
-#elif defined(__clang__) && defined(__has_feature) && !__has_feature(c_atomic)
+#elif defined(__clang__) && defined(__has_feature)
+#if !__has_feature(c_atomic)
 // If Clang and no c_atomics (true for some older versions), use the compatability header.
 #include "stdatomic_helper/gcc/stdatomic.h"
+#endif
 #else
 #include <stdatomic.h>
 #endif
