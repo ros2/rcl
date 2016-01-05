@@ -72,13 +72,13 @@ TEST_F(TestAllocatorFixture, test_default_allocator_normal) {
   assert_no_realloc_begin();
   assert_no_free_begin();
   void * allocated_memory = allocator.allocate(1024, allocator.state);
-  EXPECT_EQ(mallocs, 1);
+  EXPECT_EQ(mallocs, 1u);
   EXPECT_NE(allocated_memory, nullptr);
   allocated_memory = allocator.reallocate(allocated_memory, 2048, allocator.state);
-  EXPECT_EQ(reallocs, 1);
+  EXPECT_EQ(reallocs, 1u);
   EXPECT_NE(allocated_memory, nullptr);
   allocator.deallocate(allocated_memory, allocator.state);
-  EXPECT_EQ(mallocs, 1);
-  EXPECT_EQ(reallocs, 1);
-  EXPECT_EQ(frees, 1);
+  EXPECT_EQ(mallocs, 1u);
+  EXPECT_EQ(reallocs, 1u);
+  EXPECT_EQ(frees, 1u);
 }

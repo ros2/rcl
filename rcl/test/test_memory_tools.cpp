@@ -43,9 +43,9 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   ASSERT_NE(remem, nullptr);
   if (!remem) {free(mem);}
   free(remem);
-  EXPECT_EQ(unexpected_mallocs, 0);
-  EXPECT_EQ(unexpected_reallocs, 0);
-  EXPECT_EQ(unexpected_frees, 0);
+  EXPECT_EQ(unexpected_mallocs, 0u);
+  EXPECT_EQ(unexpected_reallocs, 0u);
+  EXPECT_EQ(unexpected_frees, 0u);
   // Enable checking, but no assert, should have no effect.
   start_memory_checking();
   mem = malloc(1024);
@@ -54,9 +54,9 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   ASSERT_NE(remem, nullptr);
   if (!remem) {free(mem);}
   free(remem);
-  EXPECT_EQ(unexpected_mallocs, 0);
-  EXPECT_EQ(unexpected_reallocs, 0);
-  EXPECT_EQ(unexpected_frees, 0);
+  EXPECT_EQ(unexpected_mallocs, 0u);
+  EXPECT_EQ(unexpected_reallocs, 0u);
+  EXPECT_EQ(unexpected_frees, 0u);
   // Enable no_* asserts, should increment all once.
   assert_no_malloc_begin();
   assert_no_realloc_begin();
@@ -70,9 +70,9 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   if (!remem) {free(mem);}
   free(remem);
   assert_no_free_end();
-  EXPECT_EQ(unexpected_mallocs, 1);
-  EXPECT_EQ(unexpected_reallocs, 1);
-  EXPECT_EQ(unexpected_frees, 1);
+  EXPECT_EQ(unexpected_mallocs, 1u);
+  EXPECT_EQ(unexpected_reallocs, 1u);
+  EXPECT_EQ(unexpected_frees, 1u);
   // Enable on malloc assert, only malloc should increment.
   assert_no_malloc_begin();
   mem = malloc(1024);
@@ -82,9 +82,9 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   ASSERT_NE(remem, nullptr);
   if (!remem) {free(mem);}
   free(remem);
-  EXPECT_EQ(unexpected_mallocs, 2);
-  EXPECT_EQ(unexpected_reallocs, 1);
-  EXPECT_EQ(unexpected_frees, 1);
+  EXPECT_EQ(unexpected_mallocs, 2u);
+  EXPECT_EQ(unexpected_reallocs, 1u);
+  EXPECT_EQ(unexpected_frees, 1u);
   // Enable on realloc assert, only realloc should increment.
   assert_no_realloc_begin();
   mem = malloc(1024);
@@ -94,9 +94,9 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   ASSERT_NE(remem, nullptr);
   if (!remem) {free(mem);}
   free(remem);
-  EXPECT_EQ(unexpected_mallocs, 2);
-  EXPECT_EQ(unexpected_reallocs, 2);
-  EXPECT_EQ(unexpected_frees, 1);
+  EXPECT_EQ(unexpected_mallocs, 2u);
+  EXPECT_EQ(unexpected_reallocs, 2u);
+  EXPECT_EQ(unexpected_frees, 1u);
   // Enable on free assert, only free should increment.
   assert_no_free_begin();
   mem = malloc(1024);
@@ -106,9 +106,9 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   if (!remem) {free(mem);}
   free(remem);
   assert_no_free_end();
-  EXPECT_EQ(unexpected_mallocs, 2);
-  EXPECT_EQ(unexpected_reallocs, 2);
-  EXPECT_EQ(unexpected_frees, 2);
+  EXPECT_EQ(unexpected_mallocs, 2u);
+  EXPECT_EQ(unexpected_reallocs, 2u);
+  EXPECT_EQ(unexpected_frees, 2u);
   // Go again, after disabling asserts, should have no effect.
   mem = malloc(1024);
   ASSERT_NE(mem, nullptr);
@@ -116,9 +116,9 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   ASSERT_NE(remem, nullptr);
   if (!remem) {free(mem);}
   free(remem);
-  EXPECT_EQ(unexpected_mallocs, 2);
-  EXPECT_EQ(unexpected_reallocs, 2);
-  EXPECT_EQ(unexpected_frees, 2);
+  EXPECT_EQ(unexpected_mallocs, 2u);
+  EXPECT_EQ(unexpected_reallocs, 2u);
+  EXPECT_EQ(unexpected_frees, 2u);
   // Go once more after disabling everything, should have no effect.
   stop_memory_checking();
   mem = malloc(1024);
@@ -127,7 +127,7 @@ TEST(TestMemoryTools, test_allocation_checking_tools) {
   ASSERT_NE(remem, nullptr);
   if (!remem) {free(mem);}
   free(remem);
-  EXPECT_EQ(unexpected_mallocs, 2);
-  EXPECT_EQ(unexpected_reallocs, 2);
-  EXPECT_EQ(unexpected_frees, 2);
+  EXPECT_EQ(unexpected_mallocs, 2u);
+  EXPECT_EQ(unexpected_reallocs, 2u);
+  EXPECT_EQ(unexpected_frees, 2u);
 }
