@@ -66,7 +66,7 @@ TEST_F(TestTimeFixture, test_rcl_system_time_point_now) {
   assert_no_free_end();
   stop_memory_checking();
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  EXPECT_NE(now.nanoseconds, 0);
+  EXPECT_NE(now.nanoseconds, 0u);
   // Compare to std::chrono::system_clock time (within a second).
   now = {0};
   ret = rcl_system_time_point_now(&now);
@@ -99,7 +99,7 @@ TEST_F(TestTimeFixture, test_rcl_steady_time_point_now) {
   assert_no_free_end();
   stop_memory_checking();
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  EXPECT_NE(now.nanoseconds, 0);
+  EXPECT_NE(now.nanoseconds, 0u);
   // Compare to std::chrono::steady_clock difference of two times (within a second).
   now = {0};
   ret = rcl_steady_time_point_now(&now);

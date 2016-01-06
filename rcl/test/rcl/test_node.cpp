@@ -201,7 +201,7 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   EXPECT_EQ(RCL_RET_OK, ret);
   if (RCL_RET_OK == ret && (!is_windows || !is_opensplice)) {
     // Can only expect the domain id to be 42 if not windows or not opensplice.
-    EXPECT_EQ(42, actual_domain_id);
+    EXPECT_EQ(42u, actual_domain_id);
   }
   // Test rcl_node_get_rmw_handle().
   rmw_node_t * node_handle;
@@ -227,14 +227,14 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   // Test rcl_node_get_rcl_instance_id().
   uint64_t instance_id;
   instance_id = rcl_node_get_rcl_instance_id(nullptr);
-  EXPECT_EQ(0, instance_id);
+  EXPECT_EQ(0u, instance_id);
   rcl_reset_error();
   instance_id = rcl_node_get_rcl_instance_id(&zero_node);
-  EXPECT_EQ(0, instance_id);
+  EXPECT_EQ(0u, instance_id);
   rcl_reset_error();
   instance_id = rcl_node_get_rcl_instance_id(&invalid_node);
-  EXPECT_NE(0, instance_id);
-  EXPECT_NE(42, instance_id);
+  EXPECT_NE(0u, instance_id);
+  EXPECT_NE(42u, instance_id);
   rcl_reset_error();
   start_memory_checking();
   assert_no_malloc_begin();
@@ -245,7 +245,7 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   assert_no_realloc_end();
   assert_no_free_end();
   stop_memory_checking();
-  EXPECT_NE(0, instance_id);
+  EXPECT_NE(0u, instance_id);
 }
 
 /* Tests the node life cycle, including rcl_node_init() and rcl_node_fini().

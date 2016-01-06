@@ -184,12 +184,12 @@ TEST_F(TestRCLFixture, test_rcl_init_and_ok_and_shutdown) {
 TEST_F(TestRCLFixture, test_rcl_get_instance_id_and_ok) {
   rcl_ret_t ret;
   // Instance id should be 0 before rcl_init().
-  EXPECT_EQ(0, rcl_get_instance_id());
+  EXPECT_EQ(0u, rcl_get_instance_id());
   ASSERT_FALSE(rcl_ok());
   // It should still return 0 after an invalid init.
   ret = rcl_init(1, nullptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  EXPECT_EQ(0, rcl_get_instance_id());
+  EXPECT_EQ(0u, rcl_get_instance_id());
   ASSERT_FALSE(rcl_ok());
   // A non-zero instance id should be returned after a valid init.
   {
@@ -207,13 +207,13 @@ TEST_F(TestRCLFixture, test_rcl_get_instance_id_and_ok) {
   assert_no_malloc_end();
   assert_no_realloc_end();
   assert_no_free_end();
-  EXPECT_NE(0, first_instance_id);
+  EXPECT_NE(0u, first_instance_id);
   EXPECT_EQ(first_instance_id, rcl_get_instance_id());  // Repeat calls should return the same.
   EXPECT_EQ(true, rcl_ok());
   // Calling after a shutdown should return 0.
   ret = rcl_shutdown();
   EXPECT_EQ(ret, RCL_RET_OK);
-  EXPECT_EQ(0, rcl_get_instance_id());
+  EXPECT_EQ(0u, rcl_get_instance_id());
   ASSERT_FALSE(rcl_ok());
   // It should return a different value after another valid init.
   {
@@ -222,12 +222,12 @@ TEST_F(TestRCLFixture, test_rcl_get_instance_id_and_ok) {
     EXPECT_EQ(RCL_RET_OK, ret);
     ASSERT_TRUE(rcl_ok());
   }
-  EXPECT_NE(0, rcl_get_instance_id());
+  EXPECT_NE(0u, rcl_get_instance_id());
   EXPECT_NE(first_instance_id, rcl_get_instance_id());
   ASSERT_TRUE(rcl_ok());
   // Shutting down a second time should result in 0 again.
   ret = rcl_shutdown();
   EXPECT_EQ(ret, RCL_RET_OK);
-  EXPECT_EQ(0, rcl_get_instance_id());
+  EXPECT_EQ(0u, rcl_get_instance_id());
   ASSERT_FALSE(rcl_ok());
 }
