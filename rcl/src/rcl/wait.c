@@ -35,6 +35,7 @@ typedef struct rcl_wait_set_impl_t
   rmw_subscriptions_t rmw_subscriptions;
   size_t guard_condition_index;
   rmw_guard_conditions_t rmw_guard_conditions;
+  rmw_waitset_t * rmw_waitset;
   size_t timer_index;
   rcl_allocator_t allocator;
 } rcl_wait_set_impl_t;
@@ -113,6 +114,12 @@ rcl_wait_set_init(
   wait_set->impl->rmw_subscriptions.subscriber_count = 0;
   wait_set->impl->rmw_guard_conditions.guard_conditions = NULL;
   wait_set->impl->rmw_guard_conditions.guard_condition_count = 0;
+  wait_set->impl->rmw_waitset = rmw_create_waitset(
+    NULL, 2 * number_of_subscriptions + number_of_guard_conditions);
+  if (!wait_set->impl->rmw_waitset) {
+    goto fail;
+  }
+
   // Initialize subscription space.
   rcl_ret_t ret;
   if ((ret = rcl_wait_set_resize_subscriptions(wait_set, number_of_subscriptions)) != RCL_RET_OK) {
@@ -147,6 +154,12 @@ rcl_wait_set_init(
   wait_set->impl->allocator = allocator;
   return RCL_RET_OK;
 fail:
+  if (__wait_set_is_valid(wait_set)) {
+    rmw_ret_t ret = rmw_destroy_waitset(wait_set->impl->rmw_waitset);
+    if (ret != RMW_RET_OK) {
+      fail_ret = RCL_RET_WAIT_SET_INVALID;
+    }
+  }
   __wait_set_clean_up(wait_set, allocator);
   return fail_ret;
 }
@@ -156,7 +169,13 @@ rcl_wait_set_fini(rcl_wait_set_t * wait_set)
 {
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
+
   if (__wait_set_is_valid(wait_set)) {
+    rmw_ret_t ret = rmw_destroy_waitset(wait_set->impl->rmw_waitset);
+    if (ret != RMW_RET_OK) {
+      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+      result = RCL_RET_WAIT_SET_INVALID;
+    }
     __wait_set_clean_up(wait_set, wait_set->impl->allocator);
   }
   return result;
@@ -409,6 +428,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &wait_set->impl->rmw_guard_conditions,
     &dummy_services,
     &dummy_clients,
+    wait_set->impl->rmw_waitset,
     timeout_argument);
   // Check for error.
   if (ret != RMW_RET_OK) {
