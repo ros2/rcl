@@ -25,6 +25,7 @@ extern "C"
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
 #include "rcl/types.h"
+#include "rcl/wait.h"
 #include "rcl/visibility_control.h"
 
 /// Global initialization of rcl.
