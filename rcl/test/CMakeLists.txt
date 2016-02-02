@@ -42,6 +42,12 @@ if(NOT WIN32)
 endif()
 
 macro(test_target)
+  if(${target_suffix} MATCHES "(.*opensplice.*)")
+    # continue as usual if opensplice (I couldn't figure out the negative regex in CMake)
+  else()
+    # rcl only works for opensplice, for now.
+    # TODO(wjwwood): remove this when C type support works for all middlewares.
+    return()
   endif()
 
   ament_add_gtest(test_allocator${target_suffix} rcl/test_allocator.cpp

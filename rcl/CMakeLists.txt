@@ -30,6 +30,15 @@ set(${PROJECT_NAME}_sources
 )
 
 macro(target)
+  if(${target_suffix} MATCHES "(.*opensplice.*)")
+  elseif("${target_suffix} " STREQUAL " ")
+    # continue as usual if opensplice (I couldn't figure out the negative regex in CMake)
+  else()
+    # rcl only works for opensplice, for now.
+    # TODO(wjwwood): remove this when C type support works for all middlewares.
+    return()
+  endif()
+
   add_library(${PROJECT_NAME}${target_suffix} SHARED ${${PROJECT_NAME}_sources})
   ament_target_dependencies(${PROJECT_NAME}${target_suffix}
     "rcl_interfaces"
@@ -59,12 +68,16 @@ call_for_each_rmw_implementation(target GENERATE_DEFAULT)
 
 ament_export_dependencies(rcl_interfaces)
 ament_export_dependencies(rmw)
-ament_export_dependencies(rmw_implementation)
+# TODO(wjwwood): undo this hack
+# ament_export_dependencies(rmw_implementation)
+ament_export_dependencies(rmw_opensplice_cpp)
 ament_export_dependencies(rosidl_generator_c)
 
 ament_export_include_directories(include)
 
-ament_export_libraries(${PROJECT_NAME})
+# TODO(wjwwood): undo this hack
+# ament_export_libraries(${PROJECT_NAME})
+ament_export_libraries(rcl__rmw_opensplice_cpp)
 
 if(AMENT_ENABLE_TESTING)
   find_package(ament_lint_auto REQUIRED)
