@@ -42,14 +42,6 @@ if(NOT WIN32)
 endif()
 
 macro(test_target)
-  if(${target_suffix} MATCHES "(.*opensplice.*)")
-    # continue as usual if opensplice (I couldn't figure out the negative regex in CMake)
-  else()
-    # rcl only works for opensplice, for now.
-    # TODO(wjwwood): remove this when C type support works for all middlewares.
-    return()
-  endif()
-
   ament_add_gtest(test_allocator${target_suffix} rcl/test_allocator.cpp
     ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
   if(TARGET test_allocator${target_suffix})
@@ -62,6 +54,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_allocator${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
+    ament_target_dependencies(test_allocator${target_suffix} rmw_implementation)
   endif()
 
   ament_add_gtest(test_time${target_suffix} rcl/test_time.cpp
@@ -76,6 +69,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_time${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
+    ament_target_dependencies(test_time${target_suffix} rmw_implementation)
   endif()
 
   ament_add_gtest(test_common${target_suffix}
@@ -97,6 +91,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_common${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
+    ament_target_dependencies(test_common${target_suffix} rmw_implementation)
   endif()
 
   ament_add_gtest(test_rcl${target_suffix} rcl/test_rcl.cpp
@@ -111,6 +106,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_rcl${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
+    ament_target_dependencies(test_rcl${target_suffix} rmw_implementation)
   endif()
 
   ament_add_gtest(test_node${target_suffix} rcl/test_node.cpp
@@ -125,6 +121,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_node${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
+    ament_target_dependencies(test_node${target_suffix} rmw_implementation)
   endif()
 
   ament_add_gtest(test_publisher${target_suffix} rcl/test_publisher.cpp
@@ -140,6 +137,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_publisher${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries} ${std_msgs_LIBRARIES})
+    ament_target_dependencies(test_publisher${target_suffix} rmw_implementation std_msgs)
   endif()
 endmacro()
 
