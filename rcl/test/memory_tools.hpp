@@ -104,4 +104,29 @@ RCL_MEMORY_TOOLS_PUBLIC
 void
 memory_checking_thread_init();
 
+// What follows is a set of failing allocator functions, used for testing.
+void *
+failing_malloc(size_t size, void * state)
+{
+  (void)(size);
+  (void)(state);
+  return nullptr;
+}
+
+void *
+failing_realloc(void * pointer, size_t size, void * state)
+{
+  (void)(pointer);
+  (void)(size);
+  (void)(state);
+  return nullptr;
+}
+
+void
+failing_free(void * pointer, void * state)
+{
+  (void)pointer;
+  (void)state;
+}
+
 #endif  // MEMORY_TOOLS_HPP_

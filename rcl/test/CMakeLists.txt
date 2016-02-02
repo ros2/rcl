@@ -1,4 +1,5 @@
 find_package(ament_cmake_gtest REQUIRED)
+find_package(std_msgs REQUIRED)
 
 set(extra_test_libraries)
 set(extra_memory_tools_env PHONY=)  # Use a phony env var so there is always at least one.
@@ -120,6 +121,20 @@ macro(test_target)
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
   endif()
 
+  ament_add_gtest(test_publisher${target_suffix} rcl/test_publisher.cpp
+    ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
+  if(TARGET test_publisher${target_suffix})
+    target_include_directories(test_publisher${target_suffix} PUBLIC
+      ${rcl_interfaces_INCLUDE_DIRS}
+      ${rmw_INCLUDE_DIRS}
+      ${std_msgs_INCLUDE_DIRS}
+    )
+    if(NOT WIN32)
+      set_target_properties(test_publisher${target_suffix} PROPERTIES COMPILE_FLAGS "-std=c++11")
+    endif()
+    target_link_libraries(test_publisher${target_suffix}
+      ${PROJECT_NAME}${target_suffix} ${extra_test_libraries} ${std_msgs_LIBRARIES})
+  endif()
 endmacro()
 
 call_for_each_rmw_implementation(test_target)
