@@ -52,7 +52,7 @@ typedef struct rcl_wait_set_t
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_wait_set_t
-rcl_get_zero_initialized_wait_set();
+rcl_get_zero_initialized_wait_set(void);
 
 /// Initialize a rcl wait set with space for items to be waited on.
 /* This function allocates space for the subscriptions and other wait-able

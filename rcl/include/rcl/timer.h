@@ -54,7 +54,7 @@ typedef void (* rcl_timer_callback_t)(rcl_timer_t *, uint64_t);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_timer_t
-rcl_get_zero_initialized_timer();
+rcl_get_zero_initialized_timer(void);
 
 /// Initialize a timer.
 /* A timer consists of a callback function and a period.

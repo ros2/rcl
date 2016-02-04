@@ -44,7 +44,7 @@ typedef struct rcl_guard_condition_options_t
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_guard_condition_t
-rcl_get_zero_initialized_guard_condition();
+rcl_get_zero_initialized_guard_condition(void);
 
 /// Initialize a rcl guard_condition.
 /* After calling this function on a rcl_guard_condition_t, it can be passed to
@@ -121,7 +121,7 @@ rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition, rcl_node_t * n
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_guard_condition_options_t
-rcl_guard_condition_get_default_options();
+rcl_guard_condition_get_default_options(void);
 
 /// Trigger a rcl guard condition.
 /* This function can fail, and therefore return NULL, if the:

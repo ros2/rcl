@@ -62,7 +62,7 @@ typedef struct rcl_node_options_t
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_node_t
-rcl_get_zero_initialized_node();
+rcl_get_zero_initialized_node(void);
 
 /// Initialize a ROS node.
 /* Calling this on a rcl_node_t makes it a valid node handle until rcl_shutdown
@@ -140,7 +140,7 @@ rcl_node_fini(rcl_node_t * node);
 /// Return the default node options in a rcl_node_options_t.
 RCL_PUBLIC
 rcl_node_options_t
-rcl_node_get_default_options();
+rcl_node_get_default_options(void);
 
 /// Get the name of the node.
 /* This function returns the node's internal name string.

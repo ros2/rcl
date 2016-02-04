@@ -64,7 +64,7 @@ typedef struct rcl_allocator_t
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_allocator_t
-rcl_get_default_allocator();
+rcl_get_default_allocator(void);
 
 /// Emulate the behavior of reallocf.
 /* This function will return NULL if the allocator is NULL or has NULL for

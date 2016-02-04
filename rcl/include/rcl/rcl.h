@@ -92,7 +92,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_shutdown();
+rcl_shutdown(void);
 
 /// Returns an uint64_t number that is unique for the latest rcl_init call.
 /* If called before rcl_init or after rcl_shutdown then 0 will be returned.
@@ -107,7 +107,7 @@ rcl_shutdown();
 RCL_PUBLIC
 RCL_WARN_UNUSED
 uint64_t
-rcl_get_instance_id();
+rcl_get_instance_id(void);
 
 /// Return true if rcl is currently initialized, otherwise false.
 /* This function does not allocate memory.
@@ -118,7 +118,7 @@ rcl_get_instance_id();
 RCL_PUBLIC
 RCL_WARN_UNUSED
 bool
-rcl_ok();
+rcl_ok(void);
 
 #if __cplusplus
 }
