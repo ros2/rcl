@@ -54,7 +54,7 @@ typedef struct rcl_publisher_options_t
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_publisher_t
-rcl_get_zero_initialized_publisher();
+rcl_get_zero_initialized_publisher(void);
 
 /// Initialize a rcl publisher.
 /* After calling this function on a rcl_publisher_t, it can be used to publish
@@ -161,7 +161,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_publisher_options_t
-rcl_publisher_get_default_options();
+rcl_publisher_get_default_options(void);
 
 /// Publish a ROS message on a topic using a publisher.
 /* It is the job of the caller to ensure that the type of the ros_message

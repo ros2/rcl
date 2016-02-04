@@ -56,7 +56,7 @@ typedef struct rcl_subscription_options_t
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_subscription_t
-rcl_get_zero_initialized_subscription();
+rcl_get_zero_initialized_subscription(void);
 
 /// Initialize a ROS subscription.
 /* After calling this function on a rcl_subscription_t, it can be used to take
@@ -164,7 +164,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_subscription_options_t
-rcl_subscription_get_default_options();
+rcl_subscription_get_default_options(void);
 
 /// Take a ROS message from a topic using a rcl subscription.
 /* It is the job of the caller to ensure that the type of the ros_message
