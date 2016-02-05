@@ -42,6 +42,7 @@ if(NOT WIN32)
 endif()
 
 macro(test_target)
+  find_package(${rmw_implementation} REQUIRED)
   ament_add_gtest(test_allocator${target_suffix} rcl/test_allocator.cpp
     ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
   if(TARGET test_allocator${target_suffix})
@@ -54,7 +55,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_allocator${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
-    ament_target_dependencies(test_allocator${target_suffix} rmw_implementation)
+    ament_target_dependencies(test_allocator${target_suffix} ${rmw_implementation})
   endif()
 
   ament_add_gtest(test_time${target_suffix} rcl/test_time.cpp
@@ -69,7 +70,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_time${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
-    ament_target_dependencies(test_time${target_suffix} rmw_implementation)
+    ament_target_dependencies(test_time${target_suffix} ${rmw_implementation})
   endif()
 
   ament_add_gtest(test_common${target_suffix}
@@ -91,7 +92,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_common${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
-    ament_target_dependencies(test_common${target_suffix} rmw_implementation)
+    ament_target_dependencies(test_common${target_suffix} ${rmw_implementation})
   endif()
 
   ament_add_gtest(test_rcl${target_suffix} rcl/test_rcl.cpp
@@ -106,7 +107,7 @@ macro(test_target)
     endif()
     target_link_libraries(test_rcl${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
-    ament_target_dependencies(test_rcl${target_suffix} rmw_implementation)
+    ament_target_dependencies(test_rcl${target_suffix} ${rmw_implementation})
   endif()
 
   ament_add_gtest(test_node${target_suffix} rcl/test_node.cpp
@@ -121,23 +122,27 @@ macro(test_target)
     endif()
     target_link_libraries(test_node${target_suffix}
       ${PROJECT_NAME}${target_suffix} ${extra_test_libraries})
-    ament_target_dependencies(test_node${target_suffix} rmw_implementation)
+    ament_target_dependencies(test_node${target_suffix} ${rmw_implementation})
   endif()
 
   ament_add_gtest(test_publisher${target_suffix} rcl/test_publisher.cpp
     ENV ${extra_memory_tools_env} APPEND_LIBRARY_DIRS ${rcl_lib_dir})
   if(TARGET test_publisher${target_suffix})
+    if(NOT WIN32)
+      set_target_properties(test_publisher${target_suffix} PROPERTIES COMPILE_FLAGS "-std=c++11")
+    endif()
     target_include_directories(test_publisher${target_suffix} PUBLIC
       ${rcl_interfaces_INCLUDE_DIRS}
       ${rmw_INCLUDE_DIRS}
       ${std_msgs_INCLUDE_DIRS}
     )
-    if(NOT WIN32)
-      set_target_properties(test_publisher${target_suffix} PROPERTIES COMPILE_FLAGS "-std=c++11")
-    endif()
-    target_link_libraries(test_publisher${target_suffix}
-      ${PROJECT_NAME}${target_suffix} ${extra_test_libraries} ${std_msgs_LIBRARIES})
-    ament_target_dependencies(test_publisher${target_suffix} rmw_implementation std_msgs)
+
+    target_link_libraries(test_publisher${target_suffix} ${_AMENT_EXPORT_ABSOLUTE_LIBRARIES}
+      ${_AMENT_EXPORT_LIBRARY_TARGETS}
+      ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    )
+
+    ament_target_dependencies(test_publisher${target_suffix} "${rmw_implementation}" "std_msgs")
   endif()
 endmacro()
 
