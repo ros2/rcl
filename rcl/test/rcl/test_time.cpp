@@ -24,7 +24,7 @@
 
 #include "../memory_tools.hpp"
 
-class TestTimeFixture : public::testing::Test
+class TestTimeFixture : public ::testing::Test
 {
 public:
   void SetUp()

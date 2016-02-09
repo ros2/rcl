@@ -24,7 +24,7 @@
 #include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
 
-class TestNodeFixture : public::testing::Test
+class TestNodeFixture : public ::testing::Test
 {
 public:
   void SetUp()
