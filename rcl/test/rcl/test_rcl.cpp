@@ -19,7 +19,7 @@
 #include "../memory_tools.hpp"
 #include "rcl/error_handling.h"
 
-class TestRCLFixture : public::testing::Test
+class TestRCLFixture : public ::testing::Test
 {
 public:
   void SetUp()

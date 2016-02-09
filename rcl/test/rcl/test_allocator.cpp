@@ -18,7 +18,7 @@
 
 #include "../memory_tools.hpp"
 
-class TestAllocatorFixture : public::testing::Test
+class TestAllocatorFixture : public ::testing::Test
 {
 public:
   TestAllocatorFixture()
