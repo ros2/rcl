@@ -57,6 +57,7 @@ endmacro()
 
 call_for_each_rmw_implementation(target GENERATE_DEFAULT)
 
+ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl_interfaces)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rmw_implementation)
@@ -73,7 +74,14 @@ if(AMENT_ENABLE_TESTING)
   add_subdirectory(test)
 endif()
 
-ament_package()
+ament_package(
+  CONFIG_EXTRAS rcl-extras.cmake
+)
+
+install(
+  DIRECTORY cmake
+  DESTINATION share/${PROJECT_NAME}
+)
 
 install(
   DIRECTORY include/
