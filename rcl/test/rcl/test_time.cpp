@@ -47,74 +47,334 @@ public:
   }
 };
 
-/* Tests the rcl_system_time_point_now() function.
- */
-TEST_F(TestTimeFixture, test_rcl_system_time_point_now) {
+// Tests the rcl_system_time_now() function.
+TEST_F(TestTimeFixture, test_rcl_system_time_now) {
   assert_no_realloc_begin();
   rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
-  ret = rcl_system_time_point_now(nullptr);
+  ret = rcl_system_time_now(nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
   rcl_reset_error();
   assert_no_malloc_begin();
   assert_no_free_begin();
   // Check for normal operation (not allowed to alloc).
-  rcl_system_time_point_t now = {0};
-  ret = rcl_system_time_point_now(&now);
+  rcl_time_point_value_t now = 0;
+  ret = rcl_system_time_now(&now);
   assert_no_malloc_end();
   assert_no_realloc_end();
   assert_no_free_end();
   stop_memory_checking();
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  EXPECT_NE(now.nanoseconds, 0u);
+  EXPECT_NE(now, 0u);
   // Compare to std::chrono::system_clock time (within a second).
-  now = {0};
-  ret = rcl_system_time_point_now(&now);
+  now = 0;
+  ret = rcl_system_time_now(&now);
   {
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
     int64_t now_ns_int = now_ns.count();
-    int64_t now_diff = now.nanoseconds - now_ns_int;
+    int64_t now_diff = now - now_ns_int;
     const int k_tolerance_ms = 1000;
     EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "system_clock differs";
   }
 }
 
-/* Tests the rcl_steady_time_point_now() function.
- */
-TEST_F(TestTimeFixture, test_rcl_steady_time_point_now) {
+// Tests the rcl_steady_time_now() function.
+TEST_F(TestTimeFixture, test_rcl_steady_time_now) {
   assert_no_realloc_begin();
   rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
-  ret = rcl_steady_time_point_now(nullptr);
+  ret = rcl_steady_time_now(nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
   rcl_reset_error();
   assert_no_malloc_begin();
   assert_no_free_begin();
   // Check for normal operation (not allowed to alloc).
-  rcl_steady_time_point_t now = {0};
-  ret = rcl_steady_time_point_now(&now);
+  rcl_time_point_value_t now = 0;
+  ret = rcl_steady_time_now(&now);
   assert_no_malloc_end();
   assert_no_realloc_end();
   assert_no_free_end();
   stop_memory_checking();
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  EXPECT_NE(now.nanoseconds, 0u);
+  EXPECT_NE(now, 0u);
   // Compare to std::chrono::steady_clock difference of two times (within a second).
-  now = {0};
-  ret = rcl_steady_time_point_now(&now);
+  now = 0;
+  ret = rcl_steady_time_now(&now);
   std::chrono::steady_clock::time_point now_sc = std::chrono::steady_clock::now();
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   // Wait for a little while.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   // Then take a new timestamp with each and compare.
-  rcl_steady_time_point_t later;
-  ret = rcl_steady_time_point_now(&later);
+  rcl_time_point_value_t later;
+  ret = rcl_steady_time_now(&later);
   std::chrono::steady_clock::time_point later_sc = std::chrono::steady_clock::now();
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  int64_t steady_diff = later.nanoseconds - now.nanoseconds;
+  int64_t steady_diff = later - now;
   int64_t sc_diff =
     std::chrono::duration_cast<std::chrono::nanoseconds>(later_sc - now_sc).count();
   const int k_tolerance_ms = 1;
   EXPECT_LE(llabs(steady_diff - sc_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "steady_clock differs";
+}
+
+// Tests the rcl_set_ros_time_override() function.
+TEST_F(TestTimeFixture, test_rcl_set_ros_time_override) {
+  rcl_time_source_t * ros_time_source = rcl_get_default_ros_time_source();
+  assert_no_realloc_begin();
+  rcl_ret_t ret;
+  // Check for invalid argument error condition (allowed to alloc).
+  ret = rcl_set_ros_time_override(nullptr, 0);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  bool result;
+  ret = rcl_is_enabled_ros_time_override(nullptr, &result);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  ret = rcl_is_enabled_ros_time_override(ros_time_source, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  ret = rcl_is_enabled_ros_time_override(nullptr, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  rcl_time_point_t query_now;
+  bool is_enabled;
+  ret = rcl_is_enabled_ros_time_override(ros_time_source, &is_enabled);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(is_enabled, false);
+  ret = rcl_init_time_point(&query_now, ros_time_source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  assert_no_malloc_begin();
+  assert_no_free_begin();
+  // Check for normal operation (not allowed to alloc).
+  ret = rcl_get_time_point_now(&query_now);
+  assert_no_malloc_end();
+  assert_no_realloc_end();
+  assert_no_free_end();
+  stop_memory_checking();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_NE(query_now.nanoseconds, 0);
+  // Compare to std::chrono::system_clock time (within a second).
+  ret = rcl_get_time_point_now(&query_now);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  {
+    std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
+    auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
+    int64_t now_ns_int = now_ns.count();
+    int64_t now_diff = query_now.nanoseconds - now_ns_int;
+    const int k_tolerance_ms = 1000;
+    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "ros_clock differs";
+  }
+  // Test ros time specific APIs
+  rcl_time_point_value_t set_point = 1000000000ull;
+  // Check initialized state
+  ret = rcl_is_enabled_ros_time_override(ros_time_source, &is_enabled);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(is_enabled, false);
+  // set the time point
+  ret = rcl_set_ros_time_override(ros_time_source, set_point);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  // check still disabled
+  ret = rcl_is_enabled_ros_time_override(ros_time_source, &is_enabled);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(is_enabled, false);
+  // get real
+  ret = rcl_get_time_point_now(&query_now);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  {
+    std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
+    auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
+    int64_t now_ns_int = now_ns.count();
+    int64_t now_diff = query_now.nanoseconds - now_ns_int;
+    const int k_tolerance_ms = 1000;
+    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "ros_clock differs";
+  }
+  // enable
+  ret = rcl_enable_ros_time_override(ros_time_source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  // check enabled
+  ret = rcl_is_enabled_ros_time_override(ros_time_source, &is_enabled);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(is_enabled, true);
+  // get sim
+  ret = rcl_get_time_point_now(&query_now);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(query_now.nanoseconds, set_point);
+  // disable
+  ret = rcl_disable_ros_time_override(ros_time_source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  // check disabled
+  ret = rcl_is_enabled_ros_time_override(ros_time_source, &is_enabled);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(is_enabled, false);
+  // get real
+  ret = rcl_get_time_point_now(&query_now);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  {
+    std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
+    auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
+    int64_t now_ns_int = now_ns.count();
+    int64_t now_diff = query_now.nanoseconds - now_ns_int;
+    const int k_tolerance_ms = 1000;
+    EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "ros_clock differs";
+  }
+}
+
+TEST_F(TestTimeFixture, test_rcl_init_time_source_and_point) {
+  assert_no_realloc_begin();
+  rcl_ret_t ret;
+  // Check for invalid argument error condition (allowed to alloc).
+  ret = rcl_init_ros_time_source(nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  // Check for normal operation (not allowed to alloc).
+  rcl_time_source_t source;
+  ret = rcl_init_ros_time_source(&source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  rcl_time_point_t a_time;
+  ret = rcl_init_time_point(&a_time, &source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  rcl_time_point_t default_time;
+  ret = rcl_init_time_point(&default_time, nullptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  // assert_no_malloc_begin();
+  // assert_no_free_begin();
+  // // Do stuff in here
+  // assert_no_malloc_end();
+  // assert_no_realloc_end();
+  // assert_no_free_end();
+  // stop_memory_checking();
+  // EXPECT_NE(now.nanoseconds, 0u);
+  // // Compare to std::chrono::system_clock time (within a second).
+  // now = {0};
+  // ret = rcl_system_time_now(&now);
+  // {
+  //   std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
+  //   auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+  // now_sc.time_since_epoch());
+  //   int64_t now_ns_int = now_ns.count();
+  //   int64_t now_diff = now.nanoseconds - now_ns_int;
+  //   const int k_tolerance_ms = 1000;
+  //   EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "system_clock differs";
+  // }
+  ret = rcl_fini_time_point(&a_time);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  ret = rcl_fini_ros_time_source(&source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+}
+
+TEST(rcl_time, time_source_validation) {
+  ASSERT_FALSE(rcl_time_source_valid(NULL));
+  rcl_time_source_t uninitialized;
+  // Not reliably detectable due to random values.
+  // ASSERT_FALSE(rcl_time_source_valid(&uninitialized));
+  rcl_ret_t ret;
+  ret = rcl_init_ros_time_source(&uninitialized);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+}
+
+TEST(rcl_time, default_time_source_instanciation) {
+  rcl_time_source_t * ros_time_source = rcl_get_default_ros_time_source();
+  ASSERT_TRUE(rcl_time_source_valid(ros_time_source));
+  rcl_time_source_t * steady_time_source = rcl_get_default_steady_time_source();
+  ASSERT_TRUE(rcl_time_source_valid(steady_time_source));
+  rcl_time_source_t * system_time_source = rcl_get_default_system_time_source();
+  ASSERT_TRUE(rcl_time_source_valid(system_time_source));
+}
+
+TEST(rcl_time, rcl_time_difference) {
+  rcl_ret_t ret;
+  rcl_time_point_t a, b;
+  ret = rcl_init_time_point(&a, nullptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  ret = rcl_init_time_point(&b, nullptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  a.nanoseconds = 1000;
+  b.nanoseconds = 2000;
+
+  rcl_duration_t d;
+  ret = rcl_init_duration(&d, nullptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  ret = rcl_difference_times(&a, &b, &d);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  EXPECT_EQ(d.nanoseconds, 1000);
+  EXPECT_EQ(d.time_source->type, RCL_ROS_TIME);
+
+  ret = rcl_difference_times(&b, &a, &d);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(d.nanoseconds, -1000);
+  EXPECT_EQ(d.time_source->type, RCL_ROS_TIME);
+
+  rcl_time_source_t * system_time_source = rcl_get_default_system_time_source();
+  EXPECT_TRUE(system_time_source != nullptr);
+
+  rcl_time_point_t e;
+  ret = rcl_init_time_point(&e, system_time_source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+}
+
+static bool pre_callback_called = false;
+static bool post_callback_called = false;
+
+void pre_callback(void)
+{
+  pre_callback_called = true;
+  EXPECT_FALSE(post_callback_called);
+}
+void post_callback(void)
+{
+  EXPECT_TRUE(pre_callback_called);
+  post_callback_called = true;
+}
+
+
+TEST(rcl_time, rcl_time_update_callbacks) {
+  rcl_time_source_t * ros_time_source = rcl_get_default_ros_time_source();
+  rcl_time_point_t query_now;
+  rcl_ret_t ret;
+  rcl_time_point_value_t set_point = 1000000000ull;
+
+  ret = rcl_init_time_point(&query_now, ros_time_source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  // set callbacks
+  ros_time_source->pre_update = pre_callback;
+  ros_time_source->post_update = post_callback;
+
+
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // Query it to do something different. no changes expected
+  ret = rcl_get_time_point_now(&query_now);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // Set the time before it's enabled. Should be no callbacks
+  ret = rcl_set_ros_time_override(ros_time_source, set_point);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // enable
+  ret = rcl_enable_ros_time_override(ros_time_source);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // Set the time now that it's enabled, now get callbacks
+  ret = rcl_set_ros_time_override(ros_time_source, set_point);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  EXPECT_TRUE(pre_callback_called);
+  EXPECT_TRUE(post_callback_called);
 }
