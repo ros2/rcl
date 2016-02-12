@@ -16,6 +16,7 @@ if(UNIX AND NOT APPLE)
   list(APPEND extra_test_libraries dl)
   list(APPEND extra_test_env DL_PRELOAD=$<TARGET_FILE:${PROJECT_NAME}_memory_tools>)
 endif()
+list(APPEND extra_lib_dirs $<TARGET_FILE_DIR:${PROJECT_NAME}_memory_tools>)
 target_link_libraries(${PROJECT_NAME}_memory_tools ${extra_test_libraries})
 target_compile_definitions(${PROJECT_NAME}_memory_tools
   PRIVATE "RCL_MEMORY_TOOLS_BUILDING_DLL")
@@ -34,3 +35,4 @@ endif()
 
 set(extra_test_libraries ${extra_test_libraries} PARENT_SCOPE)
 set(extra_test_env ${extra_test_env} PARENT_SCOPE)
+set(extra_lib_dirs ${extra_lib_dirs} PARENT_SCOPE)
