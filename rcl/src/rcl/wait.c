@@ -114,8 +114,11 @@ rcl_wait_set_init(
   wait_set->impl->rmw_subscriptions.subscriber_count = 0;
   wait_set->impl->rmw_guard_conditions.guard_conditions = NULL;
   wait_set->impl->rmw_guard_conditions.guard_condition_count = 0;
+  static rmw_guard_conditions_t fixed_guard_conditions;
+  fixed_guard_conditions.guard_conditions = NULL;
+  fixed_guard_conditions.guard_condition_count = 0;
   wait_set->impl->rmw_waitset = rmw_create_waitset(
-    NULL, 2 * number_of_subscriptions + number_of_guard_conditions);
+    &fixed_guard_conditions, 2 * number_of_subscriptions + number_of_guard_conditions);
   if (!wait_set->impl->rmw_waitset) {
     goto fail;
   }
