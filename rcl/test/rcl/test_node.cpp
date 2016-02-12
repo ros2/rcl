@@ -261,7 +261,6 @@ TEST_F(TestNodeFixture, test_rcl_node_life_cycle) {
   ret = rcl_node_init(&node, name, &options_with_invalid_allocator);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
   rcl_reset_error();
-  node = rcl_get_zero_initialized_node();
   // Try with failing allocator.
   rcl_node_options_t options_with_failing_allocator = rcl_node_get_default_options();
   options_with_failing_allocator.allocator.allocate = failing_malloc;
@@ -270,7 +269,6 @@ TEST_F(TestNodeFixture, test_rcl_node_life_cycle) {
   ret = rcl_node_init(&node, name, &options_with_failing_allocator);
   EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
   rcl_reset_error();
-  node = rcl_get_zero_initialized_node();
   // Try fini with invalid arguments.
   ret = rcl_node_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
@@ -283,7 +281,6 @@ TEST_F(TestNodeFixture, test_rcl_node_life_cycle) {
   EXPECT_EQ(RCL_RET_OK, ret);
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret);
-  node = rcl_get_zero_initialized_node();
   // Try repeated init and fini calls.
   ret = rcl_node_init(&node, name, &default_options);
   EXPECT_EQ(RCL_RET_OK, ret);
@@ -293,7 +290,6 @@ TEST_F(TestNodeFixture, test_rcl_node_life_cycle) {
   EXPECT_EQ(RCL_RET_OK, ret);
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret);
-  node = rcl_get_zero_initialized_node();
   // Try with a specific domain id.
   rcl_node_options_t options_with_custom_domain_id = rcl_node_get_default_options();
   options_with_custom_domain_id.domain_id = 42;
@@ -301,12 +297,10 @@ TEST_F(TestNodeFixture, test_rcl_node_life_cycle) {
   if (is_windows && is_opensplice) {
     // A custom domain id is not expected to work on Windows with Opensplice.
     EXPECT_NE(RCL_RET_OK, ret);
-    node = rcl_get_zero_initialized_node();
   } else {
     // This is the normal check.
     EXPECT_EQ(RCL_RET_OK, ret);
     ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
-    node = rcl_get_zero_initialized_node();
   }
 }
