@@ -12,8 +12,8 @@ find_package(rosidl_generator_c REQUIRED)
 include_directories(include)
 
 if(NOT WIN32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
 endif()
 
 set(${PROJECT_NAME}_sources
@@ -47,6 +47,12 @@ macro(target)
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin)
+
+  # rcl_lib_dir is passed as APPEND_LIBRARY_DIRS for each ament_add_gtest call so
+  # the librcl that they link against is on the library path.
+  # This is especially important on Windows.
+  # This is overwritten each loop, but which one it points to doesn't really matter.
+  set(rcl_lib_dir "$<TARGET_FILE_DIR:${PROJECT_NAME}${target_suffix}>")
 endmacro()
 
 call_for_each_rmw_implementation(target GENERATE_DEFAULT)

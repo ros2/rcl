@@ -22,7 +22,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/time.h"
 
-#include "../memory_tools.hpp"
+#include "../memory_tools/memory_tools.hpp"
 
 class TestTimeFixture : public ::testing::Test
 {

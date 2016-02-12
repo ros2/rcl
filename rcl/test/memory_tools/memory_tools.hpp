@@ -16,8 +16,8 @@
 //   https://dxr.mozilla.org/mozilla-central/rev/
 //    cc9c6cd756cb744596ba039dcc5ad3065a7cc3ea/memory/build/replace_malloc.c
 
-#ifndef MEMORY_TOOLS_HPP_
-#define MEMORY_TOOLS_HPP_
+#ifndef RCL__TEST__MEMORY_TOOLS__MEMORY_TOOLS_HPP_
+#define RCL__TEST__MEMORY_TOOLS__MEMORY_TOOLS_HPP_
 
 #include <stddef.h>
 
@@ -104,4 +104,29 @@ RCL_MEMORY_TOOLS_PUBLIC
 void
 memory_checking_thread_init();
 
-#endif  // MEMORY_TOOLS_HPP_
+// What follows is a set of failing allocator functions, used for testing.
+void *
+failing_malloc(size_t size, void * state)
+{
+  (void)size;
+  (void)state;
+  return nullptr;
+}
+
+void *
+failing_realloc(void * pointer, size_t size, void * state)
+{
+  (void)pointer;
+  (void)size;
+  (void)state;
+  return nullptr;
+}
+
+void
+failing_free(void * pointer, void * state)
+{
+  (void)pointer;
+  (void)state;
+}
+
+#endif  // RCL__TEST__MEMORY_TOOLS__MEMORY_TOOLS_HPP_

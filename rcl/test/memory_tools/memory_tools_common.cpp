@@ -25,7 +25,7 @@
 #endif  // defined(__APPLE__)
 
 #include "./memory_tools.hpp"
-#include "./scope_exit.hpp"
+#include "../scope_exit.hpp"
 
 static std::atomic<bool> enabled(false);
 
@@ -65,9 +65,11 @@ custom_malloc(size_t size)
   }
   void * memory = malloc(size);
   uint64_t fw_size = size;
-  MALLOC_PRINTF(
-    " malloc (%s) %p %" PRIu64 "\n",
-    malloc_expected ? "    expected" : "not expected", memory, fw_size);
+  if (!malloc_expected) {
+    MALLOC_PRINTF(
+      " malloc (%s) %p %" PRIu64 "\n",
+      malloc_expected ? "    expected" : "not expected", memory, fw_size);
+  }
   return memory;
 }
 
@@ -107,9 +109,11 @@ custom_realloc(void * memory_in, size_t size)
   }
   void * memory = realloc(memory_in, size);
   uint64_t fw_size = size;
-  MALLOC_PRINTF(
-    "realloc (%s) %p %p %" PRIu64 "\n",
-    malloc_expected ? "    expected" : "not expected", memory_in, memory, fw_size);
+  if (!realloc_expected) {
+    MALLOC_PRINTF(
+      "realloc (%s) %p %p %" PRIu64 "\n",
+      realloc_expected ? "    expected" : "not expected", memory_in, memory, fw_size);
+  }
   return memory;
 }
 
@@ -147,8 +151,10 @@ custom_free(void * memory)
       (*unexpected_free_callback)();
     }
   }
-  MALLOC_PRINTF(
-    "   free (%s) %p\n", malloc_expected ? "    expected" : "not expected", memory);
+  if (!free_expected) {
+    MALLOC_PRINTF(
+      "   free (%s) %p\n", free_expected ? "    expected" : "not expected", memory);
+  }
   free(memory);
 }
 

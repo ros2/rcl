@@ -16,7 +16,7 @@
 
 #include "rcl/rcl.h"
 
-#include "../memory_tools.hpp"
+#include "../memory_tools/memory_tools.hpp"
 #include "rcl/error_handling.h"
 
 class TestRCLFixture : public ::testing::Test
@@ -41,30 +41,6 @@ public:
     set_on_unexpected_free_callback(nullptr);
   }
 };
-
-void *
-failing_malloc(size_t size, void * state)
-{
-  (void)(size);
-  (void)(state);
-  return nullptr;
-}
-
-void *
-failing_realloc(void * pointer, size_t size, void * state)
-{
-  (void)(pointer);
-  (void)(size);
-  (void)(state);
-  return nullptr;
-}
-
-void
-failing_free(void * pointer, void * state)
-{
-  (void)pointer;
-  (void)state;
-}
 
 struct FakeTestArgv
 {
@@ -97,6 +73,9 @@ struct FakeTestArgv
 
   int argc;
   char ** argv;
+
+private:
+  FakeTestArgv(const FakeTestArgv &) = delete;
 };
 
 /* Tests the rcl_init(), rcl_ok(), and rcl_shutdown() functions.
