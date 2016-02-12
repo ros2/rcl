@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #if defined(WIN32)
@@ -27,9 +28,8 @@ static rcl_time_source_t * rcl_default_ros_time_source;
 static rcl_time_source_t * rcl_default_steady_time_source;
 static rcl_time_source_t * rcl_default_system_time_source;
 
-
 // Internal storage for RCL_ROS_TIME implementation
-typedef struct
+typedef struct rcl_ros_time_source_storage_t
 {
   atomic_uint_least64_t current_time;
   bool active;
@@ -37,21 +37,24 @@ typedef struct
 } rcl_ros_time_source_storage_t;
 
 // Implementation only
-rcl_ret_t rcl_get_steady_time(void * data, rcl_time_point_value_t * current_time)
+rcl_ret_t
+rcl_get_steady_time(void * data, rcl_time_point_value_t * current_time)
 {
-  (void) data;  // unused
+  (void)data;  // unused
   return rcl_steady_time_now(current_time);
 }
 
 // Implementation only
-rcl_ret_t rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
+rcl_ret_t
+rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
 {
-  (void) data;  // unused
+  (void)data;  // unused
   return rcl_system_time_now(current_time);
 }
 
 // Internal method for zeroing values on init, assumes time_source is valid
-void rcl_init_generic_time_source(rcl_time_source_t * time_source)
+void
+rcl_init_generic_time_source(rcl_time_source_t * time_source)
 {
   time_source->type = RCL_TIME_SOURCE_UNINITIALIZED;
   time_source->pre_update = NULL;
@@ -62,7 +65,8 @@ void rcl_init_generic_time_source(rcl_time_source_t * time_source)
 
 // The function used to get the current ros time.
 // This is in the implementation only
-rcl_ret_t rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
+rcl_ret_t
+rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
 {
   rcl_ros_time_source_storage_t * t = (rcl_ros_time_source_storage_t *)data;
   if (!t->active) {
@@ -72,7 +76,8 @@ rcl_ret_t rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
   return RCL_RET_OK;
 }
 
-bool rcl_time_source_valid(rcl_time_source_t * time_source)
+bool
+rcl_time_source_valid(rcl_time_source_t * time_source)
 {
   if (time_source == NULL ||
     time_source->type == RCL_TIME_SOURCE_UNINITIALIZED ||
@@ -83,7 +88,8 @@ bool rcl_time_source_valid(rcl_time_source_t * time_source)
   return true;
 }
 
-rcl_ret_t rcl_init_ros_time_source(rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_init_ros_time_source(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   rcl_init_generic_time_source(time_source);
@@ -93,7 +99,8 @@ rcl_ret_t rcl_init_ros_time_source(rcl_time_source_t * time_source)
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_fini_ros_time_source(rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_fini_ros_time_source(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   if (time_source->type != RCL_ROS_TIME) {
@@ -104,7 +111,8 @@ rcl_ret_t rcl_fini_ros_time_source(rcl_time_source_t * time_source)
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_init_steady_time_source(rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_init_steady_time_source(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   rcl_init_generic_time_source(time_source);
@@ -113,7 +121,8 @@ rcl_ret_t rcl_init_steady_time_source(rcl_time_source_t * time_source)
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_fini_steady_time_source(rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_fini_steady_time_source(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   if (time_source->type != RCL_STEADY_TIME) {
@@ -123,19 +132,18 @@ rcl_ret_t rcl_fini_steady_time_source(rcl_time_source_t * time_source)
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_init_system_time_source(rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_init_system_time_source(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   rcl_init_generic_time_source(time_source);
   time_source->get_now = rcl_get_system_time;
   time_source->type = RCL_SYSTEM_TIME;
-  if (!time_source) {
-    return RCL_RET_ERROR;
-  }
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_fini_system_time_source(rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_fini_system_time_source(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   if (time_source->type != RCL_SYSTEM_TIME) {
@@ -145,7 +153,8 @@ rcl_ret_t rcl_fini_system_time_source(rcl_time_source_t * time_source)
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_init_time_point(rcl_time_point_t * time_point, rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_init_time_point(rcl_time_point_t * time_point, rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT);
   if (!time_source) {
@@ -157,14 +166,16 @@ rcl_ret_t rcl_init_time_point(rcl_time_point_t * time_point, rcl_time_source_t *
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_fini_time_point(rcl_time_point_t * time_point)
+rcl_ret_t
+rcl_fini_time_point(rcl_time_point_t * time_point)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT);
-  (void) time_point;
+  (void)time_point;
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_init_duration(rcl_duration_t * duration, rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_init_duration(rcl_duration_t * duration, rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT);
   if (!time_source) {
@@ -176,17 +187,19 @@ rcl_ret_t rcl_init_duration(rcl_duration_t * duration, rcl_time_source_t * time_
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_fini_duration(rcl_duration_t * duration)
+rcl_ret_t
+rcl_fini_duration(rcl_duration_t * duration)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT);
-  (void) duration;
+  (void)duration;
   return RCL_RET_OK;
 }
 
-rcl_time_source_t * rcl_get_default_ros_time_source(void)
+rcl_time_source_t *
+rcl_get_default_ros_time_source(void)
 {
   if (!rcl_default_ros_time_source) {
-    rcl_default_ros_time_source = calloc(1, sizeof(rcl_time_source_t));
+    rcl_default_ros_time_source = (rcl_time_source_t *)calloc(1, sizeof(rcl_time_source_t));
     rcl_ret_t retval = rcl_init_ros_time_source(rcl_default_ros_time_source);
     if (retval != RCL_RET_OK) {
       return NULL;
@@ -195,10 +208,11 @@ rcl_time_source_t * rcl_get_default_ros_time_source(void)
   return rcl_default_ros_time_source;
 }
 
-rcl_time_source_t * rcl_get_default_steady_time_source(void)
+rcl_time_source_t *
+rcl_get_default_steady_time_source(void)
 {
   if (!rcl_default_steady_time_source) {
-    rcl_default_steady_time_source = calloc(1, sizeof(rcl_time_source_t));
+    rcl_default_steady_time_source = (rcl_time_source_t *)calloc(1, sizeof(rcl_time_source_t));
     rcl_ret_t retval = rcl_init_steady_time_source(rcl_default_steady_time_source);
     if (retval != RCL_RET_OK) {
       return NULL;
@@ -207,10 +221,11 @@ rcl_time_source_t * rcl_get_default_steady_time_source(void)
   return rcl_default_steady_time_source;
 }
 
-rcl_time_source_t * rcl_get_default_system_time_source(void)
+rcl_time_source_t *
+rcl_get_default_system_time_source(void)
 {
   if (!rcl_default_system_time_source) {
-    rcl_default_system_time_source = calloc(1, sizeof(rcl_time_source_t));
+    rcl_default_system_time_source = (rcl_time_source_t *)calloc(1, sizeof(rcl_time_source_t));
     rcl_ret_t retval = rcl_init_system_time_source(rcl_default_system_time_source);
     if (retval != RCL_RET_OK) {
       return NULL;
@@ -219,7 +234,8 @@ rcl_time_source_t * rcl_get_default_system_time_source(void)
   return rcl_default_system_time_source;
 }
 
-rcl_ret_t rcl_set_default_ros_time_source(rcl_time_source_t * process_time_source)
+rcl_ret_t
+rcl_set_default_ros_time_source(rcl_time_source_t * process_time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(process_time_source, RCL_RET_INVALID_ARGUMENT);
   if (rcl_default_ros_time_source) {
@@ -229,7 +245,8 @@ rcl_ret_t rcl_set_default_ros_time_source(rcl_time_source_t * process_time_sourc
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_difference_times(rcl_time_point_t * start, rcl_time_point_t * finish,
+rcl_ret_t
+rcl_difference_times(rcl_time_point_t * start, rcl_time_point_t * finish,
   rcl_duration_t * delta)
 {
   if (start->time_source->type != finish->time_source->type) {
@@ -244,7 +261,8 @@ rcl_ret_t rcl_difference_times(rcl_time_point_t * start, rcl_time_point_t * fini
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_get_time_point_now(rcl_time_point_t * time_point)
+rcl_ret_t
+rcl_get_time_point_now(rcl_time_point_t * time_point)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT);
   if (time_point->time_source && time_point->time_source->get_now) {
@@ -255,7 +273,8 @@ rcl_ret_t rcl_get_time_point_now(rcl_time_point_t * time_point)
   return RCL_RET_ERROR;
 }
 
-rcl_ret_t rcl_enable_ros_time_override(rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_enable_ros_time_override(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   if (time_source->type != RCL_ROS_TIME) {
@@ -272,7 +291,8 @@ rcl_ret_t rcl_enable_ros_time_override(rcl_time_source_t * time_source)
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_disable_ros_time_override(rcl_time_source_t * time_source)
+rcl_ret_t
+rcl_disable_ros_time_override(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   if (time_source->type != RCL_ROS_TIME) {
@@ -288,7 +308,9 @@ rcl_ret_t rcl_disable_ros_time_override(rcl_time_source_t * time_source)
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_is_enabled_ros_time_override(rcl_time_source_t * time_source,
+rcl_ret_t
+rcl_is_enabled_ros_time_override(
+  rcl_time_source_t * time_source,
   bool * is_enabled)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
@@ -306,7 +328,9 @@ rcl_ret_t rcl_is_enabled_ros_time_override(rcl_time_source_t * time_source,
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_set_ros_time_override(rcl_time_source_t * time_source,
+rcl_ret_t
+rcl_set_ros_time_override(
+  rcl_time_source_t * time_source,
   rcl_time_point_value_t time_value)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);

@@ -55,14 +55,16 @@ free(void * pointer)
 
 void start_memory_checking()
 {
-  printf("starting memory checking...\n");
-  enabled.store(true);
+  if (!enabled.exchange(true)) {
+    printf("starting memory checking...\n");
+  }
 }
 
 void stop_memory_checking()
 {
-  printf("stopping memory checking...\n");
-  enabled.store(false);
+  if (enabled.exchange(false)) {
+    printf("stopping memory checking...\n");
+  }
 }
 
 /******************************************************************************

@@ -110,16 +110,22 @@ rcl_wait_set_init(
     sizeof(rcl_wait_set_impl_t), allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     wait_set->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+  memset(wait_set->impl, 0, sizeof(rcl_wait_set_impl_t));
   wait_set->impl->rmw_subscriptions.subscribers = NULL;
   wait_set->impl->rmw_subscriptions.subscriber_count = 0;
   wait_set->impl->rmw_guard_conditions.guard_conditions = NULL;
   wait_set->impl->rmw_guard_conditions.guard_condition_count = 0;
+  static rmw_guard_conditions_t fixed_guard_conditions;
+  fixed_guard_conditions.guard_conditions = NULL;
+  fixed_guard_conditions.guard_condition_count = 0;
   wait_set->impl->rmw_waitset = rmw_create_waitset(
-    NULL, 2 * number_of_subscriptions + number_of_guard_conditions);
+    &fixed_guard_conditions, 2 * number_of_subscriptions + number_of_guard_conditions);
   if (!wait_set->impl->rmw_waitset) {
     goto fail;
   }
 
+  // Set allocator.
+  wait_set->impl->allocator = allocator;
   // Initialize subscription space.
   rcl_ret_t ret;
   if ((ret = rcl_wait_set_resize_subscriptions(wait_set, number_of_subscriptions)) != RCL_RET_OK) {
@@ -150,8 +156,6 @@ rcl_wait_set_init(
     fail_ret = ret;
     goto fail;
   }
-  // Set allocator.
-  wait_set->impl->allocator = allocator;
   return RCL_RET_OK;
 fail:
   if (__wait_set_is_valid(wait_set)) {
@@ -395,7 +399,9 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   if (timeout > 0) {
     // Determine the nearest timeout (given or a timer).
     uint64_t min_timeout = timeout;
-    if (min_timeout > 0) {  // Do not consider timer timeouts if non-blocking.
+    // If min_timeout is > 0, then compare it to the time until each timer.
+    // Take the lowest and use that for the wait timeout.
+    if (min_timeout > 0) {
       size_t i;
       for (i = 0; i < wait_set->size_of_timers; ++i) {
         if (!wait_set->timers[i]) {
@@ -430,6 +436,18 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &dummy_clients,
     wait_set->impl->rmw_waitset,
     timeout_argument);
+  // Check for timeout.
+  if (ret == RMW_RET_TIMEOUT) {
+    // Assume none were set (because timeout was reached first), and clear all.
+    rcl_ret_t rcl_ret;
+    // This next line prevents "assigned but never used" warnings in Release mode.
+    (void)rcl_ret;  // NO LINT
+    rcl_ret = rcl_wait_set_clear_subscriptions(wait_set);
+    assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
+    rcl_ret = rcl_wait_set_clear_guard_conditions(wait_set);
+    assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
+    return RCL_RET_TIMEOUT;
+  }
   // Check for error.
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
@@ -446,17 +464,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (!is_ready) {
       wait_set->timers[i] = NULL;
     }
-  }
-  // Check for timeout.
-  if (ret == RMW_RET_TIMEOUT) {
-    // Assume none were set (because timeout was reached first), and clear all.
-    rcl_ret_t rcl_ret;
-    (void)rcl_ret;  // NO LINT
-    rcl_ret = rcl_wait_set_clear_subscriptions(wait_set);
-    assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
-    rcl_ret = rcl_wait_set_clear_guard_conditions(wait_set);
-    assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
-    return RCL_RET_TIMEOUT;
   }
   // Set corresponding rcl subscription handles NULL.
   for (i = 0; i < wait_set->size_of_subscriptions; ++i) {

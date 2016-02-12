@@ -79,6 +79,8 @@ rcl_get_zero_initialized_wait_set(void);
  *   ret = rcl_wait_set_fini(&wait_set);
  *   // ... error handling
  *
+ * \TODO(wjwwood): consider the "fixed guard conditions", a la rmw's wait set.
+ *
  * This function is thread-safe for different wait_set objects.
  * Thread-safety of this function requires a thread-safe allocator if the
  * allocator is shared with other parts of the system.
@@ -297,7 +299,7 @@ rcl_wait_set_resize_timers(rcl_wait_set_t * wait_set, size_t size);
  *   rcl_subscription_t sub2;  // initialize this, see rcl_subscription_init()
  *   rcl_guard_condition_t gc1;  // initialize this, see rcl_guard_condition_init()
  *   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
- *   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 2, 1, rcl_get_default_allocator());
+ *   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 2, 1, 0, rcl_get_default_allocator());
  *   // ... error handling
  *   do {
  *     ret = rcl_wait_set_clear_subscriptions(&wait_set);

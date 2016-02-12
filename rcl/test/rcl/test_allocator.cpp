@@ -16,7 +16,7 @@
 
 #include "rcl/allocator.h"
 
-#include "../memory_tools.hpp"
+#include "../memory_tools/memory_tools.hpp"
 
 class TestAllocatorFixture : public ::testing::Test
 {

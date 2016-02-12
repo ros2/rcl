@@ -20,7 +20,7 @@
 #include "rcl/node.h"
 #include "rmw/rmw.h"  // For rmw_get_implementation_identifier.
 
-#include "../memory_tools.hpp"
+#include "../memory_tools/memory_tools.hpp"
 #include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
 
@@ -46,30 +46,6 @@ public:
     set_on_unexpected_free_callback(nullptr);
   }
 };
-
-void *
-failing_malloc(size_t size, void * state)
-{
-  (void)(size);
-  (void)(state);
-  return nullptr;
-}
-
-void *
-failing_realloc(void * pointer, size_t size, void * state)
-{
-  (void)(pointer);
-  (void)(size);
-  (void)(state);
-  return nullptr;
-}
-
-void
-failing_free(void * pointer, void * state)
-{
-  (void)pointer;
-  (void)state;
-}
 
 bool is_opensplice =
   std::string(rmw_get_implementation_identifier()).find("opensplice") != std::string::npos;

@@ -40,14 +40,16 @@ typedef struct interpose_s
 void osx_start_memory_checking()
 {
   // No loading required, it is handled by DYLD_INSERT_LIBRARIES and dynamic library interposing.
-  MALLOC_PRINTF("starting memory checking...\n");
-  enabled.store(true);
+  if (!enabled.exchange(true)) {
+    MALLOC_PRINTF("starting memory checking...\n");
+  }
 }
 
 void osx_stop_memory_checking()
 {
-  MALLOC_PRINTF("stopping memory checking...\n");
-  enabled.store(false);
+  if (enabled.exchange(false)) {
+    MALLOC_PRINTF("stopping memory checking...\n");
+  }
 }
 
 OSX_INTERPOSE(custom_malloc, malloc);
