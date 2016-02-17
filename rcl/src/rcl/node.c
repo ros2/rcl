@@ -107,6 +107,7 @@ fail:
   if (node->impl) {
     allocator->deallocate(node->impl, allocator->state);
   }
+  *node = rcl_get_zero_initialized_node();
   return fail_ret;
 }
 
