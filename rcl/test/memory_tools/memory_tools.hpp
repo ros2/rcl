@@ -16,8 +16,8 @@
 //   https://dxr.mozilla.org/mozilla-central/rev/
 //    cc9c6cd756cb744596ba039dcc5ad3065a7cc3ea/memory/build/replace_malloc.c
 
-#ifndef RCL__TEST__MEMORY_TOOLS__MEMORY_TOOLS_HPP_
-#define RCL__TEST__MEMORY_TOOLS__MEMORY_TOOLS_HPP_
+#ifndef MEMORY_TOOLS__MEMORY_TOOLS_HPP_
+#define MEMORY_TOOLS__MEMORY_TOOLS_HPP_
 
 #include <stddef.h>
 
@@ -129,4 +129,4 @@ failing_free(void * pointer, void * state)
   (void)state;
 }
 
-#endif  // RCL__TEST__MEMORY_TOOLS__MEMORY_TOOLS_HPP_
+#endif  // MEMORY_TOOLS__MEMORY_TOOLS_HPP_
