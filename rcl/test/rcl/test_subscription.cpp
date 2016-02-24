@@ -83,7 +83,7 @@ wait_for_subscription_to_be_ready(
   bool & success)
 {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 1, 0, 0, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   auto wait_set_exit = make_scope_exit([&wait_set]() {
     stop_memory_checking();
@@ -170,10 +170,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       stop_memory_checking();
       std_msgs__msg__Int64__fini(&msg);
     });
-    bool taken = false;
-    ret = rcl_take(&subscription, &msg, &taken, nullptr);
+    ret = rcl_take(&subscription, &msg, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ASSERT_TRUE(taken) << "failed to take a message, even though the subscription was ready";
     ASSERT_EQ(42, msg.data);
   }
 }
@@ -185,7 +183,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(std_msgs, msg, String);
-  const char * topic = "chatter";
+  const char * topic = "rcl_test_subscription_chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -228,10 +226,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       stop_memory_checking();
       std_msgs__msg__String__fini(&msg);
     });
-    bool taken = false;
-    ret = rcl_take(&subscription, &msg, &taken, nullptr);
+    ret = rcl_take(&subscription, &msg, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ASSERT_TRUE(taken) << "failed to take a message, even though the subscription was ready";
     ASSERT_EQ(std::string(test_string), std::string(msg.data.data, msg.data.size));
   }
 }
