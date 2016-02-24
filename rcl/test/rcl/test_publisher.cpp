@@ -97,6 +97,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   });
+  EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), topic_name), 0);
   std_msgs__msg__Int64 msg;
   std_msgs__msg__Int64__init(&msg);
   msg.data = 42;
