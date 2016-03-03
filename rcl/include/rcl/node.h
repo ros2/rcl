@@ -58,6 +58,28 @@ typedef struct rcl_node_options_t
   rcl_allocator_t allocator;
 } rcl_node_options_t;
 
+typedef struct rcl_strings_t
+{
+  size_t count;
+  char ** data;
+  rcl_allocator_t allocator;
+} rcl_strings_t;
+
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_node_names(rcl_strings_t* strings);
+
+RCL_PUBLIC
+rcl_strings_t
+rcl_get_zero_initialized_strings();
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_strings_fini(rcl_strings_t* strings);
+
 /// Return a rcl_node_t struct with members initialized to NULL.
 RCL_PUBLIC
 RCL_WARN_UNUSED

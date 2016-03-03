@@ -43,6 +43,51 @@ rcl_get_zero_initialized_node()
   return null_node;
 }
 
+rcl_strings_t
+rcl_get_zero_initialized_strings()
+{
+  static rcl_strings_t null_strings;
+  null_strings.count = 0;
+  null_strings.data = NULL;
+  null_strings.allocator = rcl_get_default_allocator();
+  return null_strings;
+}
+
+rcl_ret_t
+rcl_get_node_names(rcl_strings_t* strings)
+{
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(strings, RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    strings->allocator.allocate,
+    "invalid allocator, allocate not set", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    strings->allocator.deallocate,
+    "invalid allocator, deallocate not set", return RCL_RET_INVALID_ARGUMENT);
+
+  rmw_ros_meta_t* ros_meta_data = rmw_get_node_names();
+
+  strings->count = ros_meta_data->count;
+  strings->data = (char **)strings->allocator.allocate(sizeof(char *) * strings->count, strings->allocator.state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(strings->data, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+
+  memset(strings->data, 0, sizeof(char **) * strings->count);
+  int i;
+  //copy the node names to the structure
+  for(i = 0; i < ros_meta_data->count; i++){
+    int len_string = strlen(ros_meta_data->node_names[i].data)+1;
+    strings->data[i] = (char *)strings->allocator.allocate(sizeof(char)*len_string, strings->allocator.state);
+    //TODO deallocate the rest of the array
+    RCL_CHECK_FOR_NULL_WITH_MSG(strings->data[i], "allocating memory failed", return RCL_RET_BAD_ALLOC);
+    memcpy(strings->data[i], ros_meta_data->node_names[i].data, len_string);
+  }
+
+  rmw_destroy_ros_meta(ros_meta_data);
+
+  return RCL_RET_OK;
+}
+
 rcl_ret_t
 rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * options)
 {
@@ -131,6 +176,34 @@ rcl_node_fini(rcl_node_t * node)
   allocator.deallocate(node->impl, allocator.state);
   node->impl = NULL;
   return result;
+}
+
+rcl_ret_t
+rcl_strings_fini(rcl_strings_t* strings)
+{
+  rcl_ret_t fail_ret = RCL_RET_ERROR;
+  rcl_allocator_t allocator = strings->allocator;
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+      allocator.deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
+
+  if (strings->data!=NULL) {
+    fail_ret = RCL_RET_BAD_ALLOC;
+    if (strings->data) {
+      unsigned int i;
+      for (i = 0; i < strings->count; ++i) {
+        if (strings->data[i]) {
+          // Use the old allocator.
+          allocator.deallocate(strings->data[i], allocator.state);
+        }
+      }
+      // Use the old allocator.
+      allocator.deallocate(strings->data, allocator.state);
+    }
+    strings->count = 0;
+    strings->data = NULL;
+    return RCL_RET_OK;
+  }
+  return fail_ret;
 }
 
 rcl_node_options_t
