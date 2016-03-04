@@ -19,7 +19,14 @@
 #include "../memory_tools/memory_tools.hpp"
 #include "rcl/error_handling.h"
 
-class TestRCLFixture : public ::testing::Test
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
@@ -80,7 +87,7 @@ private:
 
 /* Tests the rcl_init(), rcl_ok(), and rcl_shutdown() functions.
  */
-TEST_F(TestRCLFixture, test_rcl_init_and_ok_and_shutdown) {
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_ok_and_shutdown) {
   rcl_ret_t ret;
   // A shutdown before any init has been called should fail.
   ret = rcl_shutdown();
@@ -160,7 +167,7 @@ TEST_F(TestRCLFixture, test_rcl_init_and_ok_and_shutdown) {
 
 /* Tests the rcl_get_instance_id() and rcl_ok() functions.
  */
-TEST_F(TestRCLFixture, test_rcl_get_instance_id_and_ok) {
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_get_instance_id_and_ok) {
   rcl_ret_t ret;
   // Instance id should be 0 before rcl_init().
   EXPECT_EQ(0u, rcl_get_instance_id());

@@ -25,7 +25,14 @@
 #include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
 
-class TestPublisherFixture : public ::testing::Test
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   rcl_node_t * node_ptr;
@@ -66,7 +73,7 @@ public:
 
 /* Basic nominal test of a publisher.
  */
-TEST_F(TestPublisherFixture, test_publisher_nominal) {
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nominal) {
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
@@ -100,7 +107,7 @@ TEST_F(TestPublisherFixture, test_publisher_nominal) {
 
 /* Basic nominal test of a publisher with a string.
  */
-TEST_F(TestPublisherFixture, test_publisher_nominal_string) {
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nominal_string) {
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
@@ -126,7 +133,7 @@ TEST_F(TestPublisherFixture, test_publisher_nominal_string) {
 
 /* Testing the publisher init and fini functions.
  */
-TEST_F(TestPublisherFixture, test_publisher_init_fini) {
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_fini) {
   stop_memory_checking();
   rcl_ret_t ret;
   // Setup valid inputs.

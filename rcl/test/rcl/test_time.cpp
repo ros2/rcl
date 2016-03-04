@@ -24,7 +24,14 @@
 
 #include "../memory_tools/memory_tools.hpp"
 
-class TestTimeFixture : public ::testing::Test
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
@@ -48,7 +55,7 @@ public:
 };
 
 // Tests the rcl_system_time_now() function.
-TEST_F(TestTimeFixture, test_rcl_system_time_now) {
+TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_system_time_now) {
   assert_no_realloc_begin();
   rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
@@ -80,7 +87,7 @@ TEST_F(TestTimeFixture, test_rcl_system_time_now) {
 }
 
 // Tests the rcl_steady_time_now() function.
-TEST_F(TestTimeFixture, test_rcl_steady_time_now) {
+TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_steady_time_now) {
   assert_no_realloc_begin();
   rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
@@ -118,7 +125,7 @@ TEST_F(TestTimeFixture, test_rcl_steady_time_now) {
 }
 
 // Tests the rcl_set_ros_time_override() function.
-TEST_F(TestTimeFixture, test_rcl_set_ros_time_override) {
+TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_set_ros_time_override) {
   rcl_time_source_t * ros_time_source = rcl_get_default_ros_time_source();
   assert_no_realloc_begin();
   rcl_ret_t ret;
@@ -219,7 +226,7 @@ TEST_F(TestTimeFixture, test_rcl_set_ros_time_override) {
   }
 }
 
-TEST_F(TestTimeFixture, test_rcl_init_time_source_and_point) {
+TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_init_time_source_and_point) {
   assert_no_realloc_begin();
   rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
@@ -265,7 +272,7 @@ TEST_F(TestTimeFixture, test_rcl_init_time_source_and_point) {
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 }
 
-TEST(rcl_time, time_source_validation) {
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), time_source_validation) {
   ASSERT_FALSE(rcl_time_source_valid(NULL));
   rcl_time_source_t uninitialized;
   // Not reliably detectable due to random values.
@@ -275,7 +282,7 @@ TEST(rcl_time, time_source_validation) {
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 }
 
-TEST(rcl_time, default_time_source_instanciation) {
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), default_time_source_instanciation) {
   rcl_time_source_t * ros_time_source = rcl_get_default_ros_time_source();
   ASSERT_TRUE(rcl_time_source_valid(ros_time_source));
   rcl_time_source_t * steady_time_source = rcl_get_default_steady_time_source();
@@ -284,7 +291,7 @@ TEST(rcl_time, default_time_source_instanciation) {
   ASSERT_TRUE(rcl_time_source_valid(system_time_source));
 }
 
-TEST(rcl_time, rcl_time_difference) {
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   rcl_ret_t ret;
   rcl_time_point_t a, b;
   ret = rcl_init_time_point(&a, nullptr);
@@ -333,7 +340,7 @@ void post_callback(void)
 }
 
 
-TEST(rcl_time, rcl_time_update_callbacks) {
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_update_callbacks) {
   rcl_time_source_t * ros_time_source = rcl_get_default_ros_time_source();
   rcl_time_point_t query_now;
   rcl_ret_t ret;

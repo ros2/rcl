@@ -19,6 +19,13 @@
 #include "../../src/rcl/common.h"
 #include "../../src/rcl/common.c"
 
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
 /* Tests the default allocator.
  *
  * Expected environment variables must be set by the calling code:
@@ -28,7 +35,7 @@
  *
  * These are set in the call to `ament_add_gtest()` in the `CMakeLists.txt`.
  */
-TEST(TestCommon, test_getenv) {
+TEST(CLASSNAME(TestCommon, RMW_IMPLEMENTATION), test_getenv) {
   const char * env;
   rcl_ret_t ret;
   ret = rcl_impl_getenv("NORMAL_TEST", NULL);
