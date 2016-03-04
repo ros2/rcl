@@ -26,7 +26,7 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-class CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class CLASSNAME (TestRCLFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()

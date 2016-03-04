@@ -31,7 +31,7 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-class CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class CLASSNAME (TestTimeFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()

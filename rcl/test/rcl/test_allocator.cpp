@@ -25,11 +25,10 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-class CLASSNAME(TestAllocatorFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class CLASSNAME (TestAllocatorFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
-  CLASSNAME(TestAllocatorFixture, RMW_IMPLEMENTATION)()
-  {
+  CLASSNAME(TestAllocatorFixture, RMW_IMPLEMENTATION)() {
     start_memory_checking();
     stop_memory_checking();
   }
