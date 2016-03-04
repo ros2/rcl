@@ -96,5 +96,7 @@ macro(rcl_add_custom_gtest target)
       endif()
       ament_target_dependencies(${target} ${_ARG_AMENT_DEPENDENCIES})
     endif()
+    target_compile_definitions(${target}
+      PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
   endif()
 endmacro()

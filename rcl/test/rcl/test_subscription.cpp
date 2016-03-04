@@ -29,7 +29,14 @@
 #include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
 
-class TestSubscriptionFixture : public ::testing::Test
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   rcl_node_t * node_ptr;
@@ -107,7 +114,7 @@ wait_for_subscription_to_be_ready(
 
 /* Basic nominal test of a subscription.
  */
-TEST_F(TestSubscriptionFixture, test_subscription_nominal) {
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal) {
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
@@ -172,7 +179,7 @@ TEST_F(TestSubscriptionFixture, test_subscription_nominal) {
 
 /* Basic nominal test of a publisher with a string.
  */
-TEST_F(TestSubscriptionFixture, test_subscription_nominal_string) {
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal_string) {
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();

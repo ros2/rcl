@@ -18,10 +18,17 @@
 
 #include "../memory_tools/memory_tools.hpp"
 
-class TestAllocatorFixture : public ::testing::Test
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME(TestAllocatorFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
-  TestAllocatorFixture()
+  CLASSNAME(TestAllocatorFixture, RMW_IMPLEMENTATION)()
   {
     start_memory_checking();
     stop_memory_checking();
@@ -48,7 +55,7 @@ public:
 
 /* Tests the default allocator.
  */
-TEST_F(TestAllocatorFixture, test_default_allocator_normal) {
+TEST_F(CLASSNAME(TestAllocatorFixture, RMW_IMPLEMENTATION), test_default_allocator_normal) {
 #if defined(WIN32)
   printf("Allocator tests disabled on Windows.\n");
   return;

@@ -24,7 +24,14 @@
 #include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
 
-class TestNodeFixture : public ::testing::Test
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
@@ -57,7 +64,7 @@ bool is_windows = false;
 
 /* Tests the node accessors, i.e. rcl_node_get_* functions.
  */
-TEST_F(TestNodeFixture, test_rcl_node_accessors) {
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) {
   stop_memory_checking();
   rcl_ret_t ret;
   // Initialize rcl with rcl_init().
@@ -226,7 +233,7 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
 
 /* Tests the node life cycle, including rcl_node_init() and rcl_node_fini().
  */
-TEST_F(TestNodeFixture, test_rcl_node_life_cycle) {
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle) {
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_node_t node = rcl_get_zero_initialized_node();
