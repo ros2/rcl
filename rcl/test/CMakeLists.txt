@@ -96,6 +96,19 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+
+#  if(${rmw_implementation} STREQUAL "rmw_connext_dynamic_cpp")
+#    # TODO(jacquelinekay) remove once complex data types work for connext dynamic
+#    message(STATUS "Skipping parameters test for Connext Dynamic for now")
+#  else()
+    rcl_add_custom_gtest(test_parameters${target_suffix}
+      SRCS rcl/test_parameters.cpp
+      LIBRARIES ${PROJECT_NAME}${target_suffix}
+      AMENT_DEPENDENCIES ${rmw_implementation}
+      TIMEOUT 20
+    )
+#  endif()
+
   rcl_add_custom_gtest(test_publisher${target_suffix}
     SRCS rcl/test_publisher.cpp
     ENV ${extra_test_env}
@@ -109,7 +122,7 @@ function(test_target_function)
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
-    AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
+    AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "rcl_interfaces"
   )
 
   rcl_add_custom_gtest(test_subscription${target_suffix}

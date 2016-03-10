@@ -301,6 +301,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   } else { \
     wait_set->Type ## s = (const rcl_ ## Type ## _t * *)allocator.reallocate( \
       (void *)wait_set->Type ## s, sizeof(rcl_ ## Type ## _t *) * size, allocator.state); \
+    memset(wait_set->Type ## s, 0, sizeof(rcl_ ## Type ## _t *) * size); \
     RCL_CHECK_FOR_NULL_WITH_MSG( \
       wait_set->Type ## s, "allocating memory failed", return RCL_RET_BAD_ALLOC); \
     wait_set->size_of_ ## Type ## s = size; \
@@ -319,13 +320,14 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   /* Also resize the rmw storage. */ \
   wait_set->impl->RMWCount = 0; \
   wait_set->impl->RMWStorage = (void **)allocator.reallocate( \
-    wait_set->impl->RMWStorage, sizeof(rcl_ ## Type ## _t *) * size, allocator.state); \
+    wait_set->impl->RMWStorage, sizeof(rmw_ ## Type ## _t *) * size, allocator.state); \
   if (!wait_set->impl->RMWStorage) { \
     allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
     wait_set->size_of_ ## Type ## s = 0; \
     RCL_SET_ERROR_MSG("allocating memory failed"); \
     return RCL_RET_BAD_ALLOC; \
-  }
+  } \
+  memset(wait_set->impl->RMWStorage, 0, sizeof(void *) * size); \
 
 /* Implementation-specific notes:
  *

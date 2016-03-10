@@ -23,6 +23,9 @@ set(${PROJECT_NAME}_sources
   src/rcl/graph.c
   src/rcl/guard_condition.c
   src/rcl/node.c
+  src/rcl/parameter.c
+  src/rcl/parameter_client.c
+  src/rcl/parameter_service.c
   src/rcl/publisher.c
   src/rcl/rcl.c
   src/rcl/rmw_implementation_identifier_check.c
