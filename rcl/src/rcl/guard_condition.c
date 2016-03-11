@@ -39,22 +39,15 @@ rcl_get_zero_initialized_guard_condition()
 rcl_ret_t
 rcl_guard_condition_init(
   rcl_guard_condition_t * guard_condition,
-  const rcl_node_t * node,
   const rcl_guard_condition_options_t options)
 {
   // Perform argument validation.
   RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &options.allocator;
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator->allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator->deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
-  // Ensure the node is valid.
-  if (!node->impl || rcl_node_get_rcl_instance_id(node) != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("node handle is invalid");
-    return RCL_RET_NODE_INVALID;
-  }
   // Ensure the guard_condition handle is zero initialized.
   if (guard_condition->impl) {
     RCL_SET_ERROR_MSG("guard_condition already initialized, or memory was unintialized");
@@ -81,16 +74,10 @@ rcl_guard_condition_init(
 }
 
 rcl_ret_t
-rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition, rcl_node_t * node)
+rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition)
 {
   // Perform argument validation.
   RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
-  // Ensure the node is valid.
-  if (!node->impl || rcl_node_get_rcl_instance_id(node) != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("node handle is invalid");
-    return RCL_RET_NODE_INVALID;
-  }
   rcl_ret_t result = RCL_RET_OK;
   if (guard_condition->impl) {
     if (guard_condition->impl->rmw_handle) {

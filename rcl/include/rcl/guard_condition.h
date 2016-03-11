@@ -20,8 +20,9 @@ extern "C"
 {
 #endif
 
+#include "rcl/allocator.h"
 #include "rcl/macros.h"
-#include "rcl/node.h"
+#include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
 /// Internal rcl guard condition implementation struct.
@@ -50,34 +51,24 @@ rcl_get_zero_initialized_guard_condition(void);
 /* After calling this function on a rcl_guard_condition_t, it can be passed to
  * rcl_wait() and then concurrently it can be triggered to wake-up rcl_wait().
  *
- * The given rcl_node_t must be valid and the resulting rcl_guard_condition_t
- * is only valid as long as the given rcl_node_t remains valid.
- *
  * Expected usage:
  *
  *    #include <rcl/rcl.h>
  *
- *    rcl_node_t node = rcl_get_zero_initialized_node();
- *    rcl_node_options_t node_ops = rcl_node_get_default_options();
- *    rcl_ret_t ret = rcl_node_init(&node, "node_name", &node_ops);
  *    // ... error handling
  *    rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
  *    ret = rcl_guard_condition_init(
- *      &guard_condition, &node, rcl_guard_condition_get_default_options());
+ *      &guard_condition, rcl_guard_condition_get_default_options());
  *    // ... error handling, and on shutdown do deinitialization:
- *    ret = rcl_guard_condition_fini(&guard_condition, &node);
+ *    ret = rcl_guard_condition_fini(&guard_condition);
  *    // ... error handling for rcl_guard_condition_fini()
- *    ret = rcl_node_fini(&node);
- *    // ... error handling for rcl_node_fini()
  *
  * This function does allocate heap memory.
  * This function is not thread-safe.
  * This function is lock-free.
  *
- * \TODO(wjwwood): does this function need a node to be passed to it? (same for fini)
  *
  * \param[inout] guard_condition preallocated guard_condition structure
- * \param[in] node valid rcl node handle
  * \param[in] options the guard_condition's options
  * \return RCL_RET_OK if guard_condition was initialized successfully, or
  *         RCL_RET_ALREADY_INIT if the guard condition is already initialized, or
@@ -90,20 +81,17 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_guard_condition_init(
   rcl_guard_condition_t * guard_condition,
-  const rcl_node_t * node,
   const rcl_guard_condition_options_t options);
 
 /// Finalize a rcl_guard_condition_t.
 /* After calling, calls to rcl_guard_condition_trigger() will fail when using
  * this guard condition.
- * However, the given node handle is still valid.
  *
  * This function does free heap memory and can allocate memory on errors.
  * This function is not thread-safe with rcl_guard_condition_trigger().
  * This function is lock-free.
  *
  * \param[inout] guard_condition handle to the guard_condition to be finalized
- * \param[in] node handle to the node used to create the guard_condition
  * \return RCL_RET_OK if guard_condition was finalized successfully, or
  *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
@@ -111,7 +99,7 @@ rcl_guard_condition_init(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition, rcl_node_t * node);
+rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition);
 
 /// Return the default options in a rcl_guard_condition_options_t struct.
 /* This function does not allocate heap memory.
