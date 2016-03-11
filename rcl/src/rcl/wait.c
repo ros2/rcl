@@ -31,6 +31,7 @@ extern "C"
 
 typedef struct rcl_wait_set_impl_t
 {
+  rmw_guard_conditions_t rmw_fixed_guard_conditions;
   size_t subscription_index;
   rmw_subscriptions_t rmw_subscriptions;
   size_t guard_condition_index;
@@ -106,6 +107,8 @@ __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 rcl_ret_t
 rcl_wait_set_init(
   rcl_wait_set_t * wait_set,
+  rcl_guard_condition_t ** fixed_guard_conditions,
+  size_t number_of_fixed_guard_conditions,
   size_t number_of_subscriptions,
   size_t number_of_guard_conditions,
   size_t number_of_timers,
@@ -131,6 +134,8 @@ rcl_wait_set_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     wait_set->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
   memset(wait_set->impl, 0, sizeof(rcl_wait_set_impl_t));
+  wait_set->impl->rmw_fixed_guard_conditions.guard_conditions = NULL;
+  wait_set->impl->rmw_fixed_guard_conditions.guard_condition_count = 0;
   wait_set->impl->rmw_subscriptions.subscribers = NULL;
   wait_set->impl->rmw_subscriptions.subscriber_count = 0;
   wait_set->impl->rmw_guard_conditions.guard_conditions = NULL;
