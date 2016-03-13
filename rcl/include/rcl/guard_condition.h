@@ -84,11 +84,11 @@ rcl_guard_condition_init(
   const rcl_guard_condition_options_t options);
 
 /// Finalize a rcl_guard_condition_t.
-/* After calling, calls to rcl_guard_condition_trigger() will fail when using
+/* After calling, calls to rcl_trigger_guard_condition() will fail when using
  * this guard condition.
  *
  * This function does free heap memory and can allocate memory on errors.
- * This function is not thread-safe with rcl_guard_condition_trigger().
+ * This function is not thread-safe with rcl_trigger_guard_condition().
  * This function is lock-free.
  *
  * \param[inout] guard_condition handle to the guard_condition to be finalized
@@ -131,7 +131,7 @@ rcl_guard_condition_get_default_options(void);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_guard_condition_trigger(const rcl_guard_condition_t * guard_condition);
+rcl_trigger_guard_condition(const rcl_guard_condition_t * guard_condition);
 
 /// Return the rmw guard condition handle.
 /* The handle returned is a pointer to the internally held rmw handle.
