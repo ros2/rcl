@@ -43,9 +43,6 @@ typedef struct rcl_wait_set_t
   /// Storage for guard condition pointers.
   const rcl_guard_condition_t ** guard_conditions;
   size_t size_of_guard_conditions;
-  /// Storage for fixed guard condition pointers.
-  const rcl_guard_condition_t ** fixed_guard_conditions;
-  size_t size_of_fixed_guard_conditions;
   /// Storage for timer pointers.
   const rcl_timer_t ** timers;
   size_t size_of_timers;
@@ -95,8 +92,6 @@ rcl_get_zero_initialized_wait_set(void);
  * allocator is shared with other parts of the system.
  *
  * \param[inout] wait_set the wait set struct to be initialized
- * \param[in] fixed_guard_conditions array of pointers to fixed guard conditions
- * \param[in] number_of_fixed_guard_conditions number of fixed guard conditions
  * \param[in] number_of_subscriptions non-zero size of the subscriptions set
  * \param[in] number_of_guard_conditions non-zero size of the guard conditions set
  * \param[in] number_of_timers non-zero size of the timers set
@@ -114,8 +109,6 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_init(
   rcl_wait_set_t * wait_set,
-  rcl_guard_condition_t ** fixed_guard_conditions,
-  size_t number_of_fixed_guard_conditions,
   size_t number_of_subscriptions,
   size_t number_of_guard_conditions,
   size_t number_of_timers,
