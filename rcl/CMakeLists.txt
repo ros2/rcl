@@ -31,6 +31,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/time.c
   src/rcl/timer.c
   src/rcl/wait.c
+  src/rcl/topic.c
 )
 
 macro(target)
