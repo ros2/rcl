@@ -20,6 +20,7 @@ extern "C"
 {
 #endif
 
+#include "rcl/rcl.h"
 #include "rcl/allocator.h"
 #include "rcl/types.h"
 #include "rcl/macros.h"
@@ -28,7 +29,7 @@ extern "C"
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_get_remote_topic_names_and_types();
+rcl_get_remote_topic_names_and_types(rcl_strings_t* topic_names_string, rcl_strings_t* type_names_string);
 
 #if __cplusplus
 }

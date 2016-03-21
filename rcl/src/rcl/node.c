@@ -68,12 +68,16 @@ rcl_get_node_names(rcl_strings_t* strings)
 
   rmw_ros_meta_t* ros_meta_data = rmw_get_node_names();
 
+  //check if rmw_get_node_names return a something
+  if(ros_meta_data == NULL)
+    return RCL_RET_ERROR;
+
   strings->count = ros_meta_data->count;
   strings->data = (char **)strings->allocator.allocate(sizeof(char *) * strings->count, strings->allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(strings->data, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
   memset(strings->data, 0, sizeof(char **) * strings->count);
-  int i;
+  unsigned int i;
   //copy the node names to the structure
   for(i = 0; i < ros_meta_data->count; i++){
     int len_string = strlen(ros_meta_data->node_names[i].data)+1;
