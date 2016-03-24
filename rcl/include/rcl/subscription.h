@@ -114,7 +114,7 @@ rcl_get_zero_initialized_subscription(void);
  *    ret = rcl_subscription_fini(&subscription, &node);
  *    // ... error handling for rcl_subscription_fini()
  *    ret = rcl_node_fini(&node);
- *    // ... error handling for rcl_deinitialize_node()
+ *    // ... error handling for rcl_node_fini()
  *
  * This function is not thread-safe.
  *
@@ -138,7 +138,7 @@ rcl_subscription_init(
   const char * topic_name,
   const rcl_subscription_options_t * options);
 
-/// Deinitialize a rcl_subscription_t.
+/// Finalize a rcl_subscription_t.
 /* After calling, the node will no longer be subscribed on this topic
  * (assuming this is the only subscription on this topic in this node).
  *
@@ -206,6 +206,8 @@ rcl_subscription_get_default_options(void);
  *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
  *         RCL_RET_SUBSCRIPTION_INVALID if the subscription is invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_SUBSCRIPTION_TAKE_FAILED if take failed but no error
+ *         occurred in the middleware, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -214,7 +216,6 @@ rcl_ret_t
 rcl_take(
   const rcl_subscription_t * subscription,
   void * ros_message,
-  bool * taken,
   rmw_message_info_t * message_info);
 
 /// Get the topic name for the subscription.

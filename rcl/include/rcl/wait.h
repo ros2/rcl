@@ -23,8 +23,10 @@ extern "C"
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "rcl/client.h"
 #include "rcl/guard_condition.h"
 #include "rcl/macros.h"
+#include "rcl/service.h"
 #include "rcl/subscription.h"
 #include "rcl/timer.h"
 #include "rcl/types.h"
@@ -44,6 +46,12 @@ typedef struct rcl_wait_set_t
   /// Storage for timer pointers.
   const rcl_timer_t ** timers;
   size_t size_of_timers;
+  /// Storage for client pointers.
+  const rcl_client_t ** clients;
+  size_t size_of_clients;
+  /// Storage for service pointers.
+  const rcl_service_t ** services;
+  size_t size_of_services;
   /// Implementation specific storage.
   struct rcl_wait_set_impl_t * impl;
 } rcl_wait_set_t;
@@ -89,6 +97,8 @@ rcl_get_zero_initialized_wait_set(void);
  * \param[in] number_of_subscriptions non-zero size of the subscriptions set
  * \param[in] number_of_guard_conditions non-zero size of the guard conditions set
  * \param[in] number_of_timers non-zero size of the timers set
+ * \param[in] number_of_clients non-zero size of the clients set
+ * \param[in] number_of_services non-zero size of the services set
  * \param[in] allocator the allocator to use when allocating space in the sets
  * \return RCL_RET_OK if the wait set is initialized successfully, or
  *         RCL_RET_ALREADY_INIT if the wait set is not zero initialized, or
@@ -104,6 +114,8 @@ rcl_wait_set_init(
   size_t number_of_subscriptions,
   size_t number_of_guard_conditions,
   size_t number_of_timers,
+  size_t number_of_clients,
+  size_t number_of_services,
   rcl_allocator_t allocator);
 
 /// Finalize a rcl wait set.
@@ -277,6 +289,150 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_resize_timers(rcl_wait_set_t * wait_set, size_t size);
+
+/// Store a pointer to the given client in the next empty spot in the set.
+/* This function does not guarantee that the client is not already in the
+ * wait set.
+ *
+ * This function is not thread-safe.
+ * This function is lock-free.
+ *
+ * \param[inout] wait_set struct in which the client is to be stored
+ * \param[in] client the client to be added to the wait set
+ * \return RCL_RET_OK if added successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
+ *         RCL_RET_WAIT_SET_FULL if the client set is full, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_set_add_client(
+  rcl_wait_set_t * wait_set,
+  const rcl_client_t * client);
+
+/// Remove (sets to NULL) the clients in the wait set.
+/* This function should be used after passing using rcl_wait, but before
+ * adding new clients to the set.
+ *
+ * Calling this on an uninitialized (zero initialized) wait set will fail.
+ *
+ * This function is not thread-safe.
+ * This function is lock-free.
+ *
+ * \param[inout] wait_set struct to have its clients cleared
+ * \return RCL_RET_OK if cleared successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_set_clear_clients(rcl_wait_set_t * wait_set);
+
+/// Reallocate space for the clients in the wait set.
+/* This function will deallocate and reallocate the memory for the
+ * clients set.
+ *
+ * A size of 0 will just deallocate the memory and assign NULL to the array.
+ *
+ * Allocation and deallocation is done with the allocator given during the
+ * wait set's initialization.
+ *
+ * After calling this function all values in the set will be set to NULL,
+ * effectively the same as calling rcl_wait_set_clear_clients().
+ *
+ * If the requested size matches the current size, no allocation will be done.
+ *
+ * This can be called on an uninitialized (zero initialized) wait set.
+ *
+ * This function is not thread-safe.
+ *
+ * \param[inout] wait_set struct to have its clients cleared
+ * \param[in] size a size for the new set
+ * \return RCL_RET_OK if resized successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_set_resize_clients(rcl_wait_set_t * wait_set, size_t size);
+
+/// Store a pointer to the given service in the next empty spot in the set.
+/* This function does not guarantee that the service is not already in the
+ * wait set.
+ *
+ * This function is not thread-safe.
+ * This function is lock-free.
+ *
+ * \param[inout] wait_set struct in which the service is to be stored
+ * \param[in] service the service to be added to the wait set
+ * \return RCL_RET_OK if added successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
+ *         RCL_RET_WAIT_SET_FULL if the service set is full, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_set_add_service(
+  rcl_wait_set_t * wait_set,
+  const rcl_service_t * service);
+
+/// Remove (sets to NULL) the services in the wait set.
+/* This function should be used after passing using rcl_wait, but before
+ * adding new services to the set.
+ *
+ * Calling this on an uninitialized (zero initialized) wait set will fail.
+ *
+ * This function is not thread-safe.
+ * This function is lock-free.
+ *
+ * \param[inout] wait_set struct to have its services cleared
+ * \return RCL_RET_OK if cleared successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_set_clear_services(rcl_wait_set_t * wait_set);
+
+/// Reallocate space for the services in the wait set.
+/* This function will deallocate and reallocate the memory for the
+ * services set.
+ *
+ * A size of 0 will just deallocate the memory and assign NULL to the array.
+ *
+ * Allocation and deallocation is done with the allocator given during the
+ * wait set's initialization.
+ *
+ * After calling this function all values in the set will be set to NULL,
+ * effectively the same as calling rcl_wait_set_clear_services().
+ *
+ * If the requested size matches the current size, no allocation will be done.
+ *
+ * This can be called on an uninitialized (zero initialized) wait set.
+ *
+ * This function is not thread-safe.
+ *
+ * \param[inout] wait_set struct to have its services cleared
+ * \param[in] size a size for the new set
+ * \return RCL_RET_OK if resized successfully, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_set_resize_services(rcl_wait_set_t * wait_set, size_t size);
 
 /// Block until the wait set is ready or until the timeout has been exceeded.
 /* This function will collect the items in the rcl_wait_set_t and pass them
