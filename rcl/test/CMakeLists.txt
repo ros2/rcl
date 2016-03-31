@@ -100,6 +100,14 @@ function(test_target_function)
     LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
   )
+
+  rcl_add_custom_gtest(test_wait${target_suffix}
+    SRCS rcl/test_wait.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation}
+  )
 endfunction()
 
 call_for_each_rmw_implementation(test_target)
