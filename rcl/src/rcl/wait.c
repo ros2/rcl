@@ -293,6 +293,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     return RCL_RET_OK; \
   } \
   rcl_allocator_t allocator = wait_set->impl->allocator; \
+  wait_set->size_of_ ## Type ## s = 0; \
   if (size == 0) { \
     if (wait_set->Type ## s) { \
       allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
@@ -300,7 +301,6 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     } \
     ExtraDealloc \
   } else { \
-    wait_set->size_of_ ## Type ## s = 0; \
     wait_set->Type ## s = (const rcl_ ## Type ## _t * *)allocator.reallocate( \
       (void *)wait_set->Type ## s, sizeof(rcl_ ## Type ## _t *) * size, allocator.state); \
     RCL_CHECK_FOR_NULL_WITH_MSG( \
