@@ -41,3 +41,18 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   ret = rcl_wait_set_fini(&wait_set);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
+
+TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_clear) {
+  // Initialize a waitset with a subscription and then resize it to zero.
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  ret = rcl_wait_set_clear_subscriptions(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  EXPECT_EQ(wait_set.size_of_subscriptions, 0);
+
+  ret = rcl_wait_set_fini(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+}
