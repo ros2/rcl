@@ -61,13 +61,12 @@ rcl_timer_init(
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
-  rcl_timer_impl_t impl = {
-    .callback = ATOMIC_VAR_INIT((uintptr_t)callback),
-    .period = ATOMIC_VAR_INIT(period),
-    .last_call_time = ATOMIC_VAR_INIT(now_steady),
-    .canceled = ATOMIC_VAR_INIT(false),
-    .allocator = allocator,
-  };
+  rcl_timer_impl_t impl;
+  impl.callback = ATOMIC_VAR_INIT((uintptr_t)callback);
+  impl.period = ATOMIC_VAR_INIT(period);
+  impl.last_call_time = ATOMIC_VAR_INIT(now_steady);
+  impl.canceled = ATOMIC_VAR_INIT(false);
+  impl.allocator = allocator;
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator.allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
