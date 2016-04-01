@@ -41,5 +41,3 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   ret = rcl_wait_set_fini(&wait_set);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
-
-
