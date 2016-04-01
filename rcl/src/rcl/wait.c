@@ -259,12 +259,13 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   size_t current_index = wait_set->impl->Type ## _index++; \
   wait_set->Type ## s[current_index] = Type;
 
-#define SET_ADD_RMW(Type, RMWStorage) \
+#define SET_ADD_RMW(Type, RMWStorage, RMWCount) \
   /* Also place into rmw storage. */ \
   rmw_ ## Type ## _t * rmw_handle = rcl_ ## Type ## _get_rmw_handle(Type); \
   RCL_CHECK_FOR_NULL_WITH_MSG( \
     rmw_handle, rcl_get_error_string_safe(), return RCL_RET_ERROR); \
-  wait_set->impl->RMWStorage[current_index] = rmw_handle->data;
+  wait_set->impl->RMWStorage[current_index] = rmw_handle->data; \
+  wait_set->impl->RMWCount++;
 
 #define SET_CLEAR(Type) \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT); \
@@ -283,7 +284,8 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   memset( \
     wait_set->impl->RMWStorage, \
     0, \
-    sizeof(rmw_ ## Type ## _t *) * wait_set->impl->RMWCount);
+    sizeof(rmw_ ## Type ## _t *) * wait_set->impl->RMWCount); \
+  wait_set->impl->RMWCount = 0;
 
 #define SET_RESIZE(Type, ExtraDealloc, ExtraRealloc) \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT); \
@@ -310,7 +312,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   } \
   return RCL_RET_OK;
 
-#define SET_RESIZE_RMW_DEALLOC(RMWStorage, RMWCount) \
+#define SET_RESIZE_RMW_DEALLOC(RMWStorage) \
   /* Also deallocate the rmw storage. */ \
   if (wait_set->impl->RMWStorage) { \
     allocator.deallocate((void *)wait_set->impl->RMWStorage, allocator.state); \
@@ -328,18 +330,27 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     RCL_SET_ERROR_MSG("allocating memory failed"); \
     return RCL_RET_BAD_ALLOC; \
   } \
-  wait_set->impl->RMWCount = size;
 
+/* Implementation-specific notes:
+ *
+ * Add the rmw representation to the underlying rmw array and increment
+ * the rmw array count.
+ */
 rcl_ret_t
 rcl_wait_set_add_subscription(
   rcl_wait_set_t * wait_set,
   const rcl_subscription_t * subscription)
 {
   SET_ADD(subscription)
-  SET_ADD_RMW(subscription, rmw_subscriptions.subscribers)
+  SET_ADD_RMW(subscription, rmw_subscriptions.subscribers, rmw_subscriptions.subscriber_count)
   return RCL_RET_OK;
 }
 
+/* Implementation-specific notes:
+ *
+ * Sets all of the entries in the underlying rmw array to null, and sets the
+ * count in the rmw array to 0.
+ */
 rcl_ret_t
 rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set)
 {
@@ -351,13 +362,18 @@ rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set)
   return RCL_RET_OK;
 }
 
+/* Implementation-specific notes:
+ *
+ * Similarly, the underlying rmw representation is reallocated and reset:
+ * all entries are set to null and the count is set to zero.
+ */
 rcl_ret_t
 rcl_wait_set_resize_subscriptions(rcl_wait_set_t * wait_set, size_t size)
 {
   SET_RESIZE(
     subscription,
     SET_RESIZE_RMW_DEALLOC(
-      rmw_subscriptions.subscribers, rmw_subscriptions.subscriber_count),
+      rmw_subscriptions.subscribers),
     SET_RESIZE_RMW_REALLOC(
       subscription, rmw_subscriptions.subscribers, rmw_subscriptions.subscriber_count)
   )
@@ -369,7 +385,8 @@ rcl_wait_set_add_guard_condition(
   const rcl_guard_condition_t * guard_condition)
 {
   SET_ADD(guard_condition)
-  SET_ADD_RMW(guard_condition, rmw_guard_conditions.guard_conditions)
+  SET_ADD_RMW(guard_condition, rmw_guard_conditions.guard_conditions,
+    rmw_guard_conditions.guard_condition_count)
   return RCL_RET_OK;
 }
 
@@ -390,7 +407,7 @@ rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size)
   SET_RESIZE(
     guard_condition,
     SET_RESIZE_RMW_DEALLOC(
-      rmw_guard_conditions.guard_conditions, rmw_guard_conditions.guard_condition_count),
+      rmw_guard_conditions.guard_conditions),
     SET_RESIZE_RMW_REALLOC(
       guard_condition,
       rmw_guard_conditions.guard_conditions,
@@ -426,7 +443,7 @@ rcl_wait_set_add_client(
   const rcl_client_t * client)
 {
   SET_ADD(client)
-  SET_ADD_RMW(client, rmw_clients.clients)
+  SET_ADD_RMW(client, rmw_clients.clients, rmw_clients.client_count)
   return RCL_RET_OK;
 }
 
@@ -446,7 +463,7 @@ rcl_wait_set_resize_clients(rcl_wait_set_t * wait_set, size_t size)
 {
   SET_RESIZE(client,
     SET_RESIZE_RMW_DEALLOC(
-      rmw_clients.clients, rmw_clients.client_count),
+      rmw_clients.clients),
     SET_RESIZE_RMW_REALLOC(
       client, rmw_clients.clients, rmw_clients.client_count)
   )
@@ -458,7 +475,7 @@ rcl_wait_set_add_service(
   const rcl_service_t * service)
 {
   SET_ADD(service)
-  SET_ADD_RMW(service, rmw_services.services)
+  SET_ADD_RMW(service, rmw_services.services, rmw_services.service_count)
   return RCL_RET_OK;
 }
 
@@ -478,7 +495,7 @@ rcl_wait_set_resize_services(rcl_wait_set_t * wait_set, size_t size)
 {
   SET_RESIZE(service,
     SET_RESIZE_RMW_DEALLOC(
-      rmw_services.services, rmw_services.service_count),
+      rmw_services.services),
     SET_RESIZE_RMW_REALLOC(
       service, rmw_services.services, rmw_services.service_count)
   )
