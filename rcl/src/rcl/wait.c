@@ -331,6 +331,11 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     return RCL_RET_BAD_ALLOC; \
   } \
 
+/* Implementation-specific notes:
+ *
+ * Add the rmw representation to the underlying rmw array and increment
+ * the rmw array count.
+ */
 rcl_ret_t
 rcl_wait_set_add_subscription(
   rcl_wait_set_t * wait_set,
@@ -341,6 +346,11 @@ rcl_wait_set_add_subscription(
   return RCL_RET_OK;
 }
 
+/* Implementation-specific notes:
+ *
+ * Sets all of the entries in the underlying rmw array to null, and sets the
+ * count in the rmw array to 0.
+ */
 rcl_ret_t
 rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set)
 {
@@ -352,6 +362,11 @@ rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set)
   return RCL_RET_OK;
 }
 
+/* Implementation-specific notes:
+ *
+ * Similarly, the underlying rmw representation is reallocated and reset:
+ * all entries are set to null and the count is set to zero.
+ */
 rcl_ret_t
 rcl_wait_set_resize_subscriptions(rcl_wait_set_t * wait_set, size_t size)
 {
