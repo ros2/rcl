@@ -87,8 +87,6 @@ rcl_get_zero_initialized_wait_set(void);
  *   ret = rcl_wait_set_fini(&wait_set);
  *   // ... error handling
  *
- * \TODO(wjwwood): consider the "fixed guard conditions", a la rmw's wait set.
- *
  * This function is thread-safe for different wait_set objects.
  * Thread-safety of this function requires a thread-safe allocator if the
  * allocator is shared with other parts of the system.
@@ -164,6 +162,9 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
 /* This function does not guarantee that the subscription is not already in the
  * wait set.
  *
+ * Also add the rmw representation to the underlying rmw array and increment
+ * the rmw array count.
+ *
  * This function is not thread-safe.
  * This function is lock-free.
  *
@@ -185,6 +186,8 @@ rcl_wait_set_add_subscription(
 /// Remove (sets to NULL) the subscriptions in the wait set.
 /* This function should be used after passing using rcl_wait, but before
  * adding new subscriptions to the set.
+ * Sets all of the entries in the underlying rmw array to null, and sets the 
+ * count in the rmw array to 0.
  *
  * Calling this on an uninitialized (zero initialized) wait set will fail.
  *
@@ -213,6 +216,8 @@ rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set);
  *
  * After calling this function all values in the set will be set to NULL,
  * effectively the same as calling rcl_wait_set_clear_subscriptions().
+ * Similarly, the underlying rmw representation is reallocated and reset:
+ * all entries are set to null and the count is set to zero.
  *
  * If the requested size matches the current size, no allocation will be done.
  *
