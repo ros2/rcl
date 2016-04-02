@@ -545,6 +545,10 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (min_timeout == INT64_MAX) {
       timeout_argument = NULL;
     } else {
+      // If min_timeout was negative, we need to wake up immediately.
+      if (min_timeout < 0) {
+        min_timeout = 0;
+      }
       temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
       temporary_timeout_storage.nsec = min_timeout % 1000000000;
       timeout_argument = &temporary_timeout_storage;
