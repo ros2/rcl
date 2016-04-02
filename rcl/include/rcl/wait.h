@@ -186,7 +186,7 @@ rcl_wait_set_add_subscription(
 /// Remove (sets to NULL) the subscriptions in the wait set.
 /* This function should be used after passing using rcl_wait, but before
  * adding new subscriptions to the set.
- * Sets all of the entries in the underlying rmw array to null, and sets the 
+ * Sets all of the entries in the underlying rmw array to null, and sets the
  * count in the rmw array to 0.
  *
  * Calling this on an uninitialized (zero initialized) wait set will fail.

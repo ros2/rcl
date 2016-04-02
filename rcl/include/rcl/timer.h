@@ -77,7 +77,12 @@ rcl_get_zero_initialized_timer(void);
  * The period is a duration (rather an absolute time in the future).
  * If the period is 0 then it will always be ready.
  *
- * The callback must be a function which returns void and takes two arguments,
+ * The callback is an optional argument. Valid inputs are either a pointer
+ * to the function callback, or NULL to indicate that no callback will be
+ * stored in rcl.
+ * If the callback is null, the caller client library is responsible for
+ * firing the timer callback.
+ * Else, it must be a function which returns void and takes two arguments,
  * the first being a pointer to the associated timer, and the second a uint64_t
  * which is the time since the previous call, or since the timer was created
  * if it is the first call to the callback.
@@ -148,6 +153,9 @@ rcl_timer_fini(rcl_timer_t * timer);
  * the timer's period has not yet elapsed.
  * It is up to the calling code to make sure the period has elapsed by first
  * calling rcl_timer_is_ready().
+ * If the callback option was set to null in init, no callback is fired.
+ * However, this function should still be called by the client library to
+ * update the state of the timer.
  * The order of operations in this command are as follows:
  *
  *  - Ensure the timer has not been canceled.
@@ -326,7 +334,9 @@ rcl_timer_get_callback(const rcl_timer_t * timer);
 /* This function can fail, and therefore return NULL, if:
  *   - timer is NULL
  *   - timer has not been initialized (the implementation is invalid)
- *   - the new_callback argument is NULL
+ *
+ * This function can set callback to null, in which case the callback is
+ * ignored when rcl_timer_call is called.
  *
  * This function is thread-safe.
  * This function is lock-free so long as the C11's stdatomic.h function

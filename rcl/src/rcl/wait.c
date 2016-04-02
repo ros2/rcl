@@ -512,44 +512,45 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     return RCL_RET_WAIT_SET_EMPTY;
   }
   // Calculate the timeout argument.
-  rmw_time_t * timeout_argument;
+  // By default, set the timer to block indefinitely if none of the below conditions are met.
+  rmw_time_t * timeout_argument = NULL;
   rmw_time_t temporary_timeout_storage;
-  if (timeout < 0) {
-    // Pass NULL to wait to indicate block indefinitely.
-    timeout_argument = NULL;
-  }
-  if (timeout > 0) {
-    // Determine the nearest timeout (given or a timer).
-    uint64_t min_timeout = timeout;
-    // If min_timeout is > 0, then compare it to the time until each timer.
-    // Take the lowest and use that for the wait timeout.
-    if (min_timeout > 0) {
-      size_t i;
-      for (i = 0; i < wait_set->size_of_timers; ++i) {
-        if (!wait_set->timers[i]) {
-          continue;  // Skip NULL timers.
-        }
-        int64_t timer_timeout;
-        rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
-        if (ret != RCL_RET_OK) {
-          return ret;  // The rcl error state should already be set.
-        }
-        if ((uint64_t)timer_timeout < min_timeout) {
-          min_timeout = timer_timeout;
-        }
-      }
-    }
-    // Set that in the temporary storage and point to that for the argument.
-    temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
-    temporary_timeout_storage.nsec = min_timeout % 1000000000;
-    timeout_argument = &temporary_timeout_storage;
-  }
+
   if (timeout == 0) {
     // Then it is non-blocking, so set the temporary storage to 0, 0 and pass it.
     temporary_timeout_storage.sec = 0;
     temporary_timeout_storage.nsec = 0;
     timeout_argument = &temporary_timeout_storage;
+  } else {
+    int64_t min_timeout = INT64_MAX;
+    // If min_timeout is > 0, then compare it to the time until each timer.
+    if (timeout > 0) {
+      min_timeout = timeout;
+    }
+    // Take the lowest and use that for the wait timeout.
+    uint64_t i = 0;
+    for (i = 0; i < wait_set->size_of_timers; ++i) {
+      if (!wait_set->timers[i]) {
+        continue;  // Skip NULL timers.
+      }
+      int64_t timer_timeout;
+      rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
+      if (ret != RCL_RET_OK) {
+        return ret;  // The rcl error state should already be set.
+      }
+      if (timer_timeout < min_timeout) {
+        min_timeout = timer_timeout;
+      }
+    }
+    if (min_timeout == INT64_MAX) {
+      timeout_argument = NULL;
+    } else {
+      temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
+      temporary_timeout_storage.nsec = min_timeout % 1000000000;
+      timeout_argument = &temporary_timeout_storage;
+    }
   }
+
   // Wait.
   rmw_ret_t ret = rmw_wait(
     &wait_set->impl->rmw_subscriptions,
