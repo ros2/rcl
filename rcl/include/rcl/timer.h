@@ -77,9 +77,9 @@ rcl_get_zero_initialized_timer(void);
  * The period is a duration (rather an absolute time in the future).
  * If the period is 0 then it will always be ready.
  *
- * The callback is an optional argument. Valid inputs are either a pointer
- * to the function callback, or NULL to indicate that no callback will be
- * stored in rcl.
+ * The callback is an optional argument.
+ * Valid inputs are either a pointer to the function callback, or NULL to
+ * indicate that no callback will be stored in rcl.
  * If the callback is null, the caller client library is responsible for
  * firing the timer callback.
  * Else, it must be a function which returns void and takes two arguments,
