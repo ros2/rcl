@@ -51,7 +51,6 @@ rcl_timer_init(
   rcl_allocator_t allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
   if (timer->impl) {
     RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
@@ -106,10 +105,13 @@ rcl_timer_call(rcl_timer_t * timer)
   }
   rcl_time_point_value_t previous_ns =
     rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now_steady);
-  uint64_t since_last_call = now_steady - previous_ns;
   rcl_timer_callback_t typed_callback =
     (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
-  typed_callback(timer, since_last_call);
+
+  if (typed_callback != NULL) {
+    uint64_t since_last_call = now_steady - previous_ns;
+    typed_callback(timer, since_last_call);
+  }
   return RCL_RET_OK;
 }
 
@@ -195,7 +197,6 @@ rcl_timer_callback_t
 rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_callback)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
-  RCL_CHECK_ARGUMENT_FOR_NULL(new_callback, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
   return (rcl_timer_callback_t)rcl_atomic_exchange_uintptr_t(
     &timer->impl->callback, (uintptr_t)new_callback);
