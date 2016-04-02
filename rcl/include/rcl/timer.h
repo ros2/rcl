@@ -153,7 +153,8 @@ rcl_timer_fini(rcl_timer_t * timer);
  * the timer's period has not yet elapsed.
  * It is up to the calling code to make sure the period has elapsed by first
  * calling rcl_timer_is_ready().
- * If the callback option was set to null in init, no callback is fired.
+ * If the callback pointer is null (either set in init or exchanged after
+ * initialized), no callback is fired.
  * However, this function should still be called by the client library to
  * update the state of the timer.
  * The order of operations in this command are as follows:

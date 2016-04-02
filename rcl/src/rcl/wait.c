@@ -523,8 +523,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     timeout_argument = &temporary_timeout_storage;
   } else {
     int64_t min_timeout = INT64_MAX;
-    // If min_timeout is > 0, then compare it to the time until each timer.
     if (timeout > 0) {
+      // Compare the timeout to the time until next callback for each timer.
       min_timeout = timeout;
     }
     // Take the lowest and use that for the wait timeout.
