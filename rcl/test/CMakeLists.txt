@@ -1,8 +1,12 @@
 find_package(ament_cmake_gtest REQUIRED)
+find_package(ament_cmake_nose REQUIRED)
+
 find_package(example_interfaces REQUIRED)
 find_package(std_msgs REQUIRED)
 
+include(rcl_add_custom_executable.cmake)
 include(rcl_add_custom_gtest.cmake)
+include(rcl_add_custom_launch_test.cmake)
 
 set(extra_test_libraries)
 set(extra_test_env)
@@ -25,6 +29,8 @@ function(test_target_function)
   endif()
 
   message(STATUS "Creating tests for '${rmw_implementation}'")
+
+  # Gtests
 
   rcl_add_custom_gtest(test_allocator${target_suffix}
     SRCS rcl/test_allocator.cpp
@@ -107,6 +113,30 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
+  )
+
+  # Launch tests
+
+  rcl_add_custom_executable(test_services_server${target_suffix}
+    SRCS rcl/test_services_server.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
+  )
+
+  rcl_add_custom_executable(test_services_client${target_suffix}
+    SRCS rcl/test_services_client.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
+  )
+
+  rcl_add_custom_launch_test(test_services
+    test_services_server
+    test_services_client
+    TIMEOUT 15
   )
 endfunction()
 
