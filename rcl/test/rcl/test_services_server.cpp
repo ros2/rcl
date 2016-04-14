@@ -73,7 +73,8 @@ wait_for_service_to_be_ready(
   return false;
 }
 
-int main(int argc, char ** argv) {
+int main(int argc, char ** argv)
+{
   if (rcl_init(argc, argv, rcl_get_default_allocator()) != RCL_RET_OK) {
     fprintf(stderr, "Error in rcl init: %s\n", rcl_get_error_string_safe());
     return -1;
@@ -141,7 +142,7 @@ int main(int argc, char ** argv) {
     example_interfaces__srv__AddTwoInts_Request__fini(&service_request);
   });
   rmw_request_id_t header;
-  // TODO May have to check for timeout error codes
+  // TODO(jacquelinekay) May have to check for timeout error codes
   if (rcl_take_request(&service, &header, &service_request) != RCL_RET_OK) {
     fprintf(stderr, "Error in take_request: %s\n", rcl_get_error_string_safe());
     return -1;

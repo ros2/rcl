@@ -75,7 +75,8 @@ wait_for_client_to_be_ready(
   return false;
 }
 
-int main(int argc, char ** argv) {
+int main(int argc, char ** argv)
+{
   if (rcl_init(argc, argv, rcl_get_default_allocator()) != RCL_RET_OK) {
     fprintf(stderr, "Error in rcl init: %s\n", rcl_get_error_string_safe());
     return -1;
@@ -126,8 +127,7 @@ int main(int argc, char ** argv) {
     return -1;
   }
 
-  if (sequence_number != 1)
-  {
+  if (sequence_number != 1) {
     fprintf(stderr, "Got invalid sequence number\n");
     return -1;
   }
