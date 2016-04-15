@@ -148,7 +148,6 @@ int main(int argc, char ** argv)
       fprintf(stderr, "Error in send_response: %s\n", rcl_get_error_string_safe());
       return -1;
     }
-    // block until we get killed by launch
     // Our scope exits should take care of fini for everything
   }
   return main_ret;
