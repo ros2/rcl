@@ -136,7 +136,9 @@ function(test_target_function)
   rcl_add_custom_launch_test(test_services
     test_services_server
     test_services_client
+    ENV ${extra_test_env}
     TIMEOUT 15
+    #WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   )
 endfunction()
 

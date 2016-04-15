@@ -1,4 +1,4 @@
-# generated from test_rclcpp/test/test_two_executables.py.in
+# generated from rcl/test/test_two_executables.py.in
 
 from launch import LaunchDescriptor
 from launch.exit_handler import primary_exit_handler

@@ -25,7 +25,7 @@ macro(rcl_add_custom_launch_test test_name executable1 executable2)
   set(TEST_EXECUTABLE2_NAME "${executable2}")
   configure_file(
     test_two_executables.py.in
-    ${test_name}${target_suffix}.py.configure
+    ${CMAKE_CURRENT_BINARY_DIR}/${test_name}${target_suffix}.py.configure
     @ONLY
   )
   file(GENERATE
