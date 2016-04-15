@@ -29,7 +29,7 @@ macro(rcl_add_custom_launch_test test_name executable1 executable2)
     @ONLY
   )
   file(GENERATE
-    OUTPUT "${test_name}${target_suffix}_$<CONFIGURATION>.py"
+    OUTPUT "test/${test_name}${target_suffix}_$<CONFIGURATION>.py"
     INPUT "${CMAKE_CURRENT_BINARY_DIR}/${test_name}${target_suffix}.py.configure"
   )
   ament_add_nose_test(${test_name}${target_suffix} "${CMAKE_CURRENT_BINARY_DIR}/${test_name}${target_suffix}_$<CONFIGURATION>.py" ${ARGN})
