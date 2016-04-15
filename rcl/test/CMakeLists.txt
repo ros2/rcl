@@ -117,16 +117,16 @@ function(test_target_function)
 
   # Launch tests
 
-  rcl_add_custom_executable(test_services_server${target_suffix}
-    SRCS rcl/test_services_server.cpp
+  rcl_add_custom_executable(service_fixture${target_suffix}
+    SRCS rcl/service_fixture.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
-  rcl_add_custom_executable(test_services_client${target_suffix}
-    SRCS rcl/test_services_client.cpp
+  rcl_add_custom_executable(client_fixture${target_suffix}
+    SRCS rcl/client_fixture.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
@@ -134,8 +134,8 @@ function(test_target_function)
   )
 
   rcl_add_custom_launch_test(test_services
-    test_services_server
-    test_services_client
+    service_fixture
+    client_fixture
     ENV ${extra_test_env}
     TIMEOUT 15
     #WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"

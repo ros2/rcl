@@ -16,7 +16,8 @@
 #include <string>
 #include <thread>
 
-#include "rcl/client.h"
+#include "rcl/service.h"
+
 #include "rcl/rcl.h"
 
 #include "example_interfaces/srv/add_two_ints.h"
@@ -26,13 +27,13 @@
 #include "rcl/error_handling.h"
 
 bool
-wait_for_client_to_be_ready(
-  rcl_client_t * client,
+wait_for_service_to_be_ready(
+  rcl_service_t * service,
   size_t max_tries,
   int64_t period_ms)
 {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 1, 0, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, rcl_get_default_allocator());
   if (ret != RCL_RET_OK) {
     fprintf(stderr, "Error in wait set init: %s\n", rcl_get_error_string_safe());
     return false;
@@ -40,18 +41,18 @@ wait_for_client_to_be_ready(
   auto wait_set_exit = make_scope_exit([&wait_set]() {
     if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
       fprintf(stderr, "Error in wait set fini: %s\n", rcl_get_error_string_safe());
-      throw std::runtime_error("error while waiting for client");
+      throw std::runtime_error("error waiting for service to be ready");
     }
   });
   size_t iteration = 0;
   do {
     ++iteration;
-    if (rcl_wait_set_clear_clients(&wait_set) != RCL_RET_OK) {
-      fprintf(stderr, "Error in wait_set_clear_clients: %s\n", rcl_get_error_string_safe());
+    if (rcl_wait_set_clear_services(&wait_set) != RCL_RET_OK) {
+      fprintf(stderr, "Error in wait_set_clear_services: %s\n", rcl_get_error_string_safe());
       return false;
     }
-    if (rcl_wait_set_add_client(&wait_set, client) != RCL_RET_OK) {
-      fprintf(stderr, "Error in wait_set_add_client: %s\n", rcl_get_error_string_safe());
+    if (rcl_wait_set_add_service(&wait_set, service) != RCL_RET_OK) {
+      fprintf(stderr, "Error in wait_set_add_service: %s\n", rcl_get_error_string_safe());
       return false;
     }
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
@@ -62,8 +63,8 @@ wait_for_client_to_be_ready(
       fprintf(stderr, "Error in wait: %s\n", rcl_get_error_string_safe());
       return false;
     }
-    for (size_t i = 0; i < wait_set.size_of_clients; ++i) {
-      if (wait_set.clients[i] && wait_set.clients[i] == client) {
+    for (size_t i = 0; i < wait_set.size_of_services; ++i) {
+      if (wait_set.services[i] && wait_set.services[i] == service) {
         return true;
       }
     }
@@ -97,56 +98,58 @@ int main(int argc, char ** argv)
       example_interfaces, srv, AddTwoInts);
     const char * topic = "add_two_ints";
 
-    rcl_client_t client = rcl_get_zero_initialized_client();
-    rcl_client_options_t client_options = rcl_client_get_default_options();
-    rcl_ret_t ret = rcl_client_init(&client, &node, ts, topic, &client_options);
+    rcl_service_t service = rcl_get_zero_initialized_service();
+    rcl_service_options_t service_options = rcl_service_get_default_options();
+    rcl_ret_t ret = rcl_service_init(&service, &node, ts, topic, &service_options);
     if (ret != RCL_RET_OK) {
-      fprintf(stderr, "Error in client init: %s\n", rcl_get_error_string_safe());
+      fprintf(stderr, "Error in service init: %s\n", rcl_get_error_string_safe());
       return -1;
     }
 
-    auto client_exit = make_scope_exit([&client, &main_ret, &node]() {
-      if (rcl_client_fini(&client, &node)) {
-        fprintf(stderr, "Error in client fini: %s\n", rcl_get_error_string_safe());
+    auto service_exit = make_scope_exit([&main_ret, &service, &node]() {
+      if (rcl_service_fini(&service, &node)) {
+        fprintf(stderr, "Error in service fini: %s\n", rcl_get_error_string_safe());
         main_ret = -1;
       }
     });
 
-    // Initialize a request.
-    example_interfaces__srv__AddTwoInts_Request client_request;
-    example_interfaces__srv__AddTwoInts_Request__init(&client_request);
-    client_request.a = 1;
-    client_request.b = 2;
-    int64_t sequence_number;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-    if (rcl_send_request(&client, &client_request, &sequence_number)) {
-      fprintf(stderr, "Error in send request: %s\n", rcl_get_error_string_safe());
+    // Initialize a response.
+    example_interfaces__srv__AddTwoInts_Response service_response;
+    example_interfaces__srv__AddTwoInts_Response__init(&service_response);
+    auto response_exit = make_scope_exit([&service_response]() {
+      example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
+    });
+
+    // Block until a client request comes in.
+
+    if (!wait_for_service_to_be_ready(&service, 1000, 100)) {
+      fprintf(stderr, "Service never became ready\n");
       return -1;
     }
 
-    if (sequence_number != 1) {
-      fprintf(stderr, "Got invalid sequence number\n");
-      return -1;
-    }
-
-    example_interfaces__srv__AddTwoInts_Request__fini(&client_request);
-
-    // Initialize the response owned by the client and take the response.
-    example_interfaces__srv__AddTwoInts_Response client_response;
-    example_interfaces__srv__AddTwoInts_Response__init(&client_response);
-
-    if (!wait_for_client_to_be_ready(&client, 10, 10000)) {
-      fprintf(stderr, "Client never became ready\n");
-      return -1;
-    }
+    // Take the pending request.
+    example_interfaces__srv__AddTwoInts_Request service_request;
+    example_interfaces__srv__AddTwoInts_Request__init(&service_request);
+    auto request_exit = make_scope_exit([&service_request]() {
+      example_interfaces__srv__AddTwoInts_Request__fini(&service_request);
+    });
     rmw_request_id_t header;
-    if (rcl_take_response(&client, &header, &client_response) != RCL_RET_OK) {
-      fprintf(stderr, "Error in send response: %s\n", rcl_get_error_string_safe());
+    // TODO(jacquelinekay) May have to check for timeout error codes
+    if (rcl_take_request(&service, &header, &service_request) != RCL_RET_OK) {
+      fprintf(stderr, "Error in take_request: %s\n", rcl_get_error_string_safe());
       return -1;
     }
 
-    example_interfaces__srv__AddTwoInts_Response__fini(&client_response);
+    // Sum the request and send the response.
+    service_response.sum = service_request.a + service_request.b;
+    if (rcl_send_response(&service, &header, &service_response) != RCL_RET_OK) {
+      fprintf(stderr, "Error in send_response: %s\n", rcl_get_error_string_safe());
+      return -1;
+    }
+    // block until we get killed by launch
+    // Our scope exits should take care of fini for everything
   }
-
   return main_ret;
 }
