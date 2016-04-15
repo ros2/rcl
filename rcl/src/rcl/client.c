@@ -79,7 +79,7 @@ rcl_client_init(
     rcl_node_get_rmw_handle(node),
     type_support,
     service_name,
-    &rmw_qos_profile_default);
+    &options->qos);
   if (!client->impl->rmw_handle) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
     goto fail;
@@ -119,7 +119,7 @@ rcl_client_get_default_options()
 {
   static rcl_client_options_t default_options;
   // Must set the allocator and qos after because they are not a compile time constant.
-  default_options.qos = rmw_qos_profile_default;
+  default_options.qos = rmw_qos_profile_services_default;
   default_options.allocator = rcl_get_default_allocator();
   return default_options;
 }
