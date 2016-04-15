@@ -25,7 +25,8 @@ macro(rcl_add_custom_executable target)
     ${ARGN})
   if(_ARG_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR
-      "rcl_add_custom_executable() called with unused arguments: ${_ARG_UNPARSED_ARGUMENTS}")
+      "rcl_add_custom_executable() called with unused arguments:"
+      "${_ARG_UNPARSED_ARGUMENTS}")
   endif()
   if(_ARG_ENV)
     set(_ARG_ENV "ENV" ${_ARG_ENV})
