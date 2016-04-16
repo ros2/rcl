@@ -522,16 +522,15 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     temporary_timeout_storage.nsec = 0;
     timeout_argument = &temporary_timeout_storage;
   } else if (timeout > 0) {
-    int64_t min_timeout = INT64_MAX;
+    int64_t min_timeout = timeout;
     // Compare the timeout to the time until next callback for each timer.
-    min_timeout = timeout;
     // Take the lowest and use that for the wait timeout.
     uint64_t i = 0;
     for (i = 0; i < wait_set->size_of_timers; ++i) {
       if (!wait_set->timers[i]) {
         continue;  // Skip NULL timers.
       }
-      int64_t timer_timeout;
+      int64_t timer_timeout = INT64_MAX;
       rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
       if (ret != RCL_RET_OK) {
         return ret;  // The rcl error state should already be set.
@@ -540,17 +539,13 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
         min_timeout = timer_timeout;
       }
     }
-    if (min_timeout == INT64_MAX) {
-      timeout_argument = NULL;
-    } else {
-      // If min_timeout was negative, we need to wake up immediately.
-      if (min_timeout < 0) {
-        min_timeout = 0;
-      }
-      temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
-      temporary_timeout_storage.nsec = min_timeout % 1000000000;
-      timeout_argument = &temporary_timeout_storage;
+    // If min_timeout was negative, we need to wake up immediately.
+    if (min_timeout < 0) {
+      min_timeout = 0;
     }
+    temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
+    temporary_timeout_storage.nsec = min_timeout % 1000000000;
+    timeout_argument = &temporary_timeout_storage;
   }
 
   // Wait.
