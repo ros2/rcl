@@ -29,9 +29,6 @@ extern "C"
 #include "rcl/time.h"
 #include "rmw/rmw.h"
 
-// XXX
-#include <stdio.h>
-
 typedef struct rcl_wait_set_impl_t
 {
   size_t subscription_index;

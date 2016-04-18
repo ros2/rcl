@@ -16,7 +16,7 @@
 #include <future>
 #include <thread>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include "rcl/rcl.h"
 #include "rcl/error_handling.h"
@@ -80,8 +80,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
 
-  // TODO Make sure timer assumption fits with original rcl timer assumptions,
-  // maybe by duplication test separately.
+  // TODO(jacquelinekay) rcl timer tests?
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
   rcl_timer_callback_t callback;
   ret = rcl_timer_init(&timer, 1000000, callback, rcl_get_default_allocator());
@@ -151,14 +150,14 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
 
   std::chrono::nanoseconds trigger_diff;
   std::thread trigger_thread([&p, &guard_cond, &trigger_diff]() {
-      std::chrono::steady_clock::time_point before_trigger = std::chrono::steady_clock::now();
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      rcl_ret_t ret = rcl_trigger_guard_condition(&guard_cond);
-      std::chrono::steady_clock::time_point after_trigger = std::chrono::steady_clock::now();
-      trigger_diff = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        after_trigger - before_trigger);
-      p.set_value(ret);
-    }
+    std::chrono::steady_clock::time_point before_trigger = std::chrono::steady_clock::now();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    rcl_ret_t ret = rcl_trigger_guard_condition(&guard_cond);
+    std::chrono::steady_clock::time_point after_trigger = std::chrono::steady_clock::now();
+    trigger_diff = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      after_trigger - before_trigger);
+    p.set_value(ret);
+  }
   );
   auto f = p.get_future();
 
