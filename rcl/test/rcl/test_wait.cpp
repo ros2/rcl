@@ -59,7 +59,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
   ret = rcl_wait(&wait_set, timeout);
   std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
   // Check time
-  int64_t diff = (after_sc - before_sc).count();
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
   EXPECT_LE(diff, timeout + TOLERANCE);
 
   ret = rcl_wait_set_fini(&wait_set);
