@@ -29,6 +29,9 @@ extern "C"
 #include "rcl/time.h"
 #include "rmw/rmw.h"
 
+// XXX
+#include <stdio.h>
+
 typedef struct rcl_wait_set_impl_t
 {
   size_t subscription_index;
@@ -521,8 +524,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     temporary_timeout_storage.sec = 0;
     temporary_timeout_storage.nsec = 0;
     timeout_argument = &temporary_timeout_storage;
-  } else if (timeout > 0) {
-    int64_t min_timeout = timeout;
+  } else if (timeout > 0 || wait_set->size_of_timers > 0) {
+    int64_t min_timeout = timeout > 0 ? timeout : INT64_MAX;
     // Compare the timeout to the time until next callback for each timer.
     // Take the lowest and use that for the wait timeout.
     uint64_t i = 0;
