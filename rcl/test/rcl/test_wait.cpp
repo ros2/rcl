@@ -31,7 +31,7 @@
 #endif
 
 
-#define TOLERANCE RCL_US_TO_NS(100)
+#define TOLERANCE RCL_US_TO_NS(200)
 
 TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   // Initialize a waitset with a subscription and then resize it to zero.
