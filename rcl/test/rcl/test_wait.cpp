@@ -31,7 +31,7 @@
 #endif
 
 
-#define TOLERANCE RCL_US_TO_NS(200)
+#define TOLERANCE RCL_US_TO_NS(600)
 
 TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   // Initialize a waitset with a subscription and then resize it to zero.
@@ -54,7 +54,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  int64_t timeout = RCL_MS_TO_NS(1);  // nanoseconds
+  int64_t timeout = RCL_MS_TO_NS(10);  // nanoseconds
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
   ret = rcl_wait(&wait_set, timeout);
   std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
@@ -80,7 +80,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init(&timer, RCL_MS_TO_NS(1), nullptr, rcl_get_default_allocator());
+  ret = rcl_timer_init(&timer, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   ret = rcl_wait_set_add_timer(&wait_set, &timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -103,7 +103,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
   // Check time
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
-  EXPECT_LE(diff, RCL_MS_TO_NS(1) + TOLERANCE);
+  EXPECT_LE(diff, RCL_MS_TO_NS(10) + TOLERANCE);
 }
 
 // Test rcl_wait with a timeout value of 0 (non-blocking)
@@ -166,7 +166,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   std::chrono::nanoseconds trigger_diff;
   std::thread trigger_thread([&p, &guard_cond, &trigger_diff]() {
     std::chrono::steady_clock::time_point before_trigger = std::chrono::steady_clock::now();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     rcl_ret_t ret = rcl_trigger_guard_condition(&guard_cond);
     std::chrono::steady_clock::time_point after_trigger = std::chrono::steady_clock::now();
     trigger_diff = std::chrono::duration_cast<std::chrono::nanoseconds>(
