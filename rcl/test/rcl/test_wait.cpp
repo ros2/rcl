@@ -31,7 +31,7 @@
 #endif
 
 
-#define TOLERANCE RCL_US_TO_NS(600)
+#define TOLERANCE RCL_MS_TO_NS(3)
 
 TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   // Initialize a waitset with a subscription and then resize it to zero.
@@ -92,8 +92,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_timer_fini(&timer);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  }
-    );
+  });
 
   int64_t timeout = -1;
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
