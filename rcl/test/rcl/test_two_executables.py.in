@@ -16,6 +16,7 @@ def @TEST_NAME@():
     ld.add_process(
         cmd=['@TEST_EXECUTABLE2@', '@TEST_EXECUTABLE1_NAME@'],
         name='@TEST_EXECUTABLE2_NAME@',
+        exit_handler=primary_exit_handler,
     )
 
     launcher = DefaultLauncher()
