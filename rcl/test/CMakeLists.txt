@@ -56,6 +56,14 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+  rcl_add_custom_gtest(test_timer${target_suffix}
+    SRCS rcl/test_timer.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation}
+  )
+
   rcl_add_custom_gtest(test_common${target_suffix}
     SRCS rcl/test_common.cpp
     ENV

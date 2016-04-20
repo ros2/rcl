@@ -159,8 +159,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_guard_condition_fini(&guard_cond);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  }
-    );
+  });
 
   std::promise<rcl_ret_t> p;
 
@@ -175,8 +174,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
     trigger_diff = std::chrono::duration_cast<std::chrono::nanoseconds>(
       after_trigger - before_trigger);
     p.set_value(ret);
-  }
-  );
+  });
   auto f = p.get_future();
 
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
@@ -187,8 +185,4 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   trigger_thread.join();
   EXPECT_EQ(RCL_RET_OK, f.get());
   EXPECT_LE(std::abs(diff - trigger_diff.count()), TOLERANCE);
-}
-
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), realloc_waitset) {
-
 }
