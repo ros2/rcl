@@ -556,6 +556,21 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &wait_set->impl->rmw_clients,
     wait_set->impl->rmw_waitset,
     timeout_argument);
+  // Check for ready timers first, and set not ready timers to NULL.
+  size_t i;
+  for (i = 0; i < wait_set->size_of_timers; ++i) {
+    if (!wait_set->timers[i]) {
+      continue;  // Skip NULL timers.
+    }
+    bool is_ready = false;
+    rcl_ret_t ret = rcl_timer_is_ready(wait_set->timers[i], &is_ready);
+    if (ret != RCL_RET_OK) {
+      return ret;  // The rcl error state should already be set.
+    }
+    if (!is_ready) {
+      wait_set->timers[i] = NULL;
+    }
+  }
   // Check for timeout.
   if (ret == RMW_RET_TIMEOUT) {
     // Assume none were set (because timeout was reached first), and clear all.
@@ -576,18 +591,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
     return RCL_RET_ERROR;
-  }
-  // Check for ready timers next, and set not ready timers to NULL.
-  size_t i;
-  for (i = 0; i < wait_set->size_of_timers; ++i) {
-    bool is_ready = false;
-    rcl_ret_t ret = rcl_timer_is_ready(wait_set->timers[i], &is_ready);
-    if (ret != RCL_RET_OK) {
-      return ret;  // The rcl error state should already be set.
-    }
-    if (!is_ready) {
-      wait_set->timers[i] = NULL;
-    }
   }
   // Set corresponding rcl subscription handles NULL.
   for (i = 0; i < wait_set->size_of_subscriptions; ++i) {

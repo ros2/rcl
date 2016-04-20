@@ -100,6 +100,11 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
   // We expect a timeout here (timer value reached)
   ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
+  // Assert also that the timer is ready
+  bool is_ready = false;
+  ret = rcl_timer_is_ready(&timer, &is_ready);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_TRUE(is_ready);
   // Check time
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
   EXPECT_LE(diff, RCL_MS_TO_NS(10) + TOLERANCE);
@@ -123,8 +128,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_wait_set_fini(&wait_set);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  }
-    );
+  });
 
 
   // Time spent during wait should be negligible.
@@ -183,4 +187,8 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   trigger_thread.join();
   EXPECT_EQ(RCL_RET_OK, f.get());
   EXPECT_LE(std::abs(diff - trigger_diff.count()), TOLERANCE);
+}
+
+TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), realloc_waitset) {
+
 }
