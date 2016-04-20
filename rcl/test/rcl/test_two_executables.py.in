@@ -23,8 +23,7 @@ def @TEST_NAME@():
     launcher.add_launch_descriptor(ld)
     rc = launcher.launch()
 
-    # -2 is SIGINT; ignore it for the secondary process
-    assert rc == 0 or rc == -2, "The launch file failed with exit code '" + str(rc) + "'. "
+    assert rc == 0, "The launch file failed with exit code '" + str(rc) + "'. "
 
 
 if __name__ == '__main__':
