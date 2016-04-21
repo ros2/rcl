@@ -98,13 +98,10 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
   ret = rcl_wait(&wait_set, timeout);
   std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  
   // We expect a timeout here (timer value reached)
   ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
-  // Assert also that the timer is ready
-  bool is_ready = false;
-  ret = rcl_timer_is_ready(&timer, &is_ready);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_TRUE(is_ready);
+
   // Check time
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
   EXPECT_LE(diff, RCL_MS_TO_NS(10) + TOLERANCE);

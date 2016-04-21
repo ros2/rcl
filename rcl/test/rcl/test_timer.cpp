@@ -32,7 +32,7 @@
 #endif
 
 
-#define TOLERANCE RCL_MS_TO_NS(6)
+#define TOLERANCE RCL_US_TO_NS(50)
 
 TEST(CLASSNAME(TimerTestFixture, RMW_IMPLEMENTATION), test_timer_ready) {
   // Make a timer and check that it becomes ready after waiting
@@ -42,7 +42,12 @@ TEST(CLASSNAME(TimerTestFixture, RMW_IMPLEMENTATION), test_timer_ready) {
 
   rcl_time_point_value_t start = 0;
   rcl_time_point_value_t end = 0;
-
+  
+  // Check that the time until next call is close to the period
+  int64_t time_until_call = INT64_MAX;
+  ret = rcl_timer_get_time_until_next_call(&timer, &time_until_call);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_LE(RCL_MS_TO_NS(1) - time_until_call, TOLERANCE);
 
   ret = rcl_steady_time_now(&start);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
