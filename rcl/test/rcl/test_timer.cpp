@@ -42,7 +42,7 @@ TEST(CLASSNAME(TimerTestFixture, RMW_IMPLEMENTATION), test_timer_ready) {
 
   rcl_time_point_value_t start = 0;
   rcl_time_point_value_t end = 0;
-  
+
   // Check that the time until next call is close to the period
   int64_t time_until_call = INT64_MAX;
   ret = rcl_timer_get_time_until_next_call(&timer, &time_until_call);
