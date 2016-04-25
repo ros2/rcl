@@ -19,6 +19,7 @@
 #include <chrono>
 #include <thread>
 
+#include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/timer.h"
 
@@ -62,8 +63,9 @@ TEST(CLASSNAME(TimerTestFixture, RMW_IMPLEMENTATION), test_timer_ready) {
 
   bool is_ready = false;
   ret = rcl_timer_is_ready(&timer, &is_ready);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_TRUE(is_ready);
 
-  // TODO Fini the things
+  ret = rcl_timer_fini(&timer);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
