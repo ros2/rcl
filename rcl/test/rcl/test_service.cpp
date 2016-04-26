@@ -35,7 +35,7 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-class CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class CLASSNAME (TestServiceFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   rcl_node_t * node_ptr;
