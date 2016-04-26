@@ -23,6 +23,7 @@ extern "C"
 
 #include <rmw/rmw.h>
 
+#include "rcl/types.h"
 #include "./common.h"
 
 // Extracted this portable method of doing a "shared library constructor" from SO:
@@ -58,16 +59,17 @@ INITIALIZER(initialize)
       "Error getting environement variable 'RCL_CHECK_RMW_ID_MATCHES_OR_DIE': %s\n",
       rcl_get_error_string_safe()
     );
-    exit(1);
+    exit(ret);
   }
   // If the environment variable is set, and it does not match, print a warning and exit.
   if (strlen(expected) > 0 && strcmp(rmw_get_implementation_identifier(), expected) != 0) {
     fprintf(stderr,
-      "Expected RMW implementation identifier of '%s' but instead found '%s', exiting with 1.",
+      "Expected RMW implementation identifier of '%s' but instead found '%s', exiting with %d.\n",
       expected,
-      rmw_get_implementation_identifier()
+      rmw_get_implementation_identifier(),
+      RCL_RET_MISMATCHED_RMW_ID
     );
-    exit(1);
+    exit(RCL_RET_MISMATCHED_RMW_ID);
   }
 }
 
