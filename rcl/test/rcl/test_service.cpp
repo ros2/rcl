@@ -28,7 +28,14 @@
 #include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
 
-class TestServiceFixture : public ::testing::Test
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   rcl_node_t * node_ptr;
@@ -106,7 +113,7 @@ wait_for_service_to_be_ready(
 
 /* Basic nominal test of a service.
  */
-TEST_F(TestServiceFixture, test_service_nominal) {
+TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) {
   stop_memory_checking();
   rcl_ret_t ret;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(
