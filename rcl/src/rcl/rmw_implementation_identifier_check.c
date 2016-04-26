@@ -50,13 +50,13 @@ extern "C"
 
 INITIALIZER(initialize)
 {
-  // If the environement variable RCL_CHECK_RMW_ID_MATCHES_OR_DIE is set,
+  // If the environement variable RCL_ASSERT_RMW_ID_MATCHES is set,
   // check that the result of `rmw_get_implementation_identifier` matches.
   const char * expected = NULL;
-  rcl_ret_t ret = rcl_impl_getenv("RCL_CHECK_RMW_ID_MATCHES_OR_DIE", &expected);
+  rcl_ret_t ret = rcl_impl_getenv("RCL_ASSERT_RMW_ID_MATCHES", &expected);
   if (ret != RCL_RET_OK) {
     fprintf(stderr,
-      "Error getting environement variable 'RCL_CHECK_RMW_ID_MATCHES_OR_DIE': %s\n",
+      "Error getting environement variable 'RCL_ASSERT_RMW_ID_MATCHES': %s\n",
       rcl_get_error_string_safe()
     );
     exit(ret);
