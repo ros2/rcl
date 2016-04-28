@@ -129,6 +129,13 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
+  # TODO remove this once connext declares libdl dependency in libnddscore again
+  # See https://github.com/ros2/rcl/issues/52
+  if("${rmw_implementation} " STREQUAL "rmw_connext_cpp ")
+    connext_workaround(client_fixture${target_suffix})
+    connext_workaround(service_fixture${target_suffix})
+  endif()
+
   rcl_add_custom_launch_test(test_services
     service_fixture
     client_fixture
@@ -138,5 +145,20 @@ function(test_target_function)
     #WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   )
 endfunction()
+
+macro(connext_workaround target)
+  if(NOT "${ARGN} " STREQUAL " ")
+    message(FATAL_ERROR "append_link_flags() called with "
+      "unused arguments: ${ARGN}")
+  endif()
+  if("${CMAKE_CXX_COMPILER_ID} " STREQUAL "GNU ")
+    get_target_property(current_link_flags target LINK_FLAGS)
+    set(link_flags "-Wl,--no-as-needed")
+    if(current_link_flags)
+      set(link_flags ${current_link_flags} ${link_flags})
+    endif()
+    set_target_properties(${target} PROPERTIES LINK_FLAGS "${link_flags}")
+  endif()
+endmacro()
 
 call_for_each_rmw_implementation(test_target)
