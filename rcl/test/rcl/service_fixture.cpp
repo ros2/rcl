@@ -113,8 +113,6 @@ int main(int argc, char ** argv)
       }
     });
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
     // Initialize a response.
     example_interfaces__srv__AddTwoInts_Response service_response;
     example_interfaces__srv__AddTwoInts_Response__init(&service_response);
@@ -149,6 +147,10 @@ int main(int argc, char ** argv)
       return -1;
     }
     // Our scope exits should take care of fini for everything
+    // stick around until launch gives us a signal to exit
+    while (true) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
   }
   return main_ret;
 }
