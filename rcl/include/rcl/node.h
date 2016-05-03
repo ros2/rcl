@@ -29,6 +29,7 @@ extern "C"
 
 #define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID SIZE_MAX
 
+struct rcl_guard_condition_t;
 struct rcl_node_impl_t;
 
 /// Handle for a ROS node.
@@ -262,6 +263,33 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 uint64_t
 rcl_node_get_rcl_instance_id(const rcl_node_t * node);
+
+/// Return a guard condition which is triggered when the ROS graph changes.
+/* The handle returned is a pointer to an internally held rcl guard condition.
+ * This function can fail, and therefore return NULL, if:
+ *   - node is NULL
+ *   - node is invalid
+ *
+ * The returned handle is made invalid if the node is finialized or if
+ * rcl_shutdown() is called.
+ *
+ * The guard condition will be triggered anytime change to the ROS graph occurs.
+ * A ROS graph change includes things like (but not limited to) a new publisher
+ * advertises, a new subscription is created, a new service becomes available,
+ * a subscription is canceled, etc.
+ *
+ * This function does not manipulate heap memory.
+ * This function is thread-safe.
+ * This function is lock-free.
+ *
+ * \param[in] node pointer to the rcl node
+ * \return rcl guard condition handle if successful, otherwise NULL
+ *
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const struct rcl_guard_condition_t *
+rcl_node_get_graph_guard_condition(const rcl_node_t * node);
 
 #if __cplusplus
 }
