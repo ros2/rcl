@@ -99,8 +99,10 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
   }
   node->impl->actual_domain_id = domain_id;
   node->impl->rmw_node_handle = rmw_create_node(name, domain_id);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail);
+  if (!node->impl->rmw_node_handle) {
+    // error string was set within rmw_create_node
+    goto fail;
+  }
   node->impl->rcl_instance_id = rcl_get_instance_id();
   return RCL_RET_OK;
 fail:
