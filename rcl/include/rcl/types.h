@@ -26,6 +26,7 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_NOT_INIT 101
 #define RCL_RET_BAD_ALLOC 102
 #define RCL_RET_INVALID_ARGUMENT 103
+#define RCL_RET_MISMATCHED_RMW_ID 104
 // rcl node specific ret codes in 2XX
 #define RCL_RET_NODE_INVALID 200
 // rcl publisher specific ret codes in 3XX

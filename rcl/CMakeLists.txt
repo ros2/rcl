@@ -24,11 +24,12 @@ set(${PROJECT_NAME}_sources
   src/rcl/node.c
   src/rcl/publisher.c
   src/rcl/rcl.c
+  src/rcl/rmw_implementation_identifier_check.c
   src/rcl/service.c
   src/rcl/subscription.c
-  src/rcl/wait.c
   src/rcl/time.c
   src/rcl/timer.c
+  src/rcl/wait.c
 )
 
 macro(target)
