@@ -122,7 +122,7 @@ rcl_get_zero_initialized_service(void);
  * \param[in] service_name the name of the service
  * \param[in] options service options, including quality of service settings
  * \return RCL_RET_OK if service was initialized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -150,7 +150,7 @@ rcl_service_init(
  * \param[inout] service handle to the service to be deinitialized
  * \param[in] node handle to the node used to create the service
  * \return RCL_RET_OK if service was deinitialized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -192,7 +192,7 @@ rcl_service_get_default_options(void);
  * \param[inout] request_header ptr to the struct holding metadata about the request ID
  * \param[inout] ros_request type-erased ptr to an allocated ROS request message
  * \return RCL_RET_OK if the request was taken, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_SERVICE_INVALID if the service is invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.

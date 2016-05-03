@@ -106,7 +106,7 @@ rcl_get_zero_initialized_node(void);
  * \param[in] options the node options; pass null to use default options
  * \return RCL_RET_OK if node was initialized successfully, or
  *         RCL_RET_ALREADY_INIT if the node has already be initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -129,7 +129,7 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
  *
  * \param[in] node handle to the node to be finalized
  * \return RCL_RET_OK if node was finalized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -205,7 +205,7 @@ rcl_node_get_options(const rcl_node_t * node);
  * \param[in] node the handle to the node being queried
  * \return RCL_RET_OK if node the domain ID was retrieved successfully, or
  *         RCL_RET_NODE_INVALID if the node is invalid, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC

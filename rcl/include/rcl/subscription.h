@@ -124,7 +124,7 @@ rcl_get_zero_initialized_subscription(void);
  * \param[in] topic_name the name of the topic
  * \param[in] options subscription options, including quality of service settings
  * \return RCL_RET_OK if subscription was initialized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -152,7 +152,7 @@ rcl_subscription_init(
  * \param[inout] subscription handle to the subscription to be deinitialized
  * \param[in] node handle to the node used to create the subscription
  * \return RCL_RET_OK if subscription was deinitialized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -203,7 +203,7 @@ rcl_subscription_get_default_options(void);
  * \param[out] taken pointer to a bool, if set to false a message was not taken
  * \param[out] message_info rmw struct which contains meta-data for the message
  * \return RCL_RET_OK if the message was published, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_SUBSCRIPTION_INVALID if the subscription is invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_SUBSCRIPTION_TAKE_FAILED if take failed but no error

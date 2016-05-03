@@ -72,7 +72,7 @@ rcl_get_zero_initialized_guard_condition(void);
  * \param[in] options the guard_condition's options
  * \return RCL_RET_OK if guard_condition was initialized successfully, or
  *         RCL_RET_ALREADY_INIT if the guard condition is already initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_BAD_ALLOC if allocating memory failed, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -93,7 +93,7 @@ rcl_guard_condition_init(
  *
  * \param[inout] guard_condition handle to the guard_condition to be finalized
  * \return RCL_RET_OK if guard_condition was finalized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -125,7 +125,7 @@ rcl_guard_condition_get_default_options(void);
  *
  * \param[in] guard_condition handle to the guard_condition to be triggered
  * \return RCL_RET_OK if the guard condition was triggered, or
- *         RCL_RET_INVALID_ARGUMENT if any arugments are invalid, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
