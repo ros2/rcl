@@ -147,8 +147,7 @@ int main(int argc, char ** argv)
       return -1;
     }
     // Our scope exits should take care of fini for everything
-    // stick around until we are killed by the client
-    // To avoid an infinite loop and signal handling, just sleep for a "long" time
+    // stick around until launch gives us a signal to exit
     while (true) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
