@@ -37,10 +37,13 @@ rcl_get_zero_initialized_guard_condition()
 }
 
 rcl_ret_t
-rcl_guard_condition_init(
+__rcl_guard_condition_init_from_rmw_impl(
   rcl_guard_condition_t * guard_condition,
+  const rmw_guard_condition_t * rmw_guard_condition,
   const rcl_guard_condition_options_t options)
 {
+  // This function will create an rmw_guard_condition if the parameter is null.
+
   // Perform argument validation.
   RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &options.allocator;
@@ -61,17 +64,42 @@ rcl_guard_condition_init(
     return RCL_RET_BAD_ALLOC;
   }
   // Create the rmw guard condition.
-  guard_condition->impl->rmw_handle = rmw_create_guard_condition();
-  if (!guard_condition->impl->rmw_handle) {
-    // Deallocate impl and exit.
-    allocator->deallocate(guard_condition->impl, allocator->state);
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
-    return RCL_RET_ERROR;
+  if (rmw_guard_condition) {
+    // If given, just assign (cast away const).
+    guard_condition->impl->rmw_handle = (rmw_guard_condition_t *)rmw_guard_condition;
+  } else {
+    // Otherwise create one.
+    guard_condition->impl->rmw_handle = rmw_create_guard_condition();
+    if (!guard_condition->impl->rmw_handle) {
+      // Deallocate impl and exit.
+      allocator->deallocate(guard_condition->impl, allocator->state);
+      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+      return RCL_RET_ERROR;
+    }
   }
   // Copy options into impl.
   guard_condition->impl->options = options;
   return RCL_RET_OK;
 }
+
+rcl_ret_t
+rcl_guard_condition_init(
+  rcl_guard_condition_t * guard_condition,
+  const rcl_guard_condition_options_t options)
+{
+  // NULL indicates "create a new rmw guard condition".
+  return __rcl_guard_condition_init_from_rmw_impl(guard_condition, NULL, options);
+}
+
+rcl_ret_t
+rcl_guard_condition_init_from_rmw(
+  rcl_guard_condition_t * guard_condition,
+  const rmw_guard_condition_t * rmw_guard_condition,
+  const rcl_guard_condition_options_t options)
+{
+  return __rcl_guard_condition_init_from_rmw_impl(guard_condition, rmw_guard_condition, options);
+}
+
 
 rcl_ret_t
 rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition)
