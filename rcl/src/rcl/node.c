@@ -20,6 +20,7 @@ extern "C"
 #include "rcl/node.h"
 
 #include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -31,9 +32,10 @@ extern "C"
 typedef struct rcl_node_impl_t
 {
   rcl_node_options_t options;
+  size_t actual_domain_id;
   rmw_node_t * rmw_node_handle;
   uint64_t rcl_instance_id;
-  size_t actual_domain_id;
+  rcl_guard_condition_t * graph_guard_condition;
 } rcl_node_impl_t;
 
 rcl_node_t
@@ -48,6 +50,9 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
 {
   size_t domain_id = 0;
   const char * ros_domain_id;
+  const rmw_guard_condition_t * rmw_graph_guard_condition = NULL;
+  rcl_guard_condition_options_t graph_guard_condition_options =
+    rcl_guard_condition_get_default_options();
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT);
@@ -70,6 +75,8 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
   // Allocate space for the implementation struct.
   node->impl = (rcl_node_impl_t *)allocator->allocate(sizeof(rcl_node_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+  node->impl->rmw_node_handle = NULL;
+  node->impl->graph_guard_condition = NULL;
   // Initialize node impl.
   // node name
   size_t name_len = strlen(name);
@@ -97,14 +104,58 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
   } else {
     domain_id = node->impl->options.domain_id;
   }
+  // actual domain id
   node->impl->actual_domain_id = domain_id;
   node->impl->rmw_node_handle = rmw_create_node(name, domain_id);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail);
+  // instance id
   node->impl->rcl_instance_id = rcl_get_instance_id();
+  // graph guard condition
+  rmw_graph_guard_condition = rmw_node_get_graph_guard_condition(node->impl->rmw_node_handle);
+  if (!rmw_graph_guard_condition) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    goto fail;
+  }
+  node->impl->graph_guard_condition = (rcl_guard_condition_t *)allocator->allocate(
+    sizeof(rcl_guard_condition_t), allocator->state
+  );
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl->graph_guard_condition,
+    "allocating memory failed",
+    goto fail
+  );
+  *node->impl->graph_guard_condition = rcl_get_zero_initialized_guard_condition();
+  graph_guard_condition_options.allocator = *allocator;
+  ret = rcl_guard_condition_init_from_rmw(
+    node->impl->graph_guard_condition,
+    rmw_graph_guard_condition,
+    graph_guard_condition_options
+  );
+  if (ret != RCL_RET_OK) {
+    // error message already set
+    goto fail;
+  }
   return RCL_RET_OK;
 fail:
   if (node->impl) {
+    if (node->impl->rmw_node_handle) {
+      ret = rmw_destroy_node(node->impl->rmw_node_handle);
+      if (ret != RMW_RET_OK) {
+        fprintf(stderr,
+          "failed to fini rmw node in error recovery: %s\n", rmw_get_error_string_safe()
+        );
+      }
+    }
+    if (node->impl->graph_guard_condition) {
+      ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
+      if (ret != RCL_RET_OK) {
+        fprintf(stderr,
+          "failed to fini guard condition in error recovery: %s\n", rcl_get_error_string_safe()
+        );
+      }
+      allocator->deallocate(node->impl->graph_guard_condition, allocator->state);
+    }
     allocator->deallocate(node->impl, allocator->state);
   }
   *node = rcl_get_zero_initialized_node();
@@ -201,6 +252,18 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, 0);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return 0);
   return node->impl->rcl_instance_id;
+}
+
+const struct rcl_guard_condition_t *
+rcl_node_get_graph_guard_condition(const rcl_node_t * node)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return NULL);
+  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
+    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+    return NULL;
+  }
+  return node->impl->graph_guard_condition;
 }
 
 #if __cplusplus
