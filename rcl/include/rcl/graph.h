@@ -145,7 +145,7 @@ rcl_count_subscribers(
   size_t * count);
 
 /// Check if a service server is available for the given service client.
-/* This function will return true for is_ready if there is a service server
+/* This function will return true for is_available if there is a service server
  * available for the given client.
  *
  * The node parameter must not be NULL, and must point to a valid node.
@@ -155,8 +155,8 @@ rcl_count_subscribers(
  * The given client and node must match, i.e. the client must have been created
  * using the given node.
  *
- * The is_ready parameter must not be NULL, and must point a bool variable.
- * The result of the check will be stored in the is_ready parameter.
+ * The is_available parameter must not be NULL, and must point a bool variable.
+ * The result of the check will be stored in the is_available parameter.
  *
  * This function does manipulate heap memory.
  * This function is not thread-safe.
@@ -164,7 +164,7 @@ rcl_count_subscribers(
  *
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] client the handle to the service client being queried
- * \param[out] is_ready set to true if there is a service server available, else false
+ * \param[out] is_available set to true if there is a service server available, else false
  * \return RCL_RET_OK if the check was made successfully (regardless of the service readiness), or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
@@ -175,7 +175,7 @@ rcl_ret_t
 rcl_service_server_is_available(
   const rcl_node_t * node,
   const rcl_client_t * client,
-  bool * is_ready);
+  bool * is_available);
 
 #if __cplusplus
 }

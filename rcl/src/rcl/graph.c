@@ -70,15 +70,15 @@ rcl_ret_t
 rcl_service_server_is_available(
   const rcl_node_t * node,
   const rcl_client_t * client,
-  bool * is_ready)
+  bool * is_available)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(is_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_available, RCL_RET_INVALID_ARGUMENT);
   return rmw_service_server_is_available(
     rcl_node_get_rmw_handle(node),
     rcl_client_get_rmw_handle(client),
-    is_ready
+    is_available
   );
 }
 
