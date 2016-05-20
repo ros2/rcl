@@ -67,6 +67,14 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+  rcl_add_custom_gtest(test_graph${target_suffix}
+    SRCS rcl/test_graph.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "std_msgs"
+  )
+
   rcl_add_custom_gtest(test_rcl${target_suffix}
     SRCS rcl/test_rcl.cpp
     ENV ${extra_test_env}
