@@ -79,11 +79,6 @@ public:
 TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_is_available) {
   stop_memory_checking();
   rcl_ret_t ret;
-  // Create topic publisher just for fun.
-  rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
-  rcl_publisher_options_t pub_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(
-    &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, String), "chatter", &pub_options);
   // First create a client which will be used to call the function.
   rcl_client_t client = rcl_get_zero_initialized_client();
   auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
@@ -142,37 +137,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
     ret = rcl_wait(&wait_set, time_to_sleep.count());
     if (ret == RCL_RET_TIMEOUT) {
       printf("timeout!\n");
-      // continue;
-    }
-    else {
-      printf("graph changed!\n");
-    }
-    {
-      rcl_topic_names_and_types_t tnat {};
-      ret = rcl_get_topic_names_and_types(this->node_ptr, &tnat);
-      ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-      printf("Topics:\n");
-      for (size_t i = 0; i < tnat.topic_count; i++) {
-        // if (tnat.topic_names[i][0] != 's') {
-        //   continue;
-        // }
-        printf("  %s:\n", tnat.topic_names[i]);
-        {
-          printf("    type: %s\n", tnat.type_names[i]);
-          size_t count = 0;
-          ret = rcl_count_publishers(this->node_ptr, tnat.topic_names[i], &count);
-          ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-          printf("    publishers: %zu\n", count);
-        }
-        {
-          size_t count = 0;
-          ret = rcl_count_subscribers(this->node_ptr, tnat.topic_names[i], &count);
-          ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-          printf("    subscribers: %zu\n", count);
-        }
-      }
-      ret = rcl_destroy_topic_names_and_types(&tnat);
-      ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+      continue;
     }
     if (ret == RCL_RET_TIMEOUT) {
       continue;
