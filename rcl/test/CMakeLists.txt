@@ -67,13 +67,18 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_graph${target_suffix}
-    SRCS rcl/test_graph.cpp
-    ENV ${extra_test_env}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
-    AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "std_msgs"
-  )
+  # TODO(wjwwood): remove this when the graph API works properly for more than OpenSplice.
+  if("${rmw_implementation} " STREQUAL "rmw_opensplice_cpp ")
+    rcl_add_custom_gtest(test_graph${target_suffix}
+      SRCS rcl/test_graph.cpp
+      ENV ${extra_test_env}
+      APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+      LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+      AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "std_msgs"
+    )
+  else()
+    message(STATUS "Skipping test_graph${target_suffix} test.")
+  endif()
 
   rcl_add_custom_gtest(test_rcl${target_suffix}
     SRCS rcl/test_rcl.cpp
@@ -150,7 +155,6 @@ function(test_target_function)
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     TIMEOUT 15
-    #WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   )
 endfunction()
 
