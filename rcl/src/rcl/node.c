@@ -118,8 +118,7 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
     goto fail;
   }
   node->impl->graph_guard_condition = (rcl_guard_condition_t *)allocator->allocate(
-    sizeof(rcl_guard_condition_t), allocator->state
-  );
+    sizeof(rcl_guard_condition_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->graph_guard_condition,
     "allocating memory failed",
@@ -130,8 +129,7 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
   ret = rcl_guard_condition_init_from_rmw(
     node->impl->graph_guard_condition,
     rmw_graph_guard_condition,
-    graph_guard_condition_options
-  );
+    graph_guard_condition_options);
   if (ret != RCL_RET_OK) {
     // error message already set
     goto fail;
