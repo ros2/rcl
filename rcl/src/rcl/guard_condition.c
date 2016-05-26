@@ -100,7 +100,6 @@ rcl_guard_condition_init_from_rmw(
   return __rcl_guard_condition_init_from_rmw_impl(guard_condition, rmw_guard_condition, options);
 }
 
-
 rcl_ret_t
 rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition)
 {
