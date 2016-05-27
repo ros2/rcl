@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Disable -Wmissing-field-initializers, as it is overly strict and will be
+// relaxed in future versions of GCC (it is not a warning for clang).
+// See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=36750#c13
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
