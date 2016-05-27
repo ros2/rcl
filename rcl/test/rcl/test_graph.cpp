@@ -85,14 +85,19 @@ public:
     set_on_unexpected_malloc_callback(nullptr);
     set_on_unexpected_realloc_callback(nullptr);
     set_on_unexpected_free_callback(nullptr);
-    rcl_ret_t ret = rcl_node_fini(this->old_node_ptr);
+    rcl_ret_t ret;
+    ret = rcl_node_fini(this->old_node_ptr);
     delete this->old_node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+    ret = rcl_wait_set_fini(this->wait_set_ptr);
+    delete this->wait_set_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
     ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_fini(this->wait_set_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
     ret = rcl_shutdown();
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   }
