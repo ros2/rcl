@@ -294,8 +294,8 @@ check_graph_state(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
     printf(
-      "  state wrong, waiting up to %lld nanoseconds for graph changes... ",
-      time_to_sleep.count());
+      "  state wrong, waiting up to '%s' nanoseconds for graph changes... ",
+      std::to_string(time_to_sleep.count()).c_str());
     ret = rcl_wait(wait_set_ptr, time_to_sleep.count());
     if (ret == RCL_RET_TIMEOUT) {
       printf("timeout\n");
@@ -453,7 +453,9 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
-    printf("waiting up to %lld nanoseconds for graph changes\n", time_to_sleep.count());
+    printf(
+      "waiting up to '%s' nanoseconds for graph changes\n",
+      std::to_string(time_to_sleep.count()).c_str());
     ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
     if (ret == RCL_RET_TIMEOUT) {
       continue;
@@ -516,7 +518,9 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    printf("waiting up to %lld nanoseconds for graph changes\n", time_to_sleep.count());
+    printf(
+      "waiting up to '%s' nanoseconds for graph changes\n",
+      std::to_string(time_to_sleep.count()).c_str());
     ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
     if (ret == RCL_RET_TIMEOUT) {
       continue;
