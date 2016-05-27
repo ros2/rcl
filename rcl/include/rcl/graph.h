@@ -52,6 +52,7 @@ typedef rmw_topic_names_and_types_t rcl_topic_names_and_types_t;
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[out] topic_names_and_types list of topic names and their types
  * \return RCL_RET_OK if the query was successful, or
+ *         RCL_RET_NODE_INVALID if the node is invalid, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -102,6 +103,7 @@ rcl_destroy_topic_names_and_types(
  * \param[in] topic_name the name of the topic in question
  * \param[out] count number of publishers on the given topic
  * \return RCL_RET_OK if the query was successful, or
+ *         RCL_RET_NODE_INVALID if the node is invalid, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -133,6 +135,7 @@ rcl_count_publishers(
  * \param[in] topic_name the name of the topic in question
  * \param[out] count number of subscriptions on the given topic
  * \return RCL_RET_OK if the query was successful, or
+ *         RCL_RET_NODE_INVALID if the node is invalid, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -166,6 +169,7 @@ rcl_count_subscribers(
  * \param[in] client the handle to the service client being queried
  * \param[out] is_available set to true if there is a service server available, else false
  * \return RCL_RET_OK if the check was made successfully (regardless of the service readiness), or
+ *         RCL_RET_NODE_INVALID if the node is invalid, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */

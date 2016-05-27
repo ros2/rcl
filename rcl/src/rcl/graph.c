@@ -27,6 +27,9 @@ rcl_get_topic_names_and_types(
   rcl_topic_names_and_types_t * topic_names_and_types)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
   return rmw_get_topic_names_and_types(
     rcl_node_get_rmw_handle(node),
@@ -49,6 +52,9 @@ rcl_count_publishers(
   size_t * count)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT);
   return rmw_count_publishers(rcl_node_get_rmw_handle(node), topic_name, count);
@@ -61,6 +67,9 @@ rcl_count_subscribers(
   size_t * count)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT);
   return rmw_count_subscribers(rcl_node_get_rmw_handle(node), topic_name, count);
@@ -73,6 +82,9 @@ rcl_service_server_is_available(
   bool * is_available)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_available, RCL_RET_INVALID_ARGUMENT);
   return rmw_service_server_is_available(
