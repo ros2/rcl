@@ -143,6 +143,37 @@ RCL_PUBLIC
 rcl_node_options_t
 rcl_node_get_default_options(void);
 
+/// Return true if the node is valid, else false.
+/* Also return false if the node pointer is nullptr.
+ *
+ * A node is invalid if:
+ *   - the implementation is null (rcl_node_init not called or failed)
+ *   - rcl_shutdown has been called since the node has been initialized
+ *   - the node has been finalized with rcl_node_fini
+ *
+ * There is a possible validity race condition.
+ * Consider:
+ *
+ *   assert(rcl_node_is_valid(node));  <-- thread 1
+ *   rcl_shutdown();                   <-- thread 2
+ *   // use node as if valid           <-- thread 1
+ *
+ * In the third line the node is now invalid, even though on the previous line
+ * of thread 1 it was checked to be valid.
+ * This is why this function is considered not thread-safe.
+ *
+ * This function does not manipulate heap memory.
+ * This function is not thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ *
+ * \param[in] node handle to the node to validated
+ * \return true if the node is valid, otherwise false.
+ */
+RCL_PUBLIC
+bool
+rcl_node_is_valid(const rcl_node_t * node);
+
 /// Get the name of the node.
 /* This function returns the node's internal name string.
  * This function can fail, and therefore return NULL, if:

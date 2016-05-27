@@ -182,6 +182,18 @@ rcl_node_fini(rcl_node_t * node)
   return result;
 }
 
+bool
+rcl_node_is_valid(const rcl_node_t * node)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "rcl node implementation is invalid", return false);
+  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
+    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+    return false;
+  }
+  return true;
+}
+
 rcl_node_options_t
 rcl_node_get_default_options()
 {
@@ -196,10 +208,7 @@ rcl_node_get_default_options()
 const char *
 rcl_node_get_name(const rcl_node_t * node)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, NULL);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return NULL);
-  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+  if (!rcl_node_is_valid(node)) {
     return NULL;
   }
   return node->impl->rmw_node_handle->name;
@@ -208,10 +217,7 @@ rcl_node_get_name(const rcl_node_t * node)
 const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, NULL);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return NULL);
-  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+  if (!rcl_node_is_valid(node)) {
     return NULL;
   }
   return &node->impl->options;
@@ -222,10 +228,7 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl, "node implementation is invalid", return RCL_RET_NODE_INVALID);
-  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+  if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
   *domain_id = node->impl->actual_domain_id;
@@ -235,10 +238,7 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
 rmw_node_t *
 rcl_node_get_rmw_handle(const rcl_node_t * node)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, NULL);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return NULL);
-  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+  if (!rcl_node_is_valid(node)) {
     return NULL;
   }
   return node->impl->rmw_node_handle;
@@ -255,10 +255,7 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node)
 const struct rcl_guard_condition_t *
 rcl_node_get_graph_guard_condition(const rcl_node_t * node)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, NULL);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return NULL);
-  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+  if (!rcl_node_is_valid(node)) {
     return NULL;
   }
   return node->impl->graph_guard_condition;

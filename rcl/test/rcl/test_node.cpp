@@ -112,6 +112,20 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   });
+  // Test rcl_node_is_valid().
+  bool is_valid;
+  is_valid = rcl_node_is_valid(nullptr);
+  EXPECT_EQ(false, is_valid);
+  rcl_reset_error();
+  is_valid = rcl_node_is_valid(&zero_node);
+  EXPECT_EQ(false, is_valid);
+  rcl_reset_error();
+  is_valid = rcl_node_is_valid(&invalid_node);
+  EXPECT_EQ(false, is_valid);
+  rcl_reset_error();
+  is_valid = rcl_node_is_valid(&node);
+  EXPECT_EQ(true, is_valid);
+  rcl_reset_error();
   // Test rcl_node_get_name().
   const char * actual_node_name;
   actual_node_name = rcl_node_get_name(nullptr);
