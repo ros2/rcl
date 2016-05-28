@@ -325,7 +325,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     wait_set->size_of_ ## Type ## s = 0; \
     RCL_SET_ERROR_MSG("allocating memory failed"); \
     return RCL_RET_BAD_ALLOC; \
-  } \
+  }
 
 /* Implementation-specific notes:
  *

@@ -29,6 +29,7 @@ extern "C"
 
 #define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID SIZE_MAX
 
+struct rcl_guard_condition_t;
 struct rcl_node_impl_t;
 
 /// Handle for a ROS node.
@@ -141,6 +142,37 @@ rcl_node_fini(rcl_node_t * node);
 RCL_PUBLIC
 rcl_node_options_t
 rcl_node_get_default_options(void);
+
+/// Return true if the node is valid, else false.
+/* Also return false if the node pointer is nullptr.
+ *
+ * A node is invalid if:
+ *   - the implementation is null (rcl_node_init not called or failed)
+ *   - rcl_shutdown has been called since the node has been initialized
+ *   - the node has been finalized with rcl_node_fini
+ *
+ * There is a possible validity race condition.
+ * Consider:
+ *
+ *   assert(rcl_node_is_valid(node));  <-- thread 1
+ *   rcl_shutdown();                   <-- thread 2
+ *   // use node as if valid           <-- thread 1
+ *
+ * In the third line the node is now invalid, even though on the previous line
+ * of thread 1 it was checked to be valid.
+ * This is why this function is considered not thread-safe.
+ *
+ * This function does not manipulate heap memory.
+ * This function is not thread-safe.
+ * This function is lock-free so long as the C11's stdatomic.h function
+ * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ *
+ * \param[in] node handle to the node to validated
+ * \return true if the node is valid, otherwise false.
+ */
+RCL_PUBLIC
+bool
+rcl_node_is_valid(const rcl_node_t * node);
 
 /// Get the name of the node.
 /* This function returns the node's internal name string.
@@ -262,6 +294,33 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 uint64_t
 rcl_node_get_rcl_instance_id(const rcl_node_t * node);
+
+/// Return a guard condition which is triggered when the ROS graph changes.
+/* The handle returned is a pointer to an internally held rcl guard condition.
+ * This function can fail, and therefore return NULL, if:
+ *   - node is NULL
+ *   - node is invalid
+ *
+ * The returned handle is made invalid if the node is finialized or if
+ * rcl_shutdown() is called.
+ *
+ * The guard condition will be triggered anytime a change to the ROS graph occurs.
+ * A ROS graph change includes things like (but not limited to) a new publisher
+ * advertises, a new subscription is created, a new service becomes available,
+ * a subscription is canceled, etc.
+ *
+ * This function does not manipulate heap memory.
+ * This function is thread-safe.
+ * This function is lock-free.
+ *
+ * \param[in] node pointer to the rcl node
+ * \return rcl guard condition handle if successful, otherwise NULL
+ *
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const struct rcl_guard_condition_t *
+rcl_node_get_graph_guard_condition(const rcl_node_t * node);
 
 #if __cplusplus
 }

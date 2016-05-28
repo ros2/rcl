@@ -112,6 +112,20 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   });
+  // Test rcl_node_is_valid().
+  bool is_valid;
+  is_valid = rcl_node_is_valid(nullptr);
+  EXPECT_FALSE(is_valid);
+  rcl_reset_error();
+  is_valid = rcl_node_is_valid(&zero_node);
+  EXPECT_FALSE(is_valid);
+  rcl_reset_error();
+  is_valid = rcl_node_is_valid(&invalid_node);
+  EXPECT_FALSE(is_valid);
+  rcl_reset_error();
+  is_valid = rcl_node_is_valid(&node);
+  EXPECT_TRUE(is_valid);
+  rcl_reset_error();
   // Test rcl_node_get_name().
   const char * actual_node_name;
   actual_node_name = rcl_node_get_name(nullptr);
@@ -229,6 +243,32 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   assert_no_free_end();
   stop_memory_checking();
   EXPECT_NE(0u, instance_id);
+  // Test rcl_node_get_graph_guard_condition
+  std::string rmw_id(rmw_get_implementation_identifier());
+  if (rmw_id.find("opensplice") != std::string::npos) {
+    // Only test with opensplice for now, as connext and fastrtps are not working.
+    // TODO(wjwwood): remove this check when more middlewares implement this
+    const rcl_guard_condition_t * graph_guard_condition = nullptr;
+    graph_guard_condition = rcl_node_get_graph_guard_condition(nullptr);
+    EXPECT_EQ(nullptr, graph_guard_condition);
+    rcl_reset_error();
+    graph_guard_condition = rcl_node_get_graph_guard_condition(&zero_node);
+    EXPECT_EQ(nullptr, graph_guard_condition);
+    rcl_reset_error();
+    graph_guard_condition = rcl_node_get_graph_guard_condition(&invalid_node);
+    EXPECT_EQ(nullptr, graph_guard_condition);
+    rcl_reset_error();
+    start_memory_checking();
+    assert_no_malloc_begin();
+    assert_no_realloc_begin();
+    assert_no_free_begin();
+    graph_guard_condition = rcl_node_get_graph_guard_condition(&node);
+    assert_no_malloc_end();
+    assert_no_realloc_end();
+    assert_no_free_end();
+    stop_memory_checking();
+    EXPECT_NE(nullptr, graph_guard_condition);
+  }
 }
 
 /* Tests the node life cycle, including rcl_node_init() and rcl_node_fini().

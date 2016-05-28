@@ -67,7 +67,6 @@ rcl_get_zero_initialized_guard_condition(void);
  * This function is not thread-safe.
  * This function is lock-free.
  *
- *
  * \param[inout] guard_condition preallocated guard_condition structure
  * \param[in] options the guard_condition's options
  * \return RCL_RET_OK if guard_condition was initialized successfully, or
@@ -81,6 +80,34 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_guard_condition_init(
   rcl_guard_condition_t * guard_condition,
+  const rcl_guard_condition_options_t options);
+
+/// Same as rcl_guard_condition_init(), but reusing an existing rmw handle.
+/* In addition to the documentation for rcl_guard_condition_init(), the
+ * rmw_guard_condition parameter must not be null and must point to a valid
+ * rmw guard condition.
+ *
+ * Also the life time of the rcl guard condition is tied to the life time of
+ * the rmw guard condition.
+ * So if the rmw guard condition is destroyed before the rcl guard condition,
+ * the rcl guard condition becomes invalid.
+ *
+ * Similarly if the resulting rcl guard condition is fini'ed before the rmw
+ * guard condition, then the rmw guard condition is no longer valid.
+ *
+ * \param[inout] guard_condition preallocated guard_condition structure
+ * \param[in] rmw_guard_condition existing rmw guard condition to reuse
+ * \param[in] options the guard_condition's options
+ * \return RCL_RET_OK if guard_condition was initialized successfully, or
+ *         RCL_RET_ALREADY_INIT if the guard condition is already initialized, or
+ *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ *         RCL_RET_BAD_ALLOC if allocating memory failed, or
+ *         RCL_RET_ERROR if an unspecified error occurs.
+ */
+rcl_ret_t
+rcl_guard_condition_init_from_rmw(
+  rcl_guard_condition_t * guard_condition,
+  const rmw_guard_condition_t * rmw_guard_condition,
   const rcl_guard_condition_options_t options);
 
 /// Finalize a rcl_guard_condition_t.
