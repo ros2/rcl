@@ -304,7 +304,7 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node);
  * The returned handle is made invalid if the node is finialized or if
  * rcl_shutdown() is called.
  *
- * The guard condition will be triggered anytime change to the ROS graph occurs.
+ * The guard condition will be triggered anytime a change to the ROS graph occurs.
  * A ROS graph change includes things like (but not limited to) a new publisher
  * advertises, a new subscription is created, a new service becomes available,
  * a subscription is canceled, etc.
