@@ -489,48 +489,60 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   ASSERT_FALSE(is_available);
-  // Create the service server.
-  rcl_service_t service = rcl_get_zero_initialized_service();
-  rcl_service_options_t service_options = rcl_service_get_default_options();
-  ret = rcl_service_init(&service, this->node_ptr, ts, service_name, &service_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto service_exit = make_scope_exit([&service, this]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
-  // Wait for the graph state to change, check, and try again for a period of time.
-  is_available = false;
+  // Setup function to wait for service state to change using graph guard condition.
   const rcl_guard_condition_t * graph_guard_condition =
     rcl_node_get_graph_guard_condition(this->node_ptr);
   ASSERT_NE(nullptr, graph_guard_condition) << rcl_get_error_string_safe();
-  auto start = std::chrono::steady_clock::now();
-  auto end = start + std::chrono::seconds(10);
-  while (std::chrono::steady_clock::now() < end) {
-    // We wait multiple times in case other graph changes are occurring simultaneously.
-    std::chrono::nanoseconds time_left = end - start;
-    std::chrono::nanoseconds time_to_sleep = time_left;
-    std::chrono::seconds min_sleep(1);
-    if (time_to_sleep > min_sleep) {
-      time_to_sleep = min_sleep;
+  auto wait_for_service_state_to_change = [this, &graph_guard_condition, &client](
+    bool expected_state,
+    bool & is_available)
+  {
+    is_available = false;
+    auto start = std::chrono::steady_clock::now();
+    auto end = start + std::chrono::seconds(10);
+    while (std::chrono::steady_clock::now() < end) {
+      // We wait multiple times in case other graph changes are occurring simultaneously.
+      std::chrono::nanoseconds time_left = end - start;
+      std::chrono::nanoseconds time_to_sleep = time_left;
+      std::chrono::seconds min_sleep(1);
+      if (time_to_sleep > min_sleep) {
+        time_to_sleep = min_sleep;
+      }
+      rcl_ret_t ret = rcl_wait_set_clear_guard_conditions(this->wait_set_ptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      printf(
+        "waiting up to '%s' nanoseconds for graph changes\n",
+        std::to_string(time_to_sleep.count()).c_str());
+      ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
+      if (ret == RCL_RET_TIMEOUT) {
+        continue;
+      }
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      if (is_available == expected_state) {
+        break;
+      }
     }
-    ret = rcl_wait_set_clear_guard_conditions(this->wait_set_ptr);
+  };
+  {
+    // Create the service server.
+    rcl_service_t service = rcl_get_zero_initialized_service();
+    rcl_service_options_t service_options = rcl_service_get_default_options();
+    ret = rcl_service_init(&service, this->node_ptr, ts, service_name, &service_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    printf(
-      "waiting up to '%s' nanoseconds for graph changes\n",
-      std::to_string(time_to_sleep.count()).c_str());
-    ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
-    if (ret == RCL_RET_TIMEOUT) {
-      continue;
-    }
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    if (is_available) {
-      break;
-    }
+    auto service_exit = make_scope_exit([&service, this]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
+    // Wait for and then assert that it is available.
+    wait_for_service_state_to_change(true, is_available);
+    ASSERT_TRUE(is_available);
   }
-  ASSERT_TRUE(is_available);
+  // Assert the state goes back to "not available" after the service is removed.
+  wait_for_service_state_to_change(false, is_available);
+  ASSERT_FALSE(is_available);
 }
