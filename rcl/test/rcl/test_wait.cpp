@@ -42,7 +42,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   ret = rcl_wait_set_resize_subscriptions(&wait_set, 0);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  EXPECT_EQ(wait_set.size_of_subscriptions, 0);
+  EXPECT_EQ(wait_set.size_of_subscriptions, 0ull);
 
   ret = rcl_wait_set_fini(&wait_set);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -58,6 +58,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
   ret = rcl_wait(&wait_set, timeout);
   std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
   // Check time
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
   EXPECT_LE(diff, timeout + TOLERANCE);
@@ -123,8 +124,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_wait_set_fini(&wait_set);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  }
-    );
+  });
 
 
   // Time spent during wait should be negligible.
@@ -155,8 +155,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_guard_condition_fini(&guard_cond);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  }
-    );
+  });
 
   std::promise<rcl_ret_t> p;
 
@@ -171,8 +170,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
     trigger_diff = std::chrono::duration_cast<std::chrono::nanoseconds>(
       after_trigger - before_trigger);
     p.set_value(ret);
-  }
-  );
+  });
   auto f = p.get_future();
 
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
