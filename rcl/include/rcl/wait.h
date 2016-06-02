@@ -513,11 +513,11 @@ rcl_wait_set_resize_services(rcl_wait_set_t * wait_set, size_t size);
  * comes first.
  * Passing a timeout struct with uninitialized memory is undefined behavior.
  *
- * \TODO(wjwwood) this function should probably be thread-safe with itself but
- *                it's not clear to me what happens if the wait sets being
- *                waited on can be overlapping or not or if we can even check.
- * This function is not thread-safe and cannot be called concurrently, even if
- * the given wait sets are not the same and non-overlapping in contents.
+ * This function is thread-safe for unique wait sets with unique contents.
+ * This function cannot operate on the same wait set in multiple threads, and
+ * the wait sets may not share content.
+ * For example, calling rcl_wait in two threads on two different wait sets that
+ * both contain a single, shared guard condition is undefined behavior.
  *
  * \param[inout] wait_set the set of things to be waited on and to be pruned if not ready
  * \param[in] timeout the duration to wait for the wait set to be ready, in nanoseconds
