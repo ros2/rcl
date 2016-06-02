@@ -17,6 +17,7 @@
 #include <future>
 #include <sstream>
 #include <thread>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -148,7 +149,8 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   const size_t retry_limit = 100;  // number of times to retry when a timeout occurs waiting
   const uint64_t wait_period = RCL_MS_TO_NS(1);  // timeout passed to rcl_wait each try
   const std::chrono::milliseconds trigger_period(2);  // period between each round of triggers
-  struct TestSet {
+  struct TestSet
+  {
     std::atomic<size_t> wake_count;
     rcl_wait_set_t wait_set;
     rcl_guard_condition_t guard_condition;
@@ -157,6 +159,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   };
   std::vector<TestSet> test_sets(number_of_threads);
   // Setup common function for waiting on the triggered guard conditions.
+  // *INDENT-OFF* (prevent uncrustify from making unnecessary indents here)
   auto wait_func_factory = [](TestSet & test_set)
   {
     return [&test_set]() {
@@ -206,6 +209,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
       }
     };
   };
+  // *INDENT-ON*
   // Setup each test set.
   for (auto & test_set : test_sets) {
     rcl_ret_t ret;
@@ -241,6 +245,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
     test_set.thread = std::thread(wait_func_factory(test_set));
   }
   // Loop, triggering every trigger_period until the threads are done.
+  // *INDENT-OFF* (prevent uncrustify from making unnecessary indents here)
   auto loop_test = [&test_sets]() -> bool {
     for (const auto & test_set : test_sets) {
       if (test_set.wake_count.load() < count_target) {
@@ -249,6 +254,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
     }
     return false;
   };
+  // *INDENT-ON*
   // auto print_state = [&test_sets](std::string prefix) {
   //   std::stringstream ss;
   //   ss << prefix << "[";
@@ -264,8 +270,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   //   printf("%s\n", ss.str().c_str());
   // };
   size_t loop_count = 0;
-  while (loop_test())
-  {
+  while (loop_test()) {
     loop_count++;
     // print_state("triggering, current states: ");
     for (const auto & test_set : test_sets) {
@@ -283,7 +288,10 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   for (auto & test_set : test_sets) {
     ASSERT_EQ(count_target, test_set.wake_count.load());
   }
-  // printf("number of loops to get '%zu' wake ups on all threads: %zu\n", count_target, loop_count);
+  // printf(
+  //   "number of loops to get '%zu' wake ups on all threads: %zu\n",
+  //   count_target,
+  //   loop_count);
 }
 
 // Check the interaction of a guard condition and a negative timeout by
