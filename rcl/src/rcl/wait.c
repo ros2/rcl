@@ -505,8 +505,12 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     RCL_SET_ERROR_MSG("wait set is invalid");
     return RCL_RET_WAIT_SET_INVALID;
   }
-  if (wait_set->size_of_subscriptions == 0 && wait_set->size_of_guard_conditions == 0 &&
-    wait_set->size_of_clients == 0 && wait_set->size_of_services == 0)
+  if (
+    wait_set->size_of_subscriptions == 0 &&
+    wait_set->size_of_guard_conditions == 0 &&
+    wait_set->size_of_timers == 0 &&
+    wait_set->size_of_clients == 0 &&
+    wait_set->size_of_services == 0)
   {
     RCL_SET_ERROR_MSG("wait set is empty");
     return RCL_RET_WAIT_SET_EMPTY;
