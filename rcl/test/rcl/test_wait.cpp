@@ -22,9 +22,15 @@
 #include "gtest/gtest.h"
 
 #include "../scope_exit.hpp"
+#include "../sleep_for.hpp"
 #include "rcl/rcl.h"
 #include "rcl/error_handling.h"
 #include "rcl/wait.h"
+
+// Needed for SetThreadPriority
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -148,7 +154,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   const size_t count_target = 10;  // number of times each wait should wake up before being "done"
   const size_t retry_limit = 100;  // number of times to retry when a timeout occurs waiting
   const uint64_t wait_period = RCL_MS_TO_NS(1);  // timeout passed to rcl_wait each try
-  const std::chrono::milliseconds trigger_period(2);  // period between each round of triggers
+  const std::chrono::milliseconds trigger_period(10);  // period between each round of triggers
   struct TestSet
   {
     std::atomic<size_t> wake_count;
@@ -178,7 +184,9 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
             ss << "[thread " << test_set.thread_id << "] Waiting (try #" << wake_try_count << ")";
             // printf("%s\n", ss.str().c_str());
           }
+          std::this_thread::yield();
           ret = rcl_wait(&test_set.wait_set, wait_period);
+          ASSERT_NE(ret, RCL_RET_ERROR);
           if (ret != RCL_RET_TIMEOUT) {
             {
               std::stringstream ss;
@@ -237,6 +245,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
   });
+  
   // Now kick off all the threads.
   size_t thread_enumeration = 0;
   for (auto & test_set : test_sets) {
@@ -269,15 +278,17 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   //   ss << "]";
   //   printf("%s\n", ss.str().c_str());
   // };
+  
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
-    // print_state("triggering, current states: ");
     for (const auto & test_set : test_sets) {
+      //printf("triggering guard condition for thread %zu\n", test_set.thread_id);
       ret = rcl_trigger_guard_condition(&test_set.guard_condition);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
-    std::this_thread::sleep_for(trigger_period);
+    std::this_thread::yield();
+    rcl_test::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(trigger_period));
   }
   // print_state("final states:               ");
   // Join the threads.
