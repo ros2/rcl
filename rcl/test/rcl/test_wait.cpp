@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>  // for std::max
 #include <atomic>
 #include <chrono>
 #include <future>
@@ -148,8 +149,8 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   const size_t number_of_threads = 20;  // concurrent waits
   const size_t count_target = 10;  // number of times each wait should wake up before being "done"
   const size_t retry_limit = 100;  // number of times to retry when a timeout occurs waiting
-  const uint64_t wait_period = RCL_MS_TO_NS(5);  // timeout passed to rcl_wait each try
-  const std::chrono::milliseconds trigger_period(10);  // period between each round of triggers
+  const uint64_t wait_period = RCL_MS_TO_NS(500);  // timeout passed to rcl_wait each try
+  const std::chrono::milliseconds trigger_period(1);  // period between each round of triggers
   struct TestSet
   {
     std::atomic<size_t> wake_count;
@@ -179,14 +180,12 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
             ss << "[thread " << test_set.thread_id << "] Waiting (try #" << wake_try_count << ")";
             // printf("%s\n", ss.str().c_str());
           }
-          //std::this_thread::yield();
           ret = rcl_wait(&test_set.wait_set, wait_period);
           ASSERT_NE(ret, RCL_RET_ERROR);
           if (ret != RCL_RET_TIMEOUT) {
             {
               std::stringstream ss;
-              ss << "[thread " << test_set.thread_id << "] Wakeup  (try #" << wake_try_count << ")";
-              // printf("%s\n", ss.str().c_str());
+              ss << "[thread " << test_set.thread_id << "] Wakeup (try #" << wake_try_count << ")";
             }
             change_detected = true;
             // if not timeout, then the single guard condition should be set
@@ -281,7 +280,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
       ret = rcl_trigger_guard_condition(&test_set.guard_condition);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
-    std::this_thread::yield();
     std::this_thread::sleep_for(trigger_period);
   }
   // print_state("final states:               ");
@@ -297,7 +295,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   //   "number of loops to get '%zu' wake ups on all threads: %zu\n",
   //   count_target,
   //   loop_count);
-  
+
   auto end = std::chrono::steady_clock::now();
   printf("Test finished in %zu nanoseconds\n", (end - start).count());
 }
