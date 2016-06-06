@@ -22,7 +22,6 @@
 #include "gtest/gtest.h"
 
 #include "../scope_exit.hpp"
-#include "../sleep_for.hpp"
 #include "rcl/rcl.h"
 #include "rcl/error_handling.h"
 #include "rcl/wait.h"
@@ -144,11 +143,12 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
 
 // Check rcl_wait can be called in many threads, each with unique wait sets and resources.
 TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded) {
+  auto start = std::chrono::steady_clock::now();
   rcl_ret_t ret;
   const size_t number_of_threads = 20;  // concurrent waits
   const size_t count_target = 10;  // number of times each wait should wake up before being "done"
   const size_t retry_limit = 100;  // number of times to retry when a timeout occurs waiting
-  const uint64_t wait_period = RCL_MS_TO_NS(1);  // timeout passed to rcl_wait each try
+  const uint64_t wait_period = RCL_MS_TO_NS(5);  // timeout passed to rcl_wait each try
   const std::chrono::milliseconds trigger_period(10);  // period between each round of triggers
   struct TestSet
   {
@@ -179,7 +179,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
             ss << "[thread " << test_set.thread_id << "] Waiting (try #" << wake_try_count << ")";
             // printf("%s\n", ss.str().c_str());
           }
-          std::this_thread::yield();
+          //std::this_thread::yield();
           ret = rcl_wait(&test_set.wait_set, wait_period);
           ASSERT_NE(ret, RCL_RET_ERROR);
           if (ret != RCL_RET_TIMEOUT) {
@@ -282,7 +282,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
     std::this_thread::yield();
-    rcl_test::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(trigger_period));
+    std::this_thread::sleep_for(trigger_period);
   }
   // print_state("final states:               ");
   // Join the threads.
@@ -297,6 +297,9 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   //   "number of loops to get '%zu' wake ups on all threads: %zu\n",
   //   count_target,
   //   loop_count);
+  
+  auto end = std::chrono::steady_clock::now();
+  printf("Test finished in %zu nanoseconds\n", (end - start).count());
 }
 
 // Check the interaction of a guard condition and a negative timeout by
