@@ -27,11 +27,6 @@
 #include "rcl/error_handling.h"
 #include "rcl/wait.h"
 
-// Needed for SetThreadPriority
-#ifdef WIN32
-#include <windows.h>
-#endif
-
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -245,7 +240,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
   });
-  
+
   // Now kick off all the threads.
   size_t thread_enumeration = 0;
   for (auto & test_set : test_sets) {
@@ -278,12 +273,11 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   //   ss << "]";
   //   printf("%s\n", ss.str().c_str());
   // };
-  
+
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
     for (const auto & test_set : test_sets) {
-      //printf("triggering guard condition for thread %zu\n", test_set.thread_id);
       ret = rcl_trigger_guard_condition(&test_set.guard_condition);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
