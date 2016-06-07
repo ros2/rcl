@@ -185,6 +185,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
               std::stringstream ss;
               ss << "[thread " << test_set.thread_id << "] Wakeup (try #" << wake_try_count << ")";
             }
+            ASSERT_EQ(ret, RCL_RET_OK);
             change_detected = true;
             // if not timeout, then the single guard condition should be set
             if (!test_set.wait_set.guard_conditions[0]) {
@@ -196,7 +197,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
             // no need to wait again
             break;
           } else {
-            ASSERT_EQ(ret, RCL_RET_OK);
             std::stringstream ss;
             ss << "[thread " << test_set.thread_id << "] Timeout (try #" << wake_try_count << ")";
             // printf("%s\n", ss.str().c_str());
