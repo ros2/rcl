@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>  // for std::max
 #include <atomic>
 #include <chrono>
 #include <future>
@@ -147,7 +148,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   const size_t number_of_threads = 20;  // concurrent waits
   const size_t count_target = 10;  // number of times each wait should wake up before being "done"
   const size_t retry_limit = 100;  // number of times to retry when a timeout occurs waiting
-  const uint64_t wait_period = RCL_MS_TO_NS(1);  // timeout passed to rcl_wait each try
+  const uint64_t wait_period = RCL_MS_TO_NS(100);  // timeout passed to rcl_wait each try
   const std::chrono::milliseconds trigger_period(2);  // period between each round of triggers
   struct TestSet
   {
@@ -173,18 +174,9 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
           EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
           ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition);
           EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-          {
-            std::stringstream ss;
-            ss << "[thread " << test_set.thread_id << "] Waiting (try #" << wake_try_count << ")";
-            // printf("%s\n", ss.str().c_str());
-          }
           ret = rcl_wait(&test_set.wait_set, wait_period);
           if (ret != RCL_RET_TIMEOUT) {
-            {
-              std::stringstream ss;
-              ss << "[thread " << test_set.thread_id << "] Wakeup  (try #" << wake_try_count << ")";
-              // printf("%s\n", ss.str().c_str());
-            }
+            ASSERT_EQ(ret, RCL_RET_OK);
             change_detected = true;
             // if not timeout, then the single guard condition should be set
             if (!test_set.wait_set.guard_conditions[0]) {
@@ -198,7 +190,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
           } else {
             std::stringstream ss;
             ss << "[thread " << test_set.thread_id << "] Timeout (try #" << wake_try_count << ")";
-            // printf("%s\n", ss.str().c_str());
+            printf("%s\n", ss.str().c_str());
           }
         }
         if (!change_detected) {
@@ -255,31 +247,15 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
     return false;
   };
   // *INDENT-ON*
-  // auto print_state = [&test_sets](std::string prefix) {
-  //   std::stringstream ss;
-  //   ss << prefix << "[";
-  //   size_t enumerate = 0;
-  //   for (const auto & test_set : test_sets) {
-  //     enumerate++;
-  //     if (enumerate != 1) {
-  //       ss << ", ";
-  //     }
-  //     ss << std::setfill('0') << std::setw(2) << test_set.wake_count.load();
-  //   }
-  //   ss << "]";
-  //   printf("%s\n", ss.str().c_str());
-  // };
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
-    // print_state("triggering, current states: ");
     for (const auto & test_set : test_sets) {
       ret = rcl_trigger_guard_condition(&test_set.guard_condition);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
     std::this_thread::sleep_for(trigger_period);
   }
-  // print_state("final states:               ");
   // Join the threads.
   for (auto & test_set : test_sets) {
     test_set.thread.join();
@@ -288,10 +264,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   for (auto & test_set : test_sets) {
     ASSERT_EQ(count_target, test_set.wake_count.load());
   }
-  // printf(
-  //   "number of loops to get '%zu' wake ups on all threads: %zu\n",
-  //   count_target,
-  //   loop_count);
 }
 
 // Check the interaction of a guard condition and a negative timeout by
