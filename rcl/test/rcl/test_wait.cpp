@@ -246,6 +246,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
     }
     return false;
   };
+  // *INDENT-ON*
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
