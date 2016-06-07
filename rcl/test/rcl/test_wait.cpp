@@ -174,17 +174,8 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
           EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
           ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition);
           EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-          {
-            std::stringstream ss;
-            ss << "[thread " << test_set.thread_id << "] Waiting (try #" << wake_try_count << ")";
-            // printf("%s\n", ss.str().c_str());
-          }
           ret = rcl_wait(&test_set.wait_set, wait_period);
           if (ret != RCL_RET_TIMEOUT) {
-            {
-              std::stringstream ss;
-              ss << "[thread " << test_set.thread_id << "] Wakeup (try #" << wake_try_count << ")";
-            }
             ASSERT_EQ(ret, RCL_RET_OK);
             change_detected = true;
             // if not timeout, then the single guard condition should be set
@@ -199,7 +190,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
           } else {
             std::stringstream ss;
             ss << "[thread " << test_set.thread_id << "] Timeout (try #" << wake_try_count << ")";
-            // printf("%s\n", ss.str().c_str());
+            printf("%s\n", ss.str().c_str());
           }
         }
         if (!change_detected) {
@@ -256,21 +247,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
     }
     return false;
   };
-  // *INDENT-ON*
-  // auto print_state = [&test_sets](std::string prefix) {
-  //   std::stringstream ss;
-  //   ss << prefix << "[";
-  //   size_t enumerate = 0;
-  //   for (const auto & test_set : test_sets) {
-  //     enumerate++;
-  //     if (enumerate != 1) {
-  //       ss << ", ";
-  //     }
-  //     ss << std::setfill('0') << std::setw(2) << test_set.wake_count.load();
-  //   }
-  //   ss << "]";
-  //   printf("%s\n", ss.str().c_str());
-  // };
 
   size_t loop_count = 0;
   while (loop_test()) {
@@ -290,12 +266,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   for (auto & test_set : test_sets) {
     ASSERT_EQ(count_target, test_set.wake_count.load());
   }
-  // printf(
-  //   "number of loops to get '%zu' wake ups on all threads: %zu\n",
-  //   count_target,
-  //   loop_count);
-
-  auto end = std::chrono::steady_clock::now();
 }
 
 // Check the interaction of a guard condition and a negative timeout by
