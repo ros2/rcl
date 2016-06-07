@@ -229,7 +229,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
   });
-
   // Now kick off all the threads.
   size_t thread_enumeration = 0;
   for (auto & test_set : test_sets) {
@@ -247,7 +246,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
     }
     return false;
   };
-
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
@@ -257,7 +255,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
     }
     std::this_thread::sleep_for(trigger_period);
   }
-  // print_state("final states:               ");
   // Join the threads.
   for (auto & test_set : test_sets) {
     test_set.thread.join();
