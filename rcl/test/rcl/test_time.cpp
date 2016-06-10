@@ -159,7 +159,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_set_ros_time_ove
   assert_no_free_end();
   stop_memory_checking();
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  EXPECT_NE(query_now.nanoseconds, 0);
+  EXPECT_NE(query_now.nanoseconds, 0u);
   // Compare to std::chrono::system_clock time (within a second).
   ret = rcl_get_time_point_now(&query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
