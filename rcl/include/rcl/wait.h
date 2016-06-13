@@ -295,20 +295,9 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_resize_timers(rcl_wait_set_t * wait_set, size_t size);
 
-/// Store a pointer to the given client in the next empty spot in the set.
-/* This function does not guarantee that the client is not already in the
- * wait set.
- *
- * This function is not thread-safe.
- * This function is lock-free.
- *
- * \param[inout] wait_set struct in which the client is to be stored
- * \param[in] client the client to be added to the wait set
- * \return RCL_RET_OK if added successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
- *         RCL_RET_WAIT_SET_FULL if the client set is full, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+/// Store a pointer to the client in the next empty spot in the set.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_add_subscription
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -318,19 +307,8 @@ rcl_wait_set_add_client(
   const rcl_client_t * client);
 
 /// Remove (sets to NULL) the clients in the wait set.
-/* This function should be used after passing using rcl_wait, but before
- * adding new clients to the set.
- *
- * Calling this on an uninitialized (zero initialized) wait set will fail.
- *
- * This function is not thread-safe.
- * This function is lock-free.
- *
- * \param[inout] wait_set struct to have its clients cleared
- * \return RCL_RET_OK if cleared successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_clear_subscriptions
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -338,49 +316,17 @@ rcl_ret_t
 rcl_wait_set_clear_clients(rcl_wait_set_t * wait_set);
 
 /// Reallocate space for the clients in the wait set.
-/* This function will deallocate and reallocate the memory for the
- * clients set.
- *
- * A size of 0 will just deallocate the memory and assign NULL to the array.
- *
- * Allocation and deallocation is done with the allocator given during the
- * wait set's initialization.
- *
- * After calling this function all values in the set will be set to NULL,
- * effectively the same as calling rcl_wait_set_clear_clients().
- *
- * If the requested size matches the current size, no allocation will be done.
- *
- * This can be called on an uninitialized (zero initialized) wait set.
- *
- * This function is not thread-safe.
- *
- * \param[inout] wait_set struct to have its clients cleared
- * \param[in] size a size for the new set
- * \return RCL_RET_OK if resized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_BAD_ALLOC if allocating memory failed, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_resize_subscriptions
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_resize_clients(rcl_wait_set_t * wait_set, size_t size);
 
-/// Store a pointer to the given service in the next empty spot in the set.
-/* This function does not guarantee that the service is not already in the
- * wait set.
- *
- * This function is not thread-safe.
- * This function is lock-free.
- *
- * \param[inout] wait_set struct in which the service is to be stored
- * \param[in] service the service to be added to the wait set
- * \return RCL_RET_OK if added successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
- *         RCL_RET_WAIT_SET_FULL if the service set is full, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+/// Store a pointer to the client in the next empty spot in the set.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_add_subscription
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -390,19 +336,8 @@ rcl_wait_set_add_service(
   const rcl_service_t * service);
 
 /// Remove (sets to NULL) the services in the wait set.
-/* This function should be used after passing using rcl_wait, but before
- * adding new services to the set.
- *
- * Calling this on an uninitialized (zero initialized) wait set will fail.
- *
- * This function is not thread-safe.
- * This function is lock-free.
- *
- * \param[inout] wait_set struct to have its services cleared
- * \return RCL_RET_OK if cleared successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_WAIT_SET_INVALID if the wait set is zero initialized, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_clear_subscriptions
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -410,29 +345,8 @@ rcl_ret_t
 rcl_wait_set_clear_services(rcl_wait_set_t * wait_set);
 
 /// Reallocate space for the services in the wait set.
-/* This function will deallocate and reallocate the memory for the
- * services set.
- *
- * A size of 0 will just deallocate the memory and assign NULL to the array.
- *
- * Allocation and deallocation is done with the allocator given during the
- * wait set's initialization.
- *
- * After calling this function all values in the set will be set to NULL,
- * effectively the same as calling rcl_wait_set_clear_services().
- *
- * If the requested size matches the current size, no allocation will be done.
- *
- * This can be called on an uninitialized (zero initialized) wait set.
- *
- * This function is not thread-safe.
- *
- * \param[inout] wait_set struct to have its services cleared
- * \param[in] size a size for the new set
- * \return RCL_RET_OK if resized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_BAD_ALLOC if allocating memory failed, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+/* This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_resize_subscriptions
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
