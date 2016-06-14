@@ -130,7 +130,6 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   });
 
-
   // Time spent during wait should be negligible.
   int64_t timeout = 0;
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
@@ -140,6 +139,17 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
   ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
   EXPECT_LE(diff, TOLERANCE);
+}
+
+// Test rcl_wait_set_t with excess capacity works.
+TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), excess_capacity) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 42, 42, 42, 42, 42, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int64_t timeout = 1;
+  ret = rcl_wait(&wait_set, timeout);
+  ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
 }
 
 // Check rcl_wait can be called in many threads, each with unique wait sets and resources.
