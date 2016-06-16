@@ -23,7 +23,7 @@ endmacro()
 function(test_target_function)
   # TODO(wjwwood): remove these when C type support is supported by typesupport_introspection.
   #                after removing, we can also recombine the function and macro
-  if("${rmw_implementation} " STREQUAL "rmw_fastrtps_cpp ")
+  if(rmw_implementation STREQUAL "rmw_fastrtps_cpp")
     message(STATUS "Skipping tests for '${rmw_implementation}'")
     return()
   endif()
@@ -68,7 +68,7 @@ function(test_target_function)
   )
 
   # TODO(wjwwood): remove this when the graph API works properly for more than OpenSplice.
-  if("${rmw_implementation} " STREQUAL "rmw_opensplice_cpp ")
+  if(rmw_implementation STREQUAL "rmw_opensplice_cpp")
     rcl_add_custom_gtest(test_graph${target_suffix}
       SRCS rcl/test_graph.cpp
       ENV ${extra_test_env}
@@ -144,7 +144,7 @@ function(test_target_function)
 
   # TODO remove this once connext declares libdl dependency in libnddscore again
   # See https://github.com/ros2/rcl/issues/52
-  if("${rmw_implementation} " STREQUAL "rmw_connext_cpp ")
+  if(rmw_implementation STREQUAL "rmw_connext_cpp")
     connext_workaround(client_fixture${target_suffix})
     connext_workaround(service_fixture${target_suffix})
   endif()
@@ -159,7 +159,7 @@ function(test_target_function)
 endfunction()
 
 macro(connext_workaround target)
-  if("${CMAKE_CXX_COMPILER_ID} " STREQUAL "GNU ")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     get_target_property(_current_link_flags ${target} LINK_FLAGS)
     set(_link_flags "-Wl,--no-as-needed")
     if(_current_link_flags)
