@@ -70,7 +70,7 @@ rcl_subscription_init(
     rcl_node_get_rmw_handle(node),
     type_support,
     topic_name,
-    &rmw_qos_profile_default,
+    &(options->qos),
     options->ignore_local_publications);
   if (!subscription->impl->rmw_handle) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
