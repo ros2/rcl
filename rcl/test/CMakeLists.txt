@@ -21,13 +21,6 @@ macro(test_target)
 endmacro()
 
 function(test_target_function)
-  # TODO(wjwwood): remove these when C type support is supported by typesupport_introspection.
-  #                after removing, we can also recombine the function and macro
-  if(rmw_implementation STREQUAL "rmw_fastrtps_cpp")
-    message(STATUS "Skipping tests for '${rmw_implementation}'")
-    return()
-  endif()
-
   message(STATUS "Creating tests for '${rmw_implementation}'")
 
   # Gtests

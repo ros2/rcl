@@ -530,7 +530,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     // Compare the timeout to the time until next callback for each timer.
     // Take the lowest and use that for the wait timeout.
     uint64_t i = 0;
-    for (i = 0; i < wait_set->size_of_timers; ++i) {
+    for (i = 0; i < wait_set->impl->timer_index; ++i) {
       if (!wait_set->timers[i]) {
         continue;  // Skip NULL timers.
       }
@@ -583,7 +583,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   }
   // Check for ready timers next, and set not ready timers to NULL.
   size_t i;
-  for (i = 0; i < wait_set->size_of_timers; ++i) {
+  for (i = 0; i < wait_set->impl->timer_index; ++i) {
     bool is_ready = false;
     rcl_ret_t ret = rcl_timer_is_ready(wait_set->timers[i], &is_ready);
     if (ret != RCL_RET_OK) {
