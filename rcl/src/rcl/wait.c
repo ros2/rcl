@@ -595,28 +595,24 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   }
   // Set corresponding rcl subscription handles NULL.
   for (i = 0; i < wait_set->size_of_subscriptions; ++i) {
-    assert(i < wait_set->impl->rmw_subscriptions.subscriber_count);  // Defensive.
     if (!wait_set->impl->rmw_subscriptions.subscribers[i]) {
       wait_set->subscriptions[i] = NULL;
     }
   }
   // Set corresponding rcl guard_condition handles NULL.
   for (i = 0; i < wait_set->size_of_guard_conditions; ++i) {
-    assert(i < wait_set->impl->rmw_guard_conditions.guard_condition_count);  // Defensive.
     if (!wait_set->impl->rmw_guard_conditions.guard_conditions[i]) {
       wait_set->guard_conditions[i] = NULL;
     }
   }
   // Set corresponding rcl client handles NULL.
   for (i = 0; i < wait_set->size_of_clients; ++i) {
-    assert(i < wait_set->impl->rmw_clients.client_count);  // Defensive.
     if (!wait_set->impl->rmw_clients.clients[i]) {
       wait_set->clients[i] = NULL;
     }
   }
   // Set corresponding rcl service handles NULL.
   for (i = 0; i < wait_set->size_of_services; ++i) {
-    assert(i < wait_set->impl->rmw_services.service_count);  // Defensive.
     if (!wait_set->impl->rmw_services.services[i]) {
       wait_set->services[i] = NULL;
     }
