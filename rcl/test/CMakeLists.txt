@@ -61,7 +61,10 @@ function(test_target_function)
   )
 
   # TODO(wjwwood): remove this when the graph API works properly for more than OpenSplice.
-  if(rmw_implementation STREQUAL "rmw_opensplice_cpp")
+  if(
+    rmw_implementation STREQUAL "rmw_opensplice_cpp"
+    OR rmw_implementation STREQUAL "rmw_connext_cpp"
+  )
     rcl_add_custom_gtest(test_graph${target_suffix}
       SRCS rcl/test_graph.cpp
       ENV ${extra_test_env}
