@@ -88,6 +88,11 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   int i;
   for (i = 0; i < argc; ++i) {
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);
+    if (!__rcl_argv[i]) {
+      RCL_SET_ERROR_MSG("allocation failed");
+      fail_ret = RCL_RET_BAD_ALLOC;
+      goto fail;
+    }
     memcpy(__rcl_argv[i], argv[i], strlen(argv[i]));
   }
   rcl_atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
