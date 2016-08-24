@@ -187,9 +187,6 @@ rcl_subscription_get_default_options(void);
  * be allocated for a dynamically sized array in the target message, then the
  * allocator given in the subscription options is used.
  *
- * The taken pointer should point to an already allocated boolean in which the
- * result can be stored.
- *
  * The rmw message_info struct contains meta information about this particular
  * message instance, like what the GUID of the publisher which published it
  * originally or whether or not the message received from within the same
@@ -200,7 +197,6 @@ rcl_subscription_get_default_options(void);
  *
  * \param[in] subscription the handle to the subscription from which to take
  * \param[inout] ros_message type-erased ptr to a allocated ROS message
- * \param[out] taken pointer to a bool, if set to false a message was not taken
  * \param[out] message_info rmw struct which contains meta-data for the message
  * \return RCL_RET_OK if the message was published, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
