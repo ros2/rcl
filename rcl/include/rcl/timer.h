@@ -416,6 +416,11 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer);
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+_rcl_timer_set_last_call_time(rcl_timer_t * timer, rcl_time_point_value_t value);
+
 #if __cplusplus
 }
 #endif
