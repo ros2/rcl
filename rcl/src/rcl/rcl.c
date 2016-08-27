@@ -75,6 +75,13 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   // A very unlikely race condition, but it is possile I think.
   // I've documented that rcl_init() and rcl_shutdown() are not thread-safe with each other.
   __rcl_allocator = allocator;  // Set the new allocator.
+  // Initialize rmw_init.
+  rmw_ret_t rmw_ret = rmw_init();
+  if (rmw_ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    fail_ret = RCL_RET_ERROR;
+    goto fail;
+  }
   // TODO(wjwwood): Remove rcl specific command line arguments.
   // For now just copy the argc and argv.
   __rcl_argc = argc;
