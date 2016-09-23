@@ -235,7 +235,7 @@ rcl_take_request(
  * \param[in] ros_response type-erased pointer to the ROS response message
  * \return RCL_RET_OK if the response was sent successfully, or
  *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_CLIENT_INVALID if the service is invalid, or
+ *         RCL_RET_SERVICE_INVALID if the service is invalid, or
  *         RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
