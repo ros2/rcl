@@ -32,6 +32,13 @@ extern "C"
 
 typedef rmw_topic_names_and_types_t rcl_topic_names_and_types_t;
 
+
+/// Return a rcl_topic_names_and_types_t struct with members initialized to NULL.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_topic_names_and_types_t
+rcl_get_zero_initialized_topic_names_and_types(void);
+
 /// Return a list of topic names and their types.
 /* This function returns a list of topic names in the ROS graph and their types.
  *

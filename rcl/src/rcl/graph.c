@@ -21,6 +21,12 @@ extern "C"
 
 #include "./common.h"
 
+rcl_topic_names_and_types_t
+rcl_get_zero_initialized_topic_names_and_types(void) {
+  const rcl_topic_names_and_types_t null_topic_names_and_types = {0};
+  return null_topic_names_and_types;
+}
+
 rcl_ret_t
 rcl_get_topic_names_and_types(
   const rcl_node_t * node,
