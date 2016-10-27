@@ -24,7 +24,7 @@ extern "C"
 rcl_topic_names_and_types_t
 rcl_get_zero_initialized_topic_names_and_types(void)
 {
-  const rcl_topic_names_and_types_t null_topic_names_and_types = {0};
+  const rcl_topic_names_and_types_t null_topic_names_and_types = {0, NULL, NULL};
   return null_topic_names_and_types;
 }
 
