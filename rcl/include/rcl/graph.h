@@ -44,8 +44,7 @@ rcl_get_zero_initialized_topic_names_and_types(void);
  *
  * The node parameter must not be NULL, and must point to a valid node.
  *
- * The topic_names_and_types parameter must not be NULL, and must point to an
- * already allocated rcl_topic_names_and_types_t struct.
+ * The topic_names_and_types parameter must be allocated and zero initalized.
  * The topic_names_and_types is the output for this function, and contains
  * allocated memory.
  * Therefore, it should be passed to rcl_destroy_topic_names_and_types() when
