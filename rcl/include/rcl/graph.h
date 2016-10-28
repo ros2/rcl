@@ -32,13 +32,19 @@ extern "C"
 
 typedef rmw_topic_names_and_types_t rcl_topic_names_and_types_t;
 
+
+/// Return a rcl_topic_names_and_types_t struct with members initialized to NULL.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_topic_names_and_types_t
+rcl_get_zero_initialized_topic_names_and_types(void);
+
 /// Return a list of topic names and their types.
 /* This function returns a list of topic names in the ROS graph and their types.
  *
  * The node parameter must not be NULL, and must point to a valid node.
  *
- * The topic_names_and_types parameter must not be NULL, and must point to an
- * already allocated rcl_topic_names_and_types_t struct.
+ * The topic_names_and_types parameter must be allocated and zero initialized.
  * The topic_names_and_types is the output for this function, and contains
  * allocated memory.
  * Therefore, it should be passed to rcl_destroy_topic_names_and_types() when

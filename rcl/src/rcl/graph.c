@@ -21,6 +21,13 @@ extern "C"
 
 #include "./common.h"
 
+rcl_topic_names_and_types_t
+rcl_get_zero_initialized_topic_names_and_types(void)
+{
+  const rcl_topic_names_and_types_t null_topic_names_and_types = {0, NULL, NULL};
+  return null_topic_names_and_types;
+}
+
 rcl_ret_t
 rcl_get_topic_names_and_types(
   const rcl_node_t * node,
@@ -31,6 +38,18 @@ rcl_get_topic_names_and_types(
     return RCL_RET_NODE_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
+  if (topic_names_and_types->topic_count != 0) {
+    RCL_SET_ERROR_MSG("topic count is not zero");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  if (topic_names_and_types->topic_names) {
+    RCL_SET_ERROR_MSG("topic names is not null");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  if (topic_names_and_types->type_names) {
+    RCL_SET_ERROR_MSG("type names is not null");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   return rmw_get_topic_names_and_types(
     rcl_node_get_rmw_handle(node),
     topic_names_and_types
