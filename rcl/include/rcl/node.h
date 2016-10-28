@@ -80,7 +80,7 @@ rcl_get_zero_initialized_node(void);
  * This function will create those external parameter interfaces even if
  * parameters are not used later.
  *
- * The rcl_node_t given must be allocated and zero initalized.
+ * The rcl_node_t given must be allocated and zero initialized.
  * Passing an rcl_node_t which has already had this function called on it, more
  * recently than rcl_node_fini, will fail.
  * An allocated rcl_node_t with uninitialized memory is undefined behavior.
