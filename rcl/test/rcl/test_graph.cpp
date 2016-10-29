@@ -44,6 +44,9 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+bool is_connext =
+  std::string(rmw_get_implementation_identifier()).find("rmw_connext") == 0;
+
 class CLASSNAME (TestGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
@@ -254,6 +257,7 @@ check_graph_state(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     rcl_reset_error();
 
+    tnat = rcl_get_zero_initialized_topic_names_and_types();
     ret = rcl_get_topic_names_and_types(node_ptr, &tnat);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     rcl_reset_error();
@@ -519,9 +523,23 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
           std::to_string(time_to_sleep.count()).c_str());
         ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
         if (ret == RCL_RET_TIMEOUT) {
-          continue;
+          if (!is_connext) {
+            // TODO(wjwwood):
+            //   Connext has a race condition which can cause the graph guard
+            //   condition to wake up due to the necessary topics going away,
+            //   but afterwards rcl_service_server_is_available() still does
+            //   not reflect that the service is "no longer available".
+            //   The result is that some tests are flaky unless you not only
+            //   check right after a graph change but again in the future where
+            //   rcl_service_server_is_available() eventually reports the
+            //   service is no longer there. This condition can be removed and
+            //   we can always continue when we get RCL_RET_TIMEOUT once that
+            //   is fixed.
+            continue;
+          }
+        } else {
+          ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         }
-        ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         if (is_available == expected_state) {

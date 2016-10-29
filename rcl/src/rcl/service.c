@@ -99,7 +99,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (service->impl) {
     rmw_ret_t ret =
-      rmw_destroy_service(service->impl->rmw_handle);
+      rmw_destroy_service(rcl_node_get_rmw_handle(node), service->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
       result = RCL_RET_ERROR;

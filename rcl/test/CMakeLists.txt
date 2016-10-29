@@ -60,8 +60,13 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  # TODO(wjwwood): remove this when the graph API works properly for more than OpenSplice.
-  if(rmw_implementation STREQUAL "rmw_opensplice_cpp")
+  # TODO(wjwwood): remove this when the graph API works properly for FastRTPS
+  if(
+    rmw_implementation STREQUAL "rmw_connext_dynamic_cpp" OR
+    rmw_implementation STREQUAL "rmw_fastrtps_cpp"
+  )
+    message(STATUS "Skipping test_graph${target_suffix} test.")
+  else()
     rcl_add_custom_gtest(test_graph${target_suffix}
       SRCS rcl/test_graph.cpp
       ENV ${extra_test_env}
@@ -69,8 +74,6 @@ function(test_target_function)
       LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
       AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "std_msgs"
     )
-  else()
-    message(STATUS "Skipping test_graph${target_suffix} test.")
   endif()
 
   rcl_add_custom_gtest(test_rcl${target_suffix}
