@@ -257,6 +257,7 @@ check_graph_state(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     rcl_reset_error();
 
+    tnat = rcl_get_zero_initialized_topic_names_and_types();
     ret = rcl_get_topic_names_and_types(node_ptr, &tnat);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     rcl_reset_error();
