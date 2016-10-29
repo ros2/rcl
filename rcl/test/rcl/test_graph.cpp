@@ -45,7 +45,7 @@
 #endif
 
 bool is_connext =
-  std::string(rmw_get_implementation_identifier()).find("connext") != std::string::npos;
+  std::string(rmw_get_implementation_identifier()).find("rmw_connext") == 0;
 
 class CLASSNAME (TestGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
