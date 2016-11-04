@@ -66,7 +66,7 @@ rcl_system_time_now(rcl_time_point_value_t * now)
     RCL_SET_ERROR_MSG("unexpected negative time");
     return RCL_RET_ERROR;
   }
-  *now = RCL_S_TO_NS((uint64_t)timespec_now.tv_sec) + timespec_now.tv_nsec;
+  *now = RCL_S_TO_NS(timespec_now.tv_sec) + timespec_now.tv_nsec;
   return RCL_RET_OK;
 }
 
@@ -97,7 +97,7 @@ rcl_steady_time_now(rcl_time_point_value_t * now)
     RCL_SET_ERROR_MSG("unexpected negative time");
     return RCL_RET_ERROR;
   }
-  *now = RCL_S_TO_NS((uint64_t)timespec_now.tv_sec) + timespec_now.tv_nsec;
+  *now = RCL_S_TO_NS(timespec_now.tv_sec) + timespec_now.tv_nsec;
   return RCL_RET_OK;
 }
 
