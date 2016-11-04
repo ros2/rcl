@@ -24,9 +24,9 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-#define RCL_S_TO_NS(seconds) ((int64_t)seconds * (1000 * 1000 * 1000))
-#define RCL_MS_TO_NS(milliseconds) ((int64_t)milliseconds * (1000 * 1000))
-#define RCL_US_TO_NS(microseconds) ((int64_t)microseconds * 1000)
+#define RCL_S_TO_NS(seconds) (seconds * (1000 * 1000 * 1000))
+#define RCL_MS_TO_NS(milliseconds) (milliseconds * (1000 * 1000))
+#define RCL_US_TO_NS(microseconds) (microseconds * 1000)
 
 #define RCL_NS_TO_S(nanoseconds) (nanoseconds / (1000 * 1000 * 1000))
 #define RCL_NS_TO_MS(nanoseconds) (nanoseconds / (1000 * 1000))
