@@ -169,7 +169,6 @@ rcl_take_request(
     return RCL_RET_ERROR;
   }
   if (!taken) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
     return RCL_RET_SERVICE_TAKE_FAILED;
   }
   return RCL_RET_OK;
