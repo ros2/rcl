@@ -139,7 +139,7 @@ rcl_guard_condition_options_t
 rcl_guard_condition_get_default_options(void);
 
 /// Trigger a rcl guard condition.
-/* This function can fail, and therefore return NULL, if the:
+/* This function can fail, and return RCL_RET_INVALID_ARGUMENT, if the:
  *   - guard condition is NULL
  *   - guard condition is invalid (never called init or called fini)
  *
@@ -158,7 +158,7 @@ rcl_guard_condition_get_default_options(void);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_trigger_guard_condition(const rcl_guard_condition_t * guard_condition);
+rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition);
 
 /// Return the rmw guard condition handle.
 /* The handle returned is a pointer to the internally held rmw handle.

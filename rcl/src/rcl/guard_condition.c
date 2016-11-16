@@ -133,7 +133,7 @@ rcl_guard_condition_get_default_options()
 }
 
 rcl_ret_t
-rcl_trigger_guard_condition(const rcl_guard_condition_t * guard_condition)
+rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition)
 {
   // Perform argument validation.
   RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
