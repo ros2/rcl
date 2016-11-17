@@ -260,7 +260,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
-    for (const auto & test_set : test_sets) {
+    for (auto & test_set : test_sets) {
       ret = rcl_trigger_guard_condition(&test_set.guard_condition);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
