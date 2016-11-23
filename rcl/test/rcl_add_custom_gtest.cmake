@@ -69,6 +69,8 @@ macro(rcl_add_custom_gtest target)
   endif()
   if(_ARG_SKIP_TEST)
     set(_ARG_SKIP_TEST "SKIP_TEST")
+  else()
+    set(_ARG_SKIP_TEST "")
   endif()
 
   # Pass args along to ament_add_gtest().

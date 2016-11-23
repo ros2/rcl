@@ -475,7 +475,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
 
 /* Test the rcl_service_server_is_available function.
  */
-TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_is_available) {
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), DISABLED_test_rcl_service_server_is_available) {
   stop_memory_checking();
   rcl_ret_t ret;
   // First create a client which will be used to call the function.
