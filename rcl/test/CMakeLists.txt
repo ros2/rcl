@@ -66,6 +66,14 @@ function(test_target_function)
     rmw_implementation STREQUAL "rmw_fastrtps_cpp"
   )
     message(STATUS "Skipping test_graph${target_suffix} test.")
+    rcl_add_custom_gtest(test_graph${target_suffix}
+      SRCS rcl/test_graph.cpp
+      ENV ${extra_test_env}
+      APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+      LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+      AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "std_msgs"
+      SKIP_TEST
+    )
   else()
     rcl_add_custom_gtest(test_graph${target_suffix}
       SRCS rcl/test_graph.cpp
