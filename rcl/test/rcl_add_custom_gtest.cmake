@@ -51,7 +51,7 @@ include(CMakeParseArguments)
 #
 macro(rcl_add_custom_gtest target)
   cmake_parse_arguments(_ARG
-    "TRACE;SKIP_TEST"
+    "SKIP_TEST;TRACE"
     ""
     "SRCS;ENV;APPEND_ENV;APPEND_LIBRARY_DIRS;INCLUDE_DIRS;LIBRARIES;AMENT_DEPENDENCIES"
     ${ARGN})
