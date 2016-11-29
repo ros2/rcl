@@ -60,14 +60,14 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  set(_SKIP_TEST "")
+  set(SKIP_TEST "")
   # TODO(wjwwood): remove this when the graph API works properly for FastRTPS
   if(
     rmw_implementation STREQUAL "rmw_connext_dynamic_cpp" OR
     rmw_implementation STREQUAL "rmw_fastrtps_cpp"
   )
     message(STATUS "Skipping test_graph${target_suffix} test.")
-    set(_SKIP_TEST "SKIP_TEST")
+    set(SKIP_TEST "SKIP_TEST")
   endif()
   rcl_add_custom_gtest(test_graph${target_suffix}
     SRCS rcl/test_graph.cpp
@@ -75,7 +75,7 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "std_msgs"
-    ${_SKIP_TEST}
+    ${SKIP_TEST}
   )
 
   rcl_add_custom_gtest(test_rcl${target_suffix}
