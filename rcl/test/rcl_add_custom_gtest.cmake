@@ -51,7 +51,7 @@ include(CMakeParseArguments)
 #
 macro(rcl_add_custom_gtest target)
   cmake_parse_arguments(_ARG
-    "TRACE"
+    "SKIP_TEST;TRACE"
     ""
     "SRCS;ENV;APPEND_ENV;APPEND_LIBRARY_DIRS;INCLUDE_DIRS;LIBRARIES;AMENT_DEPENDENCIES"
     ${ARGN})
@@ -67,9 +67,14 @@ macro(rcl_add_custom_gtest target)
   if(_ARG_APPEND_LIBRARY_DIRS)
     set(_ARG_APPEND_LIBRARY_DIRS "APPEND_LIBRARY_DIRS" ${_ARG_APPEND_LIBRARY_DIRS})
   endif()
+  if(_ARG_SKIP_TEST)
+    set(_ARG_SKIP_TEST "SKIP_TEST")
+  else()
+    set(_ARG_SKIP_TEST "")
+  endif()
 
   # Pass args along to ament_add_gtest().
-  ament_add_gtest(${target} ${_ARG_SRCS} ${_ARG_ENV} ${_ARG_APPEND_ENV} ${_ARG_APPEND_LIBRARY_DIRS})
+  ament_add_gtest(${target} ${_ARG_SRCS} ${_ARG_ENV} ${_ARG_APPEND_ENV} ${_ARG_APPEND_LIBRARY_DIRS} ${_ARG_SKIP_TEST})
   # Check if the target was actually created.
   if(TARGET ${target})
     if(_ARG_TRACE)
