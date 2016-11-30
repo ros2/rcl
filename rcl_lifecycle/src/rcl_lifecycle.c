@@ -101,13 +101,12 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, const char* node_nam
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_ret_t ret = rcl_publisher_init(&state_machine->comm_interface.state_publisher,
         state_machine->comm_interface.node_handle, ts, topic_name, &publisher_options);
+    free(topic_name);
 
     if (ret != RCL_RET_OK) {
       state_machine = NULL;
-      free(topic_name);
       return ret;
     }
-    free(topic_name);
   }
 
   {  // initialize get state service
@@ -127,12 +126,12 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, const char* node_nam
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_ret_t ret = rcl_service_init(&state_machine->comm_interface.srv_get_state,
         state_machine->comm_interface.node_handle, ts, topic_name, &service_options);
+    free(topic_name);
+
     if (ret != RCL_RET_OK) {
       state_machine = NULL;
-      free(topic_name);
       return ret;
     }
-    free(topic_name);
   }
 
   {  // initialize change state service
@@ -152,12 +151,12 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, const char* node_nam
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_ret_t ret = rcl_service_init(&state_machine->comm_interface.srv_change_state,
         state_machine->comm_interface.node_handle, ts, topic_name, &service_options);
+    free(topic_name);
+
     if (ret != RCL_RET_OK) {
       state_machine = NULL;
-      free(topic_name);
       return ret;
     }
-    free(topic_name);
   }
 
   if (default_states) {
