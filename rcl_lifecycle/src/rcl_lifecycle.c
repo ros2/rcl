@@ -57,7 +57,6 @@ rcl_get_zero_initialized_state_machine(rcl_node_t * node_handle)
   state_machine.transition_map.size = 0;
   state_machine.transition_map.primary_states = NULL;
   state_machine.transition_map.transition_arrays = NULL;
-  state_machine.comm_interface.node_handle = node_handle;
   state_machine.comm_interface.state_publisher = rcl_get_zero_initialized_publisher();
   state_machine.comm_interface.srv_get_state = rcl_get_zero_initialized_service();
   state_machine.comm_interface.srv_change_state = rcl_get_zero_initialized_service();
@@ -66,23 +65,9 @@ rcl_get_zero_initialized_state_machine(rcl_node_t * node_handle)
 }
 
 rcl_ret_t
-rcl_state_machine_init(rcl_state_machine_t * state_machine, const char* node_name, bool default_states)
+rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_handle, bool default_states)
 {
-  // TODO(karsten1987): fail when state machine not zero initialized
-  // {  // initialize node handle for notification
-  //   rcl_node_options_t node_options = rcl_node_get_default_options();
-  //   {
-  //     rcl_ret_t ret = rcl_node_init(&state_machine->notification_node_handle,
-  //         node_name, &node_options);
-  //     if (ret != RCL_RET_OK) {
-  //       fprintf(stderr, "%s:%u, Unable to initialize node handle for state machine\n",
-  //         __FILE__, __LINE__);
-  //       state_machine = NULL;
-  //       return ret;
-  //     }
-  //   }
-  // }
-  //const char * node_name = rcl_node_get_name(state_machine->notification_node_handle);
+  const char * node_name = rcl_node_get_name(node_handle);
 
   {  // initialize publisher
      // Build topic, topic suffix hardcoded for now

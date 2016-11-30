@@ -34,12 +34,12 @@ extern "C"
 
 LIFECYCLE_EXPORT
 rcl_state_machine_t
-rcl_get_zero_initialized_state_machine(rcl_node_t * node_handle);
+rcl_get_zero_initialized_state_machine();
 
 LIFECYCLE_EXPORT
 rcl_ret_t
 rcl_state_machine_init(rcl_state_machine_t * state_machine,
-  const char* node_name, bool default_states);
+  rcl_node_t * node_handle, bool default_states);
 
 LIFECYCLE_EXPORT
 rcl_ret_t
