@@ -51,7 +51,7 @@ bool concatenate(const char ** prefix, const char ** suffix, char ** result)
 
 // get zero initialized state machine here
 rcl_state_machine_t
-rcl_get_zero_initialized_state_machine(rcl_node_t * node_handle)
+rcl_get_zero_initialized_state_machine()
 {
   rcl_state_machine_t state_machine;
   state_machine.transition_map.size = 0;
@@ -65,7 +65,11 @@ rcl_get_zero_initialized_state_machine(rcl_node_t * node_handle)
 }
 
 rcl_ret_t
-rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_handle, bool default_states)
+rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_handle,
+    const rosidl_message_type_support_t * ts_pub_notify,
+    const rosidl_service_type_support_t * ts_srv_get_state,
+    const rosidl_service_type_support_t * ts_srv_change_state,
+    bool default_states)
 {
   const char * node_name = rcl_node_get_name(node_handle);
 
@@ -81,11 +85,11 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
       return RCL_RET_ERROR;
     }
 
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(
-      lifecycle_msgs, msg, Transition);
+    //const rosidl_message_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(
+    //  lifecycle_msgs, msg, Transition);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_ret_t ret = rcl_publisher_init(&state_machine->comm_interface.state_publisher,
-        state_machine->comm_interface.node_handle, ts, topic_name, &publisher_options);
+        state_machine->comm_interface.node_handle, ts_pub_notify, topic_name, &publisher_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
@@ -106,11 +110,11 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
       return RCL_RET_ERROR;
     }
 
-    const rosidl_service_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT_FUNCTION(
-      lifecycle_msgs, srv, GetState)();
+    //const rosidl_service_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT_FUNCTION(
+    //  lifecycle_msgs, srv, GetState)();
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_ret_t ret = rcl_service_init(&state_machine->comm_interface.srv_get_state,
-        state_machine->comm_interface.node_handle, ts, topic_name, &service_options);
+        state_machine->comm_interface.node_handle, ts_srv_get_state, topic_name, &service_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
@@ -131,11 +135,11 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
       return RCL_RET_ERROR;
     }
 
-    const rosidl_service_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(
-      lifecycle_msgs, srv, ChangeState);
+    //const rosidl_service_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(
+    //  lifecycle_msgs, srv, ChangeState);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_ret_t ret = rcl_service_init(&state_machine->comm_interface.srv_change_state,
-        state_machine->comm_interface.node_handle, ts, topic_name, &service_options);
+        state_machine->comm_interface.node_handle, ts_srv_change_state, topic_name, &service_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
@@ -179,13 +183,6 @@ rcl_state_machine_fini(rcl_state_machine_t * state_machine)
         __FILE__, __LINE__);
     }
   }
-  // {  // destroy the node handle
-  //   rcl_ret_t ret = rcl_node_fini(&state_machine->notification_node_handle);
-  //   if (ret != RCL_RET_OK) {
-  //     fprintf(stderr, "%s:%u, Failed to destroy lifecycle notification node handle\n",
-  //       __FILE__, __LINE__);
-  //   }
-  // }
 
   rcl_transition_map_t * transition_map = &state_machine->transition_map;
 

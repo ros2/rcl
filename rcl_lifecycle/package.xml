@@ -26,6 +26,5 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <build_type>ament_python</build_type>
   </export>
 </package>
