@@ -30,13 +30,14 @@ extern "C"
 {
 #endif
 
-//  *INDENT-OFF*
+// *INDENT-OFF*
+// Primary States
 const rcl_state_t rcl_state_unknown          = {"unknown", 0};
 const rcl_state_t rcl_state_unconfigured     = {"unconfigured", 1};
-const rcl_state_t rcl_state_inactive         = {"my_inactive", 2};
+const rcl_state_t rcl_state_inactive         = {"inactive", 2};
 const rcl_state_t rcl_state_active           = {"active", 3};
 const rcl_state_t rcl_state_finalized        = {"finalized", 4};
-
+// Transition States
 const rcl_state_t rcl_state_configuring      = {"configuring", 10};
 const rcl_state_t rcl_state_cleaningup       = {"cleaningup", 11};
 const rcl_state_t rcl_state_shuttingdown     = {"shuttingdown", 12};
@@ -66,6 +67,7 @@ rcl_ret_t
 rcl_init_default_state_machine(rcl_state_machine_t * state_machine)
 {
   // Maybe we can directly store only pointers to states
+  rcl_register_primary_state(&state_machine->transition_map, rcl_state_unknown);
   rcl_register_primary_state(&state_machine->transition_map, rcl_state_unconfigured);
   rcl_register_primary_state(&state_machine->transition_map, rcl_state_inactive);
   rcl_register_primary_state(&state_machine->transition_map, rcl_state_active);
@@ -83,16 +85,20 @@ rcl_init_default_state_machine(rcl_state_machine_t * state_machine)
     rcl_state_deactivating.index, rcl_state_deactivating.label);
 
   // add transitions to map
+  // TODO(karsten1987): Add global transition for unknown/resetting
+  // TODO(karsten1987): Pointer comparison fails here because of copy!
   rcl_register_transition_by_state(&state_machine->transition_map,
     &rcl_state_unconfigured, &rcl_state_inactive, rcl_transition_configuring);
   rcl_register_transition_by_state(&state_machine->transition_map,
-    &rcl_state_inactive, &rcl_state_unconfigured, rcl_transition_cleaningup);
-  rcl_register_transition_by_state(&state_machine->transition_map,
     &rcl_state_unconfigured, &rcl_state_finalized, rcl_transition_shuttingdown);
+
+  rcl_register_transition_by_state(&state_machine->transition_map,
+    &rcl_state_inactive, &rcl_state_unconfigured, rcl_transition_cleaningup);
   rcl_register_transition_by_state(&state_machine->transition_map,
     &rcl_state_inactive, &rcl_state_finalized, rcl_transition_shuttingdown);
   rcl_register_transition_by_state(&state_machine->transition_map,
     &rcl_state_inactive, &rcl_state_active, rcl_transition_activating);
+
   rcl_register_transition_by_state(&state_machine->transition_map,
     &rcl_state_active, &rcl_state_inactive, rcl_transition_deactivating);
   rcl_register_transition_by_state(&state_machine->transition_map,
