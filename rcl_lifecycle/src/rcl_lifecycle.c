@@ -398,9 +398,10 @@ rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
   // If we have a transition which is semantically not correct
   // we may have to set the current state to something intermediate
   // or simply ignore it
-  if (&transition->transition_state != state_machine->current_state) {
-    fprintf(stderr, "%s:%d, Wrong transition state. State machine is in primary state %s\n",
-      __FILE__, __LINE__, state_machine->current_state->label);
+  // TODO(Karsten1987): pointer comparison fails here
+  if (transition->transition_state.index != state_machine->current_state->index) {
+    fprintf(stderr, "%s:%d, Wrong transition state %s. State machine is in primary state %s\n",
+      __FILE__, __LINE__, transition->transition_state.label, state_machine->current_state->label);
     return false;
   }
 
