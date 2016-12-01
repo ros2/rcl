@@ -22,6 +22,8 @@ extern "C"
 #include <string.h>
 
 #include "rcl/rcl.h"
+#include "rcl/error_handling.h"
+
 #include "rosidl_generator_c/message_type_support.h"
 #include "rosidl_generator_c/string_functions.h"
 
@@ -71,6 +73,24 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
     const rosidl_service_type_support_t * ts_srv_change_state,
     bool default_states)
 {
+  if (!ts_pub_notify)
+  {
+    fprintf(stderr, "%s:%u, ts_pub_notify is null\n",
+        __FILE__, __LINE__);
+    return RCL_RET_ERROR;
+  }
+  if (!ts_srv_get_state)
+  {
+    fprintf(stderr, "%s:%u, ts_srv_get_state is null\n",
+        __FILE__, __LINE__);
+    return RCL_RET_ERROR;
+  }
+  if (!ts_srv_change_state)
+  {
+    fprintf(stderr, "%s:%u, ts_srv_change_state is null\n",
+        __FILE__, __LINE__);
+    return RCL_RET_ERROR;
+  }
   const char * node_name = rcl_node_get_name(node_handle);
 
   {  // initialize publisher
@@ -89,10 +109,12 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
     //  lifecycle_msgs, msg, Transition);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_ret_t ret = rcl_publisher_init(&state_machine->comm_interface.state_publisher,
-        state_machine->comm_interface.node_handle, ts_pub_notify, topic_name, &publisher_options);
+        node_handle, ts_pub_notify, topic_name, &publisher_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
+      fprintf(stderr, "Error adding %s: %s",
+          node_name, rcl_get_error_string_safe());
       state_machine = NULL;
       return ret;
     }
@@ -114,10 +136,12 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
     //  lifecycle_msgs, srv, GetState)();
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_ret_t ret = rcl_service_init(&state_machine->comm_interface.srv_get_state,
-        state_machine->comm_interface.node_handle, ts_srv_get_state, topic_name, &service_options);
+        node_handle, ts_srv_get_state, topic_name, &service_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
+      fprintf(stderr, "Error adding %s: %s",
+          node_name, rcl_get_error_string_safe());
       state_machine = NULL;
       return ret;
     }
@@ -139,10 +163,12 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
     //  lifecycle_msgs, srv, ChangeState);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_ret_t ret = rcl_service_init(&state_machine->comm_interface.srv_change_state,
-        state_machine->comm_interface.node_handle, ts_srv_change_state, topic_name, &service_options);
+        node_handle, ts_srv_change_state, topic_name, &service_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
+      fprintf(stderr, "Error adding %s: %s",
+          node_name, rcl_get_error_string_safe());
       state_machine = NULL;
       return ret;
     }
@@ -155,11 +181,12 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
 }
 
 rcl_ret_t
-rcl_state_machine_fini(rcl_state_machine_t * state_machine)
+rcl_state_machine_fini(rcl_state_machine_t * state_machine,
+    rcl_node_t * node_handle)
 {
   {  // destroy get state srv
     rcl_ret_t ret = rcl_service_fini(&state_machine->comm_interface.srv_get_state,
-        state_machine->comm_interface.node_handle);
+        node_handle);
     if (ret != RCL_RET_OK) {
       fprintf(stderr, "%s:%u, Failed to destroy get_state_srv service\n",
         __FILE__, __LINE__);
@@ -168,7 +195,7 @@ rcl_state_machine_fini(rcl_state_machine_t * state_machine)
 
   {  // destroy change state srv
     rcl_ret_t ret = rcl_service_fini(&state_machine->comm_interface.srv_change_state,
-        state_machine->comm_interface.node_handle);
+        node_handle);
     if (ret != RCL_RET_OK) {
       fprintf(stderr, "%s:%u, Failed to destroy change_state_srv service\n",
         __FILE__, __LINE__);
@@ -177,7 +204,7 @@ rcl_state_machine_fini(rcl_state_machine_t * state_machine)
 
   {  // destroy the publisher
     rcl_ret_t ret = rcl_publisher_fini(&state_machine->comm_interface.state_publisher,
-        state_machine->comm_interface.node_handle);
+        node_handle);
     if (ret != RCL_RET_OK) {
       fprintf(stderr, "%s:%u, Failed to destroy state publisher publisher\n",
         __FILE__, __LINE__);
@@ -198,6 +225,27 @@ rcl_state_machine_fini(rcl_state_machine_t * state_machine)
   free(transition_map->transition_arrays);
   transition_map->transition_arrays = NULL;
 
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine)
+{
+  if (&state_machine->transition_map == NULL)
+  {
+    RCL_SET_ERROR_MSG("transition map is null");
+    return RCL_RET_ERROR;
+  }
+  if (&state_machine->comm_interface.srv_get_state.impl == NULL)
+  {
+    RCL_SET_ERROR_MSG("get_state service is null");
+    return RCL_RET_ERROR;
+  }
+  if (&state_machine->comm_interface.srv_change_state.impl == NULL)
+  {
+    RCL_SET_ERROR_MSG("change_state service is null");
+    return RCL_RET_ERROR;
+  }
   return RCL_RET_OK;
 }
 

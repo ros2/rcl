@@ -47,7 +47,12 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine,
 
 LIFECYCLE_EXPORT
 rcl_ret_t
-rcl_state_machine_fini(rcl_state_machine_t * state_machine);
+rcl_state_machine_fini(rcl_state_machine_t * state_machine,
+    rcl_node_t * node_handle);
+
+LIFECYCLE_EXPORT
+rcl_ret_t
+rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine);
 
 // function definitions
 /*
