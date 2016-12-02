@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// testing default transition sequence.
+// This test requires that the transitions are set
+// as depicted in design.ros2.org
+
 #include <gtest/gtest.h>
 #include <vector>
 
@@ -80,6 +84,60 @@ static const std::vector<const char *> transition_names = {
   rcl_state_errorprocessing.label
 };
 
+/*
+ * Helper functions
+ */
+void
+test_successful_state_change(rcl_state_machine_t & state_machine,
+  unsigned int expected_current_state_index,
+  unsigned int expected_transition_index,
+  unsigned int expected_goal_state_index)
+{
+  EXPECT_EQ(state_machine.current_state->index, expected_current_state_index);
+  EXPECT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
+    false), RCL_RET_OK);
+  EXPECT_EQ(state_machine.current_state->index, expected_transition_index);
+  auto cb_success = true;
+  EXPECT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false), RCL_RET_OK);
+  EXPECT_EQ(state_machine.current_state->index, expected_goal_state_index);
+}
+
+void
+test_successful_state_change_strong(rcl_state_machine_t & state_machine,
+  unsigned int expected_current_state_index,
+  unsigned int expected_transition_index,
+  unsigned int expected_goal_state_index)
+{
+  ASSERT_EQ(state_machine.current_state->index, expected_current_state_index);
+  ASSERT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
+    false), RCL_RET_OK);
+  ASSERT_EQ(state_machine.current_state->index, expected_transition_index);
+  auto cb_success = true;
+  ASSERT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false), RCL_RET_OK);
+  ASSERT_EQ(state_machine.current_state->index, expected_goal_state_index);
+}
+
+void
+test_unsuccessful_state_change(rcl_state_machine_t & state_machine,
+  unsigned int expected_current_state_index,
+  unsigned int expected_transition_index,
+  unsigned int expected_goal_state_index)
+{
+  EXPECT_EQ(state_machine.current_state->index, expected_current_state_index);
+  EXPECT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
+    false), RCL_RET_OK);
+  EXPECT_EQ(state_machine.current_state->index, expected_transition_index);
+  auto cb_success = false;
+  EXPECT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false), RCL_RET_OK);
+  EXPECT_EQ(state_machine.current_state->index, expected_goal_state_index);
+}
+
+/*
+ * Test suite
+ */
 TEST_F(TestDefaultStateMachine, zero_init) {
   rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
   ASSERT_EQ(rcl_state_machine_is_initialized(&state_machine), RCL_RET_OK);
@@ -115,44 +173,9 @@ TEST_F(TestDefaultStateMachine, transitions) {
   }
 }
 
-void
-test_successful_state_change(rcl_state_machine_t & state_machine,
-  unsigned int expected_current_state_index,
-  unsigned int expected_transition_index,
-  unsigned int expected_goal_state_index)
-{
-  EXPECT_EQ(state_machine.current_state->index, expected_current_state_index);
-  EXPECT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
-    false), RCL_RET_OK);
-  EXPECT_EQ(state_machine.current_state->index, expected_transition_index);
-  auto cb_success = true;
-  EXPECT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
-    cb_success, false), RCL_RET_OK);
-  EXPECT_EQ(state_machine.current_state->index, expected_goal_state_index);
-}
-
-void
-test_successful_state_change_strong(rcl_state_machine_t & state_machine,
-  unsigned int expected_current_state_index,
-  unsigned int expected_transition_index,
-  unsigned int expected_goal_state_index)
-{
-  ASSERT_EQ(state_machine.current_state->index, expected_current_state_index);
-  ASSERT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
-    false), RCL_RET_OK);
-  ASSERT_EQ(state_machine.current_state->index, expected_transition_index);
-  auto cb_success = true;
-  ASSERT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
-    cb_success, false), RCL_RET_OK);
-  ASSERT_EQ(state_machine.current_state->index, expected_goal_state_index);
-}
 TEST_F(TestDefaultStateMachine, default_sequence) {
   rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
   rcl_init_default_state_machine(&state_machine);
-
-  // testing default transition sequence.
-  // This test requires that the transitions are set
-  // as depicted in design.ros2.org
 
   {  // configuring  (unconfigured to inactive)
     test_successful_state_change(state_machine,
@@ -177,6 +200,59 @@ TEST_F(TestDefaultStateMachine, default_sequence) {
   {  // shutdown  (unconfigured to finalized)
     test_successful_state_change(state_machine,
       rcl_state_unconfigured.index, rcl_state_shuttingdown.index, rcl_state_finalized.index);
+  }
+}
+
+TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
+  rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+  rcl_init_default_state_machine(&state_machine);
+
+  { // supposed to stay unconfigured for all invalid
+    for (auto it = transition_states.begin(); it != transition_states.end(); ++it) {
+      if (*it == rcl_state_configuring.index ||
+        *it == rcl_state_cleaningup.index ||
+        *it == rcl_state_shuttingdown.index) {continue;}
+
+      EXPECT_EQ(rcl_start_transition_by_index(&state_machine, *it, false), RCL_RET_ERROR);
+      EXPECT_EQ(state_machine.current_state->index, rcl_state_unconfigured.index);
+    }
+  }
+
+  { // supposed to stay inactive for all invalid
+    test_successful_state_change_strong(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+
+    for (auto it = transition_states.begin(); it != transition_states.end(); ++it) {
+      if (*it == rcl_state_cleaningup.index ||
+        *it == rcl_state_activating.index ||
+        *it == rcl_state_shuttingdown.index) {continue;}
+
+      EXPECT_EQ(rcl_start_transition_by_index(&state_machine, *it, false), RCL_RET_ERROR);
+      EXPECT_EQ(state_machine.current_state->index, rcl_state_inactive.index);
+    }
+  }
+
+  { // supposed to stay inactive for all invalid
+    test_successful_state_change_strong(state_machine,
+      rcl_state_inactive.index, rcl_state_activating.index, rcl_state_active.index);
+
+    for (auto it = transition_states.begin(); it != transition_states.end(); ++it) {
+      if (*it == rcl_state_deactivating.index ||
+        *it == rcl_state_shuttingdown.index) {continue;}
+
+      EXPECT_EQ(rcl_start_transition_by_index(&state_machine, *it, false), RCL_RET_ERROR);
+      EXPECT_EQ(state_machine.current_state->index, rcl_state_active.index);
+    }
+  }
+
+  { // supposed to stay finalized for all invalid
+    test_successful_state_change_strong(state_machine,
+      rcl_state_active.index, rcl_state_shuttingdown.index, rcl_state_finalized.index);
+
+    for (auto it = transition_states.begin(); it != transition_states.end(); ++it) {
+      EXPECT_EQ(rcl_start_transition_by_index(&state_machine, *it, false), RCL_RET_ERROR);
+      EXPECT_EQ(state_machine.current_state->index, rcl_state_finalized.index);
+    }
   }
 }
 
@@ -241,22 +317,6 @@ TEST_F(TestDefaultStateMachine, default_sequence_shutdown) {
     test_successful_state_change(state_machine,
       rcl_state_active.index, rcl_state_shuttingdown.index, rcl_state_finalized.index);
   }
-}
-
-void
-test_unsuccessful_state_change(rcl_state_machine_t & state_machine,
-  unsigned int expected_current_state_index,
-  unsigned int expected_transition_index,
-  unsigned int expected_goal_state_index)
-{
-  EXPECT_EQ(state_machine.current_state->index, expected_current_state_index);
-  EXPECT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
-    false), RCL_RET_OK);
-  EXPECT_EQ(state_machine.current_state->index, expected_transition_index);
-  auto cb_success = false;
-  EXPECT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
-    cb_success, false), RCL_RET_OK);
-  EXPECT_EQ(state_machine.current_state->index, expected_goal_state_index);
 }
 
 TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
