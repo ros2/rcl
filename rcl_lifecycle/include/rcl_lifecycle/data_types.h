@@ -84,13 +84,13 @@ typedef struct LIFECYCLE_EXPORT _rcl_transition_map_t
  * srv_get_state for getting current state
  * srv_change_state for requesting a state change
  */
-typedef struct LIFECYCLE_EXPORT _rcl_state_comm_interface_t
+typedef struct LIFECYCLE_EXPORT _rcl_com_interface_t
 {
   rcl_node_t * node_handle;
   rcl_publisher_t state_publisher;
   rcl_service_t srv_get_state;
   rcl_service_t srv_change_state;
-} rcl_state_comm_interface_t;
+} rcl_com_interface_t;
 
 /**
  * @brief: statemachine object holding
@@ -106,7 +106,7 @@ typedef struct LIFECYCLE_EXPORT _rcl_state_machine_t
   // Map/Associated array of registered states and transitions
   rcl_transition_map_t transition_map;
   // Communication interface into a ROS world
-  rcl_state_comm_interface_t comm_interface;
+  rcl_com_interface_t com_interface;
 } rcl_state_machine_t;
 
 #if __cplusplus

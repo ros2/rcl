@@ -17,6 +17,7 @@ include_directories(
   include)
 
 set(rcl_lifecycle_sources
+  src/com_interface.c
   src/default_state_machine.c
   src/rcl_lifecycle.c
   src/transition_map.c)
@@ -49,6 +50,8 @@ call_for_each_rmw_implementation(targets GENERATE_DEFAULT)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+
+  add_subdirectory(test)
 endif()
 
 ament_export_include_directories(include)

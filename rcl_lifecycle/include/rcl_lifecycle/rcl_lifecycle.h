@@ -96,12 +96,12 @@ rcl_register_callback(rcl_state_machine_t * state_machine,
 LIFECYCLE_EXPORT
 bool
 rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_index);
+  unsigned int transition_index, bool publish_notification);
 
 LIFECYCLE_EXPORT
 bool
 rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_index, bool success);
+  unsigned int transition_index, bool success, bool publish_notification);
 
 #if __cplusplus
 }
