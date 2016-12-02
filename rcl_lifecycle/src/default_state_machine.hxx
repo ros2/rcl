@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_LIFECYCLE__DEFAULT_STATE_MACHINE_HXX_
-#define RCL_LIFECYCLE__DEFAULT_STATE_MACHINE_HXX_
+#ifndef DEFAULT_STATE_MACHINE_HXX_
+#define DEFAULT_STATE_MACHINE_HXX_
 
 #include <rcl/types.h>
 
@@ -33,4 +33,4 @@ rcl_init_default_state_machine(rcl_state_machine_t * state_machine);
 }
 #endif
 
-#endif  // RCL_LIFECYCLE__DEFAULT_STATE_MACHINE_HXX_
+#endif  // DEFAULT_STATE_MACHINE_HXX_

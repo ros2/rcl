@@ -48,7 +48,18 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine,
 LIFECYCLE_EXPORT
 rcl_ret_t
 rcl_state_machine_fini(rcl_state_machine_t * state_machine,
-    rcl_node_t * node_handle);
+  rcl_node_t * node_handle);
+
+/*
+ * @brief enforce users to explicitely call this function
+ * to resolve any error state.
+ * The resolved flag indicates whether a high-level "on_error"
+ * callback was successful or if the node should be finalized
+ */
+LIFECYCLE_EXPORT
+rcl_ret_t
+rcl_state_machine_resolve_error(rcl_state_machine_t * state_machine,
+  bool resolved);
 
 LIFECYCLE_EXPORT
 rcl_ret_t

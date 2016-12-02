@@ -55,7 +55,7 @@ static const std::vector<size_t> primary_states = {
   rcl_state_active.index,
   rcl_state_finalized.index
 };
-static const std::vector<const char*> primary_names = {
+static const std::vector<const char *> primary_names = {
   rcl_state_unknown.label,
   rcl_state_unconfigured.label,
   rcl_state_inactive.label,
@@ -71,7 +71,7 @@ static const std::vector<size_t> transition_states = {
   rcl_state_deactivating.index,
   rcl_state_errorprocessing.index
 };
-static const std::vector<const char*> transition_names = {
+static const std::vector<const char *> transition_names = {
   rcl_state_configuring.label,
   rcl_state_cleaningup.label,
   rcl_state_shuttingdown.label,
@@ -80,8 +80,7 @@ static const std::vector<const char*> transition_names = {
   rcl_state_errorprocessing.label
 };
 
-TEST_F(TestDefaultStateMachine, zero_init)
-{
+TEST_F(TestDefaultStateMachine, zero_init) {
   rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
   ASSERT_EQ(rcl_state_machine_is_initialized(&state_machine), false);
   const rcl_transition_map_t * transition_map = &state_machine.transition_map;
@@ -90,38 +89,62 @@ TEST_F(TestDefaultStateMachine, zero_init)
   ASSERT_EQ(transition_map->transition_arrays, nullptr);
 }
 
-TEST_F(TestDefaultStateMachine, init)
-{
+TEST_F(TestDefaultStateMachine, init) {
   rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
   rcl_init_default_state_machine(&state_machine);
 
   const rcl_transition_map_t * transition_map = &state_machine.transition_map;
   ASSERT_EQ(transition_map->size, primary_names.size());
 
-  for (auto i=0; i < primary_names.size(); ++i)
-  {
+  for (auto i = 0; i < primary_names.size(); ++i) {
     ASSERT_EQ(primary_states[i], transition_map->primary_states[i].index);
     ASSERT_STREQ(primary_names[i], transition_map->primary_states[i].label);
   }
 }
 
-TEST_F(TestDefaultStateMachine, transitions)
-{
+TEST_F(TestDefaultStateMachine, transitions) {
   rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
   rcl_init_default_state_machine(&state_machine);
 
   // exclude error processing for now
-  for (auto i=0; i < transition_states.size()-1; ++i)
-  {
+  for (auto i = 0; i < transition_states.size() - 1; ++i) {
     EXPECT_FALSE(nullptr ==
-        rcl_get_registered_transition_by_index(&state_machine, transition_states[i]));
+      rcl_get_registered_transition_by_index(&state_machine, transition_states[i]));
     EXPECT_FALSE(nullptr ==
-        rcl_get_registered_transition_by_label(&state_machine, transition_names[i]));
+      rcl_get_registered_transition_by_label(&state_machine, transition_names[i]));
   }
 }
 
-TEST_F(TestDefaultStateMachine, default_sequence)
+void
+test_successful_state_change(rcl_state_machine_t & state_machine,
+  unsigned int expected_current_state_index,
+  unsigned int expected_transition_index,
+  unsigned int expected_goal_state_index)
 {
+  EXPECT_EQ(state_machine.current_state->index, expected_current_state_index);
+  EXPECT_TRUE(rcl_start_transition_by_index(&state_machine, expected_transition_index, false));
+  EXPECT_EQ(state_machine.current_state->index, expected_transition_index);
+  auto cb_success = true;
+  EXPECT_TRUE(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false));
+  EXPECT_EQ(state_machine.current_state->index, expected_goal_state_index);
+}
+
+void
+test_successful_state_change_strong(rcl_state_machine_t & state_machine,
+  unsigned int expected_current_state_index,
+  unsigned int expected_transition_index,
+  unsigned int expected_goal_state_index)
+{
+  ASSERT_EQ(state_machine.current_state->index, expected_current_state_index);
+  ASSERT_TRUE(rcl_start_transition_by_index(&state_machine, expected_transition_index, false));
+  ASSERT_EQ(state_machine.current_state->index, expected_transition_index);
+  auto cb_success = true;
+  ASSERT_TRUE(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false));
+  ASSERT_EQ(state_machine.current_state->index, expected_goal_state_index);
+}
+TEST_F(TestDefaultStateMachine, default_sequence) {
   rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
   rcl_init_default_state_machine(&state_machine);
 
@@ -129,7 +152,206 @@ TEST_F(TestDefaultStateMachine, default_sequence)
   // This test requires that the transitions are set
   // as depicted in design.ros2.org
 
-  //const rcl_transition_map_t * transition_map = &state_machine.transition_map;
+  {  // configuring  (unconfigured to inactive)
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+  }
 
-  EXPECT_EQ(state_machine.current_state->index, rcl_state_unconfigured.index);
+  {  // activating  (inactive to active)
+    test_successful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_activating.index, rcl_state_active.index);
+  }
+
+  {  // deactivating  (active to inactive)
+    test_successful_state_change(state_machine,
+      rcl_state_active.index, rcl_state_deactivating.index, rcl_state_inactive.index);
+  }
+
+  {  // cleaningup  (inactive to unconfigured)
+    test_successful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_cleaningup.index, rcl_state_unconfigured.index);
+  }
+
+  {  // shutdown  (unconfigured to finalized)
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_shuttingdown.index, rcl_state_finalized.index);
+  }
+}
+
+TEST_F(TestDefaultStateMachine, default_sequence_loop) {
+  rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+  rcl_init_default_state_machine(&state_machine);
+
+  // testing default transition sequence.
+  // This test requires that the transitions are set
+  // as depicted in design.ros2.org
+  size_t n = 5;
+  for (auto i = 0; i < n; ++i) {
+    { // configuring  (unconfigured to inactive)
+      test_successful_state_change_strong(state_machine,
+        rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    }
+
+    { // activating  (inactive to active)
+      test_successful_state_change_strong(state_machine,
+        rcl_state_inactive.index, rcl_state_activating.index, rcl_state_active.index);
+    }
+
+    { // deactivating  (active to inactive)
+      test_successful_state_change_strong(state_machine,
+        rcl_state_active.index, rcl_state_deactivating.index, rcl_state_inactive.index);
+    }
+
+    { // cleaningup  (inactive to unconfigured)
+      test_successful_state_change_strong(state_machine,
+        rcl_state_inactive.index, rcl_state_cleaningup.index, rcl_state_unconfigured.index);
+    }
+  }
+  {  // shutdown  (unconfigured to finalized)
+    test_successful_state_change_strong(state_machine,
+      rcl_state_unconfigured.index, rcl_state_shuttingdown.index, rcl_state_finalized.index);
+  }
+}
+
+TEST_F(TestDefaultStateMachine, default_sequence_shutdown) {
+  {  // unconfigured to shutdown
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_shuttingdown.index, rcl_state_finalized.index);
+  }
+  {  // inactive to shutdown
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    test_successful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_shuttingdown.index, rcl_state_finalized.index);
+  }
+
+  {  // active to shutdown
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    test_successful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_activating.index, rcl_state_active.index);
+    test_successful_state_change(state_machine,
+      rcl_state_active.index, rcl_state_shuttingdown.index, rcl_state_finalized.index);
+  }
+}
+
+void
+test_unsuccessful_state_change(rcl_state_machine_t & state_machine,
+  unsigned int expected_current_state_index,
+  unsigned int expected_transition_index,
+  unsigned int expected_goal_state_index)
+{
+  EXPECT_EQ(state_machine.current_state->index, expected_current_state_index);
+  EXPECT_TRUE(rcl_start_transition_by_index(&state_machine, expected_transition_index, false));
+  EXPECT_EQ(state_machine.current_state->index, expected_transition_index);
+  auto cb_success = false;
+  EXPECT_TRUE(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false));
+  EXPECT_EQ(state_machine.current_state->index, expected_goal_state_index);
+}
+
+TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
+  {  // configuring to error
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_unsuccessful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_errorprocessing.index);
+    bool error_resolved = true;
+    EXPECT_EQ(rcl_state_machine_resolve_error(&state_machine, error_resolved), RCL_RET_OK);
+    EXPECT_EQ(state_machine.current_state->index, rcl_state_unconfigured.index);
+  }
+
+  {  // cleaningup to error
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    test_unsuccessful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_cleaningup.index, rcl_state_errorprocessing.index);
+    bool error_resolved = true;
+    EXPECT_EQ(rcl_state_machine_resolve_error(&state_machine, error_resolved), RCL_RET_OK);
+    EXPECT_EQ(state_machine.current_state->index, rcl_state_unconfigured.index);
+  }
+
+  {  // activating to error
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    test_unsuccessful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_activating.index, rcl_state_errorprocessing.index);
+    bool error_resolved = true;
+    EXPECT_EQ(rcl_state_machine_resolve_error(&state_machine, error_resolved), RCL_RET_OK);
+    EXPECT_EQ(state_machine.current_state->index, rcl_state_unconfigured.index);
+  }
+
+  {  // deactivating to error
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    test_successful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_activating.index, rcl_state_active.index);
+    test_unsuccessful_state_change(state_machine,
+      rcl_state_active.index, rcl_state_deactivating.index, rcl_state_errorprocessing.index);
+    bool error_resolved = true;
+    EXPECT_EQ(rcl_state_machine_resolve_error(&state_machine, error_resolved), RCL_RET_OK);
+    EXPECT_EQ(state_machine.current_state->index, rcl_state_unconfigured.index);
+  }
+}
+
+TEST_F(TestDefaultStateMachine, default_sequence_error_unresolved) {
+  {  // configuring to error
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_unsuccessful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_errorprocessing.index);
+    bool error_resolved = false;
+    EXPECT_EQ(rcl_state_machine_resolve_error(&state_machine, error_resolved), RCL_RET_OK);
+    EXPECT_EQ(state_machine.current_state->index, rcl_state_finalized.index);
+  }
+
+  {  // cleaningup to error
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    test_unsuccessful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_cleaningup.index, rcl_state_errorprocessing.index);
+    bool error_resolved = false;
+    EXPECT_EQ(rcl_state_machine_resolve_error(&state_machine, error_resolved), RCL_RET_OK);
+    EXPECT_EQ(state_machine.current_state->index, rcl_state_finalized.index);
+  }
+
+  {  // activating to error
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    test_unsuccessful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_activating.index, rcl_state_errorprocessing.index);
+    bool error_resolved = false;
+    EXPECT_EQ(rcl_state_machine_resolve_error(&state_machine, error_resolved), RCL_RET_OK);
+    EXPECT_EQ(state_machine.current_state->index, rcl_state_finalized.index);
+  }
+
+  {  // deactivating to error
+    rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
+    rcl_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      rcl_state_unconfigured.index, rcl_state_configuring.index, rcl_state_inactive.index);
+    test_successful_state_change(state_machine,
+      rcl_state_inactive.index, rcl_state_activating.index, rcl_state_active.index);
+    test_unsuccessful_state_change(state_machine,
+      rcl_state_active.index, rcl_state_deactivating.index, rcl_state_errorprocessing.index);
+    bool error_resolved = false;
+    EXPECT_EQ(rcl_state_machine_resolve_error(&state_machine, error_resolved), RCL_RET_OK);
+    EXPECT_EQ(state_machine.current_state->index, rcl_state_finalized.index);
+  }
 }

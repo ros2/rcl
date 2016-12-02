@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_LIFECYCLE__COM_INTERFACE_H_
-#define RCL_LIFECYCLE__COM_INTERFACE_H_
+#ifndef COM_INTERFACE_HXX_
+#define COM_INTERFACE_HXX_
 
 #if __cplusplus
 extern "C"
 {
 #endif
 
-#include "data_types.h"
-#include "visibility_control.h"
+#include "rcl_lifecycle/data_types.h"
+#include "rcl_lifecycle/visibility_control.h"
 
 LIFECYCLE_EXPORT
 rcl_com_interface_t
@@ -43,10 +43,10 @@ rcl_com_interface_fini(rcl_com_interface_t * com_interface,
 LIFECYCLE_EXPORT
 rcl_ret_t
 rcl_com_interface_publish_notification(rcl_com_interface_t * com_interface,
-    const rcl_state_t * start, const rcl_state_t * goal);
+  const rcl_state_t * start, const rcl_state_t * goal);
 
 #if __cplusplus
 }
 #endif
 
-#endif  // RCL_LIFECYCLE__COM_INTERFACE_H_
+#endif  // COM_INTERFACE_HXX_

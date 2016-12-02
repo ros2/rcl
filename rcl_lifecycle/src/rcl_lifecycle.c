@@ -24,10 +24,10 @@ extern "C"
 #include "rcl/rcl.h"
 #include "rcl/error_handling.h"
 
-#include "rcl_lifecycle/com_interface.h"
 #include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/transition_map.h"
 
+#include "com_interface.hxx"
 #include "default_state_machine.hxx"
 
 // get zero initialized state machine here
@@ -44,15 +44,16 @@ rcl_get_zero_initialized_state_machine()
 
 rcl_ret_t
 rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_handle,
-    const rosidl_message_type_support_t * ts_pub_notify,
-    const rosidl_service_type_support_t * ts_srv_get_state,
-    const rosidl_service_type_support_t * ts_srv_change_state,
-    bool default_states)
+  const rosidl_message_type_support_t * ts_pub_notify,
+  const rosidl_service_type_support_t * ts_srv_get_state,
+  const rosidl_service_type_support_t * ts_srv_change_state,
+  bool default_states)
 {
   if (rcl_com_interface_init(&state_machine->com_interface, node_handle,
-        ts_pub_notify, ts_srv_get_state, ts_srv_change_state) != RCL_RET_OK) {
+    ts_pub_notify, ts_srv_get_state, ts_srv_change_state) != RCL_RET_OK)
+  {
     fprintf(stderr, "%s:%u, Failed to initialize com interface\n",
-        __FILE__, __LINE__);
+      __FILE__, __LINE__);
     return RCL_RET_ERROR;
   }
 
@@ -64,7 +65,7 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
 
 rcl_ret_t
 rcl_state_machine_fini(rcl_state_machine_t * state_machine,
-    rcl_node_t * node_handle)
+  rcl_node_t * node_handle)
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
@@ -87,20 +88,33 @@ rcl_state_machine_fini(rcl_state_machine_t * state_machine,
 }
 
 rcl_ret_t
+rcl_state_machine_resolve_error(rcl_state_machine_t * state_machine,
+  bool resolved)
+{
+  if (state_machine->current_state->index != rcl_state_errorprocessing.index) {
+    RCL_SET_ERROR_MSG("Can't resolve error. State machine is not in errorneous state.");
+    return RCL_RET_ERROR;
+  }
+  if (resolved) {
+    state_machine->current_state = &rcl_state_unconfigured;
+  } else {
+    state_machine->current_state = &rcl_state_finalized;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine)
 {
-  if (&state_machine->transition_map == NULL)
-  {
+  if (&state_machine->transition_map == NULL) {
     RCL_SET_ERROR_MSG("transition map is null");
     return RCL_RET_ERROR;
   }
-  if (&state_machine->com_interface.srv_get_state.impl == NULL)
-  {
+  if (&state_machine->com_interface.srv_get_state.impl == NULL) {
     RCL_SET_ERROR_MSG("get_state service is null");
     return RCL_RET_ERROR;
   }
-  if (&state_machine->com_interface.srv_change_state.impl == NULL)
-  {
+  if (&state_machine->com_interface.srv_change_state.impl == NULL) {
     RCL_SET_ERROR_MSG("change_state service is null");
     return RCL_RET_ERROR;
   }
@@ -226,7 +240,7 @@ rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
 
   if (publish_notification == true) {
     rcl_com_interface_publish_notification(&state_machine->com_interface,
-        transition->start, &transition->transition_state);
+      transition->start, &transition->transition_state);
   }
   return true;
 }

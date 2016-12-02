@@ -17,8 +17,8 @@ extern "C"
 {
 #endif
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 
 #include "rosidl_generator_c/message_type_support.h"
 #include "rosidl_generator_c/string_functions.h"
@@ -29,8 +29,9 @@ extern "C"
 
 #include "rcl/error_handling.h"
 
-#include "rcl_lifecycle/com_interface.h"
 #include "rcl_lifecycle/data_types.h"
+
+#include "com_interface.hxx"
 
 static lifecycle_msgs__msg__Transition msg;
 
@@ -43,7 +44,7 @@ bool concatenate(const char ** prefix, const char ** suffix, char ** result)
   }
   *result = malloc((prefix_size + suffix_size) * sizeof(char));
   memcpy(*result, *prefix, prefix_size);
-  memcpy(*result + prefix_size, *suffix, suffix_size+1);
+  memcpy(*result + prefix_size, *suffix, suffix_size + 1);
   return true;
 }
 
@@ -65,22 +66,19 @@ rcl_com_interface_init(rcl_com_interface_t * com_interface,
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_change_state)
 {
-  if (!ts_pub_notify)
-  {
+  if (!ts_pub_notify) {
     fprintf(stderr, "%s:%u, ts_pub_notify is null\n",
-        __FILE__, __LINE__);
+      __FILE__, __LINE__);
     return RCL_RET_ERROR;
   }
-  if (!ts_srv_get_state)
-  {
+  if (!ts_srv_get_state) {
     fprintf(stderr, "%s:%u, ts_srv_get_state is null\n",
-        __FILE__, __LINE__);
+      __FILE__, __LINE__);
     return RCL_RET_ERROR;
   }
-  if (!ts_srv_change_state)
-  {
+  if (!ts_srv_change_state) {
     fprintf(stderr, "%s:%u, ts_srv_change_state is null\n",
-        __FILE__, __LINE__);
+      __FILE__, __LINE__);
     return RCL_RET_ERROR;
   }
 
@@ -105,7 +103,7 @@ rcl_com_interface_init(rcl_com_interface_t * com_interface,
 
     if (ret != RCL_RET_OK) {
       fprintf(stderr, "Error adding %s: %s",
-          node_name, rcl_get_error_string_safe());
+        node_name, rcl_get_error_string_safe());
       com_interface = NULL;
       return ret;
     }
@@ -130,7 +128,7 @@ rcl_com_interface_init(rcl_com_interface_t * com_interface,
 
     if (ret != RCL_RET_OK) {
       fprintf(stderr, "Error adding %s: %s",
-          node_name, rcl_get_error_string_safe());
+        node_name, rcl_get_error_string_safe());
       com_interface = NULL;
       return ret;
     }
@@ -155,7 +153,7 @@ rcl_com_interface_init(rcl_com_interface_t * com_interface,
 
     if (ret != RCL_RET_OK) {
       fprintf(stderr, "Error adding %s: %s",
-          node_name, rcl_get_error_string_safe());
+        node_name, rcl_get_error_string_safe());
       com_interface = NULL;
       return ret;
     }
@@ -165,7 +163,7 @@ rcl_com_interface_init(rcl_com_interface_t * com_interface,
 
 rcl_ret_t
 rcl_com_interface_fini(rcl_com_interface_t * com_interface,
-    rcl_node_t * node_handle)
+  rcl_node_t * node_handle)
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
   {  // destroy get state srv
@@ -203,7 +201,7 @@ rcl_com_interface_fini(rcl_com_interface_t * com_interface,
 
 rcl_ret_t
 rcl_com_interface_publish_notification(rcl_com_interface_t * com_interface,
-    const rcl_state_t * start, const rcl_state_t * goal)
+  const rcl_state_t * start, const rcl_state_t * goal)
 {
   lifecycle_msgs__msg__Transition__init(&msg);
   msg.start_state = start->index;
