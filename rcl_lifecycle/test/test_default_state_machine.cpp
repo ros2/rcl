@@ -82,7 +82,7 @@ static const std::vector<const char *> transition_names = {
 
 TEST_F(TestDefaultStateMachine, zero_init) {
   rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
-  ASSERT_EQ(rcl_state_machine_is_initialized(&state_machine), false);
+  ASSERT_EQ(rcl_state_machine_is_initialized(&state_machine), RCL_RET_OK);
   const rcl_transition_map_t * transition_map = &state_machine.transition_map;
   ASSERT_EQ(transition_map->size, 0);
   ASSERT_EQ(transition_map->primary_states, nullptr);
@@ -122,11 +122,12 @@ test_successful_state_change(rcl_state_machine_t & state_machine,
   unsigned int expected_goal_state_index)
 {
   EXPECT_EQ(state_machine.current_state->index, expected_current_state_index);
-  EXPECT_TRUE(rcl_start_transition_by_index(&state_machine, expected_transition_index, false));
+  EXPECT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
+    false), RCL_RET_OK);
   EXPECT_EQ(state_machine.current_state->index, expected_transition_index);
   auto cb_success = true;
-  EXPECT_TRUE(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
-    cb_success, false));
+  EXPECT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false), RCL_RET_OK);
   EXPECT_EQ(state_machine.current_state->index, expected_goal_state_index);
 }
 
@@ -137,11 +138,12 @@ test_successful_state_change_strong(rcl_state_machine_t & state_machine,
   unsigned int expected_goal_state_index)
 {
   ASSERT_EQ(state_machine.current_state->index, expected_current_state_index);
-  ASSERT_TRUE(rcl_start_transition_by_index(&state_machine, expected_transition_index, false));
+  ASSERT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
+    false), RCL_RET_OK);
   ASSERT_EQ(state_machine.current_state->index, expected_transition_index);
   auto cb_success = true;
-  ASSERT_TRUE(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
-    cb_success, false));
+  ASSERT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false), RCL_RET_OK);
   ASSERT_EQ(state_machine.current_state->index, expected_goal_state_index);
 }
 TEST_F(TestDefaultStateMachine, default_sequence) {
@@ -248,11 +250,12 @@ test_unsuccessful_state_change(rcl_state_machine_t & state_machine,
   unsigned int expected_goal_state_index)
 {
   EXPECT_EQ(state_machine.current_state->index, expected_current_state_index);
-  EXPECT_TRUE(rcl_start_transition_by_index(&state_machine, expected_transition_index, false));
+  EXPECT_EQ(rcl_start_transition_by_index(&state_machine, expected_transition_index,
+    false), RCL_RET_OK);
   EXPECT_EQ(state_machine.current_state->index, expected_transition_index);
   auto cb_success = false;
-  EXPECT_TRUE(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
-    cb_success, false));
+  EXPECT_EQ(rcl_finish_transition_by_index(&state_machine, expected_transition_index,
+    cb_success, false), RCL_RET_OK);
   EXPECT_EQ(state_machine.current_state->index, expected_goal_state_index);
 }
 

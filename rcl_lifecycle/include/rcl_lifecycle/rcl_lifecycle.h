@@ -105,12 +105,12 @@ rcl_register_callback(rcl_state_machine_t * state_machine,
   unsigned int state_index, unsigned int transition_index, bool (* fcn)(void));
 
 LIFECYCLE_EXPORT
-bool
+rcl_ret_t
 rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
   unsigned int transition_index, bool publish_notification);
 
 LIFECYCLE_EXPORT
-bool
+rcl_ret_t
 rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
   unsigned int transition_index, bool success, bool publish_notification);
 

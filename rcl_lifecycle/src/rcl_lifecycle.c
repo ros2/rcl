@@ -52,8 +52,6 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_ha
   if (rcl_com_interface_init(&state_machine->com_interface, node_handle,
     ts_pub_notify, ts_srv_get_state, ts_srv_change_state) != RCL_RET_OK)
   {
-    fprintf(stderr, "%s:%u, Failed to initialize com interface\n",
-      __FILE__, __LINE__);
     return RCL_RET_ERROR;
   }
 
@@ -211,9 +209,7 @@ rcl_register_callback(rcl_state_machine_t * state_machine,
   }
 }
 
-// maybe change directly the current state here,
-// no need to that all the time inside high level language
-bool
+rcl_ret_t
 rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
   unsigned int transition_index, bool publish_notification)
 {
@@ -222,18 +218,18 @@ rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
 
   // If we have a faulty transition pointer
   if (transition == NULL) {
-    fprintf(stderr, "%s:%d, Could not find registered transition %u\n",
-      __FILE__, __LINE__, transition_index);
-    return false;
+    RCL_SET_ERROR_MSG("Transition is not registered.");
+    return RCL_RET_ERROR;
   }
 
   // If we have a transition which is semantically not correct
   // we may have to set the current state to something intermediate
   // or simply ignore it
   if (transition->start != state_machine->current_state) {
+    RCL_SET_ERROR_MSG("Transition not allowed for current state.");
     fprintf(stderr, "%s:%d, Wrong transition index %s. State machine is in primary state %s\n",
       __FILE__, __LINE__, transition->start->label, state_machine->current_state->label);
-    return false;
+    return RCL_RET_ERROR;
   }
   // Apply a transition state
   state_machine->current_state = &transition->transition_state;
@@ -242,10 +238,10 @@ rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
     rcl_com_interface_publish_notification(&state_machine->com_interface,
       transition->start, &transition->transition_state);
   }
-  return true;
+  return RCL_RET_OK;
 }
 
-bool
+rcl_ret_t
 rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
   unsigned int transition_index, bool success, bool publish_notification)
 {
@@ -254,19 +250,16 @@ rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
 
   // If we have a faulty transition pointer
   if (transition == NULL) {
-    fprintf(stderr, "%s:%d, Could not find registered transition %u\n",
-      __FILE__, __LINE__, transition_index);
-    return false;
+    RCL_SET_ERROR_MSG("Transition is not registered.");
+    return RCL_RET_ERROR;
   }
 
-  // If we have a transition which is semantically not correct
-  // we may have to set the current state to something intermediate
-  // or simply ignore it
   // TODO(Karsten1987): pointer comparison fails here
   if (transition->transition_state.index != state_machine->current_state->index) {
+    RCL_SET_ERROR_MSG("Transition not allowed for current state.");
     fprintf(stderr, "%s:%d, Wrong transition state %s. State machine is in primary state %s\n",
       __FILE__, __LINE__, transition->transition_state.label, state_machine->current_state->label);
-    return false;
+    return RCL_RET_ERROR;
   }
 
   // high level transition(callback) was executed correctly
@@ -277,10 +270,14 @@ rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
       rcl_com_interface_publish_notification(&state_machine->com_interface,
         &transition->transition_state, transition->goal);
     }
-    return true;
+    return RCL_RET_OK;
   }
 
-  // TODO(karsten1987): Clarify where to handle the on_error callback
+  // State machine stays in error state.
+  // The only way to resolve the error is by explicitly
+  // calling the high level on_error callback and then
+  // call 'rcl_state_machine_resolve_error' passing the
+  // result of the high level callback
   state_machine->current_state = transition->error;
 
   if (publish_notification == true) {
@@ -288,7 +285,7 @@ rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
       &transition->transition_state, transition->error);
   }
 
-  return true;
+  return RCL_RET_OK;
 }
 
 #if __cplusplus
