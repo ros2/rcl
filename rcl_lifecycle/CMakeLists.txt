@@ -10,7 +10,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
-find_package(std_msgs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 
 include_directories(
@@ -36,7 +35,6 @@ macro(targets)
 
   ament_target_dependencies(rcl_lifecycle${target_suffix}
     "rcl${target_suffix}"
-    "std_msgs"
     "lifecycle_msgs")
 
   install(TARGETS rcl_lifecycle${target_suffix}

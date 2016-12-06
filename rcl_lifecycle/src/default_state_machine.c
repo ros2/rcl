@@ -16,10 +16,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "rosidl_generator_c/message_type_support.h"
-#include "rosidl_generator_c/string_functions.h"
-#include "std_msgs/msg/string.h"
-
 #include "rcl_lifecycle/states.h"
 #include "rcl_lifecycle/transition_map.h"
 
