@@ -16,7 +16,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "rcl_lifecycle/states.h"
+#include <lifecycle_msgs/msg/state.h>
+#include <lifecycle_msgs/msg/transition.h>
+
+#include "states.hxx"
 #include "rcl_lifecycle/transition_map.h"
 
 #include "default_state_machine.hxx"
@@ -28,18 +31,18 @@ extern "C"
 
 // *INDENT-OFF*
 // Primary States
-const rcl_state_t rcl_state_unknown          = {"unknown", 0};
-const rcl_state_t rcl_state_unconfigured     = {"unconfigured", 1};
-const rcl_state_t rcl_state_inactive         = {"inactive", 2};
-const rcl_state_t rcl_state_active           = {"active", 3};
-const rcl_state_t rcl_state_finalized        = {"finalized", 4};
+const rcl_state_t rcl_state_unknown          = {"unknown", lifecycle_msgs__msg__State__PRIMARY_STATE_UNKNOWN};
+const rcl_state_t rcl_state_unconfigured     = {"unconfigured", lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED};
+const rcl_state_t rcl_state_inactive         = {"inactive", lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE};
+const rcl_state_t rcl_state_active           = {"active", lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE};
+const rcl_state_t rcl_state_finalized        = {"finalized", lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED};
 // Transition States
-const rcl_state_t rcl_state_configuring      = {"configuring", 10};
-const rcl_state_t rcl_state_cleaningup       = {"cleaningup", 11};
-const rcl_state_t rcl_state_shuttingdown     = {"shuttingdown", 12};
-const rcl_state_t rcl_state_activating       = {"activating", 13};
-const rcl_state_t rcl_state_deactivating     = {"deactivating", 14};
-const rcl_state_t rcl_state_errorprocessing  = {"errorprocessing", 15};
+const rcl_state_t rcl_state_configuring      = {"configuring", lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING};
+const rcl_state_t rcl_state_cleaningup       = {"cleaningup", lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP};
+const rcl_state_t rcl_state_shuttingdown     = {"shuttingdown", lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN};
+const rcl_state_t rcl_state_activating       = {"activating", lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING};
+const rcl_state_t rcl_state_deactivating     = {"deactivating", lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING};
+const rcl_state_t rcl_state_errorprocessing  = {"errorprocessing", lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING};
 // *INDENT-ON*
 
 rcl_state_t

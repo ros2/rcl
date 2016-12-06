@@ -29,6 +29,7 @@ extern "C"
 
 #include "com_interface.hxx"
 #include "default_state_machine.hxx"
+#include "states.hxx"
 
 // get zero initialized state machine here
 rcl_state_machine_t

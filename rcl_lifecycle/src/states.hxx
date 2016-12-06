@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_LIFECYCLE__STATES_H_
-#define RCL_LIFECYCLE__STATES_H_
+#ifndef RCL_LIFECYCLE__STATES_HXX_
+#define RCL_LIFECYCLE__STATES_HXX_
 
 #include <rcl_lifecycle/visibility_control.h>
 #include <rcl_lifecycle/data_types.h>
@@ -42,4 +42,4 @@ extern const rcl_state_t rcl_state_errorprocessing;
 }
 #endif  // extern "C"
 
-#endif  // RCL_LIFECYCLE__STATES_H_
+#endif  // RCL_LIFECYCLE__STATES_HXX_

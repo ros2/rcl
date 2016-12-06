@@ -23,7 +23,7 @@ extern "C"
 #include "rosidl_generator_c/message_type_support.h"
 #include "rosidl_generator_c/string_functions.h"
 
-#include "lifecycle_msgs/msg/transition.h"
+#include "lifecycle_msgs/msg/transition_event.h"
 #include "lifecycle_msgs/srv/get_state.h"
 #include "lifecycle_msgs/srv/change_state.h"
 
@@ -33,7 +33,7 @@ extern "C"
 
 #include "com_interface.hxx"
 
-static lifecycle_msgs__msg__Transition msg;
+static lifecycle_msgs__msg__TransitionEvent msg;
 
 bool concatenate(const char ** prefix, const char ** suffix, char ** result)
 {
@@ -104,7 +104,7 @@ rcl_com_interface_init(rcl_com_interface_t * com_interface,
     }
 
     // initialize static message for notification
-    lifecycle_msgs__msg__Transition__init(&msg);
+    lifecycle_msgs__msg__TransitionEvent__init(&msg);
   }
 
   {  // initialize get state service
@@ -180,7 +180,7 @@ rcl_com_interface_fini(rcl_com_interface_t * com_interface,
     if (ret != RCL_RET_OK) {
       fcn_ret = RCL_RET_ERROR;
     }
-    lifecycle_msgs__msg__Transition__fini(&msg);
+    lifecycle_msgs__msg__TransitionEvent__fini(&msg);
   }
 
   return fcn_ret;
@@ -190,8 +190,10 @@ rcl_ret_t
 rcl_com_interface_publish_notification(rcl_com_interface_t * com_interface,
   const rcl_state_t * start, const rcl_state_t * goal)
 {
-  msg.start_state = start->index;
-  msg.goal_state = goal->index;
+  msg.start_state.id = start->index;
+  rosidl_generator_c__String__assign(&msg.start_state.label, start->label);
+  msg.goal_state.id = goal->index;
+  rosidl_generator_c__String__assign(&msg.goal_state.label, goal->label);
 
   return rcl_publish(&com_interface->state_publisher, &msg);
 }

@@ -30,7 +30,6 @@ extern "C"
 
 #include <rcl_lifecycle/visibility_control.h>
 #include <rcl_lifecycle/data_types.h>
-#include <rcl_lifecycle/states.h>
 
 RCL_LIFECYCLE_PUBLIC
 rcl_state_machine_t
