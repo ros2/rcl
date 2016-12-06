@@ -19,8 +19,8 @@
  * library cannot have, but the consuming code must have inorder to link.
  */
 
-#ifndef RCL_LIFECYCLE__VISIBILITY_CONTROL_HPP_
-#define RCL_LIFECYCLE__VISIBILITY_CONTROL_HPP_
+#ifndef RCL_LIFECYCLE__VISIBILITY_CONTROL_H_
+#define RCL_LIFECYCLE__VISIBILITY_CONTROL_H_
 
 #include "rmw/rmw.h"
 
@@ -55,4 +55,4 @@
   #define RCL_LIFECYCLE_PUBLIC_TYPE
 #endif
 
-#endif  // RCL_LIFECYCLE__VISIBILITY_CONTROL_HPP_
+#endif  // RCL_LIFECYCLE__VISIBILITY_CONTROL_H_

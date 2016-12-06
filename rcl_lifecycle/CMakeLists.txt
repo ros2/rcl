@@ -50,10 +50,23 @@ endmacro()
 call_for_each_rmw_implementation(targets GENERATE_DEFAULT)
 
 if(BUILD_TESTING)
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11")
+  find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
+  find_package(rcl REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  add_subdirectory(test)
+  # Gtests
+  ament_add_gtest(test_default_state_machine
+    test/test_default_state_machine.cpp
+  )
+  if(TARGET test_default_state_machine)
+    target_include_directories(test_default_state_machine PUBLIC
+      ${rcl_INCLUDE_DIRS}
+      ${rcl_lifecycle_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_default_state_machine ${PROJECT_NAME})
+  endif()
 endif()
 
 ament_export_dependencies(ament_cmake)

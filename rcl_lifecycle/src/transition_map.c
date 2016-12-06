@@ -52,7 +52,8 @@ rcl_lifecycle_register_primary_state(rcl_lifecycle_transition_map_t * m,
 
 void
 rcl_lifecycle_register_transition_by_state(rcl_lifecycle_transition_map_t * m,
-  const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal, rcl_lifecycle_state_transition_t transition)
+  const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal,
+  rcl_lifecycle_state_transition_t transition)
 {
   transition.start = start;
   transition.goal = goal;
@@ -73,7 +74,8 @@ rcl_lifecycle_register_transition_by_state(rcl_lifecycle_transition_map_t * m,
       transition_array->size * sizeof(rcl_lifecycle_state_transition_t));
   } else {
     transition_array->transitions = realloc(
-      transition_array->transitions, transition_array->size * sizeof(rcl_lifecycle_state_transition_t));
+      transition_array->transitions,
+      transition_array->size * sizeof(rcl_lifecycle_state_transition_t));
   }
   // finally set the new transition to the end of the array
   transition_array->transitions[transition_array->size - 1] = transition;
