@@ -56,9 +56,16 @@ if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
 
+ament_export_dependencies(ament_cmake)
+ament_export_dependencies(lifecycle_msgs)
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
-ament_package()
+ament_package(
+  CONFIG_EXTRAS rcl_lifecycle-extras.cmake)
+
+install(
+  DIRECTORY cmake
+  DESTINATION share/${PROJECT_NAME})
 
 install(
   DIRECTORY include/
