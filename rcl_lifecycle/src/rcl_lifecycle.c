@@ -104,15 +104,15 @@ rcl_state_machine_resolve_error(rcl_state_machine_t * state_machine,
 rcl_ret_t
 rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine)
 {
-  if (&state_machine->transition_map == NULL) {
-    RCL_SET_ERROR_MSG("transition map is null");
+  if (state_machine->transition_map.size == 0) {
+    RCL_SET_ERROR_MSG("transition map is empty");
     return RCL_RET_ERROR;
   }
-  if (&state_machine->com_interface.srv_get_state.impl == NULL) {
+  if (state_machine->com_interface.srv_get_state.impl == NULL) {
     RCL_SET_ERROR_MSG("get_state service is null");
     return RCL_RET_ERROR;
   }
-  if (&state_machine->com_interface.srv_change_state.impl == NULL) {
+  if (state_machine->com_interface.srv_change_state.impl == NULL) {
     RCL_SET_ERROR_MSG("change_state service is null");
     return RCL_RET_ERROR;
   }

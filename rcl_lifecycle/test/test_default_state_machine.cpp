@@ -140,7 +140,7 @@ test_unsuccessful_state_change(rcl_state_machine_t & state_machine,
  */
 TEST_F(TestDefaultStateMachine, zero_init) {
   rcl_state_machine_t state_machine = rcl_get_zero_initialized_state_machine();
-  ASSERT_EQ(rcl_state_machine_is_initialized(&state_machine), RCL_RET_OK);
+  ASSERT_EQ(rcl_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   const rcl_transition_map_t * transition_map = &state_machine.transition_map;
   ASSERT_EQ(transition_map->size, 0);
   ASSERT_EQ(transition_map->primary_states, nullptr);
