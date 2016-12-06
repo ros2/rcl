@@ -32,12 +32,12 @@ extern "C"
 #include <rcl_lifecycle/data_types.h>
 
 RCL_LIFECYCLE_PUBLIC
-rcl_state_machine_t
-rcl_get_zero_initialized_state_machine();
+rcl_lifecycle_state_machine_t
+rcl_lifecycle_get_zero_initialized_state_machine();
 
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_state_machine_init(rcl_state_machine_t * state_machine,
+rcl_lifecycle_state_machine_init(rcl_lifecycle_state_machine_t * state_machine,
   rcl_node_t * node_handle,
   const rosidl_message_type_support_t * ts_pub_notify,
   const rosidl_service_type_support_t * ts_srv_get_state,
@@ -46,7 +46,7 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine,
 
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_state_machine_fini(rcl_state_machine_t * state_machine,
+rcl_lifecycle_state_machine_fini(rcl_lifecycle_state_machine_t * state_machine,
   rcl_node_t * node_handle);
 
 /*
@@ -57,12 +57,12 @@ rcl_state_machine_fini(rcl_state_machine_t * state_machine,
  */
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_state_machine_resolve_error(rcl_state_machine_t * state_machine,
+rcl_lifecycle_state_machine_resolve_error(rcl_lifecycle_state_machine_t * state_machine,
   bool resolved);
 
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine);
+rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine);
 
 // function definitions
 /*
@@ -73,45 +73,32 @@ rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine);
  * NULL if not available
  */
 RCL_LIFECYCLE_PUBLIC
-const rcl_state_transition_t *
-rcl_is_valid_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_index);
-RCL_LIFECYCLE_PUBLIC
-const rcl_state_transition_t *
-rcl_is_valid_transition_by_label(rcl_state_machine_t * state_machine,
-  const char * transition_label);
+const rcl_lifecycle_state_transition_t *
+rcl_lifecycle_is_valid_transition(rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_id);
 
 RCL_LIFECYCLE_PUBLIC
-const rcl_state_transition_t *
-rcl_get_registered_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_state_index);
-RCL_LIFECYCLE_PUBLIC
-const rcl_state_transition_t *
-rcl_get_registered_transition_by_label(rcl_state_machine_t * state_machine,
-  const char * transition_state_label);
+const rcl_lifecycle_state_transition_t *
+rcl_lifecycle_get_registered_transition(rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_state_id);
 
 RCL_LIFECYCLE_PUBLIC
-rcl_state_t
-rcl_create_state(unsigned int state, char * label);
+rcl_lifecycle_state_t
+rcl_lifecycle_create_state(unsigned int state, char * label);
 
 RCL_LIFECYCLE_PUBLIC
-rcl_state_transition_t
-rcl_create_transition(rcl_state_t start, rcl_state_t goal);
-
-RCL_LIFECYCLE_PUBLIC
-void
-rcl_register_callback(rcl_state_machine_t * state_machine,
-  unsigned int state_index, unsigned int transition_index, bool (* fcn)(void));
+rcl_lifecycle_state_transition_t
+rcl_lifecycle_create_transition(rcl_lifecycle_state_t start, rcl_lifecycle_state_t goal);
 
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_index, bool publish_notification);
+rcl_lifecycle_start_transition(rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_id, bool publish_notification);
 
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_index, bool success, bool publish_notification);
+rcl_lifecycle_finish_transition(rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_id, bool success, bool publish_notification);
 
 #if __cplusplus
 }

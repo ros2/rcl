@@ -48,10 +48,10 @@ bool concatenate(const char ** prefix, const char ** suffix, char ** result)
   return true;
 }
 
-rcl_com_interface_t
-rcl_get_zero_initialized_com_interface()
+rcl_lifecycle_com_interface_t
+rcl_lifecycle_get_zero_initialized_com_interface()
 {
-  rcl_com_interface_t com_interface;
+  rcl_lifecycle_com_interface_t com_interface;
   com_interface.state_publisher = rcl_get_zero_initialized_publisher();
   com_interface.srv_get_state = rcl_get_zero_initialized_service();
   com_interface.srv_change_state = rcl_get_zero_initialized_service();
@@ -60,7 +60,7 @@ rcl_get_zero_initialized_com_interface()
 }
 
 rcl_ret_t
-rcl_com_interface_init(rcl_com_interface_t * com_interface,
+rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle,
   const rosidl_message_type_support_t * ts_pub_notify,
   const rosidl_service_type_support_t * ts_srv_get_state,
@@ -154,7 +154,7 @@ rcl_com_interface_init(rcl_com_interface_t * com_interface,
 }
 
 rcl_ret_t
-rcl_com_interface_fini(rcl_com_interface_t * com_interface,
+rcl_lifecycle_com_interface_fini(rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle)
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
@@ -187,12 +187,12 @@ rcl_com_interface_fini(rcl_com_interface_t * com_interface,
 }
 
 rcl_ret_t
-rcl_com_interface_publish_notification(rcl_com_interface_t * com_interface,
-  const rcl_state_t * start, const rcl_state_t * goal)
+rcl_lifecycle_com_interface_publish_notification(rcl_lifecycle_com_interface_t * com_interface,
+  const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal)
 {
-  msg.start_state.id = start->index;
+  msg.start_state.id = start->id;
   rosidl_generator_c__String__assign(&msg.start_state.label, start->label);
-  msg.goal_state.id = goal->index;
+  msg.goal_state.id = goal->id;
   rosidl_generator_c__String__assign(&msg.goal_state.label, goal->label);
 
   return rcl_publish(&com_interface->state_publisher, &msg);

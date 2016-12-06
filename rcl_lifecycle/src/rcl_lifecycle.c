@@ -32,45 +32,45 @@ extern "C"
 #include "states.hxx"
 
 // get zero initialized state machine here
-rcl_state_machine_t
-rcl_get_zero_initialized_state_machine()
+rcl_lifecycle_state_machine_t
+rcl_lifecycle_get_zero_initialized_state_machine()
 {
-  rcl_state_machine_t state_machine;
+  rcl_lifecycle_state_machine_t state_machine;
   state_machine.transition_map.size = 0;
   state_machine.transition_map.primary_states = NULL;
   state_machine.transition_map.transition_arrays = NULL;
-  state_machine.com_interface = rcl_get_zero_initialized_com_interface();
+  state_machine.com_interface = rcl_lifecycle_get_zero_initialized_com_interface();
   return state_machine;
 }
 
 rcl_ret_t
-rcl_state_machine_init(rcl_state_machine_t * state_machine, rcl_node_t * node_handle,
+rcl_lifecycle_state_machine_init(rcl_lifecycle_state_machine_t * state_machine, rcl_node_t * node_handle,
   const rosidl_message_type_support_t * ts_pub_notify,
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_change_state,
   bool default_states)
 {
-  if (rcl_com_interface_init(&state_machine->com_interface, node_handle,
+  if (rcl_lifecycle_com_interface_init(&state_machine->com_interface, node_handle,
     ts_pub_notify, ts_srv_get_state, ts_srv_change_state) != RCL_RET_OK)
   {
     return RCL_RET_ERROR;
   }
 
   if (default_states) {
-    rcl_init_default_state_machine(state_machine);
+    rcl_lifecycle_init_default_state_machine(state_machine);
   }
   return RCL_RET_OK;
 }
 
 rcl_ret_t
-rcl_state_machine_fini(rcl_state_machine_t * state_machine,
+rcl_lifecycle_state_machine_fini(rcl_lifecycle_state_machine_t * state_machine,
   rcl_node_t * node_handle)
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
-  fcn_ret = rcl_com_interface_fini(&state_machine->com_interface, node_handle);
+  fcn_ret = rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle);
 
-  rcl_transition_map_t * transition_map = &state_machine->transition_map;
+  rcl_lifecycle_transition_map_t * transition_map = &state_machine->transition_map;
   // free the primary states array
   free(transition_map->primary_states);
   transition_map->primary_states = NULL;
@@ -87,10 +87,10 @@ rcl_state_machine_fini(rcl_state_machine_t * state_machine,
 }
 
 rcl_ret_t
-rcl_state_machine_resolve_error(rcl_state_machine_t * state_machine,
+rcl_lifecycle_state_machine_resolve_error(rcl_lifecycle_state_machine_t * state_machine,
   bool resolved)
 {
-  if (state_machine->current_state->index != rcl_state_errorprocessing.index) {
+  if (state_machine->current_state->id != rcl_state_errorprocessing.id) {
     RCL_SET_ERROR_MSG("Can't resolve error. State machine is not in errorneous state.");
     return RCL_RET_ERROR;
   }
@@ -103,7 +103,7 @@ rcl_state_machine_resolve_error(rcl_state_machine_t * state_machine,
 }
 
 rcl_ret_t
-rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine)
+rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine)
 {
   if (state_machine->transition_map.size == 0) {
     RCL_SET_ERROR_MSG("transition map is empty");
@@ -120,102 +120,54 @@ rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine)
   return RCL_RET_OK;
 }
 
-const rcl_state_transition_t *
-rcl_is_valid_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_index)
+const rcl_lifecycle_state_transition_t *
+rcl_lifecycle_is_valid_transition(rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_id)
 {
-  unsigned int current_index = state_machine->current_state->index;
-  const rcl_transition_array_t * valid_transitions = rcl_get_transitions_by_index(
-    &state_machine->transition_map, current_index);
+  unsigned int current_id = state_machine->current_state->id;
+  const rcl_lifecycle_transition_array_t * valid_transitions = rcl_lifecycle_get_transitions(
+    &state_machine->transition_map, current_id);
   if (valid_transitions == NULL) {
     fprintf(stderr, "%s:%u, No transitions registered  for current state %s\n",
       __FILE__, __LINE__, state_machine->current_state->label);
     return NULL;
   }
   for (unsigned int i = 0; i < valid_transitions->size; ++i) {
-    if (valid_transitions->transitions[i].transition_state.index == transition_index) {
+    if (valid_transitions->transitions[i].transition_state.id == transition_id) {
       return &valid_transitions->transitions[i];
     }
   }
   fprintf(stderr, "%s:%u, No transition matching %u found for current state %s\n",
-    __FILE__, __LINE__, transition_index, state_machine->current_state->label);
+    __FILE__, __LINE__, transition_id, state_machine->current_state->label);
   return NULL;
 }
 
-const rcl_state_transition_t *
-rcl_is_valid_transition_by_label(rcl_state_machine_t * state_machine,
-  const char * transition_label)
-{
-  unsigned int current_index = state_machine->current_state->index;
-  const rcl_transition_array_t * valid_transitions = rcl_get_transitions_by_index(
-    &state_machine->transition_map, current_index);
-  for (unsigned int i = 0; i < valid_transitions->size; ++i) {
-    if (valid_transitions->transitions[i].transition_state.label == transition_label) {
-      return &valid_transitions->transitions[i];
-    }
-  }
-  return NULL;
-}
-
-const rcl_state_transition_t *
-rcl_get_registered_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_state_index)
+const rcl_lifecycle_state_transition_t *
+rcl_lifecycle_get_registered_transition(rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_state_id)
 {
   // extensive search approach
   // TODO(karsten1987) can be improved by having a separate array
   // for "registered transition"
-  const rcl_transition_map_t * map = &state_machine->transition_map;
+  const rcl_lifecycle_transition_map_t * map = &state_machine->transition_map;
   for (unsigned int i = 0; i < map->size; ++i) {
     for (unsigned int j = 0; j < map->transition_arrays[i].size; ++j) {
-      if (map->transition_arrays[i].transitions[j].transition_state.index ==
-        transition_state_index)
+      if (map->transition_arrays[i].transitions[j].transition_state.id ==
+        transition_state_id)
       {
         return &map->transition_arrays[i].transitions[j];
       }
     }
   }
   return NULL;
-}
-
-const rcl_state_transition_t *
-rcl_get_registered_transition_by_label(rcl_state_machine_t * state_machine,
-  const char * transition_state_label)
-{
-  // extensive search approach
-  // TODO(karsten1987) can be improved by having a separate array
-  // for "registered transition"
-  const rcl_transition_map_t * map = &state_machine->transition_map;
-  for (unsigned int i = 0; i < map->size; ++i) {
-    for (unsigned int j = 0; j < map->transition_arrays[i].size; ++j) {
-      if (strcmp(map->transition_arrays[i].transitions[j].transition_state.label,
-        transition_state_label) == 0)
-      {
-        return &map->transition_arrays[i].transitions[j];
-      }
-    }
-  }
-  return NULL;
-}
-
-void
-rcl_register_callback(rcl_state_machine_t * state_machine,
-  unsigned int state_index, unsigned int transition_index, bool (* fcn)(void))
-{
-  rcl_transition_array_t * transitions = rcl_get_transitions_by_index(
-    &state_machine->transition_map, state_index);
-  for (unsigned int i = 0; i < transitions->size; ++i) {
-    if (transitions->transitions[i].transition_state.index == transition_index) {
-      transitions->transitions[i].callback = fcn;
-    }
-  }
 }
 
 rcl_ret_t
-rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_index, bool publish_notification)
+rcl_lifecycle_start_transition(rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_id, bool publish_notification)
 {
-  const rcl_state_transition_t * transition =
-    rcl_is_valid_transition_by_index(state_machine, transition_index);
+  const rcl_lifecycle_state_transition_t * transition =
+    rcl_lifecycle_is_valid_transition(state_machine, transition_id);
 
   // If we have a faulty transition pointer
   if (transition == NULL) {
@@ -228,7 +180,7 @@ rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
   // or simply ignore it
   if (transition->start != state_machine->current_state) {
     RCL_SET_ERROR_MSG("Transition not allowed for current state.");
-    fprintf(stderr, "%s:%d, Wrong transition index %s. State machine is in primary state %s\n",
+    fprintf(stderr, "%s:%d, Wrong transition id %s. State machine is in primary state %s\n",
       __FILE__, __LINE__, transition->start->label, state_machine->current_state->label);
     return RCL_RET_ERROR;
   }
@@ -236,18 +188,18 @@ rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
   state_machine->current_state = &transition->transition_state;
 
   if (publish_notification == true) {
-    rcl_com_interface_publish_notification(&state_machine->com_interface,
+    rcl_lifecycle_com_interface_publish_notification(&state_machine->com_interface,
       transition->start, &transition->transition_state);
   }
   return RCL_RET_OK;
 }
 
 rcl_ret_t
-rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
-  unsigned int transition_index, bool success, bool publish_notification)
+rcl_lifecycle_finish_transition(rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_id, bool success, bool publish_notification)
 {
-  const rcl_state_transition_t * transition =
-    rcl_get_registered_transition_by_index(state_machine, transition_index);
+  const rcl_lifecycle_state_transition_t * transition =
+    rcl_lifecycle_get_registered_transition(state_machine, transition_id);
 
   // If we have a faulty transition pointer
   if (transition == NULL) {
@@ -256,7 +208,7 @@ rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
   }
 
   // TODO(Karsten1987): pointer comparison fails here
-  if (transition->transition_state.index != state_machine->current_state->index) {
+  if (transition->transition_state.id != state_machine->current_state->id) {
     RCL_SET_ERROR_MSG("Transition not allowed for current state.");
     fprintf(stderr, "%s:%d, Wrong transition state %s. State machine is in primary state %s\n",
       __FILE__, __LINE__, transition->transition_state.label, state_machine->current_state->label);
@@ -268,7 +220,7 @@ rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
     state_machine->current_state = transition->goal;
 
     if (publish_notification == true) {
-      rcl_com_interface_publish_notification(&state_machine->com_interface,
+      rcl_lifecycle_com_interface_publish_notification(&state_machine->com_interface,
         &transition->transition_state, transition->goal);
     }
     return RCL_RET_OK;
@@ -277,12 +229,12 @@ rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
   // State machine stays in error state.
   // The only way to resolve the error is by explicitly
   // calling the high level on_error callback and then
-  // call 'rcl_state_machine_resolve_error' passing the
+  // call 'rcl_lifecycle_state_machine_resolve_error' passing the
   // result of the high level callback
   state_machine->current_state = transition->error;
 
   if (publish_notification == true) {
-    rcl_com_interface_publish_notification(&state_machine->com_interface,
+    rcl_lifecycle_com_interface_publish_notification(&state_machine->com_interface,
       &transition->transition_state, transition->error);
   }
 

@@ -25,18 +25,18 @@ extern "C"
 
 // primary states based on
 // design.ros2.org/articles/node_lifecycle.html
-extern const rcl_state_t rcl_state_unknown;
-extern const rcl_state_t rcl_state_unconfigured;
-extern const rcl_state_t rcl_state_inactive;
-extern const rcl_state_t rcl_state_active;
-extern const rcl_state_t rcl_state_finalized;
+extern const rcl_lifecycle_state_t rcl_state_unknown;
+extern const rcl_lifecycle_state_t rcl_state_unconfigured;
+extern const rcl_lifecycle_state_t rcl_state_inactive;
+extern const rcl_lifecycle_state_t rcl_state_active;
+extern const rcl_lifecycle_state_t rcl_state_finalized;
 
-extern const rcl_state_t rcl_state_configuring;
-extern const rcl_state_t rcl_state_cleaningup;
-extern const rcl_state_t rcl_state_shuttingdown;
-extern const rcl_state_t rcl_state_activating;
-extern const rcl_state_t rcl_state_deactivating;
-extern const rcl_state_t rcl_state_errorprocessing;
+extern const rcl_lifecycle_state_t rcl_state_configuring;
+extern const rcl_lifecycle_state_t rcl_state_cleaningup;
+extern const rcl_lifecycle_state_t rcl_state_shuttingdown;
+extern const rcl_lifecycle_state_t rcl_state_activating;
+extern const rcl_lifecycle_state_t rcl_state_deactivating;
+extern const rcl_lifecycle_state_t rcl_state_errorprocessing;
 
 #if __cplusplus
 }

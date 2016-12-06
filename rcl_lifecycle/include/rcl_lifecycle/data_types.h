@@ -28,27 +28,27 @@ extern "C"
  * @param state: integer giving the state
  * @param label: label for easy indexing
  */
-typedef struct _rcl_state_t
+typedef struct _rcl_lifecycle_state_t
 {
   const char * label;
-  unsigned int index;
-} rcl_state_t;
+  unsigned int id;
+} rcl_lifecycle_state_t;
 
 /**
  * @brief transition definition
- * @param start: rcl_state_t as a start state
- * @param goal: rcl_state_t as a goal state
+ * @param start: rcl_lifecycle_state_t as a start state
+ * @param goal: rcl_lifecycle_state_t as a goal state
  * TODO: Maybe specify callback pointer here
  * and call on_* functions directly
  */
-typedef struct _rcl_state_transition_t
+typedef struct _rcl_lifecycle_state_transition_t
 {
-  rcl_state_t transition_state;
+  rcl_lifecycle_state_t transition_state;
   void * callback;
-  const rcl_state_t * start;
-  const rcl_state_t * goal;
-  const rcl_state_t * error;
-} rcl_state_transition_t;
+  const rcl_lifecycle_state_t * start;
+  const rcl_lifecycle_state_t * goal;
+  const rcl_lifecycle_state_t * error;
+} rcl_lifecycle_state_transition_t;
 
 /**
  * @brief All transitions which are
@@ -56,25 +56,25 @@ typedef struct _rcl_state_transition_t
  * One array belongs to one primary state
  * within the map.
  */
-typedef struct _rcl_transition_array_t
+typedef struct _rcl_lifecycle_transition_array_t
 {
-  rcl_state_transition_t * transitions;
+  rcl_lifecycle_state_transition_t * transitions;
   unsigned int size;
-} rcl_transition_array_t;
+} rcl_lifecycle_transition_array_t;
 
 /**
  * @brief stores an array of transitions
  * index by a start state
  */
-typedef struct _rcl_transition_map_t
+typedef struct _rcl_lifecycle_transition_map_t
 {
   // associative array between primary state
   // and their respective transitions
   // 1 ps -> 1 transition_array
-  rcl_state_t * primary_states;
-  rcl_transition_array_t * transition_arrays;
+  rcl_lifecycle_state_t * primary_states;
+  rcl_lifecycle_transition_array_t * transition_arrays;
   unsigned int size;
-} rcl_transition_map_t;
+} rcl_lifecycle_transition_map_t;
 
 /**
  * @brief: object holding all necessary
@@ -84,13 +84,13 @@ typedef struct _rcl_transition_map_t
  * srv_get_state for getting current state
  * srv_change_state for requesting a state change
  */
-typedef struct _rcl_com_interface_t
+typedef struct _rcl_lifecycle_com_interface_t
 {
   rcl_node_t * node_handle;
   rcl_publisher_t state_publisher;
   rcl_service_t srv_get_state;
   rcl_service_t srv_change_state;
-} rcl_com_interface_t;
+} rcl_lifecycle_com_interface_t;
 
 /**
  * @brief: statemachine object holding
@@ -100,14 +100,14 @@ typedef struct _rcl_com_interface_t
  * possible transitions registered with this
  * state machine.
  */
-typedef struct _rcl_state_machine_t
+typedef struct _rcl_lifecycle_state_machine_t
 {
-  const rcl_state_t * current_state;
+  const rcl_lifecycle_state_t * current_state;
   // Map/Associated array of registered states and transitions
-  rcl_transition_map_t transition_map;
+  rcl_lifecycle_transition_map_t transition_map;
   // Communication interface into a ROS world
-  rcl_com_interface_t com_interface;
-} rcl_state_machine_t;
+  rcl_lifecycle_com_interface_t com_interface;
+} rcl_lifecycle_state_machine_t;
 
 #if __cplusplus
 }

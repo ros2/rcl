@@ -26,7 +26,7 @@ extern "C"
 #endif
 
 rcl_ret_t
-rcl_init_default_state_machine(rcl_state_machine_t * state_machine);
+rcl_lifecycle_init_default_state_machine(rcl_lifecycle_state_machine_t * state_machine);
 
 #if __cplusplus
 }

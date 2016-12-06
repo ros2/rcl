@@ -25,8 +25,8 @@ extern "C"
 
 RCL_LIFECYCLE_PUBLIC
 void
-rcl_register_primary_state(rcl_transition_map_t * m,
-  rcl_state_t primary_state);
+rcl_lifecycle_register_primary_state(rcl_lifecycle_transition_map_t * m,
+  rcl_lifecycle_state_t primary_state);
 
 /**
  * @brief appends a transition in a map
@@ -35,8 +35,8 @@ rcl_register_primary_state(rcl_transition_map_t * m,
  */
 RCL_LIFECYCLE_PUBLIC
 void
-rcl_register_transition_by_state(rcl_transition_map_t * m,
-  const rcl_state_t * start, const rcl_state_t * goal, rcl_state_transition_t transition);
+rcl_lifecycle_register_transition_by_state(rcl_lifecycle_transition_map_t * m,
+  const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal, rcl_lifecycle_state_transition_t transition);
 
 /**
  * @brief appends a transition in a map
@@ -45,62 +45,36 @@ rcl_register_transition_by_state(rcl_transition_map_t * m,
  */
 RCL_LIFECYCLE_PUBLIC
 void
-rcl_register_transition_by_label(rcl_transition_map_t * m,
-  const char * start_label, const char * goal_label, rcl_state_transition_t transition);
+rcl_lifecycle_register_transition(rcl_lifecycle_transition_map_t * m,
+  unsigned int start_id, unsigned int goal_id, rcl_lifecycle_state_transition_t transition);
 
 /**
- * @brief appends a transition in a map
- * the classification is based on the start state
- * within the given transition
- */
-RCL_LIFECYCLE_PUBLIC
-void
-rcl_register_transition_by_index(rcl_transition_map_t * m,
-  unsigned int start_index, unsigned int goal_index, rcl_state_transition_t transition);
-
-/**
- * @brief gets the registered primary state based on a label
+ * @brief gets the registered primary state based on a id
  * @return primary state pointer, NULL if not found
  */
 RCL_LIFECYCLE_PUBLIC
-rcl_state_t *
-rcl_get_primary_state_by_label(rcl_transition_map_t * m,
-  const char * label);
-/**
- * @brief gets the registered primary state based on a index
- * @return primary state pointer, NULL if not found
- */
-RCL_LIFECYCLE_PUBLIC
-rcl_state_t *
-rcl_get_primary_state_by_index(rcl_transition_map_t * m,
-  unsigned int index);
+rcl_lifecycle_state_t *
+rcl_lifecycle_get_primary_state(rcl_lifecycle_transition_map_t * m,
+  unsigned int id);
 
-/**
- * @brief gets all transitions based on a label
- * label is supposed to come from a rcl_state_t object
- */
-RCL_LIFECYCLE_PUBLIC
-rcl_transition_array_t *
-rcl_get_transitions_by_label(rcl_transition_map_t * m,
-  const char * label);
 /**
  * @brief gets all transitions based on a state
- * state is supposed to come from a rcl_state_t object
+ * state is supposed to come from a rcl_lifecycle_state_t object
  */
 RCL_LIFECYCLE_PUBLIC
-rcl_transition_array_t *
-rcl_get_transitions_by_index(rcl_transition_map_t * m,
-  unsigned int index);
+rcl_lifecycle_transition_array_t *
+rcl_lifecycle_get_transitions(rcl_lifecycle_transition_map_t * m,
+  unsigned int id);
 
 /**
  * @brief helper functions to print
  */
 RCL_LIFECYCLE_PUBLIC
 void
-rcl_print_transition_array(const rcl_transition_array_t * transition_array);
+rcl_lifecycle_print_transition_array(const rcl_lifecycle_transition_array_t * transition_array);
 RCL_LIFECYCLE_PUBLIC
 void
-rcl_print_transition_map(const rcl_transition_map_t * m);
+rcl_lifecycle_print_transition_map(const rcl_lifecycle_transition_map_t * m);
 
 #if __cplusplus
 }
