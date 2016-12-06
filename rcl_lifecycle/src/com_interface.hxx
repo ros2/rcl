@@ -21,13 +21,10 @@ extern "C"
 #endif
 
 #include "rcl_lifecycle/data_types.h"
-#include "rcl_lifecycle/visibility_control.h"
 
-LIFECYCLE_EXPORT
 rcl_com_interface_t
 rcl_get_zero_initialized_com_interface();
 
-LIFECYCLE_EXPORT
 rcl_ret_t
 rcl_com_interface_init(rcl_com_interface_t * com_interface,
   rcl_node_t * node_handle,
@@ -35,12 +32,10 @@ rcl_com_interface_init(rcl_com_interface_t * com_interface,
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_change_state);
 
-LIFECYCLE_EXPORT
 rcl_ret_t
 rcl_com_interface_fini(rcl_com_interface_t * com_interface,
   rcl_node_t * node_handle);
 
-LIFECYCLE_EXPORT
 rcl_ret_t
 rcl_com_interface_publish_notification(rcl_com_interface_t * com_interface,
   const rcl_state_t * start, const rcl_state_t * goal);

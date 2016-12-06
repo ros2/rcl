@@ -28,7 +28,7 @@ extern "C"
  * @param state: integer giving the state
  * @param label: label for easy indexing
  */
-typedef struct LIFECYCLE_EXPORT _rcl_state_t
+typedef struct _rcl_state_t
 {
   const char * label;
   unsigned int index;
@@ -41,7 +41,7 @@ typedef struct LIFECYCLE_EXPORT _rcl_state_t
  * TODO: Maybe specify callback pointer here
  * and call on_* functions directly
  */
-typedef struct LIFECYCLE_EXPORT _rcl_state_transition_t
+typedef struct _rcl_state_transition_t
 {
   rcl_state_t transition_state;
   void * callback;
@@ -56,7 +56,7 @@ typedef struct LIFECYCLE_EXPORT _rcl_state_transition_t
  * One array belongs to one primary state
  * within the map.
  */
-typedef struct LIFECYCLE_EXPORT _rcl_transition_array_t
+typedef struct _rcl_transition_array_t
 {
   rcl_state_transition_t * transitions;
   unsigned int size;
@@ -66,7 +66,7 @@ typedef struct LIFECYCLE_EXPORT _rcl_transition_array_t
  * @brief stores an array of transitions
  * index by a start state
  */
-typedef struct LIFECYCLE_EXPORT _rcl_transition_map_t
+typedef struct _rcl_transition_map_t
 {
   // associative array between primary state
   // and their respective transitions
@@ -84,7 +84,7 @@ typedef struct LIFECYCLE_EXPORT _rcl_transition_map_t
  * srv_get_state for getting current state
  * srv_change_state for requesting a state change
  */
-typedef struct LIFECYCLE_EXPORT _rcl_com_interface_t
+typedef struct _rcl_com_interface_t
 {
   rcl_node_t * node_handle;
   rcl_publisher_t state_publisher;
@@ -100,7 +100,7 @@ typedef struct LIFECYCLE_EXPORT _rcl_com_interface_t
  * possible transitions registered with this
  * state machine.
  */
-typedef struct LIFECYCLE_EXPORT _rcl_state_machine_t
+typedef struct _rcl_state_machine_t
 {
   const rcl_state_t * current_state;
   // Map/Associated array of registered states and transitions

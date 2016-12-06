@@ -23,7 +23,7 @@ extern "C"
 {
 #endif
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 void
 rcl_register_primary_state(rcl_transition_map_t * m,
   rcl_state_t primary_state);
@@ -33,7 +33,7 @@ rcl_register_primary_state(rcl_transition_map_t * m,
  * the classification is based on the start state
  * within the given transition
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 void
 rcl_register_transition_by_state(rcl_transition_map_t * m,
   const rcl_state_t * start, const rcl_state_t * goal, rcl_state_transition_t transition);
@@ -43,7 +43,7 @@ rcl_register_transition_by_state(rcl_transition_map_t * m,
  * the classification is based on the start state
  * within the given transition
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 void
 rcl_register_transition_by_label(rcl_transition_map_t * m,
   const char * start_label, const char * goal_label, rcl_state_transition_t transition);
@@ -53,7 +53,7 @@ rcl_register_transition_by_label(rcl_transition_map_t * m,
  * the classification is based on the start state
  * within the given transition
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 void
 rcl_register_transition_by_index(rcl_transition_map_t * m,
   unsigned int start_index, unsigned int goal_index, rcl_state_transition_t transition);
@@ -62,7 +62,7 @@ rcl_register_transition_by_index(rcl_transition_map_t * m,
  * @brief gets the registered primary state based on a label
  * @return primary state pointer, NULL if not found
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_state_t *
 rcl_get_primary_state_by_label(rcl_transition_map_t * m,
   const char * label);
@@ -70,7 +70,7 @@ rcl_get_primary_state_by_label(rcl_transition_map_t * m,
  * @brief gets the registered primary state based on a index
  * @return primary state pointer, NULL if not found
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_state_t *
 rcl_get_primary_state_by_index(rcl_transition_map_t * m,
   unsigned int index);
@@ -79,7 +79,7 @@ rcl_get_primary_state_by_index(rcl_transition_map_t * m,
  * @brief gets all transitions based on a label
  * label is supposed to come from a rcl_state_t object
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_transition_array_t *
 rcl_get_transitions_by_label(rcl_transition_map_t * m,
   const char * label);
@@ -87,7 +87,7 @@ rcl_get_transitions_by_label(rcl_transition_map_t * m,
  * @brief gets all transitions based on a state
  * state is supposed to come from a rcl_state_t object
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_transition_array_t *
 rcl_get_transitions_by_index(rcl_transition_map_t * m,
   unsigned int index);
@@ -95,10 +95,10 @@ rcl_get_transitions_by_index(rcl_transition_map_t * m,
 /**
  * @brief helper functions to print
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 void
 rcl_print_transition_array(const rcl_transition_array_t * transition_array);
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 void
 rcl_print_transition_map(const rcl_transition_map_t * m);
 

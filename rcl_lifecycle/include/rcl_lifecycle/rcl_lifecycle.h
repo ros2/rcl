@@ -32,11 +32,11 @@ extern "C"
 #include <rcl_lifecycle/data_types.h>
 #include <rcl_lifecycle/states.h>
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_state_machine_t
 rcl_get_zero_initialized_state_machine();
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_state_machine_init(rcl_state_machine_t * state_machine,
   rcl_node_t * node_handle,
@@ -45,7 +45,7 @@ rcl_state_machine_init(rcl_state_machine_t * state_machine,
   const rosidl_service_type_support_t * ts_srv_change_state,
   bool default_states);
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_state_machine_fini(rcl_state_machine_t * state_machine,
   rcl_node_t * node_handle);
@@ -56,12 +56,12 @@ rcl_state_machine_fini(rcl_state_machine_t * state_machine,
  * The resolved flag indicates whether a high-level "on_error"
  * callback was successful or if the node should be finalized
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_state_machine_resolve_error(rcl_state_machine_t * state_machine,
   bool resolved);
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine);
 
@@ -73,43 +73,43 @@ rcl_state_machine_is_initialized(const rcl_state_machine_t * state_machine);
  * @return the transition state which is valid
  * NULL if not available
  */
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 const rcl_state_transition_t *
 rcl_is_valid_transition_by_index(rcl_state_machine_t * state_machine,
   unsigned int transition_index);
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 const rcl_state_transition_t *
 rcl_is_valid_transition_by_label(rcl_state_machine_t * state_machine,
   const char * transition_label);
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 const rcl_state_transition_t *
 rcl_get_registered_transition_by_index(rcl_state_machine_t * state_machine,
   unsigned int transition_state_index);
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 const rcl_state_transition_t *
 rcl_get_registered_transition_by_label(rcl_state_machine_t * state_machine,
   const char * transition_state_label);
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_state_t
 rcl_create_state(unsigned int state, char * label);
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_state_transition_t
 rcl_create_transition(rcl_state_t start, rcl_state_t goal);
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 void
 rcl_register_callback(rcl_state_machine_t * state_machine,
   unsigned int state_index, unsigned int transition_index, bool (* fcn)(void));
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_start_transition_by_index(rcl_state_machine_t * state_machine,
   unsigned int transition_index, bool publish_notification);
 
-LIFECYCLE_EXPORT
+RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_finish_transition_by_index(rcl_state_machine_t * state_machine,
   unsigned int transition_index, bool success, bool publish_notification);
