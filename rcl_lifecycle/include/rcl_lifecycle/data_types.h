@@ -44,7 +44,6 @@ typedef struct _rcl_lifecycle_state_t
 typedef struct _rcl_lifecycle_state_transition_t
 {
   rcl_lifecycle_state_t transition_state;
-  void * callback;
   const rcl_lifecycle_state_t * start;
   const rcl_lifecycle_state_t * goal;
   const rcl_lifecycle_state_t * error;

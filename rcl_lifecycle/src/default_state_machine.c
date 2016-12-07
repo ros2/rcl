@@ -67,7 +67,7 @@ rcl_lifecycle_state_transition_t
 rcl_lifecycle_create_state_transition(unsigned int id, const char * label)
 {
   rcl_lifecycle_state_transition_t ret_transition = {{.id = id, .label = label},
-                                                     NULL, NULL, NULL, &rcl_state_errorprocessing};
+                                                     NULL, NULL, &rcl_state_errorprocessing};
   return ret_transition;
 }
 
