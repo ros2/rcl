@@ -242,6 +242,21 @@ rcl_lifecycle_finish_transition(rcl_lifecycle_state_machine_t * state_machine,
   return RCL_RET_OK;
 }
 
+void
+rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
+{
+  const rcl_lifecycle_transition_map_t * map = &state_machine->transition_map;
+  for (size_t i=0; i<map->size; ++i)
+  {
+    printf("Primary State: %s(%u)\n", map->primary_states[i].label, map->primary_states[i].id);
+    printf("Attached transitions: %u\n", map->transition_arrays[i].size);
+    for (size_t j=0; j<map->transition_arrays[i].size; ++j)
+    {
+      printf("\tTransition State: %s(%u)\n", map->transition_arrays[i].transitions[j].transition_state.label,
+          map->transition_arrays[i].transitions[j].transition_state.id);
+    }
+  }
+}
 #if __cplusplus
 }
 #endif  // extern "C"

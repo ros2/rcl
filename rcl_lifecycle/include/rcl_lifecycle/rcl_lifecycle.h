@@ -100,6 +100,9 @@ rcl_ret_t
 rcl_lifecycle_finish_transition(rcl_lifecycle_state_machine_t * state_machine,
   unsigned int transition_id, bool success, bool publish_notification);
 
+RCL_LIFECYCLE_PUBLIC
+void
+rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine);
 #if __cplusplus
 }
 #endif  // extern "C"

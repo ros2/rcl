@@ -143,6 +143,12 @@ test_unsuccessful_state_change(rcl_lifecycle_state_machine_t & state_machine,
 /*
  * Test suite
  */
+TEST_F(TestDefaultStateMachine, print_state_machine) {
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_init_default_state_machine(&state_machine);
+  rcl_print_state_machine(&state_machine);
+}
+
 TEST_F(TestDefaultStateMachine, zero_init) {
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
   ASSERT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
