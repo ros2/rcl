@@ -29,7 +29,7 @@ typedef struct rcl_lifecycle_state_t
   unsigned int id;
 } rcl_lifecycle_state_t;
 
-typedef struct rcl_lifecycle_state_transition_t
+typedef struct rcl_lifecycle_transition_t
 {
   const char * label;
   unsigned int id;
