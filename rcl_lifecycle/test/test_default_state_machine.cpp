@@ -57,7 +57,7 @@ protected:
   }
 };
 
-static const std::vector<size_t> state_ids = {
+static const std::vector<unsigned int> state_ids = {
   lifecycle_msgs__msg__State__PRIMARY_STATE_UNKNOWN,
   lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
   lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
@@ -84,7 +84,7 @@ static const std::vector<const char *> state_names = {
   "errorprocessing"
 };
 
-static const std::vector<size_t> transition_ids = {
+static const std::vector<unsigned int> transition_ids = {
   lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
   lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
   lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
