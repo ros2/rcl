@@ -12,8 +12,7 @@ find_package(rmw REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 
-include_directories(
-  include)
+include_directories(include)
 
 set(rcl_lifecycle_sources
   src/com_interface.c

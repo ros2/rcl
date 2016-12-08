@@ -38,6 +38,12 @@ extern const rcl_lifecycle_state_t rcl_state_activating;
 extern const rcl_lifecycle_state_t rcl_state_deactivating;
 extern const rcl_lifecycle_state_t rcl_state_errorprocessing;
 
+extern const rcl_lifecycle_transition_t rcl_transition_configure;
+extern const rcl_lifecycle_transition_t rcl_transition_cleanup;
+extern const rcl_lifecycle_transition_t rcl_transition_shutdown;
+extern const rcl_lifecycle_transition_t rcl_transition_activate;
+extern const rcl_lifecycle_transition_t rcl_transition_deactivate;
+
 #if __cplusplus
 }
 #endif  // extern "C"

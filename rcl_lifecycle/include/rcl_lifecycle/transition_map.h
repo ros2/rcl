@@ -25,57 +25,30 @@ extern "C"
 
 RCL_LIFECYCLE_PUBLIC
 void
-rcl_lifecycle_register_primary_state(rcl_lifecycle_transition_map_t * m,
-  rcl_lifecycle_state_t primary_state);
+rcl_lifecycle_register_state(
+  rcl_lifecycle_transition_map_t * map,
+  rcl_lifecycle_state_t state);
 
-/**
- * @brief appends a transition in a map
- * the classification is based on the start state
- * within the given transition
- */
 RCL_LIFECYCLE_PUBLIC
 void
-rcl_lifecycle_register_transition_by_state(rcl_lifecycle_transition_map_t * m,
-  const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal,
-  rcl_lifecycle_state_transition_t transition);
+rcl_lifecycle_register_transition(
+  rcl_lifecycle_transition_map_t * transition_map,
+  rcl_lifecycle_transition_t transition,
+  const rcl_lifecycle_state_t * start,
+  const rcl_lifecycle_state_t * goal,
+  const rcl_lifecycle_state_t * error);
 
-/**
- * @brief appends a transition in a map
- * the classification is based on the start state
- * within the given transition
- */
-RCL_LIFECYCLE_PUBLIC
-void
-rcl_lifecycle_register_transition(rcl_lifecycle_transition_map_t * m,
-  unsigned int start_id, unsigned int goal_id, rcl_lifecycle_state_transition_t transition);
-
-/**
- * @brief gets the registered primary state based on a id
- * @return primary state pointer, NULL if not found
- */
 RCL_LIFECYCLE_PUBLIC
 rcl_lifecycle_state_t *
-rcl_lifecycle_get_primary_state(rcl_lifecycle_transition_map_t * m,
-  unsigned int id);
+rcl_lifecycle_get_state(
+  rcl_lifecycle_transition_map_t * transition_map,
+  unsigned int state_id);
 
-/**
- * @brief gets all transitions based on a state
- * state is supposed to come from a rcl_lifecycle_state_t object
- */
 RCL_LIFECYCLE_PUBLIC
 rcl_lifecycle_transition_array_t *
-rcl_lifecycle_get_transitions(rcl_lifecycle_transition_map_t * m,
-  unsigned int id);
-
-/**
- * @brief helper functions to print
- */
-RCL_LIFECYCLE_PUBLIC
-void
-rcl_lifecycle_print_transition_array(const rcl_lifecycle_transition_array_t * transition_array);
-RCL_LIFECYCLE_PUBLIC
-void
-rcl_lifecycle_print_transition_map(const rcl_lifecycle_transition_map_t * m);
+rcl_lifecycle_get_transitions(
+  rcl_lifecycle_transition_map_t * transition_map,
+  unsigned int state_id);
 
 #if __cplusplus
 }

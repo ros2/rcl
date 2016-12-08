@@ -24,43 +24,53 @@ extern "C"
 #include "rcl_lifecycle/transition_map.h"
 
 void
-rcl_lifecycle_register_primary_state(rcl_lifecycle_transition_map_t * m,
-  rcl_lifecycle_state_t primary_state)
+rcl_lifecycle_register_state(
+  rcl_lifecycle_transition_map_t * transition_map,
+  rcl_lifecycle_state_t state)
 {
-  if (rcl_lifecycle_get_primary_state(m, primary_state.id) != NULL) {
+  if (rcl_lifecycle_get_state(transition_map, state.id) != NULL) {
     // primary state is already registered
-    fprintf(stderr, "%s:%u, Primary state %u is already registered\n",
-      __FILE__, __LINE__, primary_state.id);
+    fprintf(stderr, "%s:%u, State %u is already registered\n",
+      __FILE__, __LINE__, state.id);
     return;
   }
 
   // add new primary state memory
-  ++m->size;
-  if (m->size == 1) {
-    m->primary_states = malloc(m->size * sizeof(rcl_lifecycle_state_t));
-    m->transition_arrays = malloc(m->size * sizeof(rcl_lifecycle_transition_array_t));
+  ++transition_map->size;
+  if (transition_map->size == 1) {
+    transition_map->states = malloc(
+      transition_map->size * sizeof(rcl_lifecycle_state_t));
+    transition_map->transition_arrays = malloc(
+      transition_map->size * sizeof(rcl_lifecycle_transition_array_t));
   } else {
-    m->primary_states = realloc(
-      m->primary_states, m->size * sizeof(rcl_lifecycle_state_t));
-    m->transition_arrays = realloc(
-      m->transition_arrays, m->size * sizeof(rcl_lifecycle_transition_array_t));
+    transition_map->states = realloc(
+      transition_map->states,
+      transition_map->size * sizeof(rcl_lifecycle_state_t));
+    transition_map->transition_arrays = realloc(
+      transition_map->transition_arrays,
+      transition_map->size * sizeof(rcl_lifecycle_transition_array_t));
   }
-  m->primary_states[m->size - 1] = primary_state;
-  m->transition_arrays[m->size - 1].transitions = NULL;
-  m->transition_arrays[m->size - 1].size = 0;  // initialize array to size 0
+  transition_map->states[transition_map->size - 1] = state;
+  // zero initialize the associated transition array
+  transition_map->transition_arrays[transition_map->size - 1].transitions = NULL;
+  transition_map->transition_arrays[transition_map->size - 1].size = 0;
 }
 
 void
-rcl_lifecycle_register_transition_by_state(rcl_lifecycle_transition_map_t * m,
-  const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal,
-  rcl_lifecycle_state_transition_t transition)
+rcl_lifecycle_register_transition(
+  rcl_lifecycle_transition_map_t * transition_map,
+  rcl_lifecycle_transition_t transition,
+  const rcl_lifecycle_state_t * start,
+  const rcl_lifecycle_state_t * goal,
+  const rcl_lifecycle_state_t * error)
 {
   transition.start = start;
   transition.goal = goal;
+  transition.error = error;
 
-  // TODO(karsten1987): check whether we can improve that
+  // TODO(karsten1987): check whether we can improve for not checking duplicates
   rcl_lifecycle_transition_array_t * transition_array = rcl_lifecycle_get_transitions(
-    m, transition.start->id);
+    transition_map, transition.start->id);
   if (!transition_array) {
     fprintf(stderr, "%s:%u, Unable to find transition array registered for start id %u",
       __FILE__, __LINE__, transition.start->id);
@@ -71,54 +81,37 @@ rcl_lifecycle_register_transition_by_state(rcl_lifecycle_transition_map_t * m,
   ++transition_array->size;
   if (transition_array->size == 1) {
     transition_array->transitions = malloc(
-      transition_array->size * sizeof(rcl_lifecycle_state_transition_t));
+      transition_array->size * sizeof(rcl_lifecycle_transition_t));
   } else {
     transition_array->transitions = realloc(
       transition_array->transitions,
-      transition_array->size * sizeof(rcl_lifecycle_state_transition_t));
+      transition_array->size * sizeof(rcl_lifecycle_transition_t));
   }
   // finally set the new transition to the end of the array
   transition_array->transitions[transition_array->size - 1] = transition;
 }
 
-void
-rcl_lifecycle_register_transition(rcl_lifecycle_transition_map_t * m,
-  unsigned int start_id, unsigned int goal_id, rcl_lifecycle_state_transition_t transition)
-{
-  // the idea here is to add this transition based on the
-  // start label and classify them.
-  const rcl_lifecycle_state_t * start_state = rcl_lifecycle_get_primary_state(m, start_id);
-  if (start_state == NULL) {
-    // return false here?
-    return;
-  }
-  const rcl_lifecycle_state_t * goal_state = rcl_lifecycle_get_primary_state(m, goal_id);
-  if (goal_state == NULL) {
-    // return false here?
-    return;
-  }
-  rcl_lifecycle_register_transition_by_state(m, start_state, goal_state, transition);
-}
-
 rcl_lifecycle_state_t *
-rcl_lifecycle_get_primary_state(rcl_lifecycle_transition_map_t * m,
-  unsigned int id)
+rcl_lifecycle_get_state(
+  rcl_lifecycle_transition_map_t * transition_map,
+  unsigned int state_id)
 {
-  for (unsigned int i = 0; i < m->size; ++i) {
-    if (m->primary_states[i].id == id) {
-      return &m->primary_states[i];
+  for (unsigned int i = 0; i < transition_map->size; ++i) {
+    if (transition_map->states[i].id == state_id) {
+      return &transition_map->states[i];
     }
   }
   return NULL;
 }
 
 rcl_lifecycle_transition_array_t *
-rcl_lifecycle_get_transitions(rcl_lifecycle_transition_map_t * m,
-  unsigned int id)
+rcl_lifecycle_get_transitions(
+  rcl_lifecycle_transition_map_t * transition_map,
+  unsigned int transition_id)
 {
-  for (unsigned int i = 0; i < m->size; ++i) {
-    if (m->primary_states[i].id == id) {
-      return &m->transition_arrays[i];
+  for (unsigned int i = 0; i < transition_map->size; ++i) {
+    if (transition_map->states[i].id == transition_id) {
+      return &transition_map->transition_arrays[i];
     }
   }
   return NULL;

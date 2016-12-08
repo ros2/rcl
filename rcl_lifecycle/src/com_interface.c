@@ -52,7 +52,7 @@ rcl_lifecycle_com_interface_t
 rcl_lifecycle_get_zero_initialized_com_interface()
 {
   rcl_lifecycle_com_interface_t com_interface;
-  com_interface.state_publisher = rcl_get_zero_initialized_publisher();
+  com_interface.pub_transition_event = rcl_get_zero_initialized_publisher();
   com_interface.srv_get_state = rcl_get_zero_initialized_service();
   com_interface.srv_change_state = rcl_get_zero_initialized_service();
 
@@ -85,22 +85,21 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
   {  // initialize publisher
      // Build topic, topic suffix hardcoded for now
      // and limited in length of 255
-    const char * topic_prefix = "__transition_notify";
+    const char * topic_prefix = "__transition_event";
     char * topic_name;
     if (concatenate(&node_name, &topic_prefix, &topic_name) != true) {
       RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
-      com_interface = NULL;
-      return RCL_RET_ERROR;
+      goto fail;
     }
 
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-    rcl_ret_t ret = rcl_publisher_init(&com_interface->state_publisher,
-        node_handle, ts_pub_notify, topic_name, &publisher_options);
+    rcl_ret_t ret = rcl_publisher_init(
+      &com_interface->pub_transition_event, node_handle,
+      ts_pub_notify, topic_name, &publisher_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
-      com_interface = NULL;
-      return ret;
+      goto fail;
     }
 
     // initialize static message for notification
@@ -114,18 +113,17 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     char * topic_name;
     if (concatenate(&node_name, &topic_prefix, &topic_name) != true) {
       RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
-      com_interface = NULL;
-      return RCL_RET_ERROR;
+      goto fail;
     }
 
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(&com_interface->srv_get_state,
-        node_handle, ts_srv_get_state, topic_name, &service_options);
+    rcl_ret_t ret = rcl_service_init(
+      &com_interface->srv_get_state, node_handle,
+      ts_srv_get_state, topic_name, &service_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
-      com_interface = NULL;
-      return ret;
+      goto fail;
     }
   }
 
@@ -136,58 +134,73 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     char * topic_name;
     if (concatenate(&node_name, &topic_prefix, &topic_name) != true) {
       RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
-      com_interface = NULL;
-      return RCL_RET_ERROR;
+      goto fail;
     }
 
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(&com_interface->srv_change_state,
-        node_handle, ts_srv_change_state, topic_name, &service_options);
+    rcl_ret_t ret = rcl_service_init(
+      &com_interface->srv_change_state, node_handle,
+      ts_srv_change_state, topic_name, &service_options);
     free(topic_name);
 
     if (ret != RCL_RET_OK) {
-      com_interface = NULL;
-      return ret;
+      goto fail;
     }
   }
   return RCL_RET_OK;
+
+fail:
+  if (RCL_RET_OK != rcl_publisher_fini(&com_interface->pub_transition_event, node_handle)) {
+    fprintf(stderr, "%s:%u, Failed to destroy transition_event publisher\n", __FILE__, __LINE__);
+  }
+  if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_state, node_handle)) {
+    fprintf(stderr, "%s:%u, Failed to destroy get_state service\n", __FILE__, __LINE__);
+  }
+  if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_change_state, node_handle)) {
+    fprintf(stderr, "%s:%u, Failed to destroy change_state service\n", __FILE__, __LINE__);
+  }
+  com_interface = NULL;
+  return RCL_RET_ERROR;
 }
 
 rcl_ret_t
-rcl_lifecycle_com_interface_fini(rcl_lifecycle_com_interface_t * com_interface,
+rcl_lifecycle_com_interface_fini(
+  rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle)
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
   {  // destroy get state srv
-    rcl_ret_t ret = rcl_service_fini(&com_interface->srv_get_state,
-        node_handle);
+    rcl_ret_t ret = rcl_service_fini(
+      &com_interface->srv_get_state, node_handle);
     if (ret != RCL_RET_OK) {
       fcn_ret = RCL_RET_ERROR;
     }
   }
 
   {  // destroy change state srv
-    rcl_ret_t ret = rcl_service_fini(&com_interface->srv_change_state,
-        node_handle);
+    rcl_ret_t ret = rcl_service_fini(
+      &com_interface->srv_change_state, node_handle);
     if (ret != RCL_RET_OK) {
       fcn_ret = RCL_RET_ERROR;
     }
   }
 
   {  // destroy the publisher
-    rcl_ret_t ret = rcl_publisher_fini(&com_interface->state_publisher,
-        node_handle);
+    lifecycle_msgs__msg__TransitionEvent__fini(&msg);
+
+    rcl_ret_t ret = rcl_publisher_fini(
+      &com_interface->pub_transition_event, node_handle);
     if (ret != RCL_RET_OK) {
       fcn_ret = RCL_RET_ERROR;
     }
-    lifecycle_msgs__msg__TransitionEvent__fini(&msg);
   }
 
   return fcn_ret;
 }
 
 rcl_ret_t
-rcl_lifecycle_com_interface_publish_notification(rcl_lifecycle_com_interface_t * com_interface,
+rcl_lifecycle_com_interface_publish_notification(
+  rcl_lifecycle_com_interface_t * com_interface,
   const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal)
 {
   msg.start_state.id = start->id;
@@ -195,7 +208,7 @@ rcl_lifecycle_com_interface_publish_notification(rcl_lifecycle_com_interface_t *
   msg.goal_state.id = goal->id;
   rosidl_generator_c__String__assign(&msg.goal_state.label, goal->label);
 
-  return rcl_publish(&com_interface->state_publisher, &msg);
+  return rcl_publish(&com_interface->pub_transition_event, &msg);
 }
 
 #if __cplusplus

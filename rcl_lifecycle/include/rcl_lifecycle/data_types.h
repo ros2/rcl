@@ -23,83 +23,46 @@ extern "C"
 {
 #endif
 
-/**
- * @brief simple definition of a state
- * @param state: integer giving the state
- * @param label: label for easy indexing
- */
-typedef struct _rcl_lifecycle_state_t
+typedef struct rcl_lifecycle_state_t
 {
   const char * label;
   unsigned int id;
 } rcl_lifecycle_state_t;
 
-/**
- * @brief transition definition
- * @param start: rcl_lifecycle_state_t as a start state
- * @param goal: rcl_lifecycle_state_t as a goal state
- * TODO: Maybe specify callback pointer here
- * and call on_* functions directly
- */
-typedef struct _rcl_lifecycle_state_transition_t
+typedef struct rcl_lifecycle_state_transition_t
 {
-  rcl_lifecycle_state_t transition_state;
+  const char * label;
+  unsigned int id;
   const rcl_lifecycle_state_t * start;
   const rcl_lifecycle_state_t * goal;
   const rcl_lifecycle_state_t * error;
-} rcl_lifecycle_state_transition_t;
+} rcl_lifecycle_transition_t;
 
-/**
- * @brief All transitions which are
- * valid associations for a primary state.
- * One array belongs to one primary state
- * within the map.
- */
-typedef struct _rcl_lifecycle_transition_array_t
+typedef struct rcl_lifecycle_transition_array_t
 {
-  rcl_lifecycle_state_transition_t * transitions;
+  rcl_lifecycle_transition_t * transitions;
   unsigned int size;
 } rcl_lifecycle_transition_array_t;
 
-/**
- * @brief stores an array of transitions
- * index by a start state
- */
-typedef struct _rcl_lifecycle_transition_map_t
+typedef struct rcl_lifecycle_transition_map_t
 {
   // associative array between primary state
   // and their respective transitions
   // 1 ps -> 1 transition_array
-  rcl_lifecycle_state_t * primary_states;
+  rcl_lifecycle_state_t * states;
   rcl_lifecycle_transition_array_t * transition_arrays;
   unsigned int size;
 } rcl_lifecycle_transition_map_t;
 
-/**
- * @brief: object holding all necessary
- * ROS communication interfaces for the statemachine.
- * node_handle pointer for instantiating
- * state_publisher for publishing state changes
- * srv_get_state for getting current state
- * srv_change_state for requesting a state change
- */
-typedef struct _rcl_lifecycle_com_interface_t
+typedef struct rcl_lifecycle_com_interface_t
 {
   rcl_node_t * node_handle;
-  rcl_publisher_t state_publisher;
+  rcl_publisher_t pub_transition_event;
   rcl_service_t srv_get_state;
   rcl_service_t srv_change_state;
 } rcl_lifecycle_com_interface_t;
 
-/**
- * @brief: statemachine object holding
- * a variable state object as current state
- * of the complete machine.
- * @param transition_map: a map object of all
- * possible transitions registered with this
- * state machine.
- */
-typedef struct _rcl_lifecycle_state_machine_t
+typedef struct rcl_lifecycle_state_machine_t
 {
   const rcl_lifecycle_state_t * current_state;
   // Map/Associated array of registered states and transitions

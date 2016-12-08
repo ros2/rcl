@@ -23,7 +23,7 @@
 # :param var_prefix: the prefix of all output variable names
 # :type var_prefix: string
 #
-# Copy/pasted from rclcpp/cmake/get_rclcpp_information.cmake.
+# TODO(karsten1987): Copy/pasted from rclcpp/cmake/get_rclcpp_information.cmake.
 # Code duplication is evil. Don't do this at home, kids.
 
 macro(get_rcl_lifecycle_information rmw_implementation var_prefix)
