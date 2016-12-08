@@ -25,6 +25,7 @@ extern "C"
 {
 #endif
 
+RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_lifecycle_init_default_state_machine(rcl_lifecycle_state_machine_t * state_machine);
 

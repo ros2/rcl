@@ -35,7 +35,7 @@
     #define RCL_LIFECYCLE_EXPORT __declspec(dllexport)
     #define RCL_LIFECYCLE_IMPORT __declspec(dllimport)
   #endif
-  #ifdef RCL_LIFECYCLE_BUILDING_LIBRARY
+  #ifdef RCL_LIFECYCLE_BUILDING_DLL
     #define RCL_LIFECYCLE_PUBLIC RCL_LIFECYCLE_EXPORT
   #else
     #define RCL_LIFECYCLE_PUBLIC RCL_LIFECYCLE_IMPORT
