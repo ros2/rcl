@@ -30,8 +30,9 @@ rcl_lifecycle_com_interface_init(
   rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle,
   const rosidl_message_type_support_t * ts_pub_notify,
+  const rosidl_service_type_support_t * ts_srv_change_state,
   const rosidl_service_type_support_t * ts_srv_get_state,
-  const rosidl_service_type_support_t * ts_srv_change_state);
+  const rosidl_service_type_support_t * ts_srv_get_available_states);
 
 rcl_ret_t
 rcl_lifecycle_com_interface_fini(

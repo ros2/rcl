@@ -35,8 +35,9 @@ rcl_lifecycle_state_machine_init(
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_node_t * node_handle,
   const rosidl_message_type_support_t * ts_pub_notify,
-  const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_change_state,
+  const rosidl_service_type_support_t * ts_srv_get_state,
+  const rosidl_service_type_support_t * ts_srv_get_available_states,
   bool default_states);
 
 RCL_LIFECYCLE_PUBLIC

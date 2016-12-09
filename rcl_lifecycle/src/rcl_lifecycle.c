@@ -48,13 +48,15 @@ rcl_lifecycle_state_machine_init(
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_node_t * node_handle,
   const rosidl_message_type_support_t * ts_pub_notify,
-  const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_change_state,
+  const rosidl_service_type_support_t * ts_srv_get_state,
+  const rosidl_service_type_support_t * ts_srv_get_available_states,
   bool default_states)
 {
   if (rcl_lifecycle_com_interface_init(
       &state_machine->com_interface, node_handle,
-      ts_pub_notify, ts_srv_get_state, ts_srv_change_state) != RCL_RET_OK)
+      ts_pub_notify,
+      ts_srv_change_state, ts_srv_get_state, ts_srv_get_available_states) != RCL_RET_OK)
   {
     return RCL_RET_ERROR;
   }

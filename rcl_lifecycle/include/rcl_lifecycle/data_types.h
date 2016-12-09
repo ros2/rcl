@@ -58,8 +58,9 @@ typedef struct rcl_lifecycle_com_interface_t
 {
   rcl_node_t * node_handle;
   rcl_publisher_t pub_transition_event;
-  rcl_service_t srv_get_state;
   rcl_service_t srv_change_state;
+  rcl_service_t srv_get_state;
+  rcl_service_t srv_get_available_states;
 } rcl_lifecycle_com_interface_t;
 
 typedef struct rcl_lifecycle_state_machine_t
