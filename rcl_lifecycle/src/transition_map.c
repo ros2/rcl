@@ -91,7 +91,7 @@ rcl_lifecycle_register_transition(
   transition_array->transitions[transition_array->size - 1] = transition;
 }
 
-rcl_lifecycle_state_t *
+const rcl_lifecycle_state_t *
 rcl_lifecycle_get_state(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int state_id)
@@ -104,7 +104,7 @@ rcl_lifecycle_get_state(
   return NULL;
 }
 
-rcl_lifecycle_transition_array_t *
+const rcl_lifecycle_transition_array_t *
 rcl_lifecycle_get_transitions(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int transition_id)
