@@ -66,6 +66,16 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test_default_state_machine ${PROJECT_NAME})
   endif()
+  ament_add_gtest(test_multiple_instances
+    test/test_multiple_instances.cpp
+  )
+  if(TARGET test_multiple_instances)
+    target_include_directories(test_multiple_instances PUBLIC
+      ${rcl_INCLUDE_DIRS}
+      ${rcl_lifecycle_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_multiple_instances ${PROJECT_NAME})
+  endif()
 endif()
 
 ament_export_dependencies(ament_cmake)
