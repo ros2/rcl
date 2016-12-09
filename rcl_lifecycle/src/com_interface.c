@@ -17,22 +17,19 @@ extern "C"
 {
 #endif
 
+#include "com_interface.hxx"
+
 #include <stdio.h>
 #include <string.h>
+
+#include "lifecycle_msgs/msg/transition_event.h"
 
 #include "rosidl_generator_c/message_type_support.h"
 #include "rosidl_generator_c/string_functions.h"
 
-#include "lifecycle_msgs/msg/transition_event.h"
-#include "lifecycle_msgs/srv/get_state.h"
-#include "lifecycle_msgs/srv/get_available_states.h"
-#include "lifecycle_msgs/srv/change_state.h"
-
 #include "rcl/error_handling.h"
 
 #include "rcl_lifecycle/data_types.h"
-
-#include "com_interface.hxx"
 
 static lifecycle_msgs__msg__TransitionEvent msg;
 
@@ -57,6 +54,7 @@ rcl_lifecycle_get_zero_initialized_com_interface()
   com_interface.srv_change_state = rcl_get_zero_initialized_service();
   com_interface.srv_get_state = rcl_get_zero_initialized_service();
   com_interface.srv_get_available_states = rcl_get_zero_initialized_service();
+  com_interface.srv_get_available_transitions = rcl_get_zero_initialized_service();
   return com_interface;
 }
 
@@ -66,7 +64,8 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
   const rosidl_message_type_support_t * ts_pub_notify,
   const rosidl_service_type_support_t * ts_srv_change_state,
   const rosidl_service_type_support_t * ts_srv_get_state,
-  const rosidl_service_type_support_t * ts_srv_get_available_states)
+  const rosidl_service_type_support_t * ts_srv_get_available_states,
+  const rosidl_service_type_support_t * ts_srv_get_available_transitions)
 {
   if (!ts_pub_notify) {
     RCL_SET_ERROR_MSG("ts_pub_notify is NULL");
@@ -84,6 +83,10 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     RCL_SET_ERROR_MSG("ts_srv_get_available_states is NULL");
     return RCL_RET_ERROR;
   }
+  if (!ts_srv_get_available_states) {
+    RCL_SET_ERROR_MSG("ts_srv_get_available_transitions is NULL");
+    return RCL_RET_ERROR;
+  }
 
   const char * node_name = rcl_node_get_name(node_handle);
 
@@ -92,7 +95,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
      // and limited in length of 255
     const char * topic_prefix = "__transition_event";
     char * topic_name;
-    if (concatenate(&node_name, &topic_prefix, &topic_name) != true) {
+    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
       RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
       goto fail;
     }
@@ -116,7 +119,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
      // and limited in length of 255
     const char * topic_prefix = "__change_state";
     char * topic_name;
-    if (concatenate(&node_name, &topic_prefix, &topic_name) != true) {
+    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
       RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
       goto fail;
     }
@@ -137,7 +140,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
      // and limited in length of 255
     const char * topic_prefix = "__get_state";
     char * topic_name;
-    if (concatenate(&node_name, &topic_prefix, &topic_name) != true) {
+    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
       RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
       goto fail;
     }
@@ -153,12 +156,12 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     }
   }
 
-  {  // initialize get state service
+  {  // initialize get available state service
      // Build topic, topic suffix hardcoded for now
      // and limited in length of 255
     const char * topic_prefix = "__get_available_states";
     char * topic_name;
-    if (concatenate(&node_name, &topic_prefix, &topic_name) != true) {
+    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
       RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
       goto fail;
     }
@@ -173,20 +176,50 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       goto fail;
     }
   }
+
+  {  // initialize get available state service
+     // Build topic, topic suffix hardcoded for now
+     // and limited in length of 255
+    const char * topic_prefix = "__get_available_transitions";
+    char * topic_name;
+    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
+      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
+      goto fail;
+    }
+
+    rcl_service_options_t service_options = rcl_service_get_default_options();
+    rcl_ret_t ret = rcl_service_init(
+      &com_interface->srv_get_available_transitions, node_handle,
+      ts_srv_get_available_transitions, topic_name, &service_options);
+    free(topic_name);
+
+    if (ret != RCL_RET_OK) {
+      goto fail;
+    }
+  }
+
   return RCL_RET_OK;
 
 fail:
   if (RCL_RET_OK != rcl_publisher_fini(&com_interface->pub_transition_event, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy transition_event publisher\n", __FILE__, __LINE__);
+    fprintf(stderr, "%s:%u, Failed to destroy transition_event publisher\n",
+      __FILE__, __LINE__);
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_change_state, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy change_state service\n", __FILE__, __LINE__);
+    fprintf(stderr, "%s:%u, Failed to destroy change_state service\n",
+      __FILE__, __LINE__);
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_state, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy get_state service\n", __FILE__, __LINE__);
+    fprintf(stderr, "%s:%u, Failed to destroy get_state service\n",
+      __FILE__, __LINE__);
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_available_states, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy get_available_states service\n", __FILE__, __LINE__);
+    fprintf(stderr, "%s:%u, Failed to destroy get_available_states service\n",
+      __FILE__, __LINE__);
+  }
+  if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_available_transitions, node_handle)) {
+    fprintf(stderr, "%s:%u, Failed to destroy get_available_transitions service\n",
+      __FILE__, __LINE__);
   }
   com_interface = NULL;
   return RCL_RET_ERROR;
@@ -199,7 +232,15 @@ rcl_lifecycle_com_interface_fini(
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
-  {  // destroy get state srv
+  {  // destroy get available transitions srv
+    rcl_ret_t ret = rcl_service_fini(
+      &com_interface->srv_get_available_transitions, node_handle);
+    if (ret != RCL_RET_OK) {
+      fcn_ret = RCL_RET_ERROR;
+    }
+  }
+
+  {  // destroy get available states srv
     rcl_ret_t ret = rcl_service_fini(
       &com_interface->srv_get_available_states, node_handle);
     if (ret != RCL_RET_OK) {

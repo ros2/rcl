@@ -104,7 +104,7 @@ rcl_lifecycle_get_state(
   return NULL;
 }
 
-const rcl_lifecycle_transition_array_t *
+rcl_lifecycle_transition_array_t *
 rcl_lifecycle_get_transitions(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int transition_id)
