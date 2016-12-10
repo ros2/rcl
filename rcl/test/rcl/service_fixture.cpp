@@ -94,8 +94,8 @@ int main(int argc, char ** argv)
       }
     });
 
-    const rosidl_service_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(
-      example_interfaces, srv, AddTwoInts);
+    const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+      example_interfaces, AddTwoInts);
     const char * topic = "add_two_ints";
 
     rcl_service_t service = rcl_get_zero_initialized_service();

@@ -77,7 +77,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(std_msgs, msg, Int64);
+  const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
   // TODO(wjwwood): Change this back to just chatter when this OpenSplice problem is resolved:
   //  ========================================================================================
   //  Report      : WARNING
@@ -112,7 +112,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(std_msgs, msg, String);
+  const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
   const char * topic_name = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
@@ -139,7 +139,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   rcl_ret_t ret;
   // Setup valid inputs.
   rcl_publisher_t publisher;
-  const rosidl_message_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(std_msgs, msg, Int64);
+  const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
   const char * topic_name = "chatter";
   rcl_publisher_options_t default_publisher_options = rcl_publisher_get_default_options();
 

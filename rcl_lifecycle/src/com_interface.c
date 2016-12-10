@@ -24,7 +24,7 @@ extern "C"
 
 #include "lifecycle_msgs/msg/transition_event.h"
 
-#include "rosidl_generator_c/message_type_support.h"
+#include "rosidl_generator_c/message_type_support_struct.h"
 #include "rosidl_generator_c/string_functions.h"
 
 #include "rcl/error_handling.h"
