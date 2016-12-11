@@ -141,6 +141,47 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
   EXPECT_LE(diff, TOLERANCE);
 }
 
+// Check that a canceled timer doesn't wake up rcl_wait
+TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  // Add a dummy guard condition to avoid an error
+  rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
+  ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  rcl_timer_t canceled_timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init(&canceled_timer, RCL_MS_TO_NS(1), nullptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_timer_cancel(&canceled_timer);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_wait_set_add_timer(&wait_set, &canceled_timer);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  auto scope_exit = make_scope_exit([&guard_cond, &wait_set, &canceled_timer]() {
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_timer_fini(&canceled_timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
+
+  int64_t timeout = RCL_MS_TO_NS(10);
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+  ret = rcl_wait(&wait_set, timeout);
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  // We expect a timeout here (timer value reached)
+  ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
+  // Check time
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_LE(diff, RCL_MS_TO_NS(10) + TOLERANCE);
+}
+
 // Test rcl_wait_set_t with excess capacity works.
 TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), excess_capacity) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
