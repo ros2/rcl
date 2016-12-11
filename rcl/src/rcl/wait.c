@@ -534,8 +534,17 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       if (!wait_set->timers[i]) {
         continue;  // Skip NULL timers.
       }
+      bool is_canceled = false;
+      rcl_ret_t ret = rcl_timer_is_canceled(wait_set->timers[i], &is_canceled);
+      if (ret != RCL_RET_OK) {
+        return ret;  // The rcl error state should already be set.
+      }
+      if (is_canceled) {
+        continue;  // Skip canceled timers.
+      }
+
       int64_t timer_timeout = INT64_MAX;
-      rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
+      ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
       if (ret != RCL_RET_OK) {
         return ret;  // The rcl error state should already be set.
       }
