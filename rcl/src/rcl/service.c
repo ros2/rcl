@@ -72,7 +72,7 @@ rcl_service_init(
     service->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
   if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == options->qos.durability) {
-    fprintf(stderr, "Warning: Setting QoS durability to 'transient local' for service servers " \
+    fprintf(stderr, "Warning: Setting QoS durability to 'transient local' for service servers "
       "can cause them to receive requests from clients that have since terminated.\n");
   }
   // Fill out implementation struct.
