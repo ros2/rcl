@@ -24,14 +24,26 @@ extern "C"
 #endif
 
 typedef int rcl_lifecycle_ret_t;
+#define RCL_LIFECYCLE_RET_NONE -1
 #define RCL_LIFECYCLE_RET_OK 0
 #define RCL_LIFECYCLE_RET_FAILURE 1
 #define RCL_LIFECYCLE_RET_ERROR 2
+typedef struct rcl_lifecycle_transition_t rcl_lifecycle_transition_t;
 
 typedef struct rcl_lifecycle_state_t
 {
   const char * label;
   unsigned int id;
+  // these are the transitions which are accessible from the outside
+  // the reason for this is that this transition can only be triggered
+  // if the transition id is known.
+  rcl_lifecycle_transition_t ** valid_external_transitions;
+  unsigned int valid_external_transition_size;
+  // these are only internal cb transitions. These transitions are not
+  // meant to be accessible from the outside, but rather getting triggered
+  // based on the associated callback return value.
+  rcl_lifecycle_transition_t ** valid_cb_transitions;
+  unsigned int valid_cb_transition_size;
 } rcl_lifecycle_state_t;
 
 typedef struct rcl_lifecycle_transition_t
@@ -40,15 +52,7 @@ typedef struct rcl_lifecycle_transition_t
   unsigned int id;
   const rcl_lifecycle_state_t * start;
   const rcl_lifecycle_state_t * goal;
-  const rcl_lifecycle_state_t * failure;
-  const rcl_lifecycle_state_t * error;
 } rcl_lifecycle_transition_t;
-
-typedef struct rcl_lifecycle_transition_array_t
-{
-  rcl_lifecycle_transition_t * transitions;
-  unsigned int size;
-} rcl_lifecycle_transition_array_t;
 
 typedef struct rcl_lifecycle_transition_map_t
 {
@@ -56,8 +60,9 @@ typedef struct rcl_lifecycle_transition_map_t
   // and their respective transitions
   // 1 ps -> 1 transition_array
   rcl_lifecycle_state_t * states;
-  rcl_lifecycle_transition_array_t * transition_arrays;
-  unsigned int size;
+  unsigned int states_size;
+  rcl_lifecycle_transition_t * transitions;
+  unsigned int transitions_size;
 } rcl_lifecycle_transition_map_t;
 
 typedef struct rcl_lifecycle_com_interface_t

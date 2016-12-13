@@ -36,69 +36,77 @@ rcl_lifecycle_register_state(
   }
 
   // add new primary state memory
-  ++transition_map->size;
-  if (transition_map->size == 1) {
+  ++transition_map->states_size;
+  if (transition_map->states_size == 1) {
     transition_map->states = malloc(
-      transition_map->size * sizeof(rcl_lifecycle_state_t));
-    transition_map->transition_arrays = malloc(
-      transition_map->size * sizeof(rcl_lifecycle_transition_array_t));
+      transition_map->states_size * sizeof(rcl_lifecycle_state_t));
   } else {
     transition_map->states = realloc(
       transition_map->states,
-      transition_map->size * sizeof(rcl_lifecycle_state_t));
-    transition_map->transition_arrays = realloc(
-      transition_map->transition_arrays,
-      transition_map->size * sizeof(rcl_lifecycle_transition_array_t));
+      transition_map->states_size * sizeof(rcl_lifecycle_state_t));
   }
-  transition_map->states[transition_map->size - 1] = state;
-  // zero initialize the associated transition array
-  transition_map->transition_arrays[transition_map->size - 1].transitions = NULL;
-  transition_map->transition_arrays[transition_map->size - 1].size = 0;
+
+  state.valid_cb_transition_size = 3;
+  state.valid_cb_transitions = malloc(
+    state.valid_cb_transition_size * sizeof(rcl_lifecycle_transition_t *));
+  state.valid_cb_transitions[0] = NULL;  // RCL_LIFECYCLE_RET_OK
+  state.valid_cb_transitions[1] = NULL;  // RCL_LIFECYCLE_RET_FAILURE
+  state.valid_cb_transitions[2] = NULL;  // RCL_LIFECYCLE_RET_ERROR
+
+  state.valid_external_transition_size = 0;
+  state.valid_external_transitions = NULL;
+  transition_map->states[transition_map->states_size - 1] = state;
 }
 
 void
 rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_map_t * transition_map,
-  rcl_lifecycle_transition_t transition,
-  const rcl_lifecycle_state_t * start,
-  const rcl_lifecycle_state_t * goal,
-  const rcl_lifecycle_state_t * failure,
-  const rcl_lifecycle_state_t * error)
+  rcl_lifecycle_transition_t transition, rcl_lifecycle_ret_t key)
 {
-  transition.start = start;
-  transition.goal = goal;
-  transition.failure = failure;
-  transition.error = error;
-
-  // TODO(karsten1987): check whether we can improve for not checking duplicates
-  rcl_lifecycle_transition_array_t * transition_array = rcl_lifecycle_get_transitions(
-    transition_map, transition.start->id);
-  if (!transition_array) {
-    fprintf(stderr, "%s:%u, Unable to find transition array registered for start id %u",
-      __FILE__, __LINE__, transition.start->id);
-    return;
-  }
-
   // we add a new transition, so increase the size
-  ++transition_array->size;
-  if (transition_array->size == 1) {
-    transition_array->transitions = malloc(
-      transition_array->size * sizeof(rcl_lifecycle_transition_t));
+  ++transition_map->transitions_size;
+  if (transition_map->transitions_size == 1) {
+    transition_map->transitions = malloc(
+      transition_map->transitions_size * sizeof(rcl_lifecycle_transition_t));
   } else {
-    transition_array->transitions = realloc(
-      transition_array->transitions,
-      transition_array->size * sizeof(rcl_lifecycle_transition_t));
+    transition_map->transitions = realloc(
+      transition_map->transitions,
+      transition_map->transitions_size * sizeof(rcl_lifecycle_transition_t));
   }
   // finally set the new transition to the end of the array
-  transition_array->transitions[transition_array->size - 1] = transition;
+  transition_map->transitions[transition_map->transitions_size - 1] = transition;
+
+  // connect transition to state key
+  rcl_lifecycle_state_t * state = rcl_lifecycle_get_state(transition_map, transition.start->id);
+  // TODO(karsten1987): Sanity check for key
+  if (key == RCL_LIFECYCLE_RET_NONE)
+  {
+    ++state->valid_external_transition_size;
+    if (state->valid_external_transition_size == 1) {
+      state->valid_external_transitions = malloc(
+        state->valid_external_transition_size * sizeof(rcl_lifecycle_transition_t *));
+    } else {
+      state->valid_external_transitions = realloc(
+        state->valid_external_transitions,
+        state->valid_external_transition_size * sizeof(rcl_lifecycle_transition_t *));
+    }
+    state->valid_external_transitions[state->valid_external_transition_size - 1]
+      = &transition_map->transitions[transition_map->transitions_size - 1];
+  } else {
+    state->valid_cb_transitions[key] = &transition_map->transitions[transition_map->transitions_size - 1];
+    fprintf(stderr, "Going to add %s to key %d cb transitions of state %s\n",
+        state->valid_cb_transitions[key]->label,
+        key,
+        state->label);
+  }
 }
 
-const rcl_lifecycle_state_t *
+rcl_lifecycle_state_t *
 rcl_lifecycle_get_state(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int state_id)
 {
-  for (unsigned int i = 0; i < transition_map->size; ++i) {
+  for (unsigned int i = 0; i < transition_map->states_size; ++i) {
     if (transition_map->states[i].id == state_id) {
       return &transition_map->states[i];
     }
@@ -106,14 +114,14 @@ rcl_lifecycle_get_state(
   return NULL;
 }
 
-rcl_lifecycle_transition_array_t *
+rcl_lifecycle_transition_t *
 rcl_lifecycle_get_transitions(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int transition_id)
 {
-  for (unsigned int i = 0; i < transition_map->size; ++i) {
-    if (transition_map->states[i].id == transition_id) {
-      return &transition_map->transition_arrays[i];
+  for (unsigned int i = 0; i < transition_map->transitions_size; ++i) {
+    if (transition_map->transitions[i].id == transition_id) {
+      return &transition_map->transitions[i];
     }
   }
   return NULL;

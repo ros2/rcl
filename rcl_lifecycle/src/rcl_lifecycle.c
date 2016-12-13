@@ -36,9 +36,10 @@ rcl_lifecycle_state_machine_t
 rcl_lifecycle_get_zero_initialized_state_machine()
 {
   rcl_lifecycle_state_machine_t state_machine;
-  state_machine.transition_map.size = 0;
   state_machine.transition_map.states = NULL;
-  state_machine.transition_map.transition_arrays = NULL;
+  state_machine.transition_map.states_size = 0;
+  state_machine.transition_map.transitions = NULL;
+  state_machine.transition_map.transitions_size = 0;
   state_machine.com_interface = rcl_lifecycle_get_zero_initialized_com_interface();
   return state_machine;
 }
@@ -79,17 +80,23 @@ rcl_lifecycle_state_machine_fini(
   fcn_ret = rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle);
 
   rcl_lifecycle_transition_map_t * transition_map = &state_machine->transition_map;
+
+  for (unsigned int i = 0; i < transition_map->states_size; ++i)
+  {
+    for (unsigned int j = 0; j < transition_map->states[i].valid_external_transition_size; ++j)
+    {
+      free(transition_map->states[i].valid_external_transitions[j]);
+    }
+    for (unsigned int j = 0; j < transition_map->states[i].valid_cb_transition_size; ++j)
+    {
+      free(transition_map->states[i].valid_cb_transitions[j]);
+    }
+  }
   // free the primary states array
   free(transition_map->states);
   transition_map->states = NULL;
-  for (unsigned int i = 0; i < transition_map->size; ++i) {
-    // free each transition array associated to a primary state
-    free(transition_map->transition_arrays[i].transitions);
-    transition_map->transition_arrays[i].transitions = NULL;
-  }
-  // free the top level transition array
-  free(transition_map->transition_arrays);
-  transition_map->transition_arrays = NULL;
+  free(transition_map->transitions);
+  transition_map->transitions = NULL;
 
   return fcn_ret;
 }
@@ -97,10 +104,6 @@ rcl_lifecycle_state_machine_fini(
 rcl_ret_t
 rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine)
 {
-  if (state_machine->transition_map.size == 0) {
-    RCL_SET_ERROR_MSG("transition map is empty");
-    return RCL_RET_ERROR;
-  }
   if (!state_machine->com_interface.srv_get_state.impl) {
     RCL_SET_ERROR_MSG("get_state service is null");
     return RCL_RET_ERROR;
@@ -113,21 +116,19 @@ rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t *
 }
 
 const rcl_lifecycle_transition_t *
-rcl_lifecycle_is_valid_transition(
+rcl_lifecycle_is_valid_external_transition(
   rcl_lifecycle_state_machine_t * state_machine,
   unsigned int transition_id)
 {
   unsigned int current_id = state_machine->current_state->id;
-  const rcl_lifecycle_transition_array_t * valid_transitions = rcl_lifecycle_get_transitions(
-    &state_machine->transition_map, current_id);
-  if (!valid_transitions) {
-    fprintf(stderr, "%s:%u, No transitions registered  for current state %s\n",
-      __FILE__, __LINE__, state_machine->current_state->label);
-    return NULL;
-  }
-  for (unsigned int i = 0; i < valid_transitions->size; ++i) {
-    if (valid_transitions->transitions[i].id == transition_id) {
-      return &valid_transitions->transitions[i];
+  const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(&state_machine->transition_map, current_id);
+
+  for (unsigned int i = 0; i < current_state->valid_external_transition_size; ++i)
+  {
+    if (current_state->valid_external_transitions[i]
+        && current_state->valid_external_transitions[i]->id == transition_id)
+    {
+      return current_state->valid_external_transitions[i];
     }
   }
   fprintf(stderr, "%s:%u, No transition matching %u found for current state %s\n",
@@ -135,13 +136,29 @@ rcl_lifecycle_is_valid_transition(
   return NULL;
 }
 
-rcl_ret_t
-rcl_lifecycle_trigger_transition(
+const rcl_lifecycle_transition_t *
+rcl_lifecycle_is_valid_callback_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  unsigned int transition_id, rcl_lifecycle_ret_t success, bool publish_notification)
+  rcl_lifecycle_ret_t key)
+{
+  unsigned int current_id = state_machine->current_state->id;
+  const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(&state_machine->transition_map, current_id);
+
+  if (current_state->valid_cb_transitions[key]) {
+    return current_state->valid_cb_transitions[key];
+  }
+  fprintf(stderr, "%s:%u, No callback transition matching %u found for current state %s\n",
+    __FILE__, __LINE__, key, state_machine->current_state->label);
+  return NULL;
+}
+
+rcl_ret_t
+rcl_lifecycle_trigger_external_transition(
+  rcl_lifecycle_state_machine_t * state_machine,
+  unsigned int transition_id, bool publish_notification)
 {
   const rcl_lifecycle_transition_t * transition =
-    rcl_lifecycle_is_valid_transition(state_machine, transition_id);
+    rcl_lifecycle_is_valid_external_transition(state_machine, transition_id);
 
   // If we have a faulty transition pointer
   if (!transition) {
@@ -149,47 +166,63 @@ rcl_lifecycle_trigger_transition(
     return RCL_RET_ERROR;
   }
 
-  // If we have a transition which is semantically not correct
-  // we may have to set the current state to something intermediate
-  // or simply ignore it
-  if (transition->start != state_machine->current_state) {
-    RCL_SET_ERROR_MSG("Transition not allowed for current state.");
-    fprintf(stderr, "%s:%d, Wrong transition id %s. State machine is in primary state %s\n",
-      __FILE__, __LINE__, transition->start->label, state_machine->current_state->label);
-    return RCL_RET_ERROR;
-  }
-
-  rcl_ret_t ret = RCL_RET_OK;
-
-  // high level transition(callback) was executed correctly
-  if (success == RCL_LIFECYCLE_RET_OK) {
-    // we apply the correct goal state
-    state_machine->current_state = transition->goal;
-  } else if (success == RCL_LIFECYCLE_RET_FAILURE) {
-    // something went wrong up there, so we go to error state
-    state_machine->current_state = transition->failure;
-  } else {
-    state_machine->current_state = transition->error;
-  }
-
+  state_machine->current_state = transition->goal;
   if (publish_notification) {
     rcl_lifecycle_com_interface_publish_notification(
       &state_machine->com_interface, transition->start, state_machine->current_state);
   }
 
-  return ret;
+  return RCL_RET_OK;
 }
+
+rcl_ret_t
+rcl_lifecycle_trigger_callback_transition(
+  rcl_lifecycle_state_machine_t * state_machine,
+  rcl_lifecycle_ret_t key, bool publish_notification)
+{
+  const rcl_lifecycle_transition_t * transition =
+    rcl_lifecycle_is_valid_callback_transition(state_machine, key);
+
+  // If we have a faulty transition pointer
+  if (!transition) {
+    RCL_SET_ERROR_MSG("Transition is not registered.");
+    return RCL_RET_ERROR;
+  }
+
+  state_machine->current_state = transition->goal;
+  if (publish_notification) {
+    rcl_lifecycle_com_interface_publish_notification(
+      &state_machine->com_interface, transition->start, state_machine->current_state);
+  }
+
+  return RCL_RET_OK;
+}
+
 
 void
 rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
 {
   const rcl_lifecycle_transition_map_t * map = &state_machine->transition_map;
-  for (size_t i = 0; i < map->size; ++i) {
+  for (size_t i = 0; i < map->states_size; ++i) {
     printf("Primary State: %s(%u)\n", map->states[i].label, map->states[i].id);
-    for (size_t j = 0; j < map->transition_arrays[i].size; ++j) {
-      printf("\tTransition State: %s(%u)\n", map->transition_arrays[i].transitions[j].label,
-        map->transition_arrays[i].transitions[j].id);
+    printf("# of external transitions: %u\n", map->states[i].valid_external_transition_size);
+    for (size_t j = 0; j < map->states[i].valid_external_transition_size; ++j) {
+      if (map->states[i].valid_external_transitions[j]) {
+        printf("\tTransition State: %s(%u)\n",
+          map->states[i].valid_external_transitions[j]->label,
+          map->states[i].valid_external_transitions[j]->id);
+      }
     }
+    for (size_t j = 0; j < map->states[i].valid_cb_transition_size; ++j) {
+      if (map->states[i].valid_cb_transitions[j]) {
+        printf("\tTransition State: %s(%u)\n", map->states[i].valid_cb_transitions[j]->label,
+          map->states[i].valid_cb_transitions[j]->id);
+      }
+    }
+  }
+  for (size_t i = 0; i < map->transitions_size; ++i)
+  {
+    printf("transition: %s(%d)\n", map->transitions[i].label, map->transitions[i].id);
   }
 }
 #if __cplusplus

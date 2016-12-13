@@ -34,19 +34,16 @@ void
 rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_map_t * transition_map,
   rcl_lifecycle_transition_t transition,
-  const rcl_lifecycle_state_t * start,
-  const rcl_lifecycle_state_t * goal,
-  const rcl_lifecycle_state_t * failure,
-  const rcl_lifecycle_state_t * error);
+  rcl_lifecycle_ret_t key);
 
 RCL_LIFECYCLE_PUBLIC
-const rcl_lifecycle_state_t *
+rcl_lifecycle_state_t *
 rcl_lifecycle_get_state(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int state_id);
 
 RCL_LIFECYCLE_PUBLIC
-rcl_lifecycle_transition_array_t *
+rcl_lifecycle_transition_t *
 rcl_lifecycle_get_transitions(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int state_id);

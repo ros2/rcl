@@ -32,44 +32,111 @@ extern "C"
 // *INDENT-OFF*
 // Primary States
 const rcl_lifecycle_state_t rcl_state_unknown
-  = {"unknown", lifecycle_msgs__msg__State__PRIMARY_STATE_UNKNOWN};
+  = {"unknown", lifecycle_msgs__msg__State__PRIMARY_STATE_UNKNOWN, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_unconfigured
-  = {"unconfigured", lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED};
+  = {"unconfigured", lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_inactive
-  = {"inactive", lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE};
+  = {"inactive", lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_active
-  = {"active", lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE};
+  = {"active", lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_finalized
-  = {"finalized", lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED};
+  = {"finalized", lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED, NULL, 0, NULL, 0};
 // Transition States
 const rcl_lifecycle_state_t rcl_state_configuring
-  = {"configuring", lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING};
+  = {"configuring", lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_cleaningup
-  = {"cleaningup", lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP};
+  = {"cleaningup", lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_shuttingdown
-  = {"shuttingdown", lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN};
+  = {"shuttingdown", lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_activating
-  = {"activating", lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING};
+  = {"activating", lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_deactivating
-  = {"deactivating", lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING};
+  = {"deactivating", lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING, NULL, 0, NULL, 0};
 const rcl_lifecycle_state_t rcl_state_errorprocessing
-  = {"errorprocessing", lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING};
+  = {"errorprocessing", lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING, NULL, 0, NULL, 0};
+
 // Transitions
 const rcl_lifecycle_transition_t rcl_transition_configure
   = {"configure", lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-     NULL, NULL, NULL, NULL};
+  &rcl_state_unconfigured, &rcl_state_configuring};
+const rcl_lifecycle_transition_t rcl_transition_configure_success
+  = {"configure_success", lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_SUCCESS,
+  &rcl_state_configuring, &rcl_state_inactive};
+const rcl_lifecycle_transition_t rcl_transition_configure_failure
+  = {"configure_failure", lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_FAILURE,
+  &rcl_state_configuring, &rcl_state_unconfigured};
+const rcl_lifecycle_transition_t rcl_transition_configure_error
+  = {"configure_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_CLEANUP_ERROR,
+  &rcl_state_configuring, &rcl_state_errorprocessing};
+
 const rcl_lifecycle_transition_t rcl_transition_cleanup
   = {"cleanup", lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-    NULL, NULL, NULL, NULL};
-const rcl_lifecycle_transition_t rcl_transition_shutdown
-  = {"shutdown", lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
-  NULL, NULL, NULL, NULL};
+  &rcl_state_inactive, &rcl_state_cleaningup};
+const rcl_lifecycle_transition_t rcl_transition_cleanup_success
+  = {"cleanup_success", lifecycle_msgs__msg__Transition__TRANSITION_ON_CLEANUP_SUCCESS,
+  &rcl_state_cleaningup, &rcl_state_unconfigured};
+const rcl_lifecycle_transition_t rcl_transition_cleanup_failure
+  = {"cleanup_failure", lifecycle_msgs__msg__Transition__TRANSITION_ON_CLEANUP_FAILURE,
+  &rcl_state_cleaningup, &rcl_state_inactive};
+const rcl_lifecycle_transition_t rcl_transition_cleanup_error
+  = {"cleanup_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_CLEANUP_ERROR,
+  &rcl_state_cleaningup, &rcl_state_errorprocessing};
+
 const rcl_lifecycle_transition_t rcl_transition_activate
   = {"activate", lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
-  NULL, NULL, NULL, NULL};
+  &rcl_state_inactive, &rcl_state_activating};
+const rcl_lifecycle_transition_t rcl_transition_activate_success
+  = {"activate_success", lifecycle_msgs__msg__Transition__TRANSITION_ON_ACTIVATE_SUCCESS,
+  &rcl_state_activating, &rcl_state_active};
+const rcl_lifecycle_transition_t rcl_transition_activate_failure
+  = {"activate_failure", lifecycle_msgs__msg__Transition__TRANSITION_ON_ACTIVATE_FAILURE,
+  &rcl_state_activating, &rcl_state_inactive};
+const rcl_lifecycle_transition_t rcl_transition_activate_error
+  = {"activate_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_ACTIVATE_ERROR,
+  &rcl_state_activating, &rcl_state_errorprocessing};
+
 const rcl_lifecycle_transition_t rcl_transition_deactivate
   = {"deactivate", lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
-  NULL, NULL, NULL, NULL};
+  &rcl_state_active, &rcl_state_deactivating};
+const rcl_lifecycle_transition_t rcl_transition_deactivate_success
+  = {"deactivate_success", lifecycle_msgs__msg__Transition__TRANSITION_ON_DEACTIVATE_SUCCESS,
+  &rcl_state_deactivating, &rcl_state_inactive};
+const rcl_lifecycle_transition_t rcl_transition_deactivate_failure
+  = {"deactivate_failure", lifecycle_msgs__msg__Transition__TRANSITION_ON_DEACTIVATE_FAILURE,
+  &rcl_state_deactivating, &rcl_state_active};
+const rcl_lifecycle_transition_t rcl_transition_deactivate_error
+  = {"deactivate_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_DEACTIVATE_ERROR,
+  &rcl_state_deactivating, &rcl_state_errorprocessing};
+
+const rcl_lifecycle_transition_t rcl_transition_unconfigured_shutdown
+  = {"unconfigured_shutdown", lifecycle_msgs__msg__Transition__TRANSITION_UNCONFIGURED_SHUTDOWN,
+  &rcl_state_unconfigured, &rcl_state_shuttingdown};
+const rcl_lifecycle_transition_t rcl_transition_inactive_shutdown
+  = {"inactive_shutdown", lifecycle_msgs__msg__Transition__TRANSITION_INACTIVE_SHUTDOWN,
+  &rcl_state_inactive, &rcl_state_shuttingdown};
+const rcl_lifecycle_transition_t rcl_transition_active_shutdown
+  = {"active_shutdown", lifecycle_msgs__msg__Transition__TRANSITION_ACTIVE_SHUTDOWN,
+  &rcl_state_active, &rcl_state_shuttingdown};
+const rcl_lifecycle_transition_t rcl_transition_shutdown_success
+  = {"shutdown_success", lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_SUCCESS,
+  &rcl_state_shuttingdown, &rcl_state_finalized};
+const rcl_lifecycle_transition_t rcl_transition_shutdown_failure
+  = {"shutdown_failure", lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_FAILURE,
+  &rcl_state_shuttingdown, &rcl_state_finalized};
+const rcl_lifecycle_transition_t rcl_transition_shutdown_error
+  = {"shutdown_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_ERROR,
+  &rcl_state_shuttingdown, &rcl_state_errorprocessing};
+
+const rcl_lifecycle_transition_t rcl_transition_error_success
+  = {"errorprocessing_success", lifecycle_msgs__msg__Transition__TRANSITION_ON_ERROR_SUCCESS,
+  &rcl_state_errorprocessing, &rcl_state_unconfigured};
+const rcl_lifecycle_transition_t rcl_transition_error_failure
+  = {"errorprocessing_failure", lifecycle_msgs__msg__Transition__TRANSITION_ON_ERROR_FAILURE,
+  &rcl_state_errorprocessing, &rcl_state_finalized};
+const rcl_lifecycle_transition_t rcl_transition_error_error
+  = {"errorprocessing_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_ERROR_ERROR,
+  &rcl_state_errorprocessing, &rcl_state_finalized};
+
 // *INDENT-ON*
 
 // default implementation as despicted on
@@ -78,131 +145,85 @@ rcl_ret_t
 rcl_lifecycle_init_default_state_machine(rcl_lifecycle_state_machine_t * state_machine)
 {
   // Maybe we can directly store only pointers to states
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_unknown);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_unconfigured);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_inactive);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_active);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_finalized);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_unknown);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_unconfigured);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_inactive);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_active);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_finalized);
   // transition states
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_configuring);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_cleaningup);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_shuttingdown);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_activating);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_deactivating);
-  rcl_lifecycle_register_state(&state_machine->transition_map, rcl_state_errorprocessing);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_configuring);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_cleaningup);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_shuttingdown);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_activating);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_deactivating);
+  rcl_lifecycle_register_state(
+      &state_machine->transition_map, rcl_state_errorprocessing);
 
   // add transitions to map
-  // configure on unconfigured
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_configure,
-    &rcl_state_unconfigured,
-    &rcl_state_configuring,
-    &rcl_state_unconfigured,
-    &rcl_state_errorprocessing);
-  // if configuring state fails,
-  // go back to unconfigured state
+    &state_machine->transition_map, rcl_transition_configure, RCL_LIFECYCLE_RET_NONE);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_configure,
-    &rcl_state_configuring,
-    &rcl_state_inactive,
-    &rcl_state_unconfigured,
-    &rcl_state_errorprocessing);
+    &state_machine->transition_map, rcl_transition_configure_success, RCL_LIFECYCLE_RET_OK);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_configure_failure, RCL_LIFECYCLE_RET_FAILURE);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_configure_error, RCL_LIFECYCLE_RET_ERROR);
 
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_cleanup,
-    &rcl_state_inactive,
-    &rcl_state_cleaningup,
-    &rcl_state_inactive,
-    &rcl_state_errorprocessing);
-  // if cleaningup fails,
-  // go back to inactive state
+    &state_machine->transition_map, rcl_transition_cleanup, RCL_LIFECYCLE_RET_NONE);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_cleanup,
-    &rcl_state_cleaningup,
-    &rcl_state_unconfigured,
-    &rcl_state_inactive,
-    &rcl_state_errorprocessing);
+    &state_machine->transition_map, rcl_transition_cleanup_success, RCL_LIFECYCLE_RET_OK);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_cleanup_failure, RCL_LIFECYCLE_RET_FAILURE);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_cleanup_error, RCL_LIFECYCLE_RET_ERROR);
 
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_shutdown,
-    &rcl_state_unconfigured,
-    &rcl_state_shuttingdown,
-    &rcl_state_unconfigured,
-    &rcl_state_errorprocessing);
+    &state_machine->transition_map, rcl_transition_activate, RCL_LIFECYCLE_RET_NONE);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_shutdown,
-    &rcl_state_inactive,
-    &rcl_state_shuttingdown,
-    &rcl_state_inactive,
-    &rcl_state_errorprocessing);
+    &state_machine->transition_map, rcl_transition_activate_success, RCL_LIFECYCLE_RET_OK);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_shutdown,
-    &rcl_state_active,
-    &rcl_state_shuttingdown,
-    &rcl_state_active,
-    &rcl_state_errorprocessing);
+    &state_machine->transition_map, rcl_transition_activate_failure, RCL_LIFECYCLE_RET_FAILURE);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_shutdown,
-    &rcl_state_shuttingdown,
-    &rcl_state_finalized,
-    &rcl_state_errorprocessing,
-    &rcl_state_errorprocessing);
+    &state_machine->transition_map, rcl_transition_activate_error, RCL_LIFECYCLE_RET_ERROR);
 
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_activate,
-    &rcl_state_inactive,
-    &rcl_state_activating,
-    &rcl_state_inactive,
-    &rcl_state_errorprocessing);
-  // if activating state fails
-  // go back to inactive state
+    &state_machine->transition_map, rcl_transition_deactivate, RCL_LIFECYCLE_RET_NONE);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_activate,
-    &rcl_state_activating,
-    &rcl_state_active,
-    &rcl_state_inactive,
-    &rcl_state_errorprocessing);
+    &state_machine->transition_map, rcl_transition_deactivate_success, RCL_LIFECYCLE_RET_OK);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_deactivate_failure, RCL_LIFECYCLE_RET_FAILURE);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_deactivate_error, RCL_LIFECYCLE_RET_ERROR);
 
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_deactivate,
-    &rcl_state_active,
-    &rcl_state_deactivating,
-    &rcl_state_active,
-    &rcl_state_errorprocessing);
+    &state_machine->transition_map, rcl_transition_unconfigured_shutdown, RCL_LIFECYCLE_RET_NONE);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_deactivate,
-    &rcl_state_deactivating,
-    &rcl_state_inactive,
-    &rcl_state_active,
-    &rcl_state_errorprocessing);
-
-  // two more transitions from errorprocessing to finalized or shtudown
+    &state_machine->transition_map, rcl_transition_inactive_shutdown, RCL_LIFECYCLE_RET_NONE);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_shutdown,
-    &rcl_state_errorprocessing,
-    &rcl_state_finalized,
-    &rcl_state_finalized,
-    &rcl_state_finalized);  // shutdown in case of failure
+    &state_machine->transition_map, rcl_transition_active_shutdown, RCL_LIFECYCLE_RET_NONE);
   rcl_lifecycle_register_transition(
-    &state_machine->transition_map,
-    rcl_transition_cleanup,
-    &rcl_state_errorprocessing,
-    &rcl_state_unconfigured,
-    &rcl_state_finalized,
-    &rcl_state_finalized);  // shutdown in case of failure
+    &state_machine->transition_map, rcl_transition_shutdown_success, RCL_LIFECYCLE_RET_OK);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_shutdown_failure, RCL_LIFECYCLE_RET_FAILURE);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_shutdown_error, RCL_LIFECYCLE_RET_ERROR);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_error_success, RCL_LIFECYCLE_RET_OK);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_error_failure, RCL_LIFECYCLE_RET_FAILURE);
+  rcl_lifecycle_register_transition(
+    &state_machine->transition_map, rcl_transition_error_error, RCL_LIFECYCLE_RET_ERROR);
 
   state_machine->current_state = &rcl_state_unconfigured;
   return RCL_RET_OK;
