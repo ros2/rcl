@@ -110,8 +110,8 @@ test_successful_state_change(
   unsigned int expected_goal_state_id)
 {
   EXPECT_EQ(expected_current_state_id, state_machine.current_state->id);
-  auto cb_success = true;
-  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_start_transition(&state_machine, transition_id, cb_success,
+  auto cb_success = RCL_LIFECYCLE_RET_OK;
+  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_trigger_transition(&state_machine, transition_id, cb_success,
     false));
   EXPECT_EQ(expected_goal_state_id, state_machine.current_state->id);
 }

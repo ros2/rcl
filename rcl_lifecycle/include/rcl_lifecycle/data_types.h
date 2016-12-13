@@ -23,6 +23,11 @@ extern "C"
 {
 #endif
 
+typedef int rcl_lifecycle_ret_t;
+#define RCL_LIFECYCLE_RET_OK 0
+#define RCL_LIFECYCLE_RET_FAILURE 1
+#define RCL_LIFECYCLE_RET_ERROR 2
+
 typedef struct rcl_lifecycle_state_t
 {
   const char * label;
@@ -35,6 +40,7 @@ typedef struct rcl_lifecycle_transition_t
   unsigned int id;
   const rcl_lifecycle_state_t * start;
   const rcl_lifecycle_state_t * goal;
+  const rcl_lifecycle_state_t * failure;
   const rcl_lifecycle_state_t * error;
 } rcl_lifecycle_transition_t;
 

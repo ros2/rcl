@@ -110,8 +110,8 @@ test_successful_state_change(
   unsigned int expected_goal_state_id)
 {
   EXPECT_EQ(expected_current_state_id, state_machine.current_state->id);
-  auto cb_success = true;
-  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_start_transition(&state_machine, transition_id, cb_success,
+  auto cb_success = RCL_LIFECYCLE_RET_OK;
+  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_trigger_transition(&state_machine, transition_id, cb_success,
     false));
   EXPECT_EQ(expected_goal_state_id, state_machine.current_state->id);
 }
@@ -124,26 +124,39 @@ test_successful_state_change_strong(
   unsigned int expected_goal_state_id)
 {
   ASSERT_EQ(state_machine.current_state->id, expected_current_state_id);
-  auto cb_success = true;
-  ASSERT_EQ(RCL_RET_OK, rcl_lifecycle_start_transition(&state_machine, transition_id, cb_success,
+  auto cb_success = RCL_LIFECYCLE_RET_OK;
+  ASSERT_EQ(RCL_RET_OK, rcl_lifecycle_trigger_transition(&state_machine, transition_id, cb_success,
     false));
   ASSERT_EQ(expected_goal_state_id, state_machine.current_state->id);
 }
 
 void
-test_unsuccessful_state_change(
+test_failure_state_change(
   rcl_lifecycle_state_machine_t & state_machine,
   unsigned int transition_id,
   unsigned int expected_current_state_id,
   unsigned int expected_goal_state_id)
 {
   EXPECT_EQ(expected_current_state_id, state_machine.current_state->id);
-  auto cb_success = false;
-  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_start_transition(&state_machine, transition_id, cb_success,
+  auto cb_success = RCL_LIFECYCLE_RET_FAILURE;
+  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_trigger_transition(&state_machine, transition_id, cb_success,
     false));
   EXPECT_EQ(expected_goal_state_id, state_machine.current_state->id);
 }
 
+void
+test_error_state_change(
+  rcl_lifecycle_state_machine_t & state_machine,
+  unsigned int transition_id,
+  unsigned int expected_current_state_id,
+  unsigned int expected_goal_state_id)
+{
+  EXPECT_EQ(expected_current_state_id, state_machine.current_state->id);
+  auto cb_success = RCL_LIFECYCLE_RET_ERROR;
+  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_trigger_transition(&state_machine, transition_id, cb_success,
+    false));
+  EXPECT_EQ(expected_goal_state_id, state_machine.current_state->id);
+}
 /*
  * Test suite
  */
@@ -239,7 +252,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
         *it == lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP ||
         *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
 
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
     }
@@ -254,7 +267,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
     for (auto it = transition_ids.begin(); it != transition_ids.end(); ++it) {
       if (lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE) {continue;}
 
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
     }
@@ -271,7 +284,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
         *it == lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE ||
         *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
 
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
     }
@@ -286,7 +299,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
     for (auto it = transition_ids.begin(); it != transition_ids.end(); ++it) {
       if (lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE) {continue;}
 
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
     }
@@ -303,7 +316,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
         *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN)
       {continue;}
 
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
     }
@@ -320,7 +333,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
         *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN)
       {continue;}
 
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
     }
@@ -342,7 +355,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
         *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN)
       {continue;}
 
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
     }
@@ -363,7 +376,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       if (*it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN)
       {continue;}
 
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
     }
@@ -376,7 +389,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
 
     for (auto it = transition_ids.begin(); it != transition_ids.end(); ++it) {
-      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_start_transition(&state_machine, *it, true, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, true, false));
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
     }
@@ -506,7 +519,7 @@ TEST_F(TestDefaultStateMachine, default_sequence_shutdown) {
   }
 }
 
-TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
+TEST_F(TestDefaultStateMachine, default_sequence_returns_failure) {
   {  // configuring to error
     rcl_lifecycle_state_machine_t state_machine =
       rcl_lifecycle_get_zero_initialized_state_machine();
@@ -515,15 +528,10 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
       lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
       lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
       lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
-    // high level callback was wrong -> so we go into error state
-    test_unsuccessful_state_change(state_machine,
+    // on_configure() returns RCL_LIFECYCLE_RET_FALSE
+    test_failure_state_change(state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
       lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
-    // solve problem
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
       lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
   }
 
@@ -539,15 +547,15 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
       lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
       lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
       lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
-    test_unsuccessful_state_change(state_machine,
+    test_successful_state_change(state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
       lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
-    // solve problem
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+    // on_activate returns RCL_LIFECYCLE_RET_FALSE
+    test_failure_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
   }
 
   {  // deactivating to error
@@ -570,15 +578,15 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
       lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
       lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
       lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
-    test_unsuccessful_state_change(state_machine,
+    test_successful_state_change(state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
       lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
-    // solve problem
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+      lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
+    // on_deactivate returns RCL_LIFECYCLE_RET_FALSE
+    test_failure_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
   }
 
   {  // cleaningup to error
@@ -593,114 +601,149 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
       lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
       lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
       lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
-    test_unsuccessful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
-    // solve problem
     test_successful_state_change(state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
+    // on_cleanup returns RCL_LIFECYCLE_RET_FALSE
+    test_failure_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+  }
+}
+
+TEST_F(TestDefaultStateMachine, default_sequence_returns_error) {
+  {  // configuring to error
+    rcl_lifecycle_state_machine_t state_machine =
+      rcl_lifecycle_get_zero_initialized_state_machine();
+    rcl_lifecycle_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+    // on_configure() returns RCL_LIFECYCLE_RET_ERROR
+    test_error_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+  }
+
+  {  // activating to error
+    rcl_lifecycle_state_machine_t state_machine =
+      rcl_lifecycle_get_zero_initialized_state_machine();
+    rcl_lifecycle_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+    // on_activate returns RCL_LIFECYCLE_RET_ERROR
+    test_error_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+  }
+
+  {  // deactivating to error
+    rcl_lifecycle_state_machine_t state_machine =
+      rcl_lifecycle_get_zero_initialized_state_machine();
+    rcl_lifecycle_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
+    // on_deactivate returns RCL_LIFECYCLE_RET_ERROR
+    test_error_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+  }
+
+  {  // cleaningup to error
+    rcl_lifecycle_state_machine_t state_machine =
+      rcl_lifecycle_get_zero_initialized_state_machine();
+    rcl_lifecycle_init_default_state_machine(&state_machine);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
+    // on_cleanup returns RCL_LIFECYCLE_RET_ERROR
+    test_error_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
   }
 }
 
 TEST_F(TestDefaultStateMachine, default_sequence_error_unresolved) {
-  {  // configuring to error
+  {  // error to shutdown
     rcl_lifecycle_state_machine_t state_machine =
       rcl_lifecycle_get_zero_initialized_state_machine();
     rcl_lifecycle_init_default_state_machine(&state_machine);
     test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
       lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
-    // high level callback was wrong -> so we go into error state
-    test_unsuccessful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+    test_error_state_change(state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
       lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
-    // solve problem
+
     test_successful_state_change(state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
       lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
       lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
   }
 
-  {  // activating to error
+  {  // error to unconfigured
     rcl_lifecycle_state_machine_t state_machine =
       rcl_lifecycle_get_zero_initialized_state_machine();
     rcl_lifecycle_init_default_state_machine(&state_machine);
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
-    test_unsuccessful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
-    // solve problem
     test_successful_state_change(state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
-  }
-
-  {  // deactivating to error
-    rcl_lifecycle_state_machine_t state_machine =
-      rcl_lifecycle_get_zero_initialized_state_machine();
-    rcl_lifecycle_init_default_state_machine(&state_machine);
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
       lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
-    test_unsuccessful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
-    // solve problem
-    test_successful_state_change(state_machine,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+    test_error_state_change(state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
-  }
+      lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
 
-  {  // cleaningup to error
-    rcl_lifecycle_state_machine_t state_machine =
-      rcl_lifecycle_get_zero_initialized_state_machine();
-    rcl_lifecycle_init_default_state_machine(&state_machine);
     test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
-    test_unsuccessful_state_change(state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
-    // solve problem
-    test_successful_state_change(state_machine,
-      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
       lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
   }
 }
 

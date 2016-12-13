@@ -70,9 +70,9 @@ rcl_lifecycle_is_valid_transition(
  */
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_lifecycle_start_transition(
+rcl_lifecycle_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  unsigned int transition_id, bool success, bool publish_notification);
+  unsigned int transition_id, rcl_lifecycle_ret_t success, bool publish_notification);
 
 RCL_LIFECYCLE_PUBLIC
 void

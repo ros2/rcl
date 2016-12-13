@@ -36,6 +36,7 @@ rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_t transition,
   const rcl_lifecycle_state_t * start,
   const rcl_lifecycle_state_t * goal,
+  const rcl_lifecycle_state_t * failure,
   const rcl_lifecycle_state_t * error);
 
 RCL_LIFECYCLE_PUBLIC

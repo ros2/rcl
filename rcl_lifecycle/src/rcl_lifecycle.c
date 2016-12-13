@@ -136,9 +136,9 @@ rcl_lifecycle_is_valid_transition(
 }
 
 rcl_ret_t
-rcl_lifecycle_start_transition(
+rcl_lifecycle_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  unsigned int transition_id, bool success, bool publish_notification)
+  unsigned int transition_id, rcl_lifecycle_ret_t success, bool publish_notification)
 {
   const rcl_lifecycle_transition_t * transition =
     rcl_lifecycle_is_valid_transition(state_machine, transition_id);
@@ -162,11 +162,13 @@ rcl_lifecycle_start_transition(
   rcl_ret_t ret = RCL_RET_OK;
 
   // high level transition(callback) was executed correctly
-  if (success) {
+  if (success == RCL_LIFECYCLE_RET_OK) {
     // we apply the correct goal state
     state_machine->current_state = transition->goal;
-  } else {
+  } else if (success == RCL_LIFECYCLE_RET_FAILURE) {
     // something went wrong up there, so we go to error state
+    state_machine->current_state = transition->failure;
+  } else {
     state_machine->current_state = transition->error;
   }
 
