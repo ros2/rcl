@@ -22,6 +22,7 @@ extern "C"
 #include <string.h>
 
 #include <rmw/rmw.h>
+#include <rmw/impl/getenv.h>
 
 #include "rcl/types.h"
 #include "./common.h"
@@ -52,13 +53,13 @@ INITIALIZER(initialize) {
   // If the environement variable RCL_ASSERT_RMW_ID_MATCHES is set,
   // check that the result of `rmw_get_implementation_identifier` matches.
   const char * expected = NULL;
-  rcl_ret_t ret = rcl_impl_getenv("RCL_ASSERT_RMW_ID_MATCHES", &expected);
-  if (ret != RCL_RET_OK) {
+  rmw_ret_t rmw_ret = rmw_impl_getenv("RCL_ASSERT_RMW_ID_MATCHES", &expected);
+  if (rmw_ret != RMW_RET_OK) {
     fprintf(stderr,
       "Error getting environement variable 'RCL_ASSERT_RMW_ID_MATCHES': %s\n",
-      rcl_get_error_string_safe()
+      rmw_get_error_string_safe()
     );
-    exit(ret);
+    exit(rmw_ret);
   }
   // If the environment variable is set, and it does not match, print a warning and exit.
   if (strlen(expected) > 0 && strcmp(rmw_get_implementation_identifier(), expected) != 0) {

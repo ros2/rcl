@@ -26,6 +26,7 @@ extern "C"
 
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
+#include "rmw/impl/getenv.h"
 
 #include "./common.h"
 
@@ -89,8 +90,9 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
   // node rmw_node_handle
   if (node->impl->options.domain_id == RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID) {
     // Find the domain ID set by the environment.
-    ret = rcl_impl_getenv("ROS_DOMAIN_ID", &ros_domain_id);
-    if (ret != RCL_RET_OK) {
+    rmw_ret_t rmw_ret = rmw_impl_getenv("ROS_DOMAIN_ID", &ros_domain_id);
+    if (rmw_ret != RMW_RET_OK) {
+      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
       goto fail;
     }
     if (ros_domain_id) {
