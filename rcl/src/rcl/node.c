@@ -23,6 +23,7 @@ extern "C"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "rcl/rcl.h"
 #include "rmw/error_handling.h"
@@ -47,6 +48,88 @@ typedef struct rcl_node_impl_t
   uint64_t rcl_instance_id;
   rcl_guard_condition_t * graph_guard_condition;
 } rcl_node_impl_t;
+
+
+bool file_exist_and_readable(const char * filepath)
+{
+  struct stat buf;
+  // check if the file exists
+  if (stat(filepath, &buf) < 0) {
+    return false;
+  }
+  // check if the file is readable from user
+  if (!(buf.st_mode & S_IRUSR)) {
+    return false;
+  }
+  return true;
+}
+
+void concatenate(char * dest_str, char * str_to_append)
+{
+  snprintf(dest_str + strlen(dest_str), strlen(str_to_append) + 1, "%s", str_to_append);
+}
+
+void assign(char * dest_str, char * str_to_append)
+{
+  snprintf(dest_str, strlen(str_to_append) + 1, "%s", str_to_append);
+}
+
+bool rcl_get_security_file_paths(char ** security_files_paths, char * name)
+{
+  const char * env_var = "ROS_SECURE_ROOT";
+  char * ros_secure_root = NULL;
+  size_t ros_secure_root_size;
+  size_t ros_secure_filename_max_length;
+
+  // here assume only 3 files for security
+  char * file_extensions[3] = {"ca.cert.pem", "cert.pem", "key.pem"};
+  size_t num_files = 3;
+
+  size_t i, maxlenextensions = 100;
+  for (i = 0; i < num_files; i++) {
+    size_t tmplen = strlen(file_extensions[i]);
+    if (tmplen < maxlenextensions) {
+      maxlenextensions = tmplen;
+    }
+  }
+
+  char * file_appbefore = "file://";
+  ros_secure_filename_max_length = strlen(file_appbefore) + maxlenextensions;
+
+#ifndef _WIN32
+  ros_secure_root = getenv(env_var);
+#else
+  _dupenv_s(&ros_secure_root, &ros_secure_root_size, env_var);
+#endif
+  if (!ros_secure_root) {
+    return false;
+  }
+  ros_secure_root_size = strlen(ros_secure_root);
+  if (ros_secure_root[ros_secure_root_size - 1] !=
+    '/' && ros_secure_root[ros_secure_root_size - 1] != '\\')
+  {
+     concatenate(ros_secure_root, "/");
+  }
+  ros_secure_root_size = strlen(ros_secure_root);
+  concatenate(ros_secure_root, name);
+  concatenate(ros_secure_root, "/");
+  ros_secure_root_size = strlen(ros_secure_root);
+  ros_secure_filename_max_length += ros_secure_root_size + strlen(name);
+  char * tmpstr;
+  tmpstr = malloc(ros_secure_filename_max_length);
+  for (i = 0; i < num_files; i++) {
+    assign(tmpstr, ros_secure_root);
+    concatenate(tmpstr, file_extensions[i]);
+    if (!file_exist_and_readable(tmpstr)) {
+      return false;
+    }
+    security_files_paths[i] = malloc(ros_secure_filename_max_length);
+    assign(security_files_paths[i], file_appbefore);
+    concatenate(security_files_paths[i], tmpstr);
+    fprintf(stderr, "[%zu]: ***%s***\n", i, security_files_paths[i]);
+  }
+  return true;
+}
 
 rcl_node_t
 rcl_get_zero_initialized_node()
@@ -179,7 +262,18 @@ rcl_node_init(
   }
   // actual domain id
   node->impl->actual_domain_id = domain_id;
-  node->impl->rmw_node_handle = rmw_create_node(name, local_namespace_, domain_id);
+
+  // File discovery magic here
+  char * filepaths[3];  // here we assume that only 3 files are needed to configure a node
+  bool ret1 = rcl_get_security_file_paths(filepaths, (char *)name);
+  if (ret1) {
+    fprintf(stderr, "found all cert/keys to make %s a security enabled node!\n", name);
+    node->impl->rmw_node_handle = rmw_create_secure_node(name, domain_id, filepaths);
+  } else {
+    fprintf(stderr, "no security for %s node!\n", name);
+    node->impl->rmw_node_handle = rmw_create_node(name, domain_id);
+  }
+
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail, *allocator);
   // free local_namespace_ if necessary
