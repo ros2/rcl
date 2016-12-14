@@ -57,37 +57,33 @@ protected:
   }
 };
 
-void
-test_callback_trigger(
-  rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_ret_t callback_return,
-  unsigned int expected_current_state,
-  unsigned int expected_goal_state)
+std::vector<rcl_lifecycle_ret_t> keys =
 {
-  EXPECT_EQ(
-    expected_current_state, state_machine->current_state->id);
-  EXPECT_EQ(
-    RCL_LIFECYCLE_RET_OK, rcl_lifecycle_trigger_callback_transition(
-      state_machine, callback_return, false));
-  EXPECT_EQ(
-    expected_goal_state, state_machine->current_state->id);
-}
-void
-test_external_trigger(
-  rcl_lifecycle_state_machine_t * state_machine,
-  unsigned int transition_id,
-  unsigned int expected_current_state,
-  unsigned int expected_goal_state)
-{
-  EXPECT_EQ(
-    expected_current_state, state_machine->current_state->id);
-  EXPECT_EQ(
-    RCL_LIFECYCLE_RET_OK, rcl_lifecycle_trigger_external_transition(
-        state_machine, transition_id, false));
-  EXPECT_EQ(
-    expected_goal_state, state_machine->current_state->id);
-}
+  lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+  lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+  lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+  lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+  lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+  RCL_LIFECYCLE_RET_OK,
+  RCL_LIFECYCLE_RET_FAILURE,
+  RCL_LIFECYCLE_RET_ERROR
+};
 
+void
+test_trigger_transition(
+  rcl_lifecycle_state_machine_t * state_machine,
+  int key,
+  unsigned int expected_current_state,
+  unsigned int expected_goal_state)
+{
+  EXPECT_EQ(
+    expected_current_state, state_machine->current_state->id);
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_lifecycle_trigger_transition(
+      state_machine, key, false));
+  EXPECT_EQ(
+    expected_goal_state, state_machine->current_state->id);
+}
 /*
  * Test suite
  */
@@ -105,68 +101,622 @@ TEST_F(TestDefaultStateMachine, default_sequence) {
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
   rcl_lifecycle_init_default_state_machine(&state_machine);
 
-  test_external_trigger(
+  test_trigger_transition(
     &state_machine,
     lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
 
-  test_callback_trigger(
+  test_trigger_transition(
     &state_machine,
     RCL_LIFECYCLE_RET_OK,
     lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
     lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
 
-  test_external_trigger(
+  test_trigger_transition(
     &state_machine,
     lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
     lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
     lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
-  test_callback_trigger(
+
+  test_trigger_transition(
     &state_machine,
     RCL_LIFECYCLE_RET_OK,
     lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
     lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
 
-  test_external_trigger(
+  test_trigger_transition(
     &state_machine,
     lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
     lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
     lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
 
-  test_callback_trigger(
+  test_trigger_transition(
     &state_machine,
     RCL_LIFECYCLE_RET_OK,
     lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
     lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
 
-  test_external_trigger(
+  test_trigger_transition(
     &state_machine,
     lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
     lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
     lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
 
-  test_callback_trigger(
-    &state_machine,
-    RCL_LIFECYCLE_RET_OK,
-    lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
-    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+  test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
 
-  test_external_trigger(
+  test_trigger_transition(
     &state_machine,
-    lifecycle_msgs__msg__Transition__TRANSITION_UNCONFIGURED_SHUTDOWN,
+    lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
 
-  test_callback_trigger(
+  test_trigger_transition(
     &state_machine,
     RCL_LIFECYCLE_RET_OK,
     lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
     lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
 }
 
+TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_init_default_state_machine(&state_machine);
+
+  { // supposed to stay unconfigured for all invalid
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE ||
+        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
+
+      EXPECT_EQ(
+        RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(
+        state_machine.current_state->id,
+        lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+    }
+  }
+
+  { // supposed to stay configuring for all invalid
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      if (*it == RCL_LIFECYCLE_RET_OK ||
+          *it == RCL_LIFECYCLE_RET_FAILURE ||
+          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(state_machine.current_state->id,
+        lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+    }
+  }
+
+  { // supposed to stay inactive for all invalid
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP ||
+        *it == lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE ||
+        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
+
+      fprintf(stderr, "applying key %u\n", *it);
+      EXPECT_EQ(
+        RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(state_machine.current_state->id,
+        lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+    }
+  }
+
+  { // supposed to stay activating for all invalid
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      if (*it == RCL_LIFECYCLE_RET_OK ||
+          *it == RCL_LIFECYCLE_RET_FAILURE ||
+          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(state_machine.current_state->id,
+        lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+    }
+  }
+
+  { // supposed to stay active for all invalid
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
+
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE ||
+        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN)
+      {continue;}
+
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(state_machine.current_state->id,
+        lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
+    }
+  }
+
+  { // supposed to stay deactivating for all invalid
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
+
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      if (*it == RCL_LIFECYCLE_RET_OK ||
+          *it == RCL_LIFECYCLE_RET_FAILURE ||
+          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(state_machine.current_state->id,
+        lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
+    }
+  }
+
+  { // supposed to stay cleanup for all invalid
+    // skip inactive, we tested that already
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
+
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      if (*it == RCL_LIFECYCLE_RET_OK ||
+          *it == RCL_LIFECYCLE_RET_FAILURE ||
+          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(state_machine.current_state->id,
+        lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
+    }
+  }
+
+  { // supposed to stay shutting down for all invalid
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+    // shutdown directly, since we tested already unconfigured
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      if (*it == RCL_LIFECYCLE_RET_OK ||
+          *it == RCL_LIFECYCLE_RET_FAILURE ||
+          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(state_machine.current_state->id,
+        lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+    }
+  }
+
+  { // supposed to stay finalized for all invalid
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+
+    for (auto it = keys.begin(); it != keys.end(); ++it) {
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(state_machine.current_state->id,
+        lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+    }
+  }
+}
+
+TEST_F(TestDefaultStateMachine, default_in_a_loop)
+{
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_init_default_state_machine(&state_machine);
+
+  for (auto i = 0; i<5; ++i)
+  {
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
+
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
+
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
+
+    test_trigger_transition(
+        &state_machine,
+        RCL_LIFECYCLE_RET_OK,
+        lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+        lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+  }
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+
+}
+
+TEST_F(TestDefaultStateMachine, default_sequence_failure) {
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_init_default_state_machine(&state_machine);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+
+  ///////////////
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+  //////////////////////////
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
+
+  //////////////////////////////
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
+  test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_FAILURE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+  /////////////////////////////
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
+  test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+}
+
+TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_init_default_state_machine(&state_machine);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+
+  ///////////////
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+
+  //////////////////////////
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+
+  //////////////////////////////
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+
+  /////////////////////////////
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+  test_trigger_transition(
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+}
+
+TEST_F(TestDefaultStateMachine, default_sequence_error_unresolved) {
+  {
+    rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+    rcl_lifecycle_init_default_state_machine(&state_machine);
+
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_ERROR,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_FAILURE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+  }
+
+  {
+    rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  rcl_lifecycle_init_default_state_machine(&state_machine);
+
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+    test_trigger_transition(
+      &state_machine,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_ERROR,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING);
+
+    test_trigger_transition(
+      &state_machine,
+      RCL_LIFECYCLE_RET_ERROR,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+  }
+}
+
 TEST_F(TestDefaultStateMachine, print_state_machine) {
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
   rcl_lifecycle_init_default_state_machine(&state_machine);
-  //rcl_print_state_machine(&state_machine);
+  rcl_print_state_machine(&state_machine);
 }

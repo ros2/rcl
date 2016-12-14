@@ -54,15 +54,10 @@ rcl_lifecycle_state_machine_is_initialized(
 
 RCL_LIFECYCLE_PUBLIC
 const rcl_lifecycle_transition_t *
-rcl_lifecycle_is_valid_external_transition(
-  rcl_lifecycle_state_machine_t * state_machine,
-  unsigned int transition_id);
-
-RCL_LIFECYCLE_PUBLIC
-const rcl_lifecycle_transition_t *
 rcl_lifecycle_is_valid_callback_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_ret_t key);
+  unsigned int key);
+
 /// Execute a transition
 /*
  * Important note for bool \param success here:
@@ -75,15 +70,9 @@ rcl_lifecycle_is_valid_callback_transition(
  */
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
-rcl_lifecycle_trigger_external_transition(
+rcl_lifecycle_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  unsigned int transition_id, bool publish_notification);
-
-RCL_LIFECYCLE_PUBLIC
-rcl_ret_t
-rcl_lifecycle_trigger_callback_transition(
-  rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_ret_t key, bool publish_notification);
+  unsigned int key, bool publish_notification);
 
 RCL_LIFECYCLE_PUBLIC
 void

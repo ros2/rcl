@@ -23,27 +23,30 @@ extern "C"
 {
 #endif
 
-typedef int rcl_lifecycle_ret_t;
-#define RCL_LIFECYCLE_RET_NONE -1
-#define RCL_LIFECYCLE_RET_OK 0
-#define RCL_LIFECYCLE_RET_FAILURE 1
-#define RCL_LIFECYCLE_RET_ERROR 2
+typedef unsigned int rcl_lifecycle_ret_t;
+#define RCL_LIFECYCLE_RET_OK 97
+#define RCL_LIFECYCLE_RET_FAILURE 98
+#define RCL_LIFECYCLE_RET_ERROR 99
+
 typedef struct rcl_lifecycle_transition_t rcl_lifecycle_transition_t;
 
 typedef struct rcl_lifecycle_state_t
 {
   const char * label;
   unsigned int id;
-  // these are the transitions which are accessible from the outside
-  // the reason for this is that this transition can only be triggered
-  // if the transition id is known.
-  rcl_lifecycle_transition_t ** valid_external_transitions;
-  unsigned int valid_external_transition_size;
-  // these are only internal cb transitions. These transitions are not
-  // meant to be accessible from the outside, but rather getting triggered
-  // based on the associated callback return value.
-  rcl_lifecycle_transition_t ** valid_cb_transitions;
-  unsigned int valid_cb_transition_size;
+
+  // trigger impuls is a generic identifier for deciding
+  // which transitions to trigger.
+  // This serves the purpose of hiding unique ID from
+  // users prospective.
+  // e.g. shutdown
+  // the concrete transition for the state "unconfigured"
+  // is "unconfigured_shutdown". However, the user only specifies
+  // "shutdown". So we register the "unconfigured_shutdown"
+  // transition with the impuls "shutdown".
+  rcl_lifecycle_ret_t * valid_transition_keys;
+  rcl_lifecycle_transition_t * valid_transitions;
+  unsigned int valid_transition_size;
 } rcl_lifecycle_state_t;
 
 typedef struct rcl_lifecycle_transition_t
