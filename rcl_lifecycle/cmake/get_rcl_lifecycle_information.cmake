@@ -64,7 +64,6 @@ macro(get_rcl_lifecycle_information rmw_implementation var_prefix)
 
   # dependencies
   set(_exported_dependencies
-    #    "rcl_lifecycle_interfaces"
     "rmw"
     "${rmw_implementation}"
     "rosidl_generator_c")

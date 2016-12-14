@@ -81,13 +81,15 @@ rcl_lifecycle_state_machine_fini(
 
   rcl_lifecycle_transition_map_t * transition_map = &state_machine->transition_map;
 
+  // for each state free the allocations for their keys/transitions
   for (unsigned int i = 0; i < transition_map->states_size; ++i) {
     free(transition_map->states[i].valid_transition_keys);
     free(transition_map->states[i].valid_transitions);
   }
-  // free the primary states array
+  // free the primary states
   free(transition_map->states);
   transition_map->states = NULL;
+  // free the tansitions
   free(transition_map->transitions);
   transition_map->transitions = NULL;
 

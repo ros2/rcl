@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rcl_lifecycle)
 
-if(NOT WIN32)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra")
-endif()
-
 find_package(ament_cmake REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rmw REQUIRED)
@@ -50,8 +46,8 @@ call_for_each_rmw_implementation(targets GENERATE_DEFAULT)
 
 if(BUILD_TESTING)
   if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++14")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++14")
+    add_compile_options(-Wall -Wextra -Wpedantic)
   endif()
 
   find_package(ament_cmake_gtest REQUIRED)

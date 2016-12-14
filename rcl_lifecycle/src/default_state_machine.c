@@ -146,7 +146,6 @@ const rcl_lifecycle_transition_t rcl_transition_error_failure =
 const rcl_lifecycle_transition_t rcl_transition_error_error =
 {"errorprocessing_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_ERROR_ERROR,
  &rcl_state_errorprocessing, &rcl_state_finalized};
-// *INDENT-ON*
 
 // default implementation as despicted on
 // design.ros2.org

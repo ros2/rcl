@@ -35,9 +35,9 @@ typedef struct rcl_lifecycle_state_t
   const char * label;
   unsigned int id;
 
-  // trigger impuls is a generic identifier for deciding
+  // a valid key is a generic identifier for deciding
   // which transitions to trigger.
-  // This serves the purpose of hiding unique ID from
+  // This serves the purpose of hiding a unique ID from
   // users prospective.
   // e.g. shutdown
   // the concrete transition for the state "unconfigured"
@@ -57,11 +57,10 @@ typedef struct rcl_lifecycle_transition_t
   const rcl_lifecycle_state_t * goal;
 } rcl_lifecycle_transition_t;
 
+// TODO(karsten1987): Rename map as it is no
+// associated array any longer
 typedef struct rcl_lifecycle_transition_map_t
 {
-  // associative array between primary state
-  // and their respective transitions
-  // 1 ps -> 1 transition_array
   rcl_lifecycle_state_t * states;
   unsigned int states_size;
   rcl_lifecycle_transition_t * transitions;

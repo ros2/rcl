@@ -36,6 +36,7 @@ rcl_lifecycle_register_state(
   }
 
   // add new primary state memory
+  // TODO(karsten1987): Add function for reallocf (see rcl)
   ++transition_map->states_size;
   transition_map->states = realloc(
     transition_map->states,

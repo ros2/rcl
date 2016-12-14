@@ -60,13 +60,14 @@ rcl_lifecycle_is_valid_callback_transition(
 
 /// Execute a transition
 /*
- * Important note for bool \param success here:
+ * Important note for \param key here:
  * This is meant as feedback from the high level
  * callback associated with this transition.
- * In case success is true, the actual goal state
- * of the transition is set as a current state.
- * In case success is false, the error state
- * of the transition is set a a current state.
+ * The key is the index for the valid transitions
+ * associated with the current state.
+ * This key may either be a valid external stimuli
+ * such as "configure" or direct return codes from
+ * callbacks such as RCL_LIFECYCLE_RET_OK et. al.
  */
 RCL_LIFECYCLE_PUBLIC
 rcl_ret_t

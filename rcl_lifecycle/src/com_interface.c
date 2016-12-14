@@ -90,7 +90,8 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
 
   const char * node_name = rcl_node_get_name(node_handle);
 
-  {  // initialize publisher
+  // initialize publisher
+  {
      // Build topic, topic suffix hardcoded for now
      // and limited in length of 255
     const char * topic_prefix = "__transition_event";
@@ -114,9 +115,10 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     lifecycle_msgs__msg__TransitionEvent__init(&msg);
   }
 
-  {  // initialize change state service
-     // Build topic, topic suffix hardcoded for now
-     // and limited in length of 255
+  // initialize change state service
+  {
+    // Build topic, topic suffix hardcoded for now
+    // and limited in length of 255
     const char * topic_prefix = "__change_state";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
@@ -135,9 +137,10 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     }
   }
 
-  {  // initialize get state service
-     // Build topic, topic suffix hardcoded for now
-     // and limited in length of 255
+  // initialize get state service
+  {
+    // Build topic, topic suffix hardcoded for now
+    // and limited in length of 255
     const char * topic_prefix = "__get_state";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
@@ -156,9 +159,10 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     }
   }
 
-  {  // initialize get available state service
-     // Build topic, topic suffix hardcoded for now
-     // and limited in length of 255
+  // initialize get available state service
+  {
+    // Build topic, topic suffix hardcoded for now
+    // and limited in length of 255
     const char * topic_prefix = "__get_available_states";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
@@ -177,9 +181,10 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     }
   }
 
-  {  // initialize get available state service
-     // Build topic, topic suffix hardcoded for now
-     // and limited in length of 255
+  // initialize get available state service
+  {
+    // Build topic, topic suffix hardcoded for now
+    // and limited in length of 255
     const char * topic_prefix = "__get_available_transitions";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
@@ -232,7 +237,8 @@ rcl_lifecycle_com_interface_fini(
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
-  {  // destroy get available transitions srv
+  // destroy get available transitions srv
+  {
     rcl_ret_t ret = rcl_service_fini(
       &com_interface->srv_get_available_transitions, node_handle);
     if (ret != RCL_RET_OK) {
@@ -240,7 +246,8 @@ rcl_lifecycle_com_interface_fini(
     }
   }
 
-  {  // destroy get available states srv
+  // destroy get available states srv
+  {
     rcl_ret_t ret = rcl_service_fini(
       &com_interface->srv_get_available_states, node_handle);
     if (ret != RCL_RET_OK) {
@@ -248,7 +255,8 @@ rcl_lifecycle_com_interface_fini(
     }
   }
 
-  {  // destroy get state srv
+  // destroy get state srv
+  {
     rcl_ret_t ret = rcl_service_fini(
       &com_interface->srv_get_state, node_handle);
     if (ret != RCL_RET_OK) {
@@ -256,7 +264,8 @@ rcl_lifecycle_com_interface_fini(
     }
   }
 
-  {  // destroy change state srv
+  // destroy change state srv
+  {
     rcl_ret_t ret = rcl_service_fini(
       &com_interface->srv_change_state, node_handle);
     if (ret != RCL_RET_OK) {
@@ -264,7 +273,8 @@ rcl_lifecycle_com_interface_fini(
     }
   }
 
-  {  // destroy the publisher
+  // destroy the publisher
+  {
     lifecycle_msgs__msg__TransitionEvent__fini(&msg);
 
     rcl_ret_t ret = rcl_publisher_fini(
