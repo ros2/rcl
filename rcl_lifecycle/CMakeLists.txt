@@ -49,7 +49,11 @@ endmacro()
 call_for_each_rmw_implementation(targets GENERATE_DEFAULT)
 
 if(BUILD_TESTING)
-  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11")
+  if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++14")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+  endif()
+
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   find_package(rcl REQUIRED)
