@@ -19,6 +19,7 @@ extern "C"
 
 #include "rcl/service.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "./common.h"
@@ -69,6 +70,11 @@ rcl_service_init(
     sizeof(rcl_service_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+
+  if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == options->qos.durability) {
+    fprintf(stderr, "Warning: Setting QoS durability to 'transient local' for service servers "
+      "can cause them to receive requests from clients that have since terminated.\n");
+  }
   // Fill out implementation struct.
   // rmw handle (create rmw service)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
