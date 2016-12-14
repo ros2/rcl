@@ -712,9 +712,3 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_unresolved) {
       lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
   }
 }
-
-TEST_F(TestDefaultStateMachine, print_state_machine) {
-  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
-  rcl_lifecycle_init_default_state_machine(&state_machine);
-  rcl_print_state_machine(&state_machine);
-}
