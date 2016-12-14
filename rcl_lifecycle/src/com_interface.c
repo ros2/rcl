@@ -92,8 +92,8 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
 
   // initialize publisher
   {
-     // Build topic, topic suffix hardcoded for now
-     // and limited in length of 255
+    // Build topic, topic suffix hardcoded for now
+    // and limited in length of 255
     const char * topic_prefix = "__transition_event";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
