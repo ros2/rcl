@@ -27,8 +27,7 @@
 #include "rcl/rcl.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
-#include "../src/default_state_machine.hxx"
-
+#include "../src/default_state_machine.h"
 
 class TestDefaultStateMachine : public ::testing::Test
 {
@@ -144,10 +143,10 @@ TEST_F(TestDefaultStateMachine, default_sequence) {
     lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
 
   test_trigger_transition(
-      &state_machine,
-      RCL_LIFECYCLE_RET_OK,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
 
   test_trigger_transition(
     &state_machine,
@@ -188,8 +187,8 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
       if (*it == RCL_LIFECYCLE_RET_OK ||
-          *it == RCL_LIFECYCLE_RET_FAILURE ||
-          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+        *it == RCL_LIFECYCLE_RET_FAILURE ||
+        *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       EXPECT_EQ(state_machine.current_state->id,
@@ -226,8 +225,8 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
       if (*it == RCL_LIFECYCLE_RET_OK ||
-          *it == RCL_LIFECYCLE_RET_FAILURE ||
-          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+        *it == RCL_LIFECYCLE_RET_FAILURE ||
+        *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       EXPECT_EQ(state_machine.current_state->id,
@@ -262,8 +261,8 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
       if (*it == RCL_LIFECYCLE_RET_OK ||
-          *it == RCL_LIFECYCLE_RET_FAILURE ||
-          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+        *it == RCL_LIFECYCLE_RET_FAILURE ||
+        *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       EXPECT_EQ(state_machine.current_state->id,
@@ -286,8 +285,8 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
       if (*it == RCL_LIFECYCLE_RET_OK ||
-          *it == RCL_LIFECYCLE_RET_FAILURE ||
-          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+        *it == RCL_LIFECYCLE_RET_FAILURE ||
+        *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       EXPECT_EQ(state_machine.current_state->id,
@@ -310,8 +309,8 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
       if (*it == RCL_LIFECYCLE_RET_OK ||
-          *it == RCL_LIFECYCLE_RET_FAILURE ||
-          *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
+        *it == RCL_LIFECYCLE_RET_FAILURE ||
+        *it == RCL_LIFECYCLE_RET_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       EXPECT_EQ(state_machine.current_state->id,
@@ -334,13 +333,11 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
   }
 }
 
-TEST_F(TestDefaultStateMachine, default_in_a_loop)
-{
+TEST_F(TestDefaultStateMachine, default_in_a_loop) {
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
   rcl_lifecycle_init_default_state_machine(&state_machine);
 
-  for (auto i = 0; i<5; ++i)
-  {
+  for (auto i = 0; i < 5; ++i) {
     test_trigger_transition(
       &state_machine,
       lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
@@ -384,10 +381,10 @@ TEST_F(TestDefaultStateMachine, default_in_a_loop)
       lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
 
     test_trigger_transition(
-        &state_machine,
-        RCL_LIFECYCLE_RET_OK,
-        lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
-        lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+      &state_machine,
+      RCL_LIFECYCLE_RET_OK,
+      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
   }
 
   test_trigger_transition(
@@ -401,7 +398,6 @@ TEST_F(TestDefaultStateMachine, default_in_a_loop)
     RCL_LIFECYCLE_RET_OK,
     lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
     lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
-
 }
 
 TEST_F(TestDefaultStateMachine, default_sequence_failure) {
@@ -486,10 +482,10 @@ TEST_F(TestDefaultStateMachine, default_sequence_failure) {
     lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
     lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
   test_trigger_transition(
-      &state_machine,
-      RCL_LIFECYCLE_RET_FAILURE,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+    &state_machine,
+    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
 
   /////////////////////////////
   test_trigger_transition(
@@ -498,10 +494,10 @@ TEST_F(TestDefaultStateMachine, default_sequence_failure) {
     lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
     lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
   test_trigger_transition(
-      &state_machine,
-      RCL_LIFECYCLE_RET_OK,
-      lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
-      lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
+    &state_machine,
+    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
   test_trigger_transition(
     &state_machine,
     lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
@@ -657,7 +653,8 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_resolved) {
 
 TEST_F(TestDefaultStateMachine, default_sequence_error_unresolved) {
   {
-    rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+    rcl_lifecycle_state_machine_t state_machine =
+      rcl_lifecycle_get_zero_initialized_state_machine();
     rcl_lifecycle_init_default_state_machine(&state_machine);
 
     test_trigger_transition(
@@ -680,8 +677,9 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_unresolved) {
   }
 
   {
-    rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
-  rcl_lifecycle_init_default_state_machine(&state_machine);
+    rcl_lifecycle_state_machine_t state_machine =
+      rcl_lifecycle_get_zero_initialized_state_machine();
+    rcl_lifecycle_init_default_state_machine(&state_machine);
 
     test_trigger_transition(
       &state_machine,

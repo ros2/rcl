@@ -27,9 +27,8 @@
 #include "rcl/rcl.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
-#include "../src/default_state_machine.hxx"
+#include "../src/default_state_machine.h"
 
-/*
 class TestMultipleInstances : public ::testing::Test
 {
 protected:
@@ -57,60 +56,20 @@ protected:
   }
 };
 
-static const std::vector<unsigned int> state_ids = {
-  lifecycle_msgs__msg__State__PRIMARY_STATE_UNKNOWN,
-  lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
-  lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
-  lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
-  lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED,
-  lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
-  lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP,
-  lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
-  lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
-  lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING,
-  lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING
-};
-static const std::vector<const char *> state_names = {
-  "unknown",
-  "unconfigured",
-  "inactive",
-  "active",
-  "finalized",
-  "configuring",
-  "cleaningup",
-  "shuttingdown",
-  "activating",
-  "deactivating",
-  "errorprocessing"
-};
-
-static const std::vector<unsigned int> transition_ids = {
-  lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-  lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-  lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
-  lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
-  lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE
-};
-static const std::vector<const char *> transition_names = {
-  "configure",
-  "cleanup",
-  "shutdown",
-  "activate",
-  "deactivate"
-};
-
 void
-test_successful_state_change(
-  rcl_lifecycle_state_machine_t & state_machine,
-  unsigned int transition_id,
-  unsigned int expected_current_state_id,
-  unsigned int expected_goal_state_id)
+test_trigger_transition(
+  rcl_lifecycle_state_machine_t * state_machine,
+  int key,
+  unsigned int expected_current_state,
+  unsigned int expected_goal_state)
 {
-  EXPECT_EQ(expected_current_state_id, state_machine.current_state->id);
-  auto cb_success = RCL_LIFECYCLE_RET_OK;
-  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_trigger_transition(&state_machine, transition_id, cb_success,
-    false));
-  EXPECT_EQ(expected_goal_state_id, state_machine.current_state->id);
+  EXPECT_EQ(
+    expected_current_state, state_machine->current_state->id);
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_lifecycle_trigger_transition(
+      state_machine, key, false));
+  EXPECT_EQ(
+    expected_goal_state, state_machine->current_state->id);
 }
 
 TEST_F(TestMultipleInstances, default_sequence_error_unresolved) {
@@ -126,7 +85,8 @@ TEST_F(TestMultipleInstances, default_sequence_error_unresolved) {
     rcl_lifecycle_get_zero_initialized_state_machine();
   rcl_lifecycle_init_default_state_machine(&state_machine3);
 
-  test_successful_state_change(state_machine1,
+  test_trigger_transition(
+    &state_machine1,
     lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
@@ -138,4 +98,3 @@ TEST_F(TestMultipleInstances, default_sequence_error_unresolved) {
   EXPECT_EQ(
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED, state_machine3.current_state->id);
 }
-*/

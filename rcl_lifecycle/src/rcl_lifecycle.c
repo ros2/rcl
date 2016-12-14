@@ -27,9 +27,9 @@ extern "C"
 #include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/transition_map.h"
 
-#include "com_interface.hxx"
-#include "default_state_machine.hxx"
-#include "states.hxx"
+#include "com_interface.h"  // NOLINT
+#include "default_state_machine.h"  // NOLINT
+#include "states.h"  // NOLINT
 
 // get zero initialized state machine here
 rcl_lifecycle_state_machine_t
@@ -81,8 +81,7 @@ rcl_lifecycle_state_machine_fini(
 
   rcl_lifecycle_transition_map_t * transition_map = &state_machine->transition_map;
 
-  for (unsigned int i = 0; i < transition_map->states_size; ++i)
-  {
+  for (unsigned int i = 0; i < transition_map->states_size; ++i) {
     free(transition_map->states[i].valid_transition_keys);
     free(transition_map->states[i].valid_transitions);
   }
@@ -115,11 +114,11 @@ rcl_lifecycle_is_valid_transition(
   rcl_lifecycle_ret_t key)
 {
   unsigned int current_id = state_machine->current_state->id;
-  const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(&state_machine->transition_map, current_id);
+  const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(
+    &state_machine->transition_map, current_id);
 
   for (unsigned int i = 0; i < current_state->valid_transition_size; ++i) {
-    if (current_state->valid_transition_keys[i] == key)
-    {
+    if (current_state->valid_transition_keys[i] == key) {
       return &current_state->valid_transitions[i];
     }
   }
@@ -144,8 +143,7 @@ rcl_lifecycle_trigger_transition(
     return RCL_RET_ERROR;
   }
 
-  if (!transition->goal)
-  {
+  if (!transition->goal) {
     fprintf(stderr, "No valid goal is set\n");
   }
   state_machine->current_state = transition->goal;

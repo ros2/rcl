@@ -23,10 +23,10 @@ extern "C"
 {
 #endif
 
-typedef unsigned int rcl_lifecycle_ret_t;
-#define RCL_LIFECYCLE_RET_OK 97
-#define RCL_LIFECYCLE_RET_FAILURE 98
-#define RCL_LIFECYCLE_RET_ERROR 99
+typedef int rcl_lifecycle_ret_t;
+#define RCL_LIFECYCLE_RET_OK -1
+#define RCL_LIFECYCLE_RET_FAILURE -2
+#define RCL_LIFECYCLE_RET_ERROR -3
 
 typedef struct rcl_lifecycle_transition_t rcl_lifecycle_transition_t;
 

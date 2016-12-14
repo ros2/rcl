@@ -37,14 +37,9 @@ rcl_lifecycle_register_state(
 
   // add new primary state memory
   ++transition_map->states_size;
-  //if (transition_map->states_size == 1) {
-  //  transition_map->states = malloc(
-  //    transition_map->states_size * sizeof(rcl_lifecycle_state_t));
-  //} else {
-    transition_map->states = realloc(
-      transition_map->states,
-      transition_map->states_size * sizeof(rcl_lifecycle_state_t));
-  //}
+  transition_map->states = realloc(
+    transition_map->states,
+    transition_map->states_size * sizeof(rcl_lifecycle_state_t));
 
   transition_map->states[transition_map->states_size - 1] = state;
 }
@@ -57,14 +52,9 @@ rcl_lifecycle_register_transition(
 {
   // we add a new transition, so increase the size
   ++transition_map->transitions_size;
-  //if (transition_map->transitions_size == 1) {
-  //  transition_map->transitions = malloc(
-  //      transition_map->transitions_size * sizeof(rcl_lifecycle_transition_t));
-  //} else {
-    transition_map->transitions = realloc(
-        transition_map->transitions,
-        transition_map->transitions_size * sizeof(rcl_lifecycle_transition_t));
-  //}
+  transition_map->transitions = realloc(
+    transition_map->transitions,
+    transition_map->transitions_size * sizeof(rcl_lifecycle_transition_t));
   // finally set the new transition to the end of the array
   transition_map->transitions[transition_map->transitions_size - 1] = transition;
 
@@ -72,23 +62,16 @@ rcl_lifecycle_register_transition(
   rcl_lifecycle_state_t * state = rcl_lifecycle_get_state(transition_map, transition.start->id);
 
   ++state->valid_transition_size;
-  //if (state->valid_transition_size == 1) {
-  //  state->valid_transitions = malloc(
-  //      state->valid_transition_size * sizeof(rcl_lifecycle_transition_t *));
-  //  state->valid_transition_keys = malloc(
-  //      state->valid_transition_size * sizeof(rcl_lifecycle_ret_t));
-  //} else {
-    state->valid_transitions = realloc(
-        state->valid_transitions,
-        state->valid_transition_size * sizeof(rcl_lifecycle_transition_t));
-    state->valid_transition_keys = realloc(
-        state->valid_transition_keys,
-        state->valid_transition_size * sizeof(rcl_lifecycle_ret_t));
-  //}
+  state->valid_transitions = realloc(
+    state->valid_transitions,
+    state->valid_transition_size * sizeof(rcl_lifecycle_transition_t));
+  state->valid_transition_keys = realloc(
+    state->valid_transition_keys,
+    state->valid_transition_size * sizeof(rcl_lifecycle_ret_t));
 
   // assign key
-  state->valid_transition_keys[state->valid_transition_size-1] = key;
-  state->valid_transitions[state->valid_transition_size-1] = transition;
+  state->valid_transition_keys[state->valid_transition_size - 1] = key;
+  state->valid_transitions[state->valid_transition_size - 1] = transition;
 }
 
 rcl_lifecycle_state_t *

@@ -56,7 +56,7 @@ RCL_LIFECYCLE_PUBLIC
 const rcl_lifecycle_transition_t *
 rcl_lifecycle_is_valid_callback_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  unsigned int key);
+  rcl_lifecycle_ret_t key);
 
 /// Execute a transition
 /*
@@ -72,7 +72,7 @@ RCL_LIFECYCLE_PUBLIC
 rcl_ret_t
 rcl_lifecycle_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  unsigned int key, bool publish_notification);
+  rcl_lifecycle_ret_t key, bool publish_notification);
 
 RCL_LIFECYCLE_PUBLIC
 void

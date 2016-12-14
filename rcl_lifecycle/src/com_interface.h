@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COM_INTERFACE_HXX_
-#define COM_INTERFACE_HXX_
+#ifndef COM_INTERFACE_H_
+#define COM_INTERFACE_H_
 
 #if __cplusplus
 extern "C"
@@ -49,4 +49,4 @@ rcl_lifecycle_com_interface_publish_notification(
 }
 #endif
 
-#endif  // COM_INTERFACE_HXX_
+#endif  // COM_INTERFACE_H_

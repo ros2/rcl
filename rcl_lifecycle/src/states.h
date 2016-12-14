@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef STATES_HXX_
-#define STATES_HXX_
+#ifndef STATES_H_
+#define STATES_H_
 
 #include <rcl_lifecycle/visibility_control.h>
 #include <rcl_lifecycle/data_types.h>
@@ -48,4 +48,4 @@ extern const rcl_lifecycle_transition_t rcl_transition_deactivate;
 }
 #endif  // extern "C"
 
-#endif  // STATES_HXX_
+#endif  // STATES_H_

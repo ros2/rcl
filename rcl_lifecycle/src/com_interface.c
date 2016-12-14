@@ -17,7 +17,7 @@ extern "C"
 {
 #endif
 
-#include "com_interface.hxx"
+#include "com_interface.h"  // NOLINT
 
 #include <stdio.h>
 #include <string.h>
