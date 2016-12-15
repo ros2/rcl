@@ -12,6 +12,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/** \mainpage rcl: Common functionality for other ROS Client Libraries
+ *
+ * \section directory_section Directory
+ *
+ * `rcl` consists of functions and structs (pure C) organized into ROS concepts:
+ *
+ * - Nodes
+ *   - node.h
+ * - Publisher
+ *   - publisher.h
+ * - Subscription
+ *   - subscription.h
+ * - Service Client
+ *   - client.h
+ * - Service Server
+ *   - service.h
+ * - Timer
+ *   - timer.h
+ *
+ * It also has some machinery that is necessary to wait on and act on these concepts:
+ *
+ * - Initialization and shutdown management (global for now)
+ *   - rcl.h
+ * - Wait sets for waiting on messages/service requests and responses/timers to be ready
+ *   - wait.h
+ * - Guard conditions for waking up wait sets asynchronously
+ *   - guard_condition.h
+ * - Functions for introspecting and getting notified of changes of the ROS graph
+ *   - graph.h
+ *
+ * Further still there are some useful abstractions and utilities:
+ *
+ * - Allocator concept, which can used to control allocation in `rcl_*` functions
+ *   - allocator.h
+ * - Concept of ROS Time and access to steady and system wall time
+ *   - time.h
+ * - Error handling functionality (C style)
+ *   - error_handling.h
+ * - Macros
+ *   - macros.h
+ * - Return code types
+ *   - types.h
+ * - Macros for controlling symbol visibility on the library
+ *   - visibility_control.h
+ *
+ */
+
 #ifndef RCL__RCL_H_
 #define RCL__RCL_H_
 
