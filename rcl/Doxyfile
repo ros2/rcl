@@ -1,0 +1,16 @@
+# All settings not listed here will use the Doxygen default values.
+
+PROJECT_NAME           = "rcl"
+PROJECT_NUMBER         = beta1
+PROJECT_BRIEF          = "C API providing common ROS client library functionality."
+
+INPUT                  = ./include
+RECURSIVE              = YES
+OUTPUT_DIRECTORY       = doc_output
+
+EXTRACT_ALL            = YES
+SORT_MEMBER_DOCS       = NO
+
+GENERATE_LATEX         = NO
+
+TAGFILES += "../../../../doxygen_tag_files/cppreference-doxygen-web.tag.xml=http://en.cppreference.com/w/"
