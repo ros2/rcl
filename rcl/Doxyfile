@@ -14,3 +14,4 @@ SORT_MEMBER_DOCS       = NO
 GENERATE_LATEX         = NO
 
 TAGFILES += "../../../../doxygen_tag_files/cppreference-doxygen-web.tag.xml=http://en.cppreference.com/w/"
+TAGFILES += "../../../../doxygen_tag_files/rmw.tag=http://docs.ros2.org/beta1/api/rmw/"

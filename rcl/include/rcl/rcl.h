@@ -19,44 +19,43 @@
  * `rcl` consists of functions and structs (pure C) organized into ROS concepts:
  *
  * - Nodes
- *   - node.h
+ *   - rcl/node.h
  * - Publisher
- *   - publisher.h
+ *   - rcl/publisher.h
  * - Subscription
- *   - subscription.h
+ *   - rcl/subscription.h
  * - Service Client
- *   - client.h
+ *   - rcl/client.h
  * - Service Server
- *   - service.h
+ *   - rcl/service.h
  * - Timer
- *   - timer.h
+ *   - rcl/timer.h
  *
  * It also has some machinery that is necessary to wait on and act on these concepts:
  *
  * - Initialization and shutdown management (global for now)
- *   - rcl.h
+ *   - rcl/rcl.h
  * - Wait sets for waiting on messages/service requests and responses/timers to be ready
- *   - wait.h
+ *   - rcl/wait.h
  * - Guard conditions for waking up wait sets asynchronously
- *   - guard_condition.h
+ *   - rcl/guard_condition.h
  * - Functions for introspecting and getting notified of changes of the ROS graph
- *   - graph.h
+ *   - rcl/graph.h
  *
  * Further still there are some useful abstractions and utilities:
  *
  * - Allocator concept, which can used to control allocation in `rcl_*` functions
- *   - allocator.h
+ *   - rcl/allocator.h
  * - Concept of ROS Time and access to steady and system wall time
- *   - time.h
+ *   - rcl/time.h
  * - Error handling functionality (C style)
- *   - error_handling.h
+ *   - rcl/error_handling.h
  * - Macros
- *   - macros.h
+ *   - rcl/macros.h
  * - Return code types
- *   - types.h
+ *   - rcl/types.h
  * - Macros for controlling symbol visibility on the library
- *   - visibility_control.h
- *
+ *   - rcl/visibility_control.h
  */
 
 #ifndef RCL__RCL_H_
