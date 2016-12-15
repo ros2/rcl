@@ -24,6 +24,33 @@
 #include "../memory_tools/memory_tools.hpp"
 #include "../scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rcl/graph.h"
+
+bool
+wait_for_server_to_be_available(
+  rcl_node_t * node,
+  rcl_client_t * client,
+  size_t max_tries,
+  int64_t period_ms)
+{
+  size_t iteration = 0;
+  do {
+    ++iteration;
+    bool is_ready;
+    rcl_ret_t ret = rcl_service_server_is_available(node, client, &is_ready);
+    if (ret != RCL_RET_OK) {
+      fprintf(
+        stderr, "Error in rcl_service_server_is_available: %s\n",
+        rcl_get_error_string_safe());
+      return false;
+    }
+    if (is_ready) {
+      return true;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
+  } while (iteration < max_tries);
+  return false;
+}
 
 bool
 wait_for_client_to_be_ready(
@@ -111,6 +138,12 @@ int main(int argc, char ** argv)
         main_ret = -1;
       }
     });
+
+    // Wait until server is available
+    if (!wait_for_server_to_be_available(&node, &client, 1000, 100)) {
+      fprintf(stderr, "Server never became available\n");
+      return -1;
+    }
 
     // Initialize a request.
     example_interfaces__srv__AddTwoInts_Request client_request;
