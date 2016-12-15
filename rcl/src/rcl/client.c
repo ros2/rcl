@@ -117,6 +117,7 @@ rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
 rcl_client_options_t
 rcl_client_get_default_options()
 {
+  // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_client_options_t default_options;
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_services_default;

@@ -197,6 +197,7 @@ rcl_node_is_valid(const rcl_node_t * node)
 rcl_node_options_t
 rcl_node_get_default_options()
 {
+  // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_node_options_t default_options = {
     .domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID,
   };

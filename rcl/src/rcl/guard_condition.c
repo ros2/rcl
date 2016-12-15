@@ -127,6 +127,7 @@ rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition)
 rcl_guard_condition_options_t
 rcl_guard_condition_get_default_options()
 {
+  // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_guard_condition_options_t default_options;
   default_options.allocator = rcl_get_default_allocator();
   return default_options;

@@ -25,7 +25,9 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 /// Encapsulation of an allocator.
-/* To use malloc, free, and realloc use rcl_get_default_allocator().
+/**
+ * The default allocator uses std::malloc(), std::free(), and std::realloc().
+ * It can be obtained using rcl_get_default_allocator().
  *
  * The allocator should be trivially copyable.
  * Meaning that the struct should continue to work after being assignment
@@ -37,37 +39,54 @@ extern "C"
  */
 typedef struct rcl_allocator_t
 {
-  /// Allocate memory, given a size and state structure.
-  /* An error should be indicated by returning NULL. */
+  /// Allocate memory, given a size and the `state` pointer.
+  /** An error should be indicated by returning `NULL`. */
   void * (*allocate)(size_t size, void * state);
-  /// Deallocate previously allocated memory, mimicking free().
+  /// Deallocate previously allocated memory, mimicking std::free().
+  /** Also takes the `state` pointer. */
   void (* deallocate)(void * pointer, void * state);
   /// Reallocate if possible, otherwise it deallocates and allocates.
-  /* If unsupported then do deallocate and then allocate.
-   * This should behave as realloc is described, as opposed to reallocf, i.e.
-   * the memory given by pointer will not be free'd automatically if realloc
-   * fails.
-   * For reallocf behavior use rcl_reallocf().
-   * This function must be able to take an input pointer of NULL and succeed.
+  /**
+   * Also takes the `state` pointer.
+   *
+   * If unsupported then do deallocate and then allocate.
+   * This should behave as std::realloc() does, as opposed to posix's
+   * [reallocf](https://linux.die.net/man/3/reallocf), i.e. the memory given
+   * by pointer will not be free'd automatically if std::realloc() fails.
+   * For reallocf-like behavior use rcl_reallocf().
+   * This function must be able to take an input pointer of `NULL` and succeed.
    */
   void * (*reallocate)(void * pointer, size_t size, void * state);
   /// Implementation defined state storage.
-  /* This is passed as the second parameter to other allocator functions. */
+  /** This is passed as the final parameter to other allocator functions. */
   void * state;
 } rcl_allocator_t;
 
 /// Return a properly initialized rcl_allocator_t with default values.
-/* This function does not allocate heap memory.
- * This function is thread-safe.
- * This function is lock-free.
+/**
+ * This defaults to:
+ *
+ * - allocate = wraps std::malloc()
+ * - deallocate = wraps std::free()
+ * - reallocate = wrapps std::realloc()
+ * - state = `NULL`
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_allocator_t
 rcl_get_default_allocator(void);
 
-/// Emulate the behavior of reallocf.
-/* This function will return NULL if the allocator is NULL or has NULL for
+/// Emulate the behavior of [reallocf](https://linux.die.net/man/3/reallocf).
+/**
+ * This function will return `NULL` if the allocator is `NULL` or has `NULL` for
  * function pointer fields.
  */
 RCL_PUBLIC

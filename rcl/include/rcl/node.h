@@ -27,18 +27,20 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
+/// Constant which indicates that the default domain id should be used.
 #define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID SIZE_MAX
 
 struct rcl_guard_condition_t;
 struct rcl_node_impl_t;
 
-/// Handle for a ROS node.
+/// Structure which encapsulates a ROS Node.
 typedef struct rcl_node_t
 {
   /// Private implementation pointer.
   struct rcl_node_impl_t * impl;
 } rcl_node_t;
 
+/// Structure which encapsulates the options for creating a rcl_node_t.
 typedef struct rcl_node_options_t
 {
   // bool anonymous_name;
@@ -46,34 +48,45 @@ typedef struct rcl_node_options_t
   /// If true, no parameter infrastructure will be setup.
   // bool no_parameters;
   /// If set, then this value overrides the ROS_DOMAIN_ID environment variable.
-  /* It defaults to RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, which will cause the
+  /**
+   * It defaults to RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, which will cause the
    * node to use the ROS domain ID set in the ROS_DOMAIN_ID environment
    * variable, or on some systems 0 if the environment variable is not set.
    *
-   * \TODO(wjwwood): Should we put a limit on the ROS_DOMAIN_ID value, that way
-   *                 we can have a safe value for the default
-   *                 RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID? (currently max size_t)
+   * \todo TODO(wjwwood):
+   *   Should we put a limit on the ROS_DOMAIN_ID value, that way we can have
+   *   a safe value for the default RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID?
+   *   (currently max size_t)
    */
   size_t domain_id;
   /// Custom allocator used for internal allocations.
   rcl_allocator_t allocator;
 } rcl_node_options_t;
 
-/// Return a rcl_node_t struct with members initialized to NULL.
+/// Return a rcl_node_t struct with members initialized to `NULL`.
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_node_t
 rcl_get_zero_initialized_node(void);
 
 /// Initialize a ROS node.
-/* Calling this on a rcl_node_t makes it a valid node handle until rcl_shutdown
+/**
+ * Calling this on a rcl_node_t makes it a valid node handle until rcl_shutdown
  * is called or until rcl_node_fini is called on it.
  *
- * After calling the ROS node object can be used to create other middleware
- * primitives like publishers, services, parameters, and etc.
+ * After calling, the ROS node object can be used to create other middleware
+ * primitives like publishers, services, parameters, etc.
+ *
+ * \todo TODO(wjwwood): node name uniqueness is no yet enforced
  *
  * The name of the node cannot coincide with another node of the same name.
  * If a node of the same name is already in the domain, it will be shutdown.
+ *
+ * \todo TODO(wjwwood):
+ *   Parameter infrastructure is currently initialized in the language specific
+ *   client library, e.g. rclcpp for C++, but will be initialized here in the
+ *   future. When that happens there will be an option to avoid parameter
+ *   infrastructure with an option in the rcl_node_options_t struct.
  *
  * A node contains infrastructure for ROS parameters, which include advertising
  * publishers and service servers.
@@ -87,29 +100,36 @@ rcl_get_zero_initialized_node(void);
  *
  * Expected usage:
  *
- *    rcl_node_t node = rcl_get_zero_initialized_node();
- *    rcl_node_options_t * node_ops = rcl_node_get_default_options();
- *    rcl_ret_t ret = rcl_node_init(&node, "node_name", node_ops);
- *    // ... error handling and then use the node, but finally deinitialize it:
- *    ret = rcl_node_fini(&node);
- *    // ... error handling for rcl_node_fini()
+ * ```c
+ * rcl_node_t node = rcl_get_zero_initialized_node();
+ * rcl_node_options_t * node_ops = rcl_node_get_default_options();
+ * // ... node options customization
+ * rcl_ret_t ret = rcl_node_init(&node, "node_name", node_ops);
+ * // ... error handling and then use the node, but eventually deinitialize it:
+ * ret = rcl_node_fini(&node);
+ * // ... error handling for rcl_node_fini()
+ * ```
  *
- * This function allocates heap memory.
- * This function is not thread-safe.
- * This function is lock-free so long as the C11's stdatomic.h function
- * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | Yes
+ * Lock-Free          | Yes [1]
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \pre the node handle must be allocated, zero initialized, and invalid
- * \post the node handle is valid and can be used to in other rcl_* functions
+ * \post the node handle is valid and can be used in other `rcl_*` functions
  *
- * \param[inout] node a preallocated node structure
+ * \param[inout] node a preallocated rcl_node_t
  * \param[in] name the name of the node
- * \param[in] options the node options; pass null to use default options
- * \return RCL_RET_OK if node was initialized successfully, or
- *         RCL_RET_ALREADY_INIT if the node has already be initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_BAD_ALLOC if allocating memory failed, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \param[in] options the node options
+ * \return `RCL_RET_OK` if the node was initialized successfully, or
+ * \return `RCL_RET_ALREADY_INIT` if the node has already be initialized, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -117,21 +137,26 @@ rcl_ret_t
 rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * options);
 
 /// Finalized a rcl_node_t.
-/* Shuts down any automatically created infrastructure and deallocates memory.
+/**
+ * Destroys any automatically created infrastructure and deallocates memory.
  * After calling, the rcl_node_t can be safely deallocated.
  *
  * Any middleware primitives created by the user, e.g. publishers, services, etc.,
  * are invalid after deinitialization.
  *
- * This function manipulates heap memory.
- * This function is not thread-safe.
- * This function is lock-free so long as the C11's stdatomic.h function
- * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | Yes
+ * Lock-Free          | Yes [1]
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
- * \param[in] node handle to the node to be finalized
- * \return RCL_RET_OK if node was finalized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \param[in] node rcl_node_t to be finalized
+ * \return `RCL_RET_OK` if node was finalized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -139,57 +164,76 @@ rcl_ret_t
 rcl_node_fini(rcl_node_t * node);
 
 /// Return the default node options in a rcl_node_options_t.
+/**
+ * The default values are:
+ *
+ * - domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID
+ * - allocator = rcl_get_default_allocator()
+ */
 RCL_PUBLIC
 rcl_node_options_t
 rcl_node_get_default_options(void);
 
-/// Return true if the node is valid, else false.
-/* Also return false if the node pointer is nullptr.
+/// Return `true` if the node is valid, else `false`.
+/**
+ * Also return `false` if the node pointer is `NULL`.
  *
  * A node is invalid if:
- *   - the implementation is null (rcl_node_init not called or failed)
+ *   - the implementation is `NULL` (rcl_node_init not called or failed)
  *   - rcl_shutdown has been called since the node has been initialized
  *   - the node has been finalized with rcl_node_fini
  *
  * There is a possible validity race condition.
+ *
  * Consider:
  *
- *   assert(rcl_node_is_valid(node));  <-- thread 1
- *   rcl_shutdown();                   <-- thread 2
- *   // use node as if valid           <-- thread 1
+ * ```c
+ * assert(rcl_node_is_valid(node));  // <-- thread 1
+ * rcl_shutdown();                   // <-- thread 2
+ * // use node as if valid           // <-- thread 1
+ * ```
  *
  * In the third line the node is now invalid, even though on the previous line
  * of thread 1 it was checked to be valid.
  * This is why this function is considered not thread-safe.
  *
- * This function does not manipulate heap memory.
- * This function is not thread-safe.
- * This function is lock-free so long as the C11's stdatomic.h function
- * atomic_is_lock_free() returns true for atomic_uint_least64_t.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | Yes
+ * Lock-Free          | Yes [1]
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
- * \param[in] node handle to the node to validated
- * \return true if the node is valid, otherwise false.
+ * \param[in] node rcl_node_t to be validated
+ * \return `true` if the node is valid, otherwise `false`.
  */
 RCL_PUBLIC
 bool
 rcl_node_is_valid(const rcl_node_t * node);
 
-/// Get the name of the node.
-/* This function returns the node's internal name string.
- * This function can fail, and therefore return NULL, if:
- *   - node is NULL
+/// Return the name of the node.
+/**
+ * This function returns the node's internal name string.
+ * This function can fail, and therefore return `NULL`, if:
+ *   - node is `NULL`
  *   - node has not been initialized (the implementation is invalid)
  *
  * The returned string is only valid as long as the given rcl_node_t is valid.
  * The value of the string may change if the value in the rcl_node_t changes,
  * and therefore copying the string is recommended if this is a concern.
  *
- * This function does not manipulate heap memory.
- * This function is thread-safe for different nodes.
- * This function is lock-free.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] node pointer to the node
- * \return name string if successful, otherwise NULL
+ * \return name string if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -197,21 +241,26 @@ const char *
 rcl_node_get_name(const rcl_node_t * node);
 
 /// Return the rcl node options.
-/* This function returns the node's internal options struct.
- * This function can fail, and therefore return NULL, if:
- *   - node is NULL
+/**
+ * This function returns the node's internal options struct.
+ * This function can fail, and therefore return `NULL`, if:
+ *   - node is `NULL`
  *   - node has not been initialized (the implementation is invalid)
  *
  * The returned struct is only valid as long as the given rcl_node_t is valid.
  * The values in the struct may change if the options of the rcl_node_t changes,
  * and therefore copying the struct is recommended if this is a concern.
  *
- * This function does not manipulate heap memory.
- * This function is thread-safe for different nodes.
- * This function is lock-free.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] node pointer to the node
- * \return options struct if successful, otherwise NULL
+ * \return options struct if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -219,26 +268,32 @@ const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node);
 
 /// Return the ROS domain ID that the node is using.
-/* This function returns the ROS domain ID that the node is in.
+/**
+ * This function returns the ROS domain ID that the node is in.
  *
- * This function should be used to determine what domain_id was used rather
+ * This function should be used to determine what `domain_id` was used rather
  * than checking the domin_id field in the node options, because if
- * RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID is used when creating the node then
+ * `RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID` is used when creating the node then
  * it is not changed after creation, but this function will return the actual
- * domain_id used.
+ * `domain_id` used.
  *
- * The domain_id field must point to an allocated size_t object to which the
- * ROS domain ID will be written.
+ * The `domain_id` field must point to an allocated `size_t` object to which
+ * the ROS domain ID will be written.
  *
- * This function does not manipulate heap memory.
- * This function is thread-safe for different nodes.
- * This function is lock-free.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] node the handle to the node being queried
- * \return RCL_RET_OK if node the domain ID was retrieved successfully, or
- *         RCL_RET_NODE_INVALID if the node is invalid, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \param[out] domain_id storage for the domain id
+ * \return `RCL_RET_OK` if node the domain ID was retrieved successfully, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -246,9 +301,10 @@ rcl_ret_t
 rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
 
 /// Return the rmw node handle.
-/* The handle returned is a pointer to the internally held rmw handle.
- * This function can fail, and therefore return NULL, if:
- *   - node is NULL
+/**
+ * The handle returned is a pointer to the internally held rmw handle.
+ * This function can fail, and therefore return `NULL`, if:
+ *   - node is `NULL`
  *   - node has not been initialized (the implementation is invalid)
  *
  * The returned handle is made invalid if the node is finalized or if
@@ -259,12 +315,16 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
  * this function each time it is needed and avoid use of the handle
  * concurrently with functions that might change it.
  *
- * This function does not manipulate heap memory.
- * This function is thread-safe for different nodes.
- * This function is lock-free.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] node pointer to the rcl node
- * \return rmw node handle if successful, otherwise NULL
+ * \return rmw node handle if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -272,23 +332,28 @@ rmw_node_t *
 rcl_node_get_rmw_handle(const rcl_node_t * node);
 
 /// Return the associated rcl instance id.
-/* This id is stored when rcl_node_init is called and can be compared with the
+/**
+ * This id is stored when rcl_node_init is called and can be compared with the
  * value returned by rcl_get_instance_id() to check if this node was created in
  * the current rcl context (since the latest call to rcl_init().
  *
- * This function can fail, and therefore return 0, if:
- *   - node is NULL
+ * This function can fail, and therefore return `0`, if:
+ *   - node is `NULL`
  *   - node has not been initialized (the implementation is invalid)
  *
- * This function will succeed, however, even if rcl_shutdown has been called
+ * This function will succeed even if rcl_shutdown() has been called
  * since the node was created.
  *
- * This function does not manipulate heap memory.
- * This function is thread-safe for different nodes.
- * This function is lock-free.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] node pointer to the rcl node
- * \return rcl instance id captured at node creation or 0 if there was an error
+ * \return rcl instance id captured during node init or `0` on error
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -296,9 +361,10 @@ uint64_t
 rcl_node_get_rcl_instance_id(const rcl_node_t * node);
 
 /// Return a guard condition which is triggered when the ROS graph changes.
-/* The handle returned is a pointer to an internally held rcl guard condition.
- * This function can fail, and therefore return NULL, if:
- *   - node is NULL
+/**
+ * The handle returned is a pointer to an internally held rcl guard condition.
+ * This function can fail, and therefore return `NULL`, if:
+ *   - node is `NULL`
  *   - node is invalid
  *
  * The returned handle is made invalid if the node is finialized or if
@@ -309,13 +375,18 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node);
  * advertises, a new subscription is created, a new service becomes available,
  * a subscription is canceled, etc.
  *
- * This function does not manipulate heap memory.
- * This function is thread-safe.
- * This function is lock-free.
+ * \todo TODO(wjwwood): link to exhaustive list of graph events
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] node pointer to the rcl node
- * \return rcl guard condition handle if successful, otherwise NULL
- *
+ * \return rcl guard condition handle if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
