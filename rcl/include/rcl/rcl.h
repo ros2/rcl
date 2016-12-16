@@ -14,8 +14,6 @@
 
 /** \mainpage rcl: Common functionality for other ROS Client Libraries
  *
- * \section directory_section Directory
- *
  * `rcl` consists of functions and structs (pure C) organized into ROS concepts:
  *
  * - Nodes
