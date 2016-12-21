@@ -41,39 +41,47 @@ typedef struct rcl_guard_condition_options_t
   rcl_allocator_t allocator;
 } rcl_guard_condition_options_t;
 
-/// Return a rcl_guard_condition_t struct with members set to NULL.
+/// Return a rcl_guard_condition_t struct with members set to `NULL`.
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_guard_condition_t
 rcl_get_zero_initialized_guard_condition(void);
 
 /// Initialize a rcl guard_condition.
-/* After calling this function on a rcl_guard_condition_t, it can be passed to
+/**
+ * After calling this function on a rcl_guard_condition_t, it can be passed to
  * rcl_wait() and then concurrently it can be triggered to wake-up rcl_wait().
  *
  * Expected usage:
  *
- *    #include <rcl/rcl.h>
+ * ```c
+ * #include <rcl/rcl.h>
  *
- *    // ... error handling
- *    rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
- *    ret = rcl_guard_condition_init(
- *      &guard_condition, rcl_guard_condition_get_default_options());
- *    // ... error handling, and on shutdown do deinitialization:
- *    ret = rcl_guard_condition_fini(&guard_condition);
- *    // ... error handling for rcl_guard_condition_fini()
+ * // ... error handling
+ * rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
+ * // ... customize guard condition options
+ * ret = rcl_guard_condition_init(
+ *   &guard_condition, rcl_guard_condition_get_default_options());
+ * // ... error handling, and on shutdown do deinitialization:
+ * ret = rcl_guard_condition_fini(&guard_condition);
+ * // ... error handling for rcl_guard_condition_fini()
+ * ```
  *
- * This function does allocate heap memory.
- * This function is not thread-safe.
- * This function is lock-free.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[inout] guard_condition preallocated guard_condition structure
  * \param[in] options the guard_condition's options
- * \return RCL_RET_OK if guard_condition was initialized successfully, or
- *         RCL_RET_ALREADY_INIT if the guard condition is already initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_BAD_ALLOC if allocating memory failed, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \return `RCL_RET_OK` if guard_condition was initialized successfully, or
+ * \return `RCL_RET_ALREADY_INIT` if the guard condition is already initialized, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -83,8 +91,9 @@ rcl_guard_condition_init(
   const rcl_guard_condition_options_t options);
 
 /// Same as rcl_guard_condition_init(), but reusing an existing rmw handle.
-/* In addition to the documentation for rcl_guard_condition_init(), the
- * rmw_guard_condition parameter must not be null and must point to a valid
+/**
+ * In addition to the documentation for rcl_guard_condition_init(), the
+ * `rmw_guard_condition` parameter must not be `NULL` and must point to a valid
  * rmw guard condition.
  *
  * Also the life time of the rcl guard condition is tied to the life time of
@@ -95,14 +104,22 @@ rcl_guard_condition_init(
  * Similarly if the resulting rcl guard condition is fini'ed before the rmw
  * guard condition, then the rmw guard condition is no longer valid.
  *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
  * \param[inout] guard_condition preallocated guard_condition structure
  * \param[in] rmw_guard_condition existing rmw guard condition to reuse
  * \param[in] options the guard_condition's options
- * \return RCL_RET_OK if guard_condition was initialized successfully, or
- *         RCL_RET_ALREADY_INIT if the guard condition is already initialized, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_BAD_ALLOC if allocating memory failed, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \return `RCL_RET_OK` if guard_condition was initialized successfully, or
+ * \return `RCL_RET_ALREADY_INIT` if the guard condition is already initialized, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 rcl_ret_t
 rcl_guard_condition_init_from_rmw(
@@ -111,17 +128,23 @@ rcl_guard_condition_init_from_rmw(
   const rcl_guard_condition_options_t options);
 
 /// Finalize a rcl_guard_condition_t.
-/* After calling, calls to rcl_trigger_guard_condition() will fail when using
+/**
+ * After calling, calls to rcl_trigger_guard_condition() will fail when using
  * this guard condition.
  *
- * This function does free heap memory and can allocate memory on errors.
- * This function is not thread-safe with rcl_trigger_guard_condition().
- * This function is lock-free.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No [1]
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] specifically not thread-safe with rcl_trigger_guard_condition()</i>
  *
  * \param[inout] guard_condition handle to the guard_condition to be finalized
- * \return RCL_RET_OK if guard_condition was finalized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \return `RCL_RET_OK` if guard_condition was finalized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -129,9 +152,10 @@ rcl_ret_t
 rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition);
 
 /// Return the default options in a rcl_guard_condition_options_t struct.
-/* This function does not allocate heap memory.
- * This function is thread-safe.
- * This function is lock-free.
+/**
+ * The defaults are:
+ *
+ * - allocator = rcl_get_default_allocator()
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -139,21 +163,26 @@ rcl_guard_condition_options_t
 rcl_guard_condition_get_default_options(void);
 
 /// Trigger a rcl guard condition.
-/* This function can fail, and return RCL_RET_INVALID_ARGUMENT, if the:
- *   - guard condition is NULL
+/**
+ * This function can fail, and return RCL_RET_INVALID_ARGUMENT, if the:
+ *   - guard condition is `NULL`
  *   - guard condition is invalid (never called init or called fini)
  *
  * A guard condition can be triggered from any thread.
  *
- * This function does not allocate heap memory, but can on errors.
- * This function is thread-safe with itself, but cannot be called concurrently
- * with rcl_guard_condition_fini() on the same guard condition.
- * This function is lock-free, but the underlying system calls may not be.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No [1]
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] it can be called concurrently with itself, even on the same guard condition</i>
  *
  * \param[in] guard_condition handle to the guard_condition to be triggered
- * \return RCL_RET_OK if the guard condition was triggered, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \return `RCL_RET_OK` if the guard condition was triggered, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -161,9 +190,10 @@ rcl_ret_t
 rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition);
 
 /// Return the rmw guard condition handle.
-/* The handle returned is a pointer to the internally held rmw handle.
- * This function can fail, and therefore return NULL, if the:
- *   - guard_condition is NULL
+/**
+ * The handle returned is a pointer to the internally held rmw handle.
+ * This function can fail, and therefore return `NULL`, if the:
+ *   - guard_condition is `NULL`
  *   - guard_condition is invalid (never called init, called fini, or invalid node)
  *
  * The returned handle is made invalid if the guard condition is finalized or
@@ -174,8 +204,16 @@ rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition);
  * this function each time it is needed and avoid use of the handle
  * concurrently with functions that might change it.
  *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
  * \param[in] guard_condition pointer to the rcl guard_condition
- * \return rmw guard_condition handle if successful, otherwise NULL
+ * \return rmw guard condition handle if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

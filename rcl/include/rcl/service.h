@@ -29,7 +29,7 @@ extern "C"
 /// Internal rcl implementation struct.
 struct rcl_service_impl_t;
 
-/// Handle for a rcl service.
+/// Structure which encapsulates a ROS Service.
 typedef struct rcl_service_t
 {
   struct rcl_service_impl_t * impl;
@@ -41,15 +41,14 @@ typedef struct rcl_service_options_t
   /// Middleware quality of service settings for the service.
   rmw_qos_profile_t qos;
   /// Custom allocator for the service, used for incidental allocations.
-  /* For default behavior (malloc/free), see: rcl_get_default_allocator() */
+  /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
 } rcl_service_options_t;
 
-/// Return a rcl_service_t struct with members set to NULL.
-/* Should be called to get a null rcl_service_t before passing to
- * rcl_initalize_service().
- * It's also possible to use calloc() instead of this if the rcl_service_t
- * is being allocated on the heap.
+/// Return a rcl_service_t struct with members set to `NULL`.
+/**
+ * Should be called to get a null rcl_service_t before passing to
+ * rcl_service_init().
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -57,7 +56,8 @@ rcl_service_t
 rcl_get_zero_initialized_service(void);
 
 /// Initialize a rcl service.
-/* After calling this function on a rcl_service_t, it can be used to take
+/**
+ * After calling this function on a rcl_service_t, it can be used to take
  * requests of the given type to the given topic using rcl_take_request().
  * It can also send a response to a request using rcl_send_response().
  *
@@ -68,28 +68,31 @@ rcl_get_zero_initialized_service(void);
  * When the user defines a ROS service, code is generated which provides the
  * required rosidl_service_type_support_t object.
  * This object can be obtained using a language appropriate mechanism.
- * \TODO(wjwwood) probably should talk about this once and link to it instead
- * \TODO(jacquelinekay) reworded this for services with substitutions, should it refer to messages?
- * For C this macro can be used (using example_interfaces/AddTwoInts as an example):
+ * \todo TODO(wjwwood) write these instructions once and link to it instead
+ * For C a macro can be used (for example `example_interfaces/AddTwoInts`):
  *
- *    #include <rosidl_generator_c/service_type_support.h>
- *    #include <example_interfaces/srv/add_two_ints.h>
- *    rosidl_service_type_support_t * ts =
- *      ROSIDL_GET_SERVICE_TYPE_SUPPORT(example_interfaces, AddTwoInts);
+ * ```c
+ * #include <rosidl_generator_c/service_type_support.h>
+ * #include <example_interfaces/srv/add_two_ints.h>
+ * rosidl_service_type_support_t * ts =
+ *   ROSIDL_GET_SERVICE_TYPE_SUPPORT(example_interfaces, AddTwoInts);
+ * ```
  *
  * For C++ a template function is used:
  *
- *    #include <rosidl_generator_cpp/service_type_support.hpp>
- *    #include <example_interfaces/srv/add_two_ints.h>
- *    rosidl_service_type_support_t * ts = rosidl_generator_cpp::get_service_type_support_handle<
- *      example_interfaces::srv::AddTwoInts>();
+ * ```cpp
+ * #include <rosidl_generator_cpp/service_type_support.hpp>
+ * #include <example_interfaces/srv/add_two_ints.h>
+ * rosidl_service_type_support_t * ts = rosidl_generator_cpp::get_service_type_support_handle<
+ *   example_interfaces::srv::AddTwoInts>();
+ * ```
  *
  * The rosidl_service_type_support_t object contains service type specific
  * information used to send or take requests and responses.
  *
- * \TODO(wjwwood) update this once we've come up with an official scheme.
- * The service name must be a non-empty string which follows the service/topic naming
- * format.
+ * \todo TODO(wjwwood) update this once we've come up with an official scheme.
+ * The service name must be a non-empty string which follows the service/topic
+ * naming format.
  *
  * The options struct allows the user to set the quality of service settings as
  * well as a custom allocator which is used when initializing/finalizing the
@@ -97,34 +100,44 @@ rcl_get_zero_initialized_service(void);
  *
  * Expected usage (for C services):
  *
- *    #include <rcl/rcl.h>
- *    #include <rosidl_generator_c/service_type_support.h>
- *    #include <example_interfaces/srv/add_two_ints.h>
+ * ```c
+ * #include <rcl/rcl.h>
+ * #include <rosidl_generator_c/service_type_support.h>
+ * #include <example_interfaces/srv/add_two_ints.h>
  *
- *    rcl_node_t node = rcl_get_zero_initialized_node();
- *    rcl_node_options_t node_ops = rcl_node_get_default_options();
- *    rcl_ret_t ret = rcl_node_init(&node, "node_name", &node_ops);
- *    // ... error handling
- *    rosidl_service_type_support_t * ts = ROSIDL_GET_SERVICE_TYPE_SUPPORT(
- *      example_interfaces, AddTwoInts);
- *    rcl_service_t service = rcl_get_zero_initialized_service();
- *    rcl_service_options_t service_ops = rcl_service_get_default_options();
- *    ret = rcl_service_init(&service, &node, ts, "add_two_ints", &service_ops);
- *    // ... error handling, and on shutdown do finalization:
- *    ret = rcl_service_fini(&service, &node);
- *    // ... error handling for rcl_service_fini()
- *    ret = rcl_node_fini(&node);
- *    // ... error handling for rcl_node_fini()
+ * rcl_node_t node = rcl_get_zero_initialized_node();
+ * rcl_node_options_t node_ops = rcl_node_get_default_options();
+ * rcl_ret_t ret = rcl_node_init(&node, "node_name", &node_ops);
+ * // ... error handling
+ * rosidl_service_type_support_t * ts = ROSIDL_GET_SERVICE_TYPE_SUPPORT(
+ *   example_interfaces, AddTwoInts);
+ * rcl_service_t service = rcl_get_zero_initialized_service();
+ * rcl_service_options_t service_ops = rcl_service_get_default_options();
+ * ret = rcl_service_init(&service, &node, ts, "add_two_ints", &service_ops);
+ * // ... error handling, and on shutdown do finalization:
+ * ret = rcl_service_fini(&service, &node);
+ * // ... error handling for rcl_service_fini()
+ * ret = rcl_node_fini(&node);
+ * // ... error handling for rcl_node_fini()
+ * ```
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[out] service preallocated service structure
  * \param[in] node valid rcl node handle
  * \param[in] type_support type support object for the service's type
  * \param[in] service_name the name of the service
  * \param[in] options service options, including quality of service settings
- * \return RCL_RET_OK if service was initialized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_BAD_ALLOC if allocating memory failed, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \return `RCL_RET_OK` if service was initialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -137,21 +150,28 @@ rcl_service_init(
   const rcl_service_options_t * options);
 
 /// Finalize a rcl_service_t.
-/* After calling, the node will no longer listen for requests for this service.
+/**
+ * After calling, the node will no longer listen for requests for this service.
  * (assuming this is the only service of this type in this node).
  *
- * After calling, calls to rcl_wait, rcl_take_request, and rcl_send_response will fail when using
- * this service.
- * Additionally rcl_wait will be interrupted if currently blocking.
+ * After calling, calls to rcl_wait(), rcl_take_request(), and
+ * rcl_send_response() will fail when using this service.
+ * Additionally rcl_wait() will be interrupted if currently blocking.
  * However, the given node handle is still valid.
  *
- * This function is not thread-safe.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[inout] service handle to the service to be deinitialized
  * \param[in] node handle to the node used to create the service
- * \return RCL_RET_OK if service was deinitialized successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \return `RCL_RET_OK` if service was deinitialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -159,13 +179,20 @@ rcl_ret_t
 rcl_service_fini(rcl_service_t * service, rcl_node_t * node);
 
 /// Return the default service options in a rcl_service_options_t.
+/**
+ * The defaults are:
+ *
+ * - qos = rmw_qos_profile_services_default
+ * - allocator = rcl_get_default_allocator()
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_service_options_t
 rcl_service_get_default_options(void);
 
 /// Take a pending ROS request using a rcl service.
-/* It is the job of the caller to ensure that the type of the ros_request
+/**
+ * It is the job of the caller to ensure that the type of the ros_request
  * argument and the type associate with the service, via the type
  * support, match.
  * Passing a different type to rcl_take produces undefined behavior and cannot
@@ -188,14 +215,23 @@ rcl_service_get_default_options(void);
  * request_header is a pointer to pre-allocated a rmw struct containing
  * meta-information about the request (e.g. the sequence number).
  *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Maybe [1]
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] only if required when filling the request, avoided for fixed sizes</i>
+ *
  * \param[in] service the handle to the service from which to take
  * \param[inout] request_header ptr to the struct holding metadata about the request ID
  * \param[inout] ros_request type-erased ptr to an allocated ROS request message
- * \return RCL_RET_OK if the request was taken, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_SERVICE_INVALID if the service is invalid, or
- *         RCL_RET_BAD_ALLOC if allocating memory failed, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \return `RCL_RET_OK` if the request was taken, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_SERVICE_INVALID` if the service is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -206,37 +242,49 @@ rcl_take_request(
   void * ros_request);
 
 /// Send a ROS response to a client using a service.
-/* It is the job of the caller to ensure that the type of the ros_response
+/**
+ * It is the job of the caller to ensure that the type of the `ros_response`
  * parameter and the type associate with the service (via the type support)
  * match.
- * Passing a different type to send_response produces undefined behavior and cannot
- * be checked by this function and therefore no deliberate error will occur.
+ * Passing a different type to send_response produces undefined behavior and
+ * cannot be checked by this function and therefore no deliberate error will
+ * occur.
  *
- * send_response is an non-blocking call.
+ * send_response() is an non-blocking call.
  *
- * The ROS response message given by the ros_response void pointer is always owned by the
- * calling code, but should remain constant during send_response.
+ * The ROS response message given by the `ros_response` void pointer is always
+ * owned by the calling code, but should remain constant during
+ * rcl_send_response().
  *
  e This function is thread safe so long as access to both the service and the
- * ros_response is synchronized.
- * That means that calling rcl_send_response from multiple threads is allowed, but
- * calling rcl_send_response at the same time as non-thread safe service functions
- * is not, e.g. calling rcl_send_response and rcl_service_fini concurrently
- * is not allowed.
- * Before calling rcl_send_response the message can change and after calling
- * rcl_send_response the message can change, but it cannot be changed during the
- * send_response call.
- * The same ros_response, however, can be passed to multiple calls of
- * rcl_send_response simultaneously, even if the services differ.
- * The ros_response is unmodified by rcl_send_response.
+ * `ros_response` is synchronized.
+ * That means that calling rcl_send_response() from multiple threads is
+ * allowed, but calling rcl_send_response() at the same time as non-thread safe
+ * service functions is not, e.g. calling rcl_send_response() and
+ * rcl_service_fini() concurrently is not allowed.
+ * Before calling rcl_send_response() the message can change and after calling
+ * rcl_send_response() the message can change, but it cannot be changed during
+ * the rcl_send_response() call.
+ * The same `ros_response`, however, can be passed to multiple calls of
+ * rcl_send_response() simultaneously, even if the services differ.
+ * The `ros_response` is unmodified by rcl_send_response().
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes [1]
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] for unique pairs of services and responses, see above for more</i>
  *
  * \param[in] service handle to the service which will make the response
  * \param[inout] response_header ptr to the struct holding metadata about the request ID
  * \param[in] ros_response type-erased pointer to the ROS response message
- * \return RCL_RET_OK if the response was sent successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_SERVICE_INVALID if the service is invalid, or
- *         RCL_RET_ERROR if an unspecified error occurs.
+ * \return `RCL_RET_OK` if the response was sent successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_SERVICE_INVALID` if the service is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -247,19 +295,26 @@ rcl_send_response(
   void * ros_response);
 
 /// Get the topic name for the service.
-/* This function returns the service's internal topic name string.
- * This function can fail, and therefore return NULL, if the:
- *   - service is NULL
+/**
+ * This function returns the service's internal topic name string.
+ * This function can fail, and therefore return `NULL`, if the:
+ *   - service is `NULL`
  *   - service is invalid (never called init, called fini, or invalid)
  *
  * The returned string is only valid as long as the service is valid.
  * The value of the string may change if the topic name changes, and therefore
  * copying the string is recommended if this is a concern.
  *
- * This function is not thread-safe, and copying the result is not thread-safe.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] service the pointer to the service
- * \return name string if successful, otherwise NULL
+ * \return name string if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -267,19 +322,26 @@ const char *
 rcl_service_get_service_name(const rcl_service_t * service);
 
 /// Return the rcl service options.
-/* This function returns the service's internal options struct.
- * This function can fail, and therefore return NULL, if the:
- *   - service is NULL
+/**
+ * This function returns the service's internal options struct.
+ * This function can fail, and therefore return `NULL`, if the:
+ *   - service is `NULL`
  *   - service is invalid (never called init, called fini, or invalid)
  *
  * The returned struct is only valid as long as the service is valid.
  * The values in the struct may change if the service's options change,
  * and therefore copying the struct is recommended if this is a concern.
  *
- * This function is not thread-safe, and copying the result is not thread-safe.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] service pointer to the service
- * \return options struct if successful, otherwise NULL
+ * \return options struct if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -287,9 +349,10 @@ const rcl_service_options_t *
 rcl_service_get_options(const rcl_service_t * service);
 
 /// Return the rmw service handle.
-/* The handle returned is a pointer to the internally held rmw handle.
- * This function can fail, and therefore return NULL, if the:
- *   - service is NULL
+/**
+ * The handle returned is a pointer to the internally held rmw handle.
+ * This function can fail, and therefore return `NULL`, if the:
+ *   - service is `NULL`
  *   - service is invalid (never called init, called fini, or invalid)
  *
  * The returned handle is made invalid if the service is finalized or if
@@ -300,10 +363,16 @@ rcl_service_get_options(const rcl_service_t * service);
  * this function each time it is needed and avoid use of the handle
  * concurrently with functions that might change it.
  *
- * This function is not thread-safe.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param[in] service pointer to the rcl service
- * \return rmw service handle if successful, otherwise NULL
+ * \return rmw service handle if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

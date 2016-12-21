@@ -113,6 +113,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
 rcl_publisher_options_t
 rcl_publisher_get_default_options()
 {
+  // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_publisher_options_t default_options;
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_default;
