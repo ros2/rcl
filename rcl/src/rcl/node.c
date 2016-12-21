@@ -74,6 +74,32 @@ void assign(char * dest_str, char * str_to_append)
   snprintf(dest_str, strlen(str_to_append) + 1, "%s", str_to_append);
 }
 
+static const char * rcl_get_secure_root(const char * node_name)
+{
+  const char * env_var_name = "ROS_SECURE_ROOT";
+  const char * ros_secure_root_env = NULL;  // todo: branch on OS
+  ros_secure_root_env = getenv(env_var_name);  // only on POSIX at the moment
+  if (!ros_secure_root_env)
+    return NULL;  // environment variable not defined
+  size_t ros_secure_root_size = strlen(ros_secure_root_env);
+  if (!ros_secure_root_size)
+    return NULL;  // environment variable was empty
+  const char node_secure_root_maxlen =
+    strlen(ros_secure_root_env) + 1 + strlen(node_name) + 1;
+  char * node_secure_root = malloc(node_secure_root_maxlen);  // leak leak leak
+  // todo: use windows separator if needed
+  const char * separator =
+    ros_secure_root_env[ros_secure_root_size-1] == '/' ? "" : "/";
+  snprintf(node_secure_root, node_secure_root_maxlen, "%s%s%s",
+    ros_secure_root_env, separator, node_name);
+  struct stat buf;
+  if (stat(node_secure_root, &buf) < 0)
+    return NULL;  // path doesn't exist
+  if (!(buf.st_mode & S_IRUSR))
+    return NULL;  // path is not readable by our process
+  return node_secure_root;
+}
+
 bool rcl_get_security_file_paths(char ** security_files_paths, char * name)
 {
   const char * env_var = "ROS_SECURE_ROOT";
@@ -264,13 +290,19 @@ rcl_node_init(
   node->impl->actual_domain_id = domain_id;
 
   // File discovery magic here
-  char * filepaths[3];  // here we assume that only 3 files are needed to configure a node
-  bool ret1 = rcl_get_security_file_paths(filepaths, (char *)name);
-  if (ret1) {
-    fprintf(stderr, "found all cert/keys to make %s a security enabled node!\n", name);
-    node->impl->rmw_node_handle = rmw_create_secure_node(name, domain_id, filepaths);
+  //char * filepaths[3];  // here we assume that only 3 files are needed to configure a node
+  const char *node_secure_root = rcl_get_secure_root(name);
+  //bool ret1 = rcl_get_security_file_paths(filepaths, (char *)name);
+  if (node_secure_root) {
+    fprintf(stderr,
+      "attempting to start a secure node using certificate and key in %s\n",
+      node_secure_root);
+    node->impl->rmw_node_handle = rmw_create_secure_node(
+      name, domain_id, node_secure_root);
   } else {
-    fprintf(stderr, "no security for %s node!\n", name);
+    fprintf(stderr,
+      "not using security: certificate and key path not found for node %s\n",
+      name);
     node->impl->rmw_node_handle = rmw_create_node(name, domain_id);
   }
 
