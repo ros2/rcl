@@ -382,6 +382,9 @@ RCL_WARN_UNUSED
 rmw_service_t *
 rcl_service_get_rmw_handle(const rcl_service_t * service);
 
+bool
+rcl_service_is_valid(const rcl_service_t * service);
+
 #if __cplusplus
 }
 #endif

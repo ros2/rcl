@@ -280,6 +280,25 @@ rcl_send_response(
   return RCL_RET_OK;
 }
 
+bool
+rcl_service_is_valid(const rcl_service_t * service)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(service->impl,
+                              "rcl service implementation is invalid",
+                              return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(service->impl->rmw_handle,
+                              "rmw handle is invalid",
+                              return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(service->impl->rmw_handle->service_name,
+                              "service name is invalid",
+                              return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(*service->impl->rmw_handle->service_name,
+                              "service name is invalid",
+                              return false);							  
+  return true;
+}
+
 #if __cplusplus
 }
 #endif
