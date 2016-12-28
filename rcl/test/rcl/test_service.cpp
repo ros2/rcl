@@ -116,8 +116,8 @@ wait_for_service_to_be_ready(
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) {
   stop_memory_checking();
   rcl_ret_t ret;
-  const rosidl_service_type_support_t * ts = ROSIDL_GET_TYPE_SUPPORT(
-    example_interfaces, srv, AddTwoInts);
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    example_interfaces, AddTwoInts);
   const char * topic = "add_two_ints";
 
   rcl_service_t service = rcl_get_zero_initialized_service();
