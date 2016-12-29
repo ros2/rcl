@@ -305,6 +305,8 @@ RCL_WARN_UNUSED
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher);
 
+#define _publisher_get_options(pub) &pub->impl->options
+
 /// Return the rmw publisher handle.
 /**
  * The handle returned is a pointer to the internally held rmw handle.

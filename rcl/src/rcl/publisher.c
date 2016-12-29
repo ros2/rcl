@@ -165,6 +165,8 @@ fail:
 rcl_ret_t
 rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
 {
+  if (!rcl_publisher_is_valid(publisher)) return RCL_RET_PUBLISHER_INVALID;
+  else if (!rcl_node_is_valid(node)) return RCL_RET_NODE_INVALID;
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -210,8 +212,7 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
   if (rmw_publish(publisher->impl->rmw_handle, ros_message) != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), options->allocator);
     return RCL_RET_ERROR;
-  }
-  return RCL_RET_OK;
+  } return RCL_RET_OK;
 }
 
 const char *
@@ -221,41 +222,42 @@ rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
   if (!options) {
     return NULL;
   }
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher is invalid", return NULL, options->allocator);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl->rmw_handle, "publisher is invalid", return NULL, options->allocator);
+  if (!rcl_publisher_is_valid(publisher)) {
+    return NULL;
+  }
   return publisher->impl->rmw_handle->topic_name;
 }
 
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher is invalid", return NULL, rcl_get_default_allocator());
-  return &publisher->impl->options;
+  if (!rcl_publisher_is_valid(publisher)) {
+      return NULL;
+    }
+  return _publisher_get_options(publisher);
 }
 
 rmw_publisher_t *
 rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher is invalid", return NULL, rcl_get_default_allocator());
+  if (!rcl_publisher_is_valid(publisher)) {
+    return NULL;
+  }
   return publisher->impl->rmw_handle;
 }
 
 bool
 rcl_publisher_is_valid(const rcl_publisher_t * publisher)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false);
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false, rmw_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl,
                               "publisher implementation is invalid",
-                              return NULL);
+                              return NULL,
+                              rmw_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
                               "publisher implementation rmw_handle is invalid",
-                              return NULL);
+                              return NULL,
+                              rmw_get_default_allocator());
   return true;
 }
 
