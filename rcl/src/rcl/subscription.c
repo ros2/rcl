@@ -231,32 +231,43 @@ rcl_take(
 const char *
 rcl_subscription_get_topic_name(const rcl_subscription_t * subscription)
 {
-  const rcl_subscription_options_t * options = rcl_subscription_get_options(subscription);
-  if (!options) {
+  if (!rcl_subscription_is_valid(subscription)) {
     return NULL;
   }
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl->rmw_handle,
-    "subscription is invalid", return NULL, options->allocator);
   return subscription->impl->rmw_handle->topic_name;
 }
 
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "subscription is invalid", return NULL, rcl_get_default_allocator());
+  if (!rcl_subscription_is_valid(subscription)) {
+    return NULL;
+  }
   return &subscription->impl->options;
 }
 
 rmw_subscription_t *
 rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "subscription is invalid", return NULL, rcl_get_default_allocator());
+  if (!rcl_subscription_is_valid(subscription)) {
+    return NULL;
+  }
   return subscription->impl->rmw_handle;
+}
+
+bool
+rcl_subscription_is_valid(const rcl_subscription_t * subscription)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(subscription->impl,
+                              "subscription implementation is invalid",
+                              return NULL,
+                              rmw_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(subscription->impl->rmw_handle,
+                              "subscription implementation rmw_handle is invalid",
+                              return NULL,
+                              rmw_get_default_allocator());
+  return true;
 }
 
 #if __cplusplus

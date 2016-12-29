@@ -339,6 +339,10 @@ RCL_WARN_UNUSED
 rmw_subscription_t *
 rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
 
+/// Check if a subscription is valid
+bool
+rcl_subscription_is_valid(const rcl_subscription_t * subscription);
+
 #if __cplusplus
 }
 #endif
