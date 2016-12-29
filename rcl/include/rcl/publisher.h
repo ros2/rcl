@@ -336,6 +336,10 @@ RCL_WARN_UNUSED
 rmw_publisher_t *
 rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 
+/// Check that the publisher is valid
+bool
+rcl_publisher_is_valid(const rcl_publisher_t * publisher);
+
 #if __cplusplus
 }
 #endif

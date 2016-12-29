@@ -246,6 +246,19 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
   return publisher->impl->rmw_handle;
 }
 
+bool
+rcl_publisher_is_valid(const rcl_publisher_t * publisher)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl,
+                              "publisher implementation is invalid",
+                              return NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
+                              "publisher implementation rmw_handle is invalid",
+                              return NULL);
+  return true;
+}
+
 #if __cplusplus
 }
 #endif
