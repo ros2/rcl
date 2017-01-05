@@ -29,8 +29,8 @@ macro(targets)
     ${rcl_lifecycle_sources})
 
   ament_target_dependencies(rcl_lifecycle${target_suffix}
-    "rcl${target_suffix}"
-    "lifecycle_msgs")
+    "lifecycle_msgs"
+    "rcl${target_suffix}")
 
   # Causes the visibility macros to use dllexport rather than dllimport,
   # which is appropriate when building the dll but not consuming it.
