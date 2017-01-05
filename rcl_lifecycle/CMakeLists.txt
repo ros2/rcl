@@ -5,7 +5,6 @@ project(rcl_lifecycle)
 find_package(ament_cmake REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rmw REQUIRED)
-find_package(rmw_implementation_cmake REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 
 include_directories(include)
@@ -19,30 +18,24 @@ set_source_files_properties(
   ${rcl_lifecycle_sources}
   PROPERTIES language "C")
 
-macro(targets)
-  get_rcl_information("${rmw_implementation}" "rcl${target_suffix}")
+### C-Library depending only on RCL
+add_library(
+  rcl_lifecycle
+  SHARED
+  ${rcl_lifecycle_sources})
 
-  ### C-Library depending only on RCL
-  add_library(
-    rcl_lifecycle${target_suffix}
-    SHARED
-    ${rcl_lifecycle_sources})
+ament_target_dependencies(rcl_lifecycle
+  "lifecycle_msgs"
+  "rcl")
 
-  ament_target_dependencies(rcl_lifecycle${target_suffix}
-    "lifecycle_msgs"
-    "rcl${target_suffix}")
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(rcl_lifecycle PRIVATE "RCL_LIFECYCLE_BUILDING_DLL")
 
-  # Causes the visibility macros to use dllexport rather than dllimport,
-  # which is appropriate when building the dll but not consuming it.
-  target_compile_definitions(rcl_lifecycle${target_suffix} PRIVATE "RCL_LIFECYCLE_BUILDING_DLL")
-
-  install(TARGETS rcl_lifecycle${target_suffix}
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin)
-endmacro()
-
-call_for_each_rmw_implementation(targets GENERATE_DEFAULT)
+install(TARGETS rcl_lifecycle
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
 
 if(BUILD_TESTING)
   if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")

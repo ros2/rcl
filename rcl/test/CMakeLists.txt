@@ -4,6 +4,8 @@ find_package(ament_cmake_nose REQUIRED)
 find_package(example_interfaces REQUIRED)
 find_package(std_msgs REQUIRED)
 
+find_package(rmw_implementation_cmake REQUIRED)
+
 include(rcl_add_custom_executable.cmake)
 include(rcl_add_custom_gtest.cmake)
 include(rcl_add_custom_launch_test.cmake)
@@ -22,6 +24,7 @@ endmacro()
 
 function(test_target_function)
   message(STATUS "Creating tests for '${rmw_implementation}'")
+  list(APPEND extra_test_env RMW_IMPLEMENTATION=${rmw_implementation})
 
   # Gtests
 
@@ -29,7 +32,7 @@ function(test_target_function)
     SRCS rcl/test_allocator.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -37,7 +40,7 @@ function(test_target_function)
     SRCS rcl/test_client.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
@@ -45,7 +48,7 @@ function(test_target_function)
     SRCS rcl/test_time.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -56,7 +59,7 @@ function(test_target_function)
       EMPTY_TEST=
       NORMAL_TEST=foo
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -73,7 +76,7 @@ function(test_target_function)
     SRCS rcl/test_graph.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "std_msgs"
     ${SKIP_TEST}
   )
@@ -82,7 +85,7 @@ function(test_target_function)
     SRCS rcl/test_rcl.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -90,7 +93,7 @@ function(test_target_function)
     SRCS rcl/test_node.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -98,7 +101,7 @@ function(test_target_function)
     SRCS rcl/test_publisher.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
   )
 
@@ -106,7 +109,7 @@ function(test_target_function)
     SRCS rcl/test_service.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
@@ -114,7 +117,7 @@ function(test_target_function)
     SRCS rcl/test_subscription.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
   )
 
@@ -122,7 +125,7 @@ function(test_target_function)
     SRCS rcl/test_wait.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -130,13 +133,13 @@ function(test_target_function)
 
   rcl_add_custom_executable(service_fixture${target_suffix}
     SRCS rcl/service_fixture.cpp
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
   rcl_add_custom_executable(client_fixture${target_suffix}
     SRCS rcl/client_fixture.cpp
-    LIBRARIES ${PROJECT_NAME}${target_suffix} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
