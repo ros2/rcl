@@ -19,7 +19,6 @@ endif()
 set(${PROJECT_NAME}_sources
   src/rcl/allocator.c
   src/rcl/client.c
-  src/rcl/common.c
   src/rcl/graph.c
   src/rcl/guard_condition.c
   src/rcl/node.c
