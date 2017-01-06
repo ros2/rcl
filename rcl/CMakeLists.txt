@@ -73,14 +73,7 @@ if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
 
-ament_package(
-  CONFIG_EXTRAS rcl-extras.cmake
-)
-
-install(
-  DIRECTORY cmake
-  DESTINATION share/${PROJECT_NAME}
-)
+ament_package()
 
 install(
   DIRECTORY include/
