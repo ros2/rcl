@@ -6,7 +6,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
-find_package(rmw_implementation_cmake REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 
 include_directories(include)
@@ -33,33 +32,29 @@ set(${PROJECT_NAME}_sources
   src/rcl/wait.c
 )
 
-macro(target)
-  add_library(${PROJECT_NAME}${target_suffix} SHARED ${${PROJECT_NAME}_sources})
-  ament_target_dependencies(${PROJECT_NAME}${target_suffix}
-    "rcl_interfaces"
-    "rmw"
-    "rosidl_generator_c"
-    "${rmw_implementation}"
-  )
+add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_sources})
+ament_target_dependencies(${PROJECT_NAME}
+  "rcl_interfaces"
+  "rmw"
+  "rmw_implementation"
+  "rosidl_generator_c"
+)
 
-  # Causes the visibility macros to use dllexport rather than dllimport,
-  # which is appropriate when building the dll but not consuming it.
-  target_compile_definitions(${PROJECT_NAME}${target_suffix} PRIVATE "RCL_BUILDING_DLL")
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_BUILDING_DLL")
 
-  install(
-    TARGETS ${PROJECT_NAME}${target_suffix}
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin)
+install(
+  TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
 
-  # rcl_lib_dir is passed as APPEND_LIBRARY_DIRS for each ament_add_gtest call so
-  # the librcl that they link against is on the library path.
-  # This is especially important on Windows.
-  # This is overwritten each loop, but which one it points to doesn't really matter.
-  set(rcl_lib_dir "$<TARGET_FILE_DIR:${PROJECT_NAME}${target_suffix}>")
-endmacro()
-
-call_for_each_rmw_implementation(target GENERATE_DEFAULT)
+# rcl_lib_dir is passed as APPEND_LIBRARY_DIRS for each ament_add_gtest call so
+# the librcl that they link against is on the library path.
+# This is especially important on Windows.
+# This is overwritten each loop, but which one it points to doesn't really matter.
+set(rcl_lib_dir "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl_interfaces)
@@ -78,14 +73,7 @@ if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
 
-ament_package(
-  CONFIG_EXTRAS rcl-extras.cmake
-)
-
-install(
-  DIRECTORY cmake
-  DESTINATION share/${PROJECT_NAME}
-)
+ament_package()
 
 install(
   DIRECTORY include/
