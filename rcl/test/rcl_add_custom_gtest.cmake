@@ -17,9 +17,6 @@ if(rcl_add_custom_gtest_INCLUDED)
 endif()
 set(rcl_add_custom_gtest_INCLUDED TRUE)
 
-# include CMake functions
-include(CMakeParseArguments)
-
 #
 # Custom macro for adding a gtest in rcl.
 #
