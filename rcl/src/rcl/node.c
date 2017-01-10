@@ -55,17 +55,19 @@ static const char * rcl_get_secure_root(const char * node_name)
   const char * env_var_name = "ROS_SECURE_ROOT";
   const char * ros_secure_root_env = NULL;  // todo: branch on OS
   ros_secure_root_env = getenv(env_var_name);  // only on POSIX at the moment
-  if (!ros_secure_root_env)
+  if (!ros_secure_root_env) {
     return NULL;  // environment variable not defined
+  }
   size_t ros_secure_root_size = strlen(ros_secure_root_env);
-  if (!ros_secure_root_size)
+  if (!ros_secure_root_size) {
     return NULL;  // environment variable was empty
+  }
   const char node_secure_root_maxlen =
     strlen(ros_secure_root_env) + 1 + strlen(node_name) + 1;
   char * node_secure_root = malloc(node_secure_root_maxlen);  // leak leak leak
   // todo: use windows separator if needed
   const char * separator =
-    ros_secure_root_env[ros_secure_root_size-1] == '/' ? "" : "/";
+    ros_secure_root_env[ros_secure_root_size - 1] == '/' ? "" : "/";
   snprintf(node_secure_root, node_secure_root_maxlen, "%s%s%s",
     ros_secure_root_env, separator, node_name);
   struct stat buf;
@@ -73,8 +75,9 @@ static const char * rcl_get_secure_root(const char * node_name)
     free(node_secure_root);
     return NULL;  // path doesn't exist
   }
-  if (!(buf.st_mode & S_IRUSR))
+  if (!(buf.st_mode & S_IRUSR)) {
     return NULL;  // path is not readable by our process
+  }
   return node_secure_root;
 }
 
@@ -211,7 +214,7 @@ rcl_node_init(
   node->impl->actual_domain_id = domain_id;
 
   // File discovery magic here
-  const char *node_secure_root = rcl_get_secure_root(name);
+  const char * node_secure_root = rcl_get_secure_root(name);
   if (node_secure_root) {
     fprintf(stderr,
       "attempting to start a secure node using certificate and key in %s\n",
