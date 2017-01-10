@@ -76,6 +76,7 @@ static const char * rcl_get_secure_root(const char * node_name)
     return NULL;  // path doesn't exist
   }
   if (!(buf.st_mode & S_IRUSR)) {
+    free(node_secure_root);
     return NULL;  // path is not readable by our process
   }
   return node_secure_root;
