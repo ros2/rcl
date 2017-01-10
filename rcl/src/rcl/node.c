@@ -50,30 +50,6 @@ typedef struct rcl_node_impl_t
 } rcl_node_impl_t;
 
 
-bool file_exist_and_readable(const char * filepath)
-{
-  struct stat buf;
-  // check if the file exists
-  if (stat(filepath, &buf) < 0) {
-    return false;
-  }
-  // check if the file is readable from user
-  if (!(buf.st_mode & S_IRUSR)) {
-    return false;
-  }
-  return true;
-}
-
-void concatenate(char * dest_str, char * str_to_append)
-{
-  snprintf(dest_str + strlen(dest_str), strlen(str_to_append) + 1, "%s", str_to_append);
-}
-
-void assign(char * dest_str, char * str_to_append)
-{
-  snprintf(dest_str, strlen(str_to_append) + 1, "%s", str_to_append);
-}
-
 static const char * rcl_get_secure_root(const char * node_name)
 {
   const char * env_var_name = "ROS_SECURE_ROOT";
@@ -98,63 +74,6 @@ static const char * rcl_get_secure_root(const char * node_name)
   if (!(buf.st_mode & S_IRUSR))
     return NULL;  // path is not readable by our process
   return node_secure_root;
-}
-
-bool rcl_get_security_file_paths(char ** security_files_paths, char * name)
-{
-  const char * env_var = "ROS_SECURE_ROOT";
-  char * ros_secure_root = NULL;
-  size_t ros_secure_root_size;
-  size_t ros_secure_filename_max_length;
-
-  // here assume only 3 files for security
-  char * file_extensions[3] = {"ca.cert.pem", "cert.pem", "key.pem"};
-  size_t num_files = 3;
-
-  size_t i, maxlenextensions = 100;
-  for (i = 0; i < num_files; i++) {
-    size_t tmplen = strlen(file_extensions[i]);
-    if (tmplen < maxlenextensions) {
-      maxlenextensions = tmplen;
-    }
-  }
-
-  char * file_appbefore = "file://";
-  ros_secure_filename_max_length = strlen(file_appbefore) + maxlenextensions;
-
-#ifndef _WIN32
-  ros_secure_root = getenv(env_var);
-#else
-  _dupenv_s(&ros_secure_root, &ros_secure_root_size, env_var);
-#endif
-  if (!ros_secure_root) {
-    return false;
-  }
-  ros_secure_root_size = strlen(ros_secure_root);
-  if (ros_secure_root[ros_secure_root_size - 1] !=
-    '/' && ros_secure_root[ros_secure_root_size - 1] != '\\')
-  {
-     concatenate(ros_secure_root, "/");
-  }
-  ros_secure_root_size = strlen(ros_secure_root);
-  concatenate(ros_secure_root, name);
-  concatenate(ros_secure_root, "/");
-  ros_secure_root_size = strlen(ros_secure_root);
-  ros_secure_filename_max_length += ros_secure_root_size + strlen(name);
-  char * tmpstr;
-  tmpstr = malloc(ros_secure_filename_max_length);
-  for (i = 0; i < num_files; i++) {
-    assign(tmpstr, ros_secure_root);
-    concatenate(tmpstr, file_extensions[i]);
-    if (!file_exist_and_readable(tmpstr)) {
-      return false;
-    }
-    security_files_paths[i] = malloc(ros_secure_filename_max_length);
-    assign(security_files_paths[i], file_appbefore);
-    concatenate(security_files_paths[i], tmpstr);
-    fprintf(stderr, "[%zu]: ***%s***\n", i, security_files_paths[i]);
-  }
-  return true;
 }
 
 rcl_node_t
@@ -290,9 +209,7 @@ rcl_node_init(
   node->impl->actual_domain_id = domain_id;
 
   // File discovery magic here
-  //char * filepaths[3];  // here we assume that only 3 files are needed to configure a node
   const char *node_secure_root = rcl_get_secure_root(name);
-  //bool ret1 = rcl_get_security_file_paths(filepaths, (char *)name);
   if (node_secure_root) {
     fprintf(stderr,
       "attempting to start a secure node using certificate and key in %s\n",
