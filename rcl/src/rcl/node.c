@@ -69,8 +69,10 @@ static const char * rcl_get_secure_root(const char * node_name)
   snprintf(node_secure_root, node_secure_root_maxlen, "%s%s%s",
     ros_secure_root_env, separator, node_name);
   struct stat buf;
-  if (stat(node_secure_root, &buf) < 0)
+  if (stat(node_secure_root, &buf) < 0) {
+    free(node_secure_root);
     return NULL;  // path doesn't exist
+  }
   if (!(buf.st_mode & S_IRUSR))
     return NULL;  // path is not readable by our process
   return node_secure_root;
