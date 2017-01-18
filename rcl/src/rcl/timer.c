@@ -236,6 +236,15 @@ rcl_timer_reset(rcl_timer_t * timer)
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+_rcl_timer_set_last_call_time(rcl_timer_t * timer, rcl_time_point_value_t value)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
+  rcl_atomic_store(&timer->impl->last_call_time, value);
+  return RCL_RET_OK;
+}
+
 #if __cplusplus
 }
 #endif
