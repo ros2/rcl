@@ -28,6 +28,13 @@ rcl_get_zero_initialized_topic_names_and_types(void)
   return null_topic_names_and_types;
 }
 
+rcl_node_names_t
+rcl_get_zero_initialized_node_names(void)
+{
+  const rcl_node_names_t null_node_names = {0, NULL};
+  return null_node_names;
+}
+
 rcl_ret_t
 rcl_get_topic_names_and_types(
   const rcl_node_t * node,
@@ -62,6 +69,38 @@ rcl_destroy_topic_names_and_types(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
   return rmw_destroy_topic_names_and_types(topic_names_and_types);
+}
+
+rcl_ret_t
+rcl_get_node_names(
+  const rcl_node_t * node,
+  rcl_node_names_t * node_names)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_names, RCL_RET_INVALID_ARGUMENT);
+  if (node_names->node_count != 0) {
+    RCL_SET_ERROR_MSG("node count is not zero");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  if (node_names->names) {
+    RCL_SET_ERROR_MSG("node names is not null");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  return rmw_get_node_names(
+    rcl_node_get_rmw_handle(node),
+    node_names
+  );
+}
+
+rcl_ret_t
+rcl_destroy_node_names(
+  rcl_node_names_t * node_names)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_names, RCL_RET_INVALID_ARGUMENT);
+  return rmw_destroy_node_names(node_names);
 }
 
 rcl_ret_t

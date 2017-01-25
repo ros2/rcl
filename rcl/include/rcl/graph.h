@@ -31,6 +31,7 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 typedef rmw_topic_names_and_types_t rcl_topic_names_and_types_t;
+typedef rmw_node_names_t rcl_node_names_t;
 
 
 /// Return a rcl_topic_names_and_types_t struct with members initialized to `NULL`.
@@ -38,6 +39,12 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_topic_names_and_types_t
 rcl_get_zero_initialized_topic_names_and_types(void);
+
+/// Return a rcl_node_names_t struct with members initialized to `NULL`.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_node_names_t
+rcl_get_zero_initialized_node_names(void);
 
 /// Return a list of topic names and their types.
 /**
@@ -94,6 +101,19 @@ rcl_get_topic_names_and_types(
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_destroy_topic_names_and_types(
+  rcl_topic_names_and_types_t * topic_names_and_types);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_node_names(
+  const rcl_node_t * node,
+  rcl_node_names_t * node_names);
+
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
