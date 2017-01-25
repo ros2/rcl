@@ -117,8 +117,8 @@ rcl_get_node_names(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_destroy_topic_names_and_types(
-  rcl_topic_names_and_types_t * topic_names_and_types);
+rcl_destroy_node_names(
+  rcl_node_names_t * node_names);
 
 /// Return the number of publishers on a given topic.
 /**
