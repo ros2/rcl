@@ -156,11 +156,10 @@ TEST_F(
  */
 TEST_F(
   CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_and_destroy_node_names
-) {
+  test_rcl_get_and_destroy_node_names) {
   stop_memory_checking();
   rcl_ret_t ret;
-  rcl_node_names_t node_names {};
+  rcl_string_array_t node_names {};
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // invalid node
   ret = rcl_get_node_names(nullptr, &node_names);
