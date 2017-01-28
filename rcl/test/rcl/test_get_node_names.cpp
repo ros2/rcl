@@ -79,7 +79,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   ret = rcl_get_node_names(node1_ptr, &node_names);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  EXPECT_EQ(2, node_names.size);
+  EXPECT_EQ(size_t(2), node_names.size);
   EXPECT_EQ(0, strcmp(node1_name, node_names.data[0]));
   EXPECT_EQ(0, strcmp(node2_name, node_names.data[1]));
 
