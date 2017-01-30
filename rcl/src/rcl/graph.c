@@ -1,4 +1,4 @@
-// Copyright 2016 Open Source Robotics Foundation, Inc.
+// Copyright 2016-2017 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,13 @@ rcl_get_zero_initialized_topic_names_and_types(void)
 {
   const rcl_topic_names_and_types_t null_topic_names_and_types = {0, NULL, NULL};
   return null_topic_names_and_types;
+}
+
+rcl_string_array_t
+rcl_get_zero_initialized_string_array(void)
+{
+  const rcl_string_array_t null_string_array = {0, NULL};
+  return null_string_array;
 }
 
 rcl_ret_t
@@ -62,6 +69,37 @@ rcl_destroy_topic_names_and_types(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
   return rmw_destroy_topic_names_and_types(topic_names_and_types);
+}
+
+rcl_ret_t
+rcl_get_node_names(
+  const rcl_node_t * node,
+  rcl_string_array_t * node_names)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_names, RCL_RET_INVALID_ARGUMENT);
+  if (node_names->size != 0) {
+    RCL_SET_ERROR_MSG("node_names size is not zero");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  if (node_names->data) {
+    RCL_SET_ERROR_MSG("node_names is not null");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  return rmw_get_node_names(
+    rcl_node_get_rmw_handle(node),
+    node_names);
+}
+
+rcl_ret_t
+rcl_destroy_node_names(
+  rcl_string_array_t * node_names)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_names, RCL_RET_INVALID_ARGUMENT);
+  return rmw_destroy_node_names(node_names);
 }
 
 rcl_ret_t

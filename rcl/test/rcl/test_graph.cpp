@@ -150,6 +150,42 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
 
+/* Test the rcl_get_topic_names_and_types and rcl_destroy_topic_names_and_types functions.
+ *
+ * This does not test content of the rcl_topic_names_and_types_t structure.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_and_destroy_node_names) {
+  stop_memory_checking();
+  rcl_ret_t ret;
+  rcl_string_array_t node_names {};
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  // invalid node
+  ret = rcl_get_node_names(nullptr, &node_names);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  ret = rcl_get_node_names(&zero_node, &node_names);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  ret = rcl_get_node_names(this->old_node_ptr, &node_names);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  // invalid topic_names_and_types
+  ret = rcl_get_node_names(this->node_ptr, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  // invalid argument to rcl_destroy_topic_names_and_types
+  ret = rcl_destroy_node_names(nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  // valid calls
+  ret = rcl_get_node_names(this->node_ptr, &node_names);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_destroy_node_names(&node_names);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+}
+
 /* Test the rcl_count_publishers function.
  *
  * This does not test content the response.

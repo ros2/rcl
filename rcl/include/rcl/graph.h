@@ -1,4 +1,4 @@
-// Copyright 2016 Open Source Robotics Foundation, Inc.
+// Copyright 2016-2017 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 typedef rmw_topic_names_and_types_t rcl_topic_names_and_types_t;
+typedef rmw_string_array_t rcl_string_array_t;
 
 
 /// Return a rcl_topic_names_and_types_t struct with members initialized to `NULL`.
@@ -38,6 +39,12 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_topic_names_and_types_t
 rcl_get_zero_initialized_topic_names_and_types(void);
+
+/// Return a rcl_node_names_t struct with members initialized to `NULL`.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_string_array_t
+rcl_get_zero_initialized_string_array(void);
 
 /// Return a list of topic names and their types.
 /**
@@ -99,6 +106,19 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_destroy_topic_names_and_types(
   rcl_topic_names_and_types_t * topic_names_and_types);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_node_names(
+  const rcl_node_t * node,
+  rcl_string_array_t * node_names);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_destroy_node_names(
+  rcl_string_array_t * node_names);
 
 /// Return the number of publishers on a given topic.
 /**
