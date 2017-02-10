@@ -23,15 +23,18 @@ target_compile_definitions(${PROJECT_NAME}_memory_tools
 list(APPEND extra_test_libraries ${PROJECT_NAME}_memory_tools)
 
 # Create tests for the memory tools library.
-if(NOT WIN32)  # (memory tools doesn't do anything on Windows)
-  include(../rcl_add_custom_gtest.cmake)
-
-  rcl_add_custom_gtest(test_memory_tools
-    SRCS test_memory_tools.cpp
-    ENV ${extra_test_env}
-    LIBRARIES ${extra_test_libraries}
-  )
+set(SKIP_TEST "")
+if(WIN32)  # (memory tools doesn't do anything on Windows)
+  set(SKIP_TEST "SKIP_TEST")
 endif()
+
+include(../rcl_add_custom_gtest.cmake)
+rcl_add_custom_gtest(test_memory_tools
+  SRCS test_memory_tools.cpp
+  ENV ${extra_test_env}
+  LIBRARIES ${extra_test_libraries}
+  ${SKIP_TEST}
+)
 
 set(extra_test_libraries ${extra_test_libraries} PARENT_SCOPE)
 set(extra_test_env ${extra_test_env} PARENT_SCOPE)
