@@ -75,10 +75,10 @@ static const char * rcl_get_secure_root(const char * node_name)
     free(node_secure_root);
     return NULL;  // path doesn't exist
   }
- #ifdef WIN32
-  if (!(buf.st_mode & _S_IREAD)) {
- #else
+#ifndef WIN32
   if (!(buf.st_mode & S_IRUSR)) {
+// #else
+//   if (!(buf.st_mode & _S_IREAD)) {
 #endif
     free(node_secure_root);
     return NULL;  // path is not readable by our process
