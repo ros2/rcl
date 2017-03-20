@@ -25,6 +25,8 @@ extern "C"
 #include <string.h>
 #include <sys/stat.h>
 
+#include "c_utilities/file_permissions.h"
+#include "c_utilities/get_env.h"
 #include "rcl/rcl.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
@@ -53,8 +55,10 @@ typedef struct rcl_node_impl_t
 static const char * rcl_get_secure_root(const char * node_name)
 {
   const char * env_var_name = "ROS_SECURE_ROOT";
-  const char * ros_secure_root_env = NULL;  // todo: branch on OS
-  ros_secure_root_env = getenv(env_var_name);  // only on POSIX at the moment
+  const char * ros_secure_root_env = NULL;
+  if (!get_env(env_var_name, &ros_secure_root_env)) {
+    return NULL;
+  }
   if (!ros_secure_root_env) {
     return NULL;  // environment variable not defined
   }
@@ -62,26 +66,16 @@ static const char * rcl_get_secure_root(const char * node_name)
   if (!ros_secure_root_size) {
     return NULL;  // environment variable was empty
   }
-  const char node_secure_root_maxlen =
+  size_t node_secure_root_maxlen =
     strlen(ros_secure_root_env) + 1 + strlen(node_name) + 1;
-  char * node_secure_root = malloc(node_secure_root_maxlen);  // leak leak leak
-  // todo: use windows separator if needed
+  char * node_secure_root = malloc(node_secure_root_maxlen * sizeof(char));
   const char * separator =
     ros_secure_root_env[ros_secure_root_size - 1] == '/' ? "" : "/";
   snprintf(node_secure_root, node_secure_root_maxlen, "%s%s%s",
     ros_secure_root_env, separator, node_name);
-  struct stat buf;
-  if (stat(node_secure_root, &buf) < 0) {
+  if (!is_directory(node_secure_root)) {
     free(node_secure_root);
-    return NULL;  // path doesn't exist
-  }
-#ifndef WIN32
-  if (!(buf.st_mode & S_IRUSR)) {
-// #else
-//   if (!(buf.st_mode & _S_IREAD)) {
-#endif
-    free(node_secure_root);
-    return NULL;  // path is not readable by our process
+    return NULL;
   }
   return node_secure_root;
 }

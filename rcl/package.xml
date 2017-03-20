@@ -13,6 +13,7 @@
 
   <build_export_depend>rmw</build_export_depend>
 
+  <build_depend>c_utilities</build_depend>
   <build_depend>rcl_interfaces</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rosidl_generator_c</build_depend>
@@ -21,6 +22,7 @@
   <build_export_depend>rcutils</build_export_depend>
   <build_export_depend>rosidl_generator_c</build_export_depend>
 
+  <exec_depend>c_utilities</exec_depend>
   <exec_depend>ament_cmake</exec_depend>
   <exec_depend>rcutils</exec_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
