@@ -71,6 +71,7 @@ static const char * rcl_get_secure_root(const char * node_name)
   char * node_secure_root = malloc(node_secure_root_maxlen * sizeof(char));
   const char * separator =
     ros_secure_root_env[ros_secure_root_size - 1] == '/' ? "" : "/";
+  // TODO(mikaelarguedas) use concat function once it matches strcat signature
   snprintf(node_secure_root, node_secure_root_maxlen, "%s%s%s",
     ros_secure_root_env, separator, node_name);
   if (!is_directory(node_secure_root)) {
