@@ -23,7 +23,6 @@ extern "C"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 
 #include "c_utilities/file_permissions.h"
 #include "c_utilities/get_env.h"
