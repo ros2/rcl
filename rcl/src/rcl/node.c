@@ -70,7 +70,7 @@ static const char * rcl_get_secure_root(const char * node_name)
   char * node_secure_root = malloc(node_secure_root_maxlen * sizeof(char));
   const char * separator =
 #ifdef WIN32
-    ros_secure_root_env[ros_secure_root_size - 1] == "\\" ? "" : "\\";
+    ros_secure_root_env[ros_secure_root_size - 1] == '\\' ? "" : "\\";
 #else
     ros_secure_root_env[ros_secure_root_size - 1] == '/' ? "" : "/";
 #endif
