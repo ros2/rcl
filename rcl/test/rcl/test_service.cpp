@@ -49,7 +49,7 @@ public:
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "node_name";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(this->node_ptr, name, &node_options);
+    ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
     set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});

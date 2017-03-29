@@ -26,6 +26,8 @@ extern "C"
 
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
+#include "rmw/validate_node_name.h"
+#include "rmw/validate_topic_name.h"
 
 #include "./common.h"
 
@@ -46,7 +48,11 @@ rcl_get_zero_initialized_node()
 }
 
 rcl_ret_t
-rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * options)
+rcl_node_init(
+  rcl_node_t * node,
+  const char * name,
+  const char * name_space,
+  const rcl_node_options_t * options)
 {
   size_t domain_id = 0;
   const char * ros_domain_id;
@@ -56,6 +62,7 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(name_space, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (node->impl) {
@@ -72,18 +79,46 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
     allocator->allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator->deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
+  // Make sure the node name is valid before allocating memory.
+  int validation_result = 0;
+  size_t invalid_index = 0;
+  ret = rmw_validate_node_name(name, &validation_result, &invalid_index);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    return ret;
+  }
+  if (validation_result != RMW_NODE_NAME_VALID) {
+    const char * msg = rmw_node_name_validation_result_string(validation_result);
+    if (!msg) {
+      msg = "unknown validation_result, this should not happen";
+    }
+    RCL_SET_ERROR_MSG(msg);
+    return RCL_RET_NODE_INVALID_NAME;
+  }
+  // Make sure the node namespace is valid too, but only if it is not an empty string.
+  if (strlen(name_space) > 0) {
+    validation_result = 0;
+    invalid_index = 0;
+    ret = rmw_validate_topic_name(name_space, &validation_result, &invalid_index);
+    if (ret != RMW_RET_OK) {
+      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+      return ret;
+    }
+    if (validation_result != RMW_TOPIC_VALID) {
+      const char * msg = rmw_topic_validation_result_string(validation_result);
+      if (!msg) {
+        msg = "unknown validation_result, this should not happen";
+      }
+      RCL_SET_ERROR_MSG(msg);
+      return RCL_RET_NODE_INVALID_NAMESPACE;
+    }
+  }
   // Allocate space for the implementation struct.
   node->impl = (rcl_node_impl_t *)allocator->allocate(sizeof(rcl_node_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
   node->impl->rmw_node_handle = NULL;
   node->impl->graph_guard_condition = NULL;
   // Initialize node impl.
-  // node name
-  size_t name_len = strlen(name);
-  if (name_len == 0) {
-    RCL_SET_ERROR_MSG("node name cannot be empty string");
-    goto fail;
-  }
   // node options (assume it is trivially copyable)
   node->impl->options = *options;
   // node rmw_node_handle
@@ -106,7 +141,7 @@ rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * o
   }
   // actual domain id
   node->impl->actual_domain_id = domain_id;
-  node->impl->rmw_node_handle = rmw_create_node(name, domain_id);
+  node->impl->rmw_node_handle = rmw_create_node(name, name_space, domain_id);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail);
   // instance id
@@ -213,6 +248,15 @@ rcl_node_get_name(const rcl_node_t * node)
     return NULL;
   }
   return node->impl->rmw_node_handle->name;
+}
+
+const char *
+rcl_node_get_namespace(const rcl_node_t * node)
+{
+  if (!rcl_node_is_valid(node)) {
+    return NULL;
+  }
+  return node->impl->rmw_node_handle->name_space;
 }
 
 const rcl_node_options_t *

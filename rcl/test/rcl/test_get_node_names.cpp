@@ -63,14 +63,14 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   *node1_ptr = rcl_get_zero_initialized_node();
   const char * node1_name = "node1";
   rcl_node_options_t node1_options = rcl_node_get_default_options();
-  ret = rcl_node_init(node1_ptr, node1_name, &node1_options);
+  ret = rcl_node_init(node1_ptr, node1_name, "", &node1_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   auto node2_ptr = new rcl_node_t;
   *node2_ptr = rcl_get_zero_initialized_node();
   const char * node2_name = "node2";
   rcl_node_options_t node2_options = rcl_node_get_default_options();
-  ret = rcl_node_init(node2_ptr, node2_name, &node2_options);
+  ret = rcl_node_init(node2_ptr, node2_name, "", &node2_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   std::this_thread::sleep_for(1s);
