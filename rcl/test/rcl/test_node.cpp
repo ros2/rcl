@@ -73,16 +73,16 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   // Create an invalid node (rcl_shutdown).
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
   const char * name = "node_name";
-  const char * name_space = "/ns";
+  const char * namespace_ = "/ns";
   rcl_node_options_t default_options = rcl_node_get_default_options();
   default_options.domain_id = 42;  // Set the domain id to something explicit.
-  ret = rcl_node_init(&invalid_node, name, name_space, &default_options);
+  ret = rcl_node_init(&invalid_node, name, namespace_, &default_options);
   if (is_windows && is_opensplice) {
     // On Windows with OpenSplice, setting the domain id is not expected to work.
     ASSERT_NE(RCL_RET_OK, ret);
     // So retry with the default domain id setting (uses the environment as is).
     default_options.domain_id = rcl_node_get_default_options().domain_id;
-    ret = rcl_node_init(&invalid_node, name, name_space, &default_options);
+    ret = rcl_node_init(&invalid_node, name, namespace_, &default_options);
     ASSERT_EQ(RCL_RET_OK, ret);
   } else {
     // This is the normal check (not windows and windows if not opensplice)
@@ -106,7 +106,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // Create a normal node.
   rcl_node_t node = rcl_get_zero_initialized_node();
-  ret = rcl_node_init(&node, name, name_space, &default_options);
+  ret = rcl_node_init(&node, name, namespace_, &default_options);
   ASSERT_EQ(RCL_RET_OK, ret);
   auto rcl_node_exit = make_scope_exit([&node]() {
     stop_memory_checking();
@@ -173,7 +173,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   stop_memory_checking();
   EXPECT_TRUE(actual_node_namespace ? true : false);
   if (actual_node_namespace) {
-    EXPECT_EQ(std::string(name_space), std::string(actual_node_namespace));
+    EXPECT_EQ(std::string(namespace_), std::string(actual_node_namespace));
   }
   // Test rcl_node_get_options().
   const rcl_node_options_t * actual_options;
@@ -303,7 +303,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   rcl_ret_t ret;
   rcl_node_t node = rcl_get_zero_initialized_node();
   const char * name = "node_name";
-  const char * name_space = "/ns";
+  const char * namespace_ = "/ns";
   rcl_node_options_t default_options = rcl_node_get_default_options();
   // Trying to init before rcl_init() should fail.
   ret = rcl_node_init(&node, name, "", &default_options);
@@ -317,16 +317,16 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
     ASSERT_EQ(RCL_RET_OK, ret);
   });
   // Try invalid arguments.
-  ret = rcl_node_init(nullptr, name, name_space, &default_options);
+  ret = rcl_node_init(nullptr, name, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
-  ret = rcl_node_init(&node, nullptr, name_space, &default_options);
+  ret = rcl_node_init(&node, nullptr, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
   ret = rcl_node_init(&node, name, nullptr, &default_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
-  ret = rcl_node_init(&node, name, name_space, nullptr);
+  ret = rcl_node_init(&node, name, namespace_, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
   // Try with invalid allocator.
@@ -334,7 +334,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   options_with_invalid_allocator.allocator.allocate = nullptr;
   options_with_invalid_allocator.allocator.deallocate = nullptr;
   options_with_invalid_allocator.allocator.reallocate = nullptr;
-  ret = rcl_node_init(&node, name, name_space, &options_with_invalid_allocator);
+  ret = rcl_node_init(&node, name, namespace_, &options_with_invalid_allocator);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
   rcl_reset_error();
   // Try with failing allocator.
@@ -342,7 +342,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   options_with_failing_allocator.allocator.allocate = failing_malloc;
   options_with_failing_allocator.allocator.deallocate = failing_free;
   options_with_failing_allocator.allocator.reallocate = failing_realloc;
-  ret = rcl_node_init(&node, name, name_space, &options_with_failing_allocator);
+  ret = rcl_node_init(&node, name, namespace_, &options_with_failing_allocator);
   EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
   rcl_reset_error();
   // Try fini with invalid arguments.
@@ -353,14 +353,14 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret);
   // Try a normal init and fini.
-  ret = rcl_node_init(&node, name, name_space, &default_options);
+  ret = rcl_node_init(&node, name, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_OK, ret);
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret);
   // Try repeated init and fini calls.
-  ret = rcl_node_init(&node, name, name_space, &default_options);
+  ret = rcl_node_init(&node, name, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_OK, ret);
-  ret = rcl_node_init(&node, name, name_space, &default_options);
+  ret = rcl_node_init(&node, name, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << "Expected RCL_RET_ALREADY_INIT";
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret);
@@ -369,7 +369,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   // Try with a specific domain id.
   rcl_node_options_t options_with_custom_domain_id = rcl_node_get_default_options();
   options_with_custom_domain_id.domain_id = 42;
-  ret = rcl_node_init(&node, name, name_space, &options_with_custom_domain_id);
+  ret = rcl_node_init(&node, name, namespace_, &options_with_custom_domain_id);
   if (is_windows && is_opensplice) {
     // A custom domain id is not expected to work on Windows with Opensplice.
     EXPECT_NE(RCL_RET_OK, ret);
@@ -395,13 +395,13 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
     ASSERT_EQ(RCL_RET_OK, ret);
   });
 
-  const char * name_space = "/ns";
+  const char * namespace_ = "/ns";
   rcl_node_options_t default_options = rcl_node_get_default_options();
 
   // First do a normal node name.
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
-    ret = rcl_node_init(&node, "my_node_42", name_space, &default_options);
+    ret = rcl_node_init(&node, "my_node_42", namespace_, &default_options);
     ASSERT_EQ(RCL_RET_OK, ret);
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -410,7 +410,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
   // Node name with invalid characters.
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
-    ret = rcl_node_init(&node, "my_node_42$", name_space, &default_options);
+    ret = rcl_node_init(&node, "my_node_42$", namespace_, &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAME, ret);
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -419,7 +419,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
   // Node name with /, which is valid in a topic, but not a node name.
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
-    ret = rcl_node_init(&node, "my/node_42", name_space, &default_options);
+    ret = rcl_node_init(&node, "my/node_42", namespace_, &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAME, ret);
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -428,7 +428,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
   // Node name with {}, which is valid in a topic, but not a node name.
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
-    ret = rcl_node_init(&node, "my_{node}_42", name_space, &default_options);
+    ret = rcl_node_init(&node, "my_{node}_42", namespace_, &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAME, ret);
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);

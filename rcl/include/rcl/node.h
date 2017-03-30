@@ -144,14 +144,14 @@ rcl_get_zero_initialized_node(void);
  *
  * \param[inout] node a preallocated rcl_node_t
  * \param[in] name the name of the node
- * \param[in] name_space the namespace of the node
+ * \param[in] namespace_ the namespace of the node
  * \param[in] options the node options
  * \return `RCL_RET_OK` if the node was initialized successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the node has already be initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_NODE_INVALID_NAME` if the name is invalid, or
- * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the name_space is invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the namespace_ is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -160,7 +160,7 @@ rcl_ret_t
 rcl_node_init(
   rcl_node_t * node,
   const char * name,
-  const char * name_space,
+  const char * namespace_,
   const rcl_node_options_t * options);
 
 /// Finalized a rcl_node_t.

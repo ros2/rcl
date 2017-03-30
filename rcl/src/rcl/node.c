@@ -51,7 +51,7 @@ rcl_ret_t
 rcl_node_init(
   rcl_node_t * node,
   const char * name,
-  const char * name_space,
+  const char * namespace_,
   const rcl_node_options_t * options)
 {
   size_t domain_id = 0;
@@ -62,7 +62,7 @@ rcl_node_init(
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(name_space, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(namespace_, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (node->impl) {
@@ -96,10 +96,10 @@ rcl_node_init(
     return RCL_RET_NODE_INVALID_NAME;
   }
   // Make sure the node namespace is valid too, but only if it is not an empty string.
-  if (strlen(name_space) > 0) {
+  if (strlen(namespace_) > 0) {
     validation_result = 0;
     invalid_index = 0;
-    ret = rmw_validate_topic_name(name_space, &validation_result, &invalid_index);
+    ret = rmw_validate_topic_name(namespace_, &validation_result, &invalid_index);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
       return ret;
@@ -141,7 +141,7 @@ rcl_node_init(
   }
   // actual domain id
   node->impl->actual_domain_id = domain_id;
-  node->impl->rmw_node_handle = rmw_create_node(name, name_space, domain_id);
+  node->impl->rmw_node_handle = rmw_create_node(name, namespace_, domain_id);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail);
   // instance id
@@ -256,7 +256,7 @@ rcl_node_get_namespace(const rcl_node_t * node)
   if (!rcl_node_is_valid(node)) {
     return NULL;
   }
-  return node->impl->rmw_node_handle->name_space;
+  return node->impl->rmw_node_handle->namespace_;
 }
 
 const rcl_node_options_t *
