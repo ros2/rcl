@@ -24,7 +24,7 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
-#include "c_utilities/file_permissions.h"
+#include "c_utilities/filesystem.h"
 #include "c_utilities/get_env.h"
 #include "rcl/rcl.h"
 #include "rmw/error_handling.h"
@@ -55,7 +55,7 @@ static const char * rcl_get_secure_root(const char * node_name)
 {
   const char * env_var_name = "ROS_SECURE_ROOT";
   const char * ros_secure_root_env = NULL;
-  if (!get_env(env_var_name, &ros_secure_root_env)) {
+  if (utilities_get_env(env_var_name, &ros_secure_root_env)) {
     return NULL;
   }
   if (!ros_secure_root_env) {
@@ -77,7 +77,7 @@ static const char * rcl_get_secure_root(const char * node_name)
   // TODO(mikaelarguedas) use concat function once it matches strcat signature
   snprintf(node_secure_root, node_secure_root_maxlen, "%s%s%s",
     ros_secure_root_env, separator, node_name);
-  if (!is_directory(node_secure_root)) {
+  if (!utilities_is_directory(node_secure_root)) {
     free(node_secure_root);
     return NULL;
   }
