@@ -65,18 +65,7 @@ static const char * rcl_get_secure_root(const char * node_name)
   if (!ros_secure_root_size) {
     return NULL;  // environment variable was empty
   }
-  size_t node_secure_root_maxlen =
-    strlen(ros_secure_root_env) + 1 + strlen(node_name) + 1;
-  char * node_secure_root = malloc(node_secure_root_maxlen * sizeof(char));
-  const char * separator =
-#ifdef WIN32
-    ros_secure_root_env[ros_secure_root_size - 1] == '\\' ? "" : "\\";
-#else
-    ros_secure_root_env[ros_secure_root_size - 1] == '/' ? "" : "/";
-#endif
-  // TODO(mikaelarguedas) use concat function once it matches strcat signature
-  snprintf(node_secure_root, node_secure_root_maxlen, "%s%s%s",
-    ros_secure_root_env, separator, node_name);
+  char * node_secure_root = utilities_join_path(ros_secure_root_env, node_name);
   if (!utilities_is_directory(node_secure_root)) {
     free(node_secure_root);
     return NULL;
