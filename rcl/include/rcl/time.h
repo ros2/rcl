@@ -119,10 +119,13 @@ rcl_init_time_source(
   enum rcl_time_source_type_t time_source_type, rcl_time_source_t * time_source
 );
 
-/// Finalize a time_source .
+/// Finalize a time_source.
 /**
  * This will deallocate all necessary internal structures, and clean up any variables.
  * It can be combined with any of the init functions.
+ *
+ * Passing a time_source with type RCL_TIME_SOURCE_UNINITIALIZED will result in
+ * RCL_RET_INVALID_ARGUMENT being returned.
  *
  * \param[in] time_source the handle to the time_source which is being finalized
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
