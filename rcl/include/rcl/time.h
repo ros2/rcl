@@ -102,6 +102,41 @@ RCL_WARN_UNUSED
 bool
 rcl_time_source_valid(rcl_time_source_t * time_source);
 
+/// Initialize a time_source based on the passed type.
+/**
+ * This will allocate all necessary internal structures, and initialize variables.
+ *
+ * \param[in] time_source_type the type identifying the time source to provide
+ * \param[in] time_source the handle to the time_source which is being initialized
+ * \return `RCL_RET_OK` if the time source was successfully initialized, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_init_time_source(
+  enum rcl_time_source_type_t time_source_type, rcl_time_source_t * time_source
+);
+
+/// Finalize a time_source.
+/**
+ * This will deallocate all necessary internal structures, and clean up any variables.
+ * It can be combined with any of the init functions.
+ *
+ * Passing a time_source with type RCL_TIME_SOURCE_UNINITIALIZED will result in
+ * RCL_RET_INVALID_ARGUMENT being returned.
+ *
+ * \param[in] time_source the handle to the time_source which is being finalized
+ * \return `RCL_RET_OK` if the time source was successfully finalized, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_fini_time_source(rcl_time_source_t * time_source);
+
 /// Initialize a time_source as a RCL_ROS_TIME time source.
 /**
  * This will allocate all necessary internal structures, and initialize variables.

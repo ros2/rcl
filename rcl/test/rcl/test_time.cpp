@@ -291,6 +291,44 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), default_time_source_instanciation)
   ASSERT_TRUE(rcl_time_source_valid(system_time_source));
 }
 
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), specific_time_source_instantiation) {
+  {
+    rcl_time_source_t uninitialized_time_source;
+    rcl_ret_t ret = rcl_init_time_source(
+      RCL_TIME_SOURCE_UNINITIALIZED, &uninitialized_time_source);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(uninitialized_time_source.type, RCL_TIME_SOURCE_UNINITIALIZED) <<
+      "Expected time source of type RCL_TIME_SOURCE_UNINITIALIZED";
+  }
+  {
+    rcl_time_source_t ros_time_source;
+    rcl_ret_t ret = rcl_init_time_source(RCL_ROS_TIME, &ros_time_source);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ros_time_source.type, RCL_ROS_TIME) <<
+      "Expected time source of type RCL_ROS_TIME";
+    ret = rcl_fini_time_source(&ros_time_source);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  }
+  {
+    rcl_time_source_t system_time_source;
+    rcl_ret_t ret = rcl_init_time_source(RCL_SYSTEM_TIME, &system_time_source);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(system_time_source.type, RCL_SYSTEM_TIME) <<
+      "Expected time source of type RCL_SYSTEM_TIME";
+    ret = rcl_fini_time_source(&system_time_source);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  }
+  {
+    rcl_time_source_t steady_time_source;
+    rcl_ret_t ret = rcl_init_time_source(RCL_STEADY_TIME, &steady_time_source);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(steady_time_source.type, RCL_STEADY_TIME) <<
+      "Expected time source of type RCL_STEADY_TIME";
+    ret = rcl_fini_time_source(&steady_time_source);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  }
+}
+
 TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   rcl_ret_t ret;
   rcl_time_point_t a, b;

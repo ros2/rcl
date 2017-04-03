@@ -89,6 +89,45 @@ rcl_time_source_valid(rcl_time_source_t * time_source)
 }
 
 rcl_ret_t
+rcl_init_time_source(
+  enum rcl_time_source_type_t time_source_type, rcl_time_source_t * time_source
+)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  switch (time_source_type) {
+    case RCL_TIME_SOURCE_UNINITIALIZED:
+      rcl_init_generic_time_source(time_source);
+      return RCL_RET_OK;
+    case RCL_ROS_TIME:
+      return rcl_init_ros_time_source(time_source);
+    case RCL_SYSTEM_TIME:
+      return rcl_init_system_time_source(time_source);
+    case RCL_STEADY_TIME:
+      return rcl_init_steady_time_source(time_source);
+    default:
+      return RCL_RET_INVALID_ARGUMENT;
+  }
+}
+
+rcl_ret_t
+rcl_fini_time_source(rcl_time_source_t * time_source)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  switch (time_source->type) {
+    case RCL_ROS_TIME:
+      return rcl_fini_ros_time_source(time_source);
+    case RCL_SYSTEM_TIME:
+      return rcl_fini_system_time_source(time_source);
+    case RCL_STEADY_TIME:
+      return rcl_fini_steady_time_source(time_source);
+    case RCL_TIME_SOURCE_UNINITIALIZED:
+    // fall through
+    default:
+      return RCL_RET_INVALID_ARGUMENT;
+  }
+}
+
+rcl_ret_t
 rcl_init_ros_time_source(rcl_time_source_t * time_source)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
