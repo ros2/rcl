@@ -208,13 +208,13 @@ rcl_node_init(
   // File discovery magic here
   const char * node_secure_root = rcl_get_secure_root(name);
   if (node_secure_root) {
-    fprintf(stderr,
+    printf(
       "attempting to start a secure node using certificate and key in %s\n",
       node_secure_root);
     node->impl->rmw_node_handle = rmw_create_secure_node(
       name, domain_id, node_secure_root);
   } else {
-    fprintf(stderr,
+    printf(
       "not using security: certificate and key path not found for node %s\n",
       name);
     node->impl->rmw_node_handle = rmw_create_node(name, domain_id);
