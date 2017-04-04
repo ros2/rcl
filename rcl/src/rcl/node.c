@@ -41,6 +41,8 @@ extern "C"
   _snprintf_s(buffer, buffer_size, _TRUNCATE, format, __VA_ARGS__)
 #endif
 
+static const char * sros_env_var_name = "ROS_SECURE_ROOT";
+
 typedef struct rcl_node_impl_t
 {
   rcl_node_options_t options;
@@ -51,11 +53,13 @@ typedef struct rcl_node_impl_t
 } rcl_node_impl_t;
 
 
-static const char * rcl_get_secure_root(const char * node_name)
+const char * rcl_get_secure_root(const char * node_name)
 {
-  const char * env_var_name = "ROS_SECURE_ROOT";
   const char * ros_secure_root_env = NULL;
-  if (utilities_get_env(env_var_name, &ros_secure_root_env)) {
+  if (node_name == NULL) {
+    return NULL;
+  }
+  if (utilities_get_env(sros_env_var_name, &ros_secure_root_env)) {
     return NULL;
   }
   if (!ros_secure_root_env) {
@@ -65,9 +69,9 @@ static const char * rcl_get_secure_root(const char * node_name)
   if (!ros_secure_root_size) {
     return NULL;  // environment variable was empty
   }
-  char * node_secure_root = utilities_join_path(ros_secure_root_env, node_name);
+  const char * node_secure_root = utilities_join_path(ros_secure_root_env, node_name);
   if (!utilities_is_directory(node_secure_root)) {
-    free(node_secure_root);
+    free((char *)node_secure_root);
     return NULL;
   }
   return node_secure_root;
