@@ -81,15 +81,16 @@ rcl_get_zero_initialized_node(void);
  * After calling, the ROS node object can be used to create other middleware
  * primitives like publishers, services, parameters, etc.
  *
- * The name of the node must adhere to naming restrictions, see the
- * rmw_validate_node_name() function for rules.
+ * The name of the node must not be NULL and adhere to naming restrictions,
+ * see the rmw_validate_node_name() function for rules.
  *
  * \todo TODO(wjwwood): node name uniqueness is no yet enforced
  *
  * The name of the node cannot coincide with another node of the same name.
  * If a node of the same name is already in the domain, it will be shutdown.
  *
- * The namespace of the node should follow the rules for topics, see:
+ * The namespace of the node should not be NULL and should also follow the
+ * rules for topics, see:
  *
  *   http://design.ros2.org/articles/topic_and_service_names.html
  *
@@ -143,8 +144,8 @@ rcl_get_zero_initialized_node(void);
  * \post the node handle is valid and can be used in other `rcl_*` functions
  *
  * \param[inout] node a preallocated rcl_node_t
- * \param[in] name the name of the node
- * \param[in] namespace_ the namespace of the node
+ * \param[in] name the name of the node, must be a valid c-string
+ * \param[in] namespace_ the namespace of the node, must be a valid c-string
  * \param[in] options the node options
  * \return `RCL_RET_OK` if the node was initialized successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the node has already be initialized, or
