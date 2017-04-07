@@ -82,8 +82,7 @@ rcl_node_init(
     allocator->deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
   // Make sure the node name is valid before allocating memory.
   int validation_result = 0;
-  size_t invalid_index = 0;
-  ret = rmw_validate_node_name(name, &validation_result, &invalid_index);
+  ret = rmw_validate_node_name(name, &validation_result, NULL);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
     return ret;
