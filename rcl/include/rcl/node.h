@@ -89,19 +89,18 @@ rcl_get_zero_initialized_node(void);
  * The name of the node cannot coincide with another node of the same name.
  * If a node of the same name is already in the domain, it will be shutdown.
  *
- * The namespace of the node should not be NULL and should also follow the
- * rules for topics, see:
+ * The namespace of the node should not be NULL and should also pass the
+ * rmw_validate_namespace() function's rules.
  *
- *   http://design.ros2.org/articles/topic_and_service_names.html
- *
- * And therefore the namespace should pass validation of the
- * rmw_validate_topic_name() function.
- * The namespace should be absolute, i.e. it should begin with a forward slash.
- * Even though this is a namespace, with additional relative namespace and/or
- * a basename to follow, the namespace string passed here should not include
- * a trailing forward slash.
- * For an empty namespace, an empty string, i.e. "", should be used.
- * The namespace "/" is considered invalid.
+ * Additionally this function allows namespaces which lack a leading forward
+ * slash.
+ * Because there is no notion of a relative namespace, there is no difference
+ * between a namespace which lacks a forward and the same namespace with a
+ * leasing forward slash.
+ * Therefore, a namespace like ``"foo/bar"`` is automatically changed to
+ * ``"/foo/bar"`` by this function.
+ * Similarly, the namespace ``""`` will implicitly become ``"/"`` which is a
+ * valid namespace.
  *
  * \todo TODO(wjwwood):
  *   Parameter infrastructure is currently initialized in the language specific

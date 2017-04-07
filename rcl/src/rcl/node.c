@@ -26,6 +26,7 @@ extern "C"
 
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
+#include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 #include "rmw/validate_topic_name.h"
 
@@ -95,24 +96,43 @@ rcl_node_init(
     RCL_SET_ERROR_MSG(msg);
     return RCL_RET_NODE_INVALID_NAME;
   }
-  // Make sure the node namespace is valid too, but only if it is not an empty string.
-  if (strlen(namespace_) > 0) {
-    validation_result = 0;
-    invalid_index = 0;
-    ret = rmw_validate_topic_name(namespace_, &validation_result, &invalid_index);
-    if (ret != RMW_RET_OK) {
-      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
-      return ret;
-    }
-    if (validation_result != RMW_TOPIC_VALID) {
-      const char * msg = rmw_topic_validation_result_string(validation_result);
-      if (!msg) {
-        msg = "unknown validation_result, this should not happen";
-      }
-      RCL_SET_ERROR_MSG(msg);
-      return RCL_RET_NODE_INVALID_NAMESPACE;
-    }
+
+  // Process the namespace.
+  size_t namespace_length = strlen(namespace_);
+  const char * local_namespace_ = namespace_;
+  bool should_free_local_namespace_ = false;
+  // If the namespace is just an empty string, replace with "/"
+  if (namespace_length == 0) {
+    // Have this special case to avoid a memory allocation when "" is passed.
+    local_namespace_ = "/";
   }
+  // If the namespace does not start with a /, add one.
+  if (namespace_length > 0 && namespace_[0] != '/') {
+    // TODO(wjwwood): replace with generic strcat that takes an allocator once available
+    // length + 2, because new leading / and terminating \0
+    char * temp = (char *)allocator->allocate(namespace_length + 2, allocator->state);
+    RCL_CHECK_FOR_NULL_WITH_MSG(temp, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+    temp[0] = '/';
+    memcpy(temp + 1, namespace_, strlen(namespace_) + 1);
+    local_namespace_ = temp;
+    should_free_local_namespace_ = true;
+  }
+  // Make sure the node namespace is valid.
+  validation_result = 0;
+  ret = rmw_validate_namespace(local_namespace_, &validation_result, NULL);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    return ret;
+  }
+  if (validation_result != RMW_NAMESPACE_VALID) {
+    const char * msg = rmw_namespace_validation_result_string(validation_result);
+    if (!msg) {
+      msg = "unknown validation_result, this should not happen";
+    }
+    RCL_SET_ERROR_MSG(msg);
+    return RCL_RET_NODE_INVALID_NAMESPACE;
+  }
+
   // Allocate space for the implementation struct.
   node->impl = (rcl_node_impl_t *)allocator->allocate(sizeof(rcl_node_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
@@ -141,9 +161,13 @@ rcl_node_init(
   }
   // actual domain id
   node->impl->actual_domain_id = domain_id;
-  node->impl->rmw_node_handle = rmw_create_node(name, namespace_, domain_id);
+  node->impl->rmw_node_handle = rmw_create_node(name, local_namespace_, domain_id);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail);
+  // free local_namespace_ if necessary
+  if (should_free_local_namespace_) {
+    allocator->deallocate((char *)local_namespace_, allocator->state);
+  }
   // instance id
   node->impl->rcl_instance_id = rcl_get_instance_id();
   // graph guard condition

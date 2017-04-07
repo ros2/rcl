@@ -466,15 +466,16 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "", &default_options);
     ASSERT_EQ(RCL_RET_OK, ret);
+    ASSERT_STREQ("/", rcl_node_get_namespace(&node));
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
 
-  // Node namespace which is just a forward slash, which is invalid.
+  // Node namespace which is just a forward slash, which is valid.
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "/", &default_options);
-    ASSERT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
+    ASSERT_EQ(RCL_RET_OK, ret);
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
@@ -504,11 +505,12 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
     EXPECT_EQ(RCL_RET_OK, ret);
   }
 
-  // Node namespace which is not absolute.
+  // Node namespace which is not absolute, it should get / added automatically.
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "ns", &default_options);
-    ASSERT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
+    ASSERT_EQ(RCL_RET_OK, ret);
+    ASSERT_STREQ("/ns", rcl_node_get_namespace(&node));
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
