@@ -204,12 +204,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   size_t actual_domain_id;
   ret = rcl_node_get_domain_id(nullptr, &actual_domain_id);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   ret = rcl_node_get_domain_id(&zero_node, &actual_domain_id);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   ret = rcl_node_get_domain_id(&invalid_node, &actual_domain_id);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   start_memory_checking();
   assert_no_malloc_begin();
@@ -308,6 +311,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   // Trying to init before rcl_init() should fail.
   ret = rcl_node_init(&node, name, "", &default_options);
   ASSERT_EQ(RCL_RET_NOT_INIT, ret) << "Expected RCL_RET_NOT_INIT";
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
@@ -319,15 +323,19 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   // Try invalid arguments.
   ret = rcl_node_init(nullptr, name, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   ret = rcl_node_init(&node, nullptr, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   ret = rcl_node_init(&node, name, nullptr, &default_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   ret = rcl_node_init(&node, name, namespace_, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   // Try with invalid allocator.
   rcl_node_options_t options_with_invalid_allocator = rcl_node_get_default_options();
@@ -336,6 +344,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   options_with_invalid_allocator.allocator.reallocate = nullptr;
   ret = rcl_node_init(&node, name, namespace_, &options_with_invalid_allocator);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   // Try with failing allocator.
   rcl_node_options_t options_with_failing_allocator = rcl_node_get_default_options();
@@ -344,10 +353,12 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   options_with_failing_allocator.allocator.reallocate = failing_realloc;
   ret = rcl_node_init(&node, name, namespace_, &options_with_failing_allocator);
   EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   // Try fini with invalid arguments.
   ret = rcl_node_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
+  ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   // Try fini with an uninitialized node.
   ret = rcl_node_fini(&node);
@@ -362,6 +373,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   EXPECT_EQ(RCL_RET_OK, ret);
   ret = rcl_node_init(&node, name, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << "Expected RCL_RET_ALREADY_INIT";
+  ASSERT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret);
   ret = rcl_node_fini(&node);
@@ -412,6 +425,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, "my_node_42$", namespace_, &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAME, ret);
+    ASSERT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
@@ -421,6 +436,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, "my/node_42", namespace_, &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAME, ret);
+    ASSERT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
@@ -430,6 +447,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, "my_{node}_42", namespace_, &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAME, ret);
+    ASSERT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
@@ -485,6 +504,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "/ns/{name}", &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
+    ASSERT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
@@ -492,6 +513,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "/~/", &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
+    ASSERT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
@@ -501,6 +524,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "/ns/foo/", &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
+    ASSERT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
@@ -520,6 +545,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "/starts/with/42number", &default_options);
     ASSERT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
+    ASSERT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   }
