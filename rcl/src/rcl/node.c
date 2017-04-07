@@ -32,6 +32,12 @@ extern "C"
 
 #include "./common.h"
 
+#ifndef _WIN32
+  #define LOCAL_SNPRINTF snprintf
+#else
+  #define LOCAL_SNPRINTF _snprintf
+#endif
+
 typedef struct rcl_node_impl_t
 {
   rcl_node_options_t options;
@@ -126,9 +132,14 @@ rcl_node_init(
   if (validation_result != RMW_NAMESPACE_VALID) {
     const char * msg = rmw_namespace_validation_result_string(validation_result);
     if (!msg) {
-      msg = "unknown validation_result, this should not happen";
+      char fixed_msg[256];
+      LOCAL_SNPRINTF(
+        fixed_msg, sizeof(fixed_msg),
+        "unknown validation_result '%d', this should not happen", validation_result);
+      RCL_SET_ERROR_MSG(fixed_msg);
+    } else {
+      RCL_SET_ERROR_MSG(msg);
     }
-    RCL_SET_ERROR_MSG(msg);
     return RCL_RET_NODE_INVALID_NAMESPACE;
   }
 
