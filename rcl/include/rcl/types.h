@@ -24,22 +24,24 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_ERROR RMW_RET_ERROR
 /// Timeout occurred return code.
 #define RCL_RET_TIMEOUT RMW_RET_TIMEOUT
+/// Failed to allocate memory return code.
+#define RCL_RET_BAD_ALLOC RMW_RET_BAD_ALLOC
+/// Invalid argument return code.
+#define RCL_RET_INVALID_ARGUMENT RMW_RET_INVALID_ARGUMENT
 
 // rcl specific ret codes start at 100
 /// rcl_init() already called return code.
 #define RCL_RET_ALREADY_INIT 100
 /// rcl_init() not yet called return code.
 #define RCL_RET_NOT_INIT 101
-/// Failed to allocate memory return code.
-#define RCL_RET_BAD_ALLOC 102
-/// Invalid argument return code.
-#define RCL_RET_INVALID_ARGUMENT 103
 /// Mismatched rmw identifier return code.
-#define RCL_RET_MISMATCHED_RMW_ID 104
+#define RCL_RET_MISMATCHED_RMW_ID 102
 
 // rcl node specific ret codes in 2XX
 /// Invalid rcl_node_t given return code.
 #define RCL_RET_NODE_INVALID 200
+#define RCL_RET_NODE_INVALID_NAME 201
+#define RCL_RET_NODE_INVALID_NAMESPACE 202
 
 // rcl publisher specific ret codes in 3XX
 /// Invalid rcl_publisher_t given return code.

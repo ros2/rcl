@@ -44,9 +44,12 @@ typedef struct rcl_node_t
 typedef struct rcl_node_options_t
 {
   // bool anonymous_name;
+
   // rmw_qos_profile_t parameter_qos;
+
   /// If true, no parameter infrastructure will be setup.
   // bool no_parameters;
+
   /// If set, then this value overrides the ROS_DOMAIN_ID environment variable.
   /**
    * It defaults to RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, which will cause the
@@ -59,6 +62,7 @@ typedef struct rcl_node_options_t
    *   (currently max size_t)
    */
   size_t domain_id;
+
   /// Custom allocator used for internal allocations.
   rcl_allocator_t allocator;
 } rcl_node_options_t;
@@ -77,10 +81,26 @@ rcl_get_zero_initialized_node(void);
  * After calling, the ROS node object can be used to create other middleware
  * primitives like publishers, services, parameters, etc.
  *
+ * The name of the node must not be NULL and adhere to naming restrictions,
+ * see the rmw_validate_node_name() function for rules.
+ *
  * \todo TODO(wjwwood): node name uniqueness is no yet enforced
  *
  * The name of the node cannot coincide with another node of the same name.
  * If a node of the same name is already in the domain, it will be shutdown.
+ *
+ * The namespace of the node should not be NULL and should also pass the
+ * rmw_validate_namespace() function's rules.
+ *
+ * Additionally this function allows namespaces which lack a leading forward
+ * slash.
+ * Because there is no notion of a relative namespace, there is no difference
+ * between a namespace which lacks a forward and the same namespace with a
+ * leasing forward slash.
+ * Therefore, a namespace like ``"foo/bar"`` is automatically changed to
+ * ``"/foo/bar"`` by this function.
+ * Similarly, the namespace ``""`` will implicitly become ``"/"`` which is a
+ * valid namespace.
  *
  * \todo TODO(wjwwood):
  *   Parameter infrastructure is currently initialized in the language specific
@@ -104,7 +124,7 @@ rcl_get_zero_initialized_node(void);
  * rcl_node_t node = rcl_get_zero_initialized_node();
  * rcl_node_options_t * node_ops = rcl_node_get_default_options();
  * // ... node options customization
- * rcl_ret_t ret = rcl_node_init(&node, "node_name", node_ops);
+ * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/node_ns", node_ops);
  * // ... error handling and then use the node, but eventually deinitialize it:
  * ret = rcl_node_fini(&node);
  * // ... error handling for rcl_node_fini()
@@ -123,18 +143,25 @@ rcl_get_zero_initialized_node(void);
  * \post the node handle is valid and can be used in other `rcl_*` functions
  *
  * \param[inout] node a preallocated rcl_node_t
- * \param[in] name the name of the node
+ * \param[in] name the name of the node, must be a valid c-string
+ * \param[in] namespace_ the namespace of the node, must be a valid c-string
  * \param[in] options the node options
  * \return `RCL_RET_OK` if the node was initialized successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the node has already be initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the name is invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the namespace_ is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_node_init(rcl_node_t * node, const char * name, const rcl_node_options_t * options);
+rcl_node_init(
+  rcl_node_t * node,
+  const char * name,
+  const char * namespace_,
+  const rcl_node_options_t * options);
 
 /// Finalized a rcl_node_t.
 /**
@@ -239,6 +266,33 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 const char *
 rcl_node_get_name(const rcl_node_t * node);
+
+/// Return the namespace of the node.
+/**
+ * This function returns the node's internal namespace string.
+ * This function can fail, and therefore return `NULL`, if:
+ *   - node is `NULL`
+ *   - node has not been initialized (the implementation is invalid)
+ *
+ * The returned string is only valid as long as the given rcl_node_t is valid.
+ * The value of the string may change if the value in the rcl_node_t changes,
+ * and therefore copying the string is recommended if this is a concern.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node pointer to the node
+ * \return name string if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const char *
+rcl_node_get_namespace(const rcl_node_t * node);
 
 /// Return the rcl node options.
 /**

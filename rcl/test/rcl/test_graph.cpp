@@ -63,7 +63,7 @@ public:
     *this->old_node_ptr = rcl_get_zero_initialized_node();
     const char * old_name = "old_node_name";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(this->old_node_ptr, old_name, &node_options);
+    ret = rcl_node_init(this->old_node_ptr, old_name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_shutdown();  // after this, the old_node_ptr should be invalid
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -73,7 +73,7 @@ public:
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "node_name";
-    ret = rcl_node_init(this->node_ptr, name, &node_options);
+    ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
     this->wait_set_ptr = new rcl_wait_set_t;

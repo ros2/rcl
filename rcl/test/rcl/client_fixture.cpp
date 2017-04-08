@@ -109,7 +109,7 @@ int main(int argc, char ** argv)
     rcl_node_t node = rcl_get_zero_initialized_node();
     const char * name = "node_name";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    if (rcl_node_init(&node, name, &node_options) != RCL_RET_OK) {
+    if (rcl_node_init(&node, name, "", &node_options) != RCL_RET_OK) {
       fprintf(stderr, "Error in node init: %s\n", rcl_get_error_string_safe());
       return -1;
     }
