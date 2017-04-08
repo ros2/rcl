@@ -36,7 +36,7 @@ extern "C"
   #define LOCAL_SNPRINTF snprintf
 #else
   #define LOCAL_SNPRINTF(buffer, buffer_size, format, ...) \
-    _snprintf_s(buffer, buffer_size, _TRUNCATE, format, __VA_ARGS__)
+  _snprintf_s(buffer, buffer_size, _TRUNCATE, format, __VA_ARGS__)
 #endif
 
 typedef struct rcl_node_impl_t
