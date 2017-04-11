@@ -17,6 +17,8 @@
 #include <chrono>
 #include <thread>
 
+#include "c_utilities/types.h"
+
 #include "rcl/graph.h"
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
@@ -75,13 +77,15 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
 
   std::this_thread::sleep_for(1s);
 
-  rcl_string_array_t node_names = rcl_get_zero_initialized_string_array();
+  utilities_string_array_t node_names = utilities_get_zero_initialized_string_array();
   ret = rcl_get_node_names(node1_ptr, &node_names);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   EXPECT_EQ(size_t(2), node_names.size);
   EXPECT_EQ(0, strcmp(node1_name, node_names.data[0]));
   EXPECT_EQ(0, strcmp(node2_name, node_names.data[1]));
+
+  utilities_string_array_fini(&node_names);
 
   ret = rcl_node_fini(node1_ptr);
   delete node1_ptr;

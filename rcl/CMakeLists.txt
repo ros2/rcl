@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(rcl)
 
 find_package(ament_cmake_ros REQUIRED)
+find_package(c_utilities REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
@@ -34,6 +35,7 @@ set(${PROJECT_NAME}_sources
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})
 ament_target_dependencies(${PROJECT_NAME}
+  "c_utilities"
   "rcl_interfaces"
   "rmw"
   "rmw_implementation"

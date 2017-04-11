@@ -23,6 +23,8 @@ extern "C"
 #include <rmw/rmw.h>
 #include <rmw/types.h>
 
+#include "c_utilities/types.h"
+
 #include "rosidl_generator_c/service_type_support.h"
 
 #include "rcl/macros.h"
@@ -31,20 +33,12 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 typedef rmw_topic_names_and_types_t rcl_topic_names_and_types_t;
-typedef rmw_string_array_t rcl_string_array_t;
-
 
 /// Return a rcl_topic_names_and_types_t struct with members initialized to `NULL`.
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_topic_names_and_types_t
 rcl_get_zero_initialized_topic_names_and_types(void);
-
-/// Return a rcl_node_names_t struct with members initialized to `NULL`.
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_string_array_t
-rcl_get_zero_initialized_string_array(void);
 
 /// Return a list of topic names and their types.
 /**
@@ -112,13 +106,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_get_node_names(
   const rcl_node_t * node,
-  rcl_string_array_t * node_names);
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_destroy_node_names(
-  rcl_string_array_t * node_names);
+  utilities_string_array_t * node_names);
 
 /// Return the number of publishers on a given topic.
 /**
