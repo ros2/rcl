@@ -65,10 +65,6 @@ function(test_target_function)
 
   rcl_add_custom_gtest(test_get_node_names${target_suffix}
     SRCS rcl/test_get_node_names.cpp
-    ENV
-      ${extra_test_env}
-      EMPTY_TEST=
-      NORMAL_TEST=foo
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
