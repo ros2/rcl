@@ -118,7 +118,7 @@ rcl_atomic_exchange_uint64_t(atomic_uint_least64_t * a_uint64_t, uint64_t desire
   return result;
 }
 
-static inline uint64_t
+static inline uintptr_t
 rcl_atomic_exchange_uintptr_t(atomic_uintptr_t * a_uintptr_t, uintptr_t desired)
 {
   uintptr_t result;
