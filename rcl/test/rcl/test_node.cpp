@@ -272,31 +272,26 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   stop_memory_checking();
   EXPECT_NE(0u, instance_id);
   // Test rcl_node_get_graph_guard_condition
-  std::string rmw_id(rmw_get_implementation_identifier());
-  if (rmw_id.find("opensplice") != std::string::npos) {
-    // Only test with opensplice for now, as connext and fastrtps are not working.
-    // TODO(wjwwood): remove this check when more middlewares implement this
-    const rcl_guard_condition_t * graph_guard_condition = nullptr;
-    graph_guard_condition = rcl_node_get_graph_guard_condition(nullptr);
-    EXPECT_EQ(nullptr, graph_guard_condition);
-    rcl_reset_error();
-    graph_guard_condition = rcl_node_get_graph_guard_condition(&zero_node);
-    EXPECT_EQ(nullptr, graph_guard_condition);
-    rcl_reset_error();
-    graph_guard_condition = rcl_node_get_graph_guard_condition(&invalid_node);
-    EXPECT_EQ(nullptr, graph_guard_condition);
-    rcl_reset_error();
-    start_memory_checking();
-    assert_no_malloc_begin();
-    assert_no_realloc_begin();
-    assert_no_free_begin();
-    graph_guard_condition = rcl_node_get_graph_guard_condition(&node);
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    EXPECT_NE(nullptr, graph_guard_condition);
-  }
+  const rcl_guard_condition_t * graph_guard_condition = nullptr;
+  graph_guard_condition = rcl_node_get_graph_guard_condition(nullptr);
+  EXPECT_EQ(nullptr, graph_guard_condition);
+  rcl_reset_error();
+  graph_guard_condition = rcl_node_get_graph_guard_condition(&zero_node);
+  EXPECT_EQ(nullptr, graph_guard_condition);
+  rcl_reset_error();
+  graph_guard_condition = rcl_node_get_graph_guard_condition(&invalid_node);
+  EXPECT_EQ(nullptr, graph_guard_condition);
+  rcl_reset_error();
+  start_memory_checking();
+  assert_no_malloc_begin();
+  assert_no_realloc_begin();
+  assert_no_free_begin();
+  graph_guard_condition = rcl_node_get_graph_guard_condition(&node);
+  assert_no_malloc_end();
+  assert_no_realloc_end();
+  assert_no_free_end();
+  stop_memory_checking();
+  EXPECT_NE(nullptr, graph_guard_condition);
 }
 
 /* Tests the node life cycle, including rcl_node_init() and rcl_node_fini().
