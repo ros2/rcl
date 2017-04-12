@@ -107,7 +107,7 @@ rcl_destroy_topic_names_and_types(
  *
  * The node parameter must not be `NULL`, and must point to a valid node.
  *
- * The node_names  parameter must be allocated and zero initialized.
+ * The node_names parameter must be allocated and zero initialized.
  * The node_names is the output for this function, and contains
  * allocated memory.
  * Use utilities_get_zero_initialized_string_array() for initializing an empty
