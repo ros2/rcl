@@ -101,6 +101,35 @@ rcl_ret_t
 rcl_destroy_topic_names_and_types(
   rcl_topic_names_and_types_t * topic_names_and_types);
 
+/// Return a list of available nodes in the ROS graph.
+/**
+ * This function returns a list of nodes in the ROS graph.
+ *
+ * The node parameter must not be `NULL`, and must point to a valid node.
+ *
+ * The node_names  parameter must be allocated and zero initialized.
+ * The node_names is the output for this function, and contains
+ * allocated memory.
+ * Use utilities_get_zero_initialized_string_array() for initializing an empty
+ * string_array_t struct.
+ * This node_names struct therefore  should be passed to utilities_string_array_fini()
+ * when it is no longer needed.
+ * Failing to do so will result in leaked memory.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[out] node_names struct storing discovered node names.
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
