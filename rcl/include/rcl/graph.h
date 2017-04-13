@@ -63,6 +63,7 @@ rcl_get_zero_initialized_topic_names_and_types(void);
  * <i>[1] implementation may need to protect the data structure with a lock</i>
  *
  * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator to be used when allocating space for strings
  * \param[out] topic_names_and_types list of topic names and their types
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
@@ -74,6 +75,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_get_topic_names_and_types(
   const rcl_node_t * node,
+  rcl_allocator_t allocator,
   rcl_topic_names_and_types_t * topic_names_and_types);
 
 /// Destroy a struct which was previously given to rcl_get_topic_names_and_types.
@@ -151,6 +153,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_get_node_names(
   const rcl_node_t * node,
+  rcl_allocator_t allocator,
   utilities_string_array_t * node_names);
 
 /// Return the number of publishers on a given topic.
@@ -165,6 +168,9 @@ rcl_get_node_names(
  *
  * The count parameter must not be `NULL`, and must point to a valid bool.
  * The count parameter is the output for this function and will be set.
+ *
+ * In the event that error handling needs to allocate memory, this function
+ * will try to use the node's allocator.
  *
  * <hr>
  * Attribute          | Adherence
@@ -203,6 +209,9 @@ rcl_count_publishers(
  *
  * The count parameter must not be `NULL`, and must point to a valid bool.
  * The count parameter is the output for this function and will be set.
+ *
+ * In the event that error handling needs to allocate memory, this function
+ * will try to use the node's allocator.
  *
  * <hr>
  * Attribute          | Adherence
@@ -243,6 +252,9 @@ rcl_count_subscribers(
  *
  * The is_available parameter must not be `NULL`, and must point a bool variable.
  * The result of the check will be stored in the is_available parameter.
+ *
+ * In the event that error handling needs to allocate memory, this function
+ * will try to use the node's allocator.
  *
  * <hr>
  * Attribute          | Adherence

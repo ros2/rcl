@@ -24,6 +24,7 @@ extern "C"
 #include "./common.h"
 #include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
+#include "rmw/error_handling.h"
 
 static atomic_bool __rcl_is_initialized = ATOMIC_VAR_INIT(false);
 static rcl_allocator_t __rcl_allocator;
@@ -56,17 +57,22 @@ rcl_ret_t
 rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
 {
   rcl_ret_t fail_ret = RCL_RET_ERROR;
-  if (argc > 0) {
-    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
-  }
+
+  // Check allocator first, so it can be used in other errors.
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator.allocate,
-    "invalid allocator, allocate not set", return RCL_RET_INVALID_ARGUMENT);
+    "invalid allocator, allocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
     allocator.deallocate,
-    "invalid allocator, deallocate not set", return RCL_RET_INVALID_ARGUMENT);
+    "invalid allocator, deallocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+
+  if (argc > 0) {
+    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
+  }
   if (rcl_atomic_exchange_bool(&__rcl_is_initialized, true)) {
-    RCL_SET_ERROR_MSG("rcl_init called while already initialized");
+    RCL_SET_ERROR_MSG("rcl_init called while already initialized", allocator);
     return RCL_RET_ALREADY_INIT;
   }
   // There is a race condition between the time __rcl_is_initialized is set true,
@@ -78,7 +84,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   // Initialize rmw_init.
   rmw_ret_t rmw_ret = rmw_init();
   if (rmw_ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
     fail_ret = RCL_RET_ERROR;
     goto fail;
   }
@@ -87,7 +93,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   __rcl_argc = argc;
   __rcl_argv = (char **)__rcl_allocator.allocate(sizeof(char *) * argc, __rcl_allocator.state);
   if (!__rcl_argv) {
-    RCL_SET_ERROR_MSG("allocation failed");
+    RCL_SET_ERROR_MSG("allocation failed", allocator);
     fail_ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
@@ -96,7 +102,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   for (i = 0; i < argc; ++i) {
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);
     if (!__rcl_argv[i]) {
-      RCL_SET_ERROR_MSG("allocation failed");
+      RCL_SET_ERROR_MSG("allocation failed", allocator);
       fail_ret = RCL_RET_BAD_ALLOC;
       goto fail;
     }
@@ -106,7 +112,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   if (rcl_atomic_load_uint64_t(&__rcl_instance_id) == 0) {
     // Roll over occurred.
     __rcl_next_unique_id--;  // roll back to avoid the next call succeeding.
-    RCL_SET_ERROR_MSG("unique rcl instance ids exhausted");
+    RCL_SET_ERROR_MSG("unique rcl instance ids exhausted", allocator);
     goto fail;
   }
   return RCL_RET_OK;
@@ -119,7 +125,8 @@ rcl_ret_t
 rcl_shutdown()
 {
   if (!rcl_ok()) {
-    RCL_SET_ERROR_MSG("rcl_shutdown called before rcl_init");
+    // must use default allocator here because __rcl_allocator may not be set yet
+    RCL_SET_ERROR_MSG("rcl_shutdown called before rcl_init", rcl_get_default_allocator());
     return RCL_RET_NOT_INIT;
   }
   __clean_up_init();

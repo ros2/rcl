@@ -22,6 +22,7 @@ extern "C"
 #include <string.h>
 
 #include "./common.h"
+#include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
 typedef struct rcl_publisher_impl_t
@@ -46,29 +47,35 @@ rcl_publisher_init(
   const rcl_publisher_options_t * options)
 {
   rcl_ret_t fail_ret = RCL_RET_ERROR;
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
-  if (!node->impl) {
-    RCL_SET_ERROR_MSG("invalid node");
-    return RCL_RET_NODE_INVALID;
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  if (publisher->impl) {
-    RCL_SET_ERROR_MSG("publisher already initialized, or memory was unintialized");
-    return RCL_RET_ALREADY_INIT;
-  }
+
+  // Check options and allocator first, so allocator can be used with errors.
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator->allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
+    allocator->allocate, "allocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator->deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
+    allocator->deallocate, "deallocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, *allocator);
+  if (publisher->impl) {
+    RCL_SET_ERROR_MSG(
+      "publisher already initialized, or memory was unintialized", rcl_get_default_allocator());
+    return RCL_RET_ALREADY_INIT;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
+  if (!node->impl) {
+    RCL_SET_ERROR_MSG("invalid node", *allocator);
+    return RCL_RET_NODE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, *allocator);
   // Allocate space for the implementation struct.
   publisher->impl = (rcl_publisher_impl_t *)allocator->allocate(
     sizeof(rcl_publisher_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+    publisher->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC, *allocator);
   // Fill out implementation struct.
   // rmw handle (create rmw publisher)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
@@ -78,7 +85,7 @@ rcl_publisher_init(
     topic_name,
     &(options->qos));
   if (!publisher->impl->rmw_handle) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
     goto fail;
   }
   // options
@@ -95,16 +102,16 @@ rcl_ret_t
 rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
 {
   rcl_ret_t result = RCL_RET_OK;
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (publisher->impl) {
+    rcl_allocator_t allocator = publisher->impl->options.allocator;
     rmw_ret_t ret =
       rmw_destroy_publisher(rcl_node_get_rmw_handle(node), publisher->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
-      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+      RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
       result = RCL_RET_ERROR;
     }
-    rcl_allocator_t allocator = publisher->impl->options.allocator;
     allocator.deallocate(publisher->impl, allocator.state);
   }
   return result;
@@ -124,12 +131,16 @@ rcl_publisher_get_default_options()
 rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  const rcl_publisher_options_t * options = rcl_publisher_get_options(publisher);
+  if (!options) {
+    return RCL_RET_PUBLISHER_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher is invalid", return RCL_RET_PUBLISHER_INVALID);
+    publisher->impl, "publisher is invalid", return RCL_RET_PUBLISHER_INVALID, options->allocator);
   if (rmw_publish(publisher->impl->rmw_handle, ros_message) != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), options->allocator);
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
@@ -138,29 +149,32 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 const char *
 rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL);
+  const rcl_publisher_options_t * options = rcl_publisher_get_options(publisher);
+  if (!options) {
+    return NULL;
+  }
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher is invalid", return NULL);
+    publisher->impl, "publisher is invalid", return NULL, options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl->rmw_handle, "publisher is invalid", return NULL);
+    publisher->impl->rmw_handle, "publisher is invalid", return NULL, options->allocator);
   return publisher->impl->rmw_handle->topic_name;
 }
 
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher is invalid", return NULL);
+    publisher->impl, "publisher is invalid", return NULL, rcl_get_default_allocator());
   return &publisher->impl->options;
 }
 
 rmw_publisher_t *
 rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, NULL, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher is invalid", return NULL);
+    publisher->impl, "publisher is invalid", return NULL, rcl_get_default_allocator());
   return publisher->impl->rmw_handle;
 }
 

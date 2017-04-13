@@ -27,6 +27,7 @@ extern "C"
 #include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 #include "rcl/time.h"
+#include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
 typedef struct rcl_wait_set_impl_t
@@ -114,22 +115,27 @@ rcl_wait_set_init(
   rcl_allocator_t allocator)
 {
   rcl_ret_t fail_ret = RCL_RET_ERROR;
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator.allocate, "allocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator.deallocate, "deallocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator.reallocate, "reallocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, allocator);
   if (__wait_set_is_valid(wait_set)) {
-    RCL_SET_ERROR_MSG("wait_set already initialized, or memory was uninitialized.");
+    RCL_SET_ERROR_MSG("wait_set already initialized, or memory was uninitialized.", allocator);
     return RCL_RET_ALREADY_INIT;
   }
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator.allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator.deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator.reallocate, "reallocate not set", return RCL_RET_INVALID_ARGUMENT);
   // Allocate space for the implementation struct.
   wait_set->impl = (rcl_wait_set_impl_t *)allocator.allocate(
     sizeof(rcl_wait_set_impl_t), allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    wait_set->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+    wait_set->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC, allocator);
   memset(wait_set->impl, 0, sizeof(rcl_wait_set_impl_t));
   wait_set->impl->rmw_subscriptions.subscribers = NULL;
   wait_set->impl->rmw_subscriptions.subscriber_count = 0;
@@ -215,12 +221,12 @@ rcl_ret_t
 rcl_wait_set_fini(rcl_wait_set_t * wait_set)
 {
   rcl_ret_t result = RCL_RET_OK;
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
 
   if (__wait_set_is_valid(wait_set)) {
     rmw_ret_t ret = rmw_destroy_waitset(wait_set->impl->rmw_waitset);
     if (ret != RMW_RET_OK) {
-      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+      RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), wait_set->impl->allocator);
       result = RCL_RET_WAIT_SET_INVALID;
     }
     __wait_set_clean_up(wait_set, wait_set->impl->allocator);
@@ -231,25 +237,25 @@ rcl_wait_set_fini(rcl_wait_set_t * wait_set)
 rcl_ret_t
 rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * allocator)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (!__wait_set_is_valid(wait_set)) {
-    RCL_SET_ERROR_MSG("wait set is invalid");
+    RCL_SET_ERROR_MSG("wait set is invalid", rcl_get_default_allocator());
     return RCL_RET_WAIT_SET_INVALID;
   }
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, wait_set->impl->allocator);
   *allocator = wait_set->impl->allocator;
   return RCL_RET_OK;
 }
 
 #define SET_ADD(Type) \
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT); \
-  RCL_CHECK_ARGUMENT_FOR_NULL(Type, RCL_RET_INVALID_ARGUMENT); \
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   if (!__wait_set_is_valid(wait_set)) { \
-    RCL_SET_ERROR_MSG("wait set is invalid"); \
+    RCL_SET_ERROR_MSG("wait set is invalid", rcl_get_default_allocator()); \
     return RCL_RET_WAIT_SET_INVALID; \
   } \
+  RCL_CHECK_ARGUMENT_FOR_NULL(Type, RCL_RET_INVALID_ARGUMENT, wait_set->impl->allocator); \
   if (!(wait_set->impl->Type ## _index < wait_set->size_of_ ## Type ## s)) { \
-    RCL_SET_ERROR_MSG(#Type "s set is full"); \
+    RCL_SET_ERROR_MSG(#Type "s set is full", wait_set->impl->allocator); \
     return RCL_RET_WAIT_SET_FULL; \
   } \
   size_t current_index = wait_set->impl->Type ## _index++; \
@@ -259,14 +265,14 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   /* Also place into rmw storage. */ \
   rmw_ ## Type ## _t * rmw_handle = rcl_ ## Type ## _get_rmw_handle(Type); \
   RCL_CHECK_FOR_NULL_WITH_MSG( \
-    rmw_handle, rcl_get_error_string_safe(), return RCL_RET_ERROR); \
+    rmw_handle, rcl_get_error_string_safe(), return RCL_RET_ERROR, wait_set->impl->allocator); \
   wait_set->impl->RMWStorage[current_index] = rmw_handle->data; \
   wait_set->impl->RMWCount++;
 
 #define SET_CLEAR(Type) \
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT); \
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   if (!__wait_set_is_valid(wait_set)) { \
-    RCL_SET_ERROR_MSG("wait set is invalid"); \
+    RCL_SET_ERROR_MSG("wait set is invalid", rcl_get_default_allocator()); \
     return RCL_RET_WAIT_SET_INVALID; \
   } \
   memset( \
@@ -284,9 +290,10 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   wait_set->impl->RMWCount = 0;
 
 #define SET_RESIZE(Type, ExtraDealloc, ExtraRealloc) \
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT); \
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   RCL_CHECK_FOR_NULL_WITH_MSG( \
-    wait_set->impl, "wait set is invalid", return RCL_RET_WAIT_SET_INVALID); \
+    wait_set->impl, "wait set is invalid", \
+    return RCL_RET_WAIT_SET_INVALID, rcl_get_default_allocator()); \
   if (size == wait_set->size_of_ ## Type ## s) { \
     return RCL_RET_OK; \
   } \
@@ -302,7 +309,8 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     wait_set->Type ## s = (const rcl_ ## Type ## _t * *)allocator.reallocate( \
       (void *)wait_set->Type ## s, sizeof(rcl_ ## Type ## _t *) * size, allocator.state); \
     RCL_CHECK_FOR_NULL_WITH_MSG( \
-      wait_set->Type ## s, "allocating memory failed", return RCL_RET_BAD_ALLOC); \
+      wait_set->Type ## s, "allocating memory failed", \
+      return RCL_RET_BAD_ALLOC, wait_set->impl->allocator); \
     wait_set->size_of_ ## Type ## s = size; \
     ExtraRealloc \
   } \
@@ -323,7 +331,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   if (!wait_set->impl->RMWStorage) { \
     allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
     wait_set->size_of_ ## Type ## s = 0; \
-    RCL_SET_ERROR_MSG("allocating memory failed"); \
+    RCL_SET_ERROR_MSG("allocating memory failed", wait_set->impl->allocator); \
     return RCL_RET_BAD_ALLOC; \
   }
 
@@ -500,9 +508,9 @@ rcl_wait_set_resize_services(rcl_wait_set_t * wait_set, size_t size)
 rcl_ret_t
 rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (!__wait_set_is_valid(wait_set)) {
-    RCL_SET_ERROR_MSG("wait set is invalid");
+    RCL_SET_ERROR_MSG("wait set is invalid", rcl_get_default_allocator());
     return RCL_RET_WAIT_SET_INVALID;
   }
   if (
@@ -512,7 +520,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     wait_set->size_of_clients == 0 &&
     wait_set->size_of_services == 0)
   {
-    RCL_SET_ERROR_MSG("wait set is empty");
+    RCL_SET_ERROR_MSG("wait set is empty", wait_set->impl->allocator);
     return RCL_RET_WAIT_SET_EMPTY;
   }
   // Calculate the timeout argument.
@@ -587,7 +595,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   }
   // Check for error.
   if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), wait_set->impl->allocator);
     return RCL_RET_ERROR;
   }
   // Check for ready timers next, and set not ready timers to NULL.

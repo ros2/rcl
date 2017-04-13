@@ -353,8 +353,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   options_with_failing_allocator.allocator.reallocate = failing_realloc;
   ret = rcl_node_init(&node, name, namespace_, &options_with_failing_allocator);
   EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
-  ASSERT_TRUE(rcl_error_is_set());
-  rcl_reset_error();
+  // The error will not be set because the allocator will not work.
+  // It should, however, print a message to the screen and get the bad alloc ret code.
+  // ASSERT_TRUE(rcl_error_is_set());
+  // rcl_reset_error();
+
   // Try fini with invalid arguments.
   ret = rcl_node_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";

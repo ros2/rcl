@@ -78,7 +78,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   std::this_thread::sleep_for(1s);
 
   utilities_string_array_t node_names = utilities_get_zero_initialized_string_array();
-  ret = rcl_get_node_names(node1_ptr, &node_names);
+  ret = rcl_get_node_names(node1_ptr, node1_options.allocator, &node_names);
   ASSERT_EQ(UTILITIES_RET_OK, ret) << rcl_get_error_string_safe();
 
   EXPECT_EQ(size_t(2), node_names.size);

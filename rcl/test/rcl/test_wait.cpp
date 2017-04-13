@@ -34,10 +34,27 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-
 #define TOLERANCE RCL_MS_TO_NS(6)
 
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
+class CLASSNAME (WaitSetTestFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+{
+public:
+  void SetUp()
+  {
+    rcl_ret_t ret;
+    ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  }
+
+  void TearDown()
+  {
+    rcl_ret_t ret;
+    ret = rcl_shutdown();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  }
+};
+
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   // Initialize a waitset with a subscription and then resize it to zero.
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
@@ -53,7 +70,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
 }
 
 // Test rcl_wait with a positive finite timeout value (1ms)
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -72,7 +89,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
 }
 
 // Check that a timer overrides a negative timeout value (blocking forever)
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -111,7 +128,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
 }
 
 // Test rcl_wait with a timeout value of 0 (non-blocking)
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -142,7 +159,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
 }
 
 // Check that a canceled timer doesn't wake up rcl_wait
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -183,7 +200,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
 }
 
 // Test rcl_wait_set_t with excess capacity works.
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), excess_capacity) {
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), excess_capacity) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 42, 42, 42, 42, 42, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -194,7 +211,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), excess_capacity) {
 }
 
 // Check rcl_wait can be called in many threads, each with unique wait sets and resources.
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded) {
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded) {
   rcl_ret_t ret;
   const size_t number_of_threads = 20;  // concurrent waits
   const size_t count_target = 10;  // number of times each wait should wake up before being "done"
@@ -303,7 +320,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
     loop_count++;
     for (auto & test_set : test_sets) {
       ret = rcl_trigger_guard_condition(&test_set.guard_condition);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     }
     std::this_thread::sleep_for(trigger_period);
   }
@@ -319,7 +336,7 @@ TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threaded)
 
 // Check the interaction of a guard condition and a negative timeout by
 // triggering a guard condition in a separate thread
-TEST(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 1, 0, 0, 0, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();

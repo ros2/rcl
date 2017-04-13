@@ -27,12 +27,13 @@ extern "C"
 
 #include "./common.h"
 #include "./stdatomic_helper.h"
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 
 rcl_ret_t
 rcl_system_time_now(rcl_time_point_value_t * now)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   FILETIME ft;
   GetSystemTimeAsFileTime(&ft);
   ULARGE_INTEGER uli;
@@ -49,7 +50,7 @@ rcl_system_time_now(rcl_time_point_value_t * now)
 rcl_ret_t
 rcl_steady_time_now(rcl_time_point_value_t * now)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   LARGE_INTEGER cpu_frequency, performance_count;
   // These should not ever fail since XP is already end of life:
   // From https://msdn.microsoft.com/en-us/library/windows/desktop/ms644905(v=vs.85).aspx and
