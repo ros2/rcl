@@ -155,6 +155,19 @@ rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition)
   return RCL_RET_OK;
 }
 
+const rcl_guard_condition_options_t *
+rcl_guard_condition_get_options(const rcl_guard_condition_t * guard_condition)
+{
+  // Perform argument validation.
+  RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, NULL, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    guard_condition->impl,
+    "guard condition implementation is invalid",
+    return NULL,
+    rcl_get_default_allocator());
+  return &guard_condition->impl->options;
+}
+
 rmw_guard_condition_t *
 rcl_guard_condition_get_rmw_handle(const rcl_guard_condition_t * guard_condition)
 {
