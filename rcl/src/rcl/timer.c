@@ -264,6 +264,15 @@ rcl_timer_reset(rcl_timer_t * timer)
   return RCL_RET_OK;
 }
 
+const rcl_allocator_t *
+rcl_timer_get_allocator(const rcl_timer_t * timer)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    timer->impl, "timer is invalid", return NULL, rcl_get_default_allocator());
+  return &timer->impl->allocator;
+}
+
 #if __cplusplus
 }
 #endif

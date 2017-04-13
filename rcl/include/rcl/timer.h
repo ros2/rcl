@@ -504,6 +504,28 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer);
 
+/// Return the allocator for the timer.
+/**
+ * This function can fail, and therefore return `NULL`, if:
+ *   - timer is `NULL`
+ *   - timer has not been initialized (the implementation is invalid)
+ *
+ * The returned pointer is only valid as long as the timer object is valid.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] timer handle to the timer object
+ * \return pointer to the allocator, or `NULL` if an error occurred
+ */
+const rcl_allocator_t *
+rcl_timer_get_allocator(const rcl_timer_t * timer);
+
 #if __cplusplus
 }
 #endif
