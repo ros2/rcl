@@ -111,10 +111,26 @@ rcl_destroy_topic_names_and_types(
  * The node_names is the output for this function, and contains
  * allocated memory.
  * Use utilities_get_zero_initialized_string_array() for initializing an empty
- * string_array_t struct.
- * This node_names struct therefore  should be passed to utilities_string_array_fini()
+ * utilities_string_array_t struct.
+ * This node_names struct should therefore be passed to utilities_string_array_fini()
  * when it is no longer needed.
  * Failing to do so will result in leaked memory.
+ *
+ * Example:
+ *
+ * ```c
+ * utilities_string_array_t node_names =
+ *   utilities_get_zero_initialized_string_array();
+ * rcl_ret_t ret = rcl_get_node_names(node, &node_names);
+ * if (ret != RCL_RET_OK) {
+ *   // ... error handling
+ * }
+ * // ... use the node_names struct, and when done:
+ * utilitiest_ret_t utilities_ret = utilities_string_array_fini(&node_names);
+ * if (utilities_ret != UTILITIES_RET_OK) {
+ *   // ... error handling
+ * }
+ * ```
  *
  * <hr>
  * Attribute          | Adherence
