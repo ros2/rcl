@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rcl/time.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
 
-#if defined(WIN32)
-#include "./time_win32.c"
-#else  // defined(WIN32)
-#include "./time_unix.c"
-#endif  // defined(WIN32)
-
+#include "./common.h"
 #include "./stdatomic_helper.h"
+#include "rcl/error_handling.h"
 
 // Process default ROS time sources
 static rcl_time_source_t * rcl_default_ros_time_source;
