@@ -79,13 +79,14 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
 
   utilities_string_array_t node_names = utilities_get_zero_initialized_string_array();
   ret = rcl_get_node_names(node1_ptr, &node_names);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(UTILITIES_RET_OK, ret) << rcl_get_error_string_safe();
 
   EXPECT_EQ(size_t(2), node_names.size);
   EXPECT_EQ(0, strcmp(node1_name, node_names.data[0]));
   EXPECT_EQ(0, strcmp(node2_name, node_names.data[1]));
 
-  utilities_string_array_fini(&node_names);
+  ret = utilities_string_array_fini(&node_names);
+  ASSERT_EQ(UTILITIES_RET_OK, ret);
 
   ret = rcl_node_fini(node1_ptr);
   delete node1_ptr;
