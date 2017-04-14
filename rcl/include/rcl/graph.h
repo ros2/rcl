@@ -23,6 +23,8 @@ extern "C"
 #include <rmw/rmw.h>
 #include <rmw/types.h>
 
+#include "c_utilities/types.h"
+
 #include "rosidl_generator_c/service_type_support.h"
 
 #include "rcl/macros.h"
@@ -31,20 +33,12 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 typedef rmw_topic_names_and_types_t rcl_topic_names_and_types_t;
-typedef rmw_string_array_t rcl_string_array_t;
-
 
 /// Return a rcl_topic_names_and_types_t struct with members initialized to `NULL`.
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_topic_names_and_types_t
 rcl_get_zero_initialized_topic_names_and_types(void);
-
-/// Return a rcl_node_names_t struct with members initialized to `NULL`.
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_string_array_t
-rcl_get_zero_initialized_string_array(void);
 
 /// Return a list of topic names and their types.
 /**
@@ -107,18 +101,57 @@ rcl_ret_t
 rcl_destroy_topic_names_and_types(
   rcl_topic_names_and_types_t * topic_names_and_types);
 
+/// Return a list of available nodes in the ROS graph.
+/**
+ * This function returns a list of nodes in the ROS graph.
+ *
+ * The node parameter must not be `NULL`, and must point to a valid node.
+ *
+ * The node_names parameter must be allocated and zero initialized.
+ * The node_names is the output for this function, and contains
+ * allocated memory.
+ * Use utilities_get_zero_initialized_string_array() for initializing an empty
+ * utilities_string_array_t struct.
+ * This node_names struct should therefore be passed to utilities_string_array_fini()
+ * when it is no longer needed.
+ * Failing to do so will result in leaked memory.
+ *
+ * Example:
+ *
+ * ```c
+ * utilities_string_array_t node_names =
+ *   utilities_get_zero_initialized_string_array();
+ * rcl_ret_t ret = rcl_get_node_names(node, &node_names);
+ * if (ret != RCL_RET_OK) {
+ *   // ... error handling
+ * }
+ * // ... use the node_names struct, and when done:
+ * utilitiest_ret_t utilities_ret = utilities_string_array_fini(&node_names);
+ * if (utilities_ret != UTILITIES_RET_OK) {
+ *   // ... error handling
+ * }
+ * ```
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[out] node_names struct storing discovered node names.
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_get_node_names(
   const rcl_node_t * node,
-  rcl_string_array_t * node_names);
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_destroy_node_names(
-  rcl_string_array_t * node_names);
+  utilities_string_array_t * node_names);
 
 /// Return the number of publishers on a given topic.
 /**
