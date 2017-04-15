@@ -111,11 +111,11 @@ rcl_ret_t
 rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine)
 {
   if (!state_machine->com_interface.srv_get_state.impl) {
-    RCL_SET_ERROR_MSG("get_state service is null", state_machine->allocator);
+    RCL_SET_ERROR_MSG("get_state service is null", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   if (!state_machine->com_interface.srv_change_state.impl) {
-    RCL_SET_ERROR_MSG("change_state service is null", state_machine->allocator);
+    RCL_SET_ERROR_MSG("change_state service is null", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
@@ -152,7 +152,7 @@ rcl_lifecycle_trigger_transition(
   if (!transition) {
     fprintf(stderr, "No transition found for node %s with key %d\n",
       state_machine->current_state->label, key);
-    RCL_SET_ERROR_MSG("Transition is not registered.", state_machine->allocator);
+    RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
 
