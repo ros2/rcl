@@ -18,7 +18,6 @@ extern "C"
 #endif
 
 #include "./common.h"  // NOLINT
-#include "rcl/allocator.h"
 
 #include <stdlib.h>
 
