@@ -216,12 +216,12 @@ rcl_node_init(
       "attempting to start a secure node using certificate and key in %s\n",
       node_secure_root);
     node->impl->rmw_node_handle = rmw_create_secure_node(
-      name, domain_id, node_secure_root);
+      name, local_namespace_, domain_id, node_secure_root);
   } else {
     printf(
       "not using security: certificate and key path not found for node %s\n",
       name);
-    node->impl->rmw_node_handle = rmw_create_node(name, domain_id);
+    node->impl->rmw_node_handle = rmw_create_node(name, local_namespace_, domain_id);
   }
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
