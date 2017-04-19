@@ -32,6 +32,7 @@ extern "C"
 #include <unistd.h>
 
 #include "./common.h"
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 
 #if !defined(__MACH__)  // Assume clock_get_time is available on OS X.
@@ -47,7 +48,7 @@ extern "C"
 rcl_ret_t
 rcl_system_time_now(rcl_time_point_value_t * now)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   struct timespec timespec_now;
 #if defined(__MACH__)
   // On OS X use clock_get_time.
@@ -63,7 +64,7 @@ rcl_system_time_now(rcl_time_point_value_t * now)
   clock_gettime(CLOCK_REALTIME, &timespec_now);
 #endif  // defined(__MACH__)
   if (__WOULD_BE_NEGATIVE(timespec_now.tv_sec, timespec_now.tv_nsec)) {
-    RCL_SET_ERROR_MSG("unexpected negative time");
+    RCL_SET_ERROR_MSG("unexpected negative time", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   *now = RCL_S_TO_NS((uint64_t)timespec_now.tv_sec) + timespec_now.tv_nsec;
@@ -73,7 +74,7 @@ rcl_system_time_now(rcl_time_point_value_t * now)
 rcl_ret_t
 rcl_steady_time_now(rcl_time_point_value_t * now)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(now, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   // If clock_gettime is available or on OS X, use a timespec.
   struct timespec timespec_now;
 #if defined(__MACH__)
@@ -94,7 +95,7 @@ rcl_steady_time_now(rcl_time_point_value_t * now)
 #endif  // defined(CLOCK_MONOTONIC_RAW)
 #endif  // defined(__MACH__)
   if (__WOULD_BE_NEGATIVE(timespec_now.tv_sec, timespec_now.tv_nsec)) {
-    RCL_SET_ERROR_MSG("unexpected negative time");
+    RCL_SET_ERROR_MSG("unexpected negative time", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   *now = RCL_S_TO_NS((uint64_t)timespec_now.tv_sec) + timespec_now.tv_nsec;

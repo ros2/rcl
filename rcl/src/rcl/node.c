@@ -25,6 +25,7 @@ extern "C"
 #include <string.h>
 
 #include "rcl/rcl.h"
+#include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
@@ -69,29 +70,34 @@ rcl_node_init(
     rcl_guard_condition_get_default_options();
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
-  RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(namespace_, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+
+  // Check options and allocator first, so allocator can be used for errors.
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator->allocate, "allocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    allocator->deallocate, "deallocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(namespace_, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
   if (node->impl) {
-    RCL_SET_ERROR_MSG("node already initialized, or struct memory was unintialized");
+    RCL_SET_ERROR_MSG("node already initialized, or struct memory was unintialized", *allocator);
     return RCL_RET_ALREADY_INIT;
   }
   // Make sure rcl has been initialized.
   if (!rcl_ok()) {
-    RCL_SET_ERROR_MSG("rcl_init() has not been called");
+    RCL_SET_ERROR_MSG("rcl_init() has not been called", *allocator);
     return RCL_RET_NOT_INIT;
   }
-  const rcl_allocator_t * allocator = &options->allocator;
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator->allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator->deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
   // Make sure the node name is valid before allocating memory.
   int validation_result = 0;
   ret = rmw_validate_node_name(name, &validation_result, NULL);
   if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
     return ret;
   }
   if (validation_result != RMW_NODE_NAME_VALID) {
@@ -99,7 +105,7 @@ rcl_node_init(
     if (!msg) {
       msg = "unknown validation_result, this should not happen";
     }
-    RCL_SET_ERROR_MSG(msg);
+    RCL_SET_ERROR_MSG(msg, *allocator);
     return RCL_RET_NODE_INVALID_NAME;
   }
 
@@ -117,7 +123,8 @@ rcl_node_init(
     // TODO(wjwwood): replace with generic strcat that takes an allocator once available
     // length + 2, because new leading / and terminating \0
     char * temp = (char *)allocator->allocate(namespace_length + 2, allocator->state);
-    RCL_CHECK_FOR_NULL_WITH_MSG(temp, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+      temp, "allocating memory failed", return RCL_RET_BAD_ALLOC, *allocator);
     temp[0] = '/';
     memcpy(temp + 1, namespace_, strlen(namespace_) + 1);
     local_namespace_ = temp;
@@ -127,7 +134,7 @@ rcl_node_init(
   validation_result = 0;
   ret = rmw_validate_namespace(local_namespace_, &validation_result, NULL);
   if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
     return ret;
   }
   if (validation_result != RMW_NAMESPACE_VALID) {
@@ -137,16 +144,17 @@ rcl_node_init(
       LOCAL_SNPRINTF(
         fixed_msg, sizeof(fixed_msg),
         "unknown validation_result '%d', this should not happen", validation_result);
-      RCL_SET_ERROR_MSG(fixed_msg);
+      RCL_SET_ERROR_MSG(fixed_msg, *allocator);
     } else {
-      RCL_SET_ERROR_MSG(msg);
+      RCL_SET_ERROR_MSG(msg, *allocator);
     }
     return RCL_RET_NODE_INVALID_NAMESPACE;
   }
 
   // Allocate space for the implementation struct.
   node->impl = (rcl_node_impl_t *)allocator->allocate(sizeof(rcl_node_impl_t), allocator->state);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC, *allocator);
   node->impl->rmw_node_handle = NULL;
   node->impl->graph_guard_condition = NULL;
   // Initialize node impl.
@@ -162,7 +170,7 @@ rcl_node_init(
     if (ros_domain_id) {
       unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
       if (number == ULONG_MAX) {
-        RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number");
+        RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number", *allocator);
         goto fail;
       }
       domain_id = (size_t)number;
@@ -174,7 +182,7 @@ rcl_node_init(
   node->impl->actual_domain_id = domain_id;
   node->impl->rmw_node_handle = rmw_create_node(name, local_namespace_, domain_id);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail);
+    node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail, *allocator);
   // free local_namespace_ if necessary
   if (should_free_local_namespace_) {
     allocator->deallocate((char *)local_namespace_, allocator->state);
@@ -184,7 +192,7 @@ rcl_node_init(
   // graph guard condition
   rmw_graph_guard_condition = rmw_node_get_graph_guard_condition(node->impl->rmw_node_handle);
   if (!rmw_graph_guard_condition) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
     goto fail;
   }
   node->impl->graph_guard_condition = (rcl_guard_condition_t *)allocator->allocate(
@@ -192,7 +200,8 @@ rcl_node_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->graph_guard_condition,
     "allocating memory failed",
-    goto fail
+    goto fail,
+    *allocator
   );
   *node->impl->graph_guard_condition = rcl_get_zero_initialized_guard_condition();
   graph_guard_condition_options.allocator = *allocator;
@@ -233,20 +242,19 @@ fail:
 rcl_ret_t
 rcl_node_fini(rcl_node_t * node)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (!node->impl) {
     // Repeat calls to fini or calling fini on a zero initialized node is ok.
     return RCL_RET_OK;
   }
+  rcl_allocator_t allocator = node->impl->options.allocator;
   rcl_ret_t result = RCL_RET_OK;
   rmw_ret_t ret = rmw_destroy_node(node->impl->rmw_node_handle);
   if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
     result = RCL_RET_ERROR;
   }
-  rcl_allocator_t allocator = node->impl->options.allocator;
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator.deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
+  // assuming that allocate and deallocate are ok since they are checked in init
   allocator.deallocate(node->impl, allocator.state);
   node->impl = NULL;
   return result;
@@ -255,10 +263,12 @@ rcl_node_fini(rcl_node_t * node)
 bool
 rcl_node_is_valid(const rcl_node_t * node)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "rcl node implementation is invalid", return false);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, false, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl, "rcl node implementation is invalid", return false, rcl_get_default_allocator());
   if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+    RCL_SET_ERROR_MSG(
+      "rcl node is invalid, rcl instance id does not match", rcl_get_default_allocator());
     return false;
   }
   return true;
@@ -306,11 +316,12 @@ rcl_node_get_options(const rcl_node_t * node)
 rcl_ret_t
 rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
-  if (!rcl_node_is_valid(node)) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  const rcl_node_options_t * node_options = rcl_node_get_options(node);
+  if (!node_options) {
     return RCL_RET_NODE_INVALID;
   }
+  RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
   *domain_id = node->impl->actual_domain_id;
   return RCL_RET_OK;
 }
@@ -327,8 +338,9 @@ rcl_node_get_rmw_handle(const rcl_node_t * node)
 uint64_t
 rcl_node_get_rcl_instance_id(const rcl_node_t * node)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, 0);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return 0);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, 0, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl, "node implementation is invalid", return 0, rcl_get_default_allocator());
   return node->impl->rcl_instance_id;
 }
 

@@ -189,6 +189,31 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition);
 
+/// Return the guard condition options.
+/**
+ * Returned is a pointer to the internally held rcl_guard_condition_options_t.
+ * This function can fail, and therefore return `NULL`, if the:
+ *   - guard_condition is `NULL`
+ *   - guard_condition is invalid (never called init, called fini, or invalid node)
+ *
+ * The returned pointer is made invalid if the guard condition is finalized.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] guard_condition pointer to the rcl guard_condition
+ * \return rcl guard condition options if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const rcl_guard_condition_options_t *
+rcl_guard_condition_get_options(const rcl_guard_condition_t * guard_condition);
+
 /// Return the rmw guard condition handle.
 /**
  * The handle returned is a pointer to the internally held rmw handle.
@@ -207,7 +232,7 @@ rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition);
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | Yes
+ * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes

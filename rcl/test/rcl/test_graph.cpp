@@ -126,17 +126,17 @@ TEST_F(
   rcl_topic_names_and_types_t tnat {};
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // invalid node
-  ret = rcl_get_topic_names_and_types(nullptr, &tnat);
+  ret = rcl_get_topic_names_and_types(nullptr, rcl_get_default_allocator(), &tnat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
-  ret = rcl_get_topic_names_and_types(&zero_node, &tnat);
+  ret = rcl_get_topic_names_and_types(&zero_node, rcl_get_default_allocator(), &tnat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
-  ret = rcl_get_topic_names_and_types(this->old_node_ptr, &tnat);
+  ret = rcl_get_topic_names_and_types(this->old_node_ptr, rcl_get_default_allocator(), &tnat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
   // invalid topic_names_and_types
-  ret = rcl_get_topic_names_and_types(this->node_ptr, nullptr);
+  ret = rcl_get_topic_names_and_types(this->node_ptr, rcl_get_default_allocator(), nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
   // invalid argument to rcl_destroy_topic_names_and_types
@@ -144,7 +144,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
   // valid calls
-  ret = rcl_get_topic_names_and_types(this->node_ptr, &tnat);
+  ret = rcl_get_topic_names_and_types(this->node_ptr, rcl_get_default_allocator(), &tnat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   ret = rcl_destroy_topic_names_and_types(&tnat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -258,7 +258,7 @@ check_graph_state(
     rcl_reset_error();
 
     tnat = rcl_get_zero_initialized_topic_names_and_types();
-    ret = rcl_get_topic_names_and_types(node_ptr, &tnat);
+    ret = rcl_get_topic_names_and_types(node_ptr, rcl_get_default_allocator(), &tnat);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     rcl_reset_error();
     is_in_tnat = false;

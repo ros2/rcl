@@ -28,14 +28,6 @@ function(test_target_function)
 
   # Gtests
 
-  rcl_add_custom_gtest(test_allocator${target_suffix}
-    SRCS rcl/test_allocator.cpp
-    ENV ${extra_test_env}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
-    AMENT_DEPENDENCIES ${rmw_implementation}
-  )
-
   rcl_add_custom_gtest(test_client${target_suffix}
     SRCS rcl/test_client.cpp
     ENV ${extra_test_env}
@@ -99,6 +91,14 @@ function(test_target_function)
 
   rcl_add_custom_gtest(test_node${target_suffix}
     SRCS rcl/test_node.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation}
+  )
+
+  rcl_add_custom_gtest(test_guard_condition${target_suffix}
+    SRCS rcl/test_guard_condition.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}

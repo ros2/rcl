@@ -19,6 +19,7 @@
 
 #include "./common.h"
 #include "./stdatomic_helper.h"
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 
 // Process default ROS time sources
@@ -91,9 +92,10 @@ rcl_init_time_source(
   enum rcl_time_source_type_t time_source_type, rcl_time_source_t * time_source
 )
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   switch (time_source_type) {
     case RCL_TIME_SOURCE_UNINITIALIZED:
+      RCL_CHECK_ARGUMENT_FOR_NULL(
+        time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
       rcl_init_generic_time_source(time_source);
       return RCL_RET_OK;
     case RCL_ROS_TIME:
@@ -110,7 +112,6 @@ rcl_init_time_source(
 rcl_ret_t
 rcl_fini_time_source(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
   switch (time_source->type) {
     case RCL_ROS_TIME:
       return rcl_fini_ros_time_source(time_source);
@@ -128,7 +129,7 @@ rcl_fini_time_source(rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_init_ros_time_source(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   rcl_init_generic_time_source(time_source);
   time_source->data = calloc(1, sizeof(rcl_ros_time_source_storage_t));
   time_source->get_now = rcl_get_ros_time;
@@ -139,9 +140,9 @@ rcl_init_ros_time_source(rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_fini_ros_time_source(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (time_source->type != RCL_ROS_TIME) {
-    RCL_SET_ERROR_MSG("time_source not of type RCL_ROS_TIME");
+    RCL_SET_ERROR_MSG("time_source not of type RCL_ROS_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   free((rcl_ros_time_source_storage_t *)time_source->data);
@@ -151,7 +152,7 @@ rcl_fini_ros_time_source(rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_init_steady_time_source(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   rcl_init_generic_time_source(time_source);
   time_source->get_now = rcl_get_steady_time;
   time_source->type = RCL_STEADY_TIME;
@@ -161,9 +162,9 @@ rcl_init_steady_time_source(rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_fini_steady_time_source(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (time_source->type != RCL_STEADY_TIME) {
-    RCL_SET_ERROR_MSG("time_source not of type RCL_STEADY_TIME");
+    RCL_SET_ERROR_MSG("time_source not of type RCL_STEADY_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
@@ -172,7 +173,7 @@ rcl_fini_steady_time_source(rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_init_system_time_source(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   rcl_init_generic_time_source(time_source);
   time_source->get_now = rcl_get_system_time;
   time_source->type = RCL_SYSTEM_TIME;
@@ -182,9 +183,9 @@ rcl_init_system_time_source(rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_fini_system_time_source(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (time_source->type != RCL_SYSTEM_TIME) {
-    RCL_SET_ERROR_MSG("time_source not of type RCL_SYSTEM_TIME");
+    RCL_SET_ERROR_MSG("time_source not of type RCL_SYSTEM_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
@@ -193,7 +194,7 @@ rcl_fini_system_time_source(rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_init_time_point(rcl_time_point_t * time_point, rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (!time_source) {
     time_point->time_source = rcl_get_default_ros_time_source();
     return RCL_RET_OK;
@@ -206,7 +207,7 @@ rcl_init_time_point(rcl_time_point_t * time_point, rcl_time_source_t * time_sour
 rcl_ret_t
 rcl_fini_time_point(rcl_time_point_t * time_point)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   (void)time_point;
   return RCL_RET_OK;
 }
@@ -214,7 +215,7 @@ rcl_fini_time_point(rcl_time_point_t * time_point)
 rcl_ret_t
 rcl_init_duration(rcl_duration_t * duration, rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (!time_source) {
     duration->time_source = rcl_get_default_ros_time_source();
     return RCL_RET_OK;
@@ -227,7 +228,7 @@ rcl_init_duration(rcl_duration_t * duration, rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_fini_duration(rcl_duration_t * duration)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   (void)duration;
   return RCL_RET_OK;
 }
@@ -274,7 +275,8 @@ rcl_get_default_system_time_source(void)
 rcl_ret_t
 rcl_set_default_ros_time_source(rcl_time_source_t * process_time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(process_time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    process_time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (rcl_default_ros_time_source) {
     free(rcl_default_ros_time_source);
   }
@@ -287,7 +289,9 @@ rcl_difference_times(rcl_time_point_t * start, rcl_time_point_t * finish,
   rcl_duration_t * delta)
 {
   if (start->time_source->type != finish->time_source->type) {
-    RCL_SET_ERROR_MSG("Cannot difference between time points with time_sources types.");
+    RCL_SET_ERROR_MSG(
+      "Cannot difference between time points with time_sources types.",
+      rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   if (finish->nanoseconds < start->nanoseconds) {
@@ -301,27 +305,30 @@ rcl_difference_times(rcl_time_point_t * start, rcl_time_point_t * finish,
 rcl_ret_t
 rcl_get_time_point_now(rcl_time_point_t * time_point)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (time_point->time_source && time_point->time_source->get_now) {
     return time_point->time_source->get_now(time_point->time_source->data,
              &(time_point->nanoseconds));
   }
-  RCL_SET_ERROR_MSG("time_source is not initialized or does not have get_now registered.");
+  RCL_SET_ERROR_MSG(
+    "time_source is not initialized or does not have get_now registered.",
+    rcl_get_default_allocator());
   return RCL_RET_ERROR;
 }
 
 rcl_ret_t
 rcl_enable_ros_time_override(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (time_source->type != RCL_ROS_TIME) {
-    RCL_SET_ERROR_MSG("Time source is not RCL_ROS_TIME cannot enable override.")
+    RCL_SET_ERROR_MSG(
+      "Time source is not RCL_ROS_TIME cannot enable override.", rcl_get_default_allocator())
     return RCL_RET_ERROR;
   }
   rcl_ros_time_source_storage_t * storage = \
     (rcl_ros_time_source_storage_t *)time_source->data;
   if (!storage) {
-    RCL_SET_ERROR_MSG("Storage not initialized, cannot enable.")
+    RCL_SET_ERROR_MSG("Storage not initialized, cannot enable.", rcl_get_default_allocator())
     return RCL_RET_ERROR;
   }
   storage->active = true;
@@ -331,14 +338,14 @@ rcl_enable_ros_time_override(rcl_time_source_t * time_source)
 rcl_ret_t
 rcl_disable_ros_time_override(rcl_time_source_t * time_source)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (time_source->type != RCL_ROS_TIME) {
     return RCL_RET_ERROR;
   }
   rcl_ros_time_source_storage_t * storage = \
     (rcl_ros_time_source_storage_t *)time_source->data;
   if (!storage) {
-    RCL_SET_ERROR_MSG("Storage not initialized, cannot disable.")
+    RCL_SET_ERROR_MSG("Storage not initialized, cannot disable.", rcl_get_default_allocator())
     return RCL_RET_ERROR;
   }
   storage->active = false;
@@ -350,15 +357,15 @@ rcl_is_enabled_ros_time_override(
   rcl_time_source_t * time_source,
   bool * is_enabled)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(is_enabled, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_enabled, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (time_source->type != RCL_ROS_TIME) {
     return RCL_RET_ERROR;
   }
   rcl_ros_time_source_storage_t * storage = \
     (rcl_ros_time_source_storage_t *)time_source->data;
   if (!storage) {
-    RCL_SET_ERROR_MSG("Storage not initialized, cannot query.")
+    RCL_SET_ERROR_MSG("Storage not initialized, cannot query.", rcl_get_default_allocator())
     return RCL_RET_ERROR;
   }
   *is_enabled = storage->active;
@@ -370,7 +377,7 @@ rcl_set_ros_time_override(
   rcl_time_source_t * time_source,
   rcl_time_point_value_t time_value)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_source, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (time_source->type != RCL_ROS_TIME) {
     return RCL_RET_ERROR;
   }

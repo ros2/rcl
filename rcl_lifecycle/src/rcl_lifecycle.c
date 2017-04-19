@@ -41,6 +41,10 @@ rcl_lifecycle_get_zero_initialized_state_machine()
   state_machine.transition_map.transitions = NULL;
   state_machine.transition_map.transitions_size = 0;
   state_machine.com_interface = rcl_lifecycle_get_zero_initialized_com_interface();
+  state_machine.allocator.allocate = NULL;
+  state_machine.allocator.deallocate = NULL;
+  state_machine.allocator.reallocate = NULL;
+  state_machine.allocator.state = NULL;
   return state_machine;
 }
 
@@ -65,8 +69,19 @@ rcl_lifecycle_state_machine_init(
   }
 
   if (default_states) {
-    rcl_lifecycle_init_default_state_machine(state_machine);
+    rcl_ret_t ret = rcl_lifecycle_init_default_state_machine(state_machine);
+    if (ret != RCL_RET_OK) {
+      // error should already be set
+      return ret;
+    }
   }
+
+  const rcl_node_options_t * node_options = rcl_node_get_options(node_handle);
+  if (!node_options) {
+    RCL_SET_ERROR_MSG("node does not have valid options", rcl_get_default_allocator());
+    return RCL_RET_NODE_INVALID;
+  }
+  state_machine->allocator = node_options->allocator;
   return RCL_RET_OK;
 }
 
@@ -100,11 +115,11 @@ rcl_ret_t
 rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine)
 {
   if (!state_machine->com_interface.srv_get_state.impl) {
-    RCL_SET_ERROR_MSG("get_state service is null");
+    RCL_SET_ERROR_MSG("get_state service is null", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   if (!state_machine->com_interface.srv_change_state.impl) {
-    RCL_SET_ERROR_MSG("change_state service is null");
+    RCL_SET_ERROR_MSG("change_state service is null", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
@@ -141,7 +156,7 @@ rcl_lifecycle_trigger_transition(
   if (!transition) {
     fprintf(stderr, "No transition found for node %s with key %d\n",
       state_machine->current_state->label, key);
-    RCL_SET_ERROR_MSG("Transition is not registered.");
+    RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
 

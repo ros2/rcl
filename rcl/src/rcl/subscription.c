@@ -19,6 +19,7 @@ extern "C"
 
 #include "rcl/subscription.h"
 
+#include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "./common.h"
 
@@ -44,25 +45,30 @@ rcl_subscription_init(
   const rcl_subscription_options_t * options)
 {
   rcl_ret_t fail_ret = RCL_RET_ERROR;
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  if (subscription->impl) {
-    RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized");
-    return RCL_RET_ALREADY_INIT;
-  }
+
+  // Check options and allocator first, so the allocator can be used in errors.
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator->allocate, "allocate not set", return RCL_RET_INVALID_ARGUMENT);
+    allocator->allocate, "allocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator->deallocate, "deallocate not set", return RCL_RET_INVALID_ARGUMENT);
+    allocator->deallocate, "deallocate not set",
+    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, *allocator);
+  if (subscription->impl) {
+    RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized", *allocator);
+    return RCL_RET_ALREADY_INIT;
+  }
   // Allocate memory for the implementation struct.
   subscription->impl = (rcl_subscription_impl_t *)allocator->allocate(
     sizeof(rcl_subscription_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+    subscription->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC, *allocator);
   // Fill out the implemenation struct.
   // rmw_handle
   // TODO(wjwwood): pass allocator once supported in rmw api.
@@ -73,7 +79,7 @@ rcl_subscription_init(
     &(options->qos),
     options->ignore_local_publications);
   if (!subscription->impl->rmw_handle) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
     goto fail;
   }
   // options
@@ -90,16 +96,16 @@ rcl_ret_t
 rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
 {
   rcl_ret_t result = RCL_RET_OK;
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (subscription->impl) {
+    rcl_allocator_t allocator = subscription->impl->options.allocator;
     rmw_ret_t ret =
       rmw_destroy_subscription(rcl_node_get_rmw_handle(node), subscription->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
-      RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+      RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
       result = RCL_RET_ERROR;
     }
-    rcl_allocator_t allocator = subscription->impl->options.allocator;
     allocator.deallocate(subscription->impl, allocator.state);
   }
   return result;
@@ -124,13 +130,18 @@ rcl_take(
   void * ros_message,
   rmw_message_info_t * message_info)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  const rcl_subscription_options_t * options = rcl_subscription_get_options(subscription);
+  if (!options) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "subscription is invalid", return RCL_RET_SUBSCRIPTION_INVALID);
+    subscription->impl, "subscription is invalid",
+    return RCL_RET_SUBSCRIPTION_INVALID, options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl->rmw_handle,
-    "subscription is invalid", return RCL_RET_SUBSCRIPTION_INVALID);
+    "subscription is invalid", return RCL_RET_SUBSCRIPTION_INVALID, options->allocator);
   // If message_info is NULL, use a place holder which can be discarded.
   rmw_message_info_t dummy_message_info;
   rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
@@ -139,7 +150,7 @@ rcl_take(
   rmw_ret_t ret =
     rmw_take_with_info(subscription->impl->rmw_handle, ros_message, &taken, message_info_local);
   if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), options->allocator);
     return RCL_RET_ERROR;
   }
   if (!taken) {
@@ -151,30 +162,31 @@ rcl_take(
 const char *
 rcl_subscription_get_topic_name(const rcl_subscription_t * subscription)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "subscription is invalid", return NULL);
+  const rcl_subscription_options_t * options = rcl_subscription_get_options(subscription);
+  if (!options) {
+    return NULL;
+  }
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl->rmw_handle,
-    "subscription is invalid", return NULL);
+    "subscription is invalid", return NULL, options->allocator);
   return subscription->impl->rmw_handle->topic_name;
 }
 
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "subscription is invalid", return NULL);
+    subscription->impl, "subscription is invalid", return NULL, rcl_get_default_allocator());
   return &subscription->impl->options;
 }
 
 rmw_subscription_t *
 rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, NULL, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "subscription is invalid", return NULL);
+    subscription->impl, "subscription is invalid", return NULL, rcl_get_default_allocator());
   return subscription->impl->rmw_handle;
 }
 

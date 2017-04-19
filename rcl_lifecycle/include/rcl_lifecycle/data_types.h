@@ -84,6 +84,8 @@ typedef struct rcl_lifecycle_state_machine_t
   rcl_lifecycle_transition_map_t transition_map;
   // Communication interface into a ROS world
   rcl_lifecycle_com_interface_t com_interface;
+  // Allocator used.
+  rcl_allocator_t allocator;
 } rcl_lifecycle_state_machine_t;
 
 #if __cplusplus

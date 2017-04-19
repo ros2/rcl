@@ -67,24 +67,32 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions)
 {
+  if (!node_handle) {
+    RCL_SET_ERROR_MSG("node_handle is null", rcl_get_default_allocator());
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  const rcl_node_options_t * node_options = rcl_node_get_options(node_handle);
+  if (!node_options) {
+    return RCL_RET_NODE_INVALID;
+  }
   if (!ts_pub_notify) {
-    RCL_SET_ERROR_MSG("ts_pub_notify is NULL");
+    RCL_SET_ERROR_MSG("ts_pub_notify is NULL", node_options->allocator);
     return RCL_RET_ERROR;
   }
   if (!ts_srv_change_state) {
-    RCL_SET_ERROR_MSG("ts_srv_change_state is NULL");
+    RCL_SET_ERROR_MSG("ts_srv_change_state is NULL", node_options->allocator);
     return RCL_RET_ERROR;
   }
   if (!ts_srv_get_state) {
-    RCL_SET_ERROR_MSG("ts_srv_get_state is NULL");
+    RCL_SET_ERROR_MSG("ts_srv_get_state is NULL", node_options->allocator);
     return RCL_RET_ERROR;
   }
   if (!ts_srv_get_available_states) {
-    RCL_SET_ERROR_MSG("ts_srv_get_available_states is NULL");
+    RCL_SET_ERROR_MSG("ts_srv_get_available_states is NULL", node_options->allocator);
     return RCL_RET_ERROR;
   }
   if (!ts_srv_get_available_states) {
-    RCL_SET_ERROR_MSG("ts_srv_get_available_transitions is NULL");
+    RCL_SET_ERROR_MSG("ts_srv_get_available_transitions is NULL", node_options->allocator);
     return RCL_RET_ERROR;
   }
 
@@ -97,7 +105,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     const char * topic_prefix = "__transition_event";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
+      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
       goto fail;
     }
 
@@ -122,7 +130,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     const char * topic_prefix = "__change_state";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
+      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
       goto fail;
     }
 
@@ -144,7 +152,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     const char * topic_prefix = "__get_state";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
+      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
       goto fail;
     }
 
@@ -166,7 +174,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     const char * topic_prefix = "__get_available_states";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
+      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
       goto fail;
     }
 
@@ -188,7 +196,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
     const char * topic_prefix = "__get_available_transitions";
     char * topic_name;
     if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255");
+      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
       goto fail;
     }
 

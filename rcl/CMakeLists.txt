@@ -23,7 +23,6 @@ else()
 endif()
 
 set(${PROJECT_NAME}_sources
-  src/rcl/allocator.c
   src/rcl/client.c
   src/rcl/common.c
   src/rcl/graph.c
@@ -66,6 +65,7 @@ install(
 set(rcl_lib_dir "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 
 ament_export_dependencies(ament_cmake)
+ament_export_dependencies(c_utilities)
 ament_export_dependencies(rcl_interfaces)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rmw_implementation)

@@ -15,24 +15,34 @@
 #ifndef RCL__ERROR_HANDLING_H_
 #define RCL__ERROR_HANDLING_H_
 
-#include "rmw/error_handling.h"
+#include "c_utilities/error_handling.h"
 
-/* The error handling in RCL is just an alias to the error handling in RMW. */
+/// The error handling in RCL is just an alias to the error handling in c_utilities.
+/**
+ * Allocators given to functions in rcl are passed along to the error handling
+ * on a "best effort" basis.
+ * In some situations, like when NULL is passed for the allocator or something
+ * else that contains it, the allocator is not available to be passed to the
+ * RCL_SET_ERROR_MSG macro.
+ * In these cases, the default allocator rcl_get_default_allocator() is used.
+ * Since these are considered fatal errors, as opposed to errors that might
+ * occur during normal runtime, is should be okay to use the default allocator.
+ */
 
-typedef rmw_error_state_t rcl_error_state_t;
+typedef utilities_error_state_t rcl_error_state_t;
 
-#define rcl_set_error_state rmw_set_error_state
+#define rcl_set_error_state utilities_set_error_state
 
-#define RCL_SET_ERROR_MSG(msg) RMW_SET_ERROR_MSG(msg)
+#define RCL_SET_ERROR_MSG(msg, allocator) UTILITIES_SET_ERROR_MSG(msg, allocator)
 
-#define rcl_error_is_set rmw_error_is_set
+#define rcl_error_is_set utilities_error_is_set
 
-#define rcl_get_error_state rmw_get_error_state
+#define rcl_get_error_state utilities_get_error_state
 
-#define rcl_get_error_string rmw_get_error_string
+#define rcl_get_error_string utilities_get_error_string
 
-#define rcl_get_error_string_safe rmw_get_error_string_safe
+#define rcl_get_error_string_safe utilities_get_error_string_safe
 
-#define rcl_reset_error rmw_reset_error
+#define rcl_reset_error utilities_reset_error
 
 #endif  // RCL__ERROR_HANDLING_H_
