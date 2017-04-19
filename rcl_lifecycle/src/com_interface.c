@@ -26,12 +26,14 @@ extern "C"
 
 #include "lifecycle_msgs/msg/transition_event.h"
 
-#include "rosidl_generator_c/message_type_support_struct.h"
-#include "rosidl_generator_c/string_functions.h"
-
 #include "rcl/error_handling.h"
 
 #include "rcl_lifecycle/data_types.h"
+
+#include "rosidl_generator_c/message_type_support_struct.h"
+#include "rosidl_generator_c/string_functions.h"
+
+#include "rmw/validate_topic_name.h"
 
 static lifecycle_msgs__msg__TransitionEvent msg;
 static const char * pub_transition_event_suffix = "transition_event";
@@ -39,6 +41,25 @@ static const char * srv_change_state_suffix = "change_state";
 static const char * srv_get_state_suffix = "get_state";
 static const char * srv_get_available_states_suffix = "get_available_states";
 static const char * srv_get_available_transitions_suffix = "get_available_transitions";
+
+rmw_ret_t
+rcl_lifecycle_validate_topic_name(const char * topic_name)
+{
+  static rmw_ret_t ret = RMW_RET_ERROR;
+  static int validation_result = RMW_TOPIC_INVALID_IS_EMPTY_STRING;
+
+  ret = rmw_validate_topic_name(topic_name, &validation_result, NULL);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG("unable to validate topic name");
+    return RMW_RET_ERROR;
+  }
+  // TODO(karsten1987): Handle absolute case
+  if (validation_result != RMW_TOPIC_VALID && validation_result != RMW_TOPIC_INVALID_NOT_ABSOLUTE) {
+    RCL_SET_ERROR_MSG(rmw_topic_validation_result_string(validation_result));
+    return RMW_RET_ERROR;
+  }
+  return RMW_RET_OK;
+}
 
 rcl_lifecycle_com_interface_t
 rcl_lifecycle_get_zero_initialized_com_interface()
@@ -92,22 +113,8 @@ rcl_lifecycle_com_interface_init(
   }
 
   const char * node_name = rcl_node_get_name(node_handle);
-  size_t node_name_length = strlen(node_name);
-
-  // Build topic, topic suffix hardcoded for now
-  // and limited in length of 255
-  // e.g. lc_talker__transition_event
-  if ( ((node_name_length + 2 + strlen(pub_transition_event_suffix)) > 255) ||
-    ((node_name_length + 2 + strlen(srv_get_state_suffix)) > 255) ||
-    ((node_name_length + 2 + strlen(srv_change_state_suffix)) > 255) ||
-    ((node_name_length + 2 + strlen(srv_get_available_states_suffix)) > 255) ||
-    ((node_name_length + 2 + strlen(srv_get_available_transitions_suffix)) > 255))
-  {
-    RCL_SET_ERROR_MSG("topic name exceeds maximum size of 255");
-    return RCL_RET_ERROR;
-  }
-
   char * topic_name = NULL;
+  rmw_ret_t ret = RMW_RET_ERROR;
 
   // initialize publisher
   {
