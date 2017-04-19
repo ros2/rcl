@@ -30,10 +30,10 @@ extern "C"
 
 #include "rcl_lifecycle/data_types.h"
 
+#include "rmw/validate_topic_name.h"
+
 #include "rosidl_generator_c/message_type_support_struct.h"
 #include "rosidl_generator_c/string_functions.h"
-
-#include "rmw/validate_topic_name.h"
 
 static lifecycle_msgs__msg__TransitionEvent msg;
 static const char * pub_transition_event_suffix = "transition_event";
