@@ -22,28 +22,44 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
-#include "lifecycle_msgs/msg/transition_event.h"
+#include "c_utilities/concat.h"
 
-#include "rosidl_generator_c/message_type_support_struct.h"
-#include "rosidl_generator_c/string_functions.h"
+#include "lifecycle_msgs/msg/transition_event.h"
 
 #include "rcl/error_handling.h"
 
 #include "rcl_lifecycle/data_types.h"
 
-static lifecycle_msgs__msg__TransitionEvent msg;
+#include "rmw/validate_topic_name.h"
 
-bool concatenate(const char ** prefix, const char ** suffix, char ** result)
+#include "rosidl_generator_c/message_type_support_struct.h"
+#include "rosidl_generator_c/string_functions.h"
+
+static lifecycle_msgs__msg__TransitionEvent msg;
+static const char * pub_transition_event_suffix = "transition_event";
+static const char * srv_change_state_suffix = "change_state";
+static const char * srv_get_state_suffix = "get_state";
+static const char * srv_get_available_states_suffix = "get_available_states";
+static const char * srv_get_available_transitions_suffix = "get_available_transitions";
+
+rmw_ret_t
+rcl_lifecycle_validate_topic_name(const char * topic_name)
 {
-  size_t prefix_size = strlen(*prefix);
-  size_t suffix_size = strlen(*suffix);
-  if ((prefix_size + suffix_size) >= 255) {
-    return false;
+  static rmw_ret_t ret = RMW_RET_ERROR;
+  static int validation_result = RMW_TOPIC_INVALID_IS_EMPTY_STRING;
+
+  ret = rmw_validate_topic_name(topic_name, &validation_result, NULL);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG("unable to validate topic name", rcl_get_default_allocator());
+    return RMW_RET_ERROR;
   }
-  *result = malloc((prefix_size + suffix_size) * sizeof(char));
-  memcpy(*result, *prefix, prefix_size);
-  memcpy(*result + prefix_size, *suffix, suffix_size + 1);
-  return true;
+  // TODO(karsten1987): Handle absolute case
+  if (validation_result != RMW_TOPIC_VALID && validation_result != RMW_TOPIC_INVALID_NOT_ABSOLUTE) {
+    RCL_SET_ERROR_MSG(
+      rmw_topic_validation_result_string(validation_result), rcl_get_default_allocator());
+    return RMW_RET_ERROR;
+  }
+  return RMW_RET_OK;
 }
 
 rcl_lifecycle_com_interface_t
@@ -59,7 +75,8 @@ rcl_lifecycle_get_zero_initialized_com_interface()
 }
 
 rcl_ret_t
-rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
+rcl_lifecycle_com_interface_init(
+  rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle,
   const rosidl_message_type_support_t * ts_pub_notify,
   const rosidl_service_type_support_t * ts_srv_change_state,
@@ -97,15 +114,14 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
   }
 
   const char * node_name = rcl_node_get_name(node_handle);
+  char * topic_name = NULL;
+  rmw_ret_t ret = RMW_RET_ERROR;
 
   // initialize publisher
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__transition_event";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, pub_transition_event_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -114,6 +130,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->pub_transition_event, node_handle,
       ts_pub_notify, topic_name, &publisher_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
@@ -125,12 +142,9 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
 
   // initialize change state service
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__change_state";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, srv_change_state_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -139,6 +153,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->srv_change_state, node_handle,
       ts_srv_change_state, topic_name, &service_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
@@ -147,12 +162,9 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
 
   // initialize get state service
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__get_state";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, srv_get_state_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -161,20 +173,18 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->srv_get_state, node_handle,
       ts_srv_get_state, topic_name, &service_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
     }
   }
 
-  // initialize get available state service
+  // initialize get available states service
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__get_available_states";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, srv_get_available_states_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -183,20 +193,18 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->srv_get_available_states, node_handle,
       ts_srv_get_available_states, topic_name, &service_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
     }
   }
 
-  // initialize get available state service
+  // initialize get available transitions service
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__get_available_transitions";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, srv_get_available_transitions_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -205,6 +213,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->srv_get_available_transitions, node_handle,
       ts_srv_get_available_transitions, topic_name, &service_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
@@ -234,6 +243,12 @@ fail:
     fprintf(stderr, "%s:%u, Failed to destroy get_available_transitions service\n",
       __FILE__, __LINE__);
   }
+
+  if (topic_name) {
+    free(topic_name);
+    topic_name = NULL;
+  }
+
   com_interface = NULL;
   return RCL_RET_ERROR;
 }
