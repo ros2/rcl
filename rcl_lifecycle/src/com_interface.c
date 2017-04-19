@@ -50,12 +50,13 @@ rcl_lifecycle_validate_topic_name(const char * topic_name)
 
   ret = rmw_validate_topic_name(topic_name, &validation_result, NULL);
   if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG("unable to validate topic name");
+    RCL_SET_ERROR_MSG("unable to validate topic name", rcl_get_default_allocator());
     return RMW_RET_ERROR;
   }
   // TODO(karsten1987): Handle absolute case
   if (validation_result != RMW_TOPIC_VALID && validation_result != RMW_TOPIC_INVALID_NOT_ABSOLUTE) {
-    RCL_SET_ERROR_MSG(rmw_topic_validation_result_string(validation_result));
+    RCL_SET_ERROR_MSG(
+      rmw_topic_validation_result_string(validation_result), rcl_get_default_allocator());
     return RMW_RET_ERROR;
   }
   return RMW_RET_OK;
@@ -118,12 +119,9 @@ rcl_lifecycle_com_interface_init(
 
   // initialize publisher
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__transition_event";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, pub_transition_event_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -144,12 +142,9 @@ rcl_lifecycle_com_interface_init(
 
   // initialize change state service
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__change_state";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, srv_change_state_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -167,12 +162,9 @@ rcl_lifecycle_com_interface_init(
 
   // initialize get state service
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__get_state";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, srv_get_state_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -188,14 +180,11 @@ rcl_lifecycle_com_interface_init(
     }
   }
 
-  // initialize get available state service
+  // initialize get available states service
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__get_available_states";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, srv_get_available_states_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
@@ -211,14 +200,11 @@ rcl_lifecycle_com_interface_init(
     }
   }
 
-  // initialize get available state service
+  // initialize get available transitions service
   {
-    // Build topic, topic suffix hardcoded for now
-    // and limited in length of 255
-    const char * topic_prefix = "__get_available_transitions";
-    char * topic_name;
-    if (!concatenate(&node_name, &topic_prefix, &topic_name)) {
-      RCL_SET_ERROR_MSG("Topic name exceeds maximum size of 255", node_options->allocator);
+    topic_name = utilities_concat(node_name, srv_get_available_transitions_suffix, "__");
+    ret = rcl_lifecycle_validate_topic_name(topic_name);
+    if (ret != RMW_RET_OK) {
       goto fail;
     }
 
