@@ -22,6 +22,8 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
+#include "c_utilities/concat.h"
+
 #include "lifecycle_msgs/msg/transition_event.h"
 
 #include "rosidl_generator_c/message_type_support_struct.h"
@@ -32,19 +34,11 @@ extern "C"
 #include "rcl_lifecycle/data_types.h"
 
 static lifecycle_msgs__msg__TransitionEvent msg;
-
-bool concatenate(const char ** prefix, const char ** suffix, char ** result)
-{
-  size_t prefix_size = strlen(*prefix);
-  size_t suffix_size = strlen(*suffix);
-  if ((prefix_size + suffix_size) >= 255) {
-    return false;
-  }
-  *result = malloc((prefix_size + suffix_size) * sizeof(char));
-  memcpy(*result, *prefix, prefix_size);
-  memcpy(*result + prefix_size, *suffix, suffix_size + 1);
-  return true;
-}
+static const char * pub_transition_event_suffix = "transition_event";
+static const char * srv_change_state_suffix = "change_state";
+static const char * srv_get_state_suffix = "get_state";
+static const char * srv_get_available_states_suffix = "get_available_states";
+static const char * srv_get_available_transitions_suffix = "get_available_transitions";
 
 rcl_lifecycle_com_interface_t
 rcl_lifecycle_get_zero_initialized_com_interface()
@@ -59,7 +53,8 @@ rcl_lifecycle_get_zero_initialized_com_interface()
 }
 
 rcl_ret_t
-rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
+rcl_lifecycle_com_interface_init(
+  rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle,
   const rosidl_message_type_support_t * ts_pub_notify,
   const rosidl_service_type_support_t * ts_srv_change_state,
@@ -97,6 +92,22 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
   }
 
   const char * node_name = rcl_node_get_name(node_handle);
+  size_t node_name_length = strlen(node_name);
+
+  // Build topic, topic suffix hardcoded for now
+  // and limited in length of 255
+  // e.g. lc_talker__transition_event
+  if ( ((node_name_length + 2 + strlen(pub_transition_event_suffix)) > 255) ||
+    ((node_name_length + 2 + strlen(srv_get_state_suffix)) > 255) ||
+    ((node_name_length + 2 + strlen(srv_change_state_suffix)) > 255) ||
+    ((node_name_length + 2 + strlen(srv_get_available_states_suffix)) > 255) ||
+    ((node_name_length + 2 + strlen(srv_get_available_transitions_suffix)) > 255))
+  {
+    RCL_SET_ERROR_MSG("topic name exceeds maximum size of 255");
+    return RCL_RET_ERROR;
+  }
+
+  char * topic_name = NULL;
 
   // initialize publisher
   {
@@ -114,6 +125,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->pub_transition_event, node_handle,
       ts_pub_notify, topic_name, &publisher_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
@@ -139,6 +151,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->srv_change_state, node_handle,
       ts_srv_change_state, topic_name, &service_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
@@ -161,6 +174,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->srv_get_state, node_handle,
       ts_srv_get_state, topic_name, &service_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
@@ -183,6 +197,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->srv_get_available_states, node_handle,
       ts_srv_get_available_states, topic_name, &service_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
@@ -205,6 +220,7 @@ rcl_lifecycle_com_interface_init(rcl_lifecycle_com_interface_t * com_interface,
       &com_interface->srv_get_available_transitions, node_handle,
       ts_srv_get_available_transitions, topic_name, &service_options);
     free(topic_name);
+    topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
       goto fail;
@@ -234,6 +250,12 @@ fail:
     fprintf(stderr, "%s:%u, Failed to destroy get_available_transitions service\n",
       __FILE__, __LINE__);
   }
+
+  if (topic_name) {
+    free(topic_name);
+    topic_name = NULL;
+  }
+
   com_interface = NULL;
   return RCL_RET_ERROR;
 }
