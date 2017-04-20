@@ -20,13 +20,13 @@ extern "C"
 {
 #endif
 
-#include "c_utilities/allocator.h"
+#include "rcutils/allocator.h"
 
-typedef utilities_allocator_t rcl_allocator_t;
+typedef rcutils_allocator_t rcl_allocator_t;
 
-#define rcl_get_default_allocator utilities_get_default_allocator
+#define rcl_get_default_allocator rcutils_get_default_allocator
 
-#define rcl_reallocf utilities_reallocf
+#define rcl_reallocf rcutils_reallocf
 
 #if __cplusplus
 }

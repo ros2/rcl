@@ -23,7 +23,7 @@ extern "C"
 #include <rmw/rmw.h>
 #include <rmw/types.h>
 
-#include "c_utilities/types.h"
+#include "rcutils/types.h"
 
 #include "rosidl_generator_c/service_type_support.h"
 
@@ -112,24 +112,24 @@ rcl_destroy_topic_names_and_types(
  * The node_names parameter must be allocated and zero initialized.
  * The node_names is the output for this function, and contains
  * allocated memory.
- * Use utilities_get_zero_initialized_string_array() for initializing an empty
- * utilities_string_array_t struct.
- * This node_names struct should therefore be passed to utilities_string_array_fini()
+ * Use rcutils_get_zero_initialized_string_array() for initializing an empty
+ * rcutils_string_array_t struct.
+ * This node_names struct should therefore be passed to rcutils_string_array_fini()
  * when it is no longer needed.
  * Failing to do so will result in leaked memory.
  *
  * Example:
  *
  * ```c
- * utilities_string_array_t node_names =
- *   utilities_get_zero_initialized_string_array();
+ * rcutils_string_array_t node_names =
+ *   rcutils_get_zero_initialized_string_array();
  * rcl_ret_t ret = rcl_get_node_names(node, &node_names);
  * if (ret != RCL_RET_OK) {
  *   // ... error handling
  * }
  * // ... use the node_names struct, and when done:
- * utilitiest_ret_t utilities_ret = utilities_string_array_fini(&node_names);
- * if (utilities_ret != UTILITIES_RET_OK) {
+ * rcutilst_ret_t rcutils_ret = rcutils_string_array_fini(&node_names);
+ * if (rcutils_ret != RCUTILS_RET_OK) {
  *   // ... error handling
  * }
  * ```
@@ -154,7 +154,7 @@ rcl_ret_t
 rcl_get_node_names(
   const rcl_node_t * node,
   rcl_allocator_t allocator,
-  utilities_string_array_t * node_names);
+  rcutils_string_array_t * node_names);
 
 /// Return the number of publishers on a given topic.
 /**

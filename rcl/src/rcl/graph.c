@@ -17,7 +17,7 @@ extern "C"
 {
 #endif
 
-#include "c_utilities/types.h"
+#include "rcutils/types.h"
 
 #include "rcl/graph.h"
 
@@ -72,7 +72,7 @@ rcl_ret_t
 rcl_get_node_names(
   const rcl_node_t * node,
   rcl_allocator_t allocator,
-  utilities_string_array_t * node_names)
+  rcutils_string_array_t * node_names)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, allocator);
   if (!rcl_node_is_valid(node)) {

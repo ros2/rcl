@@ -15,9 +15,9 @@
 #ifndef RCL__ERROR_HANDLING_H_
 #define RCL__ERROR_HANDLING_H_
 
-#include "c_utilities/error_handling.h"
+#include "rcutils/error_handling.h"
 
-/// The error handling in RCL is just an alias to the error handling in c_utilities.
+/// The error handling in RCL is just an alias to the error handling in rcutils.
 /**
  * Allocators given to functions in rcl are passed along to the error handling
  * on a "best effort" basis.
@@ -29,20 +29,20 @@
  * occur during normal runtime, is should be okay to use the default allocator.
  */
 
-typedef utilities_error_state_t rcl_error_state_t;
+typedef rcutils_error_state_t rcl_error_state_t;
 
-#define rcl_set_error_state utilities_set_error_state
+#define rcl_set_error_state rcutils_set_error_state
 
-#define RCL_SET_ERROR_MSG(msg, allocator) UTILITIES_SET_ERROR_MSG(msg, allocator)
+#define RCL_SET_ERROR_MSG(msg, allocator) RCUTILS_SET_ERROR_MSG(msg, allocator)
 
-#define rcl_error_is_set utilities_error_is_set
+#define rcl_error_is_set rcutils_error_is_set
 
-#define rcl_get_error_state utilities_get_error_state
+#define rcl_get_error_state rcutils_get_error_state
 
-#define rcl_get_error_string utilities_get_error_string
+#define rcl_get_error_string rcutils_get_error_string
 
-#define rcl_get_error_string_safe utilities_get_error_string_safe
+#define rcl_get_error_string_safe rcutils_get_error_string_safe
 
-#define rcl_reset_error utilities_reset_error
+#define rcl_reset_error rcutils_reset_error
 
 #endif  // RCL__ERROR_HANDLING_H_
