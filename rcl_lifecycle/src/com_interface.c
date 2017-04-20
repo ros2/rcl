@@ -22,7 +22,7 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
-#include "c_utilities/concat.h"
+#include "rcutils/concat.h"
 
 #include "lifecycle_msgs/msg/transition_event.h"
 
@@ -119,7 +119,7 @@ rcl_lifecycle_com_interface_init(
 
   // initialize publisher
   {
-    topic_name = utilities_concat(node_name, pub_transition_event_suffix, "__");
+    topic_name = rcutils_concat(node_name, pub_transition_event_suffix, "__");
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -142,7 +142,7 @@ rcl_lifecycle_com_interface_init(
 
   // initialize change state service
   {
-    topic_name = utilities_concat(node_name, srv_change_state_suffix, "__");
+    topic_name = rcutils_concat(node_name, srv_change_state_suffix, "__");
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -162,7 +162,7 @@ rcl_lifecycle_com_interface_init(
 
   // initialize get state service
   {
-    topic_name = utilities_concat(node_name, srv_get_state_suffix, "__");
+    topic_name = rcutils_concat(node_name, srv_get_state_suffix, "__");
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -182,7 +182,7 @@ rcl_lifecycle_com_interface_init(
 
   // initialize get available states service
   {
-    topic_name = utilities_concat(node_name, srv_get_available_states_suffix, "__");
+    topic_name = rcutils_concat(node_name, srv_get_available_states_suffix, "__");
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -202,7 +202,7 @@ rcl_lifecycle_com_interface_init(
 
   // initialize get available transitions service
   {
-    topic_name = utilities_concat(node_name, srv_get_available_transitions_suffix, "__");
+    topic_name = rcutils_concat(node_name, srv_get_available_transitions_suffix, "__");
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;

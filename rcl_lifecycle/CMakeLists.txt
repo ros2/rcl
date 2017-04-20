@@ -3,10 +3,11 @@ cmake_minimum_required(VERSION 3.5)
 project(rcl_lifecycle)
 
 find_package(ament_cmake REQUIRED)
-find_package(c_utilities REQUIRED)
-find_package(rcl REQUIRED)
-find_package(rmw REQUIRED)
+
 find_package(lifecycle_msgs REQUIRED)
+find_package(rcl REQUIRED)
+find_package(rcutils REQUIRED)
+find_package(rmw REQUIRED)
 
 include_directories(include)
 
@@ -14,7 +15,8 @@ set(rcl_lifecycle_sources
   src/com_interface.c
   src/default_state_machine.c
   src/rcl_lifecycle.c
-  src/transition_map.c)
+  src/transition_map.c
+)
 set_source_files_properties(
   ${rcl_lifecycle_sources}
   PROPERTIES language "C")
@@ -26,9 +28,10 @@ add_library(
   ${rcl_lifecycle_sources})
 
 ament_target_dependencies(rcl_lifecycle
-  "c_utilities"
   "lifecycle_msgs"
-  "rcl")
+  "rcl"
+  "rcutils"
+)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
