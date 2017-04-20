@@ -24,9 +24,9 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
-#include "c_utilities/filesystem.h"
-#include "c_utilities/get_env.h"
 #include "rcl/rcl.h"
+#include "rcutils/filesystem.h"
+#include "rcutils/get_env.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
@@ -59,7 +59,7 @@ const char * rcl_get_secure_root(const char * node_name)
   if (node_name == NULL) {
     return NULL;
   }
-  if (utilities_get_env(sros_env_var_name, &ros_secure_root_env)) {
+  if (rcutils_get_env(sros_env_var_name, &ros_secure_root_env)) {
     return NULL;
   }
   if (!ros_secure_root_env) {
@@ -69,8 +69,8 @@ const char * rcl_get_secure_root(const char * node_name)
   if (!ros_secure_root_size) {
     return NULL;  // environment variable was empty
   }
-  const char * node_secure_root = utilities_join_path(ros_secure_root_env, node_name);
-  if (!utilities_is_directory(node_secure_root)) {
+  const char * node_secure_root = rcutils_join_path(ros_secure_root_env, node_name);
+  if (!rcutils_is_directory(node_secure_root)) {
     free((char *)node_secure_root);
     return NULL;
   }
