@@ -41,7 +41,9 @@ extern "C"
   _snprintf_s(buffer, buffer_size, _TRUNCATE, format, __VA_ARGS__)
 #endif
 
-static const char * sros_env_var_name = "ROS_SECURE_ROOT";
+static const char * sros_root_var_name = "ROS_SECURE_ROOT";
+static const char * sros_security_strategy_var_name = "ROS_SECURITY_STRATEGY";
+static const char * sros_enable_security_var_name = "ROS_ENABLE_SECURITY";
 
 typedef struct rcl_node_impl_t
 {
@@ -59,7 +61,7 @@ const char * rcl_get_secure_root(const char * node_name)
   if (node_name == NULL) {
     return NULL;
   }
-  if (rcutils_get_env(sros_env_var_name, &ros_secure_root_env)) {
+  if (rcutils_get_env(sros_root_var_name, &ros_secure_root_env)) {
     return NULL;
   }
   if (!ros_secure_root_env) {
@@ -209,19 +211,56 @@ rcl_node_init(
   // actual domain id
   node->impl->actual_domain_id = domain_id;
 
-  // File discovery magic here
-  const char * node_secure_root = rcl_get_secure_root(name);
-  if (node_secure_root) {
-    // printf(
-    //   "attempting to start a secure node using certificate and key in %s\n",
-    //   node_secure_root);
-    node->impl->rmw_node_handle = rmw_create_node(
-      name, local_namespace_, domain_id, node_secure_root);
+  const char * ros_enable_security = NULL;
+  const char * ros_enforce_security = NULL;
+  bool use_security = false;
+
+  if (rcutils_get_env(sros_enable_security_var_name, &ros_enable_security)) {
+    RCL_SET_ERROR_MSG("fail fetching environment variable", rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+
+  if (!ros_enable_security) {
+    use_security = false;
+  } else if (0 == strcmp(ros_enable_security, "true")) {
+    use_security = true;
   } else {
-    // printf(
-    //   "not using security: certificate and key path not found for node %s\n",
-    //   name);
-    node->impl->rmw_node_handle = rmw_create_node(name, local_namespace_, domain_id, NULL);
+    use_security = false;
+  }
+
+  bool enforce_security = false;
+  if (rcutils_get_env(sros_security_strategy_var_name, &ros_enforce_security)) {
+    RCL_SET_ERROR_MSG("fail fetching environment variable", rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+
+  if (!ros_enforce_security) {
+    enforce_security = false;
+  } else if (0 == strcmp(ros_enforce_security, "Enforce")) {
+    enforce_security = true;
+  } else {
+    enforce_security = false;
+  }
+
+  if (!use_security) {
+    node->impl->rmw_node_handle = rmw_create_node(name, local_namespace_, domain_id, false, NULL);
+  } else {  // if use_security
+    // File discovery magic here
+    const char * node_secure_root = rcl_get_secure_root(name);
+    if (node_secure_root) {
+      node->impl->rmw_node_handle = rmw_create_node(
+        name, local_namespace_, domain_id, enforce_security, node_secure_root);
+    } else {
+      if (enforce_security) {
+        RCL_SET_ERROR_MSG(
+          "SECURITY ERROR: unable to find ROS_SECURE_ROOT directory while "
+          "security strategy requires it", *allocator);
+        return RCL_RET_ERROR;
+      } else {
+        node->impl->rmw_node_handle = rmw_create_node(
+          name, local_namespace_, domain_id, false, node_secure_root);
+      }
+    }
   }
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
