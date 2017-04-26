@@ -15,6 +15,8 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <iostream>
+#include <sstream>
 #include <thread>
 
 #include "rcutils/types.h"
@@ -81,7 +83,12 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   ret = rcl_get_node_names(node1_ptr, node1_options.allocator, &node_names);
   ASSERT_EQ(RCUTILS_RET_OK, ret) << rcl_get_error_string_safe();
 
-  EXPECT_EQ(size_t(2), node_names.size);
+  std::stringstream ss;
+  ss << "Found node names:" << std::endl;
+  for (size_t i = 0; i < node_names.size; ++i) {
+    ss << node_names.data[i] << std::endl;
+  }
+  EXPECT_EQ(size_t(2), node_names.size) << ss.str();
   EXPECT_EQ(0, strcmp(node1_name, node_names.data[0]));
   EXPECT_EQ(0, strcmp(node2_name, node_names.data[1]));
 
