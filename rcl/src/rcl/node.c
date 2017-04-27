@@ -29,7 +29,6 @@ extern "C"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
-#include "rmw/validate_topic_name.h"
 
 #include "./common.h"
 

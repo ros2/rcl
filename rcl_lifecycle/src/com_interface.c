@@ -30,7 +30,7 @@ extern "C"
 
 #include "rcl_lifecycle/data_types.h"
 
-#include "rmw/validate_topic_name.h"
+#include "rmw/validate_full_topic_name.h"
 
 #include "rosidl_generator_c/message_type_support_struct.h"
 #include "rosidl_generator_c/string_functions.h"
@@ -48,7 +48,7 @@ rcl_lifecycle_validate_topic_name(const char * topic_name)
   static rmw_ret_t ret = RMW_RET_ERROR;
   static int validation_result = RMW_TOPIC_INVALID_IS_EMPTY_STRING;
 
-  ret = rmw_validate_topic_name(topic_name, &validation_result, NULL);
+  ret = rmw_validate_full_topic_name(topic_name, &validation_result, NULL);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG("unable to validate topic name", rcl_get_default_allocator());
     return RMW_RET_ERROR;
@@ -56,7 +56,7 @@ rcl_lifecycle_validate_topic_name(const char * topic_name)
   // TODO(karsten1987): Handle absolute case
   if (validation_result != RMW_TOPIC_VALID && validation_result != RMW_TOPIC_INVALID_NOT_ABSOLUTE) {
     RCL_SET_ERROR_MSG(
-      rmw_topic_validation_result_string(validation_result), rcl_get_default_allocator());
+      rmw_full_topic_name_validation_result_string(validation_result), rcl_get_default_allocator())
     return RMW_RET_ERROR;
   }
   return RMW_RET_OK;
