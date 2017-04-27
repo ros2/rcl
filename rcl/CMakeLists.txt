@@ -26,6 +26,7 @@ endif()
 set(${PROJECT_NAME}_sources
   src/rcl/client.c
   src/rcl/common.c
+  src/rcl/expand_topic_name.c
   src/rcl/graph.c
   src/rcl/guard_condition.c
   src/rcl/node.c
