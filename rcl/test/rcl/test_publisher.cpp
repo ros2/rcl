@@ -44,7 +44,7 @@ public:
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
-    const char * name = "node_name";
+    const char * name = "test_publisher_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();

@@ -72,7 +72,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   ASSERT_EQ(RCL_RET_OK, ret);  // Shutdown later after invalid node.
   // Create an invalid node (rcl_shutdown).
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
-  const char * name = "node_name";
+  const char * name = "test_rcl_node_accessors_node";
   const char * namespace_ = "/ns";
   rcl_node_options_t default_options = rcl_node_get_default_options();
   default_options.domain_id = 42;  // Set the domain id to something explicit.
@@ -305,7 +305,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_node_t node = rcl_get_zero_initialized_node();
-  const char * name = "node_name";
+  const char * name = "test_rcl_node_life_cycle_node";
   const char * namespace_ = "/ns";
   rcl_node_options_t default_options = rcl_node_get_default_options();
   // Trying to init before rcl_init() should fail.
