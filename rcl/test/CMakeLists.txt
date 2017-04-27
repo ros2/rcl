@@ -179,3 +179,10 @@ macro(connext_workaround target)
 endmacro()
 
 call_for_each_rmw_implementation(test_target)
+
+rcl_add_custom_gtest(test_validate_topic_name
+  SRCS rcl/test_validate_topic_name.cpp
+  ENV ${extra_test_env}
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+)
