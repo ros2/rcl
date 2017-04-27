@@ -123,7 +123,13 @@ TEST(test_validate_topic_name, various_valid_topics) {
 }
 
 TEST(test_validate_topic_name, various_invalid_topics) {
-  std::vector<std::tuple<std::string, int, size_t>> topic_cases_that_should_fail = {
+  struct topic_case
+  {
+    std::string topic;
+    int expected_validation_result;
+    size_t expected_invalid_index;
+  };
+  std::vector<topic_case> topic_cases_that_should_fail = {
     // examples from the design doc:
     //   http://design.ros2.org/articles/topic_and_service_names.html#ros-2-name-examples
       {"123abc", RCL_TOPIC_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER, 0},
@@ -150,9 +156,9 @@ TEST(test_validate_topic_name, various_invalid_topics) {
       {"{1foo}", RCL_TOPIC_NAME_INVALID_SUBSTITUTION_STARTS_WITH_NUMBER, 1},
   };
   for (const auto & case_tuple : topic_cases_that_should_fail) {
-    std::string topic = std::get<std::string>(case_tuple);
-    int expected_validation_result = std::get<int>(case_tuple);
-    size_t expected_invalid_index = std::get<size_t>(case_tuple);
+    std::string topic = case_tuple.topic;
+    int expected_validation_result = case_tuple.expected_validation_result;
+    size_t expected_invalid_index = case_tuple.expected_invalid_index;
     int validation_result;
     size_t invalid_index = 0;
     rcl_ret_t ret = rcl_validate_topic_name(topic.c_str(), &validation_result, &invalid_index);
