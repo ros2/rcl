@@ -71,7 +71,7 @@ rcl_expand_topic_name(
       case RMW_RET_INVALID_ARGUMENT:
         return RCL_RET_INVALID_ARGUMENT;
       case RMW_RET_ERROR:
-        // fall through on purpose
+      // fall through on purpose
       default:
         return RCL_RET_ERROR;
     }
@@ -88,7 +88,7 @@ rcl_expand_topic_name(
       case RMW_RET_INVALID_ARGUMENT:
         return RCL_RET_INVALID_ARGUMENT;
       case RMW_RET_ERROR:
-        // fall through on purpose
+      // fall through on purpose
       default:
         return RCL_RET_ERROR;
     }
@@ -145,7 +145,7 @@ rcl_expand_topic_name(
       const char * replacement = NULL;
       if (strncmp("{node}", next_opening_brace, substitution_substr_len) == 0) {
         replacement = node_name;
-      } else if (
+      } else if (  // NOLINT
         strncmp("{ns}", next_opening_brace, substitution_substr_len) == 0 ||
         strncmp("{namespace}", next_opening_brace, substitution_substr_len) == 0)
       {

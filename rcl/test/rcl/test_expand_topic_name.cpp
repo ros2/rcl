@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl/expand_topic_name.h"
+#include <gtest/gtest.h>
 
 #include <sstream>
 #include <string>
 #include <tuple>
 #include <vector>
 
-#include <gtest/gtest.h>
+#include "rcl/expand_topic_name.h"
 
 #include "rcl/error_handling.h"
 
@@ -165,13 +165,13 @@ TEST(test_expand_topic_name, various_valid_topics) {
     char * expanded_topic;
     ret = rcl_expand_topic_name(topic, node, ns, &subs, allocator, &expanded_topic);
     std::stringstream ss;
-    ss
-      << "^ While expanding '" << topic
-      << "' with node '" << node
-      << "' and namespace '" << ns << "'";
-    EXPECT_EQ(RCL_RET_OK, ret)
-      << ss.str()
-      << ", it failed with '" << ret << "': " << rcl_get_error_string_safe();
+    ss <<
+      "^ While expanding '" << topic <<
+      "' with node '" << node <<
+      "' and namespace '" << ns << "'";
+    EXPECT_EQ(RCL_RET_OK, ret) <<
+      ss.str() <<
+      ", it failed with '" << ret << "': " << rcl_get_error_string_safe();
     EXPECT_STREQ(expected.c_str(), expanded_topic) << ss.str() << " strings did not match.\n";
   }
 }
