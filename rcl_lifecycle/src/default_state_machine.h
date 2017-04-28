@@ -17,6 +17,8 @@
 
 #include <rcl/types.h>
 
+#include "rcl/macros.h"
+
 #include "rcl_lifecycle/data_types.h"
 #include "rcl_lifecycle/visibility_control.h"
 
@@ -26,6 +28,7 @@ extern "C"
 #endif
 
 RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lifecycle_init_default_state_machine(rcl_lifecycle_state_machine_t * state_machine);
 
