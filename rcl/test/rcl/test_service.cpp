@@ -98,9 +98,11 @@ wait_for_service_to_be_ready(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
     if (ret == RCL_RET_TIMEOUT) {
+      fprintf(stderr, "TImeout\n");
       continue;
     }
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    fprintf(stderr, "List of vailable services: %zu\n", wait_set.size_of_services);
     for (size_t i = 0; i < wait_set.size_of_services; ++i) {
       if (wait_set.services[i] && wait_set.services[i] == service) {
         success = true;
@@ -147,7 +149,8 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   // TODO(wjwwood): add logic to wait for the connection to be established
   //                use count_services busy wait mechanism
   //                until then we will sleep for a short period of time
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  fprintf(stderr, "Waiting for 5 sec\n");
+  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
   // Initialize a request.
   example_interfaces__srv__AddTwoInts_Request client_request;
