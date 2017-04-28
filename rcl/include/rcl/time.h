@@ -115,7 +115,7 @@ rcl_time_source_valid(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_init_time_source(
+rcl_time_source_init(
   enum rcl_time_source_type_t time_source_type, rcl_time_source_t * time_source
 );
 
@@ -135,7 +135,7 @@ rcl_init_time_source(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_fini_time_source(rcl_time_source_t * time_source);
+rcl_time_source_fini(rcl_time_source_t * time_source);
 
 /// Initialize a time_source as a RCL_ROS_TIME time source.
 /**
@@ -150,7 +150,7 @@ rcl_fini_time_source(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_init_ros_time_source(rcl_time_source_t * time_source);
+rcl_ros_time_source_init(rcl_time_source_t * time_source);
 
 /// Finalize a time_source as a `RCL_ROS_TIME` time source.
 /**
@@ -166,7 +166,7 @@ rcl_init_ros_time_source(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_fini_ros_time_source(rcl_time_source_t * time_source);
+rcl_ros_time_source_fini(rcl_time_source_t * time_source);
 
 /// Initialize a time_source as a `RCL_STEADY_TIME` time source.
 /**
@@ -181,7 +181,7 @@ rcl_fini_ros_time_source(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_init_steady_time_source(rcl_time_source_t * time_source);
+rcl_steady_time_source_init(rcl_time_source_t * time_source);
 
 /// Finalize a time_source as a `RCL_STEADY_TIME` time source.
 /**
@@ -199,7 +199,7 @@ rcl_init_steady_time_source(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_fini_steady_time_source(rcl_time_source_t * time_source);
+rcl_steady_time_source_fini(rcl_time_source_t * time_source);
 
 /// Initialize a time_source as a `RCL_SYSTEM_TIME` time source.
 /**
@@ -216,7 +216,7 @@ rcl_fini_steady_time_source(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_init_system_time_source(rcl_time_source_t * time_source);
+rcl_system_time_source_init(rcl_time_source_t * time_source);
 
 /// Finalize a time_source as a `RCL_SYSTEM_TIME` time source.
 /**
@@ -234,7 +234,7 @@ rcl_init_system_time_source(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_fini_system_time_source(rcl_time_source_t * time_source);
+rcl_system_time_source_fini(rcl_time_source_t * time_source);
 
 /// Initialize a time point using the time_source.
 /**
@@ -255,7 +255,7 @@ rcl_fini_system_time_source(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_init_time_point(rcl_time_point_t * time_point, rcl_time_source_t * time_source);
+rcl_time_point_init(rcl_time_point_t * time_point, rcl_time_source_t * time_source);
 
 /// Finalize a time_point
 /**
@@ -271,7 +271,7 @@ rcl_init_time_point(rcl_time_point_t * time_point, rcl_time_source_t * time_sour
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_fini_time_point(rcl_time_point_t * time_point);
+rcl_time_point_fini(rcl_time_point_t * time_point);
 
 /// Initialize a duration using the time_source.
 /**
@@ -290,7 +290,7 @@ rcl_fini_time_point(rcl_time_point_t * time_point);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_init_duration(rcl_duration_t * duration, rcl_time_source_t * time_source);
+rcl_duration_init(rcl_duration_t * duration, rcl_time_source_t * time_source);
 
 /// Finalize a duration
 /**
@@ -306,7 +306,7 @@ rcl_init_duration(rcl_duration_t * duration, rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_fini_duration(rcl_duration_t * duration);
+rcl_duration_fini(rcl_duration_t * duration);
 
 /// Get the default `RCL_ROS_TIME` time source
 /**
@@ -414,7 +414,7 @@ rcl_difference_times(rcl_time_point_t * start, rcl_time_point_t * finish,
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_get_time_point_now(rcl_time_point_t * time_point);
+rcl_time_point_get_now(rcl_time_point_t * time_point);
 
 
 /// Enable the ROS time abstraction override.
