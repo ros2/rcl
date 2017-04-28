@@ -41,7 +41,7 @@ TEST(test_validate_topic_name, normal) {
     ret = rcl_validate_topic_name("topic", &validation_result, &invalid_index);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     EXPECT_EQ(RCL_TOPIC_NAME_VALID, validation_result);
-    EXPECT_EQ(42, invalid_index);  // ensure invalid_index is not assigned on success
+    EXPECT_EQ(42u, invalid_index);  // ensure invalid_index is not assigned on success
     EXPECT_EQ(NULL, rcl_topic_name_validation_result_string(validation_result));
   }
 
@@ -52,7 +52,7 @@ TEST(test_validate_topic_name, normal) {
     ret = rcl_validate_topic_name("", &validation_result, &invalid_index);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     EXPECT_EQ(RCL_TOPIC_NAME_INVALID_IS_EMPTY_STRING, validation_result);
-    EXPECT_EQ(0, invalid_index);
+    EXPECT_EQ(0u, invalid_index);
     EXPECT_NE(nullptr, rcl_topic_name_validation_result_string(validation_result));
   }
 }
@@ -117,7 +117,7 @@ TEST(test_validate_topic_name, various_valid_topics) {
       "'" << topic << "' should have passed: " <<
       rcl_topic_name_validation_result_string(validation_result) << "\n" <<
       " " << std::string(invalid_index, ' ') << "^";
-    EXPECT_EQ(42, invalid_index);
+    EXPECT_EQ(42u, invalid_index);
     EXPECT_STREQ(nullptr, rcl_topic_name_validation_result_string(validation_result));
   }
 }
