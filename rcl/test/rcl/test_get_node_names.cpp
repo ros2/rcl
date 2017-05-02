@@ -84,7 +84,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   ASSERT_EQ(RCUTILS_RET_OK, ret) << rcl_get_error_string_safe();
 
   std::stringstream ss;
-  ss << "Found node names:" << std::endl;
+  ss << "[test_rcl_get_node_names]: Found node names:" << std::endl;
   for (size_t i = 0; i < node_names.size; ++i) {
     ss << node_names.data[i] << std::endl;
   }
