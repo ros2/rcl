@@ -476,9 +476,11 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
 /* Test the rcl_service_server_is_available function.
  */
 TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_is_available) {
+  fprintf(stderr, "Starting test_service_server\n");
   stop_memory_checking();
   rcl_ret_t ret;
   // First create a client which will be used to call the function.
+  fprintf(stderr, "creating service client\n");
   rcl_client_t client = rcl_get_zero_initialized_client();
   auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
   const char * service_name = "service_test_rcl_service_server_is_available";
@@ -492,13 +494,16 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   });
   // Check, knowing there is no service server (created by us at least).
   bool is_available;
+  fprintf(stderr, "first time calling server is available\n");
   ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   ASSERT_FALSE(is_available);
+
   // Setup function to wait for service state to change using graph guard condition.
   const rcl_guard_condition_t * graph_guard_condition =
     rcl_node_get_graph_guard_condition(this->node_ptr);
   ASSERT_NE(nullptr, graph_guard_condition) << rcl_get_error_string_safe();
+  // lambda function for waiting
   auto wait_for_service_state_to_change = [this, &graph_guard_condition, &client](
     bool expected_state,
     bool & is_available)
@@ -518,11 +523,12 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        printf(
+        fprintf(stderr,
           "waiting up to '%s' nanoseconds for graph changes\n",
           std::to_string(time_to_sleep.count()).c_str());
         ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
         if (ret == RCL_RET_TIMEOUT) {
+          fprintf(stderr, "rcl_wait timed out: %s\n", rcl_get_error_string_safe());
           if (!is_connext) {
             // TODO(wjwwood):
             //   Connext has a race condition which can cause the graph guard
@@ -535,20 +541,26 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
             //   service is no longer there. This condition can be removed and
             //   we can always continue when we get RCL_RET_TIMEOUT once that
             //   is fixed.
+            fprintf(stderr, "is_conenxt false, continuing\n");
             continue;
           }
         } else {
           ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         }
+        fprintf(stderr, "calling rcL_service_server\n");
         ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         if (is_available == expected_state) {
           break;
+        } else {
+          fprintf(stderr, "service is not available\n");
         }
       }
     };
+
   {
     // Create the service server.
+    fprintf(stderr, "create service server\n");
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_service_options_t service_options = rcl_service_get_default_options();
     ret = rcl_service_init(&service, this->node_ptr, ts, service_name, &service_options);
@@ -562,6 +574,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
     wait_for_service_state_to_change(true, is_available);
     ASSERT_TRUE(is_available);
   }
+  fprintf(stderr, "Service server was created.\n");
   // Assert the state goes back to "not available" after the service is removed.
   wait_for_service_state_to_change(false, is_available);
   ASSERT_FALSE(is_available);
