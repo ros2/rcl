@@ -36,6 +36,10 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_NOT_INIT 101
 /// Mismatched rmw identifier return code.
 #define RCL_RET_MISMATCHED_RMW_ID 102
+/// Topic name does not pass validation.
+#define RCL_RET_TOPIC_NAME_INVALID 103
+/// Topic name substitution is unknown.
+#define RCL_RET_UNKNOWN_SUBSTITUTION 104
 
 // rcl node specific ret codes in 2XX
 /// Invalid rcl_node_t given return code.
