@@ -136,6 +136,7 @@ TEST(test_expand_topic_name, various_valid_topics) {
     {"{node}", "my_node", "/my_ns", "/my_ns/my_node"},
     {"{ns}", "my_node", "/my_ns", "/my_ns"},
     {"{namespace}", "my_node", "/my_ns", "/my_ns"},
+    {"{namespace}/{node}/chatter", "my_node", "/my_ns", "/my_ns/my_node/chatter"},
 
     // this one will produce an invalid topic, but will pass
     // the '//' should be caught by the rmw_validate_full_topic_name() function

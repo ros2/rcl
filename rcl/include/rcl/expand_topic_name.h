@@ -35,6 +35,9 @@ extern "C"
  * The output_topic_name will be null terminated.
  * It is also allocated, so it needs to be deallocated, when it is no longer
  * needed, with the same allocator given to this function.
+ * Make sure the `char *` which is passed for the output_topic_name does not
+ * point to allocated memory before calling this function, because it will be
+ * overwritten and therefore leaked if this function is successful.
  *
  * Expected usage:
  *
@@ -114,7 +117,6 @@ rcl_expand_topic_name(
  * If the string map is not initialized RCL_RET_INVALID_ARGUMENT is returned.
  *
  * \param[inout] string_map rcutils_string_map_t map to be filled with pairs
- * \return const pointer to default substitutions as a string map
  * \return `RCL_RET_OK` if successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
