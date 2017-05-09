@@ -36,6 +36,11 @@ extern "C"
 
 #define SAFE_FWRITE_TO_STDERR(msg) fwrite(msg, sizeof(char), sizeof(msg), stderr)
 
+// built-in substitution strings
+#define SUBSTITUION_NODE_NAME "{node}"
+#define SUBSTITUION_NAMESPACE "{ns}"
+#define SUBSTITUION_NAMESPACE2 "{namespace}"
+
 rcl_ret_t
 rcl_expand_topic_name(
   const char * input_topic_name,
@@ -143,11 +148,11 @@ rcl_expand_topic_name(
       size_t substitution_substr_len = next_closing_brace - next_opening_brace + 1;
       // figure out what the replacement is for this substitution
       const char * replacement = NULL;
-      if (strncmp("{node}", next_opening_brace, substitution_substr_len) == 0) {
+      if (strncmp(SUBSTITUION_NODE_NAME, next_opening_brace, substitution_substr_len) == 0) {
         replacement = node_name;
       } else if (  // NOLINT
-        strncmp("{ns}", next_opening_brace, substitution_substr_len) == 0 ||
-        strncmp("{namespace}", next_opening_brace, substitution_substr_len) == 0)
+        strncmp(SUBSTITUION_NAMESPACE, next_opening_brace, substitution_substr_len) == 0 ||
+        strncmp(SUBSTITUION_NAMESPACE2, next_opening_brace, substitution_substr_len) == 0)
       {
         replacement = node_namespace;
       } else {
