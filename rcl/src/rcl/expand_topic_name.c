@@ -142,6 +142,7 @@ rcl_expand_topic_name(
     // These assumptions are taken because this is checked in the validation function.
     const char * current_output = (local_output) ? local_output : input_topic_name;
     char * next_opening_brace = NULL;
+    // current_output may be replaced on each loop if a substitution is made
     while ((next_opening_brace = strchr(current_output, '{')) != NULL) {
       char * next_closing_brace = strchr(current_output, '}');
       // conclusion based on above assumptions: next_closing_brace - next_opening_brace > 1
