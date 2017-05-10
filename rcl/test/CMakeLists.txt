@@ -6,9 +6,9 @@ find_package(std_msgs REQUIRED)
 
 find_package(rmw_implementation_cmake REQUIRED)
 
-include(rcl_add_custom_executable.cmake)
-include(rcl_add_custom_gtest.cmake)
-include(rcl_add_custom_launch_test.cmake)
+include(cmake/rcl_add_custom_executable.cmake)
+include(cmake/rcl_add_custom_gtest.cmake)
+include(cmake/rcl_add_custom_launch_test.cmake)
 
 set(extra_test_libraries)
 set(extra_test_env)
@@ -138,7 +138,7 @@ function(test_target_function)
   )
 
   rcl_add_custom_gtest(test_namespace${target_suffix}
-    SRCS rcl/test_namespace.cpp
+    SRCS test_namespace.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}

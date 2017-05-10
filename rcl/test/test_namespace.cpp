@@ -25,8 +25,8 @@
 #include "example_interfaces/srv/add_two_ints.h"
 #include "rosidl_generator_c/string_functions.h"
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "./memory_tools/memory_tools.hpp"
+#include "./scope_exit.hpp"
 #include "rcl/error_handling.h"
 
 using namespace std::chrono_literals;
