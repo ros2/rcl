@@ -43,12 +43,22 @@ extern "C"
  *
  * ```c
  * rcl_allocator_t allocator = rcl_get_default_allocator();
+ * rcutils_allocator_t rcutils_allocator = rcutils_get_default_allocator();
+ * rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
+ * rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
+ * if (rcutils_ret != RCUTILS_RET_OK) {
+ *   // ... error handling
+ * }
+ * rcutils_ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
+ * if (rcutils_ret != RCUTILS_RET_OK) {
+ *   // ... error handling
+ * }
  * char * expanded_topic_name = NULL;
  * rcl_ret_t ret = rcl_expand_topic_name(
  *   "some/topic",
  *   "my_node",
  *   "my_ns",
- *   rcl_get_default_topic_name_substitutions(),
+ *   &substitutions_map,
  *   allocator,
  *   &expanded_topic_name);
  * if (ret != RCL_RET_OK) {

@@ -78,18 +78,19 @@ rcl_get_zero_initialized_client(void);
  * #include <rosidl_generator_c/service_type_support.h>
  * #include <example_interfaces/srv/add_two_ints.h>
  *
- * rosidl_service_type_support_t * ts =
- *   ROSIDL_GET_SERVICE_TYPE_SUPPORT(example_interfaces, AddTwoInts);
+ * const rosidl_service_type_support_t * ts =
+ *   ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
  * ```
  *
  * For C++ a template function is used:
  *
  * ```cpp
- * #include <rosidl_generator_cpp/service_type_support.hpp>
- * #include <example_interfaces/srv/add_two_ints.h>
+ * #include <rosidl_typesupport_cpp/service_type_support.hpp>
+ * #include <example_interfaces/srv/add_two_ints.hpp>
  *
- * rosidl_service_type_support_t * ts =
- *   rosidl_generator_cpp::get_service_type_support_handle<example_interfaces::srv::AddTwoInts>();
+ * using rosidl_typesupport_cpp::get_service_type_support_handle;
+ * const rosidl_service_type_support_t * ts =
+ *   get_service_type_support_handle<example_interfaces::srv::AddTwoInts>();
  * ```
  *
  * The rosidl_service_type_support_t object contains service type specific
@@ -105,17 +106,17 @@ rcl_get_zero_initialized_client(void);
  *
  * Expected usage (for C services):
  *
- * ```cpp
+ * ```c
  * #include <rcl/rcl.h>
  * #include <rosidl_generator_c/service_type_support.h>
  * #include <example_interfaces/srv/add_two_ints.h>
  *
  * rcl_node_t node = rcl_get_zero_initialized_node();
  * rcl_node_options_t node_ops = rcl_node_get_default_options();
- * rcl_ret_t ret = rcl_node_init(&node, "node_name", &node_ops);
+ * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/my_namespace", &node_ops);
  * // ... error handling
- * rosidl_service_type_support_t * ts = ROSIDL_GET_SERVICE_TYPE_SUPPORT(
- *   example_interfaces, AddTwoInts);
+ * const rosidl_service_type_support_t * ts =
+ *   ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
  * rcl_client_t client = rcl_get_zero_initialized_client();
  * rcl_client_options_t client_ops = rcl_client_get_default_options();
  * ret = rcl_client_init(&client, &node, ts, "add_two_ints", &client_ops);

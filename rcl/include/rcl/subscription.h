@@ -73,10 +73,10 @@ rcl_get_zero_initialized_subscription(void);
  * For C a macro can be used (for example `std_msgs/String`):
  *
  * ```c
- * #include <rosidl_generator_c/message_type_support.h>
- * #include <std_msgs/msgs/string.h>
- * rosidl_message_type_support_t * string_ts =
- *   ROSIDL_GET_MESSAGE_TYPE_SUPPORT(std_msgs, String);
+ * #include <rosidl_generator_c/message_type_support_struct.h>
+ * #include <std_msgs/msg/string.h>
+ * const rosidl_message_type_support_t * string_ts =
+ *   ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
  * ```
  *
  * For C++ a template function is used:
@@ -84,8 +84,9 @@ rcl_get_zero_initialized_subscription(void);
  * ```cpp
  * #include <rosidl_generator_cpp/message_type_support.hpp>
  * #include <std_msgs/msgs/string.hpp>
- * rosidl_message_type_support_t * string_ts =
- *   rosidl_generator_cpp::get_message_type_support_handle<std_msgs::msg::String>();
+ * using rosidl_typesupport_cpp::get_message_type_support_handle;
+ * const rosidl_message_type_support_t * string_ts =
+ *   get_message_type_support_handle<std_msgs::msg::String>();
  * ```
  *
  * The rosidl_message_type_support_t object contains message type specific
@@ -104,14 +105,15 @@ rcl_get_zero_initialized_subscription(void);
  *
  * ```c
  * #include <rcl/rcl.h>
- * #include <rosidl_generator_c/message_type_support.h>
- * #include <std_msgs/msgs/string.h>
+ * #include <rosidl_generator_c/message_type_support_struct.h>
+ * #include <std_msgs/msg/string.h>
  *
  * rcl_node_t node = rcl_get_zero_initialized_node();
  * rcl_node_options_t node_ops = rcl_node_get_default_options();
- * rcl_ret_t ret = rcl_node_init(&node, "node_name", &node_ops);
+ * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/my_namespace", &node_ops);
  * // ... error handling
- * rosidl_message_type_support_t * ts = ROSIDL_GET_MESSAGE_TYPE_SUPPORT(std_msgs, String);
+ * const rosidl_message_type_support_t * ts =
+ *   ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
  * rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
  * rcl_subscription_options_t subscription_ops = rcl_subscription_get_default_options();
  * ret = rcl_subscription_init(&subscription, &node, ts, "chatter", &subscription_ops);

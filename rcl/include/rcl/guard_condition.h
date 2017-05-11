@@ -60,7 +60,7 @@ rcl_get_zero_initialized_guard_condition(void);
  * // ... error handling
  * rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
  * // ... customize guard condition options
- * ret = rcl_guard_condition_init(
+ * rcl_ret_t ret = rcl_guard_condition_init(
  *   &guard_condition, rcl_guard_condition_get_default_options());
  * // ... error handling, and on shutdown do deinitialization:
  * ret = rcl_guard_condition_fini(&guard_condition);
