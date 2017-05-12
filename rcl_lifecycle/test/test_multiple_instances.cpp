@@ -73,23 +73,29 @@ test_trigger_transition(
 }
 
 TEST_F(TestMultipleInstances, default_sequence_error_unresolved) {
+  rcl_ret_t ret;
+
   rcl_lifecycle_state_machine_t state_machine1 =
     rcl_lifecycle_get_zero_initialized_state_machine();
-  rcl_lifecycle_init_default_state_machine(&state_machine1);
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine1);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   rcl_lifecycle_state_machine_t state_machine2 =
     rcl_lifecycle_get_zero_initialized_state_machine();
-  rcl_lifecycle_init_default_state_machine(&state_machine2);
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine2);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   rcl_lifecycle_state_machine_t state_machine3 =
     rcl_lifecycle_get_zero_initialized_state_machine();
-  rcl_lifecycle_init_default_state_machine(&state_machine3);
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine3);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   test_trigger_transition(
     &state_machine1,
     lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
     lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   EXPECT_EQ(
     lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING, state_machine1.current_state->id);
