@@ -25,14 +25,12 @@ extern "C"
 #endif
 
 RCL_LIFECYCLE_PUBLIC
-RCL_WARN_UNUSED
 void
 rcl_lifecycle_register_state(
   rcl_lifecycle_transition_map_t * map,
   rcl_lifecycle_state_t state);
 
 RCL_LIFECYCLE_PUBLIC
-RCL_WARN_UNUSED
 void
 rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_map_t * transition_map,

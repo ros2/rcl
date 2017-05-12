@@ -165,8 +165,12 @@ rcl_lifecycle_trigger_transition(
   }
   state_machine->current_state = transition->goal;
   if (publish_notification) {
-    rcl_lifecycle_com_interface_publish_notification(
+    rcl_ret_t ret = rcl_lifecycle_com_interface_publish_notification(
       &state_machine->com_interface, transition->start, state_machine->current_state);
+    if (ret != RCL_RET_OK) {
+      RCL_SET_ERROR_MSG("Could not publish transition", rcl_get_default_allocator());
+      return RCL_RET_ERROR;
+    }
   }
 
   return RCL_RET_OK;
