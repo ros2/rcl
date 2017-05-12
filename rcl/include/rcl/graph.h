@@ -128,7 +128,7 @@ rcl_destroy_topic_names_and_types(
  *   // ... error handling
  * }
  * // ... use the node_names struct, and when done:
- * rcutilst_ret_t rcutils_ret = rcutils_string_array_fini(&node_names);
+ * rcutils_ret_t rcutils_ret = rcutils_string_array_fini(&node_names);
  * if (rcutils_ret != RCUTILS_RET_OK) {
  *   // ... error handling
  * }

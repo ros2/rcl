@@ -84,7 +84,8 @@ rcl_get_zero_initialized_wait_set(void);
  * #include <rcl/wait.h>
  *
  * rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
- * rcl_ret_t ret = rcl_wait_set_init(&wait_set, 42, 42, rcl_get_default_allocator());
+ * rcl_ret_t ret =
+ *   rcl_wait_set_init(&wait_set, 42, 42, 42, 42, 42, rcl_get_default_allocator());
  * // ... error handling, then use it, then call the matching fini:
  * ret = rcl_wait_set_fini(&wait_set);
  * // ... error handling
@@ -426,7 +427,7 @@ rcl_wait_set_resize_services(rcl_wait_set_t * wait_set, size_t size);
  * rcl_subscription_t sub2;  // initialize this, see rcl_subscription_init()
  * rcl_guard_condition_t gc1;  // initialize this, see rcl_guard_condition_init()
  * rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
- * rcl_ret_t ret = rcl_wait_set_init(&wait_set, 2, 1, 0, rcl_get_default_allocator());
+ * rcl_ret_t ret = rcl_wait_set_init(&wait_set, 2, 1, 0, 0, 0, rcl_get_default_allocator());
  * // ... error handling
  * do {
  *   ret = rcl_wait_set_clear_subscriptions(&wait_set);

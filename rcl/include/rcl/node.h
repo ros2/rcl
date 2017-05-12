@@ -122,9 +122,9 @@ rcl_get_zero_initialized_node(void);
  *
  * ```c
  * rcl_node_t node = rcl_get_zero_initialized_node();
- * rcl_node_options_t * node_ops = rcl_node_get_default_options();
+ * rcl_node_options_t node_ops = rcl_node_get_default_options();
  * // ... node options customization
- * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/node_ns", node_ops);
+ * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/node_ns", &node_ops);
  * // ... error handling and then use the node, but eventually deinitialize it:
  * ret = rcl_node_fini(&node);
  * // ... error handling for rcl_node_fini()
