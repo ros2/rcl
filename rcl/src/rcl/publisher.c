@@ -166,10 +166,10 @@ rcl_ret_t
 rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-	return RCL_RET_PUBLISHER_INVALID;
+    return RCL_RET_PUBLISHER_INVALID;
   }
   else if (!rcl_node_is_valid(node)) {
-	return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;
   }
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -231,7 +231,7 @@ const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-      return NULL;
+    return NULL;
   }
   return _publisher_get_options(publisher);
 }
