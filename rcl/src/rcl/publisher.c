@@ -206,7 +206,7 @@ rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-	return RCL_RET_PUBLISHER_INVALID;
+    return RCL_RET_PUBLISHER_INVALID;
   } else if (rmw_publish(publisher->impl->rmw_handle, ros_message) != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe());
     return RCL_RET_ERROR;
