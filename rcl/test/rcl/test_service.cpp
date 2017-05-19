@@ -119,6 +119,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     example_interfaces, AddTwoInts);
   const char * topic = "add_two_ints";
+  const char * expected_topic = "/add_two_ints";
 
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
@@ -126,7 +127,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   // Check that the service name matches what we assigned.
-  EXPECT_EQ(strcmp(rcl_service_get_service_name(&service), topic), 0);
+  EXPECT_EQ(strcmp(rcl_service_get_service_name(&service), expected_topic), 0);
   auto service_exit = make_scope_exit([&service, this]() {
     stop_memory_checking();
     rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);

@@ -130,6 +130,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   //  Thread      : main thread 7fff7342d000
   //  Internals   : V6.4.140407OSS///v_topicNew/v_topic.c/448/21/1455157023.781423000
   const char * topic = "rcl_test_subscription_nominal_chatter_int64";
+  const char * expected_topic = "/rcl_test_subscription_nominal_chatter_int64";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -147,7 +148,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   });
-  EXPECT_EQ(strcmp(rcl_subscription_get_topic_name(&subscription), topic), 0);
+  EXPECT_EQ(strcmp(rcl_subscription_get_topic_name(&subscription), expected_topic), 0);
   // TODO(wjwwood): add logic to wait for the connection to be established
   //                probably using the count_subscriptions busy wait mechanism
   //                until then we will sleep for a short period of time
