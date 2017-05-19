@@ -49,12 +49,12 @@ extern "C"
  * if (rcutils_ret != RCUTILS_RET_OK) {
  *   // ... error handling
  * }
- * rcutils_ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
- * if (rcutils_ret != RCUTILS_RET_OK) {
+ * rcl_ret_t ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
+ * if (ret != RCL_RET_OK) {
  *   // ... error handling
  * }
  * char * expanded_topic_name = NULL;
- * rcl_ret_t ret = rcl_expand_topic_name(
+ * ret = rcl_expand_topic_name(
  *   "some/topic",
  *   "my_node",
  *   "my_ns",
@@ -108,7 +108,7 @@ extern "C"
  * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid, or
  * \return `RCL_RET_NODE_INVALID_NAME` if the name is invalid, or
  * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the namespace_ is invalid, or
- * \return `RCL_RET_UNKNOWN_SUBSTITUTION` if the given topic name is invalid, or
+ * \return `RCL_RET_UNKNOWN_SUBSTITUTION` for unknown substitutions in name, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
