@@ -89,9 +89,10 @@ rcl_get_zero_initialized_publisher(void);
  * The rosidl_message_type_support_t object contains message type specific
  * information used to publish messages.
  *
- * \todo TODO(wjwwood) update this once we've come up with an official scheme.
- * The topic name must be a non-empty string which follows the topic naming
- * format.
+ * The topic name must be a c string which follows the topic and service name
+ * format rules for unexpanded names, also known as non-fully qualified names:
+ *
+ * \see rcl_expand_topic_name
  *
  * The options struct allows the user to set the quality of service settings as
  * well as a custom allocator which is used when initializing/finalizing the
@@ -137,6 +138,7 @@ rcl_get_zero_initialized_publisher(void);
  * \return `RCL_RET_ALREADY_INIT` if the publisher is already initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory fails, or
+ * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
