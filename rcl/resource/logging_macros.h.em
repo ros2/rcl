@@ -213,7 +213,7 @@ typedef bool (* RclLogFilter)();
     rcl_time_point_value_t __rcl_logging_now = 0; \
     bool __rcl_logging_condition = true; \
     if (RCL_LIKELY(__rcl_logging_time_source.get_now != NULL)) { \
-      if (__rcl_logging_time_source.get_now(__rcl_logging_time_source.data, &__rcl_logging_now)) { \
+      if (__rcl_logging_time_source.get_now(__rcl_logging_time_source.data, &__rcl_logging_now) != RCL_RET_OK) { \
         rcl_log( \
           &__rcl_logging_location, RCL_LOG_SEVERITY_ERROR, "", \
           "%s() at %s:%d getting current time from time source type [%d] failed\n", \
