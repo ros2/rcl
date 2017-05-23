@@ -33,6 +33,14 @@ extern bool g_rcl_logging_initialized;
 /// Initialize the logging system.
 /**
  * The function is called automatically when using the logging macros.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  */
 RCL_PUBLIC
 void rcl_logging_initialize();
@@ -80,6 +88,14 @@ extern rcl_logging_output_handler_t g_rcl_logging_output_handler;
 
 /// Get the current output handler.
 /**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
  * \return The function pointer of the current output handler.
  */
 RCL_PUBLIC
@@ -87,6 +103,14 @@ rcl_logging_output_handler_t rcl_logging_get_output_handler();
 
 /// Set the current output handler.
 /**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
  * \param function The function pointer of the output handler to be used.
  */
 RCL_PUBLIC
@@ -104,6 +128,14 @@ extern int g_rcl_logging_severity_threshold;
 
 /// Get the global severity threshold.
 /**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
  * \return The severity threshold.
  */
 RCL_PUBLIC
@@ -111,6 +143,14 @@ int rcl_logging_get_severity_threshold();
 
 /// Set the global severity threshold.
 /**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
  * \param severity The severity threshold to be used.
  */
 RCL_PUBLIC
@@ -118,6 +158,17 @@ void rcl_logging_set_severity_threshold(int severity);
 
 /// Log a message.
 /**
+ * The attributes of this function are also being influenced by the currently
+ * set output handler.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
  * \param location The pointer to the location struct
  * \param severity The severity level
  * \param name The name of the logger
@@ -139,6 +190,15 @@ void rcl_log(
  * `stderr`.
  * For each message the severity and name is prepended and the location
  * information is appended when available.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No, for formatted messages <= 1023 characters
+ *                    | Yes, for formatted messages >= 1024 characters
+ * Thread-Safe        | Yes, if the underlying *printf functions are
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
  *
  * \param location The pointer to the location struct
  * \param severity The severity level
