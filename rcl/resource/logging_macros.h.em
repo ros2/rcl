@@ -202,7 +202,10 @@ typedef bool (* RclLogFilter)();
     if (RCL_UNLIKELY(!__rcl_logging_init_time_source_called)) { \
       __rcl_logging_init_time_source_called = true; \
       if (rcl_time_source_init(time_source_type, &__rcl_logging_time_source)) { \
-        rcl_log(&__rcl_logging_location, RCL_LOG_SEVERITY_ERROR, "", "%s() at %s:%d initialization of time source type [%d] failed\n", __func__, __FILE__, __LINE__, time_source_type); \
+        rcl_log( \
+          &__rcl_logging_location, RCL_LOG_SEVERITY_ERROR, "", \
+          "%s() at %s:%d initialization of time source type [%d] failed\n", \
+          __func__, __FILE__, __LINE__, time_source_type); \
       } \
     } \
  \
@@ -211,7 +214,10 @@ typedef bool (* RclLogFilter)();
     bool __rcl_logging_condition = true; \
     if (RCL_LIKELY(__rcl_logging_time_source.get_now != NULL)) { \
       if (__rcl_logging_time_source.get_now(__rcl_logging_time_source.data, &__rcl_logging_now)) { \
-        rcl_log(&__rcl_logging_location, RCL_LOG_SEVERITY_ERROR, "", "%s() at %s:%d getting current time from time source type [%d] failed\n", __func__, __FILE__, __LINE__, time_source_type); \
+        rcl_log( \
+          &__rcl_logging_location, RCL_LOG_SEVERITY_ERROR, "", \
+          "%s() at %s:%d getting current time from time source type [%d] failed\n", \
+          __func__, __FILE__, __LINE__, time_source_type); \
       } else { \
         __rcl_logging_condition = __rcl_logging_now >= __rcl_logging_last_logged + __rcl_logging_duration; \
       } \
