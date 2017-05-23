@@ -18,6 +18,7 @@ extern "C"
 #endif
 
 #include "rcl/logging.h"
+#include "rcutils/allocator.h"
 
 bool g_rcl_logging_initialized = false;
 
@@ -103,18 +104,38 @@ void rcl_logging_console_output_handler(
   }
 
   char buffer[1024];
+  char * message_buffer = buffer;
   int written = vsnprintf(buffer, sizeof(buffer), format, *args);
   if (written < 0) {
     fprintf(stderr, "failed to format message: '%s'\n", format);
     return;
   }
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  if ((size_t)written >= sizeof(buffer)) {
+    // write was incomplete, allocate necessary memory dynamically
+    size_t buffer_size = written + 1;
+    void * dynamic_buffer = allocator.allocate(buffer_size, allocator.state);
+    written = vsnprintf(dynamic_buffer, buffer_size, format, *args);
+    if (written < 0 || (size_t)written >= buffer_size) {
+      fprintf(
+        stderr,
+        "failed to format message (using dynamically allocated memory): '%s'\n",
+        format);
+      return;
+    }
+    message_buffer = (char *)dynamic_buffer;
+  }
 
   if (!location) {
-    fprintf(stream, "[%s] [%s]: %s\n", severity_string, name, buffer);
+    fprintf(stream, "[%s] [%s]: %s\n", severity_string, name, message_buffer);
   } else {
     fprintf(
-      stream, "[%s] [%s]: %s (%s() at %s:%zu)\n", severity_string, name, buffer,
+      stream, "[%s] [%s]: %s (%s() at %s:%zu)\n", severity_string, name, message_buffer,
       location->function_name, location->file_name, location->line_number);
+  }
+
+  if (message_buffer != buffer) {
+    allocator.deallocate(message_buffer, allocator.state);
   }
 }
 
