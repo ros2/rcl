@@ -40,7 +40,7 @@ size_t g_log_calls = 0;
 
 struct LogEvent
 {
-  RclLogLocation * location;
+  rcl_log_location_t * location;
   int level;
   std::string name;
   std::string message;
@@ -53,7 +53,7 @@ TEST(CLASSNAME(TestLogging, RMW_IMPLEMENTATION), test_logging) {
   EXPECT_EQ(g_rcl_logging_initialized, true);
 
   auto rcl_logging_console_output_handler = [](
-    RclLogLocation * location,
+    rcl_log_location_t * location,
     int level, const char * name, const char * format, va_list * args) -> void
     {
       g_log_calls += 1;
@@ -71,7 +71,7 @@ TEST(CLASSNAME(TestLogging, RMW_IMPLEMENTATION), test_logging) {
   EXPECT_EQ(rcl_logging_get_severity_threshold(), RCL_LOG_SEVERITY_DEBUG);
 
   // check all attributes for a debug log message
-  RclLogLocation location = {"func", "file", 42u};
+  rcl_log_location_t location = {"func", "file", 42u};
   g_log_calls = 0;
   rcl_log(&location, RCL_LOG_SEVERITY_DEBUG, "name1", "message %d", 11);
   EXPECT_EQ(g_log_calls, 1u);

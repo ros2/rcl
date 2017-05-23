@@ -85,7 +85,7 @@ extern "C"
 #define RCL_LOG_COND_NAMED(severity, condition_before, condition_after, name, format, ...) \
   { \
     RCL_LOGGING_AUTOINIT \
-    static RclLogLocation __rcl_logging_location = {__func__, __FILE__, __LINE__}; \
+    static rcl_log_location_t __rcl_logging_location = {__func__, __FILE__, __LINE__}; \
     condition_before \
     if (severity >= g_rcl_logging_severity_threshold) { \
       rcl_log(&__rcl_logging_location, severity, name, format, ## __VA_ARGS__); \

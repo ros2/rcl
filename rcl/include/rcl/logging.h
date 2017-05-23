@@ -38,7 +38,7 @@ RCL_PUBLIC
 void rcl_logging_initialize();
 
 /// The structure identifying the caller location in the source code.
-typedef struct RclLogLocation
+typedef struct rcl_log_location_t
 {
   /// The name of the function containing the log call.
   const char * function_name;
@@ -46,7 +46,7 @@ typedef struct RclLogLocation
   const char * file_name;
   /// The line number containing the log call.
   size_t line_number;
-} RclLogLocation;
+} rcl_log_location_t;
 
 /// The severity levels of log message.
 enum RCL_LOG_SEVERITY
@@ -67,7 +67,7 @@ enum RCL_LOG_SEVERITY
  * \param The variable argument list
  */
 typedef void (* RclLogFunction)(
-  RclLogLocation *,  // location
+  rcl_log_location_t *,  // location
   int,  // severity
   const char *,  // name
   const char *,  // format
@@ -126,7 +126,7 @@ void rcl_logging_set_severity_threshold(int severity);
  */
 RCL_PUBLIC
 void rcl_log(
-  RclLogLocation * location,
+  rcl_log_location_t * location,
   int severity,
   const char * name,
   const char * format,
@@ -148,7 +148,7 @@ void rcl_log(
  */
 RCL_PUBLIC
 void rcl_logging_console_output_handler(
-  RclLogLocation * location,
+  rcl_log_location_t * location,
   int severity, const char * name, const char * format, va_list * args);
 
 #if __cplusplus

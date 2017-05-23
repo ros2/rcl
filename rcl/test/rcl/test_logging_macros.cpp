@@ -28,7 +28,7 @@ size_t g_log_calls = 0;
 
 struct LogEvent
 {
-  RclLogLocation * location;
+  rcl_log_location_t * location;
   int level;
   std::string name;
   std::string message;
@@ -47,7 +47,7 @@ public:
     EXPECT_EQ(g_rcl_logging_initialized, true);
 
     auto rcl_logging_console_output_handler = [](
-      RclLogLocation * location,
+      rcl_log_location_t * location,
       int level, const char * name, const char * format, va_list * args) -> void
       {
         g_log_calls += 1;

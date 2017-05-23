@@ -55,7 +55,7 @@ void rcl_logging_set_severity_threshold(int severity)
 }
 
 void rcl_log(
-  RclLogLocation * location,
+  rcl_log_location_t * location,
   int severity, const char * name, const char * format, ...)
 {
   if (severity < g_rcl_logging_severity_threshold) {
@@ -71,7 +71,7 @@ void rcl_log(
 }
 
 void rcl_logging_console_output_handler(
-  RclLogLocation * location,
+  rcl_log_location_t * location,
   int severity, const char * name, const char * format, va_list * args)
 {
   FILE * stream = NULL;
