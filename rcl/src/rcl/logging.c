@@ -21,7 +21,7 @@ extern "C"
 
 bool g_rcl_logging_initialized = false;
 
-RclLogFunction g_rcl_logging_output_handler = NULL;
+rcl_logging_output_handler_t g_rcl_logging_output_handler = NULL;
 
 int g_rcl_logging_severity_threshold = 0;
 
@@ -34,12 +34,12 @@ void rcl_logging_initialize()
   }
 }
 
-RclLogFunction rcl_logging_get_output_handler()
+rcl_logging_output_handler_t rcl_logging_get_output_handler()
 {
   return g_rcl_logging_output_handler;
 }
 
-void rcl_logging_set_output_handler(RclLogFunction function)
+void rcl_logging_set_output_handler(rcl_logging_output_handler_t function)
 {
   g_rcl_logging_output_handler = function;
 }
@@ -61,7 +61,7 @@ void rcl_log(
   if (severity < g_rcl_logging_severity_threshold) {
     return;
   }
-  RclLogFunction output_handler = g_rcl_logging_output_handler;
+  rcl_logging_output_handler_t output_handler = g_rcl_logging_output_handler;
   if (output_handler) {
     va_list args;
     va_start(args, format);

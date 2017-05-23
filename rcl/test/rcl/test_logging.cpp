@@ -65,7 +65,7 @@ TEST(CLASSNAME(TestLogging, RMW_IMPLEMENTATION), test_logging) {
       g_last_log_event.message = buffer;
     };
 
-  RclLogFunction original_function = rcl_logging_get_output_handler();
+  rcl_logging_output_handler_t original_function = rcl_logging_get_output_handler();
   rcl_logging_set_output_handler(rcl_logging_console_output_handler);
 
   EXPECT_EQ(rcl_logging_get_severity_threshold(), RCL_LOG_SEVERITY_DEBUG);

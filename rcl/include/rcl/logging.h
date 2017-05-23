@@ -66,7 +66,7 @@ enum RCL_LOG_SEVERITY
  * \param The format string
  * \param The variable argument list
  */
-typedef void (* RclLogFunction)(
+typedef void (* rcl_logging_output_handler_t)(
   rcl_log_location_t *,  // location
   int,  // severity
   const char *,  // name
@@ -76,21 +76,21 @@ typedef void (* RclLogFunction)(
 
 /// The function pointer of the current output handler.
 RCL_PUBLIC
-extern RclLogFunction g_rcl_logging_output_handler;
+extern rcl_logging_output_handler_t g_rcl_logging_output_handler;
 
 /// Get the current output handler.
 /**
  * \return The function pointer of the current output handler.
  */
 RCL_PUBLIC
-RclLogFunction rcl_logging_get_output_handler();
+rcl_logging_output_handler_t rcl_logging_get_output_handler();
 
 /// Set the current output handler.
 /**
  * \param function The function pointer of the output handler to be used.
  */
 RCL_PUBLIC
-void rcl_logging_set_output_handler(RclLogFunction function);
+void rcl_logging_set_output_handler(rcl_logging_output_handler_t function);
 
 /// The global severity threshold before calling the output handler.
 /**

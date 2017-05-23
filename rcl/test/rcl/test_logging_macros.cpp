@@ -38,7 +38,7 @@ LogEvent g_last_log_event;
 class TestLoggingMacros : public ::testing::Test
 {
 public:
-  RclLogFunction previous_output_handler;
+  rcl_logging_output_handler_t previous_output_handler;
   void SetUp()
   {
     g_log_calls = 0;
