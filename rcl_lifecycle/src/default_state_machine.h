@@ -15,9 +15,8 @@
 #ifndef DEFAULT_STATE_MACHINE_H_
 #define DEFAULT_STATE_MACHINE_H_
 
+#include <rcl/macros.h>
 #include <rcl/types.h>
-
-#include "rcl/macros.h"
 
 #include "rcl_lifecycle/data_types.h"
 #include "rcl_lifecycle/visibility_control.h"
