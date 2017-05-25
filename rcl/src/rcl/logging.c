@@ -105,7 +105,14 @@ void rcl_logging_console_output_handler(
 
   char buffer[1024];
   char * message_buffer = buffer;
-  int written = vsnprintf(buffer, sizeof(buffer), format, *args);
+  int written;
+  {
+    // use copy of args to keep args for potential later user
+    va_list args_clone;
+    va_copy(args_clone, *args);
+    written = vsnprintf(buffer, sizeof(buffer), format, args_clone);
+    va_end(args_clone);
+  }
   if (written < 0) {
     fprintf(stderr, "failed to format message: '%s'\n", format);
     return;
