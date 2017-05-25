@@ -29,9 +29,9 @@ int g_rcl_logging_severity_threshold = 0;
 void rcl_logging_initialize()
 {
   if (!g_rcl_logging_initialized) {
-    g_rcl_logging_initialized = true;
     g_rcl_logging_output_handler = &rcl_logging_console_output_handler;
     g_rcl_logging_severity_threshold = RCL_LOG_SEVERITY_DEBUG;
+    g_rcl_logging_initialized = true;
   }
 }
 
