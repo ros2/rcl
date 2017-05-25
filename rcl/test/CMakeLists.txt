@@ -20,6 +20,14 @@ ament_add_gtest(test_logging rcl/test_logging.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs})
 target_link_libraries(test_logging ${PROJECT_NAME})
 
+add_executable(test_logging_long_messages rcl/test_logging_long_messages.cpp)
+target_link_libraries(test_logging_long_messages ${PROJECT_NAME})
+ament_add_nose_test(test_logging_long_messages
+  "rcl/test_logging_long_messages.py"
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  WORKING_DIRECTORY "$<TARGET_FILE_DIR:test_logging_long_messages>"
+  TIMEOUT 10)
+
 ament_add_gmock(test_logging_macros rcl/test_logging_macros.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs})
 target_link_libraries(test_logging_macros ${PROJECT_NAME})
