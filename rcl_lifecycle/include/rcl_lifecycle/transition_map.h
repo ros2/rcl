@@ -16,6 +16,7 @@
 #ifndef RCL_LIFECYCLE__TRANSITION_MAP_H_
 #define RCL_LIFECYCLE__TRANSITION_MAP_H_
 
+#include <rcl/macros.h>
 #include <rcl_lifecycle/data_types.h>
 
 #if __cplusplus
@@ -37,12 +38,14 @@ rcl_lifecycle_register_transition(
   rcl_lifecycle_ret_t key);
 
 RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
 rcl_lifecycle_state_t *
 rcl_lifecycle_get_state(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int state_id);
 
 RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
 rcl_lifecycle_transition_t *
 rcl_lifecycle_get_transitions(
   rcl_lifecycle_transition_map_t * transition_map,

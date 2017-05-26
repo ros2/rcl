@@ -30,6 +30,7 @@ rcl_lifecycle_state_machine_t
 rcl_lifecycle_get_zero_initialized_state_machine();
 
 RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lifecycle_state_machine_init(
   rcl_lifecycle_state_machine_t * state_machine,
@@ -42,17 +43,20 @@ rcl_lifecycle_state_machine_init(
   bool default_states);
 
 RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lifecycle_state_machine_fini(
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_node_t * node_handle);
 
 RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lifecycle_state_machine_is_initialized(
   const rcl_lifecycle_state_machine_t * state_machine);
 
 RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
 const rcl_lifecycle_transition_t *
 rcl_lifecycle_is_valid_callback_transition(
   rcl_lifecycle_state_machine_t * state_machine,
@@ -70,6 +74,7 @@ rcl_lifecycle_is_valid_callback_transition(
  * callbacks such as RCL_LIFECYCLE_RET_OK et. al.
  */
 RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lifecycle_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,

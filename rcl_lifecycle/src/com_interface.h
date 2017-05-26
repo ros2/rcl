@@ -20,12 +20,15 @@ extern "C"
 {
 #endif
 
+#include <rcl/macros.h>
+
 #include "rcl_lifecycle/data_types.h"
 
 rcl_lifecycle_com_interface_t
 rcl_lifecycle_get_zero_initialized_com_interface();
 
 rcl_ret_t
+RCL_WARN_UNUSED
 rcl_lifecycle_com_interface_init(
   rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle,
@@ -36,11 +39,13 @@ rcl_lifecycle_com_interface_init(
   const rosidl_service_type_support_t * ts_srv_get_available_transitions);
 
 rcl_ret_t
+RCL_WARN_UNUSED
 rcl_lifecycle_com_interface_fini(
   rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle);
 
 rcl_ret_t
+RCL_WARN_UNUSED
 rcl_lifecycle_com_interface_publish_notification(
   rcl_lifecycle_com_interface_t * com_interface,
   const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal);
