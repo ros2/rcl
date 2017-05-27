@@ -31,6 +31,10 @@
 
 typedef rcutils_error_state_t rcl_error_state_t;
 
+#define rcl_error_state_copy rcutils_error_state_copy
+
+#define rcl_error_state_fini rcutils_error_state_fini
+
 #define rcl_set_error_state rcutils_set_error_state
 
 #define RCL_SET_ERROR_MSG(msg, allocator) RCUTILS_SET_ERROR_MSG(msg, allocator)
