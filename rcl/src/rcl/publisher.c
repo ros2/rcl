@@ -75,7 +75,7 @@ rcl_publisher_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, *allocator);
   // Expand the given topic name.
-  rcutils_allocator_t rcutils_allocator = rcutils_get_default_allocator();
+  rcutils_allocator_t rcutils_allocator = *allocator;  // implicit conversion to rcutils version
   rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
