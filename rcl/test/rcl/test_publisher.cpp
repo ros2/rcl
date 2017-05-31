@@ -89,6 +89,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   //  Thread      : main thread 7fff7342d000
   //  Internals   : V6.4.140407OSS///v_topicNew/v_topic.c/448/21/1455157023.781423000
   const char * topic_name = "chatter_int64";
+  const char * expected_topic_name = "/chatter_int64";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -97,7 +98,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   });
-  EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), topic_name), 0);
+  EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), expected_topic_name), 0);
   std_msgs__msg__Int64 msg;
   std_msgs__msg__Int64__init(&msg);
   msg.data = 42;

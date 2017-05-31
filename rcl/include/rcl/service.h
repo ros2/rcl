@@ -91,9 +91,10 @@ rcl_get_zero_initialized_service(void);
  * The rosidl_service_type_support_t object contains service type specific
  * information used to send or take requests and responses.
  *
- * \todo TODO(wjwwood) update this once we've come up with an official scheme.
- * The service name must be a non-empty string which follows the service/topic
- * naming format.
+ * The topic name must be a c string which follows the topic and service name
+ * format rules for unexpanded names, also known as non-fully qualified names:
+ *
+ * \see rcl_expand_topic_name
  *
  * The options struct allows the user to set the quality of service settings as
  * well as a custom allocator which is used when initializing/finalizing the
@@ -138,6 +139,7 @@ rcl_get_zero_initialized_service(void);
  * \return `RCL_RET_OK` if service was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_SERVICE_NAME_INVALID` if the given service name is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC

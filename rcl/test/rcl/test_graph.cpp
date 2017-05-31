@@ -161,7 +161,7 @@ TEST_F(
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
-  const char * topic_name = "topic_test_rcl_count_publishers";
+  const char * topic_name = "/topic_test_rcl_count_publishers";
   size_t count;
   // invalid node
   ret = rcl_count_publishers(nullptr, topic_name, &count);
@@ -199,7 +199,7 @@ TEST_F(
   stop_memory_checking();
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
-  const char * topic_name = "topic_test_rcl_count_subscribers";
+  const char * topic_name = "/topic_test_rcl_count_subscribers";
   size_t count;
   // invalid node
   ret = rcl_count_subscribers(nullptr, topic_name, &count);
@@ -323,7 +323,7 @@ check_graph_state(
  */
 TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functions) {
   stop_memory_checking();
-  std::string topic_name("test_graph_query_functions__");
+  std::string topic_name("/test_graph_query_functions__");
   std::chrono::nanoseconds now = std::chrono::system_clock::now().time_since_epoch();
   topic_name += std::to_string(now.count());
   printf("Using topic name: %s\n", topic_name.c_str());
@@ -421,7 +421,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
     rcl_ret_t ret = rcl_publisher_init(
       &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-      "chatter_test_graph_guard_condition_topics", &pub_ops);
+      "/chatter_test_graph_guard_condition_topics", &pub_ops);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     // sleep
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -430,7 +430,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
     ret = rcl_subscription_init(
       &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-      "chatter_test_graph_guard_condition_topics", &sub_ops);
+      "/chatter_test_graph_guard_condition_topics", &sub_ops);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     // sleep
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -481,7 +481,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   // First create a client which will be used to call the function.
   rcl_client_t client = rcl_get_zero_initialized_client();
   auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
-  const char * service_name = "service_test_rcl_service_server_is_available";
+  const char * service_name = "/service_test_rcl_service_server_is_available";
   rcl_client_options_t client_options = rcl_client_get_default_options();
   ret = rcl_client_init(&client, this->node_ptr, ts, service_name, &client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();

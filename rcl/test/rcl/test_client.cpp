@@ -73,6 +73,7 @@ TEST_F(TestClientFixture, test_client_nominal) {
 
   // Initialize the client.
   const char * topic_name = "add_two_ints";
+  const char * expected_topic_name = "/add_two_ints";
   rcl_client_options_t client_options = rcl_client_get_default_options();
 
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
@@ -81,7 +82,7 @@ TEST_F(TestClientFixture, test_client_nominal) {
 
   // Check the return code of initialization and that the service name matches what's expected
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_EQ(strcmp(rcl_client_get_service_name(&client), topic_name), 0);
+  EXPECT_EQ(strcmp(rcl_client_get_service_name(&client), expected_topic_name), 0);
 
   auto client_exit = make_scope_exit([&client, this]() {
     stop_memory_checking();

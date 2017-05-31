@@ -23,8 +23,10 @@ extern "C"
 #include <string.h>
 
 #include "./common.h"
+#include "rcl/expand_topic_name.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
+#include "rmw/validate_full_topic_name.h"
 
 typedef struct rcl_service_impl_t
 {
@@ -71,6 +73,66 @@ rcl_service_init(
     RCL_SET_ERROR_MSG("service already initialized, or memory was unintialized", *allocator);
     return RCL_RET_ALREADY_INIT;
   }
+  // Expand the given service name.
+  rcutils_allocator_t rcutils_allocator = *allocator;  // implicit conversion to rcutils version
+  rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
+  rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
+  if (rcutils_ret != RCUTILS_RET_OK) {
+    RCL_SET_ERROR_MSG(rcutils_get_error_string_safe(), *allocator)
+    if (rcutils_ret == RCUTILS_RET_BAD_ALLOC) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    return RCL_RET_ERROR;
+  }
+  rcl_ret_t ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
+  if (ret != RCL_RET_OK) {
+    rcutils_ret = rcutils_string_map_fini(&substitutions_map);
+    if (rcutils_ret != RCUTILS_RET_OK) {
+      fprintf(stderr,
+        "[" RCUTILS_STRINGIFY(__FILE__) ":" RCUTILS_STRINGIFY(__LINE__) "]: "
+        "failed to fini string_map (%d) during error handling: %s\n",
+        rcutils_ret,
+        rcutils_get_error_string_safe());
+    }
+    if (ret == RCL_RET_BAD_ALLOC) {
+      return ret;
+    }
+    return RCL_RET_ERROR;
+  }
+  char * expanded_service_name = NULL;
+  ret = rcl_expand_topic_name(
+    service_name,
+    rcl_node_get_name(node),
+    rcl_node_get_namespace(node),
+    &substitutions_map,
+    *allocator,
+    &expanded_service_name);
+  rcutils_ret = rcutils_string_map_fini(&substitutions_map);
+  if (rcutils_ret != RCUTILS_RET_OK) {
+    RCL_SET_ERROR_MSG(rcutils_get_error_string_safe(), *allocator)
+    allocator->deallocate(expanded_service_name, allocator->state);
+    return RCL_RET_ERROR;
+  }
+  if (ret != RCL_RET_OK) {
+    if (ret == RCL_RET_BAD_ALLOC) {
+      return ret;
+    } else if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
+      return RCL_RET_SERVICE_NAME_INVALID;
+    } else {
+      return RCL_RET_ERROR;
+    }
+  }
+  // Validate the expanded service name.
+  int validation_result;
+  rmw_ret_t rmw_ret = rmw_validate_full_topic_name(expanded_service_name, &validation_result, NULL);
+  if (rmw_ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
+    return RCL_RET_ERROR;
+  }
+  if (validation_result != RMW_TOPIC_VALID) {
+    RCL_SET_ERROR_MSG(rmw_full_topic_name_validation_result_string(validation_result), *allocator)
+    return RCL_RET_SERVICE_NAME_INVALID;
+  }
   // Allocate space for the implementation struct.
   service->impl = (rcl_service_impl_t *)allocator->allocate(
     sizeof(rcl_service_impl_t), allocator->state);
@@ -87,8 +149,9 @@ rcl_service_init(
   service->impl->rmw_handle = rmw_create_service(
     rcl_node_get_rmw_handle(node),
     type_support,
-    service_name,
+    expanded_service_name,
     &options->qos);
+  allocator->deallocate(expanded_service_name, allocator->state);
   if (!service->impl->rmw_handle) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
     goto fail;

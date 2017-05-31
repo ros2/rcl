@@ -38,8 +38,10 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_MISMATCHED_RMW_ID 102
 /// Topic name does not pass validation.
 #define RCL_RET_TOPIC_NAME_INVALID 103
+/// Service name (same as topic name) does not pass validation.
+#define RCL_RET_SERVICE_NAME_INVALID 104
 /// Topic name substitution is unknown.
-#define RCL_RET_UNKNOWN_SUBSTITUTION 104
+#define RCL_RET_UNKNOWN_SUBSTITUTION 105
 
 // rcl node specific ret codes in 2XX
 /// Invalid rcl_node_t given return code.

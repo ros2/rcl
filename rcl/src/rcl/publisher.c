@@ -19,11 +19,14 @@ extern "C"
 
 #include "rcl/publisher.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "./common.h"
+#include "rcl/expand_topic_name.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
+#include "rmw/validate_full_topic_name.h"
 
 typedef struct rcl_publisher_impl_t
 {
@@ -71,6 +74,66 @@ rcl_publisher_init(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, *allocator);
+  // Expand the given topic name.
+  rcutils_allocator_t rcutils_allocator = *allocator;  // implicit conversion to rcutils version
+  rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
+  rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
+  if (rcutils_ret != RCUTILS_RET_OK) {
+    RCL_SET_ERROR_MSG(rcutils_get_error_string_safe(), *allocator)
+    if (rcutils_ret == RCUTILS_RET_BAD_ALLOC) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    return RCL_RET_ERROR;
+  }
+  rcl_ret_t ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
+  if (ret != RCL_RET_OK) {
+    rcutils_ret = rcutils_string_map_fini(&substitutions_map);
+    if (rcutils_ret != RCUTILS_RET_OK) {
+      fprintf(stderr,
+        "[" RCUTILS_STRINGIFY(__FILE__) ":" RCUTILS_STRINGIFY(__LINE__) "]: "
+        "failed to fini string_map (%d) during error handling: %s\n",
+        rcutils_ret,
+        rcutils_get_error_string_safe());
+    }
+    if (ret == RCL_RET_BAD_ALLOC) {
+      return ret;
+    }
+    return RCL_RET_ERROR;
+  }
+  char * expanded_topic_name = NULL;
+  ret = rcl_expand_topic_name(
+    topic_name,
+    rcl_node_get_name(node),
+    rcl_node_get_namespace(node),
+    &substitutions_map,
+    *allocator,
+    &expanded_topic_name);
+  rcutils_ret = rcutils_string_map_fini(&substitutions_map);
+  if (rcutils_ret != RCUTILS_RET_OK) {
+    RCL_SET_ERROR_MSG(rcutils_get_error_string_safe(), *allocator)
+    allocator->deallocate(expanded_topic_name, allocator->state);
+    return RCL_RET_ERROR;
+  }
+  if (ret != RCL_RET_OK) {
+    if (ret == RCL_RET_BAD_ALLOC) {
+      return ret;
+    } else if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
+      return RCL_RET_TOPIC_NAME_INVALID;
+    } else {
+      return RCL_RET_ERROR;
+    }
+  }
+  // Validate the expanded topic name.
+  int validation_result;
+  rmw_ret_t rmw_ret = rmw_validate_full_topic_name(expanded_topic_name, &validation_result, NULL);
+  if (rmw_ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
+    return RCL_RET_ERROR;
+  }
+  if (validation_result != RMW_TOPIC_VALID) {
+    RCL_SET_ERROR_MSG(rmw_full_topic_name_validation_result_string(validation_result), *allocator)
+    return RCL_RET_TOPIC_NAME_INVALID;
+  }
   // Allocate space for the implementation struct.
   publisher->impl = (rcl_publisher_impl_t *)allocator->allocate(
     sizeof(rcl_publisher_impl_t), allocator->state);
@@ -82,8 +145,9 @@ rcl_publisher_init(
   publisher->impl->rmw_handle = rmw_create_publisher(
     rcl_node_get_rmw_handle(node),
     type_support,
-    topic_name,
+    expanded_topic_name,
     &(options->qos));
+  allocator->deallocate(expanded_topic_name, allocator->state);
   if (!publisher->impl->rmw_handle) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
     goto fail;
