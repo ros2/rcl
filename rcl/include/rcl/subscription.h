@@ -307,6 +307,9 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription);
+/// unsafe _subscription_get_options
+#define _subscription_get_options(subscription) \
+  &subscription->impl->options
 
 /// Return the rmw subscription handle.
 /**
@@ -343,6 +346,7 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
 /**
  * The bool returned is `false` if:
  *   - the argument `subscription` is `NULL`
+ *   - the argument's option pointer is `NULL`
  *   - the argument's `subscription->impl` is `NULL`
  *   - the argument's `subscription->impl->rmw_handle` is `NULL`
  * The bool returned is `true` otherwise.
