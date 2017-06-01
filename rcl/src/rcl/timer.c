@@ -21,6 +21,7 @@ extern "C"
 
 #include "./common.h"
 #include "./stdatomic_helper.h"
+#include "rcutils/time.h"
 
 typedef struct rcl_timer_impl_t
 {
@@ -62,7 +63,7 @@ rcl_timer_init(
     return RCL_RET_ALREADY_INIT;
   }
   rcl_time_point_value_t now_steady;
-  rcl_ret_t now_ret = rcl_steady_time_now(&now_steady);
+  rcl_ret_t now_ret = rcutils_steady_time_now(&now_steady);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
@@ -105,7 +106,7 @@ rcl_timer_call(rcl_timer_t * timer)
     return RCL_RET_TIMER_CANCELED;
   }
   rcl_time_point_value_t now_steady;
-  rcl_ret_t now_ret = rcl_steady_time_now(&now_steady);
+  rcl_ret_t now_ret = rcutils_steady_time_now(&now_steady);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
@@ -149,7 +150,7 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(time_until_next_call, RCL_RET_INVALID_ARGUMENT, *allocator);
   rcl_time_point_value_t now;
-  rcl_ret_t ret = rcl_steady_time_now(&now);
+  rcl_ret_t ret = rcutils_steady_time_now(&now);
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
@@ -171,7 +172,7 @@ rcl_timer_get_time_since_last_call(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(time_since_last_call, RCL_RET_INVALID_ARGUMENT, *allocator);
   rcl_time_point_value_t now;
-  rcl_ret_t ret = rcl_steady_time_now(&now);
+  rcl_ret_t ret = rcutils_steady_time_now(&now);
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
@@ -255,7 +256,7 @@ rcl_timer_reset(rcl_timer_t * timer)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID, rcl_get_default_allocator());
   rcl_time_point_value_t now;
-  rcl_ret_t now_ret = rcl_steady_time_now(&now);
+  rcl_ret_t now_ret = rcutils_steady_time_now(&now);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }

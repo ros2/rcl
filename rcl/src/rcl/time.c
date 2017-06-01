@@ -21,6 +21,7 @@
 #include "./stdatomic_helper.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcutils/time.h"
 
 // Process default ROS time sources
 static rcl_time_source_t * rcl_default_ros_time_source;
@@ -40,7 +41,7 @@ rcl_ret_t
 rcl_get_steady_time(void * data, rcl_time_point_value_t * current_time)
 {
   (void)data;  // unused
-  return rcl_steady_time_now(current_time);
+  return rcutils_steady_time_now(current_time);
 }
 
 // Implementation only
@@ -48,7 +49,7 @@ rcl_ret_t
 rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
 {
   (void)data;  // unused
-  return rcl_system_time_now(current_time);
+  return rcutils_system_time_now(current_time);
 }
 
 // Internal method for zeroing values on init, assumes time_source is valid

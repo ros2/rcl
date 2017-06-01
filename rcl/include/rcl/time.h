@@ -23,25 +23,26 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
+#include "rcutils/time.h"
 
 /// Convenience macro to convert seconds to nanoseconds.
-#define RCL_S_TO_NS(seconds) (seconds * (1000 * 1000 * 1000))
+#define RCL_S_TO_NS RCUTILS_S_TO_NS
 /// Convenience macro to convert milliseconds to nanoseconds.
-#define RCL_MS_TO_NS(milliseconds) (milliseconds * (1000 * 1000))
+#define RCL_MS_TO_NS RCUTILS_MS_TO_NS
 /// Convenience macro to convert microseconds to nanoseconds.
-#define RCL_US_TO_NS(microseconds) (microseconds * 1000)
+#define RCL_US_TO_NS RCUTILS_US_TO_NS
 
 /// Convenience macro to convert nanoseconds to seconds.
-#define RCL_NS_TO_S(nanoseconds) (nanoseconds / (1000 * 1000 * 1000))
+#define RCL_NS_TO_S RCUTILS_NS_TO_S
 /// Convenience macro to convert nanoseconds to milliseconds.
-#define RCL_NS_TO_MS(nanoseconds) (nanoseconds / (1000 * 1000))
+#define RCL_NS_TO_MS RCUTILS_NS_TO_MS
 /// Convenience macro to convert nanoseconds to microseconds.
-#define RCL_NS_TO_US(nanoseconds) (nanoseconds / 1000)
+#define RCL_NS_TO_US RCUTILS_NS_TO_US
 
 /// A single point in time, measured in nanoseconds since the Unix epoch.
-typedef uint64_t rcl_time_point_value_t;
+typedef rcutils_time_point_value_t rcl_time_point_value_t;
 /// A duration of time, measured in nanoseconds.
-typedef int64_t rcl_duration_value_t;
+typedef rcutils_duration_value_t rcl_duration_value_t;
 
 /// Time source type, used to indicate the source of a time measurement.
 enum rcl_time_source_type_t
@@ -486,68 +487,6 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_set_ros_time_override(rcl_time_source_t * time_source,
   rcl_time_point_value_t time_value);
-
-/// Retrieve the current time as a rcl_time_point_value_t.
-/**
- * This function returns the time from a system clock.
- * The closest equivalent would be to std::chrono::system_clock::now();
- *
- * The resolution (e.g. nanoseconds vs microseconds) is not guaranteed.
- *
- * The now argument must point to an allocated rcl_system_time_point_t struct,
- * as the result is copied into this variable.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | Yes
- * Uses Atomics       | No
- * Lock-Free          | Yes [1]
- * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
- *
- * \todo TODO(tfoote): consider moving this to rmw for more reuse
- *
- * \param[out] now a datafield in which the current time is stored
- * \return `RCL_RET_OK` if the current time was successfully obtained, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_ERROR` an unspecified error occur.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_system_time_now(rcl_time_point_value_t * now);
-
-/// Retrieve the current time as a rcl_time_point_value_t object.
-/**
- * This function returns the time from a monotonically increasing clock.
- * The closest equivalent would be to std::chrono::steady_clock::now();
- *
- * The resolution (e.g. nanoseconds vs microseconds) is not guaranteed.
- *
- * The now argument must point to an allocated rcl_time_point_value_t object,
- * as the result is copied into this variable.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | Yes
- * Uses Atomics       | No
- * Lock-Free          | Yes [1]
- * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
- *
- * \todo TODO(tfoote): consider moving this to rmw for more reuse
- *
- * \param[out] now a struct in which the current time is stored
- * \return `RCL_RET_OK` if the current time was successfully obtained, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_ERROR` an unspecified error occur.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_steady_time_now(rcl_time_point_value_t * now);
 
 #if __cplusplus
 }
