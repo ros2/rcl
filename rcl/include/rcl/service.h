@@ -382,6 +382,26 @@ RCL_WARN_UNUSED
 rmw_service_t *
 rcl_service_get_rmw_handle(const rcl_service_t * service);
 
+/// Check that the service is valid.
+/**
+ * The bool returned is `false` if:
+ *   - the argument `service` is `NULL`
+ *   - the argument's `service->impl` is `NULL`
+ *   - the argument's `service->impl->rmw_handle` is `NULL`
+ * The bool returned is `true` otherwise.
+ * This function cannot fail.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] service pointer to the rcl service
+ * \return `true` if `service` is valid, otherwise `false`
+ */
 bool
 rcl_service_is_valid(const rcl_service_t * service);
 
