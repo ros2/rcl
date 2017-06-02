@@ -263,7 +263,7 @@ check_graph_state(
     rcl_reset_error();
     is_in_tnat = false;
     for (size_t i = 0; RCL_RET_OK == ret && i < tnat.topic_count; ++i) {
-      if (topic_name == std::string(tnat.topic_names[i])) {
+      if (topic_name == tnat.topic_names[i]) {
         ASSERT_FALSE(is_in_tnat) << "duplicates in the tnat";  // Found it more than once!
         is_in_tnat = true;
       }
@@ -288,6 +288,16 @@ check_graph_state(
     {
       printf("  state correct!\n");
       break;
+    } else {
+      if (expected_publisher_count != publisher_count) {
+        printf("    pub count incorrect!\n");
+      }
+      if (expected_subscriber_count != subscriber_count) {
+        printf("    sub count incorrect!\n");
+      }
+      if (expected_in_tnat != is_in_tnat) {
+        printf("    in tnat incorrect!\n");
+      }
     }
     // Wait for graph change before trying again.
     if ((i + 1) == number_of_tries) {

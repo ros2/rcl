@@ -64,10 +64,9 @@ function(test_target_function)
   )
 
   set(SKIP_TEST "")
-  # TODO(wjwwood): remove this when the graph API works properly for FastRTPS
+  # TODO(wjwwood): remove this when the graph API works properly for connext dynamic
   if(
-    rmw_implementation STREQUAL "rmw_connext_dynamic_cpp" OR
-    rmw_implementation STREQUAL "rmw_fastrtps_cpp"
+    rmw_implementation STREQUAL "rmw_connext_dynamic_cpp"
   )
     message(STATUS "Skipping test_graph${target_suffix} test.")
     set(SKIP_TEST "SKIP_TEST")
