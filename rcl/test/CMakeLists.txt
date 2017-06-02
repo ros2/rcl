@@ -1,3 +1,4 @@
+find_package(ament_cmake_gmock REQUIRED)
 find_package(ament_cmake_gtest REQUIRED)
 find_package(ament_cmake_nose REQUIRED)
 
@@ -7,12 +8,29 @@ find_package(std_msgs REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 
 include(cmake/rcl_add_custom_executable.cmake)
+include(cmake/rcl_add_custom_gmock.cmake)
 include(cmake/rcl_add_custom_gtest.cmake)
 include(cmake/rcl_add_custom_launch_test.cmake)
 
 set(extra_test_libraries)
 set(extra_test_env)
 set(extra_lib_dirs "${rcl_lib_dir}")
+
+ament_add_gtest(test_logging rcl/test_logging.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs})
+target_link_libraries(test_logging ${PROJECT_NAME})
+
+add_executable(test_logging_long_messages rcl/test_logging_long_messages.cpp)
+target_link_libraries(test_logging_long_messages ${PROJECT_NAME})
+ament_add_nose_test(test_logging_long_messages
+  "rcl/test_logging_long_messages.py"
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  WORKING_DIRECTORY "$<TARGET_FILE_DIR:test_logging_long_messages>"
+  TIMEOUT 10)
+
+ament_add_gmock(test_logging_macros rcl/test_logging_macros.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs})
+target_link_libraries(test_logging_macros ${PROJECT_NAME})
 
 # This subdirectory extends both extra_test_libraries, extra_test_env, and extra_lib_dirs.
 add_subdirectory(memory_tools)

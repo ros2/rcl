@@ -48,6 +48,10 @@
  *   - rcl/time.h
  * - Error handling functionality (C style)
  *   - rcl/error_handling.h
+ * - Types and functions for the logging subsystem
+ *   - rcl/logging.h
+ * - Macros to log messages with a specific severity level and optional conditions
+ *   - rcl/logging_macros.h
  * - Macros
  *   - rcl/macros.h
  * - Return code types
