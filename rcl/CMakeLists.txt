@@ -17,12 +17,6 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra")
 endif()
 
-if(WIN32)
-  set(time_impl_c src/rcl/time_win32.c)
-else()
-  set(time_impl_c src/rcl/time_unix.c)
-endif()
-
 set(${PROJECT_NAME}_sources
   src/rcl/client.c
   src/rcl/common.c
@@ -36,7 +30,6 @@ set(${PROJECT_NAME}_sources
   src/rcl/service.c
   src/rcl/subscription.c
   src/rcl/time.c
-  ${time_impl_c}
   src/rcl/timer.c
   src/rcl/validate_topic_name.c
   src/rcl/wait.c
