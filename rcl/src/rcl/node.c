@@ -220,7 +220,7 @@ rcl_node_init(
     return RCL_RET_ERROR;
   }
 
-  bool use_security = (0 == strcmp(ros_enable_security, "true")) ? true : false;
+  bool use_security = (0 == strcmp(ros_enable_security, "true"));
 
   if (rcutils_get_env(sros_security_strategy_var_name, &ros_enforce_security)) {
     RCL_SET_ERROR_MSG("fail fetching environment variable", rcl_get_default_allocator());
