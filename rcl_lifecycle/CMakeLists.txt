@@ -11,6 +11,14 @@ find_package(rmw REQUIRED)
 
 include_directories(include)
 
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 14)
+
+if(NOT WIN32)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+endif()
+
 set(rcl_lifecycle_sources
   src/com_interface.c
   src/default_state_machine.c
@@ -43,12 +51,6 @@ install(TARGETS rcl_lifecycle
   RUNTIME DESTINATION bin)
 
 if(BUILD_TESTING)
-  if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-    add_compile_options(-Wall -Wextra -Wpedantic)
-  endif()
-
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   find_package(rcl REQUIRED)
