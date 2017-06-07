@@ -64,8 +64,8 @@ TEST_F(TestTransitionMap, initialized) {
     rcl_lifecycle_get_state(&transition_map, state0.id);
   const rcl_lifecycle_state_t * goal_state =
     rcl_lifecycle_get_state(&transition_map, state1.id);
-  EXPECT_EQ(0, start_state->id);
-  EXPECT_EQ(1, goal_state->id);
+  EXPECT_EQ(0u, start_state->id);
+  EXPECT_EQ(1u, goal_state->id);
 
   rcl_lifecycle_transition_t transition01 = {"from0to1", 0, start_state, goal_state};
   ret = rcl_lifecycle_register_transition(
