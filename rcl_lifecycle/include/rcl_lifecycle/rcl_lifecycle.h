@@ -40,14 +40,16 @@ rcl_lifecycle_state_machine_init(
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
-  bool default_states);
+  bool default_states,
+  const rcl_allocator_t * allocator);
 
 RCL_LIFECYCLE_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lifecycle_state_machine_fini(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_node_t * node_handle);
+  rcl_node_t * node_handle,
+  const rcl_allocator_t * allocator);
 
 RCL_LIFECYCLE_PUBLIC
 RCL_WARN_UNUSED

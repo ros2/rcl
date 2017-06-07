@@ -36,15 +36,8 @@ rcl_lifecycle_state_machine_t
 rcl_lifecycle_get_zero_initialized_state_machine()
 {
   rcl_lifecycle_state_machine_t state_machine;
-  state_machine.transition_map.states = NULL;
-  state_machine.transition_map.states_size = 0;
-  state_machine.transition_map.transitions = NULL;
-  state_machine.transition_map.transitions_size = 0;
+  state_machine.transition_map = rcl_lifecycle_get_zero_initialized_transition_map();
   state_machine.com_interface = rcl_lifecycle_get_zero_initialized_com_interface();
-  state_machine.allocator.allocate = NULL;
-  state_machine.allocator.deallocate = NULL;
-  state_machine.allocator.reallocate = NULL;
-  state_machine.allocator.state = NULL;
   return state_machine;
 }
 
@@ -57,8 +50,15 @@ rcl_lifecycle_state_machine_init(
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
-  bool default_states)
+  bool default_states,
+  const rcl_allocator_t * allocator)
 {
+  if (!allocator) {
+    RCL_SET_ERROR_MSG("can't initialize state machine, no allocator given\n",
+      rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+
   if (rcl_lifecycle_com_interface_init(
       &state_machine->com_interface, node_handle,
       ts_pub_notify,
@@ -69,44 +69,48 @@ rcl_lifecycle_state_machine_init(
   }
 
   if (default_states) {
-    rcl_ret_t ret = rcl_lifecycle_init_default_state_machine(state_machine);
+    rcl_ret_t ret =
+      rcl_lifecycle_init_default_state_machine(state_machine, allocator);
     if (ret != RCL_RET_OK) {
-      // error should already be set
-      return ret;
+      // init default state machine might have allocated memory,
+      // so we have to call fini
+      if (rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator) != RCL_RET_OK) {
+        // error already set
+        return RCL_RET_ERROR;
+      }
     }
   }
 
-  const rcl_node_options_t * node_options = rcl_node_get_options(node_handle);
-  if (!node_options) {
-    RCL_SET_ERROR_MSG("node does not have valid options", rcl_get_default_allocator());
-    return RCL_RET_NODE_INVALID;
-  }
-  state_machine->allocator = node_options->allocator;
   return RCL_RET_OK;
 }
 
 rcl_ret_t
 rcl_lifecycle_state_machine_fini(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_node_t * node_handle)
+  rcl_node_t * node_handle,
+  const rcl_allocator_t * allocator)
 {
+  if (!allocator) {
+    RCL_SET_ERROR_MSG("can't free state machine, no allocator given\n",
+      rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
-  fcn_ret = rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle);
-
-  rcl_lifecycle_transition_map_t * transition_map = &state_machine->transition_map;
-
-  // for each state free the allocations for their keys/transitions
-  for (unsigned int i = 0; i < transition_map->states_size; ++i) {
-    free(transition_map->states[i].valid_transition_keys);
-    free(transition_map->states[i].valid_transitions);
+  if (rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle) != RCL_RET_OK) {
+    RCL_SET_ERROR_MSG(
+      "could not free lifecycle com interface. Leaking memory!\n", rcl_get_default_allocator());
+    fcn_ret = RCL_RET_ERROR;
   }
-  // free the primary states
-  free(transition_map->states);
-  transition_map->states = NULL;
-  // free the tansitions
-  free(transition_map->transitions);
-  transition_map->transitions = NULL;
+
+  if (rcl_lifecycle_transition_map_fini(
+      &state_machine->transition_map, allocator) != RCL_RET_OK)
+  {
+    RCL_SET_ERROR_MSG(
+      "could not free lifecycle transition map. Leaking memory!\n", rcl_get_default_allocator());
+    fcn_ret = RCL_RET_ERROR;
+  }
 
   return fcn_ret;
 }
@@ -120,6 +124,10 @@ rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t *
   }
   if (!state_machine->com_interface.srv_change_state.impl) {
     RCL_SET_ERROR_MSG("change_state service is null", rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+  if (!rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map)) {
+    RCL_SET_ERROR_MSG("transition map is null", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
@@ -139,7 +147,7 @@ rcl_lifecycle_is_valid_transition(
       return &current_state->valid_transitions[i];
     }
   }
-  fprintf(stderr, "%s:%u, No callback transition matching %u found for current state %s\n",
+  fprintf(stderr, "%s:%u, No callback transition matching %d found for current state %s\n",
     __FILE__, __LINE__, key, state_machine->current_state->label);
   return NULL;
 }
