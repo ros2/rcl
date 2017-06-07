@@ -126,7 +126,7 @@ rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t *
     RCL_SET_ERROR_MSG("change_state service is null", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
-  if (!rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map)) {
+  if (rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map) != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("transition map is null", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
