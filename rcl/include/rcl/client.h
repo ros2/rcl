@@ -338,7 +338,8 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 const rcl_client_options_t *
 rcl_client_get_options(const rcl_client_t * client);
-
+#define _client_get_options(client) \
+  &client->impl->options;
 /// Return the rmw client handle.
 /**
  * The handle returned is a pointer to the internally held rmw handle.
@@ -370,6 +371,8 @@ RCL_WARN_UNUSED
 rmw_client_t *
 rcl_client_get_rmw_handle(const rcl_client_t * client);
 
+bool
+rcl_client_is_valid(const rcl_client_t * client);
 #if __cplusplus
 }
 #endif
