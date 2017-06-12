@@ -23,7 +23,7 @@ extern "C"
 #include <string.h>
 
 #include <rcl/error_handling.h>
-#include <rcutils/concat.h>
+#include <rcutils/format_string.h>
 #include <rmw/validate_full_topic_name.h>
 #include <rosidl_generator_c/message_type_support_struct.h>
 #include <rosidl_generator_c/string_functions.h>
@@ -80,34 +80,31 @@ rcl_lifecycle_com_interface_init(
   const rosidl_service_type_support_t * ts_srv_change_state,
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
-  const rosidl_service_type_support_t * ts_srv_get_available_transitions)
+  const rosidl_service_type_support_t * ts_srv_get_available_transitions,
+  const rcl_allocator_t * allocator)
 {
   if (!node_handle) {
     RCL_SET_ERROR_MSG("node_handle is null", rcl_get_default_allocator());
     return RCL_RET_INVALID_ARGUMENT;
   }
-  const rcl_node_options_t * node_options = rcl_node_get_options(node_handle);
-  if (!node_options) {
-    return RCL_RET_NODE_INVALID;
-  }
   if (!ts_pub_notify) {
-    RCL_SET_ERROR_MSG("ts_pub_notify is NULL", node_options->allocator);
+    RCL_SET_ERROR_MSG("ts_pub_notify is NULL", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   if (!ts_srv_change_state) {
-    RCL_SET_ERROR_MSG("ts_srv_change_state is NULL", node_options->allocator);
+    RCL_SET_ERROR_MSG("ts_srv_change_state is NULL", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   if (!ts_srv_get_state) {
-    RCL_SET_ERROR_MSG("ts_srv_get_state is NULL", node_options->allocator);
+    RCL_SET_ERROR_MSG("ts_srv_get_state is NULL",  rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   if (!ts_srv_get_available_states) {
-    RCL_SET_ERROR_MSG("ts_srv_get_available_states is NULL", node_options->allocator);
+    RCL_SET_ERROR_MSG("ts_srv_get_available_states is NULL",  rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
   if (!ts_srv_get_available_states) {
-    RCL_SET_ERROR_MSG("ts_srv_get_available_transitions is NULL", node_options->allocator);
+    RCL_SET_ERROR_MSG("ts_srv_get_available_transitions is NULL",  rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
 
@@ -117,7 +114,8 @@ rcl_lifecycle_com_interface_init(
 
   // initialize publisher
   {
-    topic_name = rcutils_concat(node_name, pub_transition_event_suffix, "__");
+    topic_name = rcutils_format_string(*allocator, "/%s/%s",
+      node_name, pub_transition_event_suffix);
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -127,7 +125,7 @@ rcl_lifecycle_com_interface_init(
     rcl_ret_t ret = rcl_publisher_init(
       &com_interface->pub_transition_event, node_handle,
       ts_pub_notify, topic_name, &publisher_options);
-    free(topic_name);
+    allocator->deallocate(topic_name, allocator->state);
     topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
@@ -140,7 +138,8 @@ rcl_lifecycle_com_interface_init(
 
   // initialize change state service
   {
-    topic_name = rcutils_concat(node_name, srv_change_state_suffix, "__");
+    topic_name = rcutils_format_string(*allocator, "/%s/%s",
+      node_name, srv_change_state_suffix);
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -150,7 +149,7 @@ rcl_lifecycle_com_interface_init(
     rcl_ret_t ret = rcl_service_init(
       &com_interface->srv_change_state, node_handle,
       ts_srv_change_state, topic_name, &service_options);
-    free(topic_name);
+    allocator->deallocate(topic_name, allocator->state);
     topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
@@ -160,7 +159,8 @@ rcl_lifecycle_com_interface_init(
 
   // initialize get state service
   {
-    topic_name = rcutils_concat(node_name, srv_get_state_suffix, "__");
+    topic_name = rcutils_format_string(*allocator, "/%s/%s",
+      node_name, srv_get_state_suffix);
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -170,7 +170,7 @@ rcl_lifecycle_com_interface_init(
     rcl_ret_t ret = rcl_service_init(
       &com_interface->srv_get_state, node_handle,
       ts_srv_get_state, topic_name, &service_options);
-    free(topic_name);
+    allocator->deallocate(topic_name, allocator->state);
     topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
@@ -180,7 +180,8 @@ rcl_lifecycle_com_interface_init(
 
   // initialize get available states service
   {
-    topic_name = rcutils_concat(node_name, srv_get_available_states_suffix, "__");
+    topic_name = rcutils_format_string(*allocator, "/%s/%s",
+      node_name, srv_get_available_states_suffix);
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -190,7 +191,7 @@ rcl_lifecycle_com_interface_init(
     rcl_ret_t ret = rcl_service_init(
       &com_interface->srv_get_available_states, node_handle,
       ts_srv_get_available_states, topic_name, &service_options);
-    free(topic_name);
+    allocator->deallocate(topic_name, allocator->state);
     topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
@@ -200,7 +201,8 @@ rcl_lifecycle_com_interface_init(
 
   // initialize get available transitions service
   {
-    topic_name = rcutils_concat(node_name, srv_get_available_transitions_suffix, "__");
+    topic_name = rcutils_format_string(*allocator, "/%s/%s",
+      node_name, srv_get_available_transitions_suffix);
     ret = rcl_lifecycle_validate_topic_name(topic_name);
     if (ret != RMW_RET_OK) {
       goto fail;
@@ -210,7 +212,7 @@ rcl_lifecycle_com_interface_init(
     rcl_ret_t ret = rcl_service_init(
       &com_interface->srv_get_available_transitions, node_handle,
       ts_srv_get_available_transitions, topic_name, &service_options);
-    free(topic_name);
+    allocator->deallocate(topic_name, allocator->state);
     topic_name = NULL;
 
     if (ret != RCL_RET_OK) {
@@ -243,7 +245,7 @@ fail:
   }
 
   if (topic_name) {
-    free(topic_name);
+    allocator->deallocate(topic_name, allocator->state);
     topic_name = NULL;
   }
 
