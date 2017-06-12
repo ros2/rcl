@@ -65,8 +65,7 @@ rcl_lifecycle_state_machine_init(
     ts_srv_change_state, ts_srv_get_state,
     ts_srv_get_available_states, ts_srv_get_available_transitions,
     allocator);
-  if (ret != RCL_RET_OK)
-  {
+  if (ret != RCL_RET_OK) {
     return RCL_RET_ERROR;
   }
 
