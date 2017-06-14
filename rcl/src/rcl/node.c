@@ -239,7 +239,6 @@ rcl_node_init(
 
   if (!use_security) {
     node_security_options.enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
-    node_security_options.security_root_path = NULL;
   } else {  // if use_security
     // File discovery magic here
     const char * node_secure_root = rcl_get_secure_root(name);
