@@ -42,9 +42,9 @@ extern "C"
   _snprintf_s(buffer, buffer_size, _TRUNCATE, format, __VA_ARGS__)
 #endif
 
-static const char * sros_root_var_name = "ROS_SECURE_ROOT";
+static const char * sros_root_var_name = "ROS_SECURITY_ROOT_DIRECTORY";
 static const char * sros_security_strategy_var_name = "ROS_SECURITY_STRATEGY";
-static const char * sros_enable_security_var_name = "ROS_ENABLE_SECURITY";
+static const char * sros_security_enable_var_name = "ROS_SECURITY_ENABLE";
 
 typedef struct rcl_node_impl_t
 {
@@ -212,15 +212,15 @@ rcl_node_init(
   // actual domain id
   node->impl->actual_domain_id = domain_id;
 
-  const char * ros_enable_security = NULL;
+  const char * ros_security_enable = NULL;
   const char * ros_enforce_security = NULL;
 
-  if (rcutils_get_env(sros_enable_security_var_name, &ros_enable_security)) {
+  if (rcutils_get_env(sros_security_enable_var_name, &ros_security_enable)) {
     RCL_SET_ERROR_MSG("fail fetching environment variable", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
 
-  bool use_security = (0 == strcmp(ros_enable_security, "true"));
+  bool use_security = (0 == strcmp(ros_security_enable, "true"));
 
   if (rcutils_get_env(sros_security_strategy_var_name, &ros_enforce_security)) {
     RCL_SET_ERROR_MSG("fail fetching environment variable", rcl_get_default_allocator());
