@@ -59,7 +59,7 @@ typedef struct rcl_node_impl_t
 const char * rcl_get_secure_root(const char * node_name)
 {
   const char * ros_secure_root_env = NULL;
-  if (node_name == NULL) {
+  if (NULL == node_name) {
     return NULL;
   }
   if (rcutils_get_env(sros_root_var_name, &ros_secure_root_env)) {
