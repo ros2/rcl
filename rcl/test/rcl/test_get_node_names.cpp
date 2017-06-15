@@ -92,7 +92,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   EXPECT_EQ(0, strcmp(node1_name, node_names.data[0]));
   EXPECT_EQ(0, strcmp(node2_name, node_names.data[1]));
 
-  ret = rcutils_string_array_fini(&node_names, &node1_options.allocator);
+  ret = rcutils_string_array_fini(&node_names);
   ASSERT_EQ(RCUTILS_RET_OK, ret);
 
   ret = rcl_node_fini(node1_ptr);

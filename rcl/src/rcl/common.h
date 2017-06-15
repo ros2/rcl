@@ -54,6 +54,22 @@ extern "C"
 rcl_ret_t
 rcl_impl_getenv(const char * env_name, const char ** env_value);
 
+/// Convenience function for converting common rmw_ret_t return codes to rcl.
+inline rcl_ret_t
+_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret)
+{
+  switch (rmw_ret) {
+    case RMW_RET_OK:
+      return RCL_RET_OK;
+    case RMW_RET_INVALID_ARGUMENT:
+      return RCL_RET_INVALID_ARGUMENT;
+    case RMW_RET_BAD_ALLOC:
+      return RCL_RET_BAD_ALLOC;
+    default:
+      return RCL_RET_ERROR;
+  }
+}
+
 #if __cplusplus
 }
 #endif
