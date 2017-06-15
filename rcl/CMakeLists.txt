@@ -23,8 +23,7 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 if(NOT WIN32)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+  add_compile_options("-Wall -Wextra")
 endif()
 
 set(${PROJECT_NAME}_sources
