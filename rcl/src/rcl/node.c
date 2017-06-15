@@ -247,8 +247,8 @@ rcl_node_init(
     } else {
       if (RMW_SECURITY_ENFORCEMENT_ENFORCE == node_security_options.enforce_security) {
         RCL_SET_ERROR_MSG(
-          "SECURITY ERROR: unable to find ROS_SECURE_ROOT directory while "
-          "security strategy requires it", *allocator);
+          "SECURITY ERROR: unable to find " RCUTILS_STRINGIFY(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME)
+          " directory while the requested security strategy requires it", *allocator);
         return RCL_RET_ERROR;
       }
     }
