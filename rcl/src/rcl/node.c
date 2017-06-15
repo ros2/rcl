@@ -25,7 +25,11 @@ extern "C"
 #include <string.h>
 
 #include "rcl/rcl.h"
+#include "rcutils/filesystem.h"
+#include "rcutils/get_env.h"
+#include "rcutils/macros.h"
 #include "rmw/error_handling.h"
+#include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
@@ -39,6 +43,10 @@ extern "C"
   _snprintf_s(buffer, buffer_size, _TRUNCATE, format, __VA_ARGS__)
 #endif
 
+#define ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "ROS_SECURITY_ROOT_DIRECTORY"
+#define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
+#define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
+
 typedef struct rcl_node_impl_t
 {
   rcl_node_options_t options;
@@ -47,6 +55,31 @@ typedef struct rcl_node_impl_t
   uint64_t rcl_instance_id;
   rcl_guard_condition_t * graph_guard_condition;
 } rcl_node_impl_t;
+
+
+const char * rcl_get_secure_root(const char * node_name)
+{
+  const char * ros_secure_root_env = NULL;
+  if (NULL == node_name) {
+    return NULL;
+  }
+  if (rcutils_get_env(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME, &ros_secure_root_env)) {
+    return NULL;
+  }
+  if (!ros_secure_root_env) {
+    return NULL;  // environment variable not defined
+  }
+  size_t ros_secure_root_size = strlen(ros_secure_root_env);
+  if (!ros_secure_root_size) {
+    return NULL;  // environment variable was empty
+  }
+  const char * node_secure_root = rcutils_join_path(ros_secure_root_env, node_name);
+  if (!rcutils_is_directory(node_secure_root)) {
+    free((char *)node_secure_root);
+    return NULL;
+  }
+  return node_secure_root;
+}
 
 rcl_node_t
 rcl_get_zero_initialized_node()
@@ -179,7 +212,50 @@ rcl_node_init(
   }
   // actual domain id
   node->impl->actual_domain_id = domain_id;
-  node->impl->rmw_node_handle = rmw_create_node(name, local_namespace_, domain_id);
+
+  const char * ros_security_enable = NULL;
+  const char * ros_enforce_security = NULL;
+
+  if (rcutils_get_env(ROS_SECURITY_ENABLE_VAR_NAME, &ros_security_enable)) {
+    RCL_SET_ERROR_MSG(
+      "Environment variable " RCUTILS_STRINGIFY(ROS_SECURITY_ENABLE_VAR_NAME)
+      " could not be read", rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+
+  bool use_security = (0 == strcmp(ros_security_enable, "true"));
+
+  if (rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security)) {
+    RCL_SET_ERROR_MSG(
+      "Environment variable " RCUTILS_STRINGIFY(ROS_SECURITY_STRATEGY_VAR_NAME)
+      " could not be read", rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+
+  rmw_node_security_options_t node_security_options =
+    rmw_get_zero_initialized_node_security_options();
+  node_security_options.enforce_security = (0 == strcmp(ros_enforce_security, "Enforce")) ?
+    RMW_SECURITY_ENFORCEMENT_ENFORCE : RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
+
+  if (!use_security) {
+    node_security_options.enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
+  } else {  // if use_security
+    // File discovery magic here
+    const char * node_secure_root = rcl_get_secure_root(name);
+    if (node_secure_root) {
+      node_security_options.security_root_path = node_secure_root;
+    } else {
+      if (RMW_SECURITY_ENFORCEMENT_ENFORCE == node_security_options.enforce_security) {
+        RCL_SET_ERROR_MSG(
+          "SECURITY ERROR: unable to find " RCUTILS_STRINGIFY(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME)
+          " directory while the requested security strategy requires it", *allocator);
+        return RCL_RET_ERROR;
+      }
+    }
+  }
+  node->impl->rmw_node_handle = rmw_create_node(
+    name, local_namespace_, domain_id, &node_security_options);
+
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail, *allocator);
   // free local_namespace_ if necessary
