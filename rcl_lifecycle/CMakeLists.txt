@@ -11,9 +11,9 @@ find_package(rmw REQUIRED)
 
 include_directories(include)
 
-# Default to C99
+# Default to C11
 if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
+  set(CMAKE_C_STANDARD 11)
 endif()
 
 # Default to C++14
