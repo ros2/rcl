@@ -25,17 +25,39 @@ extern "C"
 #endif
 
 RCL_LIFECYCLE_PUBLIC
-void
-rcl_lifecycle_register_state(
-  rcl_lifecycle_transition_map_t * map,
-  rcl_lifecycle_state_t state);
+RCL_WARN_UNUSED
+rcl_lifecycle_transition_map_t
+rcl_lifecycle_get_zero_initialized_transition_map();
 
 RCL_LIFECYCLE_PUBLIC
-void
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lifecycle_transition_map_is_initialized(
+  const rcl_lifecycle_transition_map_t * transition_map);
+
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lifecycle_transition_map_fini(
+  rcl_lifecycle_transition_map_t * transition_map,
+  const rcl_allocator_t * allocator);
+
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lifecycle_register_state(
+  rcl_lifecycle_transition_map_t * map,
+  rcl_lifecycle_state_t state,
+  const rcl_allocator_t * allocator);
+
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
 rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_map_t * transition_map,
   rcl_lifecycle_transition_t transition,
-  rcl_lifecycle_ret_t key);
+  rcl_lifecycle_ret_t key,
+  const rcl_allocator_t * allocator);
 
 RCL_LIFECYCLE_PUBLIC
 RCL_WARN_UNUSED

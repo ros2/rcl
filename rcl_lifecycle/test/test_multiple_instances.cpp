@@ -33,6 +33,7 @@ class TestMultipleInstances : public ::testing::Test
 {
 protected:
   rcl_node_t * node_ptr;
+  const rcl_allocator_t * allocator;
   void SetUp()
   {
     rcl_ret_t ret;
@@ -44,6 +45,8 @@ protected:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    const rcl_node_options_t * node_ops = rcl_node_get_options(this->node_ptr);
+    this->allocator = &node_ops->allocator;
   }
 
   void TearDown()
@@ -77,17 +80,17 @@ TEST_F(TestMultipleInstances, default_sequence_error_unresolved) {
 
   rcl_lifecycle_state_machine_t state_machine1 =
     rcl_lifecycle_get_zero_initialized_state_machine();
-  ret = rcl_lifecycle_init_default_state_machine(&state_machine1);
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine1, this->allocator);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   rcl_lifecycle_state_machine_t state_machine2 =
     rcl_lifecycle_get_zero_initialized_state_machine();
-  ret = rcl_lifecycle_init_default_state_machine(&state_machine2);
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine2, this->allocator);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   rcl_lifecycle_state_machine_t state_machine3 =
     rcl_lifecycle_get_zero_initialized_state_machine();
-  ret = rcl_lifecycle_init_default_state_machine(&state_machine3);
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine3, this->allocator);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   test_trigger_transition(
@@ -103,4 +106,11 @@ TEST_F(TestMultipleInstances, default_sequence_error_unresolved) {
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED, state_machine2.current_state->id);
   EXPECT_EQ(
     lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED, state_machine3.current_state->id);
+
+  ret = rcl_lifecycle_state_machine_fini(&state_machine1, this->node_ptr, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_lifecycle_state_machine_fini(&state_machine2, this->node_ptr, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_lifecycle_state_machine_fini(&state_machine3, this->node_ptr, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }

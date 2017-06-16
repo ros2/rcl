@@ -83,6 +83,16 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test_multiple_instances ${PROJECT_NAME})
   endif()
+  ament_add_gtest(test_transition_map
+    test/test_transition_map.cpp
+  )
+  if(TARGET test_transition_map)
+    target_include_directories(test_transition_map PUBLIC
+      ${rcl_INCLUDE_DIRS}
+      ${rcl_lifecycle_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_transition_map ${PROJECT_NAME})
+  endif()
 endif()
 
 ament_export_dependencies(ament_cmake)
