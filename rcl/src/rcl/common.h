@@ -54,6 +54,10 @@ extern "C"
 rcl_ret_t
 rcl_impl_getenv(const char * env_name, const char ** env_value);
 
+/// Convenience function for converting common rmw_ret_t return codes to rcl.
+rcl_ret_t
+rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret);
+
 #if __cplusplus
 }
 #endif

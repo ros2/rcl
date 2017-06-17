@@ -17,55 +17,77 @@ extern "C"
 {
 #endif
 
-#include "rcutils/types.h"
-
 #include "rcl/graph.h"
 
-#include "./common.h"
+#include <rcutils/allocator.h>
+#include <rcutils/types.h>
+#include <rmw/get_service_names_and_types.h>
+#include <rmw/get_topic_names_and_types.h>
+#include <rmw/names_and_types.h>
+#include <rmw/rmw.h>
 
-rcl_topic_names_and_types_t
-rcl_get_zero_initialized_topic_names_and_types(void)
-{
-  const rcl_topic_names_and_types_t null_topic_names_and_types = {0, NULL, NULL};
-  return null_topic_names_and_types;
-}
+#include "./common.h"
 
 rcl_ret_t
 rcl_get_topic_names_and_types(
   const rcl_node_t * node,
-  rcl_allocator_t allocator,
-  rcl_topic_names_and_types_t * topic_names_and_types)
+  rcl_allocator_t * allocator,
+  bool no_demangle,
+  rcl_names_and_types_t * topic_names_and_types)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator())
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator)
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT, allocator);
-  if (topic_names_and_types->topic_count != 0) {
-    RCL_SET_ERROR_MSG("topic count is not zero", allocator);
-    return RCL_RET_INVALID_ARGUMENT;
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT, *allocator)
+  rmw_ret_t rmw_ret;
+  rmw_ret = rmw_names_and_types_check_zero(topic_names_and_types);
+  if (rmw_ret != RMW_RET_OK) {
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
-  if (topic_names_and_types->topic_names) {
-    RCL_SET_ERROR_MSG("topic names is not null", allocator);
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-  if (topic_names_and_types->type_names) {
-    RCL_SET_ERROR_MSG("type names is not null", allocator);
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-  return rmw_get_topic_names_and_types(
+  rcutils_allocator_t rcutils_allocator = *allocator;
+  rmw_ret = rmw_get_topic_names_and_types(
     rcl_node_get_rmw_handle(node),
+    &rcutils_allocator,
+    no_demangle,
     topic_names_and_types
-  );
+    );
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 rcl_ret_t
-rcl_destroy_topic_names_and_types(
-  rcl_topic_names_and_types_t * topic_names_and_types)
+rcl_get_service_names_and_types(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  rcl_names_and_types_t * service_names_and_types)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(service_names_and_types, RCL_RET_INVALID_ARGUMENT, *allocator);
+  rmw_ret_t rmw_ret;
+  rmw_ret = rmw_names_and_types_check_zero(service_names_and_types);
+  if (rmw_ret != RMW_RET_OK) {
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  rcutils_allocator_t rcutils_allocator = *allocator;
+  rmw_ret = rmw_get_service_names_and_types(
+    rcl_node_get_rmw_handle(node),
+    &rcutils_allocator,
+    service_names_and_types
+    );
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
+
+rcl_ret_t
+rcl_names_and_types_fini(rcl_names_and_types_t * topic_names_and_types)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(
     topic_names_and_types, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  return rmw_destroy_topic_names_and_types(topic_names_and_types);
+  rmw_ret_t rmw_ret = rmw_names_and_types_fini(topic_names_and_types);
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 rcl_ret_t
@@ -87,9 +109,10 @@ rcl_get_node_names(
     RCL_SET_ERROR_MSG("node_names is not null", allocator);
     return RCL_RET_INVALID_ARGUMENT;
   }
-  return rmw_get_node_names(
+  rmw_ret_t rmw_ret = rmw_get_node_names(
     rcl_node_get_rmw_handle(node),
     node_names);
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 rcl_ret_t
@@ -108,7 +131,8 @@ rcl_count_publishers(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
-  return rmw_count_publishers(rcl_node_get_rmw_handle(node), topic_name, count);
+  rmw_ret_t rmw_ret = rmw_count_publishers(rcl_node_get_rmw_handle(node), topic_name, count);
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 rcl_ret_t
@@ -127,7 +151,8 @@ rcl_count_subscribers(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
-  return rmw_count_subscribers(rcl_node_get_rmw_handle(node), topic_name, count);
+  rmw_ret_t rmw_ret = rmw_count_subscribers(rcl_node_get_rmw_handle(node), topic_name, count);
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 rcl_ret_t
@@ -146,11 +171,12 @@ rcl_service_server_is_available(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_available, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
-  return rmw_service_server_is_available(
+  rmw_ret_t rmw_ret = rmw_service_server_is_available(
     rcl_node_get_rmw_handle(node),
     rcl_client_get_rmw_handle(client),
     is_available
-  );
+    );
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 #if __cplusplus

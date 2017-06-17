@@ -123,30 +123,35 @@ TEST_F(
 ) {
   stop_memory_checking();
   rcl_ret_t ret;
-  rcl_topic_names_and_types_t tnat {};
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_names_and_types_t tnat {};
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // invalid node
-  ret = rcl_get_topic_names_and_types(nullptr, rcl_get_default_allocator(), &tnat);
+  ret = rcl_get_topic_names_and_types(nullptr, &allocator, false, &tnat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
-  ret = rcl_get_topic_names_and_types(&zero_node, rcl_get_default_allocator(), &tnat);
+  ret = rcl_get_topic_names_and_types(&zero_node, &allocator, false, &tnat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
-  ret = rcl_get_topic_names_and_types(this->old_node_ptr, rcl_get_default_allocator(), &tnat);
+  ret = rcl_get_topic_names_and_types(this->old_node_ptr, &allocator, false, &tnat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
+  rcl_reset_error();
+  // invalid allocator
+  ret = rcl_get_topic_names_and_types(this->node_ptr, nullptr, false, &tnat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
   // invalid topic_names_and_types
-  ret = rcl_get_topic_names_and_types(this->node_ptr, rcl_get_default_allocator(), nullptr);
+  ret = rcl_get_topic_names_and_types(this->node_ptr, &allocator, false, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
   // invalid argument to rcl_destroy_topic_names_and_types
-  ret = rcl_destroy_topic_names_and_types(nullptr);
+  ret = rcl_names_and_types_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
   // valid calls
-  ret = rcl_get_topic_names_and_types(this->node_ptr, rcl_get_default_allocator(), &tnat);
+  ret = rcl_get_topic_names_and_types(this->node_ptr, &allocator, false, &tnat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_destroy_topic_names_and_types(&tnat);
+  ret = rcl_names_and_types_fini(&tnat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
 
@@ -246,8 +251,9 @@ check_graph_state(
   size_t publisher_count = 0;
   size_t subscriber_count = 0;
   bool is_in_tnat = false;
-  rcl_topic_names_and_types_t tnat {};
+  rcl_names_and_types_t tnat {};
   rcl_ret_t ret;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
   for (size_t i = 0; i < number_of_tries; ++i) {
     ret = rcl_count_publishers(node_ptr, topic_name.c_str(), &publisher_count);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -257,19 +263,19 @@ check_graph_state(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     rcl_reset_error();
 
-    tnat = rcl_get_zero_initialized_topic_names_and_types();
-    ret = rcl_get_topic_names_and_types(node_ptr, rcl_get_default_allocator(), &tnat);
+    tnat = rcl_get_zero_initialized_names_and_types();
+    ret = rcl_get_topic_names_and_types(node_ptr, &allocator, false, &tnat);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     rcl_reset_error();
     is_in_tnat = false;
-    for (size_t i = 0; RCL_RET_OK == ret && i < tnat.topic_count; ++i) {
-      if (topic_name == tnat.topic_names[i]) {
+    for (size_t i = 0; RCL_RET_OK == ret && i < tnat.names.size; ++i) {
+      if (topic_name == std::string(tnat.names.data[i])) {
         ASSERT_FALSE(is_in_tnat) << "duplicates in the tnat";  // Found it more than once!
         is_in_tnat = true;
       }
     }
     if (RCL_RET_OK == ret) {
-      ret = rcl_destroy_topic_names_and_types(&tnat);
+      ret = rcl_names_and_types_fini(&tnat);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
       rcl_reset_error();
     }
@@ -288,16 +294,6 @@ check_graph_state(
     {
       printf("  state correct!\n");
       break;
-    } else {
-      if (expected_publisher_count != publisher_count) {
-        printf("    pub count incorrect!\n");
-      }
-      if (expected_subscriber_count != subscriber_count) {
-        printf("    sub count incorrect!\n");
-      }
-      if (expected_in_tnat != is_in_tnat) {
-        printf("    in tnat incorrect!\n");
-      }
     }
     // Wait for graph change before trying again.
     if ((i + 1) == number_of_tries) {

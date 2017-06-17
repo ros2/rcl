@@ -20,8 +20,8 @@ extern "C"
 {
 #endif
 
-#include <rmw/rmw.h>
-#include <rmw/types.h>
+#include <rmw/names_and_types.h>
+#include <rmw/get_topic_names_and_types.h>
 
 #include "rcutils/types.h"
 
@@ -32,13 +32,9 @@ extern "C"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
 
-typedef rmw_topic_names_and_types_t rcl_topic_names_and_types_t;
+typedef rmw_names_and_types_t rcl_names_and_types_t;
 
-/// Return a rcl_topic_names_and_types_t struct with members initialized to `NULL`.
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_topic_names_and_types_t
-rcl_get_zero_initialized_topic_names_and_types(void);
+#define rcl_get_zero_initialized_names_and_types rmw_get_zero_initialized_names_and_types
 
 /// Return a list of topic names and their types.
 /**
@@ -49,7 +45,54 @@ rcl_get_zero_initialized_topic_names_and_types(void);
  * The topic_names_and_types parameter must be allocated and zero initialized.
  * The topic_names_and_types is the output for this function, and contains
  * allocated memory.
- * Therefore, it should be passed to rcl_destroy_topic_names_and_types() when
+ * Therefore, it should be passed to rcl_names_and_types_fini() when
+ * it is no longer needed.
+ * Failing to do so will result in leaked memory.
+ *
+ * There may be some demangling that occurs when listing the topics from the
+ * middleware implementation.
+ * If the no_demangle argument is true, then this will be avoided and the
+ * topics will be returned as they appear to the middleware.
+ *
+ * \see rmw_get_topic_names_and_types for more details on no_demangle
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator to be used when allocating space for strings
+ * \param[in] no_demangle if true, list all topics without any demangling
+ * \param[out] topic_names_and_types list of topic names and their types
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_topic_names_and_types(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  bool no_demangle,
+  rcl_names_and_types_t * topic_names_and_types);
+
+/// Return a list of service names and their types.
+/**
+ * This function returns a list of service names in the ROS graph and their types.
+ *
+ * The node parameter must not be `NULL`, and must point to a valid node.
+ *
+ * The service_names_and_types parameter must be allocated and zero initialized.
+ * The service_names_and_types is the output for this function, and contains
+ * allocated memory.
+ * Therefore, it should be passed to rcl_names_and_types_fini() when
  * it is no longer needed.
  * Failing to do so will result in leaked memory.
  *
@@ -64,7 +107,7 @@ rcl_get_zero_initialized_topic_names_and_types(void);
  *
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] allocator allocator to be used when allocating space for strings
- * \param[out] topic_names_and_types list of topic names and their types
+ * \param[out] service_names_and_types list of service names and their types
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -73,16 +116,20 @@ rcl_get_zero_initialized_topic_names_and_types(void);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_get_topic_names_and_types(
+rcl_get_service_names_and_types(
   const rcl_node_t * node,
-  rcl_allocator_t allocator,
-  rcl_topic_names_and_types_t * topic_names_and_types);
+  rcl_allocator_t * allocator,
+  rcl_names_and_types_t * service_names_and_types);
 
-/// Destroy a struct which was previously given to rcl_get_topic_names_and_types.
+/// Finalize a rcl_names_and_types_t object.
 /**
- * The topic_names_and_types parameter must not be `NULL`, and must point to an
- * already allocated rcl_topic_names_and_types_t struct that was previously
- * passed to a successful rcl_get_topic_names_and_types() call.
+ * The object is populated when given to one of the rcl_get_*_names_and_types()
+ * functions.
+ * This function reclaims any resources allocated during population.
+ *
+ * The names_and_types parameter must not be `NULL`, and must point to an
+ * already allocated rcl_names_and_types_t struct that was previously
+ * passed to a successful rcl_get_*_names_and_types() function call.
  *
  * <hr>
  * Attribute          | Adherence
@@ -92,7 +139,7 @@ rcl_get_topic_names_and_types(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[inout] topic_names_and_types struct to be destroyed
+ * \param[inout] names_and_types struct to be finalized
  * \return `RCL_RET_OK` if successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -100,8 +147,7 @@ rcl_get_topic_names_and_types(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_destroy_topic_names_and_types(
-  rcl_topic_names_and_types_t * topic_names_and_types);
+rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
 
 /// Return a list of available nodes in the ROS graph.
 /**
