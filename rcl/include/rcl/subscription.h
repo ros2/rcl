@@ -308,8 +308,9 @@ RCL_WARN_UNUSED
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription);
 /// unsafe _subscription_get_options
-#define _subscription_get_options(subscription) \
-  &subscription->impl->options
+/* *INDENT-OFF* */
+#define _subscription_get_options(subscription) &subscription->impl->options
+/* *INDENT-ON* */
 
 /// Return the rmw subscription handle.
 /**

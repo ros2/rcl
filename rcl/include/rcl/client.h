@@ -338,8 +338,12 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 const rcl_client_options_t *
 rcl_client_get_options(const rcl_client_t * client);
-#define _client_get_options(client) \
-  &client->impl->options;
+
+///  Non-safe get_options function.
+/* *INDENT-OFF* */
+#define _client_get_options(client) &client->impl->options;
+/* *INDENT-ON* */
+
 /// Return the rmw client handle.
 /**
  * The handle returned is a pointer to the internally held rmw handle.

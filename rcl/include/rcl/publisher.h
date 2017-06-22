@@ -305,7 +305,9 @@ RCL_WARN_UNUSED
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher);
 
+/* *INDENT-OFF* */
 #define _publisher_get_options(pub) &pub->impl->options
+/* *INDENT-ON* */
 
 /// Return the rmw publisher handle.
 /**

@@ -283,7 +283,8 @@ bool rcl_client_is_valid(const rcl_client_t * client)
   RCL_CHECK_FOR_NULL_WITH_MSG(options, "client is invalid", return false, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    client->impl, "client is invalid", return false, rcl_get_default_allocator());  
+    client->impl, "client is invalid", return false, rcl_get_default_allocator());
+  return true;
 }
 #if __cplusplus
 }
