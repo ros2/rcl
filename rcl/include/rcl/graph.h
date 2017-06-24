@@ -190,6 +190,7 @@ rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
  * <i>[1] implementation may need to protect the data structure with a lock</i>
  *
  * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator used to control allocation and deallocation of names
  * \param[out] node_names struct storing discovered node names.
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
