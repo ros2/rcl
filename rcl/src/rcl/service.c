@@ -174,8 +174,11 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (service->impl) {
     rcl_allocator_t allocator = service->impl->options.allocator;
-    rmw_ret_t ret =
-      rmw_destroy_service(rcl_node_get_rmw_handle(node), service->impl->rmw_handle);
+    rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);
+    if (!rmw_node) {
+      return RCL_RET_INVALID_ARGUMENT;
+    }
+    rmw_ret_t ret = rmw_destroy_service(rmw_node, service->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
       result = RCL_RET_ERROR;

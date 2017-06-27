@@ -165,8 +165,12 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (subscription->impl) {
     rcl_allocator_t allocator = subscription->impl->options.allocator;
+    rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);
+    if (!rmw_node) {
+      return RCL_RET_INVALID_ARGUMENT;
+    }
     rmw_ret_t ret =
-      rmw_destroy_subscription(rcl_node_get_rmw_handle(node), subscription->impl->rmw_handle);
+      rmw_destroy_subscription(rmw_node, subscription->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
       result = RCL_RET_ERROR;
