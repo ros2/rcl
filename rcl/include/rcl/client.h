@@ -375,6 +375,27 @@ RCL_WARN_UNUSED
 rmw_client_t *
 rcl_client_get_rmw_handle(const rcl_client_t * client);
 
+/// Check that the client is valid.
+/**
+ * The bool returned is `false` if:
+ *   - the argument `client` is `NULL`
+ *   - the argument's option pointer is `NULL`
+ *   - the argument's mw implementation is `NULL`
+ *   - the argument's rmw handle is `NULL`
+ * The bool returned is `true` otherwise.
+ * This function cannot fail.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] client pointer to the rcl client
+ * \return `true` if `client` is valid, otherwise `false`
+ */
 bool
 rcl_client_is_valid(const rcl_client_t * client);
 #if __cplusplus

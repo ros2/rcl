@@ -258,12 +258,13 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription)
 bool
 rcl_subscription_is_valid(const rcl_subscription_t * subscription)
 {
-  const rcl_subscription_options_t * options = _subscription_get_options(subscription);
+  const rcl_subscription_options_t * options;
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, false, rcl_get_default_allocator());
+  options = _subscription_get_options(subscription);
   RCL_CHECK_FOR_NULL_WITH_MSG(options,
     "subscription implementation is invalid",
     return false,
     options->allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, false, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(subscription->impl,
     "subscription implementation is invalid",
     return NULL,

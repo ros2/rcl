@@ -216,10 +216,6 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 const char *
 rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
 {
-  const rcl_publisher_options_t * options = rcl_publisher_get_options(publisher);
-  if (!options) {
-    return NULL;
-  }
   if (!rcl_publisher_is_valid(publisher)) {
     return NULL;
   }
@@ -247,14 +243,16 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 bool
 rcl_publisher_is_valid(const rcl_publisher_t * publisher)
 {
+  const rcl_publisher_options_t * options;  
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, false, options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl,
     "publisher implementation is invalid",
-    return NULL,
+    return false,
     rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
     "publisher implementation rmw_handle is invalid",
-    return NULL,
+    return false,
     rcl_get_default_allocator());
   return true;
 }
