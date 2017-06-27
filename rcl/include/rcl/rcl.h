@@ -29,6 +29,15 @@
  * - Timer
  *   - rcl/timer.h
  *
+ * There are some functions for working with "Topics" and "Services":
+ *
+ * - A function to validate a topic or service name (not necessarily fully qualified):
+ *   - rcl_validate_topic_name()
+ *   - rcl/validate_topic_name.h
+ * - A function to expand a topic or service name to a fully qualified name:
+ *   - rcl_expand_topic_name()
+ *   - rcl/expand_topic_name.h
+ *
  * It also has some machinery that is necessary to wait on and act on these concepts:
  *
  * - Initialization and shutdown management (global for now)
