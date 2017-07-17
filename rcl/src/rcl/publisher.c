@@ -247,11 +247,11 @@ rcl_publisher_is_valid(const rcl_publisher_t * publisher)
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false, rcl_get_default_allocator());
   options = _publisher_get_options(publisher);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    options, "publisher is invalid", return false, rcl_get_default_allocator());
+    options, "publisher's options pointer is invalid", return false, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher is invalid", return false, options->allocator);
+    publisher->impl, "publisher implementation is invalid", return false, options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl->rmw_handle, "publisher is invalid", return false, options->allocator);
+    publisher->impl->rmw_handle, "publisher rmw handle invalid", return false, options->allocator);
   return true;
 }
 

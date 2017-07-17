@@ -283,15 +283,15 @@ rcl_service_is_valid(const rcl_service_t * service)
   RCL_CHECK_ARGUMENT_FOR_NULL(service, false, rcl_get_default_allocator());
   options = _service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(options,
-    "service is invalid",
+    "service's options pointer is invalid",
     return false,
     rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(service->impl,
-    "service is invalid",
+    "service implementation is invalid",
     return false,
     options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(service->impl->rmw_handle,
-    "service is invalid",
+    "service's rmw handle is invalid",
     return false,
     options->allocator);
   return true;
