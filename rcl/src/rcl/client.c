@@ -207,6 +207,10 @@ rcl_client_get_service_name(const rcl_client_t * client)
   return client->impl->rmw_handle->service_name;
 }
 
+/* *INDENT-OFF* */
+#define _client_get_options(client) &client->impl->options;
+/* *INDENT-ON* */
+
 const rcl_client_options_t *
 rcl_client_get_options(const rcl_client_t * client)
 {
@@ -280,11 +284,13 @@ rcl_take_response(
 bool rcl_client_is_valid(const rcl_client_t * client)
 {
   const rcl_client_options_t * options;
-  RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());        
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   options = _client_get_options(client);
-  RCL_CHECK_FOR_NULL_WITH_MSG(options, "client is invalid", return false, options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    client->impl, "client is invalid", return false, rcl_get_default_allocator());
+    options, "client is invalid", return false, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    client->impl, "client is invalid", return false, options->allocator);
   return true;
 }
 #if __cplusplus

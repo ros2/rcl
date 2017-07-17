@@ -211,21 +211,25 @@ rcl_service_get_service_name(const rcl_service_t * service)
   return service->impl->rmw_handle->service_name;
 }
 
+/* *INDENT-OFF* */
+#define _service_get_options(service) &service->impl->options
+/* *INDENT-ON* */
+
 const rcl_service_options_t *
 rcl_service_get_options(const rcl_service_t * service)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(service, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service->impl, "service is invalid", return NULL, rcl_get_default_allocator());
-  return &service->impl->options;
+  if (!rcl_service_is_valid(service)) {
+    return NULL;
+  }
+  return _service_get_options(service);
 }
 
 rmw_service_t *
 rcl_service_get_rmw_handle(const rcl_service_t * service)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(service, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service->impl, "service is invalid", return NULL, rcl_get_default_allocator());
+  if (!rcl_service_is_valid(service)) {
+    return NULL;
+  }
   return service->impl->rmw_handle;
 }
 
@@ -235,11 +239,7 @@ rcl_take_request(
   rmw_request_id_t * request_header,
   void * ros_request)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_service_options_t * options = rcl_service_get_options(service);
-  if (!options) {
-    return RCL_RET_SERVICE_INVALID;
-  }
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_request, RCL_RET_INVALID_ARGUMENT, options->allocator);
 
@@ -262,11 +262,7 @@ rcl_send_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_service_options_t * options = rcl_service_get_options(service);
-  if (!options) {
-    return RCL_RET_SERVICE_INVALID;
-  }
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_response, RCL_RET_INVALID_ARGUMENT, options->allocator);
 
@@ -283,15 +279,21 @@ rcl_send_response(
 bool
 rcl_service_is_valid(const rcl_service_t * service)
 {
+  const rcl_service_options_t * options;
   RCL_CHECK_ARGUMENT_FOR_NULL(service, false, rcl_get_default_allocator());
+  options = _service_get_options(service);
+  RCL_CHECK_FOR_NULL_WITH_MSG(options,
+    "service is invalid",
+    return false,
+    rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(service->impl,
-    "rcl service implementation is invalid",
+    "service is invalid",
     return false,
-    rcl_get_default_allocator());
+    options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(service->impl->rmw_handle,
-    "rmw handle is invalid",
+    "service is invalid",
     return false,
-    rcl_get_default_allocator());
+    options->allocator);
   return true;
 }
 

@@ -384,10 +384,7 @@ rcl_service_get_rmw_handle(const rcl_service_t * service);
 
 /// Check that the service is valid.
 /**
- * The bool returned is `false` if:
- *   - the argument `service` is `NULL`
- *   - the argument's `service->impl` is `NULL`
- *   - the argument's `service->impl->rmw_handle` is `NULL`
+ * The bool returned is `false` if `service` is invalid.
  * The bool returned is `true` otherwise.
  * This function cannot fail.
  *

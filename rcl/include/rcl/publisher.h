@@ -305,10 +305,6 @@ RCL_WARN_UNUSED
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher);
 
-/* *INDENT-OFF* */
-#define _publisher_get_options(pub) &pub->impl->options
-/* *INDENT-ON* */
-
 /// Return the rmw publisher handle.
 /**
  * The handle returned is a pointer to the internally held rmw handle.
@@ -342,9 +338,7 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 
 /// Check that the publisher is valid
 /**
- * The bool returned is `false` if:
- *   - the argument `publisher` is `NULL`
- *   - the argument's `publisher->impl` is `NULL`
+ * The bool returned is `false` if `publisher` is invalid.
  * The bool returned is `true` otherwise.
  * This function cannot fail.
  *

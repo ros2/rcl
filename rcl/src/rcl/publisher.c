@@ -165,11 +165,6 @@ fail:
 rcl_ret_t
 rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
 {
-  if (!rcl_publisher_is_valid(publisher)) {
-    return RCL_RET_PUBLISHER_INVALID;
-  } else if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
-  }
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -206,7 +201,8 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 {
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;
-  } else if (rmw_publish(publisher->impl->rmw_handle, ros_message) != RMW_RET_OK) {
+  }
+  if (rmw_publish(publisher->impl->rmw_handle, ros_message) != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
@@ -221,6 +217,10 @@ rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
   }
   return publisher->impl->rmw_handle->topic_name;
 }
+
+/* *INDENT-OFF* */
+#define _publisher_get_options(pub) &pub->impl->options
+/* *INDENT-ON* */
 
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher)
@@ -243,17 +243,15 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 bool
 rcl_publisher_is_valid(const rcl_publisher_t * publisher)
 {
-  const rcl_publisher_options_t * options;  
+  const rcl_publisher_options_t * options;
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, false, options->allocator);
-  RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl,
-    "publisher implementation is invalid",
-    return false,
-    rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
-    "publisher implementation rmw_handle is invalid",
-    return false,
-    rcl_get_default_allocator());
+  options = _publisher_get_options(publisher);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    options, "publisher is invalid", return false, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    publisher->impl, "publisher is invalid", return false, options->allocator);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    publisher->impl->rmw_handle, "publisher is invalid", return false, options->allocator);
   return true;
 }
 

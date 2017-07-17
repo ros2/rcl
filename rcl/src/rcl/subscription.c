@@ -237,6 +237,10 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription)
   return subscription->impl->rmw_handle->topic_name;
 }
 
+/* *INDENT-OFF* */
+#define _subscription_get_options(subscription) &subscription->impl->options
+/* *INDENT-ON* */
+
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription)
 {
@@ -264,15 +268,15 @@ rcl_subscription_is_valid(const rcl_subscription_t * subscription)
   RCL_CHECK_FOR_NULL_WITH_MSG(options,
     "subscription implementation is invalid",
     return false,
-    options->allocator);
+    rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(subscription->impl,
     "subscription implementation is invalid",
     return NULL,
-    rcl_get_default_allocator());
+    options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(subscription->impl->rmw_handle,
     "subscription implementation rmw_handle is invalid",
     return NULL,
-    rcl_get_default_allocator());
+    options->allocator);
   return true;
 }
 
