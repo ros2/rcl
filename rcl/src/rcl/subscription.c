@@ -271,11 +271,11 @@ rcl_subscription_is_valid(const rcl_subscription_t * subscription)
     rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(subscription->impl,
     "subscription implementation is invalid",
-    return NULL,
+    return false,
     options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(subscription->impl->rmw_handle,
     "subscription implementation rmw_handle is invalid",
-    return NULL,
+    return false,
     options->allocator);
   return true;
 }
