@@ -340,6 +340,8 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 /**
  * The bool returned is `false` if `publisher` is invalid.
  * The bool returned is `true` otherwise.
+ * In the case where `false` is to be returned, an
+ * error message is set.
  * This function cannot fail.
  *
  * <hr>

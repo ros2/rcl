@@ -386,6 +386,8 @@ rcl_service_get_rmw_handle(const rcl_service_t * service);
 /**
  * The bool returned is `false` if `service` is invalid.
  * The bool returned is `true` otherwise.
+ * In the case where `false` is to be returned, an
+ * error message is set.
  * This function cannot fail.
  *
  * <hr>

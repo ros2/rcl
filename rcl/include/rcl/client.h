@@ -374,6 +374,8 @@ rcl_client_get_rmw_handle(const rcl_client_t * client);
 /**
  * The bool returned is `false` if client is invalid
  * The bool returned is `true` otherwise.
+ * In the case where `false` is to be returned, an
+ * error message is set.
  * This function cannot fail.
  *
  * <hr>
