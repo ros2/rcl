@@ -290,7 +290,7 @@ bool rcl_client_is_valid(const rcl_client_t * client)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "client's options pointer is invalid", return false, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
-          client->impl, "client's rmw implementation is invalid", return false, options->allocator);
+    client->impl, "client's rmw implementation is invalid", return false, options->allocator);
   return true;
 }
 #if __cplusplus
