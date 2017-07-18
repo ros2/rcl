@@ -336,6 +336,29 @@ RCL_WARN_UNUSED
 rmw_publisher_t *
 rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 
+/// Check that the publisher is valid
+/**
+ * The bool returned is `false` if `publisher` is invalid.
+ * The bool returned is `true` otherwise.
+ * In the case where `false` is to be returned, an
+ * error message is set.
+ * This function cannot fail.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] publisher pointer to the rcl publisher
+ * \return `true` if the publisher is valid, otherwise `false`
+ */
+
+bool
+rcl_publisher_is_valid(const rcl_publisher_t * publisher);
+
 #if __cplusplus
 }
 #endif

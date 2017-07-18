@@ -339,6 +339,28 @@ RCL_WARN_UNUSED
 rmw_subscription_t *
 rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
 
+/// Check that the subscription is valid.
+/**
+ * The bool returned is `false` if `subscription` is invalid.
+ * The bool returned is `true` otherwise.
+ * In the case where `false` is to be returned, an
+ * error message is set.
+ * This function cannot fail.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] subscription pointer to the rcl subscription
+ * \return `true` if `subscription` is valid, otherwise `false`
+ */
+bool
+rcl_subscription_is_valid(const rcl_subscription_t * subscription);
+
 #if __cplusplus
 }
 #endif
