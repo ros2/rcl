@@ -391,6 +391,7 @@ rcl_client_get_rmw_handle(const rcl_client_t * client);
  */
 bool
 rcl_client_is_valid(const rcl_client_t * client);
+
 #if __cplusplus
 }
 #endif
