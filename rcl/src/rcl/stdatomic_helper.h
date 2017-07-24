@@ -15,7 +15,7 @@
 #ifndef RCL__STDATOMIC_HELPER_H_
 #define RCL__STDATOMIC_HELPER_H_
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
 
 #if defined(__GNUC__) && __GNUC__ <= 4 && __GNUC_MINOR__ <= 9
 // If GCC and below GCC-4.9, use the compatability header.
@@ -38,7 +38,7 @@
 
 #define rcl_atomic_store(object, desired) atomic_store(object, desired)
 
-#else  // !defined(WIN32)
+#else  // !defined(_WIN32)
 
 #include "./stdatomic_helper/win32/stdatomic.h"
 
@@ -51,7 +51,7 @@
 
 #define rcl_atomic_store(object, desired) rcl_win32_atomic_store(object, desired)
 
-#endif  // !defined(WIN32)
+#endif  // !defined(_WIN32)
 
 static inline bool
 rcl_atomic_load_bool(atomic_bool * a_bool)

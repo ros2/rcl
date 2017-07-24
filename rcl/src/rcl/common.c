@@ -23,10 +23,10 @@ extern "C"
 
 #include "rcl/allocator.h"
 
-#if defined(WIN32)
+#if defined(_WIN32)
 # define WINDOWS_ENV_BUFFER_SIZE 2048
 static char __env_buffer[WINDOWS_ENV_BUFFER_SIZE];
-#endif  // defined(WIN32)
+#endif  // defined(_WIN32)
 
 rcl_ret_t
 rcl_impl_getenv(const char * env_name, const char ** env_value)
@@ -34,12 +34,12 @@ rcl_impl_getenv(const char * env_name, const char ** env_value)
   RCL_CHECK_ARGUMENT_FOR_NULL(env_name, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(env_value, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   *env_value = NULL;
-#if !defined(WIN32)
+#if !defined(_WIN32)
   *env_value = getenv(env_name);
   if (*env_value == NULL) {
     *env_value = "";
   }
-#else  // !defined(WIN32)
+#else  // !defined(_WIN32)
   size_t required_size;
   errno_t ret = getenv_s(&required_size, __env_buffer, sizeof(__env_buffer), env_name);
   if (ret != 0) {
@@ -48,7 +48,7 @@ rcl_impl_getenv(const char * env_name, const char ** env_value)
   }
   __env_buffer[WINDOWS_ENV_BUFFER_SIZE - 1] = '\0';
   *env_value = __env_buffer;
-#endif  // !defined(WIN32)
+#endif  // !defined(_WIN32)
   return RCL_RET_OK;
 }
 
