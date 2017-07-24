@@ -56,9 +56,9 @@
  * $FreeBSD: src/include/stdatomic.h,v 1.10.2.2 2012/05/30 19:21:54 theraven Exp $
  */
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
 #error "this stdatomic.h does not support your compiler"
-#endif
+#endif  // !defined(_WIN32)
 
 #ifndef RCL__STDATOMIC_HELPER__WIN32__STDATOMIC_H_
 #define RCL__STDATOMIC_HELPER__WIN32__STDATOMIC_H_

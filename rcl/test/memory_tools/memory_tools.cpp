@@ -94,7 +94,7 @@ void stop_memory_checking()
 /******************************************************************************
  * End Apple
  *****************************************************************************/
-// #elif defined(WIN32)
+// #elif defined(_WIN32)
 /******************************************************************************
  * Begin Windows
  *****************************************************************************/
@@ -140,4 +140,4 @@ void set_on_unexpected_free_callback(UnexpectedCallbackType callback) {}
 
 void memory_checking_thread_init() {}
 
-#endif  // if defined(__linux__) elif defined(__APPLE__) elif defined(WIN32) else ...
+#endif  // if defined(__linux__) elif defined(__APPLE__) elif defined(_WIN32) else ...

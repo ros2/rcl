@@ -56,11 +56,11 @@ public:
 
 bool is_opensplice =
   std::string(rmw_get_implementation_identifier()).find("opensplice") != std::string::npos;
-#if defined(WIN32)
+#if defined(_WIN32)
 bool is_windows = true;
 #else
 bool is_windows = false;
-#endif
+#endif  // defined(_WIN32)
 
 /* Tests the node accessors, i.e. rcl_node_get_* functions.
  */
