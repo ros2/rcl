@@ -27,6 +27,9 @@
 #include "rcl/rcl.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
+
+#include "rcutils/logging_macros.h"
+
 #include "../src/default_state_machine.h"
 
 class TestDefaultStateMachine : public ::testing::Test
@@ -226,7 +229,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
         *it == lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE ||
         *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
 
-      fprintf(stderr, "applying key %u\n", *it);
+      RCUTILS_LOG_INFO("applying key %u", *it)
       EXPECT_EQ(
         RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();

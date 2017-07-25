@@ -27,6 +27,8 @@ extern "C"
 #include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/transition_map.h"
 
+#include "rcutils/logging_macros.h"
+
 #include "com_interface.h"  // NOLINT
 #include "default_state_machine.h"  // NOLINT
 #include "states.h"  // NOLINT
@@ -148,8 +150,8 @@ rcl_lifecycle_is_valid_transition(
       return &current_state->valid_transitions[i];
     }
   }
-  fprintf(stderr, "%s:%u, No callback transition matching %d found for current state %s\n",
-    __FILE__, __LINE__, key, state_machine->current_state->label);
+  RCUTILS_LOG_WARN("No callback transition matching %d found for current state %s",
+    key, state_machine->current_state->label)
   return NULL;
 }
 
@@ -163,14 +165,14 @@ rcl_lifecycle_trigger_transition(
 
   // If we have a faulty transition pointer
   if (!transition) {
-    fprintf(stderr, "No transition found for node %s with key %d\n",
-      state_machine->current_state->label, key);
+    RCUTILS_LOG_ERROR("No transition found for node %s with key %d",
+      state_machine->current_state->label, key)
     RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
 
   if (!transition->goal) {
-    fprintf(stderr, "No valid goal is set\n");
+    RCUTILS_LOG_ERROR("No valid goal is set")
   }
   state_machine->current_state = transition->goal;
   if (publish_notification) {
