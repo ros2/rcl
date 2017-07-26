@@ -107,7 +107,7 @@ rcl_ret_t
 rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_map_t * transition_map,
   rcl_lifecycle_transition_t transition,
-  rcl_lifecycle_ret_t key,
+  rcl_lifecycle_transition_key_t key,
   const rcutils_allocator_t * allocator)
 {
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
@@ -154,9 +154,9 @@ rcl_lifecycle_register_transition(
   }
   state->valid_transitions = new_valid_transitions;
 
-  rcl_lifecycle_ret_t * new_valid_transition_keys = allocator->reallocate(
+  rcl_lifecycle_transition_key_t * new_valid_transition_keys = allocator->reallocate(
     state->valid_transition_keys,
-    state->valid_transition_size * sizeof(rcl_lifecycle_ret_t),
+    state->valid_transition_size * sizeof(rcl_lifecycle_transition_key_t),
     allocator->state);
   if (!new_valid_transitions) {
     RCL_SET_ERROR_MSG(
