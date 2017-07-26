@@ -22,8 +22,8 @@ extern "C"
 
 #include <stdbool.h>
 
-#include <rcl_lifecycle/visibility_control.h>
-#include <rcl_lifecycle/data_types.h>
+#include "rcl_lifecycle/data_types.h"
+#include "rcl_lifecycle/visibility_control.h"
 
 RCL_LIFECYCLE_PUBLIC
 rcl_lifecycle_state_machine_t

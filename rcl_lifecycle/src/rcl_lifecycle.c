@@ -24,10 +24,10 @@ extern "C"
 #include "rcl/rcl.h"
 #include "rcl/error_handling.h"
 
+#include "rcutils/logging_macros.h"
+
 #include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/transition_map.h"
-
-#include "rcutils/logging_macros.h"
 
 #include "com_interface.h"  // NOLINT
 #include "default_state_machine.h"  // NOLINT

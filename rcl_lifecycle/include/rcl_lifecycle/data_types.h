@@ -15,7 +15,8 @@
 #ifndef RCL_LIFECYCLE__DATA_TYPES_H_
 #define RCL_LIFECYCLE__DATA_TYPES_H_
 
-#include <rcl/rcl.h>
+#include "rcl/rcl.h"
+
 #include "rcl_lifecycle/visibility_control.h"
 
 #if __cplusplus
