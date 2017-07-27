@@ -15,8 +15,8 @@
 #ifndef STATES_H_
 #define STATES_H_
 
-#include <rcl_lifecycle/visibility_control.h>
-#include <rcl_lifecycle/data_types.h>
+#include "rcl_lifecycle/data_types.h"
+#include "rcl_lifecycle/visibility_control.h"
 
 #if __cplusplus
 extern "C"

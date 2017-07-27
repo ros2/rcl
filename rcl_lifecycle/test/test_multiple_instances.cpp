@@ -17,16 +17,16 @@
 // as depicted in design.ros2.org
 
 #include <gtest/gtest.h>
-
-#include <lifecycle_msgs/msg/state.h>
-#include <lifecycle_msgs/msg/transition.h>
-
 #include <vector>
+
+#include "lifecycle_msgs/msg/state.h"
+#include "lifecycle_msgs/msg/transition.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
+
 #include "../src/default_state_machine.h"
 
 class TestMultipleInstances : public ::testing::Test

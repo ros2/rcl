@@ -22,16 +22,19 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
-#include <rcl/error_handling.h>
-#include <rcutils/format_string.h>
-#include <rmw/validate_full_topic_name.h>
-#include <rosidl_generator_c/message_type_support_struct.h>
-#include <rosidl_generator_c/string_functions.h>
+#include "lifecycle_msgs/msg/transition_event.h"
 
-#include <lifecycle_msgs/msg/transition_event.h>
+#include "rcl/error_handling.h"
+
+#include "rcutils/format_string.h"
+#include "rcutils/logging_macros.h"
+
+#include "rmw/validate_full_topic_name.h"
+
+#include "rosidl_generator_c/message_type_support_struct.h"
+#include "rosidl_generator_c/string_functions.h"
 
 #include "rcl_lifecycle/data_types.h"
-
 
 static lifecycle_msgs__msg__TransitionEvent msg;
 static const char * pub_transition_event_suffix = "transition_event";
@@ -224,24 +227,19 @@ rcl_lifecycle_com_interface_init(
 
 fail:
   if (RCL_RET_OK != rcl_publisher_fini(&com_interface->pub_transition_event, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy transition_event publisher\n",
-      __FILE__, __LINE__);
+    RCUTILS_LOG_ERROR("Failed to destroy transition_event publisher")
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_change_state, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy change_state service\n",
-      __FILE__, __LINE__);
+    RCUTILS_LOG_ERROR("Failed to destroy change_state service")
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_state, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy get_state service\n",
-      __FILE__, __LINE__);
+    RCUTILS_LOG_ERROR("Failed to destroy get_state service")
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_available_states, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy get_available_states service\n",
-      __FILE__, __LINE__);
+    RCUTILS_LOG_ERROR("Failed to destroy get_available_states service")
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_available_transitions, node_handle)) {
-    fprintf(stderr, "%s:%u, Failed to destroy get_available_transitions service\n",
-      __FILE__, __LINE__);
+    RCUTILS_LOG_ERROR("Failed to destroy get_available_transitions service")
   }
 
   if (topic_name) {

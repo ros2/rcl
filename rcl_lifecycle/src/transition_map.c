@@ -21,9 +21,10 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
-#include "rcl_lifecycle/transition_map.h"
 #include "rcl/error_handling.h"
 #include "rcutils/format_string.h"
+
+#include "rcl_lifecycle/transition_map.h"
 
 rcl_lifecycle_transition_map_t
 rcl_lifecycle_get_zero_initialized_transition_map()

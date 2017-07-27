@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "rcl/error_handling.h"
+
 #include "rcl_lifecycle/transition_map.h"
 
 class TestTransitionMap : public ::testing::Test

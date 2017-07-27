@@ -16,12 +16,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <lifecycle_msgs/msg/state.h>
-#include <lifecycle_msgs/msg/transition.h>
+#include "lifecycle_msgs/msg/state.h"
+#include "lifecycle_msgs/msg/transition.h"
+
+#include "rcl/error_handling.h"
+#include "rcl/rcl.h"
 
 #include "rcl_lifecycle/transition_map.h"
-#include "rcl/rcl.h"
-#include "rcl/error_handling.h"
 
 #include "default_state_machine.h"  // NOLINT
 #include "states.h"  // NOLINT
