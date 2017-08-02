@@ -32,6 +32,10 @@ extern "C"
 {
 #endif
 
+rcl_lifecycle_transition_key_t * empty_transition_key = NULL;
+rcl_lifecycle_transition_t * empty_transition = NULL;
+unsigned int empty_transition_size = 0;
+
 // Primary States
 const rcl_lifecycle_state_t rcl_state_unknown =
 {"unknown", lifecycle_msgs__msg__State__PRIMARY_STATE_UNKNOWN,
@@ -235,7 +239,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_configure_success,
-    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -243,7 +247,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_configure_failure,
-    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -251,7 +255,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_configure_error,
-    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -269,7 +273,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_cleanup_success,
-    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -277,7 +281,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_cleanup_failure,
-    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -285,7 +289,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_cleanup_error,
-    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -303,7 +307,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_activate_success,
-    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -311,7 +315,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_activate_failure,
-    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -319,7 +323,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_activate_error,
-    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -337,7 +341,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_deactivate_success,
-    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -345,7 +349,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_deactivate_failure,
-    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -353,7 +357,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_deactivate_error,
-    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -387,7 +391,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_shutdown_success,
-    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -395,7 +399,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_shutdown_failure,
-    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -403,7 +407,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_shutdown_error,
-    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -413,7 +417,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_error_success,
-    RCL_LIFECYCLE_RET_OK,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -421,7 +425,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_error_failure,
-    RCL_LIFECYCLE_RET_FAILURE,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;
@@ -429,7 +433,7 @@ rcl_lifecycle_init_default_state_machine(
   ret = rcl_lifecycle_register_transition(
     &state_machine->transition_map,
     rcl_transition_error_error,
-    RCL_LIFECYCLE_RET_ERROR,
+    lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
     allocator);
   if (ret != RCL_RET_OK) {
     goto fail;

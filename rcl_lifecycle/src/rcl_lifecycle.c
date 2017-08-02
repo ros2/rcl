@@ -139,7 +139,7 @@ rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t *
 const rcl_lifecycle_transition_t *
 rcl_lifecycle_is_valid_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_ret_t key)
+  rcl_lifecycle_transition_key_t key)
 {
   unsigned int current_id = state_machine->current_state->id;
   const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(
@@ -158,7 +158,7 @@ rcl_lifecycle_is_valid_transition(
 rcl_ret_t
 rcl_lifecycle_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_ret_t key, bool publish_notification)
+  rcl_lifecycle_transition_key_t key, bool publish_notification)
 {
   const rcl_lifecycle_transition_t * transition =
     rcl_lifecycle_is_valid_transition(state_machine, key);
