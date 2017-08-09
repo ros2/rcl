@@ -24,6 +24,7 @@ extern "C"
 
 #include "./common.h"
 #include "rcl/expand_topic_name.h"
+#include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
@@ -89,11 +90,11 @@ rcl_publisher_init(
   if (ret != RCL_RET_OK) {
     rcutils_ret = rcutils_string_map_fini(&substitutions_map);
     if (rcutils_ret != RCUTILS_RET_OK) {
-      fprintf(stderr,
-        "[" RCUTILS_STRINGIFY(__FILE__) ":" RCUTILS_STRINGIFY(__LINE__) "]: "
-        "failed to fini string_map (%d) during error handling: %s\n",
+      RCUTILS_LOG_ERROR_NAMED(
+        "rcl",
+        "failed to fini string_map (%d) during error handling: %s",
         rcutils_ret,
-        rcutils_get_error_string_safe());
+        rcutils_get_error_string_safe())
     }
     if (ret == RCL_RET_BAD_ALLOC) {
       return ret;

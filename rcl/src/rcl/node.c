@@ -27,6 +27,7 @@ extern "C"
 #include "rcl/rcl.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/get_env.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/node_security_options.h"
@@ -295,17 +296,19 @@ fail:
     if (node->impl->rmw_node_handle) {
       ret = rmw_destroy_node(node->impl->rmw_node_handle);
       if (ret != RMW_RET_OK) {
-        fprintf(stderr,
-          "failed to fini rmw node in error recovery: %s\n", rmw_get_error_string_safe()
-        );
+        RCUTILS_LOG_ERROR_NAMED(
+          "rcl",
+          "failed to fini rmw node in error recovery: %s", rmw_get_error_string_safe()
+        )
       }
     }
     if (node->impl->graph_guard_condition) {
       ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
       if (ret != RCL_RET_OK) {
-        fprintf(stderr,
-          "failed to fini guard condition in error recovery: %s\n", rcl_get_error_string_safe()
-        );
+        RCUTILS_LOG_ERROR_NAMED(
+          "rcl",
+          "failed to fini guard condition in error recovery: %s", rcl_get_error_string_safe()
+        )
       }
       allocator->deallocate(node->impl->graph_guard_condition, allocator->state);
     }

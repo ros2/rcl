@@ -27,6 +27,8 @@
 #include "rcl/error_handling.h"
 #include "rcl/wait.h"
 
+#include "rcutils/logging_macros.h"
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -258,7 +260,8 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
           } else {
             std::stringstream ss;
             ss << "[thread " << test_set.thread_id << "] Timeout (try #" << wake_try_count << ")";
-            printf("%s\n", ss.str().c_str());
+            // TODO(mikaelarguedas) replace this with stream logging once they exist
+            RCUTILS_LOG_INFO("%s", ss.str().c_str())
           }
         }
         if (!change_detected) {

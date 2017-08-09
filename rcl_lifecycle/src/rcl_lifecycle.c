@@ -150,7 +150,9 @@ rcl_lifecycle_is_valid_transition(
       return &current_state->valid_transitions[i];
     }
   }
-  RCUTILS_LOG_WARN("No callback transition matching %d found for current state %s",
+  RCUTILS_LOG_WARN_NAMED(
+    "rcl_lifecycle",
+    "No callback transition matching %d found for current state %s",
     key, state_machine->current_state->label)
   return NULL;
 }
@@ -165,14 +167,17 @@ rcl_lifecycle_trigger_transition(
 
   // If we have a faulty transition pointer
   if (!transition) {
-    RCUTILS_LOG_ERROR("No transition found for node %s with key %d",
+    RCUTILS_LOG_ERROR_NAMED(
+      "rcl_lifecycle",
+      "No transition found for node %s with key %d",
       state_machine->current_state->label, key)
     RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
 
   if (!transition->goal) {
-    RCUTILS_LOG_ERROR("No valid goal is set")
+    RCUTILS_LOG_ERROR_NAMED(
+      "rcl_lifecycle", "No valid goal is set")
   }
   state_machine->current_state = transition->goal;
   if (publish_notification) {
@@ -193,13 +198,17 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
 {
   const rcl_lifecycle_transition_map_t * map = &state_machine->transition_map;
   for (size_t i = 0; i < map->states_size; ++i) {
-    printf("Primary State: %s(%u)\n", map->states[i].label, map->states[i].id);
-    printf("# of valid transitions: %u\n", map->states[i].valid_transition_size);
+    RCUTILS_LOG_INFO_NAMED(
+      "rcl_lifecycle",
+      "Primary State: %s(%u)\n# of valid transitions: %u",
+      map->states[i].label, map->states[i].id,
+      map->states[i].valid_transition_size
+    )
     for (size_t j = 0; j < map->states[i].valid_transition_size; ++j) {
-      printf("\tNode %s: Key %d: Transition: %s\n",
+      RCUTILS_LOG_INFO("\tNode %s: Key %d: Transition: %s",
         map->states[i].label,
         map->states[i].valid_transition_keys[j],
-        map->states[i].valid_transitions[j].label);
+        map->states[i].valid_transitions[j].label)
     }
   }
 }
