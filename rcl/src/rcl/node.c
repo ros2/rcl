@@ -323,11 +323,17 @@ rcl_node_fini(rcl_node_t * node)
   }
   rcl_allocator_t allocator = node->impl->options.allocator;
   rcl_ret_t result = RCL_RET_OK;
-  rmw_ret_t ret = rmw_destroy_node(node->impl->rmw_node_handle);
-  if (ret != RMW_RET_OK) {
+  rmw_ret_t rmw_ret = rmw_destroy_node(node->impl->rmw_node_handle);
+  if (rmw_ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
     result = RCL_RET_ERROR;
   }
+  rcl_ret_t rcl_ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
+  if (rcl_ret != RCL_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
+    result = RCL_RET_ERROR;
+  }
+  allocator.deallocate(node->impl->graph_guard_condition, allocator.state);
   // assuming that allocate and deallocate are ok since they are checked in init
   allocator.deallocate(node->impl, allocator.state);
   node->impl = NULL;
