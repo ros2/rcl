@@ -330,10 +330,6 @@ rcl_node_fini(rcl_node_t * node)
   }
   rcl_ret_t rcl_ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
   if (rcl_ret != RCL_RET_OK) {
-    if (result != RCL_RET_OK) {
-      // Here, we are overwriting a previous error; log it
-      fprintf(stderr, "overwriting error in rcl_node_fini: previous error was '%s'\n", rcl_get_error_string_safe());
-    }
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
     result = RCL_RET_ERROR;
   }
