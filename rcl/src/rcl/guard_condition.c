@@ -27,6 +27,7 @@ extern "C"
 typedef struct rcl_guard_condition_impl_t
 {
   rmw_guard_condition_t * rmw_handle;
+  bool allocated_rmw_guard_condition;
   rcl_guard_condition_options_t options;
 } rcl_guard_condition_impl_t;
 
@@ -76,6 +77,7 @@ __rcl_guard_condition_init_from_rmw_impl(
   if (rmw_guard_condition) {
     // If given, just assign (cast away const).
     guard_condition->impl->rmw_handle = (rmw_guard_condition_t *)rmw_guard_condition;
+    guard_condition->impl->allocated_rmw_guard_condition = false;
   } else {
     // Otherwise create one.
     guard_condition->impl->rmw_handle = rmw_create_guard_condition();
@@ -85,6 +87,7 @@ __rcl_guard_condition_init_from_rmw_impl(
       RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
       return RCL_RET_ERROR;
     }
+    guard_condition->impl->allocated_rmw_guard_condition = true;
   }
   // Copy options into impl.
   guard_condition->impl->options = options;
@@ -119,7 +122,7 @@ rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition)
   if (guard_condition->impl) {
     // assuming the allocator is valid because it is checked in rcl_guard_condition_init()
     rcl_allocator_t allocator = guard_condition->impl->options.allocator;
-    if (guard_condition->impl->rmw_handle) {
+    if (guard_condition->impl->rmw_handle && guard_condition->impl->allocated_rmw_guard_condition) {
       if (rmw_destroy_guard_condition(guard_condition->impl->rmw_handle) != RMW_RET_OK) {
         RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
         result = RCL_RET_ERROR;
