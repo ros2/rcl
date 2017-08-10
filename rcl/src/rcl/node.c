@@ -29,6 +29,7 @@ extern "C"
 #include "rcutils/get_env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
+#include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
 #include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
@@ -37,12 +38,6 @@ extern "C"
 
 #include "./common.h"
 
-#ifndef _WIN32
-  #define LOCAL_SNPRINTF snprintf
-#else
-  #define LOCAL_SNPRINTF(buffer, buffer_size, format, ...) \
-  _snprintf_s(buffer, buffer_size, _TRUNCATE, format, __VA_ARGS__)
-#endif
 
 #define ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "ROS_SECURITY_ROOT_DIRECTORY"
 #define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
@@ -174,7 +169,7 @@ rcl_node_init(
     const char * msg = rmw_namespace_validation_result_string(validation_result);
     if (!msg) {
       char fixed_msg[256];
-      LOCAL_SNPRINTF(
+      rcutils_snprintf(
         fixed_msg, sizeof(fixed_msg),
         "unknown validation_result '%d', this should not happen", validation_result);
       RCL_SET_ERROR_MSG(fixed_msg, *allocator);
