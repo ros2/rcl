@@ -69,6 +69,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <rcutils/logging_macros.h>
+
 // In MSVC, correct alignment of each type is already ensured.
 #define _Atomic(T) struct { T __val; }
 
@@ -206,7 +208,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         out = _InterlockedCompareExchange8((char *) object, desired, *expected); \
         break; \
       default: \
-        fprintf(stderr, "Unsupported integer type in atomic_compare_exchange_strong"); \
+        RCUTILS_LOG_ERROR_NAMED( \
+          "rcl", "Unsupported integer type in atomic_compare_exchange_strong") \
         exit(-1); \
         break; \
     } \
@@ -234,7 +237,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         out = _InterlockedExchange8((char *) object, desired); \
         break; \
       default: \
-        fprintf(stderr, "Unsupported integer type in atomic_exchange_strong"); \
+        RCUTILS_LOG_ERROR_NAMED( \
+          "rcl", "Unsupported integer type in atomic_exchange_strong") \
         exit(-1); \
         break; \
     } \
@@ -259,7 +263,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         out = _InterlockedExchangeAdd8((char *) object, operand); \
         break; \
       default: \
-        fprintf(stderr, "Unsupported integer type in atomic_fetch_add"); \
+        RCUTILS_LOG_ERROR_NAMED( \
+          "rcl", "Unsupported integer type in atomic_fetch_add") \
         exit(-1); \
         break; \
     } \
@@ -284,7 +289,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         out = _InterlockedAnd8((char *) object, operand); \
         break; \
       default: \
-        fprintf(stderr, "Unsupported integer type in atomic_fetch_and"); \
+        RCUTILS_LOG_ERROR_NAMED( \
+          "rcl", "Unsupported integer type in atomic_fetch_and") \
         exit(-1); \
         break; \
     } \
@@ -309,7 +315,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         out = _InterlockedOr8((char *) object, operand); \
         break; \
       default: \
-        fprintf(stderr, "Unsupported integer type in atomic_fetch_or"); \
+        RCUTILS_LOG_ERROR_NAMED( \
+          "rcl", "Unsupported integer type in atomic_fetch_or") \
         exit(-1); \
         break; \
     } \
@@ -337,7 +344,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         out = _InterlockedXor8((char *) object, operand); \
         break; \
       default: \
-        fprintf(stderr, "Unsupported integer type in atomic_fetch_xor"); \
+        RCUTILS_LOG_ERROR_NAMED( \
+          "rcl", "Unsupported integer type in atomic_fetch_xor") \
         exit(-1); \
         break; \
     } \
@@ -362,7 +370,8 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         out = _InterlockedExchangeAdd8((char *) object, 0); \
         break; \
       default: \
-        fprintf(stderr, "Unsupported integer type in atomic_load"); \
+        RCUTILS_LOG_ERROR_NAMED( \
+          "rcl", "Unsupported integer type in atomic_load") \
         exit(-1); \
         break; \
     } \

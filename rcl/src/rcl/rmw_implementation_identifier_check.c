@@ -21,6 +21,7 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
+#include <rcutils/logging_macros.h>
 #include <rmw/rmw.h>
 
 #include "rcl/types.h"
@@ -54,20 +55,22 @@ INITIALIZER(initialize) {
   const char * expected = NULL;
   rcl_ret_t ret = rcl_impl_getenv("RCL_ASSERT_RMW_ID_MATCHES", &expected);
   if (ret != RCL_RET_OK) {
-    fprintf(stderr,
-      "Error getting environement variable 'RCL_ASSERT_RMW_ID_MATCHES': %s\n",
+    RCUTILS_LOG_ERROR_NAMED(
+      "rcl",
+      "Error getting environement variable 'RCL_ASSERT_RMW_ID_MATCHES': %s",
       rcl_get_error_string_safe()
-    );
+    )
     exit(ret);
   }
   // If the environment variable is set, and it does not match, print a warning and exit.
   if (strlen(expected) > 0 && strcmp(rmw_get_implementation_identifier(), expected) != 0) {
-    fprintf(stderr,
-      "Expected RMW implementation identifier of '%s' but instead found '%s', exiting with %d.\n",
+    RCUTILS_LOG_ERROR_NAMED(
+      "rcl",
+      "Expected RMW implementation identifier of '%s' but instead found '%s', exiting with %d.",
       expected,
       rmw_get_implementation_identifier(),
       RCL_RET_MISMATCHED_RMW_ID
-    );
+    )
     exit(RCL_RET_MISMATCHED_RMW_ID);
   }
 }

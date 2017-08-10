@@ -30,6 +30,8 @@
 #include "rcl/rcl.h"
 #include "rcl/graph.h"
 
+#include "rcutils/logging_macros.h"
+
 #include "std_msgs/msg/string.h"
 #include "example_interfaces/srv/add_two_ints.h"
 
@@ -242,12 +244,12 @@ check_graph_state(
   bool expected_in_tnat,
   size_t number_of_tries)
 {
-  printf(
-    "Expecting %zu publishers, %zu subscribers, and that the topic is%s in the graph.\n",
+  RCUTILS_LOG_INFO(
+    "Expecting %zu publishers, %zu subscribers, and that the topic is%s in the graph.",
     expected_publisher_count,
     expected_subscriber_count,
     expected_in_tnat ? "" : " not"
-  );
+  )
   size_t publisher_count = 0;
   size_t subscriber_count = 0;
   bool is_in_tnat = false;
@@ -280,19 +282,19 @@ check_graph_state(
       rcl_reset_error();
     }
 
-    printf(
-      " Try %zu: %zu publishers, %zu subscribers, and that the topic is%s in the graph.\n",
+    RCUTILS_LOG_INFO(
+      " Try %zu: %zu publishers, %zu subscribers, and that the topic is%s in the graph.",
       i + 1,
       publisher_count,
       subscriber_count,
       is_in_tnat ? "" : " not"
-    );
+    )
     if (
       expected_publisher_count == publisher_count &&
       expected_subscriber_count == subscriber_count &&
       expected_in_tnat == is_in_tnat)
     {
-      printf("  state correct!\n");
+      RCUTILS_LOG_INFO("  state correct!")
       break;
     }
     // Wait for graph change before trying again.
@@ -305,15 +307,15 @@ check_graph_state(
     ret = rcl_wait_set_add_guard_condition(wait_set_ptr, graph_guard_condition);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
-    printf(
+    RCUTILS_LOG_INFO(
       "  state wrong, waiting up to '%s' nanoseconds for graph changes... ",
-      std::to_string(time_to_sleep.count()).c_str());
+      std::to_string(time_to_sleep.count()).c_str())
     ret = rcl_wait(wait_set_ptr, time_to_sleep.count());
     if (ret == RCL_RET_TIMEOUT) {
-      printf("timeout\n");
+      RCUTILS_LOG_INFO("timeout")
       continue;
     }
-    printf("change occurred\n");
+    RCUTILS_LOG_INFO("change occurred")
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   }
   EXPECT_EQ(expected_publisher_count, publisher_count);
@@ -332,7 +334,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   std::string topic_name("/test_graph_query_functions__");
   std::chrono::nanoseconds now = std::chrono::system_clock::now().time_since_epoch();
   topic_name += std::to_string(now.count());
-  printf("Using topic name: %s\n", topic_name.c_str());
+  RCUTILS_LOG_INFO("Using topic name: %s", topic_name.c_str())
   rcl_ret_t ret;
   const rcl_guard_condition_t * graph_guard_condition =
     rcl_node_get_graph_guard_condition(this->node_ptr);
@@ -465,9 +467,9 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
-    printf(
-      "waiting up to '%s' nanoseconds for graph changes\n",
-      std::to_string(time_to_sleep.count()).c_str());
+    RCUTILS_LOG_INFO(
+      "waiting up to '%s' nanoseconds for graph changes",
+      std::to_string(time_to_sleep.count()).c_str())
     ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
     if (ret == RCL_RET_TIMEOUT) {
       continue;
@@ -524,9 +526,9 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        printf(
-          "waiting up to '%s' nanoseconds for graph changes\n",
-          std::to_string(time_to_sleep.count()).c_str());
+        RCUTILS_LOG_INFO(
+          "waiting up to '%s' nanoseconds for graph changes",
+          std::to_string(time_to_sleep.count()).c_str())
         ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
         if (ret == RCL_RET_TIMEOUT) {
           if (!is_connext) {

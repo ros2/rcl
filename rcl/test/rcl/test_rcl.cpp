@@ -18,6 +18,7 @@
 
 #include "../memory_tools/memory_tools.hpp"
 #include "rcl/error_handling.h"
+#include "rcutils/snprintf.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -60,9 +61,9 @@ struct FakeTestArgv
     }
     static const size_t size = 10;
     this->argv[0] = reinterpret_cast<char *>(malloc(size * sizeof(char)));
-    snprintf(this->argv[0], size, "foo");
+    rcutils_snprintf(this->argv[0], size, "foo");
     this->argv[1] = reinterpret_cast<char *>(malloc(size * sizeof(char)));
-    snprintf(this->argv[1], size, "bar");
+    rcutils_snprintf(this->argv[1], size, "bar");
   }
 
   ~FakeTestArgv()

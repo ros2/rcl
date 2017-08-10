@@ -27,7 +27,9 @@ extern "C"
 #include "rcl/rcl.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/get_env.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
+#include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
 #include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
@@ -36,12 +38,6 @@ extern "C"
 
 #include "./common.h"
 
-#ifndef _WIN32
-  #define LOCAL_SNPRINTF snprintf
-#else
-  #define LOCAL_SNPRINTF(buffer, buffer_size, format, ...) \
-  _snprintf_s(buffer, buffer_size, _TRUNCATE, format, __VA_ARGS__)
-#endif
 
 #define ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "ROS_SECURITY_ROOT_DIRECTORY"
 #define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
@@ -173,7 +169,7 @@ rcl_node_init(
     const char * msg = rmw_namespace_validation_result_string(validation_result);
     if (!msg) {
       char fixed_msg[256];
-      LOCAL_SNPRINTF(
+      rcutils_snprintf(
         fixed_msg, sizeof(fixed_msg),
         "unknown validation_result '%d', this should not happen", validation_result);
       RCL_SET_ERROR_MSG(fixed_msg, *allocator);
@@ -295,17 +291,19 @@ fail:
     if (node->impl->rmw_node_handle) {
       ret = rmw_destroy_node(node->impl->rmw_node_handle);
       if (ret != RMW_RET_OK) {
-        fprintf(stderr,
-          "failed to fini rmw node in error recovery: %s\n", rmw_get_error_string_safe()
-        );
+        RCUTILS_LOG_ERROR_NAMED(
+          "rcl",
+          "failed to fini rmw node in error recovery: %s", rmw_get_error_string_safe()
+        )
       }
     }
     if (node->impl->graph_guard_condition) {
       ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
       if (ret != RCL_RET_OK) {
-        fprintf(stderr,
-          "failed to fini guard condition in error recovery: %s\n", rcl_get_error_string_safe()
-        );
+        RCUTILS_LOG_ERROR_NAMED(
+          "rcl",
+          "failed to fini guard condition in error recovery: %s", rcl_get_error_string_safe()
+        )
       }
       allocator->deallocate(node->impl->graph_guard_condition, allocator->state);
     }
