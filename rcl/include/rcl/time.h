@@ -45,70 +45,70 @@ typedef rcutils_time_point_value_t rcl_time_point_value_t;
 typedef rcutils_duration_value_t rcl_duration_value_t;
 
 /// Time source type, used to indicate the source of a time measurement.
-enum rcl_time_source_type_t
+typedef enum rcl_clock_type_t
 {
-  RCL_TIME_SOURCE_UNINITIALIZED = 0,
+  RCL_CLOCK_UNINITIALIZED = 0,
   RCL_ROS_TIME,
   RCL_SYSTEM_TIME,
   RCL_STEADY_TIME
-};
+} rcl_clock_type_t;
 
 /// Encapsulation of a time source.
-typedef struct rcl_time_source_t
+typedef struct rcl_clock_t
 {
-  enum rcl_time_source_type_t type;
+  enum rcl_clock_type_t type;
   void (* pre_update)(void);
   void (* post_update)(void);
   rcl_ret_t (* get_now)(void * data, rcl_time_point_value_t * now);
   // void (*set_now) (rcl_time_point_value_t);
   void * data;
-} rcl_time_source_t;
+} rcl_clock_t;
 
-struct rcl_ros_time_source_storage_t;
+struct rcl_ros_clock_storage_t;
 
 /// A single point in time, measured in nanoseconds, the reference point is based on the source.
 typedef struct rcl_time_point_t
 {
   rcl_time_point_value_t nanoseconds;
-  rcl_time_source_t * time_source;
+  rcl_clock_type_t clock_type;
 } rcl_time_point_t;
 
 /// A duration of time, measured in nanoseconds and its source.
 typedef struct rcl_duration_t
 {
   rcl_duration_value_t nanoseconds;
-  rcl_time_source_t * time_source;
+  rcl_clock_type_t clock_type;
 } rcl_duration_t;
 
 // typedef struct rcl_rate_t
 // {
 //   rcl_time_point_value_t trigger_time;
 //   int64_t period;
-//   rcl_time_source_t * time_source;
+//   rcl_clock_type_t clock;;
 // } rcl_rate_t;
 // TODO(tfoote) integrate rate and timer implementations
 
-/// Check if the time_source has valid values.
+/// Check if the clock has valid values.
 /**
  * This function returns true if the time source appears to be valid.
  * It will check that the type is not uninitialized, and that pointers
  * are not invalid.
  * Note that if data is uninitialized it may give a false positive.
  *
- * \param[in] time_source the handle to the time_source which is being queried
+ * \param[in] clock the handle to the clock which is being queried
  * \return true if the source is believed to be valid, otherwise return false.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 bool
-rcl_time_source_valid(rcl_time_source_t * time_source);
+rcl_clock_valid(rcl_clock_t * clock);
 
-/// Initialize a time_source based on the passed type.
+/// Initialize a clock based on the passed type.
 /**
  * This will allocate all necessary internal structures, and initialize variables.
  *
- * \param[in] time_source_type the type identifying the time source to provide
- * \param[in] time_source the handle to the time_source which is being initialized
+ * \param[in] clock_type the type identifying the time source to provide
+ * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -116,19 +116,19 @@ rcl_time_source_valid(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_time_source_init(
-  enum rcl_time_source_type_t time_source_type, rcl_time_source_t * time_source
+rcl_clock_init(
+  enum rcl_clock_type_t clock_type, rcl_clock_t * clock
 );
 
-/// Finalize a time_source.
+/// Finalize a clock.
 /**
  * This will deallocate all necessary internal structures, and clean up any variables.
  * It can be combined with any of the init functions.
  *
- * Passing a time_source with type RCL_TIME_SOURCE_UNINITIALIZED will result in
+ * Passing a clock with type RCL_CLOCK_UNINITIALIZED will result in
  * RCL_RET_INVALID_ARGUMENT being returned.
  *
- * \param[in] time_source the handle to the time_source which is being finalized
+ * \param[in] clock the handle to the clock which is being finalized
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -136,14 +136,14 @@ rcl_time_source_init(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_time_source_fini(rcl_time_source_t * time_source);
+rcl_clock_fini(rcl_clock_t * clock);
 
-/// Initialize a time_source as a RCL_ROS_TIME time source.
+/// Initialize a clock as a RCL_ROS_TIME time source.
 /**
  * This will allocate all necessary internal structures, and initialize variables.
  * It is specifically setting up a RCL_ROS_TIME time source.
  *
- * \param[in] time_source the handle to the time_source which is being initialized
+ * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -151,15 +151,15 @@ rcl_time_source_fini(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_ros_time_source_init(rcl_time_source_t * time_source);
+rcl_ros_clock_init(rcl_clock_t * clock);
 
-/// Finalize a time_source as a `RCL_ROS_TIME` time source.
+/// Finalize a clock as a `RCL_ROS_TIME` time source.
 /**
  * This will deallocate all necessary internal structures, and clean up any variables.
  * It is specifically setting up a `RCL_ROS_TIME` time source. It is expected
  * to be paired with the init fuction.
  *
- * \param[in] time_source the handle to the time_source which is being initialized
+ * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -167,14 +167,14 @@ rcl_ros_time_source_init(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_ros_time_source_fini(rcl_time_source_t * time_source);
+rcl_ros_clock_fini(rcl_clock_t * clock);
 
-/// Initialize a time_source as a `RCL_STEADY_TIME` time source.
+/// Initialize a clock as a `RCL_STEADY_TIME` time source.
 /**
  * This will allocate all necessary internal structures, and initialize variables.
  * It is specifically setting up a `RCL_STEADY_TIME` time source.
  *
- * \param[in] time_source the handle to the time_source which is being initialized
+ * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -182,17 +182,17 @@ rcl_ros_time_source_fini(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_steady_time_source_init(rcl_time_source_t * time_source);
+rcl_steady_clock_init(rcl_clock_t * clock);
 
-/// Finalize a time_source as a `RCL_STEADY_TIME` time source.
+/// Finalize a clock as a `RCL_STEADY_TIME` time source.
 /**
- * Finalize the time_source as a `RCL_STEADY_TIME` time source.
+ * Finalize the clock as a `RCL_STEADY_TIME` time source.
  *
  * This will deallocate all necessary internal structures, and clean up any variables.
  * It is specifically setting up a steady time source. It is expected to be
  * paired with the init fuction.
  *
- * \param[in] time_source the handle to the time_source which is being initialized
+ * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -200,16 +200,16 @@ rcl_steady_time_source_init(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_steady_time_source_fini(rcl_time_source_t * time_source);
+rcl_steady_clock_fini(rcl_clock_t * clock);
 
-/// Initialize a time_source as a `RCL_SYSTEM_TIME` time source.
+/// Initialize a clock as a `RCL_SYSTEM_TIME` time source.
 /**
- * Initialize the time_source as a `RCL_SYSTEM_TIME` time source.
+ * Initialize the clock as a `RCL_SYSTEM_TIME` time source.
  *
  * This will allocate all necessary internal structures, and initialize variables.
  * It is specifically setting up a system time source.
  *
- * \param[in] time_source the handle to the time_source which is being initialized
+ * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -217,17 +217,17 @@ rcl_steady_time_source_fini(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_system_time_source_init(rcl_time_source_t * time_source);
+rcl_system_clock_init(rcl_clock_t * clock);
 
-/// Finalize a time_source as a `RCL_SYSTEM_TIME` time source.
+/// Finalize a clock as a `RCL_SYSTEM_TIME` time source.
 /**
- * Finalize the time_source as a `RCL_SYSTEM_TIME` time source.
+ * Finalize the clock as a `RCL_SYSTEM_TIME` time source.
  *
  * This will deallocate all necessary internal structures, and clean up any variables.
  * It is specifically setting up a system time source. It is expected to be paired with
  * the init fuction.
  *
- * \param[in] time_source the handle to the time_source which is being initialized.
+ * \param[in] clock the handle to the clock which is being initialized.
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -235,20 +235,20 @@ rcl_system_time_source_init(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_system_time_source_fini(rcl_time_source_t * time_source);
+rcl_system_clock_fini(rcl_clock_t * clock);
 
-/// Initialize a time point using the time_source.
+/// Initialize a time point using the clock.
 /**
- * This function will initialize the time_point using the time_source
+ * This function will initialize the time_point using the clock
  * as a reference.
- * If the time_source is null it will use the system default time_source.
+ * If the clock is null it will use the system default clock.
  *
  * This will allocate all necessary internal structures, and initialize variables.
- * The time_source may be of types `RCL_ROS_TIME`, `RCL_STEADY_TIME`, or
+ * The clock may be of types `RCL_ROS_TIME`, `RCL_STEADY_TIME`, or
  * `RCL_SYSTEM_TIME`.
  *
- * \param[in] time_point the handle to the time_source which is being initialized.
- * \param[in] time_source the handle to the time_source will be used for reference.
+ * \param[in] time_point the handle to the clock which is being initialized.
+ * \param[in] clock_type the type of the clock that clock will be used for reference.
  * \return `RCL_RET_OK` if the last call time was retrieved successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -256,7 +256,7 @@ rcl_system_time_source_fini(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_time_point_init(rcl_time_point_t * time_point, rcl_time_source_t * time_source);
+rcl_time_point_init(rcl_time_point_t * time_point, rcl_clock_type_t * clock_type);
 
 /// Finalize a time_point
 /**
@@ -264,7 +264,7 @@ rcl_time_point_init(rcl_time_point_t * time_point, rcl_time_source_t * time_sour
  *
  * This will deallocate all necessary internal structures, and clean up any variables.
  *
- * \param[in] time_point the handle to the time_source which is being finalized.
+ * \param[in] time_point the handle to the time_point which is being finalized.
  * \return `RCL_RET_OK` if the last call time was retrieved successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -274,16 +274,16 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_time_point_fini(rcl_time_point_t * time_point);
 
-/// Initialize a duration using the time_source.
+/// Initialize a duration using the clock.
 /**
- * This function will initialize the duration using the time_source as a reference.
- * If the time_source is null it will use the system default time_source.
+ * This function will initialize the duration using the clock as a reference.
+ * If the clock is null it will use the system default clock.
  *
  * This will allocate all necessary internal structures, and initialize variables.
- * The time_source may be of types ros, steady, or system.
+ * The clock may be of types ros, steady, or system.
  *
  * \param[in] duration the handle to the duration which is being initialized.
- * \param[in] time_source the handle to the time_source will be used for reference.
+ * \param[in] clock_type The type of the clock will be used for reference.
  * \return `RCL_RET_OK` if the last call time was retrieved successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -291,7 +291,7 @@ rcl_time_point_fini(rcl_time_point_t * time_point);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_duration_init(rcl_duration_t * duration, rcl_time_source_t * time_source);
+rcl_duration_init(rcl_duration_t * duration, rcl_clock_type_t * clock_type);
 
 /// Finalize a duration
 /**
@@ -308,77 +308,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_duration_fini(rcl_duration_t * duration);
-
-/// Get the default `RCL_ROS_TIME` time source
-/**
- * This function will get the process default time source.
- * This time source is specifically of the ROS time abstraction,
- * and may be overridden by updates.
- *
- * If the default has not yet been used it will allocate
- * and initialize the time source.
- *
- * \return rcl_time_source_t if it successfully found or allocated a
- *         time source. If an error occurred it will return NULL.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_time_source_t *
-rcl_get_default_ros_time_source(void);
-
-/// Get the default `RCL_STEADY_TIME` time source
-/**
- * This function will get the process default time source.
- * This time source is specifically of the steady time abstraction,
- * it should not be able to be overridden..
- *
- * If the default has not yet been used it will allocate
- * and initialize the time source.
- *
- * \return rcl_time_source_t if it successfully found or allocated a
- *         time source. If an error occurred it will return NULL.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_time_source_t *
-rcl_get_default_steady_time_source(void);
-
-/// Get the default `RCL_SYSTEM_TIME` time source
-/**
- * This function will get the process default time source.
- * This time source is specifically of the system time abstraction,
- * and may be overridden by updates to the system clock.
- *
- * If the default has not yet been used it will allocate
- * and initialize the time source.
- *
- * \return rcl_time_source_t if it successfully found or allocated a
- *         time source. If an error occurred it will return NULL.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_time_source_t *
-rcl_get_default_system_time_source(void);
-
-/// Set the current time on the `RCL_ROS_TIME` time source
-/**
- * This function is used to set the time on a ROS time source.
- * It will error if passed a different time source.
- *
- * This should not block, except on Windows. One caveat is that
- * if the ROS time abstraction is active, it will invoke the user
- * defined callbacks, for pre and post update notifications. The
- * callbacks are supposed to be short running and non-blocking.
- *
- * \param[in] process_time_source The time source on which to set the value.
- * \return `RCL_RET_OK` if the value was set successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_ERROR` an unspecified error occur.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_set_default_ros_time_source(rcl_time_source_t * process_time_source);
 
 /// Compute the difference between two time points
 /**
@@ -406,7 +335,7 @@ rcl_difference_times(
 /**
  * This function will populate the data of the time_point object with the
  * current value from it's associated time abstraction.
- *
+ * \param[in] clock The time source from which to set the value.
  * \param[out] time_point The time_point to populate.
  * \return `RCL_RET_OK` if the last call time was retrieved successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -415,7 +344,7 @@ rcl_difference_times(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_time_point_get_now(rcl_time_point_t * time_point);
+rcl_time_point_get_now(rcl_clock_t * clock, rcl_time_point_t * time_point);
 
 
 /// Enable the ROS time abstraction override.
@@ -424,7 +353,7 @@ rcl_time_point_get_now(rcl_time_point_t * time_point);
  * such that the time source will report the set value instead of falling
  * back to system time.
  *
- * \param[in] time_source The time_source to enable.
+ * \param[in] clock The clock to enable.
  * \return `RCL_RET_OK` if the time source was enabled successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -432,7 +361,7 @@ rcl_time_point_get_now(rcl_time_point_t * time_point);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_enable_ros_time_override(rcl_time_source_t * time_source);
+rcl_enable_ros_time_override(rcl_clock_t * clock);
 
 /// Disable the ROS time abstraction override.
 /**
@@ -440,7 +369,7 @@ rcl_enable_ros_time_override(rcl_time_source_t * time_source);
  * such that the time source will report the system time even if a custom
  * value has been set.
  *
- * \param[in] time_source The time_source to disable.
+ * \param[in] clock The clock to disable.
  * \return `RCL_RET_OK` if the time source was disabled successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -448,7 +377,7 @@ rcl_enable_ros_time_override(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_disable_ros_time_override(rcl_time_source_t * time_source);
+rcl_disable_ros_time_override(rcl_clock_t * clock);
 
 
 /// Check if the `RCL_ROS_TIME` time source has the override enabled.
@@ -457,7 +386,7 @@ rcl_disable_ros_time_override(rcl_time_source_t * time_source);
  * time overide is enabled. If it is enabled, the set value will be returned.
  * Otherwise this time source will return the equivalent to system time abstraction.
  *
- * \param[in] time_source The time_source to query.
+ * \param[in] clock The clock to query.
  * \param[out] is_enabled Whether the override is enabled..
  * \return `RCL_RET_OK` if the time source was queried successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -476,7 +405,7 @@ rcl_is_enabled_ros_time_override(
  * If queried and override enabled the time source will return this value,
  * otherwise it will return the system time.
  *
- * \param[in] time_source The time_source to update.
+ * \param[in] clock The clock to update.
  * \param[in] time_value The new current time.
  * \return `RCL_RET_OK` if the time source was set successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
