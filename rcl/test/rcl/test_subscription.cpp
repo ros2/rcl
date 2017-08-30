@@ -212,9 +212,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     std_msgs__msg__String__init(&msg);
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.data, test_string));
     ret = rcl_publish(&publisher, &msg);
-    // TODO(wjwwood): re-enable this fini when ownership of the string is resolved.
-    //                currently with Connext we will spuriously get a double free here.
-    // std_msgs__msg__String__fini(&msg);
+    std_msgs__msg__String__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   }
   bool success;
