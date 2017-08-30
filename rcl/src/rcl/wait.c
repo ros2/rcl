@@ -548,6 +548,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
         return ret;  // The rcl error state should already be set.
       }
       if (is_canceled) {
+        wait_set->timers[i] = NULL;
         continue;  // Skip canceled timers.
       }
 
