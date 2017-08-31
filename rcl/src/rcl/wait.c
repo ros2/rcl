@@ -527,6 +527,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // By default, set the timer to block indefinitely if none of the below conditions are met.
   rmw_time_t * timeout_argument = NULL;
   rmw_time_t temporary_timeout_storage;
+  bool use_user_timeout = true;
 
   if (timeout == 0) {
     // Then it is non-blocking, so set the temporary storage to 0, 0 and pass it.
@@ -564,6 +565,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (min_timeout < 0) {
       min_timeout = 0;
     }
+    use_user_timeout = min_timeout == timeout;
     temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
     temporary_timeout_storage.nsec = min_timeout % 1000000000;
     timeout_argument = &temporary_timeout_storage;
@@ -591,7 +593,25 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
     rcl_ret = rcl_wait_set_clear_clients(wait_set);
     assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
-    return RCL_RET_TIMEOUT;
+    // if a timer reached it's deadline
+    if (!use_user_timeout) {
+      // check which timers are ready and null the others
+      size_t i;
+      for (i = 0; i < wait_set->impl->timer_index; ++i) {
+        bool is_ready = false;
+        rcl_ret_t ret = rcl_timer_is_ready(wait_set->timers[i], &is_ready);
+        if (ret != RCL_RET_OK) {
+          return ret;  // The rcl error state should already be set.
+        }
+        if (!is_ready) {
+          wait_set->timers[i] = NULL;
+        }
+      }
+      return RCL_RET_OK;
+    } else {
+      // if we actually timed out
+      return RCL_RET_TIMEOUT;
+    }
   }
   // Check for error.
   if (ret != RMW_RET_OK) {
