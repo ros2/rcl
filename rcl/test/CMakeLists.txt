@@ -200,3 +200,10 @@ rcl_add_custom_gtest(test_expand_topic_name
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
 )
+
+rcl_add_custom_gtest(test_timer${target_suffix}
+  SRCS rcl/test_timer.cpp
+  ENV ${extra_test_env}
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+)
