@@ -109,6 +109,53 @@ TEST_F(TestTimerFixture, test_two_timers) {
   ASSERT_EQ(1, nonnull_timers);
 }
 
+TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
+  stop_memory_checking();
+  rcl_ret_t ret;
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  rcl_timer_t timer2 = rcl_get_zero_initialized_timer();
+
+  ret = rcl_timer_init(&timer, RCL_MS_TO_NS(5), nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  ret = rcl_timer_init(&timer2, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  ret = rcl_wait_set_init(&wait_set, 0, 0, 2, 0, 0, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  ret = rcl_wait_set_add_timer(&wait_set, &timer);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_wait_set_add_timer(&wait_set, &timer2);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  auto timer_exit = make_scope_exit([&timer, &timer2, &wait_set]() {
+    stop_memory_checking();
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_timer_fini(&timer2);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(20));
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  uint8_t nonnull_timers = 0;
+  for (uint8_t i = 0; i < wait_set.size_of_timers; i++) {
+    if (wait_set.timers[i] != NULL) {
+      nonnull_timers++;
+    }
+  }
+  bool is_ready = false;
+  ret = rcl_timer_is_ready(&timer, &is_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_TRUE(is_ready);
+  ret = rcl_timer_is_ready(&timer2, &is_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_FALSE(is_ready);
+  ASSERT_EQ(1, nonnull_timers);
+}
+
 TEST_F(TestTimerFixture, test_timer_not_ready) {
   stop_memory_checking();
   rcl_ret_t ret;
