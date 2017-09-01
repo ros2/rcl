@@ -528,12 +528,32 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   rmw_time_t * timeout_argument = NULL;
   rmw_time_t temporary_timeout_storage;
 
+  // calculate the number of valid (non-NULL and non-canceled) timers
+  size_t number_of_valid_timers = wait_set->size_of_timers;
+  uint64_t i = 0;
+  for (i = 0; i < wait_set->impl->timer_index; ++i) {
+    if (!wait_set->timers[i]) {
+      number_of_valid_timers--;
+      continue;  // Skip NULL timers.
+    }
+    bool is_canceled = false;
+    rcl_ret_t ret = rcl_timer_is_canceled(wait_set->timers[i], &is_canceled);
+    if (ret != RCL_RET_OK) {
+      return ret;  // The rcl error state should already be set.
+    }
+    if (is_canceled) {
+      number_of_valid_timers--;
+      wait_set->timers[i] = NULL;
+    }
+  }
+
+  bool using_provided_timeout_not_timer_timeout = true;
   if (timeout == 0) {
     // Then it is non-blocking, so set the temporary storage to 0, 0 and pass it.
     temporary_timeout_storage.sec = 0;
     temporary_timeout_storage.nsec = 0;
     timeout_argument = &temporary_timeout_storage;
-  } else if (timeout > 0 || wait_set->size_of_timers > 0) {
+  } else if (timeout > 0 || number_of_valid_timers > 0) {
     int64_t min_timeout = timeout > 0 ? timeout : INT64_MAX;
     // Compare the timeout to the time until next callback for each timer.
     // Take the lowest and use that for the wait timeout.
@@ -542,14 +562,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       if (!wait_set->timers[i]) {
         continue;  // Skip NULL timers.
       }
-      bool is_canceled = false;
-      rcl_ret_t ret = rcl_timer_is_canceled(wait_set->timers[i], &is_canceled);
-      if (ret != RCL_RET_OK) {
-        return ret;  // The rcl error state should already be set.
-      }
-      if (is_canceled) {
-        continue;  // Skip canceled timers.
-      }
+      // at this point we know any non-NULL timers are also not canceled
 
       int64_t timer_timeout = INT64_MAX;
       ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
@@ -557,9 +570,11 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
         return ret;  // The rcl error state should already be set.
       }
       if (timer_timeout < min_timeout) {
+        using_provided_timeout_not_timer_timeout = false;
         min_timeout = timer_timeout;
       }
     }
+
     // If min_timeout was negative, we need to wake up immediately.
     if (min_timeout < 0) {
       min_timeout = 0;
@@ -577,7 +592,19 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &wait_set->impl->rmw_clients,
     wait_set->impl->rmw_waitset,
     timeout_argument);
-  // Check for timeout.
+  // Check for ready timers next, and set not ready timers to NULL.
+  size_t i;
+  for (i = 0; i < wait_set->impl->timer_index; ++i) {
+    bool is_ready = false;
+    rcl_ret_t ret = rcl_timer_is_ready(wait_set->timers[i], &is_ready);
+    if (ret != RCL_RET_OK) {
+      return ret;  // The rcl error state should already be set.
+    }
+    if (!is_ready) {
+      wait_set->timers[i] = NULL;
+    }
+  }
+  // Check for timeout, return RCL_RET_TIMEOUT only if it wasn't a timer.
   if (ret == RMW_RET_TIMEOUT) {
     // Assume none were set (because timeout was reached first), and clear all.
     rcl_ret_t rcl_ret;
@@ -591,24 +618,12 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
     rcl_ret = rcl_wait_set_clear_clients(wait_set);
     assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
-    return RCL_RET_TIMEOUT;
-  }
-  // Check for error.
-  if (ret != RMW_RET_OK) {
+    if (using_provided_timeout_not_timer_timeout) {
+      return RCL_RET_TIMEOUT;
+    }
+  } else if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), wait_set->impl->allocator);
     return RCL_RET_ERROR;
-  }
-  // Check for ready timers next, and set not ready timers to NULL.
-  size_t i;
-  for (i = 0; i < wait_set->impl->timer_index; ++i) {
-    bool is_ready = false;
-    rcl_ret_t ret = rcl_timer_is_ready(wait_set->timers[i], &is_ready);
-    if (ret != RCL_RET_OK) {
-      return ret;  // The rcl error state should already be set.
-    }
-    if (!is_ready) {
-      wait_set->timers[i] = NULL;
-    }
   }
   // Set corresponding rcl subscription handles NULL.
   for (i = 0; i < wait_set->size_of_subscriptions; ++i) {
