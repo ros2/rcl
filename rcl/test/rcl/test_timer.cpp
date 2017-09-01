@@ -1,4 +1,4 @@
-// Copyright 2015 Open Source Robotics Foundation, Inc.
+// Copyright 2017 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -107,4 +107,81 @@ TEST_F(TestTimerFixture, test_two_timers) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_FALSE(is_ready);
   ASSERT_EQ(1, nonnull_timers);
+}
+
+TEST_F(TestTimerFixture, test_timer_not_ready) {
+  stop_memory_checking();
+  rcl_ret_t ret;
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+
+  ret = rcl_timer_init(&timer, RCL_MS_TO_NS(5), nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  ret = rcl_wait_set_add_timer(&wait_set, &timer);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  auto timer_exit = make_scope_exit([&timer, &wait_set]() {
+    stop_memory_checking();
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1));
+  EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
+  uint8_t nonnull_timers = 0;
+  for (uint8_t i = 0; i < wait_set.size_of_timers; i++) {
+    if (wait_set.timers[i] != NULL) {
+      nonnull_timers++;
+    }
+  }
+  bool is_ready = false;
+  ret = rcl_timer_is_ready(&timer, &is_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_FALSE(is_ready);
+  ASSERT_EQ(0, nonnull_timers);
+}
+
+TEST_F(TestTimerFixture, test_canceled_timer) {
+  stop_memory_checking();
+  rcl_ret_t ret;
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+
+  ret = rcl_timer_init(&timer, 500, nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  ret = rcl_timer_cancel(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  ret = rcl_wait_set_add_timer(&wait_set, &timer);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  auto timer_exit = make_scope_exit([&timer, &wait_set]() {
+    stop_memory_checking();
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1));
+  EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
+  uint8_t nonnull_timers = 0;
+  for (uint8_t i = 0; i < wait_set.size_of_timers; i++) {
+    if (wait_set.timers[i] != NULL) {
+      nonnull_timers++;
+    }
+  }
+  bool is_ready = false;
+  ret = rcl_timer_is_ready(&timer, &is_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_FALSE(is_ready);
+  ASSERT_EQ(0, nonnull_timers);
 }
