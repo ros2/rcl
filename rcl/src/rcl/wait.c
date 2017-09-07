@@ -549,7 +549,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     }
   }
 
-  bool using_provided_timeout_not_timer_timeout = true;
+  bool is_timer_timeout = false;
   if (timeout == 0) {
     // Then it is non-blocking, so set the temporary storage to 0, 0 and pass it.
     temporary_timeout_storage.sec = 0;
@@ -572,7 +572,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
         return ret;  // The rcl error state should already be set.
       }
       if (timer_timeout < min_timeout) {
-        using_provided_timeout_not_timer_timeout = false;
+        is_timer_timeout = true;
         min_timeout = timer_timeout;
       }
     }
@@ -623,7 +623,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
     rcl_ret = rcl_wait_set_clear_clients(wait_set);
     assert(rcl_ret == RCL_RET_OK);  // Defensive, shouldn't fail with valid wait_set.
-    if (using_provided_timeout_not_timer_timeout) {
+    if (!is_timer_timeout) {
       return RCL_RET_TIMEOUT;
     }
   } else if (ret != RMW_RET_OK) {
