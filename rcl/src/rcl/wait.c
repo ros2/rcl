@@ -594,7 +594,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &wait_set->impl->rmw_clients,
     wait_set->impl->rmw_waitset,
     timeout_argument);
-  // Check for ready timers next, and set not ready timers to NULL.
+  // Check for ready timers next
+  // and set not ready timers (which includes canceled timers) to NULL.
   size_t i;
   for (i = 0; i < wait_set->impl->timer_index; ++i) {
     if (!wait_set->timers[i]) {
