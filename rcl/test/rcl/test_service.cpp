@@ -154,6 +154,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
 
   // Check if zero initialized node is valid
   service = rcl_get_zero_initialized_service();
+  service.impl = nullptr;
   EXPECT_EQ(rcl_service_is_valid(&service), false);
   rcl_reset_error();
 
