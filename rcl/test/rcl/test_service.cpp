@@ -127,6 +127,11 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
+
+  // Check if null service is valid
+  EXPECT_EQ(rcl_service_is_valid(nullptr), false);
+  rcl_reset_error();
+
   // Check that the service name matches what we assigned.
   EXPECT_EQ(strcmp(rcl_service_get_service_name(&service), expected_topic), 0);
   auto service_exit = make_scope_exit(
@@ -147,6 +152,10 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     });
 
+  // Check if zero initialized node is valid
+  service = rcl_get_zero_initialized_service();
+  EXPECT_EQ(rcl_service_is_valid(&service), false);
+  rcl_reset_error();
 
   // TODO(wjwwood): add logic to wait for the connection to be established
   //                use count_services busy wait mechanism
