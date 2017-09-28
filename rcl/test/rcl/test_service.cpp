@@ -84,11 +84,12 @@ wait_for_service_to_be_ready(
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto wait_set_exit = make_scope_exit([&wait_set]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto wait_set_exit = make_scope_exit(
+    [&wait_set]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
   size_t iteration = 0;
   do {
     ++iteration;
@@ -128,21 +129,23 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
 
   // Check that the service name matches what we assigned.
   EXPECT_EQ(strcmp(rcl_service_get_service_name(&service), expected_topic), 0);
-  auto service_exit = make_scope_exit([&service, this]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto service_exit = make_scope_exit(
+    [&service, this]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
   rcl_client_t client = rcl_get_zero_initialized_client();
   rcl_client_options_t client_options = rcl_client_get_default_options();
   ret = rcl_client_init(&client, this->node_ptr, ts, topic, &client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto client_exit = make_scope_exit([&client, this]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto client_exit = make_scope_exit(
+    [&client, this]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
 
   // TODO(wjwwood): add logic to wait for the connection to be established
@@ -171,10 +174,11 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     // Initialize a response.
     example_interfaces__srv__AddTwoInts_Response service_response;
     example_interfaces__srv__AddTwoInts_Response__init(&service_response);
-    auto msg_exit = make_scope_exit([&service_response]() {
-      stop_memory_checking();
-      example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
-    });
+    auto msg_exit = make_scope_exit(
+      [&service_response]() {
+        stop_memory_checking();
+        example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
+      });
 
     // Initialize a separate instance of the request and take the pending request.
     example_interfaces__srv__AddTwoInts_Request service_request;

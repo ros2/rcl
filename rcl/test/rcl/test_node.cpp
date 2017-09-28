@@ -88,31 +88,34 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     // This is the normal check (not windows and windows if not opensplice)
     ASSERT_EQ(RCL_RET_OK, ret);
   }
-  auto rcl_invalid_node_exit = make_scope_exit([&invalid_node]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_node_fini(&invalid_node);
-    EXPECT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_invalid_node_exit = make_scope_exit(
+    [&invalid_node]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_node_fini(&invalid_node);
+      EXPECT_EQ(RCL_RET_OK, ret);
+    });
   ret = rcl_shutdown();  // Shutdown to invalidate the node.
   ASSERT_EQ(RCL_RET_OK, ret);
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit([]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_shutdown();
-    ASSERT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_shutdown_exit = make_scope_exit(
+    []() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_shutdown();
+      ASSERT_EQ(RCL_RET_OK, ret);
+    });
   // Create a zero init node.
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // Create a normal node.
   rcl_node_t node = rcl_get_zero_initialized_node();
   ret = rcl_node_init(&node, name, namespace_, &default_options);
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_node_exit = make_scope_exit([&node]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_node_fini(&node);
-    EXPECT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_node_exit = make_scope_exit(
+    [&node]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_node_fini(&node);
+      EXPECT_EQ(RCL_RET_OK, ret);
+    });
   // Test rcl_node_is_valid().
   bool is_valid;
   is_valid = rcl_node_is_valid(nullptr);
@@ -311,10 +314,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit([]() {
-    rcl_ret_t ret = rcl_shutdown();
-    ASSERT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_shutdown_exit = make_scope_exit(
+    []() {
+      rcl_ret_t ret = rcl_shutdown();
+      ASSERT_EQ(RCL_RET_OK, ret);
+    });
   // Try invalid arguments.
   ret = rcl_node_init(nullptr, name, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
@@ -401,10 +405,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit([]() {
-    rcl_ret_t ret = rcl_shutdown();
-    ASSERT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_shutdown_exit = make_scope_exit(
+    []() {
+      rcl_ret_t ret = rcl_shutdown();
+      ASSERT_EQ(RCL_RET_OK, ret);
+    });
 
   const char * namespace_ = "/ns";
   rcl_node_options_t default_options = rcl_node_get_default_options();
@@ -461,10 +466,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit([]() {
-    rcl_ret_t ret = rcl_shutdown();
-    ASSERT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_shutdown_exit = make_scope_exit(
+    []() {
+      rcl_ret_t ret = rcl_shutdown();
+      ASSERT_EQ(RCL_RET_OK, ret);
+    });
 
   const char * name = "node";
   rcl_node_options_t default_options = rcl_node_get_default_options();

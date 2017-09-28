@@ -86,22 +86,24 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   rcl_service_options_t service_options = rcl_service_get_default_options();
   ret = rcl_service_init(&service, this->node_ptr, ts, service_name, &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto service_exit = make_scope_exit([&service, this]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto service_exit = make_scope_exit(
+    [&service, this]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
   rcl_client_t unmatched_client = rcl_get_zero_initialized_client();
   rcl_client_options_t unmatched_client_options = rcl_client_get_default_options();
   ret = rcl_client_init(
     &unmatched_client, this->node_ptr, ts, unmatched_client_name, &unmatched_client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto unmatched_client_exit = make_scope_exit([&unmatched_client, this]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_client_fini(&unmatched_client, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto unmatched_client_exit = make_scope_exit(
+    [&unmatched_client, this]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_client_fini(&unmatched_client, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
   bool is_available = false;
   for (auto i = 0; i < timeout; ++i) {
@@ -119,11 +121,12 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   ret = rcl_client_init(
     &matched_client, this->node_ptr, ts, matched_client_name, &matched_client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto matched_client_exit = make_scope_exit([&matched_client, this]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_client_fini(&matched_client, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto matched_client_exit = make_scope_exit(
+    [&matched_client, this]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_client_fini(&matched_client, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
   is_available = false;
   for (auto i = 0; i < timeout; ++i) {

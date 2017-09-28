@@ -22,7 +22,7 @@ struct ScopeExit
 {
   explicit ScopeExit(Callable callable)
   : callable_(callable) {}
-  ~ScopeExit() {callable_(); }
+  ~ScopeExit() {callable_();}
 
 private:
   Callable callable_;
@@ -35,6 +35,6 @@ make_scope_exit(Callable callable)
   return ScopeExit<Callable>(callable);
 }
 
-#define SCOPE_EXIT(code) make_scope_exit([&]() {code; })
+#define SCOPE_EXIT(code) make_scope_exit([&]() {code;})
 
 #endif  // SCOPE_EXIT_HPP_

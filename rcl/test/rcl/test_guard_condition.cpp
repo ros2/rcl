@@ -64,11 +64,12 @@ TEST_F(
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
   // Setup automatic rcl_shutdown()
-  auto rcl_shutdown_exit = make_scope_exit([]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_shutdown();
-    ASSERT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_shutdown_exit = make_scope_exit(
+    []() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_shutdown();
+      ASSERT_EQ(RCL_RET_OK, ret);
+    });
 
   // Create a zero initialized guard_condition (but not initialized).
   rcl_guard_condition_t zero_guard_condition = rcl_get_zero_initialized_guard_condition();
@@ -79,11 +80,12 @@ TEST_F(
   ret = rcl_guard_condition_init(&guard_condition, default_options);
   ASSERT_EQ(RCL_RET_OK, ret);
   // Setup automatic finalization of guard condition.
-  auto rcl_guard_condition_exit = make_scope_exit([&guard_condition]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_guard_condition_fini(&guard_condition);
-    EXPECT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_guard_condition_exit = make_scope_exit(
+    [&guard_condition]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_guard_condition_fini(&guard_condition);
+      EXPECT_EQ(RCL_RET_OK, ret);
+    });
 
   // Test rcl_guard_condition_get_options().
   const rcl_guard_condition_options_t * actual_options;
@@ -142,10 +144,11 @@ TEST_F(
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit([]() {
-    rcl_ret_t ret = rcl_shutdown();
-    ASSERT_EQ(RCL_RET_OK, ret);
-  });
+  auto rcl_shutdown_exit = make_scope_exit(
+    []() {
+      rcl_ret_t ret = rcl_shutdown();
+      ASSERT_EQ(RCL_RET_OK, ret);
+    });
   // Try invalid arguments.
   ret = rcl_guard_condition_init(nullptr, default_options);
   ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";

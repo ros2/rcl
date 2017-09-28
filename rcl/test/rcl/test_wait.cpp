@@ -109,14 +109,15 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   ret = rcl_wait_set_add_timer(&wait_set, &timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit([&guard_cond, &wait_set, &timer]() {
-    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_fini(&wait_set);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_timer_fini(&timer);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto scope_exit = make_scope_exit(
+    [&guard_cond, &wait_set, &timer]() {
+      rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_wait_set_fini(&wait_set);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_timer_fini(&timer);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
   int64_t timeout = -1;
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
@@ -142,12 +143,13 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
   ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit([&guard_cond, &wait_set]() {
-    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_fini(&wait_set);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto scope_exit = make_scope_exit(
+    [&guard_cond, &wait_set]() {
+      rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_wait_set_fini(&wait_set);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
   // Time spent during wait should be negligible.
   int64_t timeout = 0;
@@ -181,14 +183,15 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   ret = rcl_wait_set_add_timer(&wait_set, &canceled_timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit([&guard_cond, &wait_set, &canceled_timer]() {
-    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_fini(&wait_set);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_timer_fini(&canceled_timer);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto scope_exit = make_scope_exit(
+    [&guard_cond, &wait_set, &canceled_timer]() {
+      rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_wait_set_fini(&wait_set);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_timer_fini(&canceled_timer);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
   int64_t timeout = RCL_MS_TO_NS(10);
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
@@ -292,14 +295,15 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     test_set.thread_id = 0;
   }
   // Setup safe tear-down.
-  auto scope_exit = make_scope_exit([&test_sets]() {
-    for (auto & test_set : test_sets) {
-      rcl_ret_t ret = rcl_guard_condition_fini(&test_set.guard_condition);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      ret = rcl_wait_set_fini(&test_set.wait_set);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    }
-  });
+  auto scope_exit = make_scope_exit(
+    [&test_sets]() {
+      for (auto & test_set : test_sets) {
+        rcl_ret_t ret = rcl_guard_condition_fini(&test_set.guard_condition);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+        ret = rcl_wait_set_fini(&test_set.wait_set);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      }
+    });
   // Now kick off all the threads.
   size_t thread_enumeration = 0;
   for (auto & test_set : test_sets) {
@@ -349,27 +353,29 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit([&wait_set, &guard_cond]() {
-    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_guard_condition_fini(&guard_cond);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto scope_exit = make_scope_exit(
+    [&wait_set, &guard_cond]() {
+      rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_guard_condition_fini(&guard_cond);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
 
   std::promise<rcl_ret_t> p;
 
   int64_t timeout = -1;
 
   std::chrono::nanoseconds trigger_diff;
-  std::thread trigger_thread([&p, &guard_cond, &trigger_diff]() {
-    std::chrono::steady_clock::time_point before_trigger = std::chrono::steady_clock::now();
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    rcl_ret_t ret = rcl_trigger_guard_condition(&guard_cond);
-    std::chrono::steady_clock::time_point after_trigger = std::chrono::steady_clock::now();
-    trigger_diff = std::chrono::duration_cast<std::chrono::nanoseconds>(
-      after_trigger - before_trigger);
-    p.set_value(ret);
-  });
+  std::thread trigger_thread(
+    [&p, &guard_cond, &trigger_diff]() {
+      std::chrono::steady_clock::time_point before_trigger = std::chrono::steady_clock::now();
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      rcl_ret_t ret = rcl_trigger_guard_condition(&guard_cond);
+      std::chrono::steady_clock::time_point after_trigger = std::chrono::steady_clock::now();
+      trigger_diff = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        after_trigger - before_trigger);
+      p.set_value(ret);
+    });
   auto f = p.get_future();
 
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
