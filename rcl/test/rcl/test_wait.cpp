@@ -233,49 +233,49 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
   };
   std::vector<TestSet> test_sets(number_of_threads);
   // Setup common function for waiting on the triggered guard conditions.
-  // *INDENT-OFF* (prevent uncrustify from making unnecessary indents here)
-  auto wait_func_factory = [count_target, retry_limit, wait_period](TestSet & test_set)
-  {
-    return [&test_set, count_target, retry_limit, wait_period]() {
-      while (test_set.wake_count < count_target) {
-        bool change_detected = false;
-        size_t wake_try_count = 0;
-        while (wake_try_count < retry_limit) {
-          wake_try_count++;
-          rcl_ret_t ret;
-          ret = rcl_wait_set_clear_guard_conditions(&test_set.wait_set);
-          EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-          ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition);
-          EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-          ret = rcl_wait(&test_set.wait_set, wait_period);
-          if (ret != RCL_RET_TIMEOUT) {
-            ASSERT_EQ(ret, RCL_RET_OK);
-            change_detected = true;
-            // if not timeout, then the single guard condition should be set
-            if (!test_set.wait_set.guard_conditions[0]) {
-              test_set.wake_count.store(count_target + 1);  // indicates an error
-              ASSERT_NE(nullptr, test_set.wait_set.guard_conditions[0])
-                << "[thread " << test_set.thread_id
-                << "] expected guard condition to be marked ready after non-timeout wake up";
+  auto wait_func_factory =
+    [count_target, retry_limit, wait_period](TestSet & test_set) {
+      return
+        [&test_set, count_target, retry_limit, wait_period]() {
+          while (test_set.wake_count < count_target) {
+            bool change_detected = false;
+            size_t wake_try_count = 0;
+            while (wake_try_count < retry_limit) {
+              wake_try_count++;
+              rcl_ret_t ret;
+              ret = rcl_wait_set_clear_guard_conditions(&test_set.wait_set);
+              EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+              ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition);
+              EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+              ret = rcl_wait(&test_set.wait_set, wait_period);
+              if (ret != RCL_RET_TIMEOUT) {
+                ASSERT_EQ(ret, RCL_RET_OK);
+                change_detected = true;
+                // if not timeout, then the single guard condition should be set
+                if (!test_set.wait_set.guard_conditions[0]) {
+                  test_set.wake_count.store(count_target + 1);  // indicates an error
+                  ASSERT_NE(nullptr, test_set.wait_set.guard_conditions[0]) <<
+                    "[thread " << test_set.thread_id <<
+                    "] expected guard condition to be marked ready after non-timeout wake up";
+                }
+                // no need to wait again
+                break;
+              } else {
+                std::stringstream ss;
+                ss << "[thread " << test_set.thread_id << "] Timeout (try #" << wake_try_count <<
+                  ")";
+                // TODO(mikaelarguedas) replace this with stream logging once they exist
+                RCUTILS_LOG_INFO("%s", ss.str().c_str())
+              }
             }
-            // no need to wait again
-            break;
-          } else {
-            std::stringstream ss;
-            ss << "[thread " << test_set.thread_id << "] Timeout (try #" << wake_try_count << ")";
-            // TODO(mikaelarguedas) replace this with stream logging once they exist
-            RCUTILS_LOG_INFO("%s", ss.str().c_str())
+            if (!change_detected) {
+              test_set.wake_count.store(count_target + 1);  // indicates an error
+              ASSERT_TRUE(change_detected);
+            }
+            test_set.wake_count++;
           }
-        }
-        if (!change_detected) {
-          test_set.wake_count.store(count_target + 1);  // indicates an error
-          ASSERT_TRUE(change_detected);
-        }
-        test_set.wake_count++;
-      }
+        };
     };
-  };
-  // *INDENT-ON*
   // Setup each test set.
   for (auto & test_set : test_sets) {
     rcl_ret_t ret;
@@ -312,16 +312,15 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     test_set.thread = std::thread(wait_func_factory(test_set));
   }
   // Loop, triggering every trigger_period until the threads are done.
-  // *INDENT-OFF* (prevent uncrustify from making unnecessary indents here)
-  auto loop_test = [&test_sets, count_target]() -> bool {
-    for (const auto & test_set : test_sets) {
-      if (test_set.wake_count.load() < count_target) {
-        return true;
+  auto loop_test =
+    [&test_sets, count_target]() -> bool {
+      for (const auto & test_set : test_sets) {
+        if (test_set.wake_count.load() < count_target) {
+          return true;
+        }
       }
-    }
-    return false;
-  };
-  // *INDENT-ON*
+      return false;
+    };
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
