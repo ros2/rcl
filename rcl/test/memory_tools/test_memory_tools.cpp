@@ -20,19 +20,22 @@
  */
 TEST(TestMemoryTools, test_allocation_checking_tools) {
   size_t unexpected_mallocs = 0;
-  auto on_unexpected_malloc = ([&unexpected_mallocs]() {
-    unexpected_mallocs++;
-  });
+  auto on_unexpected_malloc = (
+    [&unexpected_mallocs]() {
+      unexpected_mallocs++;
+    });
   set_on_unexpected_malloc_callback(on_unexpected_malloc);
   size_t unexpected_reallocs = 0;
-  auto on_unexpected_realloc = ([&unexpected_reallocs]() {
-    unexpected_reallocs++;
-  });
+  auto on_unexpected_realloc = (
+    [&unexpected_reallocs]() {
+      unexpected_reallocs++;
+    });
   set_on_unexpected_realloc_callback(on_unexpected_realloc);
   size_t unexpected_frees = 0;
-  auto on_unexpected_free = ([&unexpected_frees]() {
-    unexpected_frees++;
-  });
+  auto on_unexpected_free = (
+    [&unexpected_frees]() {
+      unexpected_frees++;
+    });
   set_on_unexpected_free_callback(on_unexpected_free);
   void * mem = nullptr;
   void * remem = nullptr;

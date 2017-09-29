@@ -399,8 +399,8 @@ rcl_set_default_ros_time_source(rcl_time_source_t * process_time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_difference_times(rcl_time_point_t * start, rcl_time_point_t * finish,
-  rcl_duration_t * delta);
+rcl_difference_times(
+  rcl_time_point_t * start, rcl_time_point_t * finish, rcl_duration_t * delta);
 
 /// Fill the time point with the current value of the associated clock.
 /**
@@ -466,8 +466,8 @@ rcl_disable_ros_time_override(rcl_time_source_t * time_source);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_is_enabled_ros_time_override(rcl_time_source_t * time_source,
-  bool * is_enabled);
+rcl_is_enabled_ros_time_override(
+  rcl_time_source_t * time_source, bool * is_enabled);
 
 /// Set the current time for this `RCL_ROS_TIME` time source.
 /**
@@ -485,8 +485,8 @@ rcl_is_enabled_ros_time_override(rcl_time_source_t * time_source,
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_set_ros_time_override(rcl_time_source_t * time_source,
-  rcl_time_point_value_t time_value);
+rcl_set_ros_time_override(
+  rcl_time_source_t * time_source, rcl_time_point_value_t time_value);
 
 #if __cplusplus
 }

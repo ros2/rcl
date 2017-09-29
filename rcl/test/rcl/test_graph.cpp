@@ -421,38 +421,39 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   // Create a thread to sleep for a time, then create a publisher, sleep more, then a subscriber,
   // sleep more, destroy the subscriber, sleep more, and then destroy the publisher.
   std::promise<bool> topic_changes_promise;
-  std::thread topic_thread([this, &topic_changes_promise]() {
-    // sleep
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // create the publisher
-    rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
-    rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
-    rcl_ret_t ret = rcl_publisher_init(
-      &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-      "/chatter_test_graph_guard_condition_topics", &pub_ops);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    // sleep
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // create the subscription
-    rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
-    rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(
-      &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-      "/chatter_test_graph_guard_condition_topics", &sub_ops);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    // sleep
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // destroy the subscription
-    ret = rcl_subscription_fini(&sub, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    // sleep
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // destroy the publication
-    ret = rcl_publisher_fini(&pub, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    // notify that the thread is done
-    topic_changes_promise.set_value(true);
-  });
+  std::thread topic_thread(
+    [this, &topic_changes_promise]() {
+      // sleep
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      // create the publisher
+      rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
+      rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
+      rcl_ret_t ret = rcl_publisher_init(
+        &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        "/chatter_test_graph_guard_condition_topics", &pub_ops);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      // sleep
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      // create the subscription
+      rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
+      rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
+      ret = rcl_subscription_init(
+        &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        "/chatter_test_graph_guard_condition_topics", &sub_ops);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      // sleep
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      // destroy the subscription
+      ret = rcl_subscription_fini(&sub, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      // sleep
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      // destroy the publication
+      ret = rcl_publisher_fini(&pub, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      // notify that the thread is done
+      topic_changes_promise.set_value(true);
+    });
   // Wait for the graph state to change, expecting it to do so at least 4 times,
   // once for each change in the topics thread.
   const rcl_guard_condition_t * graph_guard_condition =
@@ -493,11 +494,12 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   rcl_client_options_t client_options = rcl_client_get_default_options();
   ret = rcl_client_init(&client, this->node_ptr, ts, service_name, &client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto client_exit = make_scope_exit([&client, this]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+  auto client_exit = make_scope_exit(
+    [&client, this]() {
+      stop_memory_checking();
+      rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
   // Check, knowing there is no service server (created by us at least).
   bool is_available;
   ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
@@ -561,11 +563,12 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
     rcl_service_options_t service_options = rcl_service_get_default_options();
     ret = rcl_service_init(&service, this->node_ptr, ts, service_name, &service_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    auto service_exit = make_scope_exit([&service, this]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+    auto service_exit = make_scope_exit(
+      [&service, this]() {
+        stop_memory_checking();
+        rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      });
     // Wait for and then assert that it is available.
     wait_for_service_state_to_change(true, is_available);
     ASSERT_TRUE(is_available);

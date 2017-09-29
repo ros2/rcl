@@ -286,8 +286,8 @@ rcl_set_default_ros_time_source(rcl_time_source_t * process_time_source)
 }
 
 rcl_ret_t
-rcl_difference_times(rcl_time_point_t * start, rcl_time_point_t * finish,
-  rcl_duration_t * delta)
+rcl_difference_times(
+  rcl_time_point_t * start, rcl_time_point_t * finish, rcl_duration_t * delta)
 {
   if (start->time_source->type != finish->time_source->type) {
     RCL_SET_ERROR_MSG(
