@@ -129,11 +129,20 @@ TEST_F(TestClientFixture, test_client_init_fini) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
 
+  // Check if null publisher is valid
+  EXPECT_EQ(rcl_client_is_valid(nullptr), false);
+  rcl_reset_error();
+
   // Try passing an invalid (uninitialized) node in init.
   client = rcl_get_zero_initialized_client();
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
   ret = rcl_client_init(&client, &invalid_node, ts, topic_name, &default_client_options);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
+  rcl_reset_error();
+
+  // Check if zero initialized client is valid
+  rcl_client_t zero_client = rcl_get_zero_initialized_client();
+  EXPECT_EQ(rcl_client_is_valid(&zero_client), false);
   rcl_reset_error();
 
   // Try passing null for the type support in init.
