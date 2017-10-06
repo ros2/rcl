@@ -144,6 +144,14 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   const char * topic_name = "chatter";
   rcl_publisher_options_t default_publisher_options = rcl_publisher_get_default_options();
 
+  // Check if null publisher is valid
+  EXPECT_EQ(rcl_publisher_is_valid(nullptr), false);
+
+  // Check if zero initialized node is valid
+  publisher = rcl_get_zero_initialized_publisher();
+  EXPECT_EQ(rcl_publisher_is_valid(&publisher), false);
+  rcl_reset_error();
+
   // Try passing null for publisher in init.
   ret = rcl_publisher_init(nullptr, this->node_ptr, ts, topic_name, &default_publisher_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
@@ -155,9 +163,6 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
 
-  // Check if null publisher is valid
-  EXPECT_EQ(rcl_publisher_is_valid(nullptr), false);
-
   // Try passing an invalid (uninitialized) node in init.
   publisher = rcl_get_zero_initialized_publisher();
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
@@ -165,15 +170,16 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
 
-  // Check if zero initialized node is valid
-  publisher = rcl_get_zero_initialized_publisher();
-  EXPECT_EQ(rcl_publisher_is_valid(&publisher), false);
-  rcl_reset_error();
-
   // Try passing null for the type support in init.
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(
     &publisher, this->node_ptr, nullptr, topic_name, &default_publisher_options);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  rcl_reset_error();
+
+  // Try passing null for the topic name in init.
+  publisher = rcl_get_zero_initialized_publisher();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, nullptr, &default_publisher_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
 
