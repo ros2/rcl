@@ -127,9 +127,19 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-
   // Check if null service is valid
   EXPECT_EQ(rcl_service_is_valid(nullptr), false);
+  rcl_reset_error();
+
+  // Check if zero initialized client is valid
+  service = rcl_get_zero_initialized_service();
+  EXPECT_EQ(rcl_service_is_valid(&service), false);
+  rcl_reset_error();
+
+  // Chek that a valid service is valid
+  service = rcl_get_zero_initialized_service();
+  ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+  EXPECT_EQ(rcl_service_is_valid(&service), true);
   rcl_reset_error();
 
   // Check that the service name matches what we assigned.
@@ -151,12 +161,6 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
       rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     });
-
-  // Check if zero initialized node is valid
-  rcl_service_t bad_option = rcl_get_zero_initialized_service();
-  bad_option.impl = nullptr;
-  EXPECT_EQ(rcl_service_is_valid(&bad_option), false);
-  rcl_reset_error();
 
   // TODO(wjwwood): add logic to wait for the connection to be established
   //                use count_services busy wait mechanism
