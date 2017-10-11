@@ -165,6 +165,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   // Check that valid subscriber is valid
   subscription = rcl_get_zero_initialized_subscription();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
   rcl_reset_error();
 

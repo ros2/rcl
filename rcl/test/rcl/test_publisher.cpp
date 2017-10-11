@@ -155,6 +155,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   // Check that valid publisher is valid
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &default_publisher_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_TRUE(rcl_publisher_is_valid(&publisher));
   rcl_reset_error();
 

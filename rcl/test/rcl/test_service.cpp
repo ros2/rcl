@@ -139,6 +139,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   // Check that a valid service is valid
   service = rcl_get_zero_initialized_service();
   ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_TRUE(rcl_service_is_valid(&service));
   rcl_reset_error();
 
