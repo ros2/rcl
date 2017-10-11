@@ -82,12 +82,10 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   ret = rcl_is_enabled_ros_time_override(ros_clock, &is_enabled);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_EQ(is_enabled, false);
-  ret = rcl_time_point_init(&query_now, &(ros_clock->type));
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   assert_no_malloc_begin();
   assert_no_free_begin();
   // Check for normal operation (not allowed to alloc).
-  ret = rcl_time_point_get_now(ros_clock, &query_now);
+  ret = rcl_clock_get_now(ros_clock, &query_now);
   assert_no_malloc_end();
   assert_no_realloc_end();
   assert_no_free_end();
@@ -95,7 +93,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_NE(query_now.nanoseconds, 0u);
   // Compare to std::chrono::system_clock time (within a second).
-  ret = rcl_time_point_get_now(ros_clock, &query_now);
+  ret = rcl_clock_get_now(ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   {
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
@@ -119,7 +117,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_EQ(is_enabled, false);
   // get real
-  ret = rcl_time_point_get_now(ros_clock, &query_now);
+  ret = rcl_clock_get_now(ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   {
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
@@ -137,7 +135,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_EQ(is_enabled, true);
   // get sim
-  ret = rcl_time_point_get_now(ros_clock, &query_now);
+  ret = rcl_clock_get_now(ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_EQ(query_now.nanoseconds, set_point);
   // disable
@@ -148,7 +146,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_EQ(is_enabled, false);
   // get real
-  ret = rcl_time_point_get_now(ros_clock, &query_now);
+  ret = rcl_clock_get_now(ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   {
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
@@ -172,18 +170,10 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_init_for_clock_a
   ret = rcl_ros_clock_init(&source);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 
-  rcl_time_point_t a_time;
-  ret = rcl_time_point_init(&a_time, &(source.type));
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-
   rcl_clock_t * ros_clock =
     reinterpret_cast<rcl_clock_t *>(calloc(1, sizeof(rcl_clock_t)));
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
-
-  rcl_time_point_t default_time;
-  ret = rcl_time_point_init(&default_time, &(ros_clock->type));
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 
   // assert_no_malloc_begin();
   // assert_no_free_begin();
@@ -205,10 +195,6 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_init_for_clock_a
   //   const int k_tolerance_ms = 1000;
   //   EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "system_clock differs";
   // }
-  ret = rcl_time_point_fini(&a_time);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  ret = rcl_ros_clock_fini(&source);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 }
 
 TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), clock_validation) {
@@ -285,16 +271,16 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_TRUE(ros_clock != nullptr);
+  EXPECT_TRUE(ros_clock->data != nullptr);
+  EXPECT_EQ(ros_clock->type, RCL_ROS_TIME);
 
   rcl_ret_t ret;
   rcl_time_point_t a, b;
-  ret = rcl_time_point_init(&a, &(ros_clock->type));
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  ret = rcl_time_point_init(&b, &(ros_clock->type));
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 
   a.nanoseconds = 1000;
   b.nanoseconds = 2000;
+  a.clock_type = RCL_ROS_TIME;
+  b.clock_type = RCL_ROS_TIME;
 
   rcl_duration_t d;
   ret = rcl_duration_init(&d, &(ros_clock->type));
@@ -310,10 +296,6 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_EQ(d.nanoseconds, -1000);
   EXPECT_EQ(d.clock_type, RCL_ROS_TIME);
-
-  rcl_time_point_t e;
-  ret = rcl_time_point_init(&e, &(ros_clock->type));
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 }
 
 static bool pre_callback_called = false;
@@ -340,9 +322,6 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_update_callbacks) {
   rcl_ret_t ret;
   rcl_time_point_value_t set_point = 1000000000ull;
 
-  ret = rcl_time_point_init(&query_now, &(ros_clock->type));
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-
   // set callbacks
   ros_clock->pre_update = pre_callback;
   ros_clock->post_update = post_callback;
@@ -352,7 +331,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_update_callbacks) {
   EXPECT_FALSE(post_callback_called);
 
   // Query it to do something different. no changes expected
-  ret = rcl_time_point_get_now(ros_clock, &query_now);
+  ret = rcl_clock_get_now(ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 
   EXPECT_FALSE(pre_callback_called);

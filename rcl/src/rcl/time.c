@@ -189,24 +189,6 @@ rcl_system_clock_fini(rcl_clock_t * clock)
 }
 
 rcl_ret_t
-rcl_time_point_init(rcl_time_point_t * time_point, rcl_clock_type_t * clock_type)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(clock_type, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  time_point->clock_type = *clock_type;
-
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_time_point_fini(rcl_time_point_t * time_point)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  (void)time_point;
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
 rcl_duration_init(rcl_duration_t * duration, rcl_clock_type_t * clock_type)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -238,17 +220,18 @@ rcl_difference_times(
   if (finish->nanoseconds < start->nanoseconds) {
     rcl_time_point_value_t intermediate = start->nanoseconds - finish->nanoseconds;
     delta->nanoseconds = -1 * (int) intermediate;
+  } else {
+    delta->nanoseconds = (int)(finish->nanoseconds - start->nanoseconds);
   }
-  delta->nanoseconds = (int)(finish->nanoseconds - start->nanoseconds);
   return RCL_RET_OK;
 }
 
 rcl_ret_t
-rcl_time_point_get_now(rcl_clock_t * clock, rcl_time_point_t * time_point)
+rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_t * time_point)
 {
   // TODO(tfoote) switch to use external time source
   RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  if (time_point->clock_type && clock->get_now) {
+  if (clock->type && clock->get_now) {
     return clock->get_now(clock->data,
              &(time_point->nanoseconds));
   }
