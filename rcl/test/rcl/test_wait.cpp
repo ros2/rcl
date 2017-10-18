@@ -162,6 +162,39 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
   EXPECT_LE(diff, TOLERANCE);
 }
 
+// Test rcl_wait with a timeout value of 0 (non-blocking) and an already triggered guard condition
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_triggered_guard_condition) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 1, 0, 0, 0, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
+  ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_trigger_guard_condition(&guard_cond);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  auto scope_exit = make_scope_exit(
+    [&guard_cond, &wait_set]() {
+      rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_wait_set_fini(&wait_set);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
+
+  // Time spent during wait should be negligible.
+  int64_t timeout = 0;
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+  ret = rcl_wait(&wait_set, timeout);
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  // We don't expect a timeout here (since the guard condition had already been triggered)
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_LE(diff, TOLERANCE);
+}
+
 // Check that a canceled timer doesn't wake up rcl_wait
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
