@@ -252,6 +252,11 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_publish_raw(const rcl_publisher_t * publisher, const rcl_message_raw_t * raw_message);
+
 /// Get the topic name for the publisher.
 /**
  * This function returns the publisher's internal topic name string.

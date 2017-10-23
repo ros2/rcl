@@ -244,6 +244,19 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_publish_raw(const rcl_publisher_t * publisher, const rcl_message_raw_t * raw_message)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;
+  }
+  if (rmw_publish_raw(publisher->impl->rmw_handle, raw_message) != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+  return RCL_RET_OK;
+}
+
 const char *
 rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
 {
