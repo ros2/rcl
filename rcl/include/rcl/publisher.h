@@ -355,7 +355,7 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
  * \param[in] publisher pointer to the rcl publisher
  * \return `true` if the publisher is valid, otherwise `false`
  */
-
+RCL_PUBLIC
 bool
 rcl_publisher_is_valid(const rcl_publisher_t * publisher);
 
