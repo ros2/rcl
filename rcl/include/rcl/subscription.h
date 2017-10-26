@@ -358,6 +358,7 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
  * \param[in] subscription pointer to the rcl subscription
  * \return `true` if `subscription` is valid, otherwise `false`
  */
+RCL_PUBLIC
 bool
 rcl_subscription_is_valid(const rcl_subscription_t * subscription);
 

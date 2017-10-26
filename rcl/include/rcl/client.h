@@ -389,6 +389,7 @@ rcl_client_get_rmw_handle(const rcl_client_t * client);
  * \param[in] client pointer to the rcl client
  * \return `true` if `client` is valid, otherwise `false`
  */
+RCL_PUBLIC
 bool
 rcl_client_is_valid(const rcl_client_t * client);
 

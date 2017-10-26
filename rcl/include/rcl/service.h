@@ -401,6 +401,7 @@ rcl_service_get_rmw_handle(const rcl_service_t * service);
  * \param[in] service pointer to the rcl service
  * \return `true` if `service` is valid, otherwise `false`
  */
+RCL_PUBLIC
 bool
 rcl_service_is_valid(const rcl_service_t * service);
 
