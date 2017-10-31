@@ -168,19 +168,15 @@ rcl_expand_topic_name(
           char * unmatched_substitution =
             rcutils_strndup(next_opening_brace, substitution_substr_len, allocator);
           char * allocated_msg = NULL;
-          char * msg = NULL;
           if (unmatched_substitution) {
             allocated_msg = rcutils_format_string(
               allocator,
               "unknown substitution: %s", unmatched_substitution);
-            msg = allocated_msg;
+            rcl_set_formatted_error(allocated_msg, allocator);
           } else {
-            SAFE_FWRITE_TO_STDERR("failed to allocate memory for error message\n");
-            msg = "unknown substitution: allocation failed when reporting error";
+            SAFE_FWRITE_TO_STDERR("failed to allocate memory for unmatched substitution\n");
           }
-          RCL_SET_ERROR_MSG(msg, allocator)
           allocator.deallocate(unmatched_substitution, allocator.state);
-          allocator.deallocate(allocated_msg, allocator.state);
           allocator.deallocate(local_output, allocator.state);
           return RCL_RET_UNKNOWN_SUBSTITUTION;
         }
