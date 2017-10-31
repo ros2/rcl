@@ -79,7 +79,7 @@ rcl_lifecycle_register_state(
   if (rcl_lifecycle_get_state(transition_map, state.id) != NULL) {
     char * error_msg = rcutils_format_string(rcutils_get_default_allocator(),
         "state %u is already registered\n", state.id);
-    RCL_SET_ERROR_MSG(error_msg, rcutils_get_default_allocator());
+    rcl_set_formatted_error(error_msg, rcutils_get_default_allocator());
     return RCL_RET_ERROR;
   }
 
@@ -117,7 +117,7 @@ rcl_lifecycle_register_transition(
   if (!state) {
     char * error_msg = rcutils_format_string(rcl_get_default_allocator(),
         "state %u is not registered\n", transition.start->id);
-    RCL_SET_ERROR_MSG(error_msg, rcl_get_default_allocator());
+    rcl_set_formatted_error(error_msg, rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
 
