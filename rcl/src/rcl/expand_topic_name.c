@@ -166,12 +166,10 @@ rcl_expand_topic_name(
           *output_topic_name = NULL;
           char * unmatched_substitution =
             rcutils_strndup(next_opening_brace, substitution_substr_len, allocator);
-          char * allocated_msg = NULL;
           if (unmatched_substitution) {
-            allocated_msg = rcutils_format_string(
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
               allocator,
               "unknown substitution: %s", unmatched_substitution);
-            rcl_set_formatted_error(allocated_msg, allocator);
           } else {
             RCUTILS_SAFE_FWRITE_TO_STDERR("failed to allocate memory for unmatched substitution\n");
           }
