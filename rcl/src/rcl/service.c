@@ -59,8 +59,7 @@ rcl_service_init(
 
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
-  if (!node->impl) {
-    RCL_SET_ERROR_MSG("invalid node", *allocator);
+  if (!rcl_node_is_valid(node, allocator)) {
     return RCL_RET_NODE_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
@@ -170,6 +169,9 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  if (!rcl_node_is_valid(node, NULL)) {
+    return RCL_RET_NODE_INVALID;
+  }
   if (service->impl) {
     rcl_allocator_t allocator = service->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);

@@ -118,16 +118,16 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     });
   // Test rcl_node_is_valid().
   bool is_valid;
-  is_valid = rcl_node_is_valid(nullptr);
+  is_valid = rcl_node_is_valid(nullptr, nullptr);
   EXPECT_FALSE(is_valid);
   rcl_reset_error();
-  is_valid = rcl_node_is_valid(&zero_node);
+  is_valid = rcl_node_is_valid(&zero_node, nullptr);
   EXPECT_FALSE(is_valid);
   rcl_reset_error();
-  is_valid = rcl_node_is_valid(&invalid_node);
+  is_valid = rcl_node_is_valid(&invalid_node, nullptr);
   EXPECT_FALSE(is_valid);
   rcl_reset_error();
-  is_valid = rcl_node_is_valid(&node);
+  is_valid = rcl_node_is_valid(&node, nullptr);
   EXPECT_TRUE(is_valid);
   rcl_reset_error();
   // Test rcl_node_get_name().
