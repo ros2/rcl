@@ -147,12 +147,11 @@ rcl_node_init(
     local_namespace_ = "/";
   }
 
-  char * temp = NULL;
   // If the namespace does not start with a /, add one.
   if (namespace_length > 0 && namespace_[0] != '/') {
     // TODO(wjwwood): replace with generic strcat that takes an allocator once available
     // length + 2, because new leading / and terminating \0
-    temp = (char *)allocator->allocate(namespace_length + 2, allocator->state);
+    char * temp = (char *)allocator->allocate(namespace_length + 2, allocator->state);
     RCL_CHECK_FOR_NULL_WITH_MSG(
       temp, "allocating memory failed", return RCL_RET_BAD_ALLOC, *allocator);
     temp[0] = '/';
