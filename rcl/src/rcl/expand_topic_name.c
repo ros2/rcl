@@ -173,8 +173,6 @@ rcl_expand_topic_name(
               "unknown substitution: %s", unmatched_substitution);
           } else {
             SAFE_FWRITE_TO_STDERR("failed to allocate memory for unmatched substitution\n");
-            RCL_SET_ERROR_MSG("unknown substitution: allocation failed when reporting error",
-              allocator);
           }
           allocator.deallocate(unmatched_substitution, allocator.state);
           allocator.deallocate(local_output, allocator.state);
