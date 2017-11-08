@@ -269,19 +269,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   b.clock_type = RCL_ROS_TIME;
 
   rcl_duration_t d;
-  ret = rcl_duration_init(&d, &(ros_clock->type));
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-
   ret = rcl_difference_times(&a, &b, &d);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
 
   EXPECT_EQ(d.nanoseconds, 1000);
-  EXPECT_EQ(d.clock_type, RCL_ROS_TIME);
 
   ret = rcl_difference_times(&b, &a, &d);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_EQ(d.nanoseconds, -1000);
-  EXPECT_EQ(d.clock_type, RCL_ROS_TIME);
 }
 
 static bool pre_callback_called = false;
