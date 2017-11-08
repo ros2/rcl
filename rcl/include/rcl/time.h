@@ -77,7 +77,6 @@ typedef struct rcl_time_point_t
 typedef struct rcl_duration_t
 {
   rcl_duration_value_t nanoseconds;
-  rcl_clock_type_t clock_type;
 } rcl_duration_t;
 
 // typedef struct rcl_rate_t
@@ -119,7 +118,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_clock_init(
   enum rcl_clock_type_t clock_type, rcl_clock_t * clock,
-  const rcl_allocator_t * allocator);
+  rcl_allocator_t * allocator);
 
 /// Finalize a clock.
 /**
@@ -156,7 +155,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_ros_clock_init(
   rcl_clock_t * clock,
-  const rcl_allocator_t * allocator);
+  rcl_allocator_t * allocator);
 
 /// Finalize a clock as a `RCL_ROS_TIME` time source.
 /**
@@ -191,7 +190,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_steady_clock_init(
   rcl_clock_t * clock,
-  const rcl_allocator_t * allocator);
+  rcl_allocator_t * allocator);
 
 /// Finalize a clock as a `RCL_STEADY_TIME` time source.
 /**
@@ -230,7 +229,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_system_clock_init(
   rcl_clock_t * clock,
-  const rcl_allocator_t * allocator);
+  rcl_allocator_t * allocator);
 
 /// Finalize a clock as a `RCL_SYSTEM_TIME` time source.
 /**
@@ -250,41 +249,6 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_system_clock_fini(
   rcl_clock_t * clock);
-
-/// Initialize a duration using the clock.
-/**
- * This function will initialize the duration using the clock as a reference.
- * If the clock is null it will use the system default clock.
- *
- * This will allocate all necessary internal structures, and initialize variables.
- * The clock may be of types ros, steady, or system.
- *
- * \param[in] duration the handle to the duration which is being initialized.
- * \param[in] clock_type The type of the clock will be used for reference.
- * \return `RCL_RET_OK` if the last call time was retrieved successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_ERROR` an unspecified error occur.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_duration_init(rcl_duration_t * duration, rcl_clock_type_t * clock_type);
-
-/// Finalize a duration
-/**
- * Finalize the duration such that it is ready for deallocation.
- *
- * This will deallocate all necessary internal structures, and clean up any variables.
- *
- * \param[in] duration the handle to the duration which is being finalized.
- * \return `RCL_RET_OK` if the last call time was retrieved successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_ERROR` an unspecified error occur.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_duration_fini(rcl_duration_t * duration);
 
 /// Compute the difference between two time points
 /**
@@ -373,7 +337,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_is_enabled_ros_time_override(
-  rcl_clock_t * time_source, bool * is_enabled);
+  rcl_clock_t * clock, bool * is_enabled);
 
 /// Set the current time for this `RCL_ROS_TIME` time source.
 /**
@@ -392,7 +356,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_set_ros_time_override(
-  rcl_clock_t * time_source, rcl_time_point_value_t time_value);
+  rcl_clock_t * clock, rcl_time_point_value_t time_value);
 
 #if __cplusplus
 }

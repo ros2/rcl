@@ -86,7 +86,7 @@ rcl_clock_valid(rcl_clock_t * clock)
 rcl_ret_t
 rcl_clock_init(
   enum rcl_clock_type_t clock_type, rcl_clock_t * clock,
-  const rcl_allocator_t * allocator)
+  rcl_allocator_t * allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   switch (clock_type) {
@@ -127,7 +127,7 @@ rcl_clock_fini(
 rcl_ret_t
 rcl_ros_clock_init(
   rcl_clock_t * clock,
-  const rcl_allocator_t * allocator)
+  rcl_allocator_t * allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -157,7 +157,7 @@ rcl_ros_clock_fini(
 rcl_ret_t
 rcl_steady_clock_init(
   rcl_clock_t * clock,
-  const rcl_allocator_t * allocator)
+  rcl_allocator_t * allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -183,7 +183,7 @@ rcl_steady_clock_fini(
 rcl_ret_t
 rcl_system_clock_init(
   rcl_clock_t * clock,
-  const rcl_allocator_t * allocator)
+  rcl_allocator_t * allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -205,25 +205,6 @@ rcl_system_clock_fini(
   }
   return RCL_RET_OK;
 }
-
-rcl_ret_t
-rcl_duration_init(rcl_duration_t * duration, rcl_clock_type_t * clock_type)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(clock_type, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  duration->clock_type = *clock_type;
-
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_duration_fini(rcl_duration_t * duration)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(duration, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  (void)duration;
-  return RCL_RET_OK;
-}
-
 
 rcl_ret_t
 rcl_difference_times(
