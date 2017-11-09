@@ -28,6 +28,12 @@ typedef rcutils_allocator_t rcl_allocator_t;
 
 #define rcl_reallocf rcutils_reallocf
 
+#define RCL_CHECK_ALLOCATOR(allocator, fail_statement) \
+  RCUTILS_CHECK_ALLOCATOR(allocator, fail_statement)
+
+#define RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, msg, fail_statement) \
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, msg, fail_statement)
+
 #if __cplusplus
 }
 #endif
