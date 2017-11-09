@@ -69,9 +69,9 @@ const char * rcl_get_secure_root(const char * node_name)
   if (!ros_secure_root_size) {
     return NULL;  // environment variable was empty
   }
-  const char * node_secure_root = rcutils_join_path(ros_secure_root_env, node_name);
+  char * node_secure_root = rcutils_join_path(ros_secure_root_env, node_name);
   if (!rcutils_is_directory(node_secure_root)) {
-    free((char *)node_secure_root);
+    free(node_secure_root);
     return NULL;
   }
   return node_secure_root;
