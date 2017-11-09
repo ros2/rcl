@@ -23,16 +23,6 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
-#define RCL_CHECK_ARGUMENT_FOR_NULL(argument, error_return_type, allocator) \
-  RCL_CHECK_FOR_NULL_WITH_MSG(argument, #argument " argument is null", \
-    return error_return_type, allocator)
-
-#define RCL_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement, allocator) \
-  if (!(value)) { \
-    RCL_SET_ERROR_MSG(msg, allocator); \
-    error_statement; \
-  }
-
 /// Retrieve the value of the given environment variable if it exists, or "".
 /* The returned cstring is only valid until the next time this function is
  * called, because it is a direct pointer to the static storage.
