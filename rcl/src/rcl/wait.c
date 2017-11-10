@@ -116,7 +116,7 @@ rcl_wait_set_init(
 {
   rcl_ret_t fail_ret = RCL_RET_ERROR;
 
-  RCL_CHECK_ALLOCATOR(allocator);
+  RCL_CHECK_ALLOCATOR(&allocator, return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, allocator);
   if (__wait_set_is_valid(wait_set)) {
     RCL_SET_ERROR_MSG("wait_set already initialized, or memory was uninitialized.", allocator);
