@@ -14,6 +14,10 @@ set(extra_test_libraries)
 set(extra_test_env)
 set(extra_lib_dirs "${rcl_lib_dir}")
 
+# finding gtest once in the highest scope
+# prevents finding it repeatedly in each local scope
+ament_find_gtest()
+
 # This subdirectory extends both extra_test_libraries, extra_test_env, and extra_lib_dirs.
 add_subdirectory(memory_tools)
 
