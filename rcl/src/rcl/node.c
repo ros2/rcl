@@ -102,12 +102,7 @@ rcl_node_init(
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_allocator_t * allocator = &options->allocator;
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator->allocate, "allocate not set",
-    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator->deallocate, "deallocate not set",
-    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ALLOCATOR(allocator, return RCL_RET_INVALID_ARGUMENT);
 
   RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(namespace_, RCL_RET_INVALID_ARGUMENT, *allocator);

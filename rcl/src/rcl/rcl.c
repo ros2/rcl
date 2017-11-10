@@ -59,14 +59,7 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
   rcl_ret_t fail_ret = RCL_RET_ERROR;
 
   // Check allocator first, so it can be used in other errors.
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator.allocate,
-    "invalid allocator, allocate not set",
-    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    allocator.deallocate,
-    "invalid allocator, deallocate not set",
-    return RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ALLOCATOR(allocator, return RCL_RET_INVALID_ARGUMENT);
 
   if (argc > 0) {
     RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
