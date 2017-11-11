@@ -50,7 +50,7 @@ TEST_F(TestTransitionMap, initialized) {
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
-  rcl_lifecycle_state_t state0 = {"my_state", 0, NULL, NULL, 0};
+  rcl_lifecycle_state_t state0 = {const_cast<char *>("my_state"), 0, NULL, NULL, 0};
   rcl_ret_t ret = rcl_lifecycle_register_state(&transition_map, state0, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_is_initialized(&transition_map));
@@ -58,17 +58,18 @@ TEST_F(TestTransitionMap, initialized) {
   ret = rcl_lifecycle_register_state(&transition_map, state0, &allocator);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string_safe();
 
-  rcl_lifecycle_state_t state1 = {"my_state", 1, NULL, NULL, 0};
+  rcl_lifecycle_state_t state1 = {const_cast<char *>("my_state"), 1, NULL, NULL, 0};
   ret = rcl_lifecycle_register_state(&transition_map, state1, &allocator);
 
-  const rcl_lifecycle_state_t * start_state =
+  rcl_lifecycle_state_t * start_state =
     rcl_lifecycle_get_state(&transition_map, state0.id);
-  const rcl_lifecycle_state_t * goal_state =
+  rcl_lifecycle_state_t * goal_state =
     rcl_lifecycle_get_state(&transition_map, state1.id);
   EXPECT_EQ(0u, start_state->id);
   EXPECT_EQ(1u, goal_state->id);
 
-  rcl_lifecycle_transition_t transition01 = {"from0to1", 0, start_state, goal_state};
+  rcl_lifecycle_transition_t transition01 = {const_cast<char *>("from0to1"), 0,
+    start_state, goal_state};
   ret = rcl_lifecycle_register_transition(
     &transition_map, transition01, 0, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
