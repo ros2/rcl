@@ -407,7 +407,7 @@ rcl_service_get_rmw_handle(const rcl_service_t * service);
  */
 RCL_PUBLIC
 bool
-rcl_service_is_valid(const rcl_service_t * service);
+rcl_service_is_valid(const rcl_service_t * service, const rcl_allocator_t * allocator);
 
 #if __cplusplus
 }

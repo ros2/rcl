@@ -224,7 +224,7 @@ rcl_service_get_service_name(const rcl_service_t * service)
 const rcl_service_options_t *
 rcl_service_get_options(const rcl_service_t * service)
 {
-  if (!rcl_service_is_valid(service)) {
+  if (!rcl_service_is_valid(service, NULL)) {
     return NULL;
   }
   return _service_get_options(service);
@@ -233,7 +233,7 @@ rcl_service_get_options(const rcl_service_t * service)
 rmw_service_t *
 rcl_service_get_rmw_handle(const rcl_service_t * service)
 {
-  if (!rcl_service_is_valid(service)) {
+  if (!rcl_service_is_valid(service, NULL)) {
     return NULL;
   }
   return service->impl->rmw_handle;
@@ -273,6 +273,7 @@ rcl_send_response(
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response")
   const rcl_service_options_t * options = rcl_service_get_options(service);
+  /* TODO(allenh1): RCL_CHECK_ALLOCATOR(alloc, "service's allocator is invalid"); */
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_response, RCL_RET_INVALID_ARGUMENT, options->allocator);
 
@@ -286,23 +287,18 @@ rcl_send_response(
 }
 
 bool
-rcl_service_is_valid(const rcl_service_t * service)
+rcl_service_is_valid(const rcl_service_t * service, const rcl_allocator_t * allocator)
 {
   const rcl_service_options_t * options;
-  RCL_CHECK_ARGUMENT_FOR_NULL(service, false, rcl_get_default_allocator());
+  const rcl_allocator_t alloc = allocator ? *allocator : rcl_get_default_allocator();
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, false, alloc);
   options = _service_get_options(service);
-  RCL_CHECK_FOR_NULL_WITH_MSG(options,
-    "service's options pointer is invalid",
-    return false,
-    rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(service->impl,
-    "service implementation is invalid",
-    return false,
-    options->allocator);
-  RCL_CHECK_FOR_NULL_WITH_MSG(service->impl->rmw_handle,
-    "service's rmw handle is invalid",
-    return false,
-    options->allocator);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    options, "service's options pointer is invalid", return false, alloc);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    service->impl, "service implementation is invalid", return false, options->allocator);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    service->impl->rmw_handle, "service's rmw handle is invalid", return false, options->allocator);
   return true;
 }
 
