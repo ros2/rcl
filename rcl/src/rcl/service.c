@@ -296,7 +296,7 @@ rcl_service_is_valid(const rcl_service_t * service, const rcl_allocator_t * allo
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "service's options pointer is invalid", return false, alloc);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    service->impl, "service implementation is invalid", return false, options->allocator);
+    service->impl, "service's implementation is invalid", return false, options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service->impl->rmw_handle, "service's rmw handle is invalid", return false, options->allocator);
   return true;

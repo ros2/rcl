@@ -271,7 +271,9 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription)
 }
 
 bool
-rcl_subscription_is_valid(const rcl_subscription_t * subscription, const rcl_allocator_t * allocator)
+rcl_subscription_is_valid(
+  const rcl_subscription_t * subscription,
+  const rcl_allocator_t * allocator)
 {
   const rcl_subscription_options_t * options;
   const rcl_allocator_t alloc = allocator ? *allocator : rcl_get_default_allocator();
@@ -281,9 +283,15 @@ rcl_subscription_is_valid(const rcl_subscription_t * subscription, const rcl_all
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "subscription's option pointer is invalid", return false, alloc);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "subscription implementation is invalid", return false, options->allocator);
+    subscription->impl,
+    "subscription's implementation is invalid",
+    return false,
+    options->allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl->rmw_handle, "subscription rmw handle is invalid", return false, options->allocator);
+    subscription->impl->rmw_handle,
+    "subscription's rmw handle is invalid",
+    return false,
+    options->allocator);
   return true;
 }
 
