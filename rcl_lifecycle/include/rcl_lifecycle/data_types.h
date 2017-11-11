@@ -30,7 +30,7 @@ typedef struct rcl_lifecycle_transition_t rcl_lifecycle_transition_t;
 
 typedef struct rcl_lifecycle_state_t
 {
-  const char * label;
+  char * label;
   unsigned int id;
 
   // a valid key is a generic identifier for deciding
@@ -49,10 +49,10 @@ typedef struct rcl_lifecycle_state_t
 
 typedef struct rcl_lifecycle_transition_t
 {
-  const char * label;
+  char * label;
   unsigned int id;
-  const rcl_lifecycle_state_t * start;
-  const rcl_lifecycle_state_t * goal;
+  rcl_lifecycle_state_t * start;
+  rcl_lifecycle_state_t * goal;
 } rcl_lifecycle_transition_t;
 
 typedef struct rcl_lifecycle_transition_map_t

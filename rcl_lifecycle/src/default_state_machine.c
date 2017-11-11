@@ -37,38 +37,38 @@ rcl_lifecycle_transition_t * empty_transition = NULL;
 unsigned int empty_transition_size = 0;
 
 // Primary States
-const rcl_lifecycle_state_t rcl_state_unknown = {
+rcl_lifecycle_state_t rcl_state_unknown = {
   "unknown", lifecycle_msgs__msg__State__PRIMARY_STATE_UNKNOWN, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_unconfigured = {
+rcl_lifecycle_state_t rcl_state_unconfigured = {
   "unconfigured", lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_inactive = {
+rcl_lifecycle_state_t rcl_state_inactive = {
   "inactive", lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_active = {
+rcl_lifecycle_state_t rcl_state_active = {
   "active", lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_finalized = {
+rcl_lifecycle_state_t rcl_state_finalized = {
   "finalized", lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED, NULL, NULL, 0
 };
 // Transition States
-const rcl_lifecycle_state_t rcl_state_configuring = {
+rcl_lifecycle_state_t rcl_state_configuring = {
   "configuring", lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_cleaningup = {
+rcl_lifecycle_state_t rcl_state_cleaningup = {
   "cleaningup", lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_shuttingdown = {
+rcl_lifecycle_state_t rcl_state_shuttingdown = {
   "shuttingdown", lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_activating = {
+rcl_lifecycle_state_t rcl_state_activating = {
   "activating", lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_deactivating = {
+rcl_lifecycle_state_t rcl_state_deactivating = {
   "deactivating", lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING, NULL, NULL, 0
 };
-const rcl_lifecycle_state_t rcl_state_errorprocessing = {
+rcl_lifecycle_state_t rcl_state_errorprocessing = {
   "errorprocessing", lifecycle_msgs__msg__State__TRANSITION_STATE_ERRORPROCESSING, NULL, NULL, 0
 };
 
