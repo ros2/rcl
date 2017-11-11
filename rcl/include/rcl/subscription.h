@@ -362,7 +362,7 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
  */
 RCL_PUBLIC
 bool
-rcl_subscription_is_valid(const rcl_subscription_t * subscription);
+rcl_subscription_is_valid(const rcl_subscription_t * subscription, const rcl_allocator_t * allocator);
 
 #if __cplusplus
 }
