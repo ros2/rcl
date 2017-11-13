@@ -256,6 +256,14 @@ rcl_take(
   void * ros_message,
   rmw_message_info_t * message_info);
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_take_raw(
+  const rcl_subscription_t * subscription,
+  rcl_message_raw_t * raw_message,
+  rmw_message_info_t * message_info);
+
 /// Get the topic name for the subscription.
 /**
  * This function returns the subscription's internal topic name string.
