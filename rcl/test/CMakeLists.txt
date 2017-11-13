@@ -1,5 +1,5 @@
 find_package(ament_cmake_gtest REQUIRED)
-find_package(ament_cmake_nose REQUIRED)
+find_package(ament_cmake_pytest REQUIRED)
 
 find_package(example_interfaces REQUIRED)
 find_package(std_msgs REQUIRED)
