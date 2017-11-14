@@ -22,6 +22,7 @@ extern "C"
 #include <stdlib.h>
 
 #include "rcl/allocator.h"
+#include "rcl/error_handling.h"
 
 #if defined(_WIN32)
 # define WINDOWS_ENV_BUFFER_SIZE 2048

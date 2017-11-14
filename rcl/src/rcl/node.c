@@ -24,6 +24,7 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
+#include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/get_env.h"

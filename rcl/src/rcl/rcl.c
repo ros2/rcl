@@ -21,7 +21,6 @@ extern "C"
 
 #include <string.h>
 
-#include "./common.h"
 #include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 #include "rmw/error_handling.h"

@@ -20,7 +20,6 @@ extern "C"
 {
 #endif
 
-#include "rcl/error_handling.h"
 #include "rcl/types.h"
 
 /// Retrieve the value of the given environment variable if it exists, or "".

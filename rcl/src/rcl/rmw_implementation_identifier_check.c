@@ -21,8 +21,9 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
-#include <rcutils/logging_macros.h>
-#include <rmw/rmw.h>
+#include "rcl/error_handling.h"
+#include "rcutils/logging_macros.h"
+#include "rmw/rmw.h"
 
 #include "rcl/types.h"
 #include "./common.h"
