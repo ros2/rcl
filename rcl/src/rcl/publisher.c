@@ -22,8 +22,8 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
-#include "./common.h"
 #include "rcl/allocator.h"
+#include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"

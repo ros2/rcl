@@ -22,8 +22,8 @@ extern "C"
 #include <ctype.h>
 #include <string.h>
 
-#include "./common.h"
 #include "rcl/allocator.h"
+#include "rcl/error_handling.h"
 #include "rcutils/isalnum_no_locale.h"
 
 rcl_ret_t

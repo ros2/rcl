@@ -19,8 +19,8 @@ extern "C"
 
 #include "rcl/timer.h"
 
-#include "./common.h"
 #include "./stdatomic_helper.h"
+#include "rcl/error_handling.h"
 #include "rcutils/time.h"
 
 typedef struct rcl_timer_impl_t

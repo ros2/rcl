@@ -19,7 +19,7 @@ extern "C"
 
 #include "rcl/guard_condition.h"
 
-#include "./common.h"
+#include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"

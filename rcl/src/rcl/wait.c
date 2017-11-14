@@ -23,7 +23,6 @@ extern "C"
 #include <stdbool.h>
 #include <string.h>
 
-#include "./common.h"
 #include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 #include "rcl/time.h"

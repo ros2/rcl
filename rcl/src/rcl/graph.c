@@ -19,12 +19,13 @@ extern "C"
 
 #include "rcl/graph.h"
 
-#include <rcutils/allocator.h>
-#include <rcutils/types.h>
-#include <rmw/get_service_names_and_types.h>
-#include <rmw/get_topic_names_and_types.h>
-#include <rmw/names_and_types.h>
-#include <rmw/rmw.h>
+#include "rcl/error_handling.h"
+#include "rcutils/allocator.h"
+#include "rcutils/types.h"
+#include "rmw/get_service_names_and_types.h"
+#include "rmw/get_topic_names_and_types.h"
+#include "rmw/names_and_types.h"
+#include "rmw/rmw.h"
 
 #include "./common.h"
 
