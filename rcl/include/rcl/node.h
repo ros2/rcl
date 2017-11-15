@@ -234,7 +234,8 @@ rcl_node_get_default_options(void);
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] node rcl_node_t to be validated
- * \param[in] allocator external allocator pointer used for allocations
+ * \param[in] allocator external allocator pointer used for error messages,
+ *            the default allocator will be used if `allocator` is `NULL`
  * \return `true` if the node and allocator are valid, otherwise `false`.
  */
 RCL_PUBLIC
