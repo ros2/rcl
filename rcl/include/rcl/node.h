@@ -205,6 +205,10 @@ rcl_node_get_default_options(void);
 /**
  * Also return `false` if the node pointer is `NULL` or the allocator is invalid.
  *
+ * The allocator needs to either be a valid allocator or `NULL`, in which case
+ * the default allocator will be used.
+ * The allocator is used when allocation is needed for an error message.
+ *
  * A node is invalid if:
  *   - the implementation is `NULL` (rcl_node_init not called or failed)
  *   - rcl_shutdown has been called since the node has been initialized
@@ -234,8 +238,7 @@ rcl_node_get_default_options(void);
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] node rcl_node_t to be validated
- * \param[in] allocator external allocator pointer used for error messages,
- *            the default allocator will be used if `allocator` is `NULL`
+ * \param[in] allocator a valid allocator or `NULL`
  * \return `true` if the node and allocator are valid, otherwise `false`.
  */
 RCL_PUBLIC
