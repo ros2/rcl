@@ -206,6 +206,8 @@ rcl_node_get_default_options(void);
  * Also return `false` if the node pointer is `NULL`.
  *
  * A node is invalid if:
+ *   - parameter node is NULL 
+ *   - allocator is invalid
  *   - the implementation is `NULL` (rcl_node_init not called or failed)
  *   - rcl_shutdown has been called since the node has been initialized
  *   - the node has been finalized with rcl_node_fini
@@ -215,7 +217,7 @@ rcl_node_get_default_options(void);
  * Consider:
  *
  * ```c
- * assert(rcl_node_is_valid(node));  // <-- thread 1
+ * assert(rcl_node_is_valid(node, NULL));  // <-- thread 1
  * rcl_shutdown();                   // <-- thread 2
  * // use node as if valid           // <-- thread 1
  * ```
