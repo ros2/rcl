@@ -203,11 +203,9 @@ rcl_node_get_default_options(void);
 
 /// Return `true` if the node is valid, else `false`.
 /**
- * Also return `false` if the node pointer is `NULL`.
+ * Also return `false` if the node pointer is `NULL` or the allocator is invalid.
  *
  * A node is invalid if:
- *   - parameter node is NULL 
- *   - allocator is invalid
  *   - the implementation is `NULL` (rcl_node_init not called or failed)
  *   - rcl_shutdown has been called since the node has been initialized
  *   - the node has been finalized with rcl_node_fini
@@ -236,8 +234,8 @@ rcl_node_get_default_options(void);
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] node rcl_node_t to be validated
- * \param[in] allocator external allocator pointer used for allocations.
- * \return `true` if the node is valid, otherwise `false`.
+ * \param[in] allocator external allocator pointer used for allocations
+ * \return `true` if the node and allocator are valid, otherwise `false`.
  */
 RCL_PUBLIC
 bool
