@@ -275,6 +275,8 @@ rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t 
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_CLIENT_INVALID` if the client is invalid, or
+ * \return `RCL_RET_CLIENT_TAKE_FAILED` if take failed but no error occurred
+ *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
