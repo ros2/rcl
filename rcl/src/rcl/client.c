@@ -271,7 +271,6 @@ rcl_take_response(
     return RCL_RET_ERROR;
   }
   if (!taken) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), client->impl->options.allocator);
     return RCL_RET_CLIENT_TAKE_FAILED;
   }
   return RCL_RET_OK;

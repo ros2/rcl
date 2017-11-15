@@ -234,6 +234,8 @@ rcl_service_get_default_options(void);
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_SERVICE_INVALID` if the service is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_SERVICE_TAKE_FAILED` if take failed but no error occurred
+ *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
