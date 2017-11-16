@@ -38,6 +38,7 @@ rcl_lifecycle_state_machine_t
 rcl_lifecycle_get_zero_initialized_state_machine()
 {
   rcl_lifecycle_state_machine_t state_machine;
+  state_machine.current_state = NULL;
   state_machine.transition_map = rcl_lifecycle_get_zero_initialized_transition_map();
   state_machine.com_interface = rcl_lifecycle_get_zero_initialized_com_interface();
   return state_machine;

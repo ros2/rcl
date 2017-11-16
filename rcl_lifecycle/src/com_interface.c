@@ -67,6 +67,7 @@ rcl_lifecycle_com_interface_t
 rcl_lifecycle_get_zero_initialized_com_interface()
 {
   rcl_lifecycle_com_interface_t com_interface;
+  com_interface.node_handle = NULL;
   com_interface.pub_transition_event = rcl_get_zero_initialized_publisher();
   com_interface.srv_change_state = rcl_get_zero_initialized_service();
   com_interface.srv_get_state = rcl_get_zero_initialized_service();
