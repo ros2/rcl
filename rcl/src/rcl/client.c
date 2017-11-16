@@ -62,8 +62,7 @@ rcl_client_init(
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
-  if (!node->impl) {
-    RCL_SET_ERROR_MSG("invalid node", *allocator);
+  if (!rcl_node_is_valid(node, allocator)) {
     return RCL_RET_NODE_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
@@ -167,6 +166,9 @@ rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  if (!rcl_node_is_valid(node, NULL)) {
+    return RCL_RET_NODE_INVALID;
+  }
   if (client->impl) {
     rcl_allocator_t allocator = client->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);

@@ -280,10 +280,9 @@ rcl_node_init(
   node->impl->rcl_instance_id = rcl_get_instance_id();
   // graph guard condition
   rmw_graph_guard_condition = rmw_node_get_graph_guard_condition(node->impl->rmw_node_handle);
-  if (!rmw_graph_guard_condition) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
-    goto fail;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    rmw_graph_guard_condition, rmw_get_error_string_safe(), goto fail, *allocator);
+
   node->impl->graph_guard_condition = (rcl_guard_condition_t *)allocator->allocate(
     sizeof(rcl_guard_condition_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -363,14 +362,16 @@ rcl_node_fini(rcl_node_t * node)
 }
 
 bool
-rcl_node_is_valid(const rcl_node_t * node)
+rcl_node_is_valid(const rcl_node_t * node, const rcl_allocator_t * allocator)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, false, rcl_get_default_allocator());
+  rcl_allocator_t alloc = allocator ? *allocator : rcl_get_default_allocator();
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "invalid allocator", return false);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, false, alloc);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl, "rcl node implementation is invalid", return false, rcl_get_default_allocator());
+    node->impl, "rcl node implementation is invalid", return false, alloc);
   if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
     RCL_SET_ERROR_MSG(
-      "rcl node is invalid, rcl instance id does not match", rcl_get_default_allocator());
+      "rcl node is invalid, rcl instance id does not match", alloc);
     return false;
   }
   return true;
@@ -391,7 +392,7 @@ rcl_node_get_default_options()
 const char *
 rcl_node_get_name(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid(node, NULL)) {
     return NULL;
   }
   return node->impl->rmw_node_handle->name;
@@ -400,7 +401,7 @@ rcl_node_get_name(const rcl_node_t * node)
 const char *
 rcl_node_get_namespace(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid(node, NULL)) {
     return NULL;
   }
   return node->impl->rmw_node_handle->namespace_;
@@ -409,7 +410,7 @@ rcl_node_get_namespace(const rcl_node_t * node)
 const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid(node, NULL)) {
     return NULL;
   }
   return &node->impl->options;
@@ -431,7 +432,7 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
 rmw_node_t *
 rcl_node_get_rmw_handle(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid(node, NULL)) {
     return NULL;
   }
   return node->impl->rmw_node_handle;
@@ -449,7 +450,7 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node)
 const struct rcl_guard_condition_t *
 rcl_node_get_graph_guard_condition(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid(node, NULL)) {
     return NULL;
   }
   return node->impl->graph_guard_condition;

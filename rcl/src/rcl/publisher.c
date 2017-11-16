@@ -61,12 +61,11 @@ rcl_publisher_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, *allocator);
   if (publisher->impl) {
     RCL_SET_ERROR_MSG(
-      "publisher already initialized, or memory was unintialized", rcl_get_default_allocator());
+      "publisher already initialized, or memory was unintialized", *allocator);
     return RCL_RET_ALREADY_INIT;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
-  if (!node->impl) {
-    RCL_SET_ERROR_MSG("invalid node", *allocator);
+  if (!rcl_node_is_valid(node, allocator)) {
     return RCL_RET_NODE_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
@@ -145,10 +144,8 @@ rcl_publisher_init(
     expanded_topic_name,
     &(options->qos));
   allocator->deallocate(expanded_topic_name, allocator->state);
-  if (!publisher->impl->rmw_handle) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
-    goto fail;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
+    rmw_get_error_string_safe(), goto fail, *allocator);
   // options
   publisher->impl->options = *options;
   return RCL_RET_OK;
@@ -165,6 +162,9 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  if (!rcl_node_is_valid(node, NULL)) {
+    return RCL_RET_NODE_INVALID;
+  }
   if (publisher->impl) {
     rcl_allocator_t allocator = publisher->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);

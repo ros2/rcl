@@ -177,6 +177,7 @@ rcl_client_init(
  * \param[in] node handle to the node used to create the client
  * \return `RCL_RET_OK` if client was finalized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC

@@ -203,7 +203,11 @@ rcl_node_get_default_options(void);
 
 /// Return `true` if the node is valid, else `false`.
 /**
- * Also return `false` if the node pointer is `NULL`.
+ * Also return `false` if the node pointer is `NULL` or the allocator is invalid.
+ *
+ * The allocator needs to either be a valid allocator or `NULL`, in which case
+ * the default allocator will be used.
+ * The allocator is used when allocation is needed for an error message.
  *
  * A node is invalid if:
  *   - the implementation is `NULL` (rcl_node_init not called or failed)
@@ -215,7 +219,7 @@ rcl_node_get_default_options(void);
  * Consider:
  *
  * ```c
- * assert(rcl_node_is_valid(node));  // <-- thread 1
+ * assert(rcl_node_is_valid(node, NULL));  // <-- thread 1
  * rcl_shutdown();                   // <-- thread 2
  * // use node as if valid           // <-- thread 1
  * ```
@@ -234,11 +238,12 @@ rcl_node_get_default_options(void);
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] node rcl_node_t to be validated
- * \return `true` if the node is valid, otherwise `false`.
+ * \param[in] allocator a valid allocator or `NULL`
+ * \return `true` if the node and allocator are valid, otherwise `false`.
  */
 RCL_PUBLIC
 bool
-rcl_node_is_valid(const rcl_node_t * node);
+rcl_node_is_valid(const rcl_node_t * node, const rcl_allocator_t * allocator);
 
 /// Return the name of the node.
 /**
