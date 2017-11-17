@@ -37,13 +37,15 @@ wait_for_service_to_be_ready(
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, rcl_get_default_allocator());
   if (ret != RCL_RET_OK) {
-    RCUTILS_LOG_ERROR("Error in wait set init: %s", rcl_get_error_string_safe())
+    RCUTILS_LOG_ERROR_NAMED(
+      ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string_safe());
     return false;
   }
   auto wait_set_exit = make_scope_exit(
     [&wait_set]() {
       if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR("Error in wait set fini: %s", rcl_get_error_string_safe())
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string_safe());
         throw std::runtime_error("error waiting for service to be ready");
       }
     });
@@ -51,11 +53,13 @@ wait_for_service_to_be_ready(
   do {
     ++iteration;
     if (rcl_wait_set_clear_services(&wait_set) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in wait_set_clear_services: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in wait_set_clear_services: %s", rcl_get_error_string_safe());
       return false;
     }
     if (rcl_wait_set_add_service(&wait_set, service) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in wait_set_add_service: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in wait_set_add_service: %s", rcl_get_error_string_safe());
       return false;
     }
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
@@ -63,7 +67,7 @@ wait_for_service_to_be_ready(
       continue;
     }
     if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in wait: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error in wait: %s", rcl_get_error_string_safe());
       return false;
     }
     for (size_t i = 0; i < wait_set.size_of_services; ++i) {
@@ -80,20 +84,23 @@ int main(int argc, char ** argv)
   int main_ret = 0;
   {
     if (rcl_init(argc, argv, rcl_get_default_allocator()) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in rcl init: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in rcl init: %s", rcl_get_error_string_safe());
       return -1;
     }
     rcl_node_t node = rcl_get_zero_initialized_node();
     const char * name = "service_fixture_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     if (rcl_node_init(&node, name, "", &node_options) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in node init: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in node init: %s", rcl_get_error_string_safe());
       return -1;
     }
     auto node_exit = make_scope_exit(
       [&main_ret, &node]() {
         if (rcl_node_fini(&node) != RCL_RET_OK) {
-          RCUTILS_LOG_ERROR("Error in node fini: %s", rcl_get_error_string_safe())
+          RCUTILS_LOG_ERROR_NAMED(
+            ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string_safe());
           main_ret = -1;
         }
       });
@@ -106,14 +113,16 @@ int main(int argc, char ** argv)
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, topic, &service_options);
     if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in service init: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in service init: %s", rcl_get_error_string_safe());
       return -1;
     }
 
     auto service_exit = make_scope_exit(
       [&main_ret, &service, &node]() {
         if (rcl_service_fini(&service, &node)) {
-          RCUTILS_LOG_ERROR("Error in service fini: %s", rcl_get_error_string_safe())
+          RCUTILS_LOG_ERROR_NAMED(
+            ROS_PACKAGE_NAME, "Error in service fini: %s", rcl_get_error_string_safe());
           main_ret = -1;
         }
       });
@@ -129,7 +138,7 @@ int main(int argc, char ** argv)
     // Block until a client request comes in.
 
     if (!wait_for_service_to_be_ready(&service, 1000, 100)) {
-      RCUTILS_LOG_ERROR("Service never became ready")
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Service never became ready");
       return -1;
     }
 
@@ -143,14 +152,16 @@ int main(int argc, char ** argv)
     rmw_request_id_t header;
     // TODO(jacquelinekay) May have to check for timeout error codes
     if (rcl_take_request(&service, &header, &service_request) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in take_request: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in take_request: %s", rcl_get_error_string_safe());
       return -1;
     }
 
     // Sum the request and send the response.
     service_response.sum = service_request.a + service_request.b;
     if (rcl_send_response(&service, &header, &service_response) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in send_response: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in send_response: %s", rcl_get_error_string_safe());
       return -1;
     }
     // Our scope exits should take care of fini for everything

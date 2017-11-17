@@ -41,7 +41,8 @@ wait_for_server_to_be_available(
     bool is_ready;
     rcl_ret_t ret = rcl_service_server_is_available(node, client, &is_ready);
     if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR(
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
         "Error in rcl_service_server_is_available: %s",
         rcl_get_error_string_safe())
       return false;
@@ -63,13 +64,15 @@ wait_for_client_to_be_ready(
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 1, 0, rcl_get_default_allocator());
   if (ret != RCL_RET_OK) {
-    RCUTILS_LOG_ERROR("Error in wait set init: %s", rcl_get_error_string_safe())
+    RCUTILS_LOG_ERROR_NAMED(
+      ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string_safe());
     return false;
   }
   auto wait_set_exit = make_scope_exit(
     [&wait_set]() {
       if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR("Error in wait set fini: %s", rcl_get_error_string_safe())
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string_safe());
         throw std::runtime_error("error while waiting for client");
       }
     });
@@ -77,11 +80,13 @@ wait_for_client_to_be_ready(
   do {
     ++iteration;
     if (rcl_wait_set_clear_clients(&wait_set) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in wait_set_clear_clients: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in wait_set_clear_clients: %s", rcl_get_error_string_safe());
       return false;
     }
     if (rcl_wait_set_add_client(&wait_set, client) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in wait_set_add_client: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in wait_set_add_client: %s", rcl_get_error_string_safe());
       return false;
     }
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
@@ -89,7 +94,7 @@ wait_for_client_to_be_ready(
       continue;
     }
     if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in wait: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error in wait: %s", rcl_get_error_string_safe());
       return false;
     }
     for (size_t i = 0; i < wait_set.size_of_clients; ++i) {
@@ -106,20 +111,23 @@ int main(int argc, char ** argv)
   int main_ret = 0;
   {
     if (rcl_init(argc, argv, rcl_get_default_allocator()) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in rcl init: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in rcl init: %s", rcl_get_error_string_safe());
       return -1;
     }
     rcl_node_t node = rcl_get_zero_initialized_node();
     const char * name = "client_fixture_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     if (rcl_node_init(&node, name, "", &node_options) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in node init: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in node init: %s", rcl_get_error_string_safe());
       return -1;
     }
     auto node_exit = make_scope_exit(
       [&main_ret, &node]() {
         if (rcl_node_fini(&node) != RCL_RET_OK) {
-          RCUTILS_LOG_ERROR("Error in node fini: %s", rcl_get_error_string_safe())
+          RCUTILS_LOG_ERROR_NAMED(
+            ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string_safe());
           main_ret = -1;
         }
       });
@@ -132,21 +140,23 @@ int main(int argc, char ** argv)
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, topic, &client_options);
     if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in client init: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in client init: %s", rcl_get_error_string_safe());
       return -1;
     }
 
     auto client_exit = make_scope_exit(
       [&client, &main_ret, &node]() {
         if (rcl_client_fini(&client, &node)) {
-          RCUTILS_LOG_ERROR("Error in client fini: %s", rcl_get_error_string_safe())
+          RCUTILS_LOG_ERROR_NAMED(
+            ROS_PACKAGE_NAME, "Error in client fini: %s", rcl_get_error_string_safe());
           main_ret = -1;
         }
       });
 
     // Wait until server is available
     if (!wait_for_server_to_be_available(&node, &client, 1000, 100)) {
-      RCUTILS_LOG_ERROR("Server never became available")
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Server never became available");
       return -1;
     }
 
@@ -158,12 +168,13 @@ int main(int argc, char ** argv)
     int64_t sequence_number;
 
     if (rcl_send_request(&client, &client_request, &sequence_number)) {
-      RCUTILS_LOG_ERROR("Error in send request: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in send request: %s", rcl_get_error_string_safe());
       return -1;
     }
 
     if (sequence_number != 1) {
-      RCUTILS_LOG_ERROR("Got invalid sequence number")
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Got invalid sequence number");
       return -1;
     }
 
@@ -174,12 +185,13 @@ int main(int argc, char ** argv)
     example_interfaces__srv__AddTwoInts_Response__init(&client_response);
 
     if (!wait_for_client_to_be_ready(&client, 1000, 100)) {
-      RCUTILS_LOG_ERROR("Client never became ready")
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Client never became ready");
       return -1;
     }
     rmw_request_id_t header;
     if (rcl_take_response(&client, &header, &client_response) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR("Error in send response: %s", rcl_get_error_string_safe())
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in send response: %s", rcl_get_error_string_safe());
       return -1;
     }
 

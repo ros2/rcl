@@ -206,7 +206,9 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
       map->states[i].valid_transition_size
     )
     for (size_t j = 0; j < map->states[i].valid_transition_size; ++j) {
-      RCUTILS_LOG_INFO("\tNode %s: Key %d: Transition: %s",
+      RCUTILS_LOG_INFO_NAMED(
+        ROS_PACKAGE_NAME,
+        "\tNode %s: Key %d: Transition: %s",
         map->states[i].label,
         map->states[i].valid_transition_keys[j],
         map->states[i].valid_transitions[j].label)

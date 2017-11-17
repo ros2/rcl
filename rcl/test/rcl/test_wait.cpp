@@ -298,7 +298,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
                 ss << "[thread " << test_set.thread_id << "] Timeout (try #" << wake_try_count <<
                   ")";
                 // TODO(mikaelarguedas) replace this with stream logging once they exist
-                RCUTILS_LOG_INFO("%s", ss.str().c_str())
+                RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "%s", ss.str().c_str())
               }
             }
             if (!change_detected) {

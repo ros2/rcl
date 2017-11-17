@@ -228,19 +228,20 @@ rcl_lifecycle_com_interface_init(
 
 fail:
   if (RCL_RET_OK != rcl_publisher_fini(&com_interface->pub_transition_event, node_handle)) {
-    RCUTILS_LOG_ERROR("Failed to destroy transition_event publisher")
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to destroy transition_event publisher");
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_change_state, node_handle)) {
-    RCUTILS_LOG_ERROR("Failed to destroy change_state service")
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to destroy change_state service");
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_state, node_handle)) {
-    RCUTILS_LOG_ERROR("Failed to destroy get_state service")
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to destroy get_state service");
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_available_states, node_handle)) {
-    RCUTILS_LOG_ERROR("Failed to destroy get_available_states service")
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to destroy get_available_states service");
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_available_transitions, node_handle)) {
-    RCUTILS_LOG_ERROR("Failed to destroy get_available_transitions service")
+    RCUTILS_LOG_ERROR_NAMED(
+      ROS_PACKAGE_NAME, "Failed to destroy get_available_transitions service");
   }
 
   if (topic_name) {

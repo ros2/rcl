@@ -64,7 +64,7 @@ extern "C"
  * if (ret != RCL_RET_OK) {
  *   // ... error handling
  * } else {
- *   RCUTILS_LOG_INFO("Expanded topic name: %s", expanded_topic_name)
+ *   RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Expanded topic name: %s", expanded_topic_name)
  *   // ... when done the output topic name needs to be deallocated:
  *   allocator.deallocate(expanded_topic_name, allocator.state);
  * }

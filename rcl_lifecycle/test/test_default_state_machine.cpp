@@ -229,7 +229,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
         *it == lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE ||
         *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
 
-      RCUTILS_LOG_INFO("applying key %u", *it)
+      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "applying key %u", *it)
       EXPECT_EQ(
         RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();
