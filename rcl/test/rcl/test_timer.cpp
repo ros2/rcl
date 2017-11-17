@@ -83,14 +83,14 @@ TEST_F(TestTimerFixture, test_two_timers) {
   ret = rcl_wait_set_add_timer(&wait_set, &timer2);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   auto timer_exit = make_scope_exit([&timer, &timer2, &wait_set]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_timer_fini(&timer);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_timer_fini(&timer2);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_fini(&wait_set);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+        stop_memory_checking();
+        rcl_ret_t ret = rcl_timer_fini(&timer);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+        ret = rcl_timer_fini(&timer2);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+        ret = rcl_wait_set_fini(&wait_set);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      });
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(10));
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   uint8_t nonnull_timers = 0;
@@ -130,14 +130,14 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
   ret = rcl_wait_set_add_timer(&wait_set, &timer2);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   auto timer_exit = make_scope_exit([&timer, &timer2, &wait_set]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_timer_fini(&timer);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_timer_fini(&timer2);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_fini(&wait_set);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+        stop_memory_checking();
+        rcl_ret_t ret = rcl_timer_fini(&timer);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+        ret = rcl_timer_fini(&timer2);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+        ret = rcl_wait_set_fini(&wait_set);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      });
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(20));
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   uint8_t nonnull_timers = 0;
@@ -172,12 +172,12 @@ TEST_F(TestTimerFixture, test_timer_not_ready) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   auto timer_exit = make_scope_exit([&timer, &wait_set]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_timer_fini(&timer);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_fini(&wait_set);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+        stop_memory_checking();
+        rcl_ret_t ret = rcl_timer_fini(&timer);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+        ret = rcl_wait_set_fini(&wait_set);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      });
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1));
   EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
   uint8_t nonnull_timers = 0;
@@ -212,12 +212,12 @@ TEST_F(TestTimerFixture, test_canceled_timer) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   auto timer_exit = make_scope_exit([&timer, &wait_set]() {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_timer_fini(&timer);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ret = rcl_wait_set_fini(&wait_set);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  });
+        stop_memory_checking();
+        rcl_ret_t ret = rcl_timer_fini(&timer);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+        ret = rcl_wait_set_fini(&wait_set);
+        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      });
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1));
   EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
   uint8_t nonnull_timers = 0;
