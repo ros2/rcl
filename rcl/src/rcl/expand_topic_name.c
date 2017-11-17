@@ -26,6 +26,7 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 #include "rcl/validate_topic_name.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/format_string.h"
 #include "rcutils/repl_str.h"
 #include "rcutils/strdup.h"
@@ -33,8 +34,6 @@ extern "C"
 #include "rmw/types.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
-
-#define SAFE_FWRITE_TO_STDERR(msg) fwrite(msg, sizeof(char), sizeof(msg), stderr)
 
 // built-in substitution strings
 #define SUBSTITUION_NODE_NAME "{node}"
@@ -175,7 +174,7 @@ rcl_expand_topic_name(
               "unknown substitution: %s", unmatched_substitution);
             msg = allocated_msg;
           } else {
-            SAFE_FWRITE_TO_STDERR("failed to allocate memory for error message\n");
+            RCUTILS_SAFE_FWRITE_TO_STDERR("failed to allocate memory for error message\n");
             msg = "unknown substitution: allocation failed when reporting error";
           }
           RCL_SET_ERROR_MSG(msg, allocator)
