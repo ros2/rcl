@@ -34,7 +34,7 @@ extern "C"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 
-#define SAFE_FWRITE_TO_STDERR(msg) fwrite(msg, sizeof(char), sizeof(msg), stderr)
+#define RCL_SAFE_FWRITE_TO_STDERR(msg) fwrite(msg, sizeof(char), sizeof(msg), stderr)
 
 // built-in substitution strings
 #define SUBSTITUION_NODE_NAME "{node}"
@@ -167,20 +167,14 @@ rcl_expand_topic_name(
           *output_topic_name = NULL;
           char * unmatched_substitution =
             rcutils_strndup(next_opening_brace, substitution_substr_len, allocator);
-          char * allocated_msg = NULL;
-          char * msg = NULL;
           if (unmatched_substitution) {
-            allocated_msg = rcutils_format_string(
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
               allocator,
               "unknown substitution: %s", unmatched_substitution);
-            msg = allocated_msg;
           } else {
-            SAFE_FWRITE_TO_STDERR("failed to allocate memory for error message\n");
-            msg = "unknown substitution: allocation failed when reporting error";
+            RCL_SAFE_FWRITE_TO_STDERR("failed to allocate memory for unmatched substitution\n");
           }
-          RCL_SET_ERROR_MSG(msg, allocator)
           allocator.deallocate(unmatched_substitution, allocator.state);
-          allocator.deallocate(allocated_msg, allocator.state);
           allocator.deallocate(local_output, allocator.state);
           return RCL_RET_UNKNOWN_SUBSTITUTION;
         }
