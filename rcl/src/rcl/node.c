@@ -308,7 +308,7 @@ fail:
       ret = rmw_destroy_node(node->impl->rmw_node_handle);
       if (ret != RMW_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
-          "rcl",
+          ROS_PACKAGE_NAME,
           "failed to fini rmw node in error recovery: %s", rmw_get_error_string_safe()
         )
       }
@@ -317,7 +317,7 @@ fail:
       ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
       if (ret != RCL_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
-          "rcl",
+          ROS_PACKAGE_NAME,
           "failed to fini guard condition in error recovery: %s", rcl_get_error_string_safe()
         )
       }

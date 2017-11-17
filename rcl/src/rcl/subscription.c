@@ -83,7 +83,7 @@ rcl_subscription_init(
     rcutils_ret = rcutils_string_map_fini(&substitutions_map);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        "rcl",
+        ROS_PACKAGE_NAME,
         "failed to fini string_map (%d) during error handling: %s",
         rcutils_ret,
         rcutils_get_error_string_safe())

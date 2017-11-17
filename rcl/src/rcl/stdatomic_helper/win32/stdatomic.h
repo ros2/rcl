@@ -209,7 +209,7 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
-          "rcl", "Unsupported integer type in atomic_compare_exchange_strong") \
+          ROS_PACKAGE_NAME, "Unsupported integer type in atomic_compare_exchange_strong") \
         exit(-1); \
         break; \
     } \
@@ -238,7 +238,7 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
-          "rcl", "Unsupported integer type in atomic_exchange_strong") \
+          ROS_PACKAGE_NAME, "Unsupported integer type in atomic_exchange_strong") \
         exit(-1); \
         break; \
     } \
@@ -264,7 +264,7 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
-          "rcl", "Unsupported integer type in atomic_fetch_add") \
+          ROS_PACKAGE_NAME, "Unsupported integer type in atomic_fetch_add") \
         exit(-1); \
         break; \
     } \
@@ -290,7 +290,7 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
-          "rcl", "Unsupported integer type in atomic_fetch_and") \
+          ROS_PACKAGE_NAME, "Unsupported integer type in atomic_fetch_and") \
         exit(-1); \
         break; \
     } \
@@ -316,7 +316,7 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
-          "rcl", "Unsupported integer type in atomic_fetch_or") \
+          ROS_PACKAGE_NAME, "Unsupported integer type in atomic_fetch_or") \
         exit(-1); \
         break; \
     } \
@@ -345,7 +345,7 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
-          "rcl", "Unsupported integer type in atomic_fetch_xor") \
+          ROS_PACKAGE_NAME, "Unsupported integer type in atomic_fetch_xor") \
         exit(-1); \
         break; \
     } \
@@ -371,7 +371,7 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
-          "rcl", "Unsupported integer type in atomic_load") \
+          ROS_PACKAGE_NAME, "Unsupported integer type in atomic_load") \
         exit(-1); \
         break; \
     } \

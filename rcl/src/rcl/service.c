@@ -84,7 +84,7 @@ rcl_service_init(
     rcutils_ret = rcutils_string_map_fini(&substitutions_map);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        "rcl",
+        ROS_PACKAGE_NAME,
         "failed to fini string_map (%d) during error handling: %s",
         rcutils_ret,
         rcutils_get_error_string_safe())
@@ -136,7 +136,7 @@ rcl_service_init(
 
   if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == options->qos.durability) {
     RCUTILS_LOG_WARN_NAMED(
-      "rcl",
+      ROS_PACKAGE_NAME,
       "Warning: Setting QoS durability to 'transient local' for service servers "
       "can cause them to receive requests from clients that have since terminated.")
   }
