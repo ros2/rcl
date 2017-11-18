@@ -585,7 +585,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
     !timeout_argument, ROS_PACKAGE_NAME".wait", "Waiting without timeout")
   RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
-    timeout_argument, ROS_PACKAGE_NAME".wait", "Waiting with timeout: %" PRIu64 "s, %" PRIu64 "ns",
+    timeout_argument, ROS_PACKAGE_NAME".wait",
+    "Waiting with timeout: %" PRIu64 "s + %" PRIu64 "ns",
     temporary_timeout_storage.sec, temporary_timeout_storage.nsec)
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME".wait", "Timeout calculated based on next scheduled timer: %s",
