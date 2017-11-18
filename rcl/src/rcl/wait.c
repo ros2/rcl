@@ -583,13 +583,13 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     timeout_argument = &temporary_timeout_storage;
   }
   RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
-    !timeout_argument, ROS_PACKAGE_NAME".wait", "Waiting without timeout")
+    !timeout_argument, ROS_PACKAGE_NAME, "Waiting without timeout")
   RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
-    timeout_argument, ROS_PACKAGE_NAME".wait",
+    timeout_argument, ROS_PACKAGE_NAME,
     "Waiting with timeout: %" PRIu64 "s + %" PRIu64 "ns",
     temporary_timeout_storage.sec, temporary_timeout_storage.nsec)
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME".wait", "Timeout calculated based on next scheduled timer: %s",
+    ROS_PACKAGE_NAME, "Timeout calculated based on next scheduled timer: %s",
     is_timer_timeout ? "true" : "false")
 
   // Wait.
@@ -615,7 +615,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (!is_ready) {
       wait_set->timers[i] = NULL;
     } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Timer ready")
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer ready")
     }
   }
   // Check for timeout, return RCL_RET_TIMEOUT only if it wasn't a timer.
@@ -644,7 +644,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (!wait_set->impl->rmw_subscriptions.subscribers[i]) {
       wait_set->subscriptions[i] = NULL;
     } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Subscription ready")
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription ready")
     }
   }
   // Set corresponding rcl guard_condition handles NULL.
@@ -652,7 +652,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (!wait_set->impl->rmw_guard_conditions.guard_conditions[i]) {
       wait_set->guard_conditions[i] = NULL;
     } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Guard condition ready")
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Guard condition ready")
     }
   }
   // Set corresponding rcl client handles NULL.
@@ -660,7 +660,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (!wait_set->impl->rmw_clients.clients[i]) {
       wait_set->clients[i] = NULL;
     } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Client ready")
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client ready")
     }
   }
   // Set corresponding rcl service handles NULL.
@@ -668,7 +668,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (!wait_set->impl->rmw_services.services[i]) {
       wait_set->services[i] = NULL;
     } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Service ready")
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service ready")
     }
   }
   return RCL_RET_OK;
