@@ -64,6 +64,8 @@ rcl_service_init(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Initializing service for service name '%s'", service_name)
   if (service->impl) {
     RCL_SET_ERROR_MSG("service already initialized, or memory was unintialized", *allocator);
     return RCL_RET_ALREADY_INIT;
@@ -117,6 +119,7 @@ rcl_service_init(
       return RCL_RET_ERROR;
     }
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded service name '%s'", expanded_service_name)
   // Validate the expanded service name.
   int validation_result;
   rmw_ret_t rmw_ret = rmw_validate_full_topic_name(expanded_service_name, &validation_result, NULL);
@@ -155,6 +158,7 @@ rcl_service_init(
   }
   // options
   service->impl->options = *options;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service initialized")
   return RCL_RET_OK;
 fail:
   if (service->impl) {
@@ -166,6 +170,7 @@ fail:
 rcl_ret_t
 rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing service")
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -250,6 +255,8 @@ rcl_take_request(
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), options->allocator);
     return RCL_RET_ERROR;
   }
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Service take request succeeded: %s", taken ? "true" : "false")
   if (!taken) {
     return RCL_RET_SERVICE_TAKE_FAILED;
   }

@@ -23,6 +23,7 @@ extern "C"
 
 #include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
+#include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 
 static atomic_bool __rcl_is_initialized = ATOMIC_VAR_INIT(false);
@@ -116,6 +117,7 @@ fail:
 rcl_ret_t
 rcl_shutdown()
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Shutting down")
   if (!rcl_ok()) {
     // must use default allocator here because __rcl_allocator may not be set yet
     RCL_SET_ERROR_MSG("rcl_shutdown called before rcl_init", rcl_get_default_allocator());

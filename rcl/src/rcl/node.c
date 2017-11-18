@@ -108,6 +108,8 @@ rcl_node_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(namespace_, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Initializing node '%s' in namespace '%s'", name, namespace_)
   if (node->impl) {
     RCL_SET_ERROR_MSG("node already initialized, or struct memory was unintialized", *allocator);
     return RCL_RET_ALREADY_INIT;
@@ -215,6 +217,7 @@ rcl_node_init(
   }
   // actual domain id
   node->impl->actual_domain_id = domain_id;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id)
 
   const char * ros_security_enable = NULL;
   const char * ros_enforce_security = NULL;
@@ -230,6 +233,8 @@ rcl_node_init(
   }
 
   bool use_security = (0 == strcmp(ros_security_enable, "true"));
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false")
 
   if (rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security)) {
     RCL_SET_ERROR_MSG(
@@ -301,6 +306,7 @@ rcl_node_init(
     // error message already set
     goto fail;
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized")
   return RCL_RET_OK;
 fail:
   if (node->impl) {
@@ -337,6 +343,7 @@ fail:
 rcl_ret_t
 rcl_node_fini(rcl_node_t * node)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing node")
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (!node->impl) {
     // Repeat calls to fini or calling fini on a zero initialized node is ok.
