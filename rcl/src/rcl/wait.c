@@ -20,12 +20,14 @@ extern "C"
 #include "rcl/wait.h"
 
 #include <assert.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <string.h>
 
 #include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 #include "rcl/time.h"
+#include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
@@ -113,6 +115,11 @@ rcl_wait_set_init(
   size_t number_of_services,
   rcl_allocator_t allocator)
 {
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Initializing wait set with "
+    "'%zu' subscriptions, '%zu' guard conditions, '%zu' timers, '%zu' clients, '%zu' services",
+    number_of_subscriptions, number_of_guard_conditions, number_of_timers, number_of_clients,
+    number_of_services)
   rcl_ret_t fail_ret = RCL_RET_ERROR;
 
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
@@ -238,6 +245,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
 }
 
 #define SET_ADD(Type) \
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Adding " #Type " to wait set") \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   if (!__wait_set_is_valid(wait_set)) { \
     RCL_SET_ERROR_MSG("wait set is invalid", rcl_get_default_allocator()); \
@@ -260,6 +268,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   wait_set->impl->RMWCount++;
 
 #define SET_CLEAR(Type) \
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Clearing " #Type " from wait set") \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   if (!__wait_set_is_valid(wait_set)) { \
     RCL_SET_ERROR_MSG("wait set is invalid", rcl_get_default_allocator()); \
@@ -280,6 +289,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   wait_set->impl->RMWCount = 0;
 
 #define SET_RESIZE(Type, ExtraDealloc, ExtraRealloc) \
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Resizing the number of " #Type "s in wait set") \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   RCL_CHECK_FOR_NULL_WITH_MSG( \
     wait_set->impl, "wait set is invalid", \
@@ -538,6 +548,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       }
     }
   }
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME".wait", "Number of valid timers: %zu", number_of_valid_timers);
 
   bool is_timer_timeout = false;
   if (timeout == 0) {
@@ -575,6 +587,14 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     temporary_timeout_storage.nsec = min_timeout % 1000000000;
     timeout_argument = &temporary_timeout_storage;
   }
+  RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
+    !timeout_argument, ROS_PACKAGE_NAME".wait", "Waiting without timeout")
+  RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
+    timeout_argument, ROS_PACKAGE_NAME".wait", "Waiting with timeout: %" PRIu64 "s, %" PRIu64 "ns",
+    temporary_timeout_storage.sec, temporary_timeout_storage.nsec)
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME".wait", "Timeout calculated based on next scheduled timer: %s",
+    is_timer_timeout ? "true" : "false")
 
   // Wait.
   rmw_ret_t ret = rmw_wait(
@@ -584,7 +604,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &wait_set->impl->rmw_clients,
     wait_set->impl->rmw_waitset,
     timeout_argument);
-  // Check for ready timers next
+  // Check for ready timers
   // and set not ready timers (which includes canceled timers) to NULL.
   size_t i;
   for (i = 0; i < wait_set->impl->timer_index; ++i) {
@@ -598,10 +618,13 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     }
     if (!is_ready) {
       wait_set->timers[i] = NULL;
+    } else {
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Timer ready")
     }
   }
   // Check for timeout, return RCL_RET_TIMEOUT only if it wasn't a timer.
   if (ret == RMW_RET_TIMEOUT) {
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Timeout reached, clearing wait set")
     // Assume none were set (because timeout was reached first), and clear all.
     rcl_ret_t rcl_ret;
     // This next line prevents "assigned but never used" warnings in Release mode.
@@ -625,24 +648,32 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   for (i = 0; i < wait_set->size_of_subscriptions; ++i) {
     if (!wait_set->impl->rmw_subscriptions.subscribers[i]) {
       wait_set->subscriptions[i] = NULL;
+    } else {
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Subscription ready")
     }
   }
   // Set corresponding rcl guard_condition handles NULL.
   for (i = 0; i < wait_set->size_of_guard_conditions; ++i) {
     if (!wait_set->impl->rmw_guard_conditions.guard_conditions[i]) {
       wait_set->guard_conditions[i] = NULL;
+    } else {
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Guard condition ready")
     }
   }
   // Set corresponding rcl client handles NULL.
   for (i = 0; i < wait_set->size_of_clients; ++i) {
     if (!wait_set->impl->rmw_clients.clients[i]) {
       wait_set->clients[i] = NULL;
+    } else {
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Client ready")
     }
   }
   // Set corresponding rcl service handles NULL.
   for (i = 0; i < wait_set->size_of_services; ++i) {
     if (!wait_set->impl->rmw_services.services[i]) {
       wait_set->services[i] = NULL;
+    } else {
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Service ready")
     }
   }
   return RCL_RET_OK;
