@@ -245,7 +245,6 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
 }
 
 #define SET_ADD(Type) \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Adding " #Type " to wait set") \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   if (!__wait_set_is_valid(wait_set)) { \
     RCL_SET_ERROR_MSG("wait set is invalid", rcl_get_default_allocator()); \
@@ -268,7 +267,6 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   wait_set->impl->RMWCount++;
 
 #define SET_CLEAR(Type) \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Clearing " #Type " from wait set") \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   if (!__wait_set_is_valid(wait_set)) { \
     RCL_SET_ERROR_MSG("wait set is invalid", rcl_get_default_allocator()); \
@@ -289,7 +287,6 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   wait_set->impl->RMWCount = 0;
 
 #define SET_RESIZE(Type, ExtraDealloc, ExtraRealloc) \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Resizing the number of " #Type "s in wait set") \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
   RCL_CHECK_FOR_NULL_WITH_MSG( \
     wait_set->impl, "wait set is invalid", \
@@ -548,8 +545,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       }
     }
   }
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME".wait", "Number of valid timers: %zu", number_of_valid_timers);
 
   bool is_timer_timeout = false;
   if (timeout == 0) {
@@ -624,7 +619,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   }
   // Check for timeout, return RCL_RET_TIMEOUT only if it wasn't a timer.
   if (ret == RMW_RET_TIMEOUT) {
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME".wait", "Timeout reached, clearing wait set")
     // Assume none were set (because timeout was reached first), and clear all.
     rcl_ret_t rcl_ret;
     // This next line prevents "assigned but never used" warnings in Release mode.
