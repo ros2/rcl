@@ -273,7 +273,6 @@ rcl_send_response(
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response")
   const rcl_service_options_t * options = rcl_service_get_options(service);
-  RCL_CHECK_ALLOCATOR(alloc, "service's allocator is invalid");
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_response, RCL_RET_INVALID_ARGUMENT, options->allocator);
 
@@ -291,6 +290,7 @@ rcl_service_is_valid(const rcl_service_t * service, const rcl_allocator_t * allo
 {
   const rcl_service_options_t * options;
   const rcl_allocator_t alloc = allocator ? *allocator : rcl_get_default_allocator();
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "service's allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(service, false, alloc);
   options = _service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(
