@@ -249,7 +249,7 @@ rcl_publisher_is_valid(const rcl_publisher_t * publisher, const rcl_allocator_t 
 {
   const rcl_publisher_options_t * options;
   const rcl_allocator_t alloc = allocator ? *allocator : rcl_get_default_allocator();
-  /* TODO(allenh1): RCL_CHECK_ALLOCATOR(alloc, "publisher's allocator is invalid"); */
+  RCL_CHECK_ALLOCATOR(alloc, "publisher's allocator is invalid");
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false, alloc);
   options = _publisher_get_options(publisher);
   RCL_CHECK_FOR_NULL_WITH_MSG(

@@ -277,7 +277,7 @@ rcl_subscription_is_valid(
 {
   const rcl_subscription_options_t * options;
   const rcl_allocator_t alloc = allocator ? *allocator : rcl_get_default_allocator();
-  /* TODO(allenh1): RCL_CHECK_ALLOCATOR(alloc, "subsription's allocator is invalid"); */
+  RCL_CHECK_ALLOCATOR(alloc, "subsription's allocator is invalid");
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, false, rcl_get_default_allocator());
   options = _subscription_get_options(subscription);
   RCL_CHECK_FOR_NULL_WITH_MSG(
