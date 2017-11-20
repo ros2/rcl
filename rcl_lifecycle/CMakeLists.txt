@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rcl_lifecycle)
 
-find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
 
 find_package(lifecycle_msgs REQUIRED)
 find_package(rcl REQUIRED)
@@ -38,7 +38,6 @@ set_source_files_properties(
 ### C-Library depending only on RCL
 add_library(
   rcl_lifecycle
-  SHARED
   ${rcl_lifecycle_sources})
 
 ament_target_dependencies(rcl_lifecycle
