@@ -135,7 +135,8 @@ rcl_parameter_service_init(
   const rcl_parameter_service_options_t * options
 )
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (!node->impl) {
@@ -143,7 +144,8 @@ rcl_parameter_service_init(
     return RCL_RET_NODE_INVALID;
   }
   if (parameter_service->impl) {
-    RCL_SET_ERROR_MSG("service already initialized, or memory was unintialized", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "service already initialized, or memory was unintialized", rcl_get_default_allocator());
     return RCL_RET_ALREADY_INIT;
   }
   rcl_ret_t ret;
@@ -277,7 +279,8 @@ rcl_parameter_service_take_list_request(
   rosidl_generator_c__String__Array * prefixes,
   uint64_t * depth)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(prefixes, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(depth, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
 
@@ -298,8 +301,10 @@ rcl_parameter_service_take_list_request(
     rmw_request_id_t * request_header, \
     const REQUEST_SUBTYPE * SUBFIELD_NAME) \
   { \
-    RCL_CHECK_ARGUMENT_FOR_NULL(parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
-    RCL_CHECK_ARGUMENT_FOR_NULL(SUBFIELD_NAME, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
+    RCL_CHECK_ARGUMENT_FOR_NULL( \
+      parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
+    RCL_CHECK_ARGUMENT_FOR_NULL( \
+      SUBFIELD_NAME, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
  \
     parameter_service->impl->VERB ## _response.SUBFIELD_NAME = *SUBFIELD_NAME; \
  \
@@ -323,7 +328,8 @@ rcl_parameter_service_publish_event(
   const rcl_parameter_service_t * parameter_service,
   const rcl_interfaces__msg__ParameterEvent * event)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
 
   rcl_ret_t ret = rcl_publish(&parameter_service->impl->event_publisher, event);
@@ -340,27 +346,32 @@ rcl_wait_set_add_parameter_service(
 
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->get_service);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add get_parameters service to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add get_parameters service to waitset!", rcl_get_default_allocator());
     return ret;
   }
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->get_types_service);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add get_parameter_types service to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add get_parameter_types service to waitset!", rcl_get_default_allocator());
     return ret;
   }
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->set_service);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add set_parameters service to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add set_parameters service to waitset!", rcl_get_default_allocator());
     return ret;
   }
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->set_atomically_service);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add set_parameters_atomically service to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add set_parameters_atomically service to waitset!", rcl_get_default_allocator());
     return ret;
   }
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->list_service);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add list_parameters service to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add list_parameters service to waitset!", rcl_get_default_allocator());
     return ret;
   }
 
@@ -374,7 +385,8 @@ rcl_parameter_service_get_pending_action(
   rcl_param_action_t * action)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(action, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   size_t i = 0;
   size_t j = 0;

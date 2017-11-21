@@ -132,6 +132,14 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
   )
 
+  rcl_add_custom_gtest(test_parameters${target_suffix}
+    SRCS rcl/test_parameters.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation} "rcl_interfaces"
+  )
+
   rcl_add_custom_gtest(test_wait${target_suffix}
     SRCS rcl/test_wait.cpp
     ENV ${extra_test_env}

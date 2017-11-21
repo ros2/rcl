@@ -147,15 +147,19 @@ rcl_parameter_client_init(
   const rcl_parameter_client_options_t * options
 )
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (!node->impl) {
     RCL_SET_ERROR_MSG("invalid node", rcl_get_default_allocator());
     return RCL_RET_NODE_INVALID;
   }
   if (parameter_client->impl) {
-    RCL_SET_ERROR_MSG("client already initialized, or memory was unintialized", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "client already initialized, or memory was unintialized", rcl_get_default_allocator());
     return RCL_RET_ALREADY_INIT;
   }
 
@@ -266,14 +270,18 @@ rcl_parameter_client_fini(rcl_parameter_client_t * parameter_client)
     const REQUEST_SUBTYPE * SUBFIELD_NAME, \
     int64_t * sequence_number) \
   { \
-    RCL_CHECK_ARGUMENT_FOR_NULL(parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
-    RCL_CHECK_ARGUMENT_FOR_NULL(SUBFIELD_NAME, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
-    RCL_CHECK_ARGUMENT_FOR_NULL(sequence_number, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
+    RCL_CHECK_ARGUMENT_FOR_NULL( \
+      parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
+    RCL_CHECK_ARGUMENT_FOR_NULL( \
+      SUBFIELD_NAME, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
+    RCL_CHECK_ARGUMENT_FOR_NULL( \
+      sequence_number, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
  \
     parameter_client->impl->VERB ## _request.SUBFIELD_NAME = *SUBFIELD_NAME; \
  \
     rcl_ret_t ret = rcl_send_request( \
-      &parameter_client->impl->VERB ## _client, &parameter_client->impl->VERB ## _request, \
+      &parameter_client->impl->VERB ## _client, \
+      &parameter_client->impl->VERB ## _request, \
       &parameter_client->impl->VERB ## _sequence_number); \
     *sequence_number = parameter_client->impl->VERB ## _sequence_number; \
     return ret; \
@@ -292,9 +300,12 @@ rcl_parameter_client_send_list_request(
   uint64_t depth,
   int64_t * sequence_number)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(prefixes, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(sequence_number, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    prefixes, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    sequence_number, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
 
   parameter_client->impl->list_request.prefixes = *prefixes;
   parameter_client->impl->list_request.depth = depth;
@@ -339,8 +350,10 @@ rcl_parameter_client_take_event(
   rmw_message_info_t * message_info
 )
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_event, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_event, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
 
   rcl_ret_t ret = rcl_take(&parameter_client->impl->event_subscription, parameter_event,
       message_info);
@@ -353,39 +366,47 @@ rcl_wait_set_add_parameter_client(
   rcl_wait_set_t * wait_set,
   const rcl_parameter_client_t * parameter_client)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   rcl_ret_t ret;
 
   ret = rcl_wait_set_add_client(wait_set, &parameter_client->impl->get_client);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add get_parameters client to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add get_parameters client to waitset!", rcl_get_default_allocator());
     return ret;
   }
   ret = rcl_wait_set_add_client(wait_set, &parameter_client->impl->get_types_client);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add get_parameter_types client to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add get_parameter_types client to waitset!", rcl_get_default_allocator());
     return ret;
   }
   ret = rcl_wait_set_add_client(wait_set, &parameter_client->impl->set_client);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add set_parameters client to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add set_parameters client to waitset!", rcl_get_default_allocator());
     return ret;
   }
   ret = rcl_wait_set_add_client(wait_set, &parameter_client->impl->set_atomically_client);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add set_parameters_atomically client to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add set_parameters_atomically client to waitset!", rcl_get_default_allocator());
     return ret;
   }
   ret = rcl_wait_set_add_client(wait_set, &parameter_client->impl->list_client);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add list_parameters client to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add list_parameters client to waitset!", rcl_get_default_allocator());
     return ret;
   }
 
   ret = rcl_wait_set_add_subscription(wait_set, &parameter_client->impl->event_subscription);
   if (ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Failed to add parameter events subscription to waitset!", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG(
+      "Failed to add parameter events subscription to waitset!", rcl_get_default_allocator());
     return ret;
   }
 
@@ -399,7 +420,8 @@ rcl_parameter_client_get_pending_action(
   rcl_param_action_t * action)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(action, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   size_t i = 0;
   size_t j = 0;

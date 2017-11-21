@@ -93,7 +93,8 @@ RCL_DEFINE_SET_PARAMETER_VALUE_ARRAY_TYPE(string, rosidl_generator_c__String, ch
   PARAMETER_STRING)
 
 // Check if two parameters are equal
-bool rcl_parameter_value_compare(const rcl_interfaces__msg__ParameterValue * parameter1,
+bool rcl_parameter_value_compare(
+  const rcl_interfaces__msg__ParameterValue * parameter1,
   const rcl_interfaces__msg__ParameterValue * parameter2)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(parameter1, false, rcl_get_default_allocator());
@@ -122,7 +123,8 @@ bool rcl_parameter_value_compare(const rcl_interfaces__msg__ParameterValue * par
 }
 
 rcl_ret_t
-rcl_parameter_value_copy(rcl_interfaces__msg__ParameterValue * dst,
+rcl_parameter_value_copy(
+  rcl_interfaces__msg__ParameterValue * dst,
   const rcl_interfaces__msg__ParameterValue * src)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(dst, false, rcl_get_default_allocator());
@@ -154,7 +156,8 @@ rcl_parameter_value_copy(rcl_interfaces__msg__ParameterValue * dst,
 }
 
 rcl_ret_t
-rcl_parameter_copy(rcl_interfaces__msg__Parameter * dst,
+rcl_parameter_copy(
+  rcl_interfaces__msg__Parameter * dst,
   const rcl_interfaces__msg__Parameter * src)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(dst, false, rcl_get_default_allocator());
@@ -174,7 +177,8 @@ rcl_parameter_convert_changes_to_event(
   // Diff the prior state and the new state and fill the parameter_event struct
   RCL_CHECK_ARGUMENT_FOR_NULL(prior_state, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(new_state, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_event, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_event, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
 
   size_t prior_idx, new_idx;
   size_t num_deleted_params = 0;
