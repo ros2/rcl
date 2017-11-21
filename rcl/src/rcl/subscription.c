@@ -207,6 +207,7 @@ rcl_take(
   void * ros_message,
   rmw_message_info_t * message_info)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking message")
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_subscription_options_t * options = rcl_subscription_get_options(subscription);
   if (!options) {
@@ -231,7 +232,7 @@ rcl_take(
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Subscription take request succeeded: %s", taken ? "true" : "false")
+    ROS_PACKAGE_NAME, "Subscription take succeeded: %s", taken ? "true" : "false")
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }

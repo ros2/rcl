@@ -202,6 +202,7 @@ rcl_publisher_get_default_options()
 rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher publishing message")
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;
   }
