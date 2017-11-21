@@ -365,6 +365,7 @@ rcl_node_fini(rcl_node_t * node)
   // assuming that allocate and deallocate are ok since they are checked in init
   allocator.deallocate(node->impl, allocator.state);
   node->impl = NULL;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node finalized")
   return result;
 }
 

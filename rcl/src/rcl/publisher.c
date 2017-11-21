@@ -184,6 +184,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
     }
     allocator.deallocate(publisher->impl, allocator.state);
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher finalized")
   return result;
 }
 

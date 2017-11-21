@@ -190,6 +190,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
     }
     allocator.deallocate(service->impl, allocator.state);
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service finalized")
   return result;
 }
 

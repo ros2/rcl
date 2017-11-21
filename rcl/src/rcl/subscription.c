@@ -184,6 +184,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
     }
     allocator.deallocate(subscription->impl, allocator.state);
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription finalized")
   return result;
 }
 

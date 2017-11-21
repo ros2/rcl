@@ -187,6 +187,7 @@ rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
     }
     allocator.deallocate(client->impl, allocator.state);
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client finalized")
   return result;
 }
 
