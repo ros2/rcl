@@ -238,6 +238,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t * sequence_number)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client sending service request")
   if (!rcl_client_is_valid(client)) {
     return RCL_RET_CLIENT_INVALID;
   }
@@ -263,6 +264,7 @@ rcl_take_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client taking service response")
   if (!rcl_client_is_valid(client)) {
     return RCL_RET_CLIENT_INVALID;
   }
@@ -279,7 +281,7 @@ rcl_take_response(
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Client take request succeeded: %s", taken ? "true" : "false")
+    ROS_PACKAGE_NAME, "Client take response succeeded: %s", taken ? "true" : "false")
   if (!taken) {
     return RCL_RET_CLIENT_TAKE_FAILED;
   }

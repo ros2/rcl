@@ -245,6 +245,7 @@ rcl_take_request(
   rmw_request_id_t * request_header,
   void * ros_request)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service server taking service request")
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_request, RCL_RET_INVALID_ARGUMENT, options->allocator);
@@ -270,6 +271,7 @@ rcl_send_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response")
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_response, RCL_RET_INVALID_ARGUMENT, options->allocator);
@@ -280,7 +282,6 @@ rcl_send_response(
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), options->allocator);
     return RCL_RET_ERROR;
   }
-
   return RCL_RET_OK;
 }
 
