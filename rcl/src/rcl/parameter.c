@@ -31,7 +31,7 @@ extern "C"
 #include "./common.h"
 
 #include "rosidl_generator_c/message_type_support_struct.h"
-#include "rosidl_generator_c/service_type_support.h"
+#include "rosidl_generator_c/service_type_support_struct.h"
 
 #define RCL_DEFINE_SET_PARAMETER(TYPE, CTYPE, ENUM_TYPE) \
   rcl_ret_t \

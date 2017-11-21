@@ -38,7 +38,7 @@ extern "C"
 #include "rcl/subscription.h"
 
 #include "rosidl_generator_c/message_type_support_struct.h"
-#include "rosidl_generator_c/service_type_support.h"
+#include "rosidl_generator_c/service_type_support_struct.h"
 
 #include "./common.h"
 
