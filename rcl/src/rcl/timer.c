@@ -205,8 +205,8 @@ rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64
   RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT, *allocator);
   *old_period = rcl_atomic_exchange_uint64_t(&timer->impl->period, new_period);
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Updated timer period from '%" PRIu64 "ns' to '%" PRIu64 "ns'", *old_period,
-    new_period)
+    ROS_PACKAGE_NAME, "Updated timer period from '%" PRIu64 "ns' to '%" PRIu64 "ns'",
+    *old_period, new_period)
   return RCL_RET_OK;
 }
 
