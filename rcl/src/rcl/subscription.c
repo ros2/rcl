@@ -63,6 +63,8 @@ rcl_subscription_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Initializing subscription for topic name '%s'", topic_name)
   if (subscription->impl) {
     RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized", *allocator);
     return RCL_RET_ALREADY_INIT;
@@ -83,7 +85,7 @@ rcl_subscription_init(
     rcutils_ret = rcutils_string_map_fini(&substitutions_map);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        "rcl",
+        ROS_PACKAGE_NAME,
         "failed to fini string_map (%d) during error handling: %s",
         rcutils_ret,
         rcutils_get_error_string_safe())
@@ -116,6 +118,7 @@ rcl_subscription_init(
       return RCL_RET_ERROR;
     }
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded topic name '%s'", expanded_topic_name)
   // Validate the expanded topic name.
   int validation_result;
   rmw_ret_t rmw_ret = rmw_validate_full_topic_name(expanded_topic_name, &validation_result, NULL);
@@ -148,6 +151,7 @@ rcl_subscription_init(
   }
   // options
   subscription->impl->options = *options;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized")
   return RCL_RET_OK;
 fail:
   if (subscription->impl) {
@@ -159,6 +163,7 @@ fail:
 rcl_ret_t
 rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing subscription")
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -179,6 +184,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
     }
     allocator.deallocate(subscription->impl, allocator.state);
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription finalized")
   return result;
 }
 
@@ -201,6 +207,7 @@ rcl_take(
   void * ros_message,
   rmw_message_info_t * message_info)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking message")
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_subscription_options_t * options = rcl_subscription_get_options(subscription);
   if (!options) {
@@ -224,6 +231,8 @@ rcl_take(
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), options->allocator);
     return RCL_RET_ERROR;
   }
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Subscription take succeeded: %s", taken ? "true" : "false")
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }

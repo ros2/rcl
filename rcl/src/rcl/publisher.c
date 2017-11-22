@@ -70,6 +70,8 @@ rcl_publisher_init(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Initializing publisher for topic name '%s'", topic_name)
   // Expand the given topic name.
   rcutils_allocator_t rcutils_allocator = *allocator;  // implicit conversion to rcutils version
   rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
@@ -86,7 +88,7 @@ rcl_publisher_init(
     rcutils_ret = rcutils_string_map_fini(&substitutions_map);
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        "rcl",
+        ROS_PACKAGE_NAME,
         "failed to fini string_map (%d) during error handling: %s",
         rcutils_ret,
         rcutils_get_error_string_safe())
@@ -119,6 +121,7 @@ rcl_publisher_init(
       return RCL_RET_ERROR;
     }
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded topic name '%s'", expanded_topic_name)
   // Validate the expanded topic name.
   int validation_result;
   rmw_ret_t rmw_ret = rmw_validate_full_topic_name(expanded_topic_name, &validation_result, NULL);
@@ -148,6 +151,7 @@ rcl_publisher_init(
     rmw_get_error_string_safe(), goto fail, *allocator);
   // options
   publisher->impl->options = *options;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized")
   return RCL_RET_OK;
 fail:
   if (publisher->impl) {
@@ -165,6 +169,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
   if (!rcl_node_is_valid(node, NULL)) {
     return RCL_RET_NODE_INVALID;
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing publisher")
   if (publisher->impl) {
     rcl_allocator_t allocator = publisher->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);
@@ -179,6 +184,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
     }
     allocator.deallocate(publisher->impl, allocator.state);
   }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher finalized")
   return result;
 }
 
@@ -196,6 +202,7 @@ rcl_publisher_get_default_options()
 rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher publishing message")
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;
   }

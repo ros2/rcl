@@ -57,7 +57,7 @@ INITIALIZER(initialize) {
   rcl_ret_t ret = rcl_impl_getenv("RCL_ASSERT_RMW_ID_MATCHES", &expected);
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
-      "rcl",
+      ROS_PACKAGE_NAME,
       "Error getting environement variable 'RCL_ASSERT_RMW_ID_MATCHES': %s",
       rcl_get_error_string_safe()
     )
@@ -66,7 +66,7 @@ INITIALIZER(initialize) {
   // If the environment variable is set, and it does not match, print a warning and exit.
   if (strlen(expected) > 0 && strcmp(rmw_get_implementation_identifier(), expected) != 0) {
     RCUTILS_LOG_ERROR_NAMED(
-      "rcl",
+      ROS_PACKAGE_NAME,
       "Expected RMW implementation identifier of '%s' but instead found '%s', exiting with %d.",
       expected,
       rmw_get_implementation_identifier(),

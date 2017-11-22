@@ -152,7 +152,7 @@ rcl_lifecycle_is_valid_transition(
     }
   }
   RCUTILS_LOG_WARN_NAMED(
-    "rcl_lifecycle",
+    ROS_PACKAGE_NAME,
     "No callback transition matching %d found for current state %s",
     key, state_machine->current_state->label)
   return NULL;
@@ -169,7 +169,7 @@ rcl_lifecycle_trigger_transition(
   // If we have a faulty transition pointer
   if (!transition) {
     RCUTILS_LOG_ERROR_NAMED(
-      "rcl_lifecycle",
+      ROS_PACKAGE_NAME,
       "No transition found for node %s with key %d",
       state_machine->current_state->label, key)
     RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
@@ -178,7 +178,7 @@ rcl_lifecycle_trigger_transition(
 
   if (!transition->goal) {
     RCUTILS_LOG_ERROR_NAMED(
-      "rcl_lifecycle", "No valid goal is set")
+      ROS_PACKAGE_NAME, "No valid goal is set")
   }
   state_machine->current_state = transition->goal;
   if (publish_notification) {
@@ -200,13 +200,15 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
   const rcl_lifecycle_transition_map_t * map = &state_machine->transition_map;
   for (size_t i = 0; i < map->states_size; ++i) {
     RCUTILS_LOG_INFO_NAMED(
-      "rcl_lifecycle",
+      ROS_PACKAGE_NAME,
       "Primary State: %s(%u)\n# of valid transitions: %u",
       map->states[i].label, map->states[i].id,
       map->states[i].valid_transition_size
     )
     for (size_t j = 0; j < map->states[i].valid_transition_size; ++j) {
-      RCUTILS_LOG_INFO("\tNode %s: Key %d: Transition: %s",
+      RCUTILS_LOG_INFO_NAMED(
+        ROS_PACKAGE_NAME,
+        "\tNode %s: Key %d: Transition: %s",
         map->states[i].label,
         map->states[i].valid_transition_keys[j],
         map->states[i].valid_transitions[j].label)

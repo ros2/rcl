@@ -19,8 +19,11 @@ extern "C"
 
 #include "rcl/timer.h"
 
+#include <inttypes.h>
+
 #include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/time.h"
 
 typedef struct rcl_timer_impl_t
@@ -53,6 +56,7 @@ rcl_timer_init(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Initializing timer with period: %" PRIu64 "ns", period)
   if (timer->impl) {
     RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized", allocator);
     return RCL_RET_ALREADY_INIT;
@@ -91,6 +95,7 @@ rcl_timer_fini(rcl_timer_t * timer)
 rcl_ret_t
 rcl_timer_call(rcl_timer_t * timer)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Calling timer")
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
   if (!allocator) {
@@ -199,6 +204,9 @@ rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT, *allocator);
   *old_period = rcl_atomic_exchange_uint64_t(&timer->impl->period, new_period);
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Updated timer period from '%" PRIu64 "ns' to '%" PRIu64 "ns'",
+    *old_period, new_period)
   return RCL_RET_OK;
 }
 
@@ -214,6 +222,7 @@ rcl_timer_get_callback(const rcl_timer_t * timer)
 rcl_timer_callback_t
 rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_callback)
 {
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Updating timer callback")
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
     timer->impl, "timer is invalid", return NULL, rcl_get_default_allocator());
@@ -228,6 +237,7 @@ rcl_timer_cancel(rcl_timer_t * timer)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID, rcl_get_default_allocator());
   rcl_atomic_store(&timer->impl->canceled, true);
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer canceled")
   return RCL_RET_OK;
 }
 
@@ -257,6 +267,7 @@ rcl_timer_reset(rcl_timer_t * timer)
   }
   rcl_atomic_store(&timer->impl->last_call_time, now);
   rcl_atomic_store(&timer->impl->canceled, false);
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset")
   return RCL_RET_OK;
 }
 
