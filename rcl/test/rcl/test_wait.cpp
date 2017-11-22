@@ -57,7 +57,7 @@ public:
 };
 
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
-  // Initialize a waitset with a subscription and then resize it to zero.
+  // Initialize a wait_set with a subscription and then resize it to zero.
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();

@@ -41,7 +41,7 @@ typedef struct rcl_wait_set_impl_t
   rmw_clients_t rmw_clients;
   size_t service_index;
   rmw_services_t rmw_services;
-  rmw_waitset_t * rmw_waitset;
+  rmw_wait_set_t * rmw_wait_set;
   size_t timer_index;
   rcl_allocator_t allocator;
 } rcl_wait_set_impl_t;
@@ -143,10 +143,10 @@ rcl_wait_set_init(
   wait_set->impl->rmw_services.services = NULL;
   wait_set->impl->rmw_services.service_count = 0;
 
-  wait_set->impl->rmw_waitset = rmw_create_waitset(
+  wait_set->impl->rmw_wait_set = rmw_create_wait_set(
     2 * number_of_subscriptions + number_of_guard_conditions + number_of_clients +
     number_of_services);
-  if (!wait_set->impl->rmw_waitset) {
+  if (!wait_set->impl->rmw_wait_set) {
     goto fail;
   }
 
@@ -205,7 +205,7 @@ rcl_wait_set_init(
   return RCL_RET_OK;
 fail:
   if (__wait_set_is_valid(wait_set)) {
-    rmw_ret_t ret = rmw_destroy_waitset(wait_set->impl->rmw_waitset);
+    rmw_ret_t ret = rmw_destroy_wait_set(wait_set->impl->rmw_wait_set);
     if (ret != RMW_RET_OK) {
       fail_ret = RCL_RET_WAIT_SET_INVALID;
     }
@@ -221,7 +221,7 @@ rcl_wait_set_fini(rcl_wait_set_t * wait_set)
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
 
   if (__wait_set_is_valid(wait_set)) {
-    rmw_ret_t ret = rmw_destroy_waitset(wait_set->impl->rmw_waitset);
+    rmw_ret_t ret = rmw_destroy_wait_set(wait_set->impl->rmw_wait_set);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), wait_set->impl->allocator);
       result = RCL_RET_WAIT_SET_INVALID;
@@ -598,7 +598,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &wait_set->impl->rmw_guard_conditions,
     &wait_set->impl->rmw_services,
     &wait_set->impl->rmw_clients,
-    wait_set->impl->rmw_waitset,
+    wait_set->impl->rmw_wait_set,
     timeout_argument);
 
   // Items that are not ready will have been set to NULL by rmw_wait.
