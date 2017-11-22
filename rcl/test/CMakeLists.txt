@@ -132,12 +132,19 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
   )
 
+  # TODO(mikaelarguedas): remove this when connext dynamic supports complex messages and services
+  set(SKIP_TEST "")
+  if(rmw_implementation STREQUAL "rmw_connext_dynamic_cpp")
+    message(STATUS "Skipping test_parameters${target_suffix} test.")
+    set(SKIP_TEST "SKIP_TEST")
+  endif()
   rcl_add_custom_gtest(test_parameters${target_suffix}
     SRCS rcl/test_parameters.cpp
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation} "rcl_interfaces"
+    ${SKIP_TEST}
   )
 
   rcl_add_custom_gtest(test_wait${target_suffix}
