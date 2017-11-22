@@ -135,17 +135,21 @@ rcl_parameter_service_init(
   const rcl_parameter_service_options_t * options
 )
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(
-    parameter_service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+
+  // Check options and allocator first, so allocator can be used with errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&options->allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_service, RCL_RET_INVALID_ARGUMENT, options->allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, options->allocator);
   if (!node->impl) {
-    RCL_SET_ERROR_MSG("invalid node", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("invalid node", options->allocator);
     return RCL_RET_NODE_INVALID;
   }
   if (parameter_service->impl) {
     RCL_SET_ERROR_MSG(
-      "service already initialized, or memory was unintialized", rcl_get_default_allocator());
+      "service already initialized, or memory was unintialized", options->allocator);
     return RCL_RET_ALREADY_INIT;
   }
   rcl_ret_t ret;
