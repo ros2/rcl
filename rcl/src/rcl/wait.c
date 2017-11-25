@@ -283,7 +283,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   memset( \
     wait_set->impl->RMWStorage, \
     0, \
-    sizeof(rmw_ ## Type ## _t *) * wait_set->impl->RMWCount); \
+    sizeof(void *) * wait_set->impl->RMWCount); \
   wait_set->impl->RMWCount = 0;
 
 #define SET_RESIZE(Type, ExtraDealloc, ExtraRealloc) \
