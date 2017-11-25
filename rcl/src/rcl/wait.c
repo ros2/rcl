@@ -144,8 +144,8 @@ rcl_wait_set_init(
   wait_set->impl->rmw_services.service_count = 0;
 
   wait_set->impl->rmw_waitset = rmw_create_waitset(
-    2 * number_of_subscriptions + number_of_guard_conditions + number_of_clients +
-    number_of_services);
+    2 * (number_of_subscriptions + number_of_guard_conditions + number_of_clients +
+    number_of_services));
   if (!wait_set->impl->rmw_waitset) {
     goto fail;
   }
