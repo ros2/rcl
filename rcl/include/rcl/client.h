@@ -394,7 +394,7 @@ rcl_client_get_rmw_handle(const rcl_client_t * client);
  */
 RCL_PUBLIC
 bool
-rcl_client_is_valid(const rcl_client_t * client, const rcl_allocator_t * allocator);
+rcl_client_is_valid(const rcl_client_t * client, const rcl_allocator_t * error_msg_allocator);
 
 #if __cplusplus
 }

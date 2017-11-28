@@ -364,7 +364,7 @@ RCL_PUBLIC
 bool
 rcl_subscription_is_valid(
   const rcl_subscription_t * subscription,
-  const rcl_allocator_t * allocator);
+  const rcl_allocator_t * error_msg_allocator);
 
 #if __cplusplus
 }
