@@ -238,12 +238,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t * sequence_number)
 {
-<<<<<<< HEAD
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client sending service request")
-  if (!rcl_client_is_valid(client)) {
-=======
   if (!rcl_client_is_valid(client, NULL)) {
->>>>>>> 12e45b0... Add allocator parameter to rcl_client_is_valid.
     return RCL_RET_CLIENT_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_request, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
