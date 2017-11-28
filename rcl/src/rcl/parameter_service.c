@@ -348,34 +348,43 @@ rcl_wait_set_add_parameter_service(
 {
   rcl_ret_t ret;
 
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    parameter_service->impl, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    &parameter_service->impl->options.allocator, "invalid allocator",
+    return RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &parameter_service->impl->options.allocator;
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    wait_set, RCL_RET_INVALID_ARGUMENT, *allocator);
+
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->get_service);
   if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG(
-      "Failed to add get_parameters service to waitset!", rcl_get_default_allocator());
+      "Failed to add get_parameters service to waitset!", *allocator);
     return ret;
   }
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->get_types_service);
   if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG(
-      "Failed to add get_parameter_types service to waitset!", rcl_get_default_allocator());
+      "Failed to add get_parameter_types service to waitset!", *allocator);
     return ret;
   }
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->set_service);
   if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG(
-      "Failed to add set_parameters service to waitset!", rcl_get_default_allocator());
+      "Failed to add set_parameters service to waitset!", *allocator);
     return ret;
   }
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->set_atomically_service);
   if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG(
-      "Failed to add set_parameters_atomically service to waitset!", rcl_get_default_allocator());
+      "Failed to add set_parameters_atomically service to waitset!", *allocator);
     return ret;
   }
   ret = rcl_wait_set_add_service(wait_set, &parameter_service->impl->list_service);
   if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG(
-      "Failed to add list_parameters service to waitset!", rcl_get_default_allocator());
+      "Failed to add list_parameters service to waitset!", *allocator);
     return ret;
   }
 
