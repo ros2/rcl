@@ -28,10 +28,10 @@ TEST(test_validate_topic_name, normal) {
   // passing without invalid_index
   {
     int validation_result;
-    ret = rcl_validate_topic_name("topic", &validation_result, NULL);
+    ret = rcl_validate_topic_name("topic", &validation_result, nullptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     EXPECT_EQ(RCL_TOPIC_NAME_VALID, validation_result);
-    EXPECT_EQ(NULL, rcl_topic_name_validation_result_string(validation_result));
+    EXPECT_EQ(nullptr, rcl_topic_name_validation_result_string(validation_result));
   }
 
   // passing with invalid_index
@@ -42,7 +42,7 @@ TEST(test_validate_topic_name, normal) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     EXPECT_EQ(RCL_TOPIC_NAME_VALID, validation_result);
     EXPECT_EQ(42u, invalid_index);  // ensure invalid_index is not assigned on success
-    EXPECT_EQ(NULL, rcl_topic_name_validation_result_string(validation_result));
+    EXPECT_EQ(nullptr, rcl_topic_name_validation_result_string(validation_result));
   }
 
   // failing with invalid_index
@@ -63,14 +63,14 @@ TEST(test_validate_topic_name, invalid_arguments) {
   // pass null for topic string
   {
     int validation_result;
-    ret = rcl_validate_topic_name(NULL, &validation_result, NULL);
+    ret = rcl_validate_topic_name(nullptr, &validation_result, nullptr);
     EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
     rcl_reset_error();
   }
 
   // pass null for validation_result
   {
-    ret = rcl_validate_topic_name("topic", NULL, NULL);
+    ret = rcl_validate_topic_name("topic", nullptr, nullptr);
     EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
     rcl_reset_error();
   }

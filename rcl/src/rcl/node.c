@@ -167,9 +167,7 @@ rcl_node_init(
   if (validation_result != RMW_NAMESPACE_VALID) {
     const char * msg = rmw_namespace_validation_result_string(validation_result);
     char fixed_msg[256];
-    rcutils_snprintf(
-      fixed_msg, sizeof(fixed_msg),
-      "%s: '%d'", msg, validation_result);
+    rcutils_snprintf(fixed_msg, sizeof(fixed_msg), "%s, result '%d'", msg, validation_result);
     RCL_SET_ERROR_MSG(fixed_msg, *allocator);
 
     if (should_free_local_namespace_) {
