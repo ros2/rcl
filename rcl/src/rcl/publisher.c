@@ -245,14 +245,17 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 }
 
 bool
-rcl_publisher_is_valid(const rcl_publisher_t * publisher, const rcl_allocator_t * error_msg_allocator)
+rcl_publisher_is_valid(
+  const rcl_publisher_t * publisher,
+  const rcl_allocator_t * error_msg_allocator)
 {
   const rcl_publisher_options_t * options;
-  const rcl_allocator_t alloc = error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
+  const rcl_allocator_t alloc =
+    error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
   RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "error msg allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false, alloc);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-          publisher->impl, "publisher implementation is invalid", return false, alloc);
+    publisher->impl, "publisher implementation is invalid", return false, alloc);
   options = _publisher_get_options(publisher);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "publisher's options pointer is invalid", return false, alloc);

@@ -358,7 +358,9 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
  */
 RCL_PUBLIC
 bool
-rcl_publisher_is_valid(const rcl_publisher_t * publisher, const rcl_allocator_t * error_msg_allocator);
+rcl_publisher_is_valid(
+  const rcl_publisher_t * publisher,
+  const rcl_allocator_t * error_msg_allocator);
 
 #if __cplusplus
 }
