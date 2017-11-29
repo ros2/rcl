@@ -294,11 +294,11 @@ bool rcl_client_is_valid(const rcl_client_t * client, const rcl_allocator_t * er
   const rcl_allocator_t alloc = error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
   RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "error msg allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(client, false, alloc);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    client->impl, "client's rmw implementation is invalid", return false, alloc);
   options = _client_get_options(client);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "client's options pointer is invalid", return false, alloc);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    client->impl, "client's rmw implementation is invalid", return false, options->allocator);
   return true;
 }
 #if __cplusplus
