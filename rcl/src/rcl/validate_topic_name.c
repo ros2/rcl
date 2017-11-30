@@ -215,7 +215,7 @@ rcl_topic_name_validation_result_string(int validation_result)
     case RCL_TOPIC_NAME_INVALID_SUBSTITUTION_STARTS_WITH_NUMBER:
       return "substitution name must not start with a number";
     default:
-      return "undefined topic name type";
+      return "unknown result code for rcl topic name validation";
   }
 }
 
