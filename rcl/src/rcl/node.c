@@ -370,7 +370,7 @@ rcl_node_fini(rcl_node_t * node)
 }
 
 bool
-rcl_node_is_valid(const rcl_node_t * node, const rcl_allocator_t * error_msg_allocator)
+rcl_node_is_valid(const rcl_node_t * node, rcl_allocator_t * error_msg_allocator)
 {
   rcl_allocator_t alloc = error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
   RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "error msg allocator is invalid", return false);

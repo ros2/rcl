@@ -55,7 +55,7 @@ rcl_publisher_init(
 
   // Check options and allocator first, so allocator can be used with errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  const rcl_allocator_t * allocator = &options->allocator;
+  rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT, *allocator);
@@ -247,10 +247,10 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 bool
 rcl_publisher_is_valid(
   const rcl_publisher_t * publisher,
-  const rcl_allocator_t * error_msg_allocator)
+  rcl_allocator_t * error_msg_allocator)
 {
   const rcl_publisher_options_t * options;
-  const rcl_allocator_t alloc =
+  rcl_allocator_t alloc =
     error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
   RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "error msg allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false, alloc);

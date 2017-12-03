@@ -243,7 +243,7 @@ rcl_node_get_default_options(void);
  */
 RCL_PUBLIC
 bool
-rcl_node_is_valid(const rcl_node_t * node, const rcl_allocator_t * error_msg_allocator);
+rcl_node_is_valid(const rcl_node_t * node, rcl_allocator_t * error_msg_allocator);
 
 /// Return the name of the node.
 /**
