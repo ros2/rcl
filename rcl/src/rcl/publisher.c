@@ -260,7 +260,7 @@ rcl_publisher_is_valid(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "publisher's options pointer is invalid", return false, alloc);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl->rmw_handle, "publisher rmw handle invalid", return false, alloc);
+    publisher->impl->rmw_handle, "publisher's rmw handle is invalid", return false, alloc);
   return true;
 }
 

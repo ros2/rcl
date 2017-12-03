@@ -300,6 +300,8 @@ bool rcl_client_is_valid(const rcl_client_t * client, const rcl_allocator_t * er
   options = _client_get_options(client);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "client's options pointer is invalid", return false, alloc);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    client->impl->rmw_handle, "client's rmw handle is invalid", return false, alloc);
   return true;
 }
 #if __cplusplus

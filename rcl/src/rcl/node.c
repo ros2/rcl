@@ -382,6 +382,8 @@ rcl_node_is_valid(const rcl_node_t * node, const rcl_allocator_t * error_msg_all
       "rcl node is invalid, rcl instance id does not match", alloc);
     return false;
   }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl->rmw_node_handle, "rcl node's rmw handle is invalid", return false, alloc);
   return true;
 }
 
