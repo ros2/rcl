@@ -291,7 +291,7 @@ rcl_service_is_valid(const rcl_service_t * service, rcl_allocator_t * error_msg_
   const rcl_service_options_t * options;
   rcl_allocator_t alloc =
     error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "error msg allocator is invalid", return false);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(service, false, alloc);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service->impl, "service's implementation is invalid", return false, alloc);

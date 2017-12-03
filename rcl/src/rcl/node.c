@@ -373,7 +373,7 @@ bool
 rcl_node_is_valid(const rcl_node_t * node, rcl_allocator_t * error_msg_allocator)
 {
   rcl_allocator_t alloc = error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "error msg allocator is invalid", return false);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, false, alloc);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl, "rcl node implementation is invalid", return false, alloc);

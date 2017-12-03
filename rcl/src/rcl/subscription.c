@@ -278,7 +278,7 @@ rcl_subscription_is_valid(
   const rcl_subscription_options_t * options;
   rcl_allocator_t alloc =
     error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "error msg allocator is invalid", return false);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, false, rcl_get_default_allocator());
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl,
