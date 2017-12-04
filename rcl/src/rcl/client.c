@@ -291,7 +291,7 @@ rcl_take_response(
 bool rcl_client_is_valid(const rcl_client_t * client, rcl_allocator_t * error_msg_allocator)
 {
   const rcl_client_options_t * options;
-  const rcl_allocator_t alloc =
+  rcl_allocator_t alloc =
     error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
   RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(client, false, alloc);
