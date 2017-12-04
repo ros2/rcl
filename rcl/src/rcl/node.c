@@ -370,10 +370,10 @@ rcl_node_fini(rcl_node_t * node)
 }
 
 bool
-rcl_node_is_valid(const rcl_node_t * node, const rcl_allocator_t * allocator)
+rcl_node_is_valid(const rcl_node_t * node, rcl_allocator_t * error_msg_allocator)
 {
-  rcl_allocator_t alloc = allocator ? *allocator : rcl_get_default_allocator();
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "invalid allocator", return false);
+  rcl_allocator_t alloc = error_msg_allocator ? *error_msg_allocator : rcl_get_default_allocator();
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "allocator is invalid", return false);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, false, alloc);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl, "rcl node implementation is invalid", return false, alloc);
@@ -382,6 +382,8 @@ rcl_node_is_valid(const rcl_node_t * node, const rcl_allocator_t * allocator)
       "rcl node is invalid, rcl instance id does not match", alloc);
     return false;
   }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl->rmw_node_handle, "rcl node's rmw handle is invalid", return false, alloc);
   return true;
 }
 

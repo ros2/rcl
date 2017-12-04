@@ -145,18 +145,18 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   rcl_publisher_options_t default_publisher_options = rcl_publisher_get_default_options();
 
   // Check if null publisher is valid
-  EXPECT_FALSE(rcl_publisher_is_valid(nullptr));
+  EXPECT_FALSE(rcl_publisher_is_valid(nullptr, nullptr));
 
   // Check if zero initialized node is valid
   publisher = rcl_get_zero_initialized_publisher();
-  EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
+  EXPECT_FALSE(rcl_publisher_is_valid(&publisher, nullptr));
   rcl_reset_error();
 
   // Check that valid publisher is valid
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &default_publisher_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_TRUE(rcl_publisher_is_valid(&publisher));
+  EXPECT_TRUE(rcl_publisher_is_valid(&publisher, nullptr));
   rcl_reset_error();
 
   // Try passing null for publisher in init.

@@ -154,19 +154,19 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   EXPECT_EQ(strcmp(rcl_subscription_get_topic_name(&subscription), expected_topic), 0);
 
   // Test is_valid for subscription with nullptr
-  EXPECT_FALSE(rcl_subscription_is_valid(nullptr));
+  EXPECT_FALSE(rcl_subscription_is_valid(nullptr, nullptr));
   rcl_reset_error();
 
   // Test is_valid for zero initialized subscription
   subscription = rcl_get_zero_initialized_subscription();
-  EXPECT_FALSE(rcl_subscription_is_valid(&subscription));
+  EXPECT_FALSE(rcl_subscription_is_valid(&subscription, nullptr));
   rcl_reset_error();
 
   // Check that valid subscriber is valid
   subscription = rcl_get_zero_initialized_subscription();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
+  EXPECT_TRUE(rcl_subscription_is_valid(&subscription, nullptr));
   rcl_reset_error();
 
   // TODO(wjwwood): add logic to wait for the connection to be established
