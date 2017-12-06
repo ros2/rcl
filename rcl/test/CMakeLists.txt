@@ -176,6 +176,36 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     TIMEOUT 15
   )
+
+  set(SKIP_TEST "")
+  if(WIN32)
+    # TODO(dhood): launch does not set the return code correctly for these tests on Windows.
+    # See https://github.com/ros2/launch/issues/66
+    set(SKIP_TEST "SKIP_TEST")
+  endif()
+  set(TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME "$<TARGET_FILE:test_rmw_impl_id_check_exe>")
+  configure_file(
+    rcl/test_rmw_impl_id_check.py.in
+    ${CMAKE_CURRENT_BINARY_DIR}/test_rmw_impl_id_check${target_suffix}.py.configure
+    @ONLY
+  )
+  file(GENERATE
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/test/test_rmw_impl_id_check${target_suffix}_$<CONFIG>.py"
+    INPUT "${CMAKE_CURRENT_BINARY_DIR}/test_rmw_impl_id_check${target_suffix}.py.configure"
+  )
+  ament_add_pytest_test(
+    test_rmw_impl_id_check${target_suffix}
+    "${CMAKE_CURRENT_BINARY_DIR}/test/test_rmw_impl_id_check${target_suffix}_$<CONFIG>.py"
+    APPEND_LIBRARY_DIRS "${extra_lib_dirs}"
+    ${SKIP_TEST}
+  )
+  if(TEST test_rmw_impl_id_check${target_suffix})
+    set_tests_properties(
+      test_rmw_impl_id_check${target_suffix}
+      PROPERTIES DEPENDS test_rmw_impl_id_check_exe
+    )
+  endif()
+
 endfunction()
 
 macro(connext_workaround target)
@@ -188,6 +218,11 @@ macro(connext_workaround target)
     set_target_properties(${target} PROPERTIES LINK_FLAGS "${_link_flags}")
   endif()
 endmacro()
+
+# Build simple executable for using in the test_rmw_impl_id_check
+add_executable(test_rmw_impl_id_check_exe
+  rcl/test_rmw_impl_id_check_exe.cpp)
+target_link_libraries(test_rmw_impl_id_check_exe ${PROJECT_NAME})
 
 call_for_each_rmw_implementation(test_target)
 

@@ -1,0 +1,76 @@
+# generated from rcl/test/test_rmw_impl_id_check.py.in
+
+import os
+
+from launch import LaunchDescriptor
+from launch.launcher import DefaultLauncher
+
+
+def launch_test(
+    rmw_implementation_env=None, rcl_assert_rmw_id_matches_env=None, expect_failure=False
+):
+    ld = LaunchDescriptor()
+
+    env = dict(os.environ)
+    if rmw_implementation_env is not None:
+      env['RMW_IMPLEMENTATION'] = rmw_implementation_env
+    if rcl_assert_rmw_id_matches_env is not None:
+      env['RCL_ASSERT_RMW_ID_MATCHES'] = rcl_assert_rmw_id_matches_env
+
+    ld.add_process(
+        cmd=['@TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME@'],
+        name='@TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME@',
+        env=env,
+    )
+
+    launcher = DefaultLauncher()
+    launcher.add_launch_descriptor(ld)
+    rc = launcher.launch()
+
+    if expect_failure:
+      assert rc != 0, 'The executable did not fail as expected.'
+    else:
+      assert rc == 0, "The executable failed with exit code '" + str(rc) + "'. "
+
+
+def test_rmw_implementation_env():
+    launch_test(rmw_implementation_env='@rmw_implementation@', expect_failure=False)
+    launch_test(rmw_implementation_env='', expect_failure=False)
+    launch_test(rmw_implementation_env='garbage', expect_failure=True)
+
+
+def test_rcl_assert_rmw_id_matches_env():
+    # Note(dhood): we don't test _only_ setting RCL_ASSERT_RMW_ID_MATCHES because if support for
+    # multiple RMW implementations is available then RMW_IMPLEMENTATION must be used in order to
+    # get non-default RMW implementation(s).
+    launch_test(rcl_assert_rmw_id_matches_env='', expect_failure=False)
+    launch_test(rcl_assert_rmw_id_matches_env='garbage', expect_failure=True)
+
+
+def test_both():
+    launch_test(
+        rmw_implementation_env='@rmw_implementation@',
+        rcl_assert_rmw_id_matches_env='@rmw_implementation@',
+        expect_failure=False)
+    launch_test(
+        rmw_implementation_env='',
+        rcl_assert_rmw_id_matches_env='',
+        expect_failure=False)
+    launch_test(
+        rmw_implementation_env='@rmw_implementation@',
+        rcl_assert_rmw_id_matches_env='garbage',
+        expect_failure=True)
+    launch_test(
+        rmw_implementation_env='garbage',
+        rcl_assert_rmw_id_matches_env='@rmw_implementation@',
+        expect_failure=True)
+    launch_test(
+        rmw_implementation_env='garbage',
+        rcl_assert_rmw_id_matches_env='garbage',
+        expect_failure=True)
+
+
+if __name__ == '__main__':
+    test_rmw_impl_env()
+    test_rcl_assert_rmw_id_matches_env()
+    test_both()
