@@ -89,8 +89,6 @@ rcl_lifecycle_state_fini(
     allocator->deallocate((char *)state->label, allocator->state);
     state->label = NULL;
   }
-  allocator->deallocate(state, allocator->state);
-  state = NULL;
 
   return RCL_RET_OK;
 }
@@ -159,15 +157,17 @@ rcl_lifecycle_transition_fini(
   if (rcl_lifecycle_state_fini(transition->start, allocator) != RCL_RET_OK) {
     ret = RCL_RET_ERROR;
   }
+  allocator->deallocate(transition->start, allocator->state);
+  transition->start = NULL;
+
   if (rcl_lifecycle_state_fini(transition->goal, allocator) != RCL_RET_OK) {
     ret = RCL_RET_ERROR;
   }
+  allocator->deallocate(transition->goal, allocator->state);
+  transition->goal = NULL;
 
   allocator->deallocate((char *)transition->label, allocator->state);
   transition->label = NULL;
-
-  allocator->deallocate(transition, allocator->state);
-  transition = NULL;
 
   return ret;
 }
