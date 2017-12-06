@@ -122,12 +122,20 @@ INITIALIZER(initialize) {
 
   // If either environment variable is set, and it does not match, print a warning and exit.
   if (expected_rmw_impl) {
-    if(strcmp(rmw_get_implementation_identifier(), expected_rmw_impl) != 0) {
+    const char * actual_rmw_impl_id = rmw_get_implementation_identifier();
+    if (!actual_rmw_impl_id) {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
+        "Error getting RMW implementation identifier."
+      )
+      exit(RCL_RET_ERROR);
+    }
+    if (strcmp(actual_rmw_impl_id, expected_rmw_impl) != 0) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME,
         "Expected RMW implementation identifier of '%s' but instead found '%s', exiting with %d.",
         expected_rmw_impl,
-        rmw_get_implementation_identifier(),
+        actual_rmw_impl_id,
         RCL_RET_MISMATCHED_RMW_ID
       )
       exit(RCL_RET_MISMATCHED_RMW_ID);
