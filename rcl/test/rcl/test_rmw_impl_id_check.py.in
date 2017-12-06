@@ -40,16 +40,14 @@ def test_rmw_implementation_env():
 
 
 def test_rcl_assert_rmw_id_matches_env():
-    launch_test(rcl_assert_rmw_id_matches_env='@rmw_implementation@', expect_failure=False)
+    # Note(dhood): we don't test _only_ setting RCL_ASSERT_RMW_ID_MATCHES because if support for
+    # multiple RMW implementations is available then RMW_IMPLEMENTATION must be used in order to
+    # get non-default RMW implementation(s).
     launch_test(rcl_assert_rmw_id_matches_env='', expect_failure=False)
     launch_test(rcl_assert_rmw_id_matches_env='garbage', expect_failure=True)
 
 
 def test_both():
-    # Note(dhood): we don't test only setting rcl_assert_rmw_id_matches_env because if support for
-    # multiple RMW implementations is available it has different behavior for the default and
-    # non-default RMW implementation(s).
-
     launch_test(
         rmw_implementation_env='@rmw_implementation@',
         rcl_assert_rmw_id_matches_env='@rmw_implementation@',
