@@ -195,10 +195,12 @@ function(test_target_function)
     test_rmw_impl_id_check${target_suffix}
     "${CMAKE_CURRENT_BINARY_DIR}/test/test_rmw_impl_id_check${target_suffix}_$<CONFIG>.py"
   )
-  set_tests_properties(
-    test_rmw_impl_id_check${target_suffix}
-    PROPERTIES DEPENDS test_rmw_impl_id_check_exe
-  )
+  if(TEST test_rmw_impl_id_check${target_suffix})
+    set_tests_properties(
+      test_rmw_impl_id_check${target_suffix}
+      PROPERTIES DEPENDS test_rmw_impl_id_check_exe
+    )
+  endif()
 
 endfunction()
 
