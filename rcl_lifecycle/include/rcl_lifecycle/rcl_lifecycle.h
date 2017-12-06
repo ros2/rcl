@@ -26,6 +26,55 @@ extern "C"
 #include "rcl_lifecycle/visibility_control.h"
 
 RCL_LIFECYCLE_PUBLIC
+rcl_lifecycle_state_t
+rcl_lifecycle_get_zero_initialized_state();
+
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lifecycle_state_init(
+  rcl_lifecycle_state_t * state,
+  unsigned int id,
+  const char * label,
+  const rcl_allocator_t * allocator);
+
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lifecycle_state_fini(
+  rcl_lifecycle_state_t * state,
+  const rcl_allocator_t * allocator);
+
+RCL_LIFECYCLE_PUBLIC
+rcl_lifecycle_transition_t
+rcl_lifecycle_get_zero_initialized_transition();
+
+/// Initialize transition with existing states
+/**
+ * Note: the transition pointer will take ownership
+ * of the start and goal state. When calling
+ * rcl_lifecycle_transition_fini(), the two states
+ * will be freed.
+ */
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lifecycle_transition_init(
+  rcl_lifecycle_transition_t * transition,
+  unsigned int id,
+  const char * label,
+  rcl_lifecycle_state_t * start,
+  rcl_lifecycle_state_t * goal,
+  const rcl_allocator_t * allocator);
+
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lifecycle_transition_fini(
+  rcl_lifecycle_transition_t * transition,
+  const rcl_allocator_t * allocator);
+
+RCL_LIFECYCLE_PUBLIC
 rcl_lifecycle_state_machine_t
 rcl_lifecycle_get_zero_initialized_state_machine();
 
