@@ -16,5 +16,9 @@
 
 int main(int, char **)
 {
-  rcl_init(0, nullptr, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+  if (ret != RCL_RET_OK) {
+    return ret;
+  }
+  return 0;
 }
