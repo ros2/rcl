@@ -100,19 +100,22 @@ INITIALIZER(initialize) {
     memcpy(asserted_rmw_impl, asserted_rmw_impl_env, strlen(asserted_rmw_impl_env) + 1);
   }
 
-  // Combine the variable so only expected_rmw_impl needs to be used from now on.
+  // If both environment variables are set, and they do not match, print a warning and exit.
+  if (expected_rmw_impl && asserted_rmw_impl && strcmp(expected_rmw_impl, asserted_rmw_impl) != 0) {
+    RCUTILS_LOG_ERROR_NAMED(
+      ROS_PACKAGE_NAME,
+      "Values of RMW_IMPLEMENTATION ('%s') and RCL_ASSERT_RMW_ID_MATCHES ('%s') environment "
+      "variables do not match, exiting with %d.",
+      expected_rmw_impl, asserted_rmw_impl, RCL_RET_ERROR
+    )
+    exit(RCL_RET_ERROR);
+  }
+
+  // Collapse the expected_rmw_impl and asserted_rmw_impl variables so only expected_rmw_impl needs
+  // to be used from now on.
   if (expected_rmw_impl && asserted_rmw_impl) {
-    // If both environment variables are set, and they do not match, print a warning and exit.
-    if (strcmp(expected_rmw_impl, asserted_rmw_impl) != 0) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME,
-        "Values of RMW_IMPLEMENTATION ('%s') and RCL_ASSERT_RMW_ID_MATCHES ('%s') environment "
-        "variables do not match, exiting with %d.",
-        expected_rmw_impl, asserted_rmw_impl, RCL_RET_ERROR
-      )
-      exit(RCL_RET_ERROR);
-    }
-    // Reduce them to a single variable
+    // The strings at this point must be equal.
+    // No need for asserted_rmw_impl anymore, free the memory.
     allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
   } else {
     if (asserted_rmw_impl) {
@@ -132,6 +135,7 @@ INITIALIZER(initialize) {
       )
       exit(RCL_RET_MISMATCHED_RMW_ID);
     }
+    // Free the memory now that all checking has passed.
     allocator.deallocate((char *)expected_rmw_impl, allocator.state);
   }
 }
