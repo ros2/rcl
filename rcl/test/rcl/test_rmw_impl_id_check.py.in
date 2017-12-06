@@ -6,7 +6,9 @@ from launch import LaunchDescriptor
 from launch.launcher import DefaultLauncher
 
 
-def launch_test(rmw_implementation_env=None, rcl_assert_rmw_id_matches_env=None, expect_failure=False):
+def launch_test(
+    rmw_implementation_env=None, rcl_assert_rmw_id_matches_env=None, expect_failure=False
+):
     ld = LaunchDescriptor()
 
     env = dict(os.environ)
