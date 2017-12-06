@@ -97,7 +97,7 @@ INITIALIZER(initialize) {
     }
   }
 
-  // If both environment variables are set, and they do not match, print a warning and exit.
+  // If both environment variables are set, and they do not match, print an error and exit.
   if (expected_rmw_impl && asserted_rmw_impl && strcmp(expected_rmw_impl, asserted_rmw_impl) != 0) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
@@ -122,7 +122,7 @@ INITIALIZER(initialize) {
     }
   }
 
-  // If either environment variable is set, and it does not match, print a warning and exit.
+  // If either environment variable is set, and it does not match, print an error and exit.
   if (expected_rmw_impl) {
     const char * actual_rmw_impl_id = rmw_get_implementation_identifier();
     if (!actual_rmw_impl_id) {
