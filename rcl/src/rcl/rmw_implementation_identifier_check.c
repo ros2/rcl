@@ -115,6 +115,8 @@ INITIALIZER(initialize) {
     // No need for asserted_rmw_impl anymore, free the memory.
     allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
   } else {
+    // One or none are set.
+    // If asserted_rmw_impl has contents, move it over to expected_rmw_impl.
     if (asserted_rmw_impl) {
       expected_rmw_impl = asserted_rmw_impl;
     }
