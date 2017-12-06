@@ -176,6 +176,29 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     TIMEOUT 15
   )
+
+  add_executable(test_rmw_impl_id_check_exe  # build simple executable for testing.
+    rcl/test_rmw_impl_id_check_exe.cpp)
+  target_link_libraries(test_rmw_impl_id_check_exe ${PROJECT_NAME})
+  set(TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME "$<TARGET_FILE:test_rmw_impl_id_check_exe>")
+  configure_file(
+    rcl/test_rmw_impl_id_check.py.in
+    ${CMAKE_CURRENT_BINARY_DIR}/test_rmw_impl_id_check${target_suffix}.py.configure
+    @ONLY
+  )
+  file(GENERATE
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/test/test_rmw_impl_id_check${target_suffix}_$<CONFIG>.py"
+    INPUT "${CMAKE_CURRENT_BINARY_DIR}/test_rmw_impl_id_check${target_suffix}.py.configure"
+  )
+  ament_add_pytest_test(
+    test_rmw_impl_id_check${target_suffix}
+    "${CMAKE_CURRENT_BINARY_DIR}/test/test_rmw_impl_id_check${target_suffix}_$<CONFIG>.py"
+  )
+  set_tests_properties(
+    test_rmw_impl_id_check${target_suffix}
+    PROPERTIES DEPENDS test_rmw_impl_id_check_exe
+  )
+
 endfunction()
 
 macro(connext_workaround target)
