@@ -190,6 +190,7 @@ function(test_target_function)
   ament_add_pytest_test(
     test_rmw_impl_id_check${target_suffix}
     "${CMAKE_CURRENT_BINARY_DIR}/test/test_rmw_impl_id_check${target_suffix}_$<CONFIG>.py"
+    APPEND_LIBRARY_DIRS "${extra_lib_dirs}"
   )
   if(TEST test_rmw_impl_id_check${target_suffix})
     set_tests_properties(
