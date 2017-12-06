@@ -177,6 +177,7 @@ function(test_target_function)
     TIMEOUT 15
   )
 
+  # Test for environment variables that check matching rmw id
   add_executable(test_rmw_impl_id_check_exe  # build simple executable for testing.
     rcl/test_rmw_impl_id_check_exe.cpp)
   target_link_libraries(test_rmw_impl_id_check_exe ${PROJECT_NAME})

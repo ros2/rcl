@@ -46,12 +46,12 @@ def test_rcl_assert_rmw_id_matches_env():
 
 
 def test_both():
+    # Note(dhood): we don't test only setting rcl_assert_rmw_id_matches_env because if support for
+    # multiple RMW implementations is available it has different behavior for the default and
+    # non-default RMW implementation(s).
+
     launch_test(
         rmw_implementation_env='@rmw_implementation@',
-        rcl_assert_rmw_id_matches_env='@rmw_implementation@',
-        expect_failure=False)
-    launch_test(
-        rmw_implementation_env='',
         rcl_assert_rmw_id_matches_env='@rmw_implementation@',
         expect_failure=False)
     launch_test(
