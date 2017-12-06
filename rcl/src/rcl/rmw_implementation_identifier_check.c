@@ -63,7 +63,7 @@ INITIALIZER(initialize) {
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
-      "Error getting environement variable 'RMW_IMPLEMENTATION': %s",
+      "Error getting environment variable 'RMW_IMPLEMENTATION': %s",
       rcl_get_error_string_safe()
     )
     exit(ret);
@@ -83,7 +83,7 @@ INITIALIZER(initialize) {
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
-      "Error getting environement variable 'RCL_ASSERT_RMW_ID_MATCHES': %s",
+      "Error getting environment variable 'RCL_ASSERT_RMW_ID_MATCHES': %s",
       rcl_get_error_string_safe()
     )
     exit(ret);
@@ -128,7 +128,10 @@ INITIALIZER(initialize) {
     if (!actual_rmw_impl_id) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME,
-        "Error getting RMW implementation identifier."
+        "Error getting RMW implementation identifier / RMW implementation not installed "
+        "(expected identifier of '%s'), exiting with %d.",
+        expected_rmw_impl,
+        RCL_RET_ERROR
       )
       exit(RCL_RET_ERROR);
     }
