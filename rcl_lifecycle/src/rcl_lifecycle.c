@@ -25,6 +25,7 @@ extern "C"
 #include "rcl/error_handling.h"
 
 #include "rcutils/logging_macros.h"
+#include "rcutils/strdup.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/transition_map.h"
@@ -32,6 +33,144 @@ extern "C"
 #include "com_interface.h"  // NOLINT
 #include "default_state_machine.h"  // NOLINT
 #include "states.h"  // NOLINT
+
+rcl_lifecycle_state_t
+rcl_lifecycle_get_zero_initialized_state()
+{
+  rcl_lifecycle_state_t state;
+  state.id = 0;
+  state.label = NULL;
+  return state;
+}
+
+rcl_ret_t
+rcl_lifecycle_state_init(
+  rcl_lifecycle_state_t * state,
+  unsigned int id,
+  const char * label,
+  const rcl_allocator_t * allocator)
+{
+  if (!allocator) {
+    RCL_SET_ERROR_MSG("can't initialize state, no allocator given\n",
+      rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+  if (!state) {
+    RCL_SET_ERROR_MSG("state pointer is null\n", *allocator);
+    return RCL_RET_ERROR;
+  }
+
+  state->id = id;
+  state->label = rcutils_strndup(label, strlen(label), *allocator);
+  if (!state->label) {
+    RCL_SET_ERROR_MSG("failed to duplicate label for rcl_lifecycle_state_t\n", *allocator);
+    return RCL_RET_ERROR;
+  }
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_lifecycle_state_fini(
+  rcl_lifecycle_state_t * state,
+  const rcl_allocator_t * allocator)
+{
+  if (!allocator) {
+    RCL_SET_ERROR_MSG("can't free state, no allocator given\n",
+      rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+  // it is already NULL
+  if (!state) {
+    return RCL_RET_OK;
+  }
+
+  if (state->label) {
+    allocator->deallocate((char *)state->label, allocator->state);
+    state->label = NULL;
+  }
+  allocator->deallocate(state, allocator->state);
+  state = NULL;
+
+  return RCL_RET_OK;
+}
+
+rcl_lifecycle_transition_t
+rcl_lifecycle_get_zero_initialized_transition()
+{
+  rcl_lifecycle_transition_t transition;
+  transition.id = 0;
+  transition.label = NULL;
+  transition.start = NULL;
+  transition.goal = NULL;
+  return transition;
+}
+
+rcl_ret_t
+rcl_lifecycle_transition_init(
+  rcl_lifecycle_transition_t * transition,
+  unsigned int id,
+  const char * label,
+  rcl_lifecycle_state_t * start,
+  rcl_lifecycle_state_t * goal,
+  const rcl_allocator_t * allocator)
+{
+  if (!allocator) {
+    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n",
+      rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+
+  if (!transition) {
+    RCL_SET_ERROR_MSG("transition pointer is null\n", *allocator);
+    return RCL_RET_OK;
+  }
+
+  transition->start = start;
+  transition->goal = goal;
+
+  transition->id = id;
+  transition->label = rcutils_strndup(label, strlen(label), *allocator);
+  if (!transition->label) {
+    RCL_SET_ERROR_MSG("failed to duplicate label for rcl_lifecycle_transition_t\n", *allocator);
+    return RCL_RET_ERROR;
+  }
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_lifecycle_transition_fini(
+  rcl_lifecycle_transition_t * transition,
+  const rcl_allocator_t * allocator)
+{
+  if (!allocator) {
+    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n",
+      rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+  // it is already NULL
+  if (!transition) {
+    return RCL_RET_OK;
+  }
+
+  rcl_ret_t ret = RCL_RET_OK;
+
+  if (rcl_lifecycle_state_fini(transition->start, allocator) != RCL_RET_OK) {
+    ret = RCL_RET_ERROR;
+  }
+  if (rcl_lifecycle_state_fini(transition->goal, allocator) != RCL_RET_OK) {
+    ret = RCL_RET_ERROR;
+  }
+
+  allocator->deallocate((char *)transition->label, allocator->state);
+  transition->label = NULL;
+
+  allocator->deallocate(transition, allocator->state);
+  transition = NULL;
+
+  return ret;
+}
 
 // get zero initialized state machine here
 rcl_lifecycle_state_machine_t
