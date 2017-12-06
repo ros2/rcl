@@ -24,6 +24,7 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/strdup.h"
 #include "rmw/rmw.h"
 
 #include "rcl/types.h"
@@ -69,13 +70,11 @@ INITIALIZER(initialize) {
   }
   if (strlen(expected_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
-    expected_rmw_impl = (char *)allocator.allocate(
-      strlen(expected_rmw_impl_env) + 1, allocator.state);
+    expected_rmw_impl = rcutils_strdup(expected_rmw_impl_env, allocator);
     if (!expected_rmw_impl) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "allocation failed")
       exit(RCL_RET_BAD_ALLOC);
     }
-    memcpy(expected_rmw_impl, expected_rmw_impl_env, strlen(expected_rmw_impl_env) + 1);
   }
 
   char * asserted_rmw_impl = NULL;
@@ -91,13 +90,11 @@ INITIALIZER(initialize) {
   }
   if (strlen(asserted_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
-    asserted_rmw_impl = (char *)allocator.allocate(
-      strlen(asserted_rmw_impl_env) + 1, allocator.state);
+    asserted_rmw_impl = rcutils_strdup(asserted_rmw_impl_env, allocator);
     if (!asserted_rmw_impl) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "allocation failed")
       exit(RCL_RET_BAD_ALLOC);
     }
-    memcpy(asserted_rmw_impl, asserted_rmw_impl_env, strlen(asserted_rmw_impl_env) + 1);
   }
 
   // If both environment variables are set, and they do not match, print a warning and exit.
