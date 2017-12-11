@@ -285,15 +285,22 @@ rcl_lifecycle_is_valid_transition(
   const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(
     &state_machine->transition_map, current_id);
 
+  if (NULL == current_state) {
+    RCL_SET_ERROR_MSG("rcl_lifecycle_get_state returns NULL", rcl_get_default_allocator());
+    return NULL;
+  }
+
   for (unsigned int i = 0; i < current_state->valid_transition_size; ++i) {
     if (current_state->valid_transition_keys[i] == key) {
       return &current_state->valid_transitions[i];
     }
   }
+
   RCUTILS_LOG_WARN_NAMED(
     ROS_PACKAGE_NAME,
     "No callback transition matching %d found for current state %s",
     key, state_machine->current_state->label)
+
   return NULL;
 }
 
@@ -318,6 +325,7 @@ rcl_lifecycle_trigger_transition(
   if (!transition->goal) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME, "No valid goal is set")
+    return RCL_RET_ERROR;
   }
   state_machine->current_state = transition->goal;
   if (publish_notification) {
