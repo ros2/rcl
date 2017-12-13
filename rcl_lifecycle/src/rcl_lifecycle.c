@@ -285,10 +285,8 @@ rcl_lifecycle_is_valid_transition(
   const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(
     &state_machine->transition_map, current_id);
 
-  if (NULL == current_state) {
-    RCL_SET_ERROR_MSG("rcl_lifecycle_get_state returns NULL", rcl_get_default_allocator());
-    return NULL;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(current_state,
+    "rcl_lifecycle_get_state returns NULL", return NULL, rcl_get_default_allocator());
 
   for (unsigned int i = 0; i < current_state->valid_transition_size; ++i) {
     if (current_state->valid_transition_keys[i] == key) {
