@@ -247,6 +247,8 @@ rcl_take_request(
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service server taking service request")
   const rcl_service_options_t * options = rcl_service_get_options(service);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    options, "Failed to get service options", return RCL_RET_ERROR, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_request, RCL_RET_INVALID_ARGUMENT, options->allocator);
 
@@ -273,6 +275,8 @@ rcl_send_response(
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response")
   const rcl_service_options_t * options = rcl_service_get_options(service);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    options, "Failed to get service options", return RCL_RET_ERROR, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT, options->allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_response, RCL_RET_INVALID_ARGUMENT, options->allocator);
 
