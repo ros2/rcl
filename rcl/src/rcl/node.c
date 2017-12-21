@@ -27,6 +27,7 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcutils/filesystem.h"
+#include "rcutils/format_string.h"
 #include "rcutils/get_env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
@@ -166,7 +167,7 @@ rcl_node_init(
   }
   if (validation_result != RMW_NAMESPACE_VALID) {
     const char * msg = rmw_namespace_validation_result_string(validation_result);
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(*allocator, "%s, result '%d'", msg, validation_result);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING((*allocator), "%s, result: %d", msg, validation_result);
 
     if (should_free_local_namespace_) {
       allocator->deallocate((char *)local_namespace_, allocator->state);
