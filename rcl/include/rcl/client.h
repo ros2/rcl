@@ -256,8 +256,9 @@ rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t 
  * cannot be checked by this function and therefore no deliberate error will
  * occur.
  * The request_header is an rmw struct for meta-information about the request
- * sent (e.g. the sequence number). The caller must provide a pointer to an
- * allocated struct. This function will populate the struct's fields.
+ * sent (e.g. the sequence number).
+ * The caller must provide a pointer to an allocated struct.
+ * This function will populate the struct's fields.
  * `ros_response` should point to an already allocated ROS response message
  * struct of the correct type, into which the response from the service will be
  * copied.
