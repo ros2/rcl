@@ -27,6 +27,7 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcutils/filesystem.h"
+#include "rcutils/format_string.h"
 #include "rcutils/get_env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
@@ -128,9 +129,6 @@ rcl_node_init(
   }
   if (validation_result != RMW_NODE_NAME_VALID) {
     const char * msg = rmw_node_name_validation_result_string(validation_result);
-    if (!msg) {
-      msg = "unknown validation_result, this should not happen";
-    }
     RCL_SET_ERROR_MSG(msg, *allocator);
     return RCL_RET_NODE_INVALID_NAME;
   }
@@ -169,15 +167,7 @@ rcl_node_init(
   }
   if (validation_result != RMW_NAMESPACE_VALID) {
     const char * msg = rmw_namespace_validation_result_string(validation_result);
-    if (!msg) {
-      char fixed_msg[256];
-      rcutils_snprintf(
-        fixed_msg, sizeof(fixed_msg),
-        "unknown validation_result '%d', this should not happen", validation_result);
-      RCL_SET_ERROR_MSG(fixed_msg, *allocator);
-    } else {
-      RCL_SET_ERROR_MSG(msg, *allocator);
-    }
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING((*allocator), "%s, result: %d", msg, validation_result);
 
     if (should_free_local_namespace_) {
       allocator->deallocate((char *)local_namespace_, allocator->state);

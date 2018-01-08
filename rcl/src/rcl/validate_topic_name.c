@@ -193,6 +193,8 @@ const char *
 rcl_topic_name_validation_result_string(int validation_result)
 {
   switch (validation_result) {
+    case RCL_TOPIC_NAME_VALID:
+      return NULL;
     case RCL_TOPIC_NAME_INVALID_IS_EMPTY_STRING:
       return "topic name must not be empty string";
     case RCL_TOPIC_NAME_INVALID_ENDS_WITH_FORWARD_SLASH:
@@ -213,7 +215,7 @@ rcl_topic_name_validation_result_string(int validation_result)
     case RCL_TOPIC_NAME_INVALID_SUBSTITUTION_STARTS_WITH_NUMBER:
       return "substitution name must not start with a number";
     default:
-      return NULL;
+      return "unknown result code for rcl topic name validation";
   }
 }
 
