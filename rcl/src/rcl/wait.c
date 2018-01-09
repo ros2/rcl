@@ -276,7 +276,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     (void *)wait_set->Type ## s, \
     0, \
     sizeof(rcl_ ## Type ## _t *) * wait_set->size_of_ ## Type ## s); \
-  wait_set->impl->Type ## _index = 0; \
+  wait_set->impl->Type ## _index = 0;
 
 #define SET_CLEAR_RMW(Type, RMWStorage, RMWCount) \
   /* Also clear the rmw storage. */ \
