@@ -247,7 +247,7 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 rcl_ret_t
 rcl_publish_raw(const rcl_publisher_t * publisher, const rcl_message_raw_t * raw_message)
 {
-  if (!rcl_publisher_is_valid(publisher)) {
+  if (!rcl_publisher_is_valid(publisher, NULL)) {
     return RCL_RET_PUBLISHER_INVALID;
   }
   if (rmw_publish_raw(publisher->impl->rmw_handle, raw_message) != RMW_RET_OK) {
