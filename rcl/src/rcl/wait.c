@@ -296,6 +296,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   } \
   rcl_allocator_t allocator = wait_set->impl->allocator; \
   wait_set->size_of_ ## Type ## s = 0; \
+  wait_set->impl->Type ## _index = 0; \
   if (size == 0) { \
     if (wait_set->Type ## s) { \
       allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
