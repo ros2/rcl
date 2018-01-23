@@ -452,6 +452,33 @@ RCL_WARN_UNUSED
 const struct rcl_guard_condition_t *
 rcl_node_get_graph_guard_condition(const rcl_node_t * node);
 
+/// Return the logger name of the node.
+/**
+ * This function returns the node's internal logger name string.
+ * This function can fail, and therefore return `NULL`, if:
+ *   - node is `NULL`
+ *   - node has not been initialized (the implementation is invalid)
+ *
+ * The returned string is only valid as long as the given rcl_node_t is valid.
+ * The value of the string may change if the value in the rcl_node_t changes,
+ * and therefore copying the string is recommended if this is a concern.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node pointer to the node
+ * \return logger_name string if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const char *
+rcl_node_get_logger_name(const rcl_node_t * node);
+
 #if __cplusplus
 }
 #endif

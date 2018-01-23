@@ -492,6 +492,15 @@ rcl_node_get_graph_guard_condition(const rcl_node_t * node)
   return node->impl->graph_guard_condition;
 }
 
+const char *
+rcl_node_get_logger_name(const rcl_node_t * node)
+{
+  if (!rcl_node_is_valid(node, NULL)) {
+    return NULL;
+  }
+  return node->impl->logger_name;
+}
+
 #if __cplusplus
 }
 #endif
