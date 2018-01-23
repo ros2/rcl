@@ -27,11 +27,14 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcutils/filesystem.h"
+#include "rcutils/find.h"
 #include "rcutils/format_string.h"
 #include "rcutils/get_env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
+#include "rcutils/repl_str.h"
 #include "rcutils/snprintf.h"
+#include "rcutils/strdup.h"
 #include "rmw/error_handling.h"
 #include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
@@ -52,6 +55,7 @@ typedef struct rcl_node_impl_t
   rmw_node_t * rmw_node_handle;
   uint64_t rcl_instance_id;
   rcl_guard_condition_t * graph_guard_condition;
+  const char * logger_name;
 } rcl_node_impl_t;
 
 
@@ -187,6 +191,34 @@ rcl_node_init(
   // Initialize node impl.
   // node options (assume it is trivially copyable)
   node->impl->options = *options;
+
+  // node logger name
+  char * node_name_with_ns = rcutils_format_string(*allocator, "%s/%s", local_namespace_, name);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node_name_with_ns,
+    "formatting node namespace + name string failed",
+    goto fail,
+    *allocator
+  );
+  // remove leading slashes
+  while (0 == rcutils_find(node_name_with_ns, '/')) {
+    node_name_with_ns = rcutils_strdup(node_name_with_ns + 1, *allocator);
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+      node_name_with_ns,
+      "allocating memory failed",
+      goto fail,
+      *allocator
+    );
+  }
+  // convert slashes to dot separators
+  node->impl->logger_name = rcutils_repl_str(node_name_with_ns, "/", ".", allocator);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl->logger_name,
+    "allocating memory failed",
+    goto fail,
+    *allocator
+  );
+
   // node rmw_node_handle
   if (node->impl->options.domain_id == RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID) {
     // Find the domain ID set by the environment.
@@ -300,6 +332,9 @@ rcl_node_init(
   return RCL_RET_OK;
 fail:
   if (node->impl) {
+    if (node->impl->logger_name) {
+      allocator->deallocate((char *)node->impl->logger_name, allocator->state);
+    }
     if (node->impl->rmw_node_handle) {
       ret = rmw_destroy_node(node->impl->rmw_node_handle);
       if (ret != RMW_RET_OK) {
@@ -353,6 +388,7 @@ rcl_node_fini(rcl_node_t * node)
   }
   allocator.deallocate(node->impl->graph_guard_condition, allocator.state);
   // assuming that allocate and deallocate are ok since they are checked in init
+  allocator.deallocate((char *)node->impl->logger_name, allocator.state);
   allocator.deallocate(node->impl, allocator.state);
   node->impl = NULL;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node finalized")
