@@ -78,7 +78,9 @@ const char * rcl_create_node_logger_name(
     }
   }
   // convert slashes to dot separators
-  const char * node_logger_name = rcutils_repl_str(node_name_with_ns, "/", ".", allocator);
+  const char * node_logger_name = rcutils_repl_str(
+    node_name_with_ns, "/", ".",
+    (rcl_allocator_t *)allocator);  // TODO(dhood): remove need for casting away const
   if (NULL == node_logger_name) {
     allocator->deallocate((char *)node_name_with_ns, allocator->state);
     return NULL;
