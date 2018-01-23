@@ -320,6 +320,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   if (wait_set->impl->RMWStorage) { \
     allocator.deallocate((void *)wait_set->impl->RMWStorage, allocator.state); \
     wait_set->impl->RMWStorage = NULL; \
+    wait_set->impl->RMWCount = 0; \
   }
 
 #define SET_RESIZE_RMW_REALLOC(Type, RMWStorage, RMWCount) \
