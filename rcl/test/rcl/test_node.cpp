@@ -178,6 +178,30 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   if (actual_node_namespace) {
     EXPECT_EQ(std::string(namespace_), std::string(actual_node_namespace));
   }
+  // Test rcl_node_get_logger_name().
+  const char * actual_node_logger_name;
+  actual_node_logger_name = rcl_node_get_logger_name(nullptr);
+  EXPECT_EQ(nullptr, actual_node_logger_name);
+  rcl_reset_error();
+  actual_node_logger_name = rcl_node_get_logger_name(&zero_node);
+  EXPECT_EQ(nullptr, actual_node_logger_name);
+  rcl_reset_error();
+  actual_node_logger_name = rcl_node_get_logger_name(&invalid_node);
+  EXPECT_EQ(nullptr, actual_node_logger_name);
+  rcl_reset_error();
+  start_memory_checking();
+  assert_no_malloc_begin();
+  assert_no_realloc_begin();
+  assert_no_free_begin();
+  actual_node_logger_name = rcl_node_get_logger_name(&node);
+  assert_no_malloc_end();
+  assert_no_realloc_end();
+  assert_no_free_end();
+  stop_memory_checking();
+  EXPECT_TRUE(actual_node_logger_name ? true : false);
+  if (actual_node_logger_name) {
+    EXPECT_EQ("ns." + std::string(name), std::string(actual_node_logger_name));
+  }
   // Test rcl_node_get_options().
   const rcl_node_options_t * actual_options;
   actual_options = rcl_node_get_options(nullptr);
