@@ -50,7 +50,7 @@ typedef struct rcl_timer_t
  * was called, because that information is no longer accessible via the timer.
  * The time since the last callback call is given in nanoseconds.
  */
-typedef void (* rcl_timer_callback_t)(rcl_timer_t *, uint64_t);
+typedef void (* rcl_timer_callback_t)(rcl_timer_t *, int64_t);
 
 /// Return a zero initialized timer.
 RCL_PUBLIC
@@ -86,7 +86,7 @@ rcl_get_zero_initialized_timer(void);
  * If the callback is `NULL`, the caller client library is responsible for
  * firing the timer callback.
  * Else, it must be a function which returns void and takes two arguments,
- * the first being a pointer to the associated timer, and the second a uint64_t
+ * the first being a pointer to the associated timer, and the second a int64_t
  * which is the time since the previous call, or since the timer was created
  * if it is the first call to the callback.
  *
@@ -95,7 +95,7 @@ rcl_get_zero_initialized_timer(void);
  * ```c
  * #include <rcl/rcl.h>
  *
- * void my_timer_callback(rcl_timer_t * timer, uint64_t last_call_time)
+ * void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
  * {
  *   // Do timer work...
  *   // Optionally reconfigure, cancel, or reset the timer...
@@ -137,7 +137,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_init(
   rcl_timer_t * timer,
-  uint64_t period,
+  int64_t period,
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator);
 
@@ -284,13 +284,13 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
 /// Retrieve the time since the previous call to rcl_timer_call() occurred.
 /**
  * This function calculates the time since the last call and copies it into
- * the given uint64_t variable.
+ * the given int64_t variable.
  *
  * Calling this function within a callback will not return the time since the
  * previous call but instead the time since the current callback was called.
  *
  * The time_since_last_call argument must be a pointer to an already allocated
- * uint64_t.
+ * int64_t.
  *
  * <hr>
  * Attribute          | Adherence
@@ -311,13 +311,13 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_since_last_call);
+rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, int64_t * time_since_last_call);
 
 /// Retrieve the period of the timer.
 /**
  * This function retrieves the period and copies it into the give variable.
  *
- * The period argument must be a pointer to an already allocated uint64_t.
+ * The period argument must be a pointer to an already allocated int64_t.
  *
  * <hr>
  * Attribute          | Adherence
@@ -329,7 +329,7 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_si
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
  *
  * \param[in] timer the handle to the timer which is being queried
- * \param[out] period the uint64_t in which the period is stored
+ * \param[out] period the int64_t in which the period is stored
  * \return `RCL_RET_OK` if the period was retrieved successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_TIMER_INVALID` if the timer is invalid, or
@@ -338,7 +338,7 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, uint64_t * time_si
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
+rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period);
 
 /// Exchange the period of the timer and return the previous period.
 /**
@@ -347,7 +347,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
  *
  * Exchanging (changing) the period will not affect already waiting wait sets.
  *
- * The old_period argument must be a pointer to an already allocated uint64_t.
+ * The old_period argument must be a pointer to an already allocated int64_t.
  *
  * <hr>
  * Attribute          | Adherence
@@ -359,8 +359,8 @@ rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
  *
  * \param[in] timer the handle to the timer which is being modified
- * \param[out] new_period the uint64_t to exchange into the timer
- * \param[out] old_period the uint64_t in which the previous period is stored
+ * \param[out] new_period the int64_t to exchange into the timer
+ * \param[out] old_period the int64_t in which the previous period is stored
  * \return `RCL_RET_OK` if the period was retrieved successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_TIMER_INVALID` if the timer is invalid, or
@@ -369,7 +369,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64_t * old_period);
+rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t * old_period);
 
 /// Return the current timer callback.
 /**

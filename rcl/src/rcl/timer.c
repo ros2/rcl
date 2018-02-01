@@ -50,7 +50,7 @@ rcl_get_zero_initialized_timer()
 rcl_ret_t
 rcl_timer_init(
   rcl_timer_t * timer,
-  uint64_t period,
+  int64_t period,
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator)
 {
@@ -116,7 +116,7 @@ rcl_timer_call(rcl_timer_t * timer)
     (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
 
   if (typed_callback != NULL) {
-    uint64_t since_last_call = now_steady - previous_ns;
+    int64_t since_last_call = now_steady - previous_ns;
     typed_callback(timer, since_last_call);
   }
   return RCL_RET_OK;
@@ -154,7 +154,7 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
-  uint64_t period = rcl_atomic_load_uint64_t(&timer->impl->period);
+  int64_t period = rcl_atomic_load_uint64_t(&timer->impl->period);
   *time_until_next_call =
     (rcl_atomic_load_uint64_t(&timer->impl->last_call_time) + period) - now;
   return RCL_RET_OK;
@@ -182,7 +182,7 @@ rcl_timer_get_time_since_last_call(
 }
 
 rcl_ret_t
-rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period)
+rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
@@ -195,7 +195,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period)
 }
 
 rcl_ret_t
-rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64_t * old_period)
+rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t * old_period)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
