@@ -435,6 +435,7 @@ rcl_node_get_default_options()
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_node_options_t default_options = {
     .domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID,
+    .use_global_arguments = true,
   };
   // Must set the allocator after because it is not a compile time constant.
   default_options.allocator = rcl_get_default_allocator();

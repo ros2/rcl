@@ -21,7 +21,9 @@ extern "C"
 
 #include <string.h>
 
+#include "./arguments_impl.h"
 #include "./stdatomic_helper.h"
+#include "rcl/arguments.h"
 #include "rcl/error_handling.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
@@ -32,6 +34,7 @@ static int __rcl_argc = 0;
 static char ** __rcl_argv = NULL;
 static atomic_uint_least64_t __rcl_instance_id = ATOMIC_VAR_INIT(0);
 static uint64_t __rcl_next_unique_id = 0;
+
 
 static void
 __clean_up_init()
@@ -49,6 +52,11 @@ __clean_up_init()
   }
   __rcl_argc = 0;
   __rcl_argv = NULL;
+  if (NULL != __rcl_arguments.impl &&
+    RCL_RET_OK != rcl_arguments_fini(&__rcl_arguments, __rcl_allocator))
+  {
+    rcl_reset_error();
+  }
   rcl_atomic_store(&__rcl_instance_id, 0);
   rcl_atomic_store(&__rcl_is_initialized, false);
 }
@@ -100,6 +108,10 @@ rcl_init(int argc, char ** argv, rcl_allocator_t allocator)
       goto fail;
     }
     memcpy(__rcl_argv[i], argv[i], strlen(argv[i]));
+  }
+  if (RCL_RET_OK != rcl_parse_arguments(argc, (const char **)argv, allocator, &__rcl_arguments)) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to parse global arguments");
+    goto fail;
   }
   rcl_atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
   if (rcl_atomic_load_uint64_t(&__rcl_instance_id) == 0) {

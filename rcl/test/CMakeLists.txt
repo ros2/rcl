@@ -100,6 +100,20 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+  rcl_add_custom_gtest(test_arguments${target_suffix}
+    SRCS rcl/test_arguments.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+  )
+
+  rcl_add_custom_gtest(test_remap${target_suffix}
+    SRCS rcl/test_remap.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+  )
+
   rcl_add_custom_gtest(test_guard_condition${target_suffix}
     SRCS rcl/test_guard_condition.cpp
     ENV ${extra_test_env}

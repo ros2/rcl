@@ -23,6 +23,7 @@ extern "C"
 #include <stdint.h>
 
 #include "rcl/allocator.h"
+#include "rcl/arguments.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
@@ -65,6 +66,12 @@ typedef struct rcl_node_options_t
 
   /// Custom allocator used for internal allocations.
   rcl_allocator_t allocator;
+
+  /// indicate if global command line arguments should apply to this node
+  bool use_global_arguments;
+
+  /// Parsed command line arguments specific to this node.
+  rcl_arguments_t arguments;
 } rcl_node_options_t;
 
 /// Return a rcl_node_t struct with members initialized to `NULL`.
