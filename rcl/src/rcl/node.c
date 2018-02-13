@@ -59,6 +59,33 @@ typedef struct rcl_node_impl_t
 } rcl_node_impl_t;
 
 
+const char * rcl_create_node_logger_name(
+  const char * node_name,
+  const char * node_namespace,
+  const rcl_allocator_t * allocator)
+{
+  char * node_name_with_ns = rcutils_format_string(*allocator, "%s/%s", node_namespace, node_name);
+  if (NULL == node_name_with_ns) {
+    return NULL;
+  }
+  // remove leading slashes
+  while (0 == rcutils_find(node_name_with_ns, '/')) {
+    char * old_node_name_with_ns = node_name_with_ns;
+    node_name_with_ns = rcutils_strdup(old_node_name_with_ns + 1, *allocator);
+    if (NULL == node_name_with_ns) {
+      allocator->deallocate((char *)old_node_name_with_ns, allocator->state);
+      return NULL;
+    }
+  }
+  // convert slashes to dot separators
+  const char * node_logger_name = rcutils_repl_str(node_name_with_ns, "/", ".", allocator);
+  if (NULL == node_logger_name) {
+    allocator->deallocate((char *)node_name_with_ns, allocator->state);
+    return NULL;
+  }
+  return node_logger_name;
+}
+
 const char * rcl_get_secure_root(const char * node_name)
 {
   const char * ros_secure_root_env = NULL;
@@ -193,31 +220,9 @@ rcl_node_init(
   node->impl->options = *options;
 
   // node logger name
-  char * node_name_with_ns = rcutils_format_string(*allocator, "%s/%s", local_namespace_, name);
+  node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    node_name_with_ns,
-    "formatting node namespace + name string failed",
-    goto fail,
-    *allocator
-  );
-  // remove leading slashes
-  while (0 == rcutils_find(node_name_with_ns, '/')) {
-    node_name_with_ns = rcutils_strdup(node_name_with_ns + 1, *allocator);
-    RCL_CHECK_FOR_NULL_WITH_MSG(
-      node_name_with_ns,
-      "allocating memory failed",
-      goto fail,
-      *allocator
-    );
-  }
-  // convert slashes to dot separators
-  node->impl->logger_name = rcutils_repl_str(node_name_with_ns, "/", ".", allocator);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->logger_name,
-    "allocating memory failed",
-    goto fail,
-    *allocator
-  );
+    node->impl->logger_name, "creating logger name failed", goto fail, *allocator);
 
   // node rmw_node_handle
   if (node->impl->options.domain_id == RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID) {
