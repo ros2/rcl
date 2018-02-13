@@ -613,7 +613,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_logger_name
     EXPECT_EQ(RCL_RET_OK, ret);
   }
 
-  // Node namespace that is an empty string, which is also valid.
+  // Node namespace that is an empty string.
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "", &default_options);
@@ -627,7 +627,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_logger_name
     EXPECT_EQ(RCL_RET_OK, ret);
   }
 
-  // Node namespace that is just a forward slash, which is valid.
+  // Node namespace that is just a forward slash.
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&node, name, "/", &default_options);
