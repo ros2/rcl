@@ -64,25 +64,27 @@ const char * rcl_create_node_logger_name(
   const char * node_namespace,
   const rcl_allocator_t * allocator)
 {
-  char * node_name_with_ns = rcutils_format_string(*allocator, "%s/%s", node_namespace, node_name);
-  if (NULL == node_name_with_ns) {
+  // If the namespace is the root namespace ("/"), the logger name is just the node name.
+  if (strlen(node_namespace) == 1) {
+    return rcutils_strdup(node_name, *allocator);
+  }
+
+  // Convert the forward slashes in the namespace to the separator used for logger names.
+  // The input namespace has already been expanded and therefore will always be absolute,
+  // i.e. it will start with a forward slash, which we want to ignore.
+  const char * ns_with_separators = rcutils_repl_str(
+    node_namespace + 1,  // Ignore the leading forward slash.
+    "/", ".",
+    (rcl_allocator_t *)allocator);  // TODO(dhood): remove need for casting away const
+  if (NULL == ns_with_separators) {
     return NULL;
   }
-  // remove leading slashes
-  while (0 == rcutils_find(node_name_with_ns, '/')) {
-    char * old_node_name_with_ns = node_name_with_ns;
-    node_name_with_ns = rcutils_strdup(old_node_name_with_ns + 1, *allocator);
-    if (NULL == node_name_with_ns) {
-      allocator->deallocate((char *)old_node_name_with_ns, allocator->state);
-      return NULL;
-    }
-  }
-  // convert slashes to dot separators
-  const char * node_logger_name = rcutils_repl_str(
-    node_name_with_ns, "/", ".",
-    (rcl_allocator_t *)allocator);  // TODO(dhood): remove need for casting away const
+
+  // Join the namespace and node name to create the logger name.
+  char * node_logger_name = rcutils_format_string(
+    *allocator, "%s.%s", ns_with_separators, node_name);
   if (NULL == node_logger_name) {
-    allocator->deallocate((char *)node_name_with_ns, allocator->state);
+    allocator->deallocate((char *)ns_with_separators, allocator->state);
     return NULL;
   }
   return node_logger_name;
