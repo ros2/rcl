@@ -59,6 +59,16 @@ typedef struct rcl_node_impl_t
 } rcl_node_impl_t;
 
 
+/// Return the logger name associated with a node given the validated node name and namespace.
+/**
+ * E.g. for a node named "c" in namespace "/a/b", the logger name will be
+ * "a.b.c", assuming logger name separator of ".".
+ *
+ * \param[in] node_name validated node name (a single token)
+ * \param[in] node_namespace validated, absolute namespace (starting with "/")
+ * \param[in] allocator the allocator to use for allocation
+ * \returns duplicated string or null if there is an error
+ */
 const char * rcl_create_node_logger_name(
   const char * node_name,
   const char * node_namespace,
