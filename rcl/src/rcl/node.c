@@ -84,7 +84,7 @@ const char * rcl_create_node_logger_name(
   // i.e. it will start with a forward slash, which we want to ignore.
   const char * ns_with_separators = rcutils_repl_str(
     node_namespace + 1,  // Ignore the leading forward slash.
-    "/", ".",
+    "/", RCUTILS_LOGGING_SEPARATOR_STRING,
     (rcl_allocator_t *)allocator);  // TODO(dhood): remove need for casting away const
   if (NULL == ns_with_separators) {
     return NULL;
@@ -92,7 +92,7 @@ const char * rcl_create_node_logger_name(
 
   // Join the namespace and node name to create the logger name.
   char * node_logger_name = rcutils_format_string(
-    *allocator, "%s.%s", ns_with_separators, node_name);
+    *allocator, "%s%s%s", ns_with_separators, RCUTILS_LOGGING_SEPARATOR_STRING, node_name);
   if (NULL == node_logger_name) {
     allocator->deallocate((char *)ns_with_separators, allocator->state);
     return NULL;
