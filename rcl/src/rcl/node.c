@@ -85,7 +85,7 @@ const char * rcl_create_node_logger_name(
   const char * ns_with_separators = rcutils_repl_str(
     node_namespace + 1,  // Ignore the leading forward slash.
     "/", RCUTILS_LOGGING_SEPARATOR_STRING,
-    (rcl_allocator_t *)allocator);  // TODO(dhood): remove need for casting away const
+    allocator);
   if (NULL == ns_with_separators) {
     return NULL;
   }
