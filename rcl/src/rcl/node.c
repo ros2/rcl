@@ -27,11 +27,14 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcutils/filesystem.h"
+#include "rcutils/find.h"
 #include "rcutils/format_string.h"
 #include "rcutils/get_env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
+#include "rcutils/repl_str.h"
 #include "rcutils/snprintf.h"
+#include "rcutils/strdup.h"
 #include "rmw/error_handling.h"
 #include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
@@ -52,8 +55,50 @@ typedef struct rcl_node_impl_t
   rmw_node_t * rmw_node_handle;
   uint64_t rcl_instance_id;
   rcl_guard_condition_t * graph_guard_condition;
+  const char * logger_name;
 } rcl_node_impl_t;
 
+
+/// Return the logger name associated with a node given the validated node name and namespace.
+/**
+ * E.g. for a node named "c" in namespace "/a/b", the logger name will be
+ * "a.b.c", assuming logger name separator of ".".
+ *
+ * \param[in] node_name validated node name (a single token)
+ * \param[in] node_namespace validated, absolute namespace (starting with "/")
+ * \param[in] allocator the allocator to use for allocation
+ * \returns duplicated string or null if there is an error
+ */
+const char * rcl_create_node_logger_name(
+  const char * node_name,
+  const char * node_namespace,
+  const rcl_allocator_t * allocator)
+{
+  // If the namespace is the root namespace ("/"), the logger name is just the node name.
+  if (strlen(node_namespace) == 1) {
+    return rcutils_strdup(node_name, *allocator);
+  }
+
+  // Convert the forward slashes in the namespace to the separator used for logger names.
+  // The input namespace has already been expanded and therefore will always be absolute,
+  // i.e. it will start with a forward slash, which we want to ignore.
+  const char * ns_with_separators = rcutils_repl_str(
+    node_namespace + 1,  // Ignore the leading forward slash.
+    "/", RCUTILS_LOGGING_SEPARATOR_STRING,
+    allocator);
+  if (NULL == ns_with_separators) {
+    return NULL;
+  }
+
+  // Join the namespace and node name to create the logger name.
+  char * node_logger_name = rcutils_format_string(
+    *allocator, "%s%s%s", ns_with_separators, RCUTILS_LOGGING_SEPARATOR_STRING, node_name);
+  if (NULL == node_logger_name) {
+    allocator->deallocate((char *)ns_with_separators, allocator->state);
+    return NULL;
+  }
+  return node_logger_name;
+}
 
 const char * rcl_get_secure_root(const char * node_name)
 {
@@ -187,6 +232,12 @@ rcl_node_init(
   // Initialize node impl.
   // node options (assume it is trivially copyable)
   node->impl->options = *options;
+
+  // node logger name
+  node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl->logger_name, "creating logger name failed", goto fail, *allocator);
+
   // node rmw_node_handle
   if (node->impl->options.domain_id == RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID) {
     // Find the domain ID set by the environment.
@@ -300,6 +351,9 @@ rcl_node_init(
   return RCL_RET_OK;
 fail:
   if (node->impl) {
+    if (node->impl->logger_name) {
+      allocator->deallocate((char *)node->impl->logger_name, allocator->state);
+    }
     if (node->impl->rmw_node_handle) {
       ret = rmw_destroy_node(node->impl->rmw_node_handle);
       if (ret != RMW_RET_OK) {
@@ -353,6 +407,7 @@ rcl_node_fini(rcl_node_t * node)
   }
   allocator.deallocate(node->impl->graph_guard_condition, allocator.state);
   // assuming that allocate and deallocate are ok since they are checked in init
+  allocator.deallocate((char *)node->impl->logger_name, allocator.state);
   allocator.deallocate(node->impl, allocator.state);
   node->impl = NULL;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node finalized")
@@ -454,6 +509,15 @@ rcl_node_get_graph_guard_condition(const rcl_node_t * node)
     return NULL;
   }
   return node->impl->graph_guard_condition;
+}
+
+const char *
+rcl_node_get_logger_name(const rcl_node_t * node)
+{
+  if (!rcl_node_is_valid(node, NULL)) {
+    return NULL;
+  }
+  return node->impl->logger_name;
 }
 
 #if __cplusplus
