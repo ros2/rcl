@@ -119,3 +119,54 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_namespace_
   EXPECT_EQ(NULL, output);
   destroy_args(2, argv);
 }
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replacement) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const char * const_argv[] = {"process_name", "/bar/foo:=/foo/bar"};
+  char ** argv = copy_args(2, const_argv);
+  rcl_ret_t ret = rcl_init(2, argv, allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  {
+    char * output = NULL;
+    ret = rcl_remap_name(NULL, true, "NodeName", "/bar/foo", allocator, &output);
+    EXPECT_EQ(RCL_RET_OK, ret);
+    ASSERT_STREQ("/foo/bar", output);
+    allocator.deallocate(output, allocator.state);
+  }
+  {
+    char * output = NULL;
+    ret = rcl_remap_name(NULL, true, "NodeName", "/foobar", allocator, &output);
+    EXPECT_EQ(RCL_RET_OK, ret);
+    EXPECT_EQ(NULL, output);
+  }
+  destroy_args(2, argv);
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_topic_name_replacement) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const char * const_argv[] = {"process_name", "/bar/foo:=/foo/bar"};
+  char ** argv = copy_args(2, const_argv);
+  rcl_ret_t ret = rcl_init(2, argv, allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  char * output = NULL;
+  ret = rcl_remap_name(NULL, false, "NodeName", "/bar/foo", allocator, &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(NULL, output);
+  destroy_args(2, argv);
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_topic_name_replacement) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const char * const_argv[] = {"process_name"};
+  char ** argv = copy_args(1, const_argv);
+  rcl_ret_t ret = rcl_init(1, argv, allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  char * output = NULL;
+  ret = rcl_remap_name(NULL, true, "NodeName", "/bar/foo", allocator, &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(NULL, output);
+  destroy_args(1, argv);
+}

@@ -33,7 +33,7 @@ typedef struct rcl_arguments_impl_t
 
   /// \brief Array of rules for name replacement
   rcl_remap_t * topic_remaps;
-  int len_topic_remaps;
+  int num_topic_remaps;
 } rcl_arguments_impl_t;
 
 

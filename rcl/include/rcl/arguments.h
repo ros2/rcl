@@ -35,11 +35,11 @@ typedef struct rcl_arguments_t
   struct rcl_arguments_impl_t * impl;
 } rcl_arguments_t;
 
+// TODO(sloretz) Add API to get non-ROS arguments from rcl_arguments_t
 
 /// Parse command line arguments into a structure usable by code.
 /**
  * Arguments are parsed without modification.
- * TODO(sloretz) Add API to get non-ROS arguments from rcl_arguments_t
  *
  * The first argument is assumed to be the name of the process, and is ignored.
  *
@@ -82,7 +82,7 @@ rcl_parse_arguments(
  *
  * \param[in] args the structure to be deallocated
  * \param[in] allocator a valid allocator
- * \return `RCL_RET_OK` if the topic name was remapped or no rules matched
+ * \return `RCL_RET_OK` if the memory was successfully freed
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */

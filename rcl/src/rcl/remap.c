@@ -24,50 +24,117 @@ extern "C"
 #endif
 
 
-rcl_ret_t
-rcl_remap_name(
-  const char * input_name,
-  rcl_node_t * node,
-  rcl_allocator_t error_allocator,
-  char ** output_name)
+rcl_remap_t
+rcl_remap_get_zero_initialized()
 {
-  // TODO(sloretz) remap topic name
-  return RCL_RET_ERROR;
+  rcl_remap_t rule;
+  rule.node_name = NULL;
+  rule.match = NULL;
+  rule.replacement = NULL;
+  return rule;
 }
 
-
 rcl_ret_t
-rcl_remap_node_name(
-  rcl_node_t * node,
-  rcl_allocator_t error_allocator,
-  char ** output_name)
+rcl_remap_fini(
+  rcl_remap_t * rule,
+  rcl_allocator_t allocator)
 {
-  // TODO(sloretz) remap node name
-  *output_name = NULL;
+  if (NULL != rule->node_name) {
+    allocator.deallocate(rule->node_name, allocator.state);
+    rule->node_name = NULL;
+  }
+  if (NULL != rule->match) {
+    allocator.deallocate(rule->match, allocator.state);
+    rule->match = NULL;
+  }
+  if (NULL != rule->replacement) {
+    allocator.deallocate(rule->replacement, allocator.state);
+    rule->replacement = NULL;
+  }
   return RCL_RET_OK;
 }
 
 
-/// Set the output namespace if the replacement rule applies
-/// \return True if the rule set the output namespace
+/// Remap a name the output name if a rule applies
 rcl_ret_t
-_rcl_remap_namespace(
+_rcl_remap_name(
   rcl_remap_t * remap_rule,
+  int num_rules,
+  const char * node_name,
+  const char * input_name,
   rcl_allocator_t allocator,
-  char ** output_namespace)
+  char ** output_name)
 {
-  if (remap_rule->replacement != NULL) {
-    size_t len = strlen(remap_rule->replacement);
-    if (len > 0) {
-      // plus 1 for terminating \0
-      *output_namespace = allocator.allocate(sizeof(char *) * len + 1, allocator.state);
-      if (NULL == output_namespace) {
-        return RCL_RET_BAD_ALLOC;
+  for (int i = 0; i < num_rules; ++i) {
+    // If something is null it means apply the replacement regardless
+    if (NULL != remap_rule->match && NULL != input_name) {
+      if (0 != strcmp(remap_rule->match, input_name)) {
+        // This rule does not match
+        continue;
       }
-      strncpy(*output_namespace, remap_rule->replacement, len + 1);
-      return RCL_RET_OK;
+    }
+
+    if (NULL != remap_rule->replacement) {
+      size_t len = strlen(remap_rule->replacement);
+      if (len > 0) {
+        // plus 1 for terminating \0
+        *output_name = allocator.allocate(sizeof(char *) * len + 1, allocator.state);
+        if (NULL == output_name) {
+          return RCL_RET_BAD_ALLOC;
+        }
+        strncpy(*output_name, remap_rule->replacement, len + 1);
+        return RCL_RET_OK;
+      }
     }
   }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_remap_name(
+  rcl_arguments_t * local_arguments,
+  bool use_global_arguments,
+  const char * node_name,
+  const char * input_name,
+  rcl_allocator_t allocator,
+  char ** output_name)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(input_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  if (NULL != local_arguments && NULL == local_arguments->impl) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  *output_name = NULL;
+
+  // Look at local rules first
+  if (NULL != local_arguments) {
+    rcl_ret_t ret = _rcl_remap_name(local_arguments->impl->topic_remaps,
+      local_arguments->impl->num_topic_remaps, node_name, input_name, allocator, output_name);
+    if (NULL != output_name || RCL_RET_OK != ret) {
+      // A remap rule matched or there was an error, either way this call is done
+      return ret;
+    }
+  }
+
+  if (use_global_arguments) {
+    return _rcl_remap_name(__rcl_arguments.impl->topic_remaps,
+      __rcl_arguments.impl->num_topic_remaps, node_name, input_name, allocator, output_name);
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_remap_node_name(
+  rcl_arguments_t * local_arguments,
+  bool use_global_arguments,
+  const char * node_name,
+  rcl_allocator_t allocator,
+  char ** output_name)
+{
+  // TODO(sloretz) remap node name
+  *output_name = NULL;
   return RCL_RET_OK;
 }
 
@@ -80,27 +147,26 @@ rcl_remap_namespace(
   char ** output_namespace)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
-  // TODO(sloretz) Use the node name to filter namespace replacement rules
-  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_namespace, RCL_RET_INVALID_ARGUMENT, allocator);
   if (NULL != local_arguments && NULL == local_arguments->impl) {
     return RCL_RET_INVALID_ARGUMENT;
   }
   *output_namespace = NULL;
 
-  // Look at local rules first
+  // Look at local rules first if they were provided
   if (NULL != local_arguments) {
-    rcl_ret_t ret = _rcl_remap_namespace(
-      &(local_arguments->impl->namespace_replacement), allocator, output_namespace);
+    rcl_ret_t ret = _rcl_remap_name(&(local_arguments->impl->namespace_replacement), 1, node_name,
+      NULL, allocator, output_namespace);
     if (NULL != output_namespace || RCL_RET_OK != ret) {
+      // A remap rule matched or there was an error, either way this call is done
       return ret;
     }
   }
 
   // Look at global remap rules
   if (use_global_arguments) {
-    return _rcl_remap_namespace(
-      &(__rcl_arguments.impl->namespace_replacement), allocator, output_namespace);
+    return _rcl_remap_name(&(__rcl_arguments.impl->namespace_replacement), 1, node_name, NULL,
+      allocator, output_namespace);
   }
   return RCL_RET_OK;
 }

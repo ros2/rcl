@@ -18,7 +18,6 @@
 #include "rcl/allocator.h"
 #include "rcl/arguments.h"
 #include "rcl/macros.h"
-#include "rcl/node.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
@@ -27,7 +26,7 @@ extern "C"
 {
 #endif
 
-/// Remaps a topic or service name based on rules given globally or on the node.
+/// Remaps a topic or service name based on given rules
 /**
  * The supplied topic name must have already been expanded to a fully qualified name.
  * \sa rcl_expand_topic_name()
@@ -48,10 +47,11 @@ extern "C"
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
+ * \param[in] local_arguments arguments to be used before global arguments
+ * \param[in] use_global_arguments if false then global arguments aren't used at all
+ * \param[in] node_name the name of the node whose namespace is being remapped
  * \param[in] input_name a fully qualified name to be remapped
- * \param[in] node instance which may have its own rules,
- *            or `NULL` to use only global rules
- * \param[in] error_allocator a valid allocator to be used if the node allocator cannot be used
+ * \param[in] allocator a valid allocator to use
  * \param[out] output_name either an allocated string with the remapped name,
  *             or `NULL` if no remap rules matched the name
  * \return `RCL_RET_OK` if the topic name was remapped or no rules matched
@@ -63,14 +63,16 @@ extern "C"
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_remap_name(
+rcl_remap_name(   // TODO sloretz separate topic/service name remapping into two functions
+  rcl_arguments_t * local_arguments,
+  bool use_global_arguments,
+  const char * node_name,
   const char * input_name,
-  rcl_node_t * node,
-  rcl_allocator_t error_allocator,
+  rcl_allocator_t allocator,
   char ** output_name);
 
 
-/// Remaps a node name based on rules given globally or on the node.
+/// Remaps a node name based on given rules
 /**
  * If the node has been given arguments its remap rules will be checked first.
  * If no rules matched, then global remap rules will be checked if the node has not also been
@@ -88,9 +90,10 @@ rcl_remap_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] node instance which may have its own rules,
- *            or `NULL` to use only global rules
- * \param[in] error_allocator a valid allocator to be used if the node allocator cannot be used
+ * \param[in] local_arguments arguments to be used before global arguments
+ * \param[in] use_global_arguments if false then global arguments aren't used at all
+ * \param[in] node_name the name of the node whose namespace is being remapped
+ * \param[in] allocator a valid allocator to use
  * \param[out] output_name either an allocated string with the remapped name,
  *             or `NULL` if no remap rules matched the name
  * \return `RCL_RET_OK` if the node name was remapped or no rules matched
@@ -103,12 +106,14 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_node_name(
-  rcl_node_t * node,
-  rcl_allocator_t error_allocator,
+  rcl_arguments_t * local_arguments,
+  bool use_global_arguments,
+  const char * node_name,
+  rcl_allocator_t allocator,
   char ** output_name);
 
 
-/// Remaps a namespace based on rules given or present globally.
+/// Remaps a namespace based on given rules
 /**
  * If local_arguments is given then its remap rules will be checked first.
  * If no rules matched, then global remap rules will be checked if not instructed to ignore them.
@@ -127,8 +132,8 @@ rcl_remap_node_name(
  *
  * \param[in] local_arguments arguments to be used before global arguments
  * \param[in] use_global_arguments if false then global arguments aren't used at all
+ * \param[in] node_name the name of the node whose namespace is being remapped
  * \param[in] allocator a valid allocator to be used
- * \param[in] node_name the name of the node whose namespace is to be remapped
  * \param[out] output_namespace either an allocated string with the remapped namespace
  *             or `NULL` if no remap rules matched the name
  * \return `RCL_RET_OK` if the node name was remapped or no rules matched
