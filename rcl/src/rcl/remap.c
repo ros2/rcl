@@ -139,7 +139,7 @@ rcl_remap_node_name(
 }
 
 rcl_ret_t
-rcl_remap_namespace(
+rcl_remap_node_namespace(
   rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * node_name,

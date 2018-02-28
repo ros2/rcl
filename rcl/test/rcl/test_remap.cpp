@@ -101,7 +101,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_namespace_replace
   INIT_GLOBAL_ARGS("process_name", "__ns:=/foo/bar");
 
   char * output = NULL;
-  ret = rcl_remap_namespace(NULL, true, "NodeName", rcl_get_default_allocator(), &output);
+  ret = rcl_remap_node_namespace(NULL, true, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_STREQ("/foo/bar", output);
 
@@ -116,7 +116,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_namespace_replacement
   INIT_GLOBAL_ARGS("process_name");
 
   char * output = NULL;
-  ret = rcl_remap_namespace(NULL, true, "NodeName", rcl_get_default_allocator(), &output);
+  ret = rcl_remap_node_namespace(NULL, true, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
@@ -131,7 +131,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_namespace_
   INIT_GLOBAL_ARGS("process_name", "__ns:=/foo/bar");
 
   char * output = NULL;
-  ret = rcl_remap_namespace(NULL, false, "NodeName", rcl_get_default_allocator(), &output);
+  ret = rcl_remap_node_namespace(NULL, false, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
