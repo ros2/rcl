@@ -87,11 +87,24 @@ void destroy_args(int argc, char ** args)
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
   } while (false)
 
-#define CLEANUP_ARGS() \
+#define CLEANUP_GLOBAL_ARGS() \
   do { \
     destroy_args(argc, argv); \
   } while (false)
 
+#define INIT_LOCAL_ARGS(...) \
+  do { \
+    const char * local_argv[] = {__VA_ARGS__}; \
+    unsigned int local_argc = (sizeof(local_argv) / sizeof(const char *)); \
+    ret = rcl_parse_arguments( \
+      local_argc, local_argv, rcl_get_default_allocator(), &local_arguments); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+  } while (false)
+
+#define CLEANUP_LOCAL_ARGS() \
+  do { \
+    ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments, rcl_get_default_allocator())); \
+  } while (false)
 
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_namespace_replacement) {
@@ -105,7 +118,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_namespace_replace
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_STREQ("/foo/bar", output);
 
-  CLEANUP_ARGS();
+  CLEANUP_GLOBAL_ARGS();
 }
 
 
@@ -120,7 +133,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_namespace_replacement
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
-  CLEANUP_ARGS();
+  CLEANUP_GLOBAL_ARGS();
 }
 
 
@@ -135,7 +148,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_namespace_
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
-  CLEANUP_ARGS();
+  CLEANUP_GLOBAL_ARGS();
 }
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replacement) {
@@ -158,7 +171,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replac
     EXPECT_EQ(NULL, output);
   }
 
-  CLEANUP_ARGS();
+  CLEANUP_GLOBAL_ARGS();
 }
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_topic_name_replacement) {
@@ -172,7 +185,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_topic_name
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
-  CLEANUP_ARGS();
+  CLEANUP_GLOBAL_ARGS();
 }
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_topic_name_replacement) {
@@ -186,5 +199,24 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_topic_name_replacemen
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
-  CLEANUP_ARGS();
+  CLEANUP_GLOBAL_ARGS();
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_namespace_replacement_before_global) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "__ns:=/global_args");
+  rcl_arguments_t local_arguments;
+  INIT_LOCAL_ARGS("process_name", "__ns:=/local_args");
+
+  char * output = NULL;
+  ret = rcl_remap_node_namespace(
+      &local_arguments, true, "NodeName", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_STREQ("/local_args", output);
+  rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
+
+  CLEANUP_LOCAL_ARGS();
+  CLEANUP_GLOBAL_ARGS();
 }
