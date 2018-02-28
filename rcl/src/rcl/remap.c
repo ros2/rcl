@@ -79,10 +79,11 @@ _rcl_remap_name(
       if (len > 0) {
         // plus 1 for terminating \0
         *output_name = allocator.allocate(sizeof(char *) * len + 1, allocator.state);
-        if (NULL == output_name) {
+        if (NULL == *output_name) {
           return RCL_RET_BAD_ALLOC;
         }
-        strncpy(*output_name, remap_rule->replacement, len + 1);
+        strncpy(*output_name, remap_rule->replacement, len);
+        (*output_name)[len] = '\0';
         return RCL_RET_OK;
       }
     }
@@ -112,7 +113,7 @@ rcl_remap_topic_name(
   if (NULL != local_arguments) {
     rcl_ret_t ret = _rcl_remap_name(local_arguments->impl->topic_remaps,
       local_arguments->impl->num_topic_remaps, node_name, input_name, allocator, output_name);
-    if (NULL != output_name || RCL_RET_OK != ret) {
+    if (NULL != *output_name || RCL_RET_OK != ret) {
       // A remap rule matched or there was an error, either way this call is done
       return ret;
     }
@@ -171,7 +172,7 @@ rcl_remap_node_namespace(
   if (NULL != local_arguments) {
     rcl_ret_t ret = _rcl_remap_name(&(local_arguments->impl->namespace_replacement), 1, node_name,
       NULL, allocator, output_namespace);
-    if (NULL != output_namespace || RCL_RET_OK != ret) {
+    if (NULL != *output_namespace || RCL_RET_OK != ret) {
       // A remap rule matched or there was an error, either way this call is done
       return ret;
     }

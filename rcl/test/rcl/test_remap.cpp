@@ -62,8 +62,10 @@ char ** copy_args(int argc, const char ** args)
   char ** copy = static_cast<char **>(allocator.allocate(sizeof(char *) * argc, allocator.state));
   for (int i = 0; i < argc; ++i) {
     size_t len = strlen(args[i]);
-    copy[i] = static_cast<char *>(allocator.allocate(sizeof(char) * len, allocator.state));
+    // +1 for terminating \0
+    copy[i] = static_cast<char *>(allocator.allocate(sizeof(char) * len + 1, allocator.state));
     strncpy(copy[i], args[i], len);
+    copy[i][len] = '\0';
   }
   return copy;
 }
@@ -243,4 +245,76 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_topic_replacement_
   CLEANUP_GLOBAL_ARGS();
 }
 
-// TODO copy/past topic name tests into service name tests
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_service_name_replacement) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "/bar/foo:=/foo/bar");
+
+  {
+    char * output = NULL;
+    ret = rcl_remap_service_name(
+      NULL, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+    EXPECT_EQ(RCL_RET_OK, ret);
+    ASSERT_STREQ("/foo/bar", output);
+    rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
+  }
+  {
+    char * output = NULL;
+    ret = rcl_remap_service_name(
+      NULL, true, "NodeName", "/foobar", rcl_get_default_allocator(), &output);
+    EXPECT_EQ(RCL_RET_OK, ret);
+    EXPECT_EQ(NULL, output);
+  }
+
+  CLEANUP_GLOBAL_ARGS();
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_service_name_replacement) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "/bar/foo:=/foo/bar");
+
+  char * output = NULL;
+  ret = rcl_remap_service_name(
+    NULL, false, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(NULL, output);
+
+  CLEANUP_GLOBAL_ARGS();
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_service_name_replacement) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name");
+
+  char * output = NULL;
+  ret = rcl_remap_service_name(
+    NULL, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(NULL, output);
+
+  CLEANUP_GLOBAL_ARGS();
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_service_replacement_before_global) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "/bar/foo:=/foo/global_args");
+  rcl_arguments_t local_arguments;
+  INIT_LOCAL_ARGS("process_name", "/bar/foo:=/foo/local_args");
+
+  char * output = NULL;
+  ret = rcl_remap_service_name(
+    &local_arguments, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_STREQ("/foo/local_args", output);
+  rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
+
+  CLEANUP_LOCAL_ARGS();
+  CLEANUP_GLOBAL_ARGS();
+}
