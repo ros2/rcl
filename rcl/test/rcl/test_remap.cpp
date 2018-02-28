@@ -78,95 +78,113 @@ void destroy_args(int argc, char ** args)
   allocator.deallocate(args, allocator.state);
 }
 
+#define INIT_GLOBAL_ARGS(...) \
+  do { \
+    const char * const_argv[] = {__VA_ARGS__}; \
+    argc = (sizeof(const_argv) / sizeof(const char *)); \
+    argv = copy_args(argc, const_argv); \
+    ret = rcl_init(argc, argv, rcl_get_default_allocator()); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+  } while (false)
+
+#define CLEANUP_ARGS() \
+  do { \
+    destroy_args(argc, argv); \
+  } while (false)
+
+
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_namespace_replacement) {
-  const char * const_argv[] = {"process_name", "__ns:=/foo/bar"};
-  char ** argv = copy_args(2, const_argv);
-  rcl_ret_t ret = rcl_init(2, argv, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "__ns:=/foo/bar");
 
   char * output = NULL;
   ret = rcl_remap_namespace(NULL, true, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_STREQ("/foo/bar", output);
-  destroy_args(2, argv);
+
+  CLEANUP_ARGS();
 }
 
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_namespace_replacement) {
-  const char * const_argv[] = {"process_name"};
-  char ** argv = copy_args(1, const_argv);
-  rcl_ret_t ret = rcl_init(2, argv, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name");
 
   char * output = NULL;
   ret = rcl_remap_namespace(NULL, true, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
-  destroy_args(1, argv);
+
+  CLEANUP_ARGS();
 }
 
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_namespace_replacement) {
-  const char * const_argv[] = {"process_name", "__ns:=/foo/bar"};
-  char ** argv = copy_args(2, const_argv);
-  rcl_ret_t ret = rcl_init(2, argv, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "__ns:=/foo/bar");
 
   char * output = NULL;
   ret = rcl_remap_namespace(NULL, false, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
-  destroy_args(2, argv);
+
+  CLEANUP_ARGS();
 }
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replacement) {
-  rcl_allocator_t allocator = rcl_get_default_allocator();
-  const char * const_argv[] = {"process_name", "/bar/foo:=/foo/bar"};
-  char ** argv = copy_args(2, const_argv);
-  rcl_ret_t ret = rcl_init(2, argv, allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "/bar/foo:=/foo/bar");
 
   {
     char * output = NULL;
-    ret = rcl_remap_name(NULL, true, "NodeName", "/bar/foo", allocator, &output);
+    ret = rcl_remap_name(NULL, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     ASSERT_STREQ("/foo/bar", output);
-    allocator.deallocate(output, allocator.state);
+    rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
   }
   {
     char * output = NULL;
-    ret = rcl_remap_name(NULL, true, "NodeName", "/foobar", allocator, &output);
+    ret = rcl_remap_name(NULL, true, "NodeName", "/foobar", rcl_get_default_allocator(), &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_EQ(NULL, output);
   }
-  destroy_args(2, argv);
+
+  CLEANUP_ARGS();
 }
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_topic_name_replacement) {
-  rcl_allocator_t allocator = rcl_get_default_allocator();
-  const char * const_argv[] = {"process_name", "/bar/foo:=/foo/bar"};
-  char ** argv = copy_args(2, const_argv);
-  rcl_ret_t ret = rcl_init(2, argv, allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "/bar/foo:=/foo/bar");
 
   char * output = NULL;
-  ret = rcl_remap_name(NULL, false, "NodeName", "/bar/foo", allocator, &output);
+  ret = rcl_remap_name(NULL, false, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
-  destroy_args(2, argv);
+
+  CLEANUP_ARGS();
 }
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_topic_name_replacement) {
-  rcl_allocator_t allocator = rcl_get_default_allocator();
-  const char * const_argv[] = {"process_name"};
-  char ** argv = copy_args(1, const_argv);
-  rcl_ret_t ret = rcl_init(1, argv, allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name");
 
   char * output = NULL;
-  ret = rcl_remap_name(NULL, true, "NodeName", "/bar/foo", allocator, &output);
+  ret = rcl_remap_name(NULL, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
-  destroy_args(1, argv);
+
+  CLEANUP_ARGS();
 }
