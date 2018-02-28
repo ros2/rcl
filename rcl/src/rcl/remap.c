@@ -91,7 +91,7 @@ _rcl_remap_name(
 }
 
 rcl_ret_t
-rcl_remap_name(
+rcl_remap_topic_name(
   rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * node_name,
@@ -123,6 +123,20 @@ rcl_remap_name(
       __rcl_arguments.impl->num_topic_remaps, node_name, input_name, allocator, output_name);
   }
   return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_remap_service_name(
+  rcl_arguments_t * local_arguments,
+  bool use_global_arguments,
+  const char * node_name,
+  const char * input_name,
+  rcl_allocator_t allocator,
+  char ** output_name)
+{
+  // TODO(sloretz) expand grammar to service specific remap rules
+  return rcl_remap_topic_name(
+    local_arguments, use_global_arguments, node_name, input_name, allocator, output_name);
 }
 
 rcl_ret_t
