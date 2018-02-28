@@ -222,9 +222,7 @@ rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
   return publisher->impl->rmw_handle->topic_name;
 }
 
-/* *INDENT-OFF* */
-#define _publisher_get_options(pub) &pub->impl->options
-/* *INDENT-ON* */
+#define _publisher_get_options(pub) & pub->impl->options
 
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher)

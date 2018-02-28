@@ -211,9 +211,7 @@ rcl_client_get_service_name(const rcl_client_t * client)
   return client->impl->rmw_handle->service_name;
 }
 
-/* *INDENT-OFF* */
-#define _client_get_options(client) &client->impl->options;
-/* *INDENT-ON* */
+#define _client_get_options(client) & client->impl->options;
 
 const rcl_client_options_t *
 rcl_client_get_options(const rcl_client_t * client)

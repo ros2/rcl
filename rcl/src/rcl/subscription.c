@@ -248,9 +248,7 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription)
   return subscription->impl->rmw_handle->topic_name;
 }
 
-/* *INDENT-OFF* */
-#define _subscription_get_options(subscription) &subscription->impl->options
-/* *INDENT-ON* */
+#define _subscription_get_options(subscription) & subscription->impl->options
 
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription)
