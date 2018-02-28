@@ -224,5 +224,23 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_topic_name_replacemen
   CLEANUP_GLOBAL_ARGS();
 }
 
-// TODO test topic name replacements using local_arguments
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_topic_replacement_before_global) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "/bar/foo:=/foo/global_args");
+  rcl_arguments_t local_arguments;
+  INIT_LOCAL_ARGS("process_name", "/bar/foo:=/foo/local_args");
+
+  char * output = NULL;
+  ret = rcl_remap_topic_name(
+    &local_arguments, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_STREQ("/foo/local_args", output);
+  rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
+
+  CLEANUP_LOCAL_ARGS();
+  CLEANUP_GLOBAL_ARGS();
+}
+
 // TODO copy/past topic name tests into service name tests
