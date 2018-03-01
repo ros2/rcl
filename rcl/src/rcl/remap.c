@@ -68,9 +68,10 @@ _rcl_remap_first_match(
   for (int i = 0; i < num_rules; ++i) {
     rcl_remap_t * rule = &(remap_rules[i]);
     if (rule->type & type_bitmask) {
-      // TODO(sloretz) check node name
-      if (NULL == rule->match || NULL == name || 0 == strcmp(rule->match, name)) {
-        return rule;
+      if (NULL == rule->node_name || NULL == node_name || 0 == strcmp(rule->node_name, node_name)) {
+        if (NULL == rule->match || NULL == name || 0 == strcmp(rule->match, name)) {
+          return rule;
+        }
       }
     }
   }
