@@ -22,8 +22,21 @@ extern "C"
 {
 #endif
 
+
+/// enum doubles as a bitmask for rule sthat apply to both topics and services
+typedef enum rcl_remap_type_t
+{
+  RCL_UNKNOWN_REMAP = 0,
+  RCL_TOPIC_REMAP = 1u << 0,
+  RCL_SERVICE_REMAP = 1u << 1,
+  RCL_NODENAME_REMAP = 1u << 2,
+  RCL_NAMESPACE_REMAP = 1u << 3
+} rcl_remap_type_t;
+
 typedef struct rcl_remap_t
 {
+  /// \brief What type of remap rule is this
+  rcl_remap_type_t type;
   /// \brief a node name that this rule is limited to, or NULL if it applies to any node
   char * node_name;
   /// \brief match portion of a rule
@@ -47,9 +60,7 @@ rcl_remap_get_zero_initialized();
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] 
- * \param[in] 
- * \param[in] 
+ * \param[in] rule a rule to deallocate back to a zero initialized state
  * \param[in] allocator a valid allocator to use
  * \return `RCL_RET_OK` if the structure was free'd
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -61,8 +72,6 @@ rcl_ret_t
 rcl_remap_fini(
   rcl_remap_t * rule,
   rcl_allocator_t allocator);
-
-
 
 #if __cplusplus
 }

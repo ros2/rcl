@@ -26,14 +26,9 @@ extern "C"
 
 typedef struct rcl_arguments_impl_t
 {
-  // TODO(sloretz) array of namespace replacement rules
-  // TODO(sloretz) node name replacement rules
-  /// \brief A namespace replacement rule
-  rcl_remap_t namespace_replacement;
-
-  /// \brief Array of rules for name replacement
-  rcl_remap_t * topic_remaps;
-  int num_topic_remaps;
+  /// \brief Array of rules for name remapping
+  rcl_remap_t * remap_rules;
+  int num_remap_rules;
 } rcl_arguments_impl_t;
 
 

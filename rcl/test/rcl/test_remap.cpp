@@ -148,7 +148,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_namespace_replacem
 
   char * output = NULL;
   ret = rcl_remap_node_namespace(
-      &local_arguments, true, "NodeName", rcl_get_default_allocator(), &output);
+    &local_arguments, true, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_STREQ("/local_args", output);
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
