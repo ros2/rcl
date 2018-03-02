@@ -226,7 +226,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replac
   {
     char * output = NULL;
     ret = rcl_remap_topic_name(
-      NULL, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+      NULL, true, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     ASSERT_STREQ("/foo/bar", output);
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
@@ -234,10 +234,27 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replac
   {
     char * output = NULL;
     ret = rcl_remap_topic_name(
-      NULL, true, "NodeName", "/foobar", rcl_get_default_allocator(), &output);
+      NULL, true, "/foo/bar", "NodeName", "/", rcl_get_default_allocator(), &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_EQ(NULL, output);
   }
+
+  CLEANUP_GLOBAL_ARGS();
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_topic_name_remap) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "foo:=bar");
+
+  // TODO(sloretz) rcl_remap_topic_name needs namespace and substitution map
+  char * output = NULL;
+  ret = rcl_remap_topic_name(
+    NULL, true, "/ns/foo", "NodeName", "/ns", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  ASSERT_STREQ("/ns/bar", output);
+  rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 
   CLEANUP_GLOBAL_ARGS();
 }
@@ -251,21 +268,24 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_topic_re
 
   {
     char * output = NULL;
-    ret = rcl_remap_topic_name(NULL, true, "Node1", "/foo", rcl_get_default_allocator(), &output);
+    ret = rcl_remap_topic_name(NULL, true, "/foo", "Node1", "/", rcl_get_default_allocator(),
+      &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_STREQ("/foo/bar", output);
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
   }
   {
     char * output = NULL;
-    ret = rcl_remap_topic_name(NULL, true, "Node2", "/foo", rcl_get_default_allocator(), &output);
+    ret = rcl_remap_topic_name(NULL, true, "/foo", "Node2", "/", rcl_get_default_allocator(),
+      &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_STREQ("/this_one", output);
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
   }
   {
     char * output = NULL;
-    ret = rcl_remap_topic_name(NULL, true, "Node3", "/foo", rcl_get_default_allocator(), &output);
+    ret = rcl_remap_topic_name(NULL, true, "/foo", "Node3", "/", rcl_get_default_allocator(),
+      &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_STREQ("/bar/foo", output);
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
@@ -282,7 +302,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_topic_name
 
   char * output = NULL;
   ret = rcl_remap_topic_name(
-    NULL, false, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+    NULL, false, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
@@ -297,7 +317,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_topic_name_replacemen
 
   char * output = NULL;
   ret = rcl_remap_topic_name(
-    NULL, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+    NULL, true, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
@@ -314,7 +334,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_topic_replacement_
 
   char * output = NULL;
   ret = rcl_remap_topic_name(
-    &local_arguments, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+    &local_arguments, true, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_STREQ("/foo/local_args", output);
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
@@ -331,7 +351,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_topic
 
   char * output = NULL;
   ret = rcl_remap_topic_name(
-    NULL, true, "NodeName", "/foobar", rcl_get_default_allocator(), &output);
+    NULL, true, "/foobar", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_STREQ("/foo/bar", output);
 
@@ -347,7 +367,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_service_name_repl
   {
     char * output = NULL;
     ret = rcl_remap_service_name(
-      NULL, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+      NULL, true, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     ASSERT_STREQ("/foo/bar", output);
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
@@ -355,10 +375,27 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_service_name_repl
   {
     char * output = NULL;
     ret = rcl_remap_service_name(
-      NULL, true, "NodeName", "/foobar", rcl_get_default_allocator(), &output);
+      NULL, true, "/foobar", "NodeName", "/", rcl_get_default_allocator(), &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_EQ(NULL, output);
   }
+
+  CLEANUP_GLOBAL_ARGS();
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_service_name_remap) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "foo:=bar");
+
+  // TODO(sloretz) rcl_remap_topic_name needs namespace and substitution map
+  char * output = NULL;
+  ret = rcl_remap_service_name(
+    NULL, true, "/ns/foo", "NodeName", "/ns", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  ASSERT_STREQ("/ns/bar", output);
+  rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 
   CLEANUP_GLOBAL_ARGS();
 }
@@ -372,21 +409,24 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_service_
 
   {
     char * output = NULL;
-    ret = rcl_remap_service_name(NULL, true, "Node1", "/foo", rcl_get_default_allocator(), &output);
+    ret = rcl_remap_service_name(NULL, true, "/foo", "Node1", "/", rcl_get_default_allocator(),
+      &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_STREQ("/foo/bar", output);
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
   }
   {
     char * output = NULL;
-    ret = rcl_remap_service_name(NULL, true, "Node2", "/foo", rcl_get_default_allocator(), &output);
+    ret = rcl_remap_service_name(NULL, true, "/foo", "Node2", "/", rcl_get_default_allocator(),
+      &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_STREQ("/this_one", output);
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
   }
   {
     char * output = NULL;
-    ret = rcl_remap_service_name(NULL, true, "Node3", "/foo", rcl_get_default_allocator(), &output);
+    ret = rcl_remap_service_name(NULL, true, "/foo", "Node3", "/", rcl_get_default_allocator(),
+      &output);
     EXPECT_EQ(RCL_RET_OK, ret);
     EXPECT_STREQ("/bar/foo", output);
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
@@ -403,7 +443,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_service_na
 
   char * output = NULL;
   ret = rcl_remap_service_name(
-    NULL, false, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+    NULL, false, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
@@ -418,7 +458,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_service_name_replacem
 
   char * output = NULL;
   ret = rcl_remap_service_name(
-    NULL, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+    NULL, true, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
@@ -435,7 +475,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_service_replacemen
 
   char * output = NULL;
   ret = rcl_remap_service_name(
-    &local_arguments, true, "NodeName", "/bar/foo", rcl_get_default_allocator(), &output);
+    &local_arguments, true, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_STREQ("/foo/local_args", output);
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
@@ -452,7 +492,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_servi
 
   char * output = NULL;
   ret = rcl_remap_service_name(
-    NULL, true, "NodeName", "/foobar", rcl_get_default_allocator(), &output);
+    NULL, true, "/foobar", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_STREQ("/foo/bar", output);
 
