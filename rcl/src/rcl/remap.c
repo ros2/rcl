@@ -163,7 +163,6 @@ rcl_remap_topic_name(
   char ** output_name)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
-  // TODO(sloretz) allow users to pass in substitutions when rcl_parse_arguments accepts them
   rcutils_string_map_t substitutions = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions, 0, allocator);
   rcl_ret_t ret = RCL_RET_ERROR;
@@ -193,7 +192,6 @@ rcl_remap_service_name(
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT, allocator);
 
-  // TODO(sloretz) allow users to pass in substitutions when rcl_parse_arguments accepts them
   rcutils_string_map_t substitutions = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions, 0, allocator);
   rcl_ret_t ret = RCL_RET_ERROR;
