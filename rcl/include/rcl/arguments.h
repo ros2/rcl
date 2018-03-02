@@ -37,6 +37,12 @@ typedef struct rcl_arguments_t
 
 // TODO(sloretz) Add API to get non-ROS arguments from rcl_arguments_t
 
+/// Return a rcl_node_t struct with members initialized to `NULL`.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_arguments_t
+rcl_get_zero_initialized_arguments(void);
+
 /// Parse command line arguments into a structure usable by code.
 /**
  * Arguments are parsed without modification.

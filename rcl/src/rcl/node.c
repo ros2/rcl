@@ -24,6 +24,7 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
+#include "rcl/arguments.h"
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcl/remap.h"
@@ -220,13 +221,14 @@ rcl_node_init(
     node->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup, *allocator);
   node->impl->rmw_node_handle = NULL;
   node->impl->graph_guard_condition = NULL;
+  node->impl->logger_name = NULL;
   // Initialize node impl.
   // node options (assume it is trivially copyable)
   node->impl->options = *options;
 
   // Remap the node name and namespace if remap rules are given
   ret = rcl_remap_node_name(
-    NULL,
+    &(node->impl->options.arguments),
     node->impl->options.use_global_arguments,
     name,
     *allocator,
@@ -238,7 +240,7 @@ rcl_node_init(
   }
   char * remapped_namespace = NULL;
   ret = rcl_remap_node_namespace(
-    NULL,
+    &(node->impl->options.arguments),
     node->impl->options.use_global_arguments,
     local_namespace_,
     *allocator,
@@ -458,6 +460,7 @@ rcl_node_get_default_options()
   };
   // Must set the allocator after because it is not a compile time constant.
   default_options.allocator = rcl_get_default_allocator();
+  default_options.arguments = rcl_get_zero_initialized_arguments();
   return default_options;
 }
 

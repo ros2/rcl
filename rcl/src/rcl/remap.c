@@ -114,7 +114,7 @@ _rcl_remap_name(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(output_name, RCL_RET_INVALID_ARGUMENT, allocator);
   if (NULL != local_arguments && NULL == local_arguments->impl) {
-    return RCL_RET_INVALID_ARGUMENT;
+    local_arguments = NULL;
   }
 
   *output_name = NULL;

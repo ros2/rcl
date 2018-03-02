@@ -222,6 +222,14 @@ rcl_parse_arguments(
   return RCL_RET_OK;
 }
 
+rcl_arguments_t
+rcl_get_zero_initialized_arguments(void)
+{
+  static rcl_arguments_t default_arguments = {
+    .impl = NULL
+  };
+  return default_arguments;
+}
 
 rcl_ret_t
 rcl_arguments_fini(

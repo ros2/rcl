@@ -610,6 +610,18 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_name)
     EXPECT_STREQ("original_name", rcl_node_get_name(&node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
   }
+  // Remap using local args before global args
+  {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name", "__node:=local_name");
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.arguments = local_arguments;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/", &options));
+    EXPECT_STREQ("local_name", rcl_node_get_name(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
+  }
 
   CLEANUP_GLOBAL_ARGS();
 }
@@ -636,6 +648,18 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_names
     ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/old_ns", &options));
     EXPECT_STREQ("/old_ns", rcl_node_get_namespace(&node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
+  // Remap using local args before global args
+  {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name", "__ns:=/local_ns");
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.arguments = local_arguments;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/old_ns", &options));
+    EXPECT_STREQ("/local_ns", rcl_node_get_namespace(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
   }
 
   CLEANUP_GLOBAL_ARGS();
