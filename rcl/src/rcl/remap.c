@@ -79,7 +79,7 @@ _rcl_remap_first_match(
           // topic and service rules need the match side to be expanded to a FQN
           char * expanded_match = NULL;
           rcl_ret_t ret = rcl_expand_topic_name(rule->match, node_name, node_namespace,
-            substitutions, allocator, &expanded_match);
+              substitutions, allocator, &expanded_match);
           if (ret != RCL_RET_OK) {
             // Expansion failed with this rule, try another
             continue;
@@ -137,7 +137,7 @@ _rcl_remap_name(
     if (rule->type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
       // topic and service rules need the replacement to be expanded to a FQN
       rcl_ret_t ret = rcl_expand_topic_name(rule->replacement, node_name, node_namespace,
-        substitutions, allocator, output_name);
+          substitutions, allocator, output_name);
       if (RCL_RET_OK != ret) {
         return ret;
       }
@@ -171,7 +171,7 @@ rcl_remap_topic_name(
     ret = rcl_get_default_topic_name_substitutions(&substitutions);
     if (RCL_RET_OK == ret) {
       ret = _rcl_remap_name(local_arguments, use_global_arguments, RCL_TOPIC_REMAP, name,
-        node_name, node_namespace, &substitutions, allocator, output_name);
+          node_name, node_namespace, &substitutions, allocator, output_name);
     }
   }
   if (RCUTILS_RET_OK != rcutils_string_map_fini(&substitutions)) {
@@ -201,7 +201,7 @@ rcl_remap_service_name(
     ret = rcl_get_default_topic_name_substitutions(&substitutions);
     if (ret == RCL_RET_OK) {
       ret = _rcl_remap_name(local_arguments, use_global_arguments, RCL_SERVICE_REMAP, name,
-        node_name, node_namespace, &substitutions, allocator, output_name);
+          node_name, node_namespace, &substitutions, allocator, output_name);
     }
   }
   if (RCUTILS_RET_OK != rcutils_string_map_fini(&substitutions)) {
