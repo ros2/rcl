@@ -248,7 +248,6 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_topic_name_rema
   rcl_ret_t ret;
   INIT_GLOBAL_ARGS("process_name", "foo:=bar");
 
-  // TODO(sloretz) rcl_remap_topic_name needs namespace and substitution map
   char * output = NULL;
   ret = rcl_remap_topic_name(
     NULL, true, "/ns/foo", "NodeName", "/ns", rcl_get_default_allocator(), &output);
@@ -389,7 +388,6 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_service_name_re
   rcl_ret_t ret;
   INIT_GLOBAL_ARGS("process_name", "foo:=bar");
 
-  // TODO(sloretz) rcl_remap_topic_name needs namespace and substitution map
   char * output = NULL;
   ret = rcl_remap_service_name(
     NULL, true, "/ns/foo", "NodeName", "/ns", rcl_get_default_allocator(), &output);
