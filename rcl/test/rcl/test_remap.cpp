@@ -592,12 +592,24 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_name)
   rcl_ret_t ret;
   INIT_GLOBAL_ARGS("process_name", "__node:=new_name");
 
-  rcl_node_t node = rcl_get_zero_initialized_node();
-  rcl_node_options_t default_options = rcl_node_get_default_options();
-  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/", &default_options));
-  EXPECT_STREQ("new_name", rcl_node_get_name(&node));
-  EXPECT_STREQ("new_name", rcl_node_get_logger_name(&node));
-  EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  // Do remap node name using global rule
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t default_options = rcl_node_get_default_options();
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/", &default_options));
+    EXPECT_STREQ("new_name", rcl_node_get_name(&node));
+    EXPECT_STREQ("new_name", rcl_node_get_logger_name(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
+  // Ignoring global args, don't remap node name
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.use_global_arguments = false;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/", &options));
+    EXPECT_STREQ("original_name", rcl_node_get_name(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
 
   CLEANUP_GLOBAL_ARGS();
 }
@@ -608,11 +620,23 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_names
   rcl_ret_t ret;
   INIT_GLOBAL_ARGS("process_name", "__ns:=/new_ns");
 
-  rcl_node_t node = rcl_get_zero_initialized_node();
-  rcl_node_options_t default_options = rcl_node_get_default_options();
-  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/old_ns", &default_options));
-  EXPECT_STREQ("/new_ns", rcl_node_get_namespace(&node));
-  EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  // Do remap namespace using global rule
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t default_options = rcl_node_get_default_options();
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/old_ns", &default_options));
+    EXPECT_STREQ("/new_ns", rcl_node_get_namespace(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
+  // Do remap namespace using global rule
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.use_global_arguments = false;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/old_ns", &options));
+    EXPECT_STREQ("/old_ns", rcl_node_get_namespace(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
 
   CLEANUP_GLOBAL_ARGS();
 }
