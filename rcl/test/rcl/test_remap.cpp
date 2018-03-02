@@ -585,3 +585,18 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_noden
 
   CLEANUP_GLOBAL_ARGS();
 }
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_name) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "__node:=new_name");
+
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_options_t default_options = rcl_node_get_default_options();
+  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/ns", &default_options));
+  EXPECT_STREQ("new_name", rcl_node_get_name(&node));
+  EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+
+  CLEANUP_GLOBAL_ARGS();
+}
