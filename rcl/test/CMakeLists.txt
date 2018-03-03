@@ -112,6 +112,7 @@ function(test_target_function)
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    AMENT_DEPENDENCIES "std_msgs"
   )
 
   rcl_add_custom_gtest(test_guard_condition${target_suffix}

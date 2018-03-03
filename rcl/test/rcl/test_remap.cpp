@@ -17,6 +17,7 @@
 #include "rcl/rcl.h"
 #include "rcl/remap.h"
 #include "rcl/error_handling.h"
+#include "std_msgs/msg/int64.h"
 
 #include "../memory_tools/memory_tools.hpp"
 
@@ -640,7 +641,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_names
     EXPECT_STREQ("/new_ns", rcl_node_get_namespace(&node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
   }
-  // Do remap namespace using global rule
+  // Ignoring global args, don't remap
   {
     rcl_node_t node = rcl_get_zero_initialized_node();
     rcl_node_options_t options = rcl_node_get_default_options();
@@ -658,6 +659,89 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_names
     options.arguments = local_arguments;
     ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/old_ns", &options));
     EXPECT_STREQ("/local_ns", rcl_node_get_namespace(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
+  }
+
+  CLEANUP_GLOBAL_ARGS();
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), publisher_uses_remapped_topic) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "/foo/bar:=/bar/foo");
+
+  // Do remap topic using global rule
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t default_options = rcl_node_get_default_options();
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/old_ns", &default_options));
+
+    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+    rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+    ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_STREQ("/bar/foo", rcl_publisher_get_topic_name(&publisher));
+
+    EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
+  // Ignoring global args, don't remap
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.use_global_arguments = false;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/old_ns", &options));
+
+    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+    rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+    ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_STREQ("/foo/bar", rcl_publisher_get_topic_name(&publisher));
+
+    EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
+  // Remap using local args before global args
+  {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name", "/foo/bar:=/local/remap");
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.arguments = local_arguments;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/", &options));
+
+    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+    rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+    ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_STREQ("/local/remap", rcl_publisher_get_topic_name(&publisher));
+
+    EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
+  }
+  // Remap a relative topic name that matches
+  {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name", "/foo/bar:=local/remap");
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.arguments = local_arguments;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/foo", &options));
+
+    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+    rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+    ret = rcl_publisher_init(&publisher, &node, ts, "bar", &publisher_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_STREQ("/foo/local/remap", rcl_publisher_get_topic_name(&publisher));
+
+    EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
     CLEANUP_LOCAL_ARGS();
   }
