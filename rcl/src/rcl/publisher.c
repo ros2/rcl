@@ -25,6 +25,7 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
+#include "rcl/remap.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
@@ -108,56 +109,87 @@ rcl_publisher_init(
     &expanded_topic_name);
   rcutils_ret = rcutils_string_map_fini(&substitutions_map);
   if (rcutils_ret != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG(rcutils_get_error_string_safe(), *allocator)
-    allocator->deallocate(expanded_topic_name, allocator->state);
-    return RCL_RET_ERROR;
+    RCL_SET_ERROR_MSG(rcutils_get_error_string_safe(), *allocator);
+    ret = RCL_RET_ERROR;
+    goto cleanup;
   }
   if (ret != RCL_RET_OK) {
-    if (ret == RCL_RET_BAD_ALLOC) {
-      return ret;
-    } else if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
-      return RCL_RET_TOPIC_NAME_INVALID;
+    if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
+      ret = RCL_RET_TOPIC_NAME_INVALID;
     } else {
-      return RCL_RET_ERROR;
+      ret = RCL_RET_ERROR;
     }
+    goto cleanup;
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded topic name '%s'", expanded_topic_name)
+
+  const rcl_node_options_t * node_options = rcl_node_get_options(node);
+  if (NULL == node_options) {
+    ret = RCL_RET_ERROR;
+    goto cleanup;
+  }
+  char * remapped_topic_name = NULL;
+  ret = rcl_remap_topic_name(
+    &(node_options->arguments),
+    node_options->use_global_arguments,
+    expanded_topic_name,
+    rcl_node_get_name(node),
+    rcl_node_get_namespace(node),
+    *allocator,
+    &remapped_topic_name);
+  if (RCL_RET_OK != ret) {
+    goto fail;
+  } else if (NULL == remapped_topic_name) {
+    remapped_topic_name = expanded_topic_name;
+    expanded_topic_name = NULL;
+  }
+
   // Validate the expanded topic name.
   int validation_result;
-  rmw_ret_t rmw_ret = rmw_validate_full_topic_name(expanded_topic_name, &validation_result, NULL);
+  rmw_ret_t rmw_ret = rmw_validate_full_topic_name(remapped_topic_name, &validation_result, NULL);
   if (rmw_ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
+    goto cleanup;
   }
   if (validation_result != RMW_TOPIC_VALID) {
     RCL_SET_ERROR_MSG(rmw_full_topic_name_validation_result_string(validation_result), *allocator)
-    return RCL_RET_TOPIC_NAME_INVALID;
+    ret = RCL_RET_TOPIC_NAME_INVALID;
+    goto cleanup;
   }
   // Allocate space for the implementation struct.
   publisher->impl = (rcl_publisher_impl_t *)allocator->allocate(
     sizeof(rcl_publisher_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC, *allocator);
+    publisher->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup, *allocator);
   // Fill out implementation struct.
   // rmw handle (create rmw publisher)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
   publisher->impl->rmw_handle = rmw_create_publisher(
     rcl_node_get_rmw_handle(node),
     type_support,
-    expanded_topic_name,
+    remapped_topic_name,
     &(options->qos));
-  allocator->deallocate(expanded_topic_name, allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
     rmw_get_error_string_safe(), goto fail, *allocator);
   // options
   publisher->impl->options = *options;
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized")
-  return RCL_RET_OK;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
+  goto cleanup;
 fail:
   if (publisher->impl) {
     allocator->deallocate(publisher->impl, allocator->state);
   }
-  return fail_ret;
+  ret = fail_ret;
+  // Fall through to cleanup
+cleanup:
+  if (NULL != expanded_topic_name) {
+    allocator->deallocate(expanded_topic_name, allocator->state);
+  }
+  if (NULL != remapped_topic_name) {
+    allocator->deallocate(remapped_topic_name, allocator->state);
+  }
+  return ret;
 }
 
 rcl_ret_t

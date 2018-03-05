@@ -64,7 +64,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_topic_name(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * name,
   const char * node_name,
@@ -110,7 +110,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_service_name(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * name,
   const char * node_name,
@@ -152,7 +152,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_node_name(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * node_name,
   rcl_allocator_t allocator,
@@ -192,7 +192,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_node_namespace(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * node_name,
   rcl_allocator_t allocator,

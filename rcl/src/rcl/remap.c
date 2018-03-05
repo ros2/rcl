@@ -102,7 +102,7 @@ _rcl_remap_first_match(
 /// Remap from one name to another using rules matching a given type bitmask
 rcl_ret_t
 _rcl_remap_name(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   rcl_remap_type_t type_bitmask,
   const char * name,
@@ -154,7 +154,7 @@ _rcl_remap_name(
 
 rcl_ret_t
 rcl_remap_topic_name(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * name,
   const char * node_name,
@@ -181,7 +181,7 @@ rcl_remap_topic_name(
 
 rcl_ret_t
 rcl_remap_service_name(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * name,
   const char * node_name,
@@ -210,7 +210,7 @@ rcl_remap_service_name(
 
 rcl_ret_t
 rcl_remap_node_name(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * node_name,
   rcl_allocator_t allocator,
@@ -223,7 +223,7 @@ rcl_remap_node_name(
 
 rcl_ret_t
 rcl_remap_node_namespace(
-  rcl_arguments_t * local_arguments,
+  const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
   const char * node_name,
   rcl_allocator_t allocator,
