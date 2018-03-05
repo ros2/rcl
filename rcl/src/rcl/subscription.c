@@ -97,6 +97,7 @@ rcl_subscription_init(
     return RCL_RET_ERROR;
   }
   char * expanded_topic_name = NULL;
+  char * remapped_topic_name = NULL;
   ret = rcl_expand_topic_name(
     topic_name,
     rcl_node_get_name(node),
@@ -125,7 +126,6 @@ rcl_subscription_init(
     ret = RCL_RET_ERROR;
     goto cleanup;
   }
-  char * remapped_topic_name = NULL;
   ret = rcl_remap_topic_name(
     &(node_options->arguments),
     node_options->use_global_arguments,

@@ -98,6 +98,7 @@ rcl_service_init(
     return RCL_RET_ERROR;
   }
   char * expanded_service_name = NULL;
+  char * remapped_service_name = NULL;
   ret = rcl_expand_topic_name(
     service_name,
     rcl_node_get_name(node),
@@ -127,7 +128,6 @@ rcl_service_init(
     ret = RCL_RET_ERROR;
     goto cleanup;
   }
-  char * remapped_service_name = NULL;
   ret = rcl_remap_service_name(
     &(node_options->arguments),
     node_options->use_global_arguments,
