@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include "example_interfaces/srv/add_two_ints.h"
 #include "rcl/rcl.h"
 #include "rcl/remap.h"
 #include "rcl/error_handling.h"
@@ -825,6 +826,93 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), subscription_uses_remapp
     EXPECT_STREQ("/foo/local/remap", rcl_subscription_get_topic_name(&subscription));
 
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
+  }
+
+  CLEANUP_GLOBAL_ARGS();
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), client_uses_remapped_service) {
+  unsigned int argc;
+  char ** argv;
+  rcl_ret_t ret;
+  INIT_GLOBAL_ARGS("process_name", "/foo/bar:=/bar/foo");
+
+  // Do remap topic using global rule
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t default_options = rcl_node_get_default_options();
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/old_ns", &default_options));
+
+    const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+      example_interfaces, AddTwoInts);
+    rcl_client_options_t client_options = rcl_client_get_default_options();
+    rcl_client_t client = rcl_get_zero_initialized_client();
+    ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_STREQ("/bar/foo", rcl_client_get_service_name(&client));
+
+    EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
+  // Ignoring global args, don't remap
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.use_global_arguments = false;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/old_ns", &options));
+
+    const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+      example_interfaces, AddTwoInts);
+    rcl_client_options_t client_options = rcl_client_get_default_options();
+    rcl_client_t client = rcl_get_zero_initialized_client();
+    ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_STREQ("/foo/bar", rcl_client_get_service_name(&client));
+
+    EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  }
+  // Remap using local args before global args
+  {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name", "/foo/bar:=/local/remap");
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.arguments = local_arguments;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/", &options));
+
+    const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+      example_interfaces, AddTwoInts);
+    rcl_client_options_t client_options = rcl_client_get_default_options();
+    rcl_client_t client = rcl_get_zero_initialized_client();
+    ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_STREQ("/local/remap", rcl_client_get_service_name(&client));
+
+    EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
+  }
+  // Remap a relative topic name that matches
+  {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name", "/foo/bar:=local/remap");
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    rcl_node_options_t options = rcl_node_get_default_options();
+    options.arguments = local_arguments;
+    ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/foo", &options));
+
+    const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+      example_interfaces, AddTwoInts);
+    rcl_client_options_t client_options = rcl_client_get_default_options();
+    rcl_client_t client = rcl_get_zero_initialized_client();
+    ret = rcl_client_init(&client, &node, ts, "bar", &client_options);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_STREQ("/foo/local/remap", rcl_client_get_service_name(&client));
+
+    EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
     CLEANUP_LOCAL_ARGS();
   }
