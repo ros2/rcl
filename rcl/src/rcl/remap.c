@@ -59,6 +59,7 @@ rcl_remap_fini(
 
 /// Get the first matching rule in a chain
 /// \return NULL if no rule in the chain matched
+RCL_LOCAL
 rcl_remap_t *
 _rcl_remap_first_match(
   rcl_remap_t * remap_rules,
@@ -100,6 +101,7 @@ _rcl_remap_first_match(
 }
 
 /// Remap from one name to another using rules matching a given type bitmask
+RCL_LOCAL
 rcl_ret_t
 _rcl_remap_name(
   const rcl_arguments_t * local_arguments,
