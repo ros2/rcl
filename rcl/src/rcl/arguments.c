@@ -187,6 +187,8 @@ rcl_parse_arguments(
   rcl_arguments_impl_t * args_impl = args_output->impl;
   args_impl->num_remap_rules = 0;
   args_impl->remap_rules = NULL;
+  args_impl->unparsed_args = NULL;
+  args_impl->num_unparsed_args = 0;
 
   if (argc == 0 || argc == 1) {
     // first argument is assumed to be the process name
@@ -194,11 +196,14 @@ rcl_parse_arguments(
     return RCL_RET_OK;
   }
 
-  // over-allocate remap_rules array to match the number of arguments
+  // over-allocate arrays to match the number of arguments
   args_impl->remap_rules = allocator.allocate(sizeof(rcl_remap_t) * (argc - 1), allocator.state);
   if (NULL == args_impl->remap_rules) {
     return RCL_RET_BAD_ALLOC;
   }
+  args_impl->unparsed_args = allocator.allocate(sizeof(int) * argc, allocator.state);
+  args_impl->unparsed_args[0] = 0;
+  args_impl->num_unparsed_args = 1;
 
   // Attempt to parse arguments are remap rules
   for (int i = 1; i < argc; ++i) {
@@ -206,6 +211,9 @@ rcl_parse_arguments(
     *rule = rcl_remap_get_zero_initialized();
     if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       ++(args_impl->num_remap_rules);
+    } else {
+      args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
+      ++(args_impl->num_unparsed_args);
     }
   }
 
@@ -222,7 +230,49 @@ rcl_parse_arguments(
     allocator.deallocate(args_impl->remap_rules, allocator.state);
     args_impl->remap_rules = NULL;
   }
+  // Shrink unparsed_args
+  if (args_impl->num_unparsed_args < argc) {
+    void * shrunk = allocator.reallocate(
+      args_impl->unparsed_args, sizeof(int) * args_impl->num_unparsed_args, allocator.state);
+    if (NULL == shrunk) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    args_impl->unparsed_args = shrunk;
+  }
 
+  return RCL_RET_OK;
+}
+
+int
+rcl_get_num_unparsed_arguments(
+  rcl_arguments_t * args)
+{
+  if (NULL == args || NULL == args->impl) {
+    return -1;
+  }
+  return args->impl->num_unparsed_args;
+}
+
+rcl_ret_t
+rcl_get_unparsed_arguments(
+  rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int ** output_unparsed_indices)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_unparsed_indices, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  *output_unparsed_indices = NULL;
+  if (args->impl->num_unparsed_args) {
+    *output_unparsed_indices = allocator.allocate(
+      sizeof(int) * args->impl->num_unparsed_args, allocator.state);
+    if (NULL == *output_unparsed_indices) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    memcpy(*output_unparsed_indices, args->impl->unparsed_args, args->impl->num_unparsed_args);
+  }
   return RCL_RET_OK;
 }
 

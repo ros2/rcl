@@ -75,6 +75,56 @@ rcl_parse_arguments(
   rcl_allocator_t allocator,
   rcl_arguments_t * args_output);
 
+/// Return the number of arguments that were not successfully parsed.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] args an arguments structure that has been parsed.
+ * \return number of unparsed arguments, or -1 if args is invalid
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+int
+rcl_get_num_unparsed_arguments(
+  rcl_arguments_t * args);
+
+/// Return a list of indexes that weren't successfully parsed
+/**
+ * Some arguments may not have been successfully parsed, or were not intended as ROS arguments.
+ * This function populates an array of indexes to these arguments in the original argv array.
+ * Since the first argument is always assumed to be a process name, the list will always contain
+ * the index 0.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] args an arguments structure that has been parsed.
+ * \param[in] allocator a valid allocator
+ * \param[out] output_unparsed_indices an allocated array of indices into the original argv array.
+ *  This array must be deallocated by the caller using the given allocator.
+ * \return `RCL_RET_OK` if everything goes correctly
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_unparsed_arguments(
+  rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int ** output_unparsed_indices);
 
 /// Deallocate a structure holding parsed command line arguments
 /**

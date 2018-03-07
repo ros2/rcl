@@ -26,6 +26,10 @@ extern "C"
 
 typedef struct rcl_arguments_impl_t
 {
+  int num_unparsed_args;
+  /// array of indices that were not valid ROS arguments
+  int * unparsed_args;
+
   /// \brief Array of rules for name remapping
   rcl_remap_t * remap_rules;
   int num_remap_rules;
