@@ -42,15 +42,18 @@ extern "C"
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | Yes (if a remap rule matched)
- * Thread-Safe        | No
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ * <i>[1] thread safe if use_global_arguments is false</i>
  *
- * \param[in] local_arguments arguments to be used before global arguments
+ * \param[in] local_arguments command line arguments to be used before global arguments.
+ *            If NULL or zero-initialized then only global arguments are used.
  * \param[in] use_global_arguments if false then global arguments aren't used at all
- * \param[in] node_name the name of the node whose namespace is being remapped
- * \param[in] input_name a fully qualified name to be remapped
+ * \param[in] name a fully qualified and expanded topic name to be remapped
+ * \param[in] node_name the name of the node whose topic is to be remapped
+ * \param[in] node_namespace the namespace of a node whose topic is to be remapped
  * \param[in] allocator a valid allocator to use
  * \param[out] output_name either an allocated string with the remapped name,
  *             or `NULL` if no remap rules matched the name
