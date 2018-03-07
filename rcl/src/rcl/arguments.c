@@ -79,18 +79,20 @@ _rcl_parse_remap_rule(
   }
 
   colon = strchr(arg, ':');
-  if (colon < separator) {
-    // If there is a : on the match side then there is a node-name prefix
-    match_begin = colon + 1;
-    len_node_name = colon - arg;
-    len_match = separator - match_begin;
-    // node name must have at least one character
-    if (len_node_name <= 0) {
+  if (NULL != colon) {
+    if (colon < separator) {
+      // If there is a : on the match side then there is a node-name prefix
+      match_begin = colon + 1;
+      len_node_name = colon - arg;
+      len_match = separator - match_begin;
+      // node name must have at least one character
+      if (len_node_name <= 0) {
+        return RCL_RET_ERROR;
+      }
+    } else if (colon > separator) {
+      // If the colon is on the replacement side then this couldn't be a valid rule
       return RCL_RET_ERROR;
     }
-  } else if (colon > separator) {
-    // If the colon is on the replacement side then this couldn't be a valid rule
-    return RCL_RET_ERROR;
   }
 
   // match side must have at least 1 character
