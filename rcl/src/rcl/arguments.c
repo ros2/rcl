@@ -64,6 +64,7 @@ _rcl_parse_remap_rule(
   const char * separator = NULL;
   const char * colon = NULL;
   const char * match_begin = arg;
+  const char * replacement_begin = NULL;
 
   // A valid rule has two parts separated by :=
   separator = strstr(arg, ":=");
@@ -71,9 +72,11 @@ _rcl_parse_remap_rule(
     return RCL_RET_ERROR;
   }
 
+  replacement_begin = separator + 2;
+
   // must have characters on both sides of the separator
   len_match = separator - arg;
-  len_replacement = strlen(separator + 2);
+  len_replacement = strlen(replacement_begin);
   if (len_match <= 0 || len_replacement <= 0) {
     return RCL_RET_ERROR;
   }
@@ -115,9 +118,9 @@ _rcl_parse_remap_rule(
     type = RCL_NODENAME_REMAP;
   }
 
-  if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP | RCL_NAMESPACE_REMAP)) {
+  if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP) ){
     // Replacement must be a valid topic name
-    char * copy_replacement = rcutils_strndup(separator + 2, len_replacement, allocator);
+    char * copy_replacement = rcutils_strndup(replacement_begin, len_replacement, allocator);
     if (NULL == copy_replacement) {
       return RCL_RET_ERROR;
     }
@@ -127,24 +130,16 @@ _rcl_parse_remap_rule(
     if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
       ret = RCL_RET_ERROR;
     }
-    // namespace replacement must be fully qualified
-    if (RCL_NAMESPACE_REMAP == type && '/' != copy_replacement[0]) {
-      ret = RCL_RET_ERROR;
-    }
     allocator.deallocate(copy_replacement, allocator.state);
     if (RCL_RET_OK != ret) {
       return RCL_RET_ERROR;
     }
-  }
-  if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
     // Match must be a valid topic name
     char * copy_match = rcutils_strndup(match_begin, len_match, allocator);
     if (NULL == copy_match) {
       return RCL_RET_ERROR;
     }
-    int validation_result;
-    size_t invalid_index;
-    rcl_ret_t ret = rcl_validate_topic_name(copy_match, &validation_result, &invalid_index);
+    ret = rcl_validate_topic_name(copy_match, &validation_result, &invalid_index);
     if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
       ret = RCL_RET_ERROR;
     }
@@ -152,11 +147,32 @@ _rcl_parse_remap_rule(
     if (RCL_RET_OK != ret) {
       return RCL_RET_ERROR;
     }
-  }
-  if (RCL_NODENAME_REMAP == type) {
+  } else if (type & RCL_NAMESPACE_REMAP) {
+    // namespace replacement must be fully qualified
+    if ('/' != replacement_begin[0]) {
+      return RCL_RET_ERROR;
+    }
+    if (len_replacement > 1) {
+      // Replacement must either be / or a valid topic name
+      char * copy_replacement = rcutils_strndup(replacement_begin, len_replacement, allocator);
+      if (NULL == copy_replacement) {
+        return RCL_RET_ERROR;
+      }
+      int validation_result;
+      size_t invalid_index;
+      rcl_ret_t ret = rcl_validate_topic_name(copy_replacement, &validation_result, &invalid_index);
+      if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
+        ret = RCL_RET_ERROR;
+      }
+      allocator.deallocate(copy_replacement, allocator.state);
+      if (RCL_RET_OK != ret) {
+        return RCL_RET_ERROR;
+      }
+    }
+  } else if (RCL_NODENAME_REMAP == type) {
     // Replacement may only be a token
     for (int i = 0; i < len_replacement; ++i) {
-      if (!_rcl_valid_token_char(separator[i + 2])) {
+      if (!_rcl_valid_token_char(replacement_begin[i])) {
         return RCL_RET_ERROR;
       }
     }
@@ -171,12 +187,12 @@ _rcl_parse_remap_rule(
     }
   }
   if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
-    output_rule->match = rcutils_strndup(separator - len_match, len_match, allocator);
+    output_rule->match = rcutils_strndup(match_begin, len_match, allocator);
     if (NULL == output_rule->match) {
       goto cleanup_rule;
     }
   }
-  output_rule->replacement = rcutils_strndup(separator + 2, len_replacement, allocator);
+  output_rule->replacement = rcutils_strndup(replacement_begin, len_replacement, allocator);
   if (NULL == output_rule->replacement) {
     goto cleanup_rule;
   }
