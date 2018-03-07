@@ -32,8 +32,9 @@ extern "C"
 rcl_arguments_t __rcl_arguments;
 
 
-/// \brief return true if c is in [a-zA-Z0-9_]
+/// \return true if c is in [a-zA-Z0-9_]
 /// \internal
+RCL_LOCAL
 bool
 _rcl_valid_token_char(char c)
 {
@@ -42,14 +43,14 @@ _rcl_valid_token_char(char c)
 }
 
 
-/// \brief Parse one argument that may or may not be a remap rule
+/// Parse an argument that may or may not be a remap rule
 /// \param[in] arg the argument to parse
 /// \param[in] allocator an allocator to use
 /// \param[out] output_rule a zero initialized remap rule.
 /// \return RCL_RET_OK if a valid rule was parsed
 /// \return RLC_RET_ERROR if no valid rule was parsed
-/// \todo (sloretz) replace this code when implementing ros 2 remapping grammar
 /// \internal
+RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_rule(
   const char * arg,
