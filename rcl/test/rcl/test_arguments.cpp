@@ -88,15 +88,49 @@ public:
   } while (0)
 
 
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_only_proc_name) {
-  const char * argv[] = {"process_name"};
-  int argc = sizeof(argv) / sizeof(const char *);
+bool
+is_valid_arg(const char * arg)
+{
+  const char * argv[] = {arg};
   rcl_arguments_t parsed_args;
-  rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  rcl_ret_t ret = rcl_parse_arguments(1, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_UNPARSED(parsed_args, 0);
+  bool is_valid = 0 == rcl_get_num_unparsed_arguments(&parsed_args);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+  return is_valid;
 }
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_invalid_args) {
+  EXPECT_TRUE(is_valid_arg("__node:=node_name"));
+  EXPECT_TRUE(is_valid_arg("old_name:__node:=node_name"));
+  EXPECT_TRUE(is_valid_arg("old_name:__node:=nodename123"));
+  EXPECT_TRUE(is_valid_arg("__node:=nodename123"));
+  EXPECT_TRUE(is_valid_arg("__ns:=/foo/bar"));
+  EXPECT_TRUE(is_valid_arg("__ns:=/"));
+  EXPECT_TRUE(is_valid_arg("nodename:__ns:=/foobar"));
+  EXPECT_TRUE(is_valid_arg("foo:=bar"));
+  EXPECT_TRUE(is_valid_arg("~/foo:=~/bar"));
+  EXPECT_TRUE(is_valid_arg("/foo/bar:=bar"));
+  EXPECT_TRUE(is_valid_arg("foo:=/bar"));
+  EXPECT_TRUE(is_valid_arg("/foo123:=/bar123"));
+  EXPECT_TRUE(is_valid_arg("node:/foo123:=/bar123"));
+
+  EXPECT_FALSE(is_valid_arg(":="));
+  EXPECT_FALSE(is_valid_arg("foo:="));
+  EXPECT_FALSE(is_valid_arg(":=bar"));
+  EXPECT_FALSE(is_valid_arg("__ns:="));
+  EXPECT_FALSE(is_valid_arg("__node:="));
+  EXPECT_FALSE(is_valid_arg("__node:=/foo/bar"));
+  EXPECT_FALSE(is_valid_arg("__ns:=foo"));
+  EXPECT_FALSE(is_valid_arg(":__node:=nodename"));
+  EXPECT_FALSE(is_valid_arg("~:__node:=nodename"));
+  EXPECT_FALSE(is_valid_arg("}foo:=/bar"));
+  EXPECT_FALSE(is_valid_arg("f oo:=/bar"));
+  EXPECT_FALSE(is_valid_arg("foo:=/b ar"));
+  EXPECT_FALSE(is_valid_arg("f{oo:=/bar"));
+  EXPECT_FALSE(is_valid_arg("foo:=/b}ar"));
+}
+
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   rcl_arguments_t parsed_args;
@@ -133,17 +167,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_invalid_rules) {
-  const char * argv[] = {"process_name", "/foo/bar:=", ":=/fiz/buz", ":=", "/fiz=/buz"};
-  int argc = sizeof(argv) / sizeof(const char *);
-  rcl_arguments_t parsed_args;
-  rcl_ret_t ret;
-  ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_UNPARSED(parsed_args, 0, 1, 2, 3, 4);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
-}
-
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_invalid_rules) {
   const char * argv[] = {"process_name", "/foo/bar:=", "bar:=/fiz/buz", "}bar:=fiz"};
   int argc = sizeof(argv) / sizeof(const char *);
@@ -152,17 +175,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_inval
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_UNPARSED(parsed_args, 0, 1, 3);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
-}
-
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_namespace) {
-  const char * argv[] = {"process_name", "__ns:=/foo/bar"};
-  int argc = sizeof(argv) / sizeof(const char *);
-  rcl_arguments_t parsed_args;
-  rcl_ret_t ret;
-  ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_UNPARSED(parsed_args, 0);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
