@@ -147,7 +147,7 @@ _rcl_parse_remap_rule(
     if (RCL_RET_OK != ret) {
       return RCL_RET_ERROR;
     }
-  } else if (type & RCL_NAMESPACE_REMAP) {
+  } else if (RCL_NAMESPACE_REMAP == type) {
     // namespace replacement must be fully qualified
     if ('/' != replacement_begin[0]) {
       return RCL_RET_ERROR;
