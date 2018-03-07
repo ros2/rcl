@@ -98,7 +98,7 @@ _rcl_parse_remap_rule(
     return RCL_RET_ERROR;
   }
 
-  // Validate given node name
+  // Make sure node name contains only valid characters
   for (int i = 0; i < len_node_name; ++i) {
     if (!_rcl_valid_token_char(arg[i])) {
       return RCL_RET_ERROR;
