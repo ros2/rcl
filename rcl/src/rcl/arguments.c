@@ -118,7 +118,7 @@ _rcl_parse_remap_rule(
     type = RCL_NODENAME_REMAP;
   }
 
-  if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP) ){
+  if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
     // Replacement must be a valid topic name
     char * copy_replacement = rcutils_strndup(replacement_begin, len_replacement, allocator);
     if (NULL == copy_replacement) {
@@ -219,6 +219,9 @@ rcl_parse_arguments(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(args_output, RCL_RET_INVALID_ARGUMENT, allocator);
 
+  rcl_ret_t ret;
+  rcl_ret_t fail_ret;
+
   args_output->impl = allocator.allocate(sizeof(rcl_arguments_impl_t), allocator.state);
   if (NULL == args_output->impl) {
     return RCL_RET_BAD_ALLOC;
@@ -237,13 +240,13 @@ rcl_parse_arguments(
   // over-allocate arrays to match the number of arguments
   args_impl->remap_rules = allocator.allocate(sizeof(rcl_remap_t) * argc, allocator.state);
   if (NULL == args_impl->remap_rules) {
-    return RCL_RET_BAD_ALLOC;
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
   }
   args_impl->unparsed_args = allocator.allocate(sizeof(int) * argc, allocator.state);
   if (NULL == args_impl->unparsed_args) {
-    allocator.deallocate(args_impl->remap_rules, allocator.state);
-    args_impl->remap_rules = NULL;
-    return RCL_RET_BAD_ALLOC;
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
   }
 
   // Attempt to parse arguments are remap rules
@@ -263,7 +266,8 @@ rcl_parse_arguments(
     void * shrunk_rules = allocator.reallocate(
       args_impl->remap_rules, sizeof(rcl_remap_t) * args_impl->num_remap_rules, allocator.state);
     if (NULL == shrunk_rules) {
-      return RCL_RET_BAD_ALLOC;
+      ret = RCL_RET_BAD_ALLOC;
+      goto fail;
     }
     args_impl->remap_rules = shrunk_rules;
   } else {
@@ -280,12 +284,20 @@ rcl_parse_arguments(
     void * shrunk = allocator.reallocate(
       args_impl->unparsed_args, sizeof(int) * args_impl->num_unparsed_args, allocator.state);
     if (NULL == shrunk) {
-      return RCL_RET_BAD_ALLOC;
+      ret = RCL_RET_BAD_ALLOC;
+      goto fail;
     }
     args_impl->unparsed_args = shrunk;
   }
 
   return RCL_RET_OK;
+fail:
+  fail_ret = ret;
+  if (NULL != args_impl) {
+    // assign to ret to suppress warning about not checking return of fini
+    ret = rcl_arguments_fini(args_output, allocator);
+  }
+  return fail_ret;
 }
 
 int
