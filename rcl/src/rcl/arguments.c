@@ -127,7 +127,7 @@ _rcl_parse_remap_rule(
       ret = RCL_RET_ERROR;
     }
     allocator.deallocate(copy_replacement, allocator.state);
-    if (ret != RCL_RET_OK) {
+    if (RCL_RET_OK != ret) {
       return RCL_RET_ERROR;
     }
   } else if (RCL_NODENAME_REMAP == type) {
