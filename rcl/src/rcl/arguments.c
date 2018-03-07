@@ -46,7 +46,7 @@ _rcl_valid_token_char(char c)
 /// Parse an argument that may or may not be a remap rule
 /// \param[in] arg the argument to parse
 /// \param[in] allocator an allocator to use
-/// \param[out] output_rule a zero initialized remap rule.
+/// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
 /// \return RCL_RET_OK if a valid rule was parsed
 /// \return RLC_RET_ERROR if no valid rule was parsed
 /// \internal
@@ -78,9 +78,9 @@ _rcl_parse_remap_rule(
     return RCL_RET_ERROR;
   }
 
-  // If there is a : then the left side of a rule has a node-name prefix
   colon = strchr(arg, ':');
   if (colon < separator) {
+    // If there is a : on the match side then there is a node-name prefix
     match_begin = colon + 1;
     len_node_name = colon - arg;
     len_match = separator - match_begin;
@@ -88,6 +88,9 @@ _rcl_parse_remap_rule(
     if (len_node_name <= 0) {
       return RCL_RET_ERROR;
     }
+  } else if (colon > separator) {
+    // If the colon is on the replacement side then this couldn't be a valid rule
+    return RCL_RET_ERROR;
   }
 
   // match side must have at least 1 character
