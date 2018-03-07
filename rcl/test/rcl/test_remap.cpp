@@ -196,12 +196,16 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_namespace_
   char ** argv;
   rcl_ret_t ret;
   INIT_GLOBAL_ARGS("process_name", "__ns:=/foo/bar");
+  rcl_arguments_t local_arguments;
+  INIT_LOCAL_ARGS("process_name");
 
   char * output = NULL;
-  ret = rcl_remap_node_namespace(NULL, false, "NodeName", rcl_get_default_allocator(), &output);
+  ret = rcl_remap_node_namespace(
+    &local_arguments, false, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
+  CLEANUP_LOCAL_ARGS();
   CLEANUP_GLOBAL_ARGS();
 }
 
@@ -303,13 +307,16 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_topic_name
   char ** argv;
   rcl_ret_t ret;
   INIT_GLOBAL_ARGS("process_name", "/bar/foo:=/foo/bar");
+  rcl_arguments_t local_arguments;
+  INIT_LOCAL_ARGS("process_name");
 
   char * output = NULL;
   ret = rcl_remap_topic_name(
-    NULL, false, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
+    &local_arguments, false, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
+  CLEANUP_LOCAL_ARGS();
   CLEANUP_GLOBAL_ARGS();
 }
 
@@ -446,13 +453,16 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_service_na
   char ** argv;
   rcl_ret_t ret;
   INIT_GLOBAL_ARGS("process_name", "/bar/foo:=/foo/bar");
+  rcl_arguments_t local_arguments;
+  INIT_LOCAL_ARGS("process_name");
 
   char * output = NULL;
   ret = rcl_remap_service_name(
-    NULL, false, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
+    &local_arguments, false, "/bar/foo", "NodeName", "/", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
+  CLEANUP_LOCAL_ARGS();
   CLEANUP_GLOBAL_ARGS();
 }
 
@@ -563,12 +573,16 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_nodename_r
   char ** argv;
   rcl_ret_t ret;
   INIT_GLOBAL_ARGS("process_name", "__node:=globalname");
+  rcl_arguments_t local_arguments;
+  INIT_LOCAL_ARGS("process_name");
 
   char * output = NULL;
-  ret = rcl_remap_node_name(NULL, false, "NodeName", rcl_get_default_allocator(), &output);
+  ret = rcl_remap_node_name(
+    &local_arguments, false, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 
+  CLEANUP_LOCAL_ARGS();
   CLEANUP_GLOBAL_ARGS();
 }
 
@@ -623,12 +637,16 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_name)
   }
   // Ignoring global args, don't remap node name
   {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name");
     rcl_node_t node = rcl_get_zero_initialized_node();
     rcl_node_options_t options = rcl_node_get_default_options();
+    options.arguments = local_arguments;
     options.use_global_arguments = false;
     ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/", &options));
     EXPECT_STREQ("original_name", rcl_node_get_name(&node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
   }
   // Remap using local args before global args
   {
@@ -662,12 +680,16 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), node_uses_remapped_names
   }
   // Ignoring global args, don't remap
   {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name");
     rcl_node_t node = rcl_get_zero_initialized_node();
     rcl_node_options_t options = rcl_node_get_default_options();
     options.use_global_arguments = false;
+    options.arguments = local_arguments;
     ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/old_ns", &options));
     EXPECT_STREQ("/old_ns", rcl_node_get_namespace(&node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
   }
   // Remap using local args before global args
   {
@@ -709,9 +731,12 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), publisher_uses_remapped_
   }
   // Ignoring global args, don't remap
   {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name");
     rcl_node_t node = rcl_get_zero_initialized_node();
     rcl_node_options_t options = rcl_node_get_default_options();
     options.use_global_arguments = false;
+    options.arguments = local_arguments;
     ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/old_ns", &options));
 
     const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
@@ -723,6 +748,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), publisher_uses_remapped_
 
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
   }
   // Remap using local args before global args
   {
@@ -792,9 +818,12 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), subscription_uses_remapp
   }
   // Ignoring global args, don't remap
   {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name");
     rcl_node_t node = rcl_get_zero_initialized_node();
     rcl_node_options_t options = rcl_node_get_default_options();
     options.use_global_arguments = false;
+    options.arguments = local_arguments;
     ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/old_ns", &options));
 
     const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
@@ -806,6 +835,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), subscription_uses_remapp
 
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
   }
   // Remap using local args before global args
   {
@@ -876,9 +906,12 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), client_uses_remapped_ser
   }
   // Ignoring global args, don't remap
   {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name");
     rcl_node_t node = rcl_get_zero_initialized_node();
     rcl_node_options_t options = rcl_node_get_default_options();
     options.use_global_arguments = false;
+    options.arguments = local_arguments;
     ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/old_ns", &options));
 
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
@@ -891,6 +924,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), client_uses_remapped_ser
 
     EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
   }
   // Remap using local args before global args
   {
@@ -963,9 +997,12 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), service_uses_remapped_se
   }
   // Ignoring global args, don't remap
   {
+    rcl_arguments_t local_arguments;
+    INIT_LOCAL_ARGS("process_name");
     rcl_node_t node = rcl_get_zero_initialized_node();
     rcl_node_options_t options = rcl_node_get_default_options();
     options.use_global_arguments = false;
+    options.arguments = local_arguments;
     ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "node_name", "/old_ns", &options));
 
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
@@ -978,6 +1015,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), service_uses_remapped_se
 
     EXPECT_EQ(RCL_RET_OK, rcl_service_fini(&service, &node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    CLEANUP_LOCAL_ARGS();
   }
   // Remap using local args before global args
   {

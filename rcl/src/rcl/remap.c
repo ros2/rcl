@@ -116,6 +116,10 @@ _rcl_remap_name(
   if (NULL != local_arguments && NULL == local_arguments->impl) {
     local_arguments = NULL;
   }
+  if (NULL == local_arguments && !use_global_arguments) {
+    RCL_SET_ERROR_MSG("local_arguments invalid and not using global arguments", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
 
   *output_name = NULL;
   rcl_remap_t * rule = NULL;
