@@ -47,7 +47,7 @@ rcl_get_zero_initialized_arguments(void);
 /**
  * Arguments are parsed without modification.
  *
- * The first argument is assumed to be the name of the process, and is ignored.
+ * The first argument is assumed to be the name of the process and ignored.
  *
  * <hr>
  * Attribute          | Adherence
