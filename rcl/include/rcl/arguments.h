@@ -61,7 +61,7 @@ rcl_get_zero_initialized_arguments(void);
  * \param[in] argv the values of the arguments.
  * \param[in] allocator a valid allocator
  * \param[out] args_output a structure that will contain the result of parsing.
- * \return `RCL_RET_OK` if the topic name was remapped or no rules matched
+ * \return `RCL_RET_OK` if the arguments were parsed successfully
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
