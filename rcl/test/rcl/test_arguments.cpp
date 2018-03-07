@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <sstream>
+
 #include <gtest/gtest.h>
 
 #include "rcl/rcl.h"
@@ -56,18 +58,51 @@ public:
   }
 };
 
+#define EXPECT_UNPARSED(parsed_args, ...) \
+  do { \
+    int expect_unparsed[] = {__VA_ARGS__}; \
+    int expect_num_unparsed = sizeof(expect_unparsed) / sizeof(int); \
+    rcl_allocator_t alloc = rcl_get_default_allocator(); \
+    int actual_num_unparsed = rcl_get_num_unparsed_arguments(&parsed_args); \
+    int * actual_unparsed = NULL; \
+    if (actual_num_unparsed > 0) { \
+      rcl_ret_t ret = rcl_get_unparsed_arguments(&parsed_args, alloc, &actual_unparsed); \
+      ASSERT_EQ(RCL_RET_OK, ret); \
+    } \
+    std::stringstream expected; \
+    expected << "["; \
+    for (int e = 0; e < expect_num_unparsed; ++e) { \
+      expected << expect_unparsed[e] << ", "; \
+    } \
+    expected << "]"; \
+    std::stringstream actual; \
+    actual << "["; \
+    for (int a = 0; a < actual_num_unparsed; ++a) { \
+      actual << actual_unparsed[a] << ", "; \
+    } \
+    actual << "]"; \
+    if (NULL != actual_unparsed) { \
+      alloc.deallocate(actual_unparsed, alloc.state); \
+    } \
+    EXPECT_STREQ(expected.str().c_str(), actual.str().c_str()); \
+  } while (0)
+
+
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_only_proc_name) {
-  int argc = 1;
   const char * argv[] = {"process_name"};
+  int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args;
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_UNPARSED(parsed_args, 0);
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   rcl_arguments_t parsed_args;
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_UNPARSED(parsed_args);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
@@ -80,50 +115,65 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args) {
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args_output) {
-  int argc = 1;
   const char * argv[] = {"process_name"};
+  int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), NULL);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
-  int argc = 2;
   const char * argv[] = {"process_name", "/foo/bar:=/fiz/buz"};
+  int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args;
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_UNPARSED(parsed_args, 0);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_invalid_remap) {
-  int argc = 5;
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_invalid_rules) {
   const char * argv[] = {"process_name", "/foo/bar:=", ":=/fiz/buz", ":=", "/fiz=/buz"};
+  int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args;
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_UNPARSED(parsed_args, 0, 1, 2, 3, 4);
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_invalid_rules) {
+  const char * argv[] = {"process_name", "/foo/bar:=", "bar:=/fiz/buz", "}bar:=fiz"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args;
+  rcl_ret_t ret;
+  ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_UNPARSED(parsed_args, 0, 1, 3);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_namespace) {
-  int argc = 2;
   const char * argv[] = {"process_name", "__ns:=/foo/bar"};
+  int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args;
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_UNPARSED(parsed_args, 0);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_namespace) {
-  int argc = 3;
   const char * argv[] = {"process_name", "__ns:=/foo/bar", "__ns:=/fiz/buz"};
+  int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args;
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_UNPARSED(parsed_args, 0);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
@@ -140,8 +190,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_impl_null)
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_twice) {
-  int argc = 1;
   const char * argv[] = {"process_name"};
+  int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args;
   ASSERT_EQ(RCL_RET_OK, rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));

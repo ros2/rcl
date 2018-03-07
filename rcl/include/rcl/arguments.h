@@ -35,8 +35,6 @@ typedef struct rcl_arguments_t
   struct rcl_arguments_impl_t * impl;
 } rcl_arguments_t;
 
-// TODO(sloretz) Add API to get non-ROS arguments from rcl_arguments_t
-
 /// Return a rcl_node_t struct with members initialized to `NULL`.
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -46,8 +44,6 @@ rcl_get_zero_initialized_arguments(void);
 /// Parse command line arguments into a structure usable by code.
 /**
  * Arguments are parsed without modification.
- *
- * The first argument is assumed to be the name of the process and ignored.
  *
  * <hr>
  * Attribute          | Adherence
@@ -113,6 +109,7 @@ rcl_get_num_unparsed_arguments(
  * \param[in] allocator a valid allocator
  * \param[out] output_unparsed_indices an allocated array of indices into the original argv array.
  *  This array must be deallocated by the caller using the given allocator.
+ *  If there are no unparsed args then the output will be set to 0
  * \return `RCL_RET_OK` if everything goes correctly
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or

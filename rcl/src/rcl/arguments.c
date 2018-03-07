@@ -122,6 +122,9 @@ _rcl_parse_remap_rule(
     int validation_result;
     size_t invalid_index;
     rcl_ret_t ret = rcl_validate_topic_name(copy_replacement, &validation_result, &invalid_index);
+    if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
+      ret = RCL_RET_ERROR;
+    }
     // namespace replacement must be fully qualified
     if (RCL_NAMESPACE_REMAP == type && '/' != copy_replacement[0]) {
       ret = RCL_RET_ERROR;
@@ -130,7 +133,25 @@ _rcl_parse_remap_rule(
     if (RCL_RET_OK != ret) {
       return RCL_RET_ERROR;
     }
-  } else if (RCL_NODENAME_REMAP == type) {
+  }
+  if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
+    // Match must be a valid topic name
+    char * copy_match = rcutils_strndup(match_begin, len_match, allocator);
+    if (NULL == copy_match) {
+      return RCL_RET_ERROR;
+    }
+    int validation_result;
+    size_t invalid_index;
+    rcl_ret_t ret = rcl_validate_topic_name(copy_match, &validation_result, &invalid_index);
+    if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
+      ret = RCL_RET_ERROR;
+    }
+    allocator.deallocate(copy_match, allocator.state);
+    if (RCL_RET_OK != ret) {
+      return RCL_RET_ERROR;
+    }
+  }
+  if (RCL_NODENAME_REMAP == type) {
     // Replacement may only be a token
     for (int i = 0; i < len_replacement; ++i) {
       if (!_rcl_valid_token_char(separator[i + 2])) {
@@ -190,23 +211,25 @@ rcl_parse_arguments(
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
 
-  if (argc == 0 || argc == 1) {
-    // first argument is assumed to be the process name
+  if (argc == 0) {
     // there are no arguments to parse
     return RCL_RET_OK;
   }
 
   // over-allocate arrays to match the number of arguments
-  args_impl->remap_rules = allocator.allocate(sizeof(rcl_remap_t) * (argc - 1), allocator.state);
+  args_impl->remap_rules = allocator.allocate(sizeof(rcl_remap_t) * argc, allocator.state);
   if (NULL == args_impl->remap_rules) {
     return RCL_RET_BAD_ALLOC;
   }
   args_impl->unparsed_args = allocator.allocate(sizeof(int) * argc, allocator.state);
-  args_impl->unparsed_args[0] = 0;
-  args_impl->num_unparsed_args = 1;
+  if (NULL == args_impl->unparsed_args) {
+    allocator.deallocate(args_impl->remap_rules, allocator.state);
+    args_impl->remap_rules = NULL;
+    return RCL_RET_BAD_ALLOC;
+  }
 
   // Attempt to parse arguments are remap rules
-  for (int i = 1; i < argc; ++i) {
+  for (int i = 0; i < argc; ++i) {
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
     *rule = rcl_remap_get_zero_initialized();
     if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
@@ -231,7 +254,11 @@ rcl_parse_arguments(
     args_impl->remap_rules = NULL;
   }
   // Shrink unparsed_args
-  if (args_impl->num_unparsed_args < argc) {
+  if (0 == args_impl->num_unparsed_args) {
+    // No unparsed args
+    allocator.deallocate(args_impl->unparsed_args, allocator.state);
+    args_impl->unparsed_args = NULL;
+  } else if (args_impl->num_unparsed_args < argc) {
     void * shrunk = allocator.reallocate(
       args_impl->unparsed_args, sizeof(int) * args_impl->num_unparsed_args, allocator.state);
     if (NULL == shrunk) {
@@ -271,7 +298,9 @@ rcl_get_unparsed_arguments(
     if (NULL == *output_unparsed_indices) {
       return RCL_RET_BAD_ALLOC;
     }
-    memcpy(*output_unparsed_indices, args->impl->unparsed_args, args->impl->num_unparsed_args);
+    for (int i = 0; i < args->impl->num_unparsed_args; ++i) {
+      (*output_unparsed_indices)[i] = args->impl->unparsed_args[i];
+    }
   }
   return RCL_RET_OK;
 }
