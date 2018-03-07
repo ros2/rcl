@@ -67,10 +67,11 @@ typedef struct rcl_node_options_t
   /// Custom allocator used for internal allocations.
   rcl_allocator_t allocator;
 
-  /// indicate if global command line arguments should apply to this node
+  /// If true then both global command line arguments and arguments below apply to this node
+  /// If false then only the local arguments apply
   bool use_global_arguments;
 
-  /// Parsed command line arguments specific to this node.
+  /// Command line arguments that apply only to this node.
   rcl_arguments_t arguments;
 } rcl_node_options_t;
 
