@@ -362,6 +362,10 @@ rcl_arguments_fini(
       args->impl->num_remap_rules = 0;
     }
 
+    allocator.deallocate(args->impl->unparsed_args, allocator.state);
+    args->impl->num_unparsed_args = 0;
+    args->impl->unparsed_args = NULL;
+
     allocator.deallocate(args->impl, allocator.state);
     args->impl = NULL;
     RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Arguments finalized");
