@@ -17,6 +17,7 @@
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
+#include "rcutils/strdup.h"
 
 #include "../scope_exit.hpp"
 
@@ -27,11 +28,7 @@ copy_args(int argc, const char ** args)
   rcl_allocator_t allocator = rcl_get_default_allocator();
   char ** copy = static_cast<char **>(allocator.allocate(sizeof(char *) * argc, allocator.state));
   for (int i = 0; i < argc; ++i) {
-    size_t len = strlen(args[i]);
-    // +1 for terminating \0
-    copy[i] = static_cast<char *>(allocator.allocate(sizeof(char) * len + 1, allocator.state));
-    strncpy(copy[i], args[i], len);
-    copy[i][len] = '\0';
+    copy[i] = rcutils_strdup(args[i], allocator);
   }
   return copy;
 }
