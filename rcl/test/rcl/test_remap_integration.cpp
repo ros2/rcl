@@ -20,7 +20,6 @@
 #include "rcl/error_handling.h"
 #include "std_msgs/msg/int64.h"
 
-#include "../memory_tools/memory_tools.hpp"
 #include "./arg_macros.hpp"
 
 #ifdef RMW_IMPLEMENTATION
@@ -36,22 +35,10 @@ class CLASSNAME (TestRemapFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 public:
   void SetUp()
   {
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
   }
 };
 
