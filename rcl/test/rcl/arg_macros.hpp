@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__TEST_RCL_ARG_MACROS_HPP
-#define RCL__TEST_RCL_ARG_MACROS_HPP
+#ifndef RCL__ARG_MACROS_HPP_
+#define RCL__ARG_MACROS_HPP_
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
@@ -76,4 +76,4 @@ destroy_args(int argc, char ** args)
       ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments, rcl_get_default_allocator())); \
     })
 
-#endif
+#endif  // RCL__ARG_MACROS_HPP_

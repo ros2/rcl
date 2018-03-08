@@ -143,7 +143,8 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_names
   unsigned int argc;
   char ** argv;
   rcl_ret_t ret;
-  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "/foobar:=/foo/bar", "__ns:=/namespace", "__node:=remap_name");
+  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "/foobar:=/foo/bar", "__ns:=/namespace",
+    "__node:=remap_name");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
@@ -272,7 +273,8 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_topic
   unsigned int argc;
   char ** argv;
   rcl_ret_t ret;
-  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__ns:=/namespace", "__node:=remap_name", "/foobar:=/foo/bar");
+  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__ns:=/namespace", "__node:=remap_name",
+    "/foobar:=/foo/bar");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
@@ -402,7 +404,8 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_servi
   unsigned int argc;
   char ** argv;
   rcl_ret_t ret;
-  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__ns:=/namespace", "__node:=remap_name", "/foobar:=/foo/bar");
+  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__ns:=/namespace", "__node:=remap_name",
+    "/foobar:=/foo/bar");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
@@ -491,7 +494,8 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_noden
   unsigned int argc;
   char ** argv;
   rcl_ret_t ret;
-  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "/foobar:=/foo/bar", "__ns:=/namespace", "__node:=remap_name");
+  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "/foobar:=/foo/bar", "__ns:=/namespace",
+    "__node:=remap_name");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
