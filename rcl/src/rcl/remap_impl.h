@@ -34,21 +34,21 @@ typedef enum rcl_remap_type_t
 
 typedef struct rcl_remap_t
 {
-  /// \brief What type of remap rule is this
+  /// bitmask indicating what type of rule this is
   rcl_remap_type_t type;
-  /// \brief a node name that this rule is limited to, or NULL if it applies to any node
+  /// a node name that this rule is limited to, or NULL if it applies to any node
   char * node_name;
-  /// \brief match portion of a rule
+  /// match portion of a rule, or NULL if node name or namespace replacement
   char * match;
-  /// \brief replacement portion of a rule
+  /// replacement portion of a rule
   char * replacement;
 } rcl_remap_t;
 
-/// \brief Get an rcl_remap_t structure initialized with NULL
+/// Get an rcl_remap_t structure initialized with NULL
 rcl_remap_t
 rcl_remap_get_zero_initialized();
 
-/// \brief Deallocate memory used in an rcl_remap_t structure
+/// Deallocate memory used in an rcl_remap_t structure
 /**
  * <hr>
  * Attribute          | Adherence

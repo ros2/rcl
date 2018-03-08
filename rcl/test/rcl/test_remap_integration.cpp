@@ -44,8 +44,8 @@ public:
 TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_global_rule) {
   int argc;
   char ** argv;
-  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__node:=new_name", "__ns:=/new_ns",
-    "/foo/bar:=/bar/foo");
+  SCOPE_GLOBAL_ARGS(
+    argc, argv, "process_name", "__node:=new_name", "__ns:=/new_ns", "/foo/bar:=/bar/foo");
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t default_options = rcl_node_get_default_options();
@@ -73,8 +73,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
     const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-    rcl_ret_t ret = rcl_subscription_init(&subscription, &node, ts, "/foo/bar",
-        &subscription_options);
+    rcl_ret_t ret = rcl_subscription_init(
+      &subscription, &node, ts, "/foo/bar", &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     EXPECT_STREQ("/bar/foo", rcl_subscription_get_topic_name(&subscription));
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
@@ -106,8 +106,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
 TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global_rules) {
   int argc;
   char ** argv;
-  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__node:=new_name", "__ns:=/new_ns",
-    "/foo/bar:=/bar/foo");
+  SCOPE_GLOBAL_ARGS(
+    argc, argv, "process_name", "__node:=new_name", "__ns:=/new_ns", "/foo/bar:=/bar/foo");
   rcl_arguments_t local_arguments;
   SCOPE_LOCAL_ARGS(local_arguments, "local_process_name");
 
@@ -139,8 +139,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
     const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-    rcl_ret_t ret = rcl_subscription_init(&subscription, &node, ts, "/foo/bar",
-        &subscription_options);
+    rcl_ret_t ret = rcl_subscription_init(
+      &subscription, &node, ts, "/foo/bar", &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     EXPECT_STREQ("/foo/bar", rcl_subscription_get_topic_name(&subscription));
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
@@ -172,11 +172,12 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
 TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_before_global) {
   int argc;
   char ** argv;
-  SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__node:=global_name", "__ns:=/global_ns",
-    "/foo/bar:=/bar/global");
+  SCOPE_GLOBAL_ARGS(
+    argc, argv, "process_name", "__node:=global_name", "__ns:=/global_ns", "/foo/bar:=/bar/global");
   rcl_arguments_t local_arguments;
-  SCOPE_LOCAL_ARGS(local_arguments, "process_name", "__node:=local_name", "__ns:=/local_ns",
-    "/foo/bar:=/bar/local");
+  SCOPE_LOCAL_ARGS(
+    local_arguments,
+    "process_name", "__node:=local_name", "__ns:=/local_ns", "/foo/bar:=/bar/local");
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t options = rcl_node_get_default_options();
@@ -205,8 +206,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
     const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-    rcl_ret_t ret = rcl_subscription_init(&subscription, &node, ts, "/foo/bar",
-        &subscription_options);
+    rcl_ret_t ret = rcl_subscription_init(
+      &subscription, &node, ts, "/foo/bar", &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     EXPECT_STREQ("/bar/local", rcl_subscription_get_topic_name(&subscription));
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
@@ -257,8 +258,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
     const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-    rcl_ret_t ret = rcl_subscription_init(&subscription, &node, ts, "bar",
-        &subscription_options);
+    rcl_ret_t ret = rcl_subscription_init(
+      &subscription, &node, ts, "bar", &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     EXPECT_STREQ("/foo/remap/global", rcl_subscription_get_topic_name(&subscription));
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
