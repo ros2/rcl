@@ -49,7 +49,7 @@ destroy_args(int argc, char ** args)
     const char * const_argv[] = {__VA_ARGS__}; \
     argc = (sizeof(const_argv) / sizeof(const char *)); \
     argv = copy_args(argc, const_argv); \
-    ret = rcl_init(argc, argv, rcl_get_default_allocator()); \
+    rcl_ret_t ret = rcl_init(argc, argv, rcl_get_default_allocator()); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
   } \
   auto __scope_global_args_exit = make_scope_exit( \
@@ -64,7 +64,7 @@ destroy_args(int argc, char ** args)
   { \
     const char * local_argv[] = {__VA_ARGS__}; \
     unsigned int local_argc = (sizeof(local_argv) / sizeof(const char *)); \
-    ret = rcl_parse_arguments( \
+    rcl_ret_t ret = rcl_parse_arguments( \
       local_argc, local_argv, rcl_get_default_allocator(), &local_arguments); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
   } \
