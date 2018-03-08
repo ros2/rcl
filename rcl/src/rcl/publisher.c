@@ -130,13 +130,8 @@ rcl_publisher_init(
     goto cleanup;
   }
   ret = rcl_remap_topic_name(
-    &(node_options->arguments),
-    node_options->use_global_arguments,
-    expanded_topic_name,
-    rcl_node_get_name(node),
-    rcl_node_get_namespace(node),
-    *allocator,
-    &remapped_topic_name);
+    &(node_options->arguments), node_options->use_global_arguments, expanded_topic_name,
+    rcl_node_get_name(node), rcl_node_get_namespace(node), *allocator, &remapped_topic_name);
   if (RCL_RET_OK != ret) {
     goto fail;
   } else if (NULL == remapped_topic_name) {
