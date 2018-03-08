@@ -18,7 +18,6 @@
 #include "rcl/rcl.h"
 #include "rcl/arguments.h"
 
-#include "../memory_tools/memory_tools.hpp"
 #include "rcl/error_handling.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -33,26 +32,10 @@ class CLASSNAME (TestArgumentsFixture, RMW_IMPLEMENTATION) : public ::testing::T
 public:
   void SetUp()
   {
-    stop_memory_checking();
-    rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
-    rcl_ret_t ret = rcl_shutdown();
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   }
 };
 
