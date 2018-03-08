@@ -135,7 +135,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   rcl_arguments_t parsed_args;
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_UNPARSED(parsed_args);
+  EXPECT_EQ(0, rcl_get_num_unparsed_arguments(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
 }
 
