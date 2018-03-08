@@ -109,7 +109,7 @@ rcl_get_num_unparsed_arguments(
  * \param[in] allocator a valid allocator
  * \param[out] output_unparsed_indices an allocated array of indices into the original argv array.
  *  This array must be deallocated by the caller using the given allocator.
- *  If there are no unparsed args then the output will be set to 0
+ *  If there are no unparsed args then the output will be set to NULL
  * \return `RCL_RET_OK` if everything goes correctly
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
