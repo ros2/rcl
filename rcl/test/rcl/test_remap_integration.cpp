@@ -30,7 +30,7 @@
 #endif
 
 
-class CLASSNAME (TestRemapFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class CLASSNAME (TestRemapIntegrationFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
@@ -43,7 +43,7 @@ public:
 };
 
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), remap_using_global_rule) {
+TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_global_rule) {
   int argc;
   char ** argv;
   SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__node:=new_name", "__ns:=/new_ns",
@@ -105,7 +105,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), remap_using_global_rule)
   EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), ignore_global_rules) {
+TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global_rules) {
   int argc;
   char ** argv;
   SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__node:=new_name", "__ns:=/new_ns",
@@ -171,7 +171,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), ignore_global_rules) {
   EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_rules_before_global_rules) {
+TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_before_global) {
   int argc;
   char ** argv;
   SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__node:=global_name", "__ns:=/global_ns",
@@ -237,7 +237,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_rules_before_globa
   EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), remap_relative_topic) {
+TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relative_topic) {
   int argc;
   char ** argv;
   SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "/foo/bar:=remap/global");
