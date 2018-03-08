@@ -112,6 +112,14 @@ function(test_target_function)
     ENV ${extra_test_env}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+  )
+
+  rcl_add_custom_gtest(test_remap_integration${target_suffix}
+    SRCS rcl/test_remap_integration.cpp
+    TIMEOUT 200
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES "std_msgs" "example_interfaces"
   )
 
