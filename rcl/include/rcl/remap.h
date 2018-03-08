@@ -162,7 +162,6 @@ rcl_remap_node_name(
   rcl_allocator_t allocator,
   char ** output_name);
 
-
 /// Remaps a namespace based on given rules
 /**
  * If local_arguments is given then its remap rules will be checked first.
@@ -202,7 +201,6 @@ rcl_remap_node_namespace(
   const char * node_name,
   rcl_allocator_t allocator,
   char ** output_namespace);
-
 
 #if __cplusplus
 }

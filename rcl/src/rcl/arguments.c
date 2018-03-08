@@ -31,7 +31,6 @@ extern "C"
 // instance of global arguments
 rcl_arguments_t __rcl_arguments;
 
-
 /// \return true if c is in [a-zA-Z0-9_]
 /// \internal
 RCL_LOCAL
@@ -41,7 +40,6 @@ _rcl_valid_token_char(char c)
   // assumes ASCII
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
 }
-
 
 /// Parse an argument that may or may not be a remap rule
 /// \param[in] arg the argument to parse
@@ -202,7 +200,6 @@ cleanup_rule:
   rcl_remap_fini(output_rule, allocator);
   return RCL_RET_ERROR;
 }
-
 
 rcl_ret_t
 rcl_parse_arguments(
@@ -374,7 +371,6 @@ rcl_arguments_fini(
   RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME, "Arguments finalized_twice");
   return RCL_RET_ERROR;
 }
-
 
 #if __cplusplus
 }

@@ -22,7 +22,6 @@ extern "C"
 {
 #endif
 
-
 /// enum doubles as a bitmask for rule sthat apply to both topics and services
 typedef enum rcl_remap_type_t
 {
@@ -44,7 +43,6 @@ typedef struct rcl_remap_t
   /// \brief replacement portion of a rule
   char * replacement;
 } rcl_remap_t;
-
 
 /// \brief Get an rcl_remap_t structure initialized with NULL
 rcl_remap_t

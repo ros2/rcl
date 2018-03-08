@@ -59,7 +59,6 @@ destroy_args(int argc, char ** args)
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
     })
 
-
 #define SCOPE_LOCAL_ARGS(local_arguments, ...) \
   { \
     const char * local_argv[] = {__VA_ARGS__}; \

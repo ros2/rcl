@@ -23,7 +23,6 @@ extern "C"
 {
 #endif
 
-
 typedef struct rcl_arguments_impl_t
 {
   int num_unparsed_args;
@@ -35,13 +34,11 @@ typedef struct rcl_arguments_impl_t
   int num_remap_rules;
 } rcl_arguments_impl_t;
 
-
 /// \brief Global instance of parsed arguments
 /// \sa rcl_init(int, char **, rcl_allocator_t)
 /// \internal
 RCL_LOCAL
 extern rcl_arguments_t __rcl_arguments;
-
 
 #if __cplusplus
 }

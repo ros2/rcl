@@ -20,7 +20,6 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-
 #if __cplusplus
 extern "C"
 {
@@ -145,7 +144,6 @@ rcl_ret_t
 rcl_arguments_fini(
   rcl_arguments_t * args,
   rcl_allocator_t allocator);
-
 
 #if __cplusplus
 }

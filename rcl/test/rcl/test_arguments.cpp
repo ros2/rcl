@@ -28,7 +28,6 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-
 class CLASSNAME (TestArgumentsFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
@@ -86,7 +85,6 @@ public:
     EXPECT_STREQ(expected.str().c_str(), actual.str().c_str()); \
   } while (0)
 
-
 bool
 is_valid_arg(const char * arg)
 {
@@ -129,7 +127,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_FALSE(is_valid_arg("f{oo:=/bar"));
   EXPECT_FALSE(is_valid_arg("foo:=/b}ar"));
 }
-
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   rcl_arguments_t parsed_args;

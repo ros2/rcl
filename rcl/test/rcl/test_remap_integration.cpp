@@ -29,7 +29,6 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-
 class CLASSNAME (TestRemapIntegrationFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
@@ -41,7 +40,6 @@ public:
   {
   }
 };
-
 
 TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_global_rule) {
   int argc;

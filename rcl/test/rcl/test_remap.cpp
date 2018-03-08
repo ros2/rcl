@@ -27,7 +27,6 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-
 class CLASSNAME (TestRemapFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
@@ -39,7 +38,6 @@ public:
   {
   }
 };
-
 
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_namespace_replacement) {
   unsigned int argc;
@@ -83,6 +81,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_namespac
     rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
   }
 }
+
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_namespace_replacement) {
   unsigned int argc;
   char ** argv;
@@ -134,7 +133,6 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_names
     "__node:=remap_name");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
-
   char * output = NULL;
   ret = rcl_remap_node_namespace(NULL, true, "NodeName", allocator, &output);
   EXPECT_EQ(RCL_RET_OK, ret);
@@ -264,7 +262,6 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_topic
     "/foobar:=/foo/bar");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
-
   char * output = NULL;
   ret = rcl_remap_topic_name(
     NULL, true, "/foobar", "NodeName", "/", allocator, &output);
@@ -411,7 +408,6 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_nodename_replacem
   SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__node:=globalname");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
-
   char * output = NULL;
   ret = rcl_remap_node_name(NULL, true, "NodeName", allocator, &output);
   EXPECT_EQ(RCL_RET_OK, ret);
@@ -469,7 +465,6 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), use_first_nodename_rule)
   SCOPE_GLOBAL_ARGS(argc, argv, "process_name", "__node:=firstname", "__node:=secondname");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
-
   char * output = NULL;
   ret = rcl_remap_node_name(NULL, true, "NodeName", allocator, &output);
   EXPECT_EQ(RCL_RET_OK, ret);
@@ -485,7 +480,6 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_noden
     "__node:=remap_name");
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
-
   char * output = NULL;
   ret = rcl_remap_node_name(NULL, true, "NodeName", allocator, &output);
   EXPECT_EQ(RCL_RET_OK, ret);
