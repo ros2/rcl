@@ -57,9 +57,9 @@ _rcl_parse_remap_rule(
   rcl_allocator_t allocator,
   rcl_remap_t * output_rule)
 {
-  int len_node_name = 0;
-  int len_match = 0;
-  int len_replacement = 0;
+  size_t len_node_name = 0;
+  size_t len_match = 0;
+  size_t len_replacement = 0;
 
   const char * separator = NULL;
   const char * colon = NULL;
@@ -104,7 +104,7 @@ _rcl_parse_remap_rule(
   }
 
   // Make sure node name contains only valid characters
-  for (int i = 0; i < len_node_name; ++i) {
+  for (size_t i = 0; i < len_node_name; ++i) {
     if (!_rcl_valid_token_char(arg[i])) {
       return RCL_RET_ERROR;
     }
@@ -171,7 +171,7 @@ _rcl_parse_remap_rule(
     }
   } else if (RCL_NODENAME_REMAP == type) {
     // Replacement may only be a token
-    for (int i = 0; i < len_replacement; ++i) {
+    for (size_t i = 0; i < len_replacement; ++i) {
       if (!_rcl_valid_token_char(replacement_begin[i])) {
         return RCL_RET_ERROR;
       }
