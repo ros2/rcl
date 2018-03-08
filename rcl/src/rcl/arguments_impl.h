@@ -23,18 +23,21 @@ extern "C"
 {
 #endif
 
+/// \internal
 typedef struct rcl_arguments_impl_t
 {
-  int num_unparsed_args;
   /// array of indices that were not valid ROS arguments
   int * unparsed_args;
+  /// length of unparsed_args
+  int num_unparsed_args;
 
-  /// \brief Array of rules for name remapping
+  /// Array of rules for name remapping
   rcl_remap_t * remap_rules;
+  /// length of remap_rules
   int num_remap_rules;
 } rcl_arguments_impl_t;
 
-/// \brief Global instance of parsed arguments
+/// Global instance of parsed arguments
 /// \sa rcl_init(int, char **, rcl_allocator_t)
 /// \internal
 RCL_LOCAL
