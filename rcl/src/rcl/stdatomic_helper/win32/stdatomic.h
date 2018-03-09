@@ -196,16 +196,16 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
   do { \
     switch (sizeof(out)) { \
       case sizeof(uint64_t): \
-        out = _InterlockedCompareExchange64((LONGLONG *) object, desired, *expected); \
+        out = InterlockedCompareExchange64((LONGLONG *) object, desired, *expected); \
         break; \
       case sizeof(uint32_t): \
-        out = _InterlockedCompareExchange((LONG *) object, desired, *expected); \
+        out = InterlockedCompareExchange((LONG *) object, desired, *expected); \
         break; \
       case sizeof(uint16_t): \
-        out = _InterlockedCompareExchange16((SHORT *) object, desired, *expected); \
+        out = InterlockedCompareExchange16((SHORT *) object, desired, *expected); \
         break; \
       case sizeof(uint8_t): \
-        out = _InterlockedCompareExchange8((char *) object, desired, *expected); \
+        out = InterlockedCompareExchange8((char *) object, desired, *expected); \
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
@@ -225,16 +225,16 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
   do { \
     switch (sizeof(out)) { \
       case sizeof(uint64_t): \
-        out = _InterlockedExchange64((LONGLONG *) object, desired); \
+        out = InterlockedExchange64((LONGLONG *) object, desired); \
         break; \
       case sizeof(uint32_t): \
-        out = _InterlockedExchange((LONG *) object, desired); \
+        out = InterlockedExchange((LONG *) object, desired); \
         break; \
       case sizeof(uint16_t): \
-        out = _InterlockedExchange16((SHORT *) object, desired); \
+        out = InterlockedExchange16((SHORT *) object, desired); \
         break; \
       case sizeof(uint8_t): \
-        out = _InterlockedExchange8((char *) object, desired); \
+        out = InterlockedExchange8((char *) object, desired); \
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
@@ -251,16 +251,16 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
   do { \
     switch (sizeof(out)) { \
       case sizeof(uint64_t): \
-        out = _InterlockedExchangeAdd64((LONGLONG *) object, operand); \
+        out = InterlockedExchangeAdd64((LONGLONG *) object, operand); \
         break; \
       case sizeof(uint32_t): \
-        out = _InterlockedExchangeAdd((LONG *) object, operand); \
+        out = InterlockedExchangeAdd((LONG *) object, operand); \
         break; \
       case sizeof(uint16_t): \
-        out = _InterlockedExchangeAdd16((SHORT *) object, operand); \
+        out = InterlockedExchangeAdd16((SHORT *) object, operand); \
         break; \
       case sizeof(uint8_t): \
-        out = _InterlockedExchangeAdd8((char *) object, operand); \
+        out = InterlockedExchangeAdd8((char *) object, operand); \
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
@@ -277,16 +277,16 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
   do { \
     switch (sizeof(out)) { \
       case sizeof(uint64_t): \
-        out = _InterlockedAnd64((LONGLONG *) object, operand); \
+        out = InterlockedAnd64((LONGLONG *) object, operand); \
         break; \
       case sizeof(uint32_t): \
-        out = _InterlockedAnd((LONG *) object, operand); \
+        out = InterlockedAnd((LONG *) object, operand); \
         break; \
       case sizeof(uint16_t): \
-        out = _InterlockedAnd16((SHORT *) object, operand); \
+        out = InterlockedAnd16((SHORT *) object, operand); \
         break; \
       case sizeof(uint8_t): \
-        out = _InterlockedAnd8((char *) object, operand); \
+        out = InterlockedAnd8((char *) object, operand); \
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
@@ -303,16 +303,16 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
   do { \
     switch (sizeof(out)) { \
       case sizeof(uint64_t): \
-        out = _InterlockedOr64((LONGLONG *) object, operand); \
+        out = InterlockedOr64((LONGLONG *) object, operand); \
         break; \
       case sizeof(uint32_t): \
-        out = _InterlockedOr((LONG *) object, operand); \
+        out = InterlockedOr((LONG *) object, operand); \
         break; \
       case sizeof(uint16_t): \
-        out = _InterlockedOr16((SHORT *) object, operand); \
+        out = InterlockedOr16((SHORT *) object, operand); \
         break; \
       case sizeof(uint8_t): \
-        out = _InterlockedOr8((char *) object, operand); \
+        out = InterlockedOr8((char *) object, operand); \
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
@@ -332,16 +332,16 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
   do { \
     switch (sizeof(out)) { \
       case sizeof(uint64_t): \
-        out = _InterlockedXor64((LONGLONG *) object, operand); \
+        out = InterlockedXor64((LONGLONG *) object, operand); \
         break; \
       case sizeof(uint32_t): \
-        out = _InterlockedXor((LONG *) object, operand); \
+        out = InterlockedXor((LONG *) object, operand); \
         break; \
       case sizeof(uint16_t): \
-        out = _InterlockedXor16((SHORT *) object, operand); \
+        out = InterlockedXor16((SHORT *) object, operand); \
         break; \
       case sizeof(uint8_t): \
-        out = _InterlockedXor8((char *) object, operand); \
+        out = InterlockedXor8((char *) object, operand); \
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
@@ -358,16 +358,16 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
   do { \
     switch (sizeof(out)) { \
       case sizeof(uint64_t): \
-        out = _InterlockedExchangeAdd64((LONGLONG *) object, 0); \
+        out = InterlockedExchangeAdd64((LONGLONG *) object, 0); \
         break; \
       case sizeof(uint32_t): \
-        out = _InterlockedExchangeAdd((LONG *) object, 0); \
+        out = InterlockedExchangeAdd((LONG *) object, 0); \
         break; \
       case sizeof(uint16_t): \
-        out = _InterlockedExchangeAdd16((SHORT *) object, 0); \
+        out = InterlockedExchangeAdd16((SHORT *) object, 0); \
         break; \
       case sizeof(uint8_t): \
-        out = _InterlockedExchangeAdd8((char *) object, 0); \
+        out = InterlockedExchangeAdd8((char *) object, 0); \
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
