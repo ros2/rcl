@@ -50,7 +50,7 @@ extern "C"
  * \param[in] local_arguments Command line arguments to be used before global arguments, or
  *   if NULL or zero-initialized then only global arguments are used.
  * \param[in] use_global_arguments If false then global arguments aren't used at all.
- * \param[in] name A fully qualified and expanded topic name to be remapped.
+ * \param[in] topic_name A fully qualified and expanded topic name to be remapped.
  * \param[in] node_name The name of the node to which name belongs.
  * \param[in] node_namespace The namespace of a node to which name belongs.
  * \param[in] allocator A valid allocator to use.
@@ -68,7 +68,7 @@ rcl_ret_t
 rcl_remap_topic_name(
   const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
-  const char * name,
+  const char * topic_name,
   const char * node_name,
   const char * node_namespace,
   rcl_allocator_t allocator,
@@ -98,7 +98,7 @@ rcl_remap_topic_name(
  * \param[in] local_arguments Command line arguments to be used before global arguments, or
  *   if NULL or zero-initialized then only global arguments are used.
  * \param[in] use_global_arguments If false then global arguments aren't used at all.
- * \param[in] name A fully qualified and expanded service name to be remapped.
+ * \param[in] service_name A fully qualified and expanded service name to be remapped.
  * \param[in] node_name The name of the node to which name belongs.
  * \param[in] node_namespace The namespace of a node to which name belongs.
  * \param[in] allocator A valid allocator to use.
@@ -116,7 +116,7 @@ rcl_ret_t
 rcl_remap_service_name(
   const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
-  const char * name,
+  const char * serivice_name,
   const char * node_name,
   const char * node_namespace,
   rcl_allocator_t allocator,

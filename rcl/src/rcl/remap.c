@@ -162,13 +162,15 @@ rcl_ret_t
 rcl_remap_topic_name(
   const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
-  const char * name,
+  const char * topic_name,
   const char * node_name,
   const char * node_namespace,
   rcl_allocator_t allocator,
   char ** output_name)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, allocator);
+
   rcutils_string_map_t substitutions = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions, 0, allocator);
   rcl_ret_t ret = RCL_RET_ERROR;
@@ -176,8 +178,8 @@ rcl_remap_topic_name(
     ret = rcl_get_default_topic_name_substitutions(&substitutions);
     if (RCL_RET_OK == ret) {
       ret = _rcl_remap_name(
-        local_arguments, use_global_arguments, RCL_TOPIC_REMAP, name, node_name, node_namespace,
-        &substitutions, allocator, output_name);
+        local_arguments, use_global_arguments, RCL_TOPIC_REMAP, topic_name, node_name,
+        node_namespace, &substitutions, allocator, output_name);
     }
   }
   if (RCUTILS_RET_OK != rcutils_string_map_fini(&substitutions)) {
@@ -190,14 +192,14 @@ rcl_ret_t
 rcl_remap_service_name(
   const rcl_arguments_t * local_arguments,
   bool use_global_arguments,
-  const char * name,
+  const char * service_name,
   const char * node_name,
   const char * node_namespace,
   rcl_allocator_t allocator,
   char ** output_name)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT, allocator);
 
   rcutils_string_map_t substitutions = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions, 0, allocator);
@@ -206,8 +208,8 @@ rcl_remap_service_name(
     ret = rcl_get_default_topic_name_substitutions(&substitutions);
     if (ret == RCL_RET_OK) {
       ret = _rcl_remap_name(
-        local_arguments, use_global_arguments, RCL_SERVICE_REMAP, name, node_name, node_namespace,
-        &substitutions, allocator, output_name);
+        local_arguments, use_global_arguments, RCL_SERVICE_REMAP, service_name, node_name,
+        node_namespace, &substitutions, allocator, output_name);
     }
   }
   if (RCUTILS_RET_OK != rcutils_string_map_fini(&substitutions)) {
