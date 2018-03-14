@@ -248,7 +248,7 @@ rcl_parse_arguments(
     goto fail;
   }
 
-  // Attempt to parse arguments are remap rules
+  // Attempt to parse arguments as remap rules
   for (int i = 0; i < argc; ++i) {
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
     *rule = rcl_remap_get_zero_initialized();
