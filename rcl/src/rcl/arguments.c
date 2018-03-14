@@ -16,12 +16,12 @@
 
 #include <string.h>
 
+#include "./arguments_impl.h"
+#include "./remap_impl.h"
 #include "rcl/error_handling.h"
 #include "rcl/validate_topic_name.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
-#include "./arguments_impl.h"
-#include "./remap_impl.h"
 
 #if __cplusplus
 extern "C"
