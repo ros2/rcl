@@ -59,8 +59,8 @@ rcl_remap_fini(
   return RCL_RET_OK;
 }
 
-/// Get the first matching rule in a chain
-/// \return NULL if no rule in the chain matched
+/// Get the first matching rule in a chain.
+/// \return NULL if no rule in the chain matched.
 RCL_LOCAL
 rcl_remap_t *
 _rcl_remap_first_match(
@@ -102,7 +102,7 @@ _rcl_remap_first_match(
   return NULL;
 }
 
-/// Remap from one name to another using rules matching a given type bitmask
+/// Remap from one name to another using rules matching a given type bitmask.
 RCL_LOCAL
 rcl_ret_t
 _rcl_remap_name(

@@ -26,7 +26,7 @@ extern "C"
 {
 #endif
 
-/// Remaps a topic name based on given rules.
+/// Remap a topic name based on given rules.
 /**
  * The supplied topic name must have already been expanded to a fully qualified name.
  * \sa rcl_expand_topic_name()
@@ -74,7 +74,7 @@ rcl_remap_topic_name(
   rcl_allocator_t allocator,
   char ** output_name);
 
-/// Remaps a service name based on given rules.
+/// Remap a service name based on given rules.
 /**
  * The supplied service name must have already been expanded to a fully qualified name.
  * \sa rcl_expand_topic_name()
@@ -122,7 +122,7 @@ rcl_remap_service_name(
   rcl_allocator_t allocator,
   char ** output_name);
 
-/// Remaps a node name based on given rules.
+/// Remap a node name based on given rules.
 /**
  * If given local_arguments then rules from them will be checked first.
  * If no rules matched then global remap rules will be checked unless use_global_arguments is false.
@@ -161,7 +161,7 @@ rcl_remap_node_name(
   rcl_allocator_t allocator,
   char ** output_name);
 
-/// Remaps a namespace based on given rules.
+/// Remap a namespace based on given rules.
 /**
  * If local_arguments is given then its remap rules will be checked first.
  * If no rules matched, then global remap rules will be checked if not instructed to ignore them.

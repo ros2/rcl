@@ -27,7 +27,7 @@ extern "C"
 
 struct rcl_arguments_impl_t;
 
-/// Holds output of parsing command line arguments.
+/// Hold output of parsing command line arguments.
 typedef struct rcl_arguments_t
 {
   /// Private implementation pointer.

@@ -28,10 +28,10 @@ extern "C"
 {
 #endif
 
-// instance of global arguments
+// Instance of global arguments.
 rcl_arguments_t __rcl_arguments;
 
-/// \return true if c is in [a-zA-Z0-9_]
+/// Return true if c is in [a-zA-Z0-9_].
 /// \internal
 RCL_LOCAL
 bool
@@ -41,7 +41,7 @@ _rcl_valid_token_char(char c)
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
 }
 
-/// Parse an argument that may or may not be a remap rule
+/// Parse an argument that may or may not be a remap rule.
 /// \param[in] arg the argument to parse
 /// \param[in] allocator an allocator to use
 /// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
