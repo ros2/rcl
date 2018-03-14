@@ -82,7 +82,7 @@ rcl_parse_arguments(
  *
  * \param[in] args An arguments structure that has been parsed.
  * \return number of unparsed arguments, or
- * \return -1 if args is invalid.
+ * \return -1 if args is `NULL` or zero initialized.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
