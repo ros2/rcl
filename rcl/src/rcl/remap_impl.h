@@ -22,7 +22,7 @@ extern "C"
 {
 #endif
 
-/// enum doubles as a bitmask for rule sthat apply to both topics and services
+/// Enum doubles as a bitmask for rule sthat apply to both topics and services.
 typedef enum rcl_remap_type_t
 {
   RCL_UNKNOWN_REMAP = 0,
@@ -34,21 +34,21 @@ typedef enum rcl_remap_type_t
 
 typedef struct rcl_remap_t
 {
-  /// bitmask indicating what type of rule this is
+  /// Bitmask indicating what type of rule this is.
   rcl_remap_type_t type;
-  /// a node name that this rule is limited to, or NULL if it applies to any node
+  /// A node name that this rule is limited to, or NULL if it applies to any node.
   char * node_name;
-  /// match portion of a rule, or NULL if node name or namespace replacement
+  /// Match portion of a rule, or NULL if node name or namespace replacement.
   char * match;
-  /// replacement portion of a rule
+  /// Replacement portion of a rule.
   char * replacement;
 } rcl_remap_t;
 
-/// Get an rcl_remap_t structure initialized with NULL
+/// Get an rcl_remap_t structure initialized with NULL.
 rcl_remap_t
 rcl_remap_get_zero_initialized();
 
-/// Deallocate memory used in an rcl_remap_t structure
+/// Deallocate memory used in an rcl_remap_t structure.
 /**
  * <hr>
  * Attribute          | Adherence
@@ -58,9 +58,9 @@ rcl_remap_get_zero_initialized();
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] rule a rule to deallocate back to a zero initialized state
- * \param[in] allocator a valid allocator to use
- * \return `RCL_RET_OK` if the structure was free'd
+ * \param[in] rule A rule to deallocate back to a zero initialized state.
+ * \param[in] allocator A valid allocator to use.
+ * \return `RCL_RET_OK` if the structure was free'd, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_NODE_INVALID_NAME` if the name is invalid, or

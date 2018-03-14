@@ -26,7 +26,7 @@ extern "C"
 {
 #endif
 
-/// Remaps a topic name based on given rules
+/// Remaps a topic name based on given rules.
 /**
  * The supplied topic name must have already been expanded to a fully qualified name.
  * \sa rcl_expand_topic_name()
@@ -47,16 +47,16 @@ extern "C"
  * Lock-Free          | Yes
  * <i>[1] thread safe if use_global_arguments is false</i>
  *
- * \param[in] local_arguments command line arguments to be used before global arguments.
- *            If NULL or zero-initialized then only global arguments are used.
- * \param[in] use_global_arguments if false then global arguments aren't used at all
- * \param[in] name a fully qualified and expanded topic name to be remapped
- * \param[in] node_name the name of the node to which name belongs
- * \param[in] node_namespace the namespace of a node to which name belongs
- * \param[in] allocator a valid allocator to use
- * \param[out] output_name either an allocated string with the remapped name,
- *             or `NULL` if no remap rules matched the name
- * \return `RCL_RET_OK` if the topic name was remapped or no rules matched
+ * \param[in] local_arguments Command line arguments to be used before global arguments, or
+ *            if NULL or zero-initialized then only global arguments are used.
+ * \param[in] use_global_arguments If false then global arguments aren't used at all.
+ * \param[in] name A fully qualified and expanded topic name to be remapped.
+ * \param[in] node_name The name of the node to which name belongs.
+ * \param[in] node_namespace The namespace of a node to which name belongs.
+ * \param[in] allocator A valid allocator to use.
+ * \param[out] output_name Either an allocated string with the remapped name,
+ *             or `NULL` if no remap rules matched the name.
+ * \return `RCL_RET_OK` if the topic name was remapped or no rules matched, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid, or
@@ -74,7 +74,7 @@ rcl_remap_topic_name(
   rcl_allocator_t allocator,
   char ** output_name);
 
-/// Remaps a service name based on given rules
+/// Remaps a service name based on given rules.
 /**
  * The supplied service name must have already been expanded to a fully qualified name.
  * \sa rcl_expand_topic_name()
@@ -95,16 +95,16 @@ rcl_remap_topic_name(
  * Lock-Free          | Yes
  * <i>[1] thread safe if use_global_arguments is false</i>
  *
- * \param[in] local_arguments command line arguments to be used before global arguments.
- *            If NULL or zero-initialized then only global arguments are used.
- * \param[in] use_global_arguments if false then global arguments aren't used at all
- * \param[in] name a fully qualified and expanded service name to be remapped
- * \param[in] node_name the name of the node to which name belongs
- * \param[in] node_namespace the namespace of a node to which name belongs
- * \param[in] allocator a valid allocator to use
- * \param[out] output_name either an allocated string with the remapped name,
- *             or `NULL` if no remap rules matched the name
- * \return `RCL_RET_OK` if the name was remapped or no rules matched
+ * \param[in] local_arguments Command line arguments to be used before global arguments, or
+ *            if NULL or zero-initialized then only global arguments are used.
+ * \param[in] use_global_arguments If false then global arguments aren't used at all.
+ * \param[in] name A fully qualified and expanded service name to be remapped.
+ * \param[in] node_name The name of the node to which name belongs.
+ * \param[in] node_namespace The namespace of a node to which name belongs.
+ * \param[in] allocator A valid allocator to use.
+ * \param[out] output_name Either an allocated string with the remapped name, or
+ *             `NULL` if no remap rules matched the name.
+ * \return `RCL_RET_OK` if the name was remapped or no rules matched, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_SERVICE_NAME_INVALID` if the given name is invalid, or
@@ -122,7 +122,7 @@ rcl_remap_service_name(
   rcl_allocator_t allocator,
   char ** output_name);
 
-/// Remaps a node name based on given rules
+/// Remaps a node name based on given rules.
 /**
  * If given local_arguments then rules from them will be checked first.
  * If no rules matched then global remap rules will be checked unless use_global_arguments is false.
@@ -140,13 +140,13 @@ rcl_remap_service_name(
  * Lock-Free          | Yes
  * <i>[1] thread safe if use_global_arguments is false</i>
  *
- * \param[in] local_arguments arguments to be used before global arguments
- * \param[in] use_global_arguments if false then global arguments aren't used at all
- * \param[in] node_name the current name of the node
- * \param[in] allocator a valid allocator to use
- * \param[out] output_name either an allocated string with the remapped name,
- *             or `NULL` if no remap rules matched the name
- * \return `RCL_RET_OK` if the name was remapped or no rules matched
+ * \param[in] local_arguments Arguments to be used before global arguments.
+ * \param[in] use_global_arguments If false then global arguments aren't used at all.
+ * \param[in] node_name The current name of the node.
+ * \param[in] allocator A valid allocator to use.
+ * \param[out] output_name Either an allocated string with the remapped name, or
+ *             `NULL` if no remap rules matched the name.
+ * \return `RCL_RET_OK` If the name was remapped or no rules matched, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_NODE_INVALID_NAME` if the name is invalid, or
@@ -162,7 +162,7 @@ rcl_remap_node_name(
   rcl_allocator_t allocator,
   char ** output_name);
 
-/// Remaps a namespace based on given rules
+/// Remaps a namespace based on given rules.
 /**
  * If local_arguments is given then its remap rules will be checked first.
  * If no rules matched, then global remap rules will be checked if not instructed to ignore them.
@@ -180,13 +180,13 @@ rcl_remap_node_name(
  * Lock-Free          | Yes
  * <i>[1] thread safe if use_global_arguments is false</i>
  *
- * \param[in] local_arguments arguments to be used before global arguments
- * \param[in] use_global_arguments if false then global arguments aren't used at all
- * \param[in] node_name the name of the node whose namespace is being remapped
- * \param[in] allocator a valid allocator to be used
- * \param[out] output_namespace either an allocated string with the remapped namespace
- *             or `NULL` if no remap rules matched the name
- * \return `RCL_RET_OK` if the node name was remapped or no rules matched
+ * \param[in] local_arguments Arguments to be used before global arguments.
+ * \param[in] use_global_arguments If false then global arguments aren't used at all.
+ * \param[in] node_name The name of the node whose namespace is being remapped.
+ * \param[in] allocator A valid allocator to be used.
+ * \param[out] output_namespace Either an allocated string with the remapped namespace, or
+ *             `NULL` if no remap rules matched the name.
+ * \return `RCL_RET_OK` if the node name was remapped or no rules matched, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the remapped namespace is invalid, or

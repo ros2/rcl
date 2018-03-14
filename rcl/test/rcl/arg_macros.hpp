@@ -21,7 +21,7 @@
 
 #include "../scope_exit.hpp"
 
-/// \brief Helper to get around non-const args passed to rcl_init()
+/// Helper to get around non-const args passed to rcl_init().
 char **
 copy_args(int argc, const char ** args)
 {
@@ -33,7 +33,7 @@ copy_args(int argc, const char ** args)
   return copy;
 }
 
-/// \brief destroy args allocated by copy_args
+/// Destroy args allocated by copy_args.
 void
 destroy_args(int argc, char ** args)
 {

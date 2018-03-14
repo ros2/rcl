@@ -27,7 +27,7 @@ extern "C"
 
 struct rcl_arguments_impl_t;
 
-/// Holds output of parsing command line arguments
+/// Holds output of parsing command line arguments.
 typedef struct rcl_arguments_t
 {
   /// Private implementation pointer.
@@ -52,11 +52,11 @@ rcl_get_zero_initialized_arguments(void);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] argc the number of arguments in argv.
- * \param[in] argv the values of the arguments.
- * \param[in] allocator a valid allocator
- * \param[out] args_output a structure that will contain the result of parsing.
- * \return `RCL_RET_OK` if the arguments were parsed successfully
+ * \param[in] argc The number of arguments in argv.
+ * \param[in] argv Whe values of the arguments.
+ * \param[in] allocator A valid allocator.
+ * \param[out] args_output A structure that will contain the result of parsing.
+ * \return `RCL_RET_OK` if the arguments were parsed successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -80,8 +80,9 @@ rcl_parse_arguments(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] args an arguments structure that has been parsed.
- * \return number of unparsed arguments, or -1 if args is invalid
+ * \param[in] args An arguments structure that has been parsed.
+ * \return number of unparsed arguments, or
+ * \return -1 if args is invalid.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -89,7 +90,7 @@ int
 rcl_get_num_unparsed_arguments(
   rcl_arguments_t * args);
 
-/// Return a list of indexes that weren't successfully parsed
+/// Return a list of indexes that weren't successfully parsed.
 /**
  * Some arguments may not have been successfully parsed, or were not intended as ROS arguments.
  * This function populates an array of indexes to these arguments in the original argv array.
@@ -104,12 +105,12 @@ rcl_get_num_unparsed_arguments(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] args an arguments structure that has been parsed.
- * \param[in] allocator a valid allocator
- * \param[out] output_unparsed_indices an allocated array of indices into the original argv array.
+ * \param[in] args An arguments structure that has been parsed.
+ * \param[in] allocator A valid allocator.
+ * \param[out] output_unparsed_indices An allocated array of indices into the original argv array.
  *  This array must be deallocated by the caller using the given allocator.
- *  If there are no unparsed args then the output will be set to NULL
- * \return `RCL_RET_OK` if everything goes correctly
+ *  If there are no unparsed args then the output will be set to NULL.
+ * \return `RCL_RET_OK` if everything goes correctly, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -122,7 +123,7 @@ rcl_get_unparsed_arguments(
   rcl_allocator_t allocator,
   int ** output_unparsed_indices);
 
-/// Deallocate a structure holding parsed command line arguments
+/// Deallocate a structure holding parsed command line arguments.
 /**
  * <hr>
  * Attribute          | Adherence
@@ -132,9 +133,9 @@ rcl_get_unparsed_arguments(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] args the structure to be deallocated
- * \param[in] allocator a valid allocator
- * \return `RCL_RET_OK` if the memory was successfully freed
+ * \param[in] args The structure to be deallocated.
+ * \param[in] allocator A valid allocator.
+ * \return `RCL_RET_OK` if the memory was successfully freed, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */

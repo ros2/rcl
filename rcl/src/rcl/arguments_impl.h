@@ -26,18 +26,18 @@ extern "C"
 /// \internal
 typedef struct rcl_arguments_impl_t
 {
-  /// array of indices that were not valid ROS arguments
+  /// Array of indices that were not valid ROS arguments.
   int * unparsed_args;
-  /// length of unparsed_args
+  /// Length of unparsed_args.
   int num_unparsed_args;
 
-  /// Array of rules for name remapping
+  /// Array of rules for name remapping.
   rcl_remap_t * remap_rules;
-  /// length of remap_rules
+  /// Length of remap_rules.
   int num_remap_rules;
 } rcl_arguments_impl_t;
 
-/// Global instance of parsed arguments
+/// Global instance of parsed arguments.
 /// \sa rcl_init(int, char **, rcl_allocator_t)
 /// \internal
 RCL_LOCAL
