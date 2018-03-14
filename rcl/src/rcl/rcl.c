@@ -35,7 +35,6 @@ static char ** __rcl_argv = NULL;
 static atomic_uint_least64_t __rcl_instance_id = ATOMIC_VAR_INIT(0);
 static uint64_t __rcl_next_unique_id = 0;
 
-
 static void
 __clean_up_init()
 {
