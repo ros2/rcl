@@ -52,7 +52,7 @@ __clean_up_init()
   __rcl_argc = 0;
   __rcl_argv = NULL;
   if (NULL != __rcl_arguments.impl &&
-    RCL_RET_OK != rcl_arguments_fini(&__rcl_arguments, __rcl_allocator))
+    RCL_RET_OK != rcl_arguments_fini(&__rcl_arguments))
   {
     rcl_reset_error();
   }

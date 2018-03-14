@@ -76,7 +76,7 @@ is_valid_arg(const char * arg)
   rcl_ret_t ret = rcl_parse_arguments(1, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   bool is_valid = 0 == rcl_get_num_unparsed_arguments(&parsed_args);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   return is_valid;
 }
 
@@ -116,7 +116,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_EQ(0, rcl_get_num_unparsed_arguments(&parsed_args));
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args) {
@@ -143,7 +143,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_UNPARSED(parsed_args, 0);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_invalid_rules) {
@@ -154,7 +154,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_inval
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_UNPARSED(parsed_args, 0, 1, 3);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_namespace) {
@@ -165,18 +165,18 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_namespace) 
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_UNPARSED(parsed_args, 0);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_null) {
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_arguments_fini(NULL, rcl_get_default_allocator()));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_arguments_fini(NULL));
   rcl_reset_error();
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_impl_null) {
   rcl_arguments_t parsed_args;
   parsed_args.impl = NULL;
-  EXPECT_EQ(RCL_RET_ERROR, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+  EXPECT_EQ(RCL_RET_ERROR, rcl_arguments_fini(&parsed_args));
   rcl_reset_error();
 }
 
@@ -185,7 +185,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_twice) {
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args;
   ASSERT_EQ(RCL_RET_OK, rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
-  EXPECT_EQ(RCL_RET_ERROR, rcl_arguments_fini(&parsed_args, rcl_get_default_allocator()));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  EXPECT_EQ(RCL_RET_ERROR, rcl_arguments_fini(&parsed_args));
   rcl_reset_error();
 }

@@ -123,7 +123,7 @@ rcl_get_unparsed_arguments(
   rcl_allocator_t allocator,
   int ** output_unparsed_indices);
 
-/// Deallocate a structure holding parsed command line arguments.
+/// Reclaim resources held inside rcl_arguments_t structure.
 /**
  * <hr>
  * Attribute          | Adherence
@@ -143,8 +143,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_arguments_fini(
-  rcl_arguments_t * args,
-  rcl_allocator_t allocator);
+  rcl_arguments_t * args);
 
 #if __cplusplus
 }

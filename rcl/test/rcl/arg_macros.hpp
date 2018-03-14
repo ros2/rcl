@@ -69,7 +69,7 @@ destroy_args(int argc, char ** args)
   } \
   auto __scope_local_args_exit = make_scope_exit( \
     [&local_arguments] { \
-      ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments, rcl_get_default_allocator())); \
+      ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments)); \
     })
 
 #endif  // RCL__ARG_MACROS_HPP_

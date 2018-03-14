@@ -177,6 +177,7 @@ _rcl_parse_remap_rule(
   }
 
   // Rule is valid, construct a structure for it
+  output_rule->allocator = allocator;
   output_rule->type = type;
   if (len_node_name > 0) {
     output_rule->node_name = rcutils_strndup(arg, len_node_name, allocator);
@@ -197,7 +198,7 @@ _rcl_parse_remap_rule(
   return RCL_RET_OK;
 
 cleanup_rule:
-  rcl_remap_fini(output_rule, allocator);
+  rcl_remap_fini(output_rule);
   return RCL_RET_ERROR;
 }
 
@@ -228,6 +229,7 @@ rcl_parse_arguments(
   args_impl->remap_rules = NULL;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
+  args_impl->allocator = allocator;
 
   if (argc == 0) {
     // there are no arguments to parse
@@ -292,7 +294,7 @@ fail:
   fail_ret = ret;
   if (NULL != args_impl) {
     // assign to ret to suppress warning about not checking return of fini
-    ret = rcl_arguments_fini(args_output, allocator);
+    ret = rcl_arguments_fini(args_output);
   }
   return fail_ret;
 }
@@ -343,32 +345,37 @@ rcl_get_zero_initialized_arguments(void)
 
 rcl_ret_t
 rcl_arguments_fini(
-  rcl_arguments_t * args,
-  rcl_allocator_t allocator)
+  rcl_arguments_t * args)
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing arguments");
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, alloc);
   if (args->impl) {
+    rcl_ret_t ret = RCL_RET_OK;
+    alloc = args->impl->allocator;
     if (args->impl->remap_rules) {
       for (int i = 0; i < args->impl->num_remap_rules; ++i) {
-        rcl_remap_fini(&(args->impl->remap_rules[i]), allocator);
+        rcl_ret_t remap_ret = rcl_remap_fini(&(args->impl->remap_rules[i]));
+        if (remap_ret != RCL_RET_OK) {
+          ret = remap_ret;
+          RCUTILS_LOG_ERROR_NAMED(
+            ROS_PACKAGE_NAME,
+            "Failed to finalize remap rule while finalizing arguments. Continuing...");
+        }
       }
-      allocator.deallocate(args->impl->remap_rules, allocator.state);
+      args->impl->allocator.deallocate(args->impl->remap_rules, args->impl->allocator.state);
       args->impl->remap_rules = NULL;
       args->impl->num_remap_rules = 0;
     }
 
-    allocator.deallocate(args->impl->unparsed_args, allocator.state);
+    args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
     args->impl->num_unparsed_args = 0;
     args->impl->unparsed_args = NULL;
 
-    allocator.deallocate(args->impl, allocator.state);
+    args->impl->allocator.deallocate(args->impl, args->impl->allocator.state);
     args->impl = NULL;
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Arguments finalized");
-    return RCL_RET_OK;
+    return ret;
   }
-  RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME, "Arguments finalized_twice");
+  RCL_SET_ERROR_MSG("rcl_arguments_t finalized twice", alloc);
   return RCL_RET_ERROR;
 }
 

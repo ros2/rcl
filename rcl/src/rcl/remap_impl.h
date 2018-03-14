@@ -42,13 +42,16 @@ typedef struct rcl_remap_t
   char * match;
   /// Replacement portion of a rule.
   char * replacement;
+
+  /// Allocator used to allocate objects in this struct
+  rcl_allocator_t allocator;
 } rcl_remap_t;
 
 /// Get an rcl_remap_t structure initialized with NULL.
 rcl_remap_t
 rcl_remap_get_zero_initialized();
 
-/// Deallocate memory used in an rcl_remap_t structure.
+/// Reclaim resources used in an rcl_remap_t structure.
 /**
  * <hr>
  * Attribute          | Adherence
@@ -59,17 +62,16 @@ rcl_remap_get_zero_initialized();
  * Lock-Free          | Yes
  *
  * \param[in] rule A rule to deallocate back to a zero initialized state.
- * \param[in] allocator A valid allocator to use.
  * \return `RCL_RET_OK` if the structure was free'd, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_NODE_INVALID_NAME` if the name is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_fini(
-  rcl_remap_t * rule,
-  rcl_allocator_t allocator);
+  rcl_remap_t * rule);
 
 #if __cplusplus
 }

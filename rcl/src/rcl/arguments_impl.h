@@ -35,6 +35,9 @@ typedef struct rcl_arguments_impl_t
   rcl_remap_t * remap_rules;
   /// Length of remap_rules.
   int num_remap_rules;
+
+  /// Allocator used to allocate objects in this struct
+  rcl_allocator_t allocator;
 } rcl_arguments_impl_t;
 
 /// Global instance of parsed arguments.

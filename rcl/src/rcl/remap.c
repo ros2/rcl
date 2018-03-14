@@ -16,6 +16,7 @@
 
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
+#include "rcutils/allocator.h"
 #include "rcutils/strdup.h"
 #include "rcutils/types/string_map.h"
 #include "./arguments_impl.h"
@@ -34,26 +35,27 @@ rcl_remap_get_zero_initialized()
   rule.node_name = NULL;
   rule.match = NULL;
   rule.replacement = NULL;
+  rule.allocator = rcutils_get_zero_initialized_allocator();
   return rule;
 }
 
 rcl_ret_t
 rcl_remap_fini(
-  rcl_remap_t * rule,
-  rcl_allocator_t allocator)
+  rcl_remap_t * rule)
 {
   if (NULL != rule->node_name) {
-    allocator.deallocate(rule->node_name, allocator.state);
+    rule->allocator.deallocate(rule->node_name, rule->allocator.state);
     rule->node_name = NULL;
   }
   if (NULL != rule->match) {
-    allocator.deallocate(rule->match, allocator.state);
+    rule->allocator.deallocate(rule->match, rule->allocator.state);
     rule->match = NULL;
   }
   if (NULL != rule->replacement) {
-    allocator.deallocate(rule->replacement, allocator.state);
+    rule->allocator.deallocate(rule->replacement, rule->allocator.state);
     rule->replacement = NULL;
   }
+  rule->allocator = rcutils_get_zero_initialized_allocator();
   return RCL_RET_OK;
 }
 
