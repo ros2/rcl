@@ -107,7 +107,7 @@ RCL_LOCAL
 rcl_ret_t
 _rcl_remap_name(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   rcl_remap_type_t type_bitmask,
   const char * name,
   const char * node_name,
@@ -120,7 +120,10 @@ _rcl_remap_name(
   if (NULL != local_arguments && NULL == local_arguments->impl) {
     local_arguments = NULL;
   }
-  if (NULL == local_arguments && !use_global_arguments) {
+  if (NULL != global_arguments && NULL == global_arguments->impl) {
+    global_arguments = NULL;
+  }
+  if (NULL == local_arguments && NULL == global_arguments) {
     RCL_SET_ERROR_MSG("local_arguments invalid and not using global arguments", allocator);
     return RCL_RET_INVALID_ARGUMENT;
   }
@@ -135,10 +138,9 @@ _rcl_remap_name(
       name, node_name, node_namespace, substitutions, allocator);
   }
   // Check global rules if no local rule matched
-  if (NULL == rule && use_global_arguments) {
-    rcl_arguments_t * global_args = rcl_get_global_arguments();
+  if (NULL == rule && NULL != global_arguments) {
     rule = _rcl_remap_first_match(
-      global_args->impl->remap_rules, global_args->impl->num_remap_rules, type_bitmask,
+      global_arguments->impl->remap_rules, global_arguments->impl->num_remap_rules, type_bitmask,
       name, node_name, node_namespace, substitutions, allocator);
   }
   // Do the remapping
@@ -164,7 +166,7 @@ _rcl_remap_name(
 rcl_ret_t
 rcl_remap_topic_name(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   const char * topic_name,
   const char * node_name,
   const char * node_namespace,
@@ -181,7 +183,7 @@ rcl_remap_topic_name(
     ret = rcl_get_default_topic_name_substitutions(&substitutions);
     if (RCL_RET_OK == ret) {
       ret = _rcl_remap_name(
-        local_arguments, use_global_arguments, RCL_TOPIC_REMAP, topic_name, node_name,
+        local_arguments, global_arguments, RCL_TOPIC_REMAP, topic_name, node_name,
         node_namespace, &substitutions, allocator, output_name);
     }
   }
@@ -194,7 +196,7 @@ rcl_remap_topic_name(
 rcl_ret_t
 rcl_remap_service_name(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   const char * service_name,
   const char * node_name,
   const char * node_namespace,
@@ -211,7 +213,7 @@ rcl_remap_service_name(
     ret = rcl_get_default_topic_name_substitutions(&substitutions);
     if (ret == RCL_RET_OK) {
       ret = _rcl_remap_name(
-        local_arguments, use_global_arguments, RCL_SERVICE_REMAP, service_name, node_name,
+        local_arguments, global_arguments, RCL_SERVICE_REMAP, service_name, node_name,
         node_namespace, &substitutions, allocator, output_name);
     }
   }
@@ -224,28 +226,28 @@ rcl_remap_service_name(
 rcl_ret_t
 rcl_remap_node_name(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   const char * node_name,
   rcl_allocator_t allocator,
   char ** output_name)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   return _rcl_remap_name(
-    local_arguments, use_global_arguments, RCL_NODENAME_REMAP, NULL, node_name, NULL, NULL,
+    local_arguments, global_arguments, RCL_NODENAME_REMAP, NULL, node_name, NULL, NULL,
     allocator, output_name);
 }
 
 rcl_ret_t
 rcl_remap_node_namespace(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   const char * node_name,
   rcl_allocator_t allocator,
   char ** output_namespace)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   return _rcl_remap_name(
-    local_arguments, use_global_arguments, RCL_NAMESPACE_REMAP, NULL, node_name, NULL, NULL,
+    local_arguments, global_arguments, RCL_NAMESPACE_REMAP, NULL, node_name, NULL, NULL,
     allocator, output_namespace);
 }
 

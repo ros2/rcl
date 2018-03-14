@@ -227,8 +227,12 @@ rcl_node_init(
   node->impl->options = *options;
 
   // Remap the node name and namespace if remap rules are given
+  rcl_arguments_t * global_args = NULL;
+  if (node->impl->options.use_global_arguments) {
+    global_args = rcl_get_global_arguments();
+  }
   ret = rcl_remap_node_name(
-    &(node->impl->options.arguments), node->impl->options.use_global_arguments, name, *allocator,
+    &(node->impl->options.arguments), global_args, name, *allocator,
     &remapped_node_name);
   if (RCL_RET_OK != ret) {
     goto fail;
@@ -237,7 +241,7 @@ rcl_node_init(
   }
   char * remapped_namespace = NULL;
   ret = rcl_remap_node_namespace(
-    &(node->impl->options.arguments), node->impl->options.use_global_arguments, local_namespace_,
+    &(node->impl->options.arguments), global_args, local_namespace_,
     *allocator, &remapped_namespace);
   if (RCL_RET_OK != ret) {
     goto fail;

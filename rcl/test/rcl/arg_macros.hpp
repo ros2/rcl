@@ -59,7 +59,7 @@ destroy_args(int argc, char ** args)
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
     })
 
-#define SCOPE_LOCAL_ARGS(local_arguments, ...) \
+#define SCOPE_ARGS(local_arguments, ...) \
   { \
     const char * local_argv[] = {__VA_ARGS__}; \
     unsigned int local_argc = (sizeof(local_argv) / sizeof(const char *)); \
@@ -67,7 +67,7 @@ destroy_args(int argc, char ** args)
       local_argc, local_argv, rcl_get_default_allocator(), &local_arguments); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
   } \
-  auto __scope_local_args_exit = make_scope_exit( \
+  auto __scope_ ## local_arguments ## _exit = make_scope_exit( \
     [&local_arguments] { \
       ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments)); \
     })

@@ -128,8 +128,12 @@ rcl_service_init(
     ret = RCL_RET_ERROR;
     goto cleanup;
   }
+  rcl_arguments_t * global_args = NULL;
+  if (node_options->use_global_arguments) {
+    global_args = rcl_get_global_arguments();
+  }
   ret = rcl_remap_service_name(
-    &(node_options->arguments), node_options->use_global_arguments, expanded_service_name,
+    &(node_options->arguments), global_args, expanded_service_name,
     rcl_node_get_name(node), rcl_node_get_namespace(node), *allocator, &remapped_service_name);
   if (RCL_RET_OK != ret) {
     goto fail;

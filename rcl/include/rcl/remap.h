@@ -42,14 +42,14 @@ extern "C"
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No [1]
+ * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] thread safe if use_global_arguments is false</i>
  *
  * \param[in] local_arguments Command line arguments to be used before global arguments, or
  *   if NULL or zero-initialized then only global arguments are used.
- * \param[in] use_global_arguments If false then global arguments aren't used at all.
+ * \param[in] global_arguments Command line arguments to use if no local rules matched, or
+ *   `NULL` or zero-initialized to ignore global arguments.
  * \param[in] topic_name A fully qualified and expanded topic name to be remapped.
  * \param[in] node_name The name of the node to which name belongs.
  * \param[in] node_namespace The namespace of a node to which name belongs.
@@ -67,7 +67,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_topic_name(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   const char * topic_name,
   const char * node_name,
   const char * node_namespace,
@@ -90,14 +90,14 @@ rcl_remap_topic_name(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No [1]
+ * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] thread safe if use_global_arguments is false</i>
  *
  * \param[in] local_arguments Command line arguments to be used before global arguments, or
  *   if NULL or zero-initialized then only global arguments are used.
- * \param[in] use_global_arguments If false then global arguments aren't used at all.
+ * \param[in] global_arguments Command line arguments to use if no local rules matched, or
+ *   `NULL` or zero-initialized to ignore global arguments.
  * \param[in] service_name A fully qualified and expanded service name to be remapped.
  * \param[in] node_name The name of the node to which name belongs.
  * \param[in] node_namespace The namespace of a node to which name belongs.
@@ -115,7 +115,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_service_name(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   const char * serivice_name,
   const char * node_name,
   const char * node_namespace,
@@ -134,13 +134,13 @@ rcl_remap_service_name(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No [1]
+ * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] thread safe if use_global_arguments is false</i>
  *
  * \param[in] local_arguments Arguments to be used before global arguments.
- * \param[in] use_global_arguments If false then global arguments aren't used at all.
+ * \param[in] global_arguments Command line arguments to use if no local rules matched, or
+ *   `NULL` or zero-initialized to ignore global arguments.
  * \param[in] node_name The current name of the node.
  * \param[in] allocator A valid allocator to use.
  * \param[out] output_name Either an allocated string with the remapped name, or
@@ -156,7 +156,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_node_name(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   const char * node_name,
   rcl_allocator_t allocator,
   char ** output_name);
@@ -173,13 +173,13 @@ rcl_remap_node_name(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No [1]
+ * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] thread safe if use_global_arguments is false</i>
  *
  * \param[in] local_arguments Arguments to be used before global arguments.
- * \param[in] use_global_arguments If false then global arguments aren't used at all.
+ * \param[in] global_arguments Command line arguments to use if no local rules matched, or
+ *   `NULL` or zero-initialized to ignore global arguments.
  * \param[in] node_name The name of the node whose namespace is being remapped.
  * \param[in] allocator A valid allocator to be used.
  * \param[out] output_namespace Either an allocated string with the remapped namespace, or
@@ -195,7 +195,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_node_namespace(
   const rcl_arguments_t * local_arguments,
-  bool use_global_arguments,
+  const rcl_arguments_t * global_arguments,
   const char * node_name,
   rcl_allocator_t allocator,
   char ** output_namespace);

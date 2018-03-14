@@ -109,7 +109,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
   SCOPE_GLOBAL_ARGS(
     argc, argv, "process_name", "__node:=new_name", "__ns:=/new_ns", "/foo/bar:=/bar/foo");
   rcl_arguments_t local_arguments;
-  SCOPE_LOCAL_ARGS(local_arguments, "local_process_name");
+  SCOPE_ARGS(local_arguments, "local_process_name");
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t options = rcl_node_get_default_options();
@@ -175,7 +175,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
   SCOPE_GLOBAL_ARGS(
     argc, argv, "process_name", "__node:=global_name", "__ns:=/global_ns", "/foo/bar:=/bar/global");
   rcl_arguments_t local_arguments;
-  SCOPE_LOCAL_ARGS(
+  SCOPE_ARGS(
     local_arguments,
     "process_name", "__node:=local_name", "__ns:=/local_ns", "/foo/bar:=/bar/local");
 
