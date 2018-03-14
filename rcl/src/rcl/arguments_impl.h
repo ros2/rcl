@@ -40,12 +40,6 @@ typedef struct rcl_arguments_impl_t
   rcl_allocator_t allocator;
 } rcl_arguments_impl_t;
 
-/// Global instance of parsed arguments.
-/// \sa rcl_init(int, char **, rcl_allocator_t)
-/// \internal
-RCL_LOCAL
-extern rcl_arguments_t __rcl_arguments;
-
 #if __cplusplus
 }
 #endif

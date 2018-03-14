@@ -29,7 +29,7 @@ extern "C"
 #endif
 
 // Instance of global arguments.
-rcl_arguments_t __rcl_arguments;
+static rcl_arguments_t __rcl_global_arguments;
 
 /// Return true if c is in [a-zA-Z0-9_].
 /// \internal
@@ -377,6 +377,14 @@ rcl_arguments_fini(
   }
   RCL_SET_ERROR_MSG("rcl_arguments_t finalized twice", alloc);
   return RCL_RET_ERROR;
+}
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_arguments_t *
+rcl_get_global_arguments()
+{
+  return &__rcl_global_arguments;
 }
 
 #if __cplusplus

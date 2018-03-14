@@ -136,8 +136,9 @@ _rcl_remap_name(
   }
   // Check global rules if no local rule matched
   if (NULL == rule && use_global_arguments) {
+    rcl_arguments_t * global_args = rcl_get_global_arguments();
     rule = _rcl_remap_first_match(
-      __rcl_arguments.impl->remap_rules, __rcl_arguments.impl->num_remap_rules, type_bitmask,
+      global_args->impl->remap_rules, global_args->impl->num_remap_rules, type_bitmask,
       name, node_name, node_namespace, substitutions, allocator);
   }
   // Do the remapping
