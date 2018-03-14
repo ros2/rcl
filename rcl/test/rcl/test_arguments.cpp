@@ -44,10 +44,10 @@ public:
     int expect_unparsed[] = {__VA_ARGS__}; \
     int expect_num_unparsed = sizeof(expect_unparsed) / sizeof(int); \
     rcl_allocator_t alloc = rcl_get_default_allocator(); \
-    int actual_num_unparsed = rcl_get_num_unparsed_arguments(&parsed_args); \
+    int actual_num_unparsed = rcl_arguments_get_count_unparsed(&parsed_args); \
     int * actual_unparsed = NULL; \
     if (actual_num_unparsed > 0) { \
-      rcl_ret_t ret = rcl_get_unparsed_arguments(&parsed_args, alloc, &actual_unparsed); \
+      rcl_ret_t ret = rcl_arguments_get_unparsed(&parsed_args, alloc, &actual_unparsed); \
       ASSERT_EQ(RCL_RET_OK, ret); \
     } \
     std::stringstream expected; \
@@ -75,7 +75,7 @@ is_valid_arg(const char * arg)
   rcl_arguments_t parsed_args;
   rcl_ret_t ret = rcl_parse_arguments(1, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  bool is_valid = 0 == rcl_get_num_unparsed_arguments(&parsed_args);
+  bool is_valid = 0 == rcl_arguments_get_count_unparsed(&parsed_args);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   return is_valid;
 }
@@ -115,7 +115,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   rcl_arguments_t parsed_args;
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_EQ(0, rcl_get_num_unparsed_arguments(&parsed_args));
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 

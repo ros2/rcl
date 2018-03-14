@@ -300,7 +300,7 @@ fail:
 }
 
 int
-rcl_get_num_unparsed_arguments(
+rcl_arguments_get_count_unparsed(
   rcl_arguments_t * args)
 {
   if (NULL == args || NULL == args->impl) {
@@ -310,7 +310,7 @@ rcl_get_num_unparsed_arguments(
 }
 
 rcl_ret_t
-rcl_get_unparsed_arguments(
+rcl_arguments_get_unparsed(
   rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int ** output_unparsed_indices)
