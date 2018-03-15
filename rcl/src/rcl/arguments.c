@@ -20,6 +20,7 @@
 #include "./remap_impl.h"
 #include "rcl/error_handling.h"
 #include "rcl/validate_topic_name.h"
+#include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
@@ -262,13 +263,12 @@ rcl_parse_arguments(
 
   // Shrink remap_rules array to match number of successfully parsed rules
   if (args_impl->num_remap_rules > 0) {
-    void * shrunk_rules = allocator.reallocate(
-      args_impl->remap_rules, sizeof(rcl_remap_t) * args_impl->num_remap_rules, allocator.state);
-    if (NULL == shrunk_rules) {
+    args_impl->remap_rules = rcutils_reallocf(
+      args_impl->remap_rules, sizeof(rcl_remap_t) * args_impl->num_remap_rules, &allocator);
+    if (NULL == args_impl->remap_rules) {
       ret = RCL_RET_BAD_ALLOC;
       goto fail;
     }
-    args_impl->remap_rules = shrunk_rules;
   } else {
     // No remap rules
     allocator.deallocate(args_impl->remap_rules, allocator.state);
@@ -280,13 +280,12 @@ rcl_parse_arguments(
     allocator.deallocate(args_impl->unparsed_args, allocator.state);
     args_impl->unparsed_args = NULL;
   } else if (args_impl->num_unparsed_args < argc) {
-    void * shrunk = allocator.reallocate(
-      args_impl->unparsed_args, sizeof(int) * args_impl->num_unparsed_args, allocator.state);
-    if (NULL == shrunk) {
+    args_impl->unparsed_args = rcutils_reallocf(
+      args_impl->unparsed_args, sizeof(int) * args_impl->num_unparsed_args, &allocator);
+    if (NULL == args_impl->unparsed_args) {
       ret = RCL_RET_BAD_ALLOC;
       goto fail;
     }
-    args_impl->unparsed_args = shrunk;
   }
 
   return RCL_RET_OK;
