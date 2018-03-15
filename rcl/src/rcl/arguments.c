@@ -34,16 +34,6 @@ extern "C"
 // Instance of global arguments.
 static rcl_arguments_t __rcl_global_arguments;
 
-/// Return true if c is in [a-zA-Z0-9_].
-/// \internal
-RCL_LOCAL
-bool
-_rcl_valid_token_char(char c)
-{
-  // assumes ASCII
-  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
-}
-
 /// Parse an argument that may or may not be a remap rule.
 /// \param[in] arg the argument to parse
 /// \param[in] allocator an allocator to use
@@ -114,11 +104,19 @@ _rcl_parse_remap_rule(
     return RCL_RET_INVALID_REMAP_RULE;
   }
 
-  // TODO(sloretz) rmw_validate_node_name with size
   // Make sure node name contains only valid characters
-  for (size_t i = 0; i < len_node_name; ++i) {
-    if (!_rcl_valid_token_char(arg[i])) {
-      RCL_SET_ERROR_MSG("Node name prefix has invalid characters", allocator);
+  if (len_node_name) {
+    int validation_result;
+    size_t invalid_index;
+    if (
+      RMW_RET_OK != rmw_validate_node_name_with_size(arg, len_node_name, &validation_result,
+      &invalid_index))
+    {
+      RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
+      return RCL_RET_ERROR;
+    }
+    if (RMW_NODE_NAME_VALID != validation_result) {
+      RCL_SET_ERROR_MSG("node name prefix is not a valid node name", allocator);
       return RCL_RET_INVALID_REMAP_RULE;
     }
   }
