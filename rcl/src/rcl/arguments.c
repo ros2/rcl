@@ -23,6 +23,8 @@
 #include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
+#include "rmw/validate_namespace.h"
+#include "rmw/validate_node_name.h"
 
 #if __cplusplus
 extern "C"
@@ -46,8 +48,10 @@ _rcl_valid_token_char(char c)
 /// \param[in] arg the argument to parse
 /// \param[in] allocator an allocator to use
 /// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
-/// \return RCL_RET_OK if a valid rule was parsed
-/// \return RLC_RET_ERROR if no valid rule was parsed
+/// \return RCL_RET_OK if a valid rule was parsed, or
+/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
+/// \return RLC_RET_ERROR if an unspecified error occurred.
 /// \internal
 RCL_LOCAL
 rcl_ret_t
@@ -68,7 +72,8 @@ _rcl_parse_remap_rule(
   // A valid rule has two parts separated by :=
   separator = strstr(arg, ":=");
   if (NULL == separator) {
-    return RCL_RET_ERROR;
+    RCL_SET_ERROR_MSG("missing :=", allocator);
+    return RCL_RET_INVALID_REMAP_RULE;
   }
 
   replacement_begin = separator + 2;
@@ -76,8 +81,12 @@ _rcl_parse_remap_rule(
   // must have characters on both sides of the separator
   len_match = separator - arg;
   len_replacement = strlen(replacement_begin);
-  if (len_match <= 0 || len_replacement <= 0) {
-    return RCL_RET_ERROR;
+  if (0 == len_match) {
+    RCL_SET_ERROR_MSG("match is zero length", allocator);
+    return RCL_RET_INVALID_REMAP_RULE;
+  } else if (0 == len_replacement) {
+    RCL_SET_ERROR_MSG("replacement has zero length", allocator);
+    return RCL_RET_INVALID_REMAP_RULE;
   }
 
   colon = strchr(arg, ':');
@@ -89,23 +98,28 @@ _rcl_parse_remap_rule(
       len_match = separator - match_begin;
       // node name must have at least one character
       if (len_node_name <= 0) {
-        return RCL_RET_ERROR;
+        RCL_SET_ERROR_MSG("node name previx has zero length", allocator);
+        return RCL_RET_INVALID_REMAP_RULE;
       }
     } else if (colon > separator) {
       // If the colon is on the replacement side then this couldn't be a valid rule
-      return RCL_RET_ERROR;
+      RCL_SET_ERROR_MSG("replacement side cannot contain a :", allocator);
+      return RCL_RET_INVALID_REMAP_RULE;
     }
   }
 
-  // match side must have at least 1 character
-  if (len_match <= 0) {
-    return RCL_RET_ERROR;
+  // Maybe match length changed because there was a node name prefix
+  if (0 == len_match) {
+    RCL_SET_ERROR_MSG("match is zero length", allocator);
+    return RCL_RET_INVALID_REMAP_RULE;
   }
 
+  // TODO(sloretz) rmw_validate_node_name with size
   // Make sure node name contains only valid characters
   for (size_t i = 0; i < len_node_name; ++i) {
     if (!_rcl_valid_token_char(arg[i])) {
-      return RCL_RET_ERROR;
+      RCL_SET_ERROR_MSG("Node name prefix has invalid characters", allocator);
+      return RCL_RET_INVALID_REMAP_RULE;
     }
   }
 
@@ -119,25 +133,19 @@ _rcl_parse_remap_rule(
 
   if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
     // Replacement must be a valid topic name
-    char * copy_replacement = rcutils_strndup(replacement_begin, len_replacement, allocator);
-    if (NULL == copy_replacement) {
-      return RCL_RET_ERROR;
-    }
     int validation_result;
     size_t invalid_index;
-    rcl_ret_t ret = rcl_validate_topic_name(copy_replacement, &validation_result, &invalid_index);
+    rcl_ret_t ret = rcl_validate_topic_name(replacement_begin, &validation_result, &invalid_index);
     if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
-      ret = RCL_RET_ERROR;
-    }
-    allocator.deallocate(copy_replacement, allocator.state);
-    if (RCL_RET_OK != ret) {
-      return RCL_RET_ERROR;
+      RCL_SET_ERROR_MSG("replacement is not a valid topic name", allocator);
+      return RCL_RET_INVALID_REMAP_RULE;
     }
     // Match must be a valid topic name
     char * copy_match = rcutils_strndup(match_begin, len_match, allocator);
     if (NULL == copy_match) {
       return RCL_RET_ERROR;
     }
+    // TODO(sloretz) rcl_validate_topic_name with size
     ret = rcl_validate_topic_name(copy_match, &validation_result, &invalid_index);
     if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
       ret = RCL_RET_ERROR;
@@ -147,33 +155,26 @@ _rcl_parse_remap_rule(
       return RCL_RET_ERROR;
     }
   } else if (RCL_NAMESPACE_REMAP == type) {
-    // namespace replacement must be fully qualified
-    if ('/' != replacement_begin[0]) {
+    int validation_result;
+    size_t invalid_idx;
+    if (RMW_RET_OK != rmw_validate_namespace(replacement_begin, &validation_result, &invalid_idx)) {
+      RCL_SET_ERROR_MSG("failed to run check on namespace", allocator);
       return RCL_RET_ERROR;
     }
-    if (len_replacement > 1) {
-      // Replacement must either be / or a valid topic name
-      char * copy_replacement = rcutils_strndup(replacement_begin, len_replacement, allocator);
-      if (NULL == copy_replacement) {
-        return RCL_RET_ERROR;
-      }
-      int validation_result;
-      size_t invalid_index;
-      rcl_ret_t ret = rcl_validate_topic_name(copy_replacement, &validation_result, &invalid_index);
-      if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
-        ret = RCL_RET_ERROR;
-      }
-      allocator.deallocate(copy_replacement, allocator.state);
-      if (RCL_RET_OK != ret) {
-        return RCL_RET_ERROR;
-      }
+    if (RMW_NAMESPACE_VALID != validation_result) {
+      RCL_SET_ERROR_MSG("namespace replacement is not a valid namespace", allocator);
+      return RCL_RET_INVALID_REMAP_RULE;
     }
   } else if (RCL_NODENAME_REMAP == type) {
-    // Replacement may only be a token
-    for (size_t i = 0; i < len_replacement; ++i) {
-      if (!_rcl_valid_token_char(replacement_begin[i])) {
-        return RCL_RET_ERROR;
-      }
+    int validation_result;
+    size_t invalid_idx;
+    if (RMW_RET_OK != rmw_validate_node_name(replacement_begin, &validation_result, &invalid_idx)) {
+      RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
+      return RCL_RET_ERROR;
+    }
+    if (RMW_NODE_NAME_VALID != validation_result) {
+      RCL_SET_ERROR_MSG("node name replacement is not a valid node name", allocator);
+      return RCL_RET_INVALID_REMAP_RULE;
     }
   }
 
@@ -199,8 +200,10 @@ _rcl_parse_remap_rule(
   return RCL_RET_OK;
 
 cleanup_rule:
-  rcl_remap_fini(output_rule);
-  return RCL_RET_ERROR;
+  if (RCL_RET_OK != rcl_remap_fini(output_rule)) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini remap rule after error occurred");
+  }
+  return RCL_RET_BAD_ALLOC;
 }
 
 rcl_ret_t
@@ -256,6 +259,7 @@ rcl_parse_arguments(
     if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       ++(args_impl->num_remap_rules);
     } else {
+      rcl_reset_error();
       args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
       ++(args_impl->num_unparsed_args);
     }
