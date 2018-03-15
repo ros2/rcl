@@ -94,6 +94,22 @@ rcl_validate_topic_name(
   int * validation_result,
   size_t * invalid_index);
 
+/// Validate a given topic name.
+/**
+ * This is an overload with an extra parameter for the length of topic_name.
+ * \param[in] topic_name_length The number of characters in topic_name.
+ *
+ * \sa rcl_validate_topic_name(const char *, int *, size_t *)
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_validate_topic_name_with_size(
+  const char * topic_name,
+  size_t topic_name_length,
+  int * validation_result,
+  size_t * invalid_index);
+
 /// Return a validation result description, or NULL if unknown or RCL_TOPIC_NAME_VALID.
 RCL_PUBLIC
 RCL_WARN_UNUSED
