@@ -34,9 +34,21 @@ rcl_validate_topic_name(
 {
   rcl_allocator_t allocator = rcutils_get_default_allocator();
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, allocator)
+  return rcl_validate_topic_name_with_size(
+    topic_name, strlen(topic_name), validation_result, invalid_index);
+}
+
+rcl_ret_t
+rcl_validate_topic_name_with_size(
+  const char * topic_name,
+  size_t topic_name_length,
+  int * validation_result,
+  size_t * invalid_index)
+{
+  rcl_allocator_t allocator = rcutils_get_default_allocator();
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, allocator)
   RCL_CHECK_ARGUMENT_FOR_NULL(validation_result, RCL_RET_INVALID_ARGUMENT, allocator)
 
-  size_t topic_name_length = strlen(topic_name);
   if (topic_name_length == 0) {
     *validation_result = RCL_TOPIC_NAME_INVALID_IS_EMPTY_STRING;
     if (invalid_index) {
