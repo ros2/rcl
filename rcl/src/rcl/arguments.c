@@ -145,23 +145,15 @@ _rcl_parse_remap_rule(
       return RCL_RET_INVALID_REMAP_RULE;
     }
     // Match must be a valid topic name
-    char * copy_match = rcutils_strndup(match_begin, len_match, allocator);
-    if (NULL == copy_match) {
-      return RCL_RET_ERROR;
-    }
-    // TODO(sloretz) rcl_validate_topic_name with size
-    ret = rcl_validate_topic_name(copy_match, &validation_result, &invalid_index);
+    ret = rcl_validate_topic_name_with_size(
+      match_begin, len_match, &validation_result, &invalid_index);
     if (ret != RCL_RET_OK) {
-      ret = RCL_RET_ERROR;
+      return RCL_RET_ERROR;
     } else if (validation_result != RCL_TOPIC_NAME_VALID) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         allocator,
         "match is invalid: %s", rcl_topic_name_validation_result_string(validation_result));
-      ret = RCL_RET_ERROR;
-    }
-    allocator.deallocate(copy_match, allocator.state);
-    if (RCL_RET_OK != ret) {
-      return ret;
+      return RCL_RET_INVALID_REMAP_RULE;
     }
   } else if (RCL_NAMESPACE_REMAP == type) {
     int validation_result;
