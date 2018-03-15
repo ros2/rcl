@@ -294,6 +294,9 @@ fail:
   if (NULL != args_impl) {
     // assign to ret to suppress warning about not checking return of fini
     ret = rcl_arguments_fini(args_output);
+    if (RCL_RET_OK != ret) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini arguments after earlier failure");
+    }
   }
   return fail_ret;
 }
