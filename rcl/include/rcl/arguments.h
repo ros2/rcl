@@ -42,7 +42,18 @@ rcl_get_zero_initialized_arguments(void);
 
 /// Parse command line arguments into a structure usable by code.
 /**
- * Arguments are parsed without modification.
+ * If an argument does not appear to be a valid ROS argument then it is skipped and parsing
+ * continues with the next argument in `argv`.
+ * \sa rcl_arguments_get_count_unparsed()
+ * \sa rcl_arguments_get_unparsed()
+ *
+ * Successfully parsed remap rules are stored in the order they were given in `argv`.
+ * If given arguments `{"__ns:=/foo", "__ns:=/bar"}` then the namespace used by nodes in this
+ * process will be `/foo` and not `/bar`.
+ * \sa rcl_remap_topic_name()
+ * \sa rcl_remap_service_name()
+ * \sa rcl_remap_node_name()
+ * \sa rcl_remap_node_namespace()
  *
  * <hr>
  * Attribute          | Adherence

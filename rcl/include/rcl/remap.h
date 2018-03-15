@@ -26,17 +26,44 @@ extern "C"
 {
 #endif
 
+// TODO(sloretz) add documentation about rostopic:// when it is supported
 /// Remap a topic name based on given rules.
 /**
  * The supplied topic name must have already been expanded to a fully qualified name.
  * \sa rcl_expand_topic_name()
  *
- * If the node has been given arguments then the remap rules from those will be checked first.
- * If no rules matched, then global remap rules will be checked if the node has not also been
- * instructed to ignore global arguments.
+ * If `local_arguments` is not NULL and not zero intialized then its remap rules are checked first.
+ * If no rules matched and `global_arguments` is not NULL and not zero intitialized then its rules
+ * are checked next.
+ * If both `local_arguments` and global_arguments are NULL or zero intialized then the function will
+ * return RCL_RET_INVALID_ARGUMENT.
+ *
+ * `global_arguments` is usually the arguments passed to `rcl_init()`.
+ * \sa rcl_init()
+ * \sa rcl_get_global_arguments()
  *
  * Remap rules are checked in the order they were given.
- * Processing stops when a remap rule has been matched or there are no more rules.
+ * For rules passed to `rcl_init` this usually is the order they were passed on the command line.
+ * \sa rcl_parse_arguments()
+ *
+ * Only the first remap rule that matches is used to remap a name.
+ * For example, if the command line arguments are `foo:=bar bar:=baz` the topic `foo` is remapped to
+ * `bar` and not `baz`.
+ *
+ * `node_name` and `node_namespace` are used to expand the match and replacement into fully
+ * qualified names.
+ * Given node_name `trudy`, namespace `/ns`, and rule `foo:=~/bar` the names in the rule are
+ * expanded to `/ns/foo:=/ns/trudy/bar`.
+ * The rule will only apply if the given topic name is `/ns/foo`.
+ *
+ * `node_name` is also used to match against node specific rules.
+ * Given rules `alice:foo:=bar foo:=baz`, node name `alice`, and topic `foo` the remapped topic
+ * name will be `bar`.
+ * If given the node name `bob` and topic `foo` the remaped topic name would be `baz` instead.
+ * Note that processing always stops at the first matching rule even if there is a more specific one
+ * later on.
+ * Given `foo:=bar alice:foo:=baz` and topic name `foo` the remapped topic name will always be
+ * `bar` regardless of the node name given.
  *
  * <hr>
  * Attribute          | Adherence
@@ -74,17 +101,14 @@ rcl_remap_topic_name(
   rcl_allocator_t allocator,
   char ** output_name);
 
+// TODO(sloretz) add documentation about rosservice:// when it is supported
 /// Remap a service name based on given rules.
 /**
  * The supplied service name must have already been expanded to a fully qualified name.
+ *
+ * The behavior of this function is identical to rcl_expand_topic_name() except that it applies
+ * to service names instead of topic names.
  * \sa rcl_expand_topic_name()
- *
- * If the node has been given arguments then the remap rules from those will be checked first.
- * If no rules matched, then global remap rules will be checked if the node has not also been
- * instructed to ignore global arguments.
- *
- * Remap rules are checked in the order they were given.
- * Processing stops when a remap rule has been matched or there are no more rules.
  *
  * <hr>
  * Attribute          | Adherence
@@ -124,11 +148,17 @@ rcl_remap_service_name(
 
 /// Remap a node name based on given rules.
 /**
- * If given local_arguments then rules from them will be checked first.
- * If no rules matched then global remap rules will be checked unless use_global_arguments is false.
+ * This function returns the node name that a node with the given name would be remapped to.
+ * When a node's name is remapped it changes its logger name and the output of expanding relative
+ * topic and service names.
  *
- * Remap rules are checked in the order they were given.
- * Processing stops when a rule has been matched or there are no more rules.
+ * When composing nodes make sure that the final node names used are unique per process.
+ * There is not currently a way to independently remap the names of two nodes that were created
+ * with the same node name and are manually composed into one process.
+ *
+ * The behavior of `local_arguments`, `global_arguments`, `node_name`, the order remap rules are
+ * applied, and node specific rules is identical to rcl_remap_topic_name().
+ * \sa rcl_remap_topic_name()
  *
  * <hr>
  * Attribute          | Adherence
@@ -163,11 +193,13 @@ rcl_remap_node_name(
 
 /// Remap a namespace based on given rules.
 /**
- * If local_arguments is given then its remap rules will be checked first.
- * If no rules matched, then global remap rules will be checked if not instructed to ignore them.
+ * This function returns the namespace that a node with the given name would be remapped to.
+ * When a node's namespace is remapped it changes its logger name and the output of expanding
+ * relative topic and service names.
  *
- * Namespace remap rules are checked in the order they were given.
- * Processing stops when a rule has been matched or there are no more rules.
+ * The behavior of `local_arguments`, `global_arguments`, `node_name`, the order remap rules are
+ * applied, and node specific rules is identical to rcl_remap_topic_name().
+ * \sa rcl_remap_topic_name()
  *
  * <hr>
  * Attribute          | Adherence
