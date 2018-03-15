@@ -60,9 +60,9 @@ rcl_remap_fini(
 }
 
 /// Get the first matching rule in a chain.
-/// \return NULL if no rule in the chain matched.
+/// \return RCL_RET_OK if no errors occurred while searching for a rule
 RCL_LOCAL
-rcl_remap_t *
+rcl_ret_t
 _rcl_remap_first_match(
   rcl_remap_t * remap_rules,
   int num_rules,
@@ -71,35 +71,50 @@ _rcl_remap_first_match(
   const char * node_name,
   const char * node_namespace,
   const rcutils_string_map_t * substitutions,
-  rcutils_allocator_t allocator)
+  rcutils_allocator_t allocator,
+  rcl_remap_t ** output_rule)
 {
+  *output_rule = NULL;
   for (int i = 0; i < num_rules; ++i) {
     rcl_remap_t * rule = &(remap_rules[i]);
-    if (rule->type & type_bitmask) {
-      if (NULL == rule->node_name || NULL == node_name || 0 == strcmp(rule->node_name, node_name)) {
-        bool matched = false;
-        if (rule->type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
-          // topic and service rules need the match side to be expanded to a FQN
-          char * expanded_match = NULL;
-          rcl_ret_t ret = rcl_expand_topic_name(
-            rule->match, node_name, node_namespace, substitutions, allocator, &expanded_match);
-          if (ret != RCL_RET_OK) {
-            // Expansion failed with this rule, try another
-            continue;
-          }
-          matched = (0 == strcmp(expanded_match, name));
-          allocator.deallocate(expanded_match, allocator.state);
-        } else {
-          // nodename and namespace replacement don't need the match side expanded
-          matched = (NULL == rule->match || NULL == name || 0 == strcmp(rule->match, name));
+    if (!(rule->type & type_bitmask)) {
+      // Not the type of remap rule we're looking fore
+      continue;
+    }
+    if (rule->node_name != NULL && 0 != strcmp(rule->node_name, node_name)) {
+      // Rule has a node name prefix and the supplied node name didn't match
+      continue;
+    }
+    bool matched = false;
+    if (rule->type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
+      // topic and service rules need the match side to be expanded to a FQN
+      char * expanded_match = NULL;
+      rcl_ret_t ret = rcl_expand_topic_name(
+        rule->match, node_name, node_namespace, substitutions, allocator, &expanded_match);
+      if (RCL_RET_OK != ret) {
+        rcl_reset_error();
+        if (
+          RCL_RET_NODE_INVALID_NAMESPACE == ret ||
+          RCL_RET_NODE_INVALID_NAME == ret ||
+          RCL_RET_BAD_ALLOC == ret)
+        {
+          // these are probably going to happen again. Stop processing rules
+          return ret;
         }
-        if (matched) {
-          return rule;
-        }
+        continue;
       }
+      matched = (0 == strcmp(expanded_match, name));
+      allocator.deallocate(expanded_match, allocator.state);
+    } else {
+      // nodename and namespace replacement apply if the type and node name prefix checks passed
+      matched = true;
+    }
+    if (matched) {
+      *output_rule = rule;
+      break;
     }
   }
-  return NULL;
+  return RCL_RET_OK;
 }
 
 /// Remap from one name to another using rules matching a given type bitmask.
@@ -116,6 +131,7 @@ _rcl_remap_name(
   rcl_allocator_t allocator,
   char ** output_name)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_name, RCL_RET_INVALID_ARGUMENT, allocator);
   if (NULL != local_arguments && NULL == local_arguments->impl) {
     local_arguments = NULL;
@@ -133,15 +149,21 @@ _rcl_remap_name(
 
   // Look at local rules first
   if (NULL != local_arguments) {
-    rule = _rcl_remap_first_match(
+    rcl_ret_t ret = _rcl_remap_first_match(
       local_arguments->impl->remap_rules, local_arguments->impl->num_remap_rules, type_bitmask,
-      name, node_name, node_namespace, substitutions, allocator);
+      name, node_name, node_namespace, substitutions, allocator, &rule);
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
   }
   // Check global rules if no local rule matched
   if (NULL == rule && NULL != global_arguments) {
-    rule = _rcl_remap_first_match(
+    rcl_ret_t ret = _rcl_remap_first_match(
       global_arguments->impl->remap_rules, global_arguments->impl->num_remap_rules, type_bitmask,
-      name, node_name, node_namespace, substitutions, allocator);
+      name, node_name, node_namespace, substitutions, allocator, &rule);
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
   }
   // Do the remapping
   if (NULL != rule) {
@@ -156,7 +178,8 @@ _rcl_remap_name(
       // nodename and namespace rules don't need replacment expanded
       *output_name = rcutils_strdup(rule->replacement, allocator);
     }
-    if (NULL == output_name) {
+    if (NULL == *output_name) {
+      RCL_SET_ERROR_MSG("Failed to set output", allocator);
       return RCL_RET_ERROR;
     }
   }
