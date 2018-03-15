@@ -116,7 +116,9 @@ _rcl_parse_remap_rule(
       return RCL_RET_ERROR;
     }
     if (RMW_NODE_NAME_VALID != validation_result) {
-      RCL_SET_ERROR_MSG("node name prefix is not a valid node name", allocator);
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        allocator,
+        "node name prefix invalid: %s", rmw_node_name_validation_result_string(validation_result));
       return RCL_RET_INVALID_REMAP_RULE;
     }
   }
@@ -134,8 +136,12 @@ _rcl_parse_remap_rule(
     int validation_result;
     size_t invalid_index;
     rcl_ret_t ret = rcl_validate_topic_name(replacement_begin, &validation_result, &invalid_index);
-    if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
-      RCL_SET_ERROR_MSG("replacement is not a valid topic name", allocator);
+    if (ret != RCL_RET_OK) {
+      return RCL_RET_ERROR;
+    } else if (validation_result != RCL_TOPIC_NAME_VALID) {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        allocator,
+        "replacement is invalid: %s", rcl_topic_name_validation_result_string(validation_result));
       return RCL_RET_INVALID_REMAP_RULE;
     }
     // Match must be a valid topic name
@@ -145,12 +151,17 @@ _rcl_parse_remap_rule(
     }
     // TODO(sloretz) rcl_validate_topic_name with size
     ret = rcl_validate_topic_name(copy_match, &validation_result, &invalid_index);
-    if (ret != RCL_RET_OK || validation_result != RCL_TOPIC_NAME_VALID) {
+    if (ret != RCL_RET_OK) {
+      ret = RCL_RET_ERROR;
+    } else if (validation_result != RCL_TOPIC_NAME_VALID) {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        allocator,
+        "match is invalid: %s", rcl_topic_name_validation_result_string(validation_result));
       ret = RCL_RET_ERROR;
     }
     allocator.deallocate(copy_match, allocator.state);
     if (RCL_RET_OK != ret) {
-      return RCL_RET_ERROR;
+      return ret;
     }
   } else if (RCL_NAMESPACE_REMAP == type) {
     int validation_result;
@@ -160,7 +171,9 @@ _rcl_parse_remap_rule(
       return RCL_RET_ERROR;
     }
     if (RMW_NAMESPACE_VALID != validation_result) {
-      RCL_SET_ERROR_MSG("namespace replacement is not a valid namespace", allocator);
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        allocator,
+        "namespace is invalid: %s", rmw_namespace_validation_result_string(validation_result));
       return RCL_RET_INVALID_REMAP_RULE;
     }
   } else if (RCL_NODENAME_REMAP == type) {
@@ -171,7 +184,9 @@ _rcl_parse_remap_rule(
       return RCL_RET_ERROR;
     }
     if (RMW_NODE_NAME_VALID != validation_result) {
-      RCL_SET_ERROR_MSG("node name replacement is not a valid node name", allocator);
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        allocator,
+        "node name is invalid: %s", rmw_node_name_validation_result_string(validation_result));
       return RCL_RET_INVALID_REMAP_RULE;
     }
   }
@@ -257,6 +272,7 @@ rcl_parse_arguments(
     if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       ++(args_impl->num_remap_rules);
     } else {
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d error '%s'", i, rcl_get_error_string());
       rcl_reset_error();
       args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
       ++(args_impl->num_unparsed_args);
