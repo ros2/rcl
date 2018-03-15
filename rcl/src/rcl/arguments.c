@@ -209,7 +209,7 @@ cleanup_rule:
 rcl_ret_t
 rcl_parse_arguments(
   int argc,
-  const char ** argv,
+  const char * const argv[],
   rcl_allocator_t allocator,
   rcl_arguments_t * args_output)
 {
