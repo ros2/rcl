@@ -108,14 +108,12 @@ _rcl_parse_remap_rule(
   if (len_node_name) {
     int validation_result;
     size_t invalid_index;
-    if (
-      RMW_RET_OK != rmw_validate_node_name_with_size(arg, len_node_name, &validation_result,
-      &invalid_index))
-    {
+    rmw_ret_t rmw_ret = rmw_validate_node_name_with_size(arg, len_node_name, &validation_result,
+        &invalid_index);
+    if (RMW_RET_OK != rmw_ret) {
       RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
       return RCL_RET_ERROR;
-    }
-    if (RMW_NODE_NAME_VALID != validation_result) {
+    } else if (RMW_NODE_NAME_VALID != validation_result) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         allocator,
         "node name prefix invalid: %s", rmw_node_name_validation_result_string(validation_result));
@@ -158,11 +156,11 @@ _rcl_parse_remap_rule(
   } else if (RCL_NAMESPACE_REMAP == type) {
     int validation_result;
     size_t invalid_idx;
-    if (RMW_RET_OK != rmw_validate_namespace(replacement_begin, &validation_result, &invalid_idx)) {
+    rmw_ret_t rmw_ret = rmw_validate_namespace(replacement_begin, &validation_result, &invalid_idx);
+    if (RMW_RET_OK != rmw_ret) {
       RCL_SET_ERROR_MSG("failed to run check on namespace", allocator);
       return RCL_RET_ERROR;
-    }
-    if (RMW_NAMESPACE_VALID != validation_result) {
+    } else if (RMW_NAMESPACE_VALID != validation_result) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         allocator,
         "namespace is invalid: %s", rmw_namespace_validation_result_string(validation_result));
@@ -171,11 +169,11 @@ _rcl_parse_remap_rule(
   } else if (RCL_NODENAME_REMAP == type) {
     int validation_result;
     size_t invalid_idx;
-    if (RMW_RET_OK != rmw_validate_node_name(replacement_begin, &validation_result, &invalid_idx)) {
+    rmw_ret_t rmw_ret = rmw_validate_node_name(replacement_begin, &validation_result, &invalid_idx);
+    if (RMW_RET_OK != rmw_ret) {
       RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
       return RCL_RET_ERROR;
-    }
-    if (RMW_NODE_NAME_VALID != validation_result) {
+    } else if (RMW_NODE_NAME_VALID != validation_result) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         allocator,
         "node name is invalid: %s", rmw_node_name_validation_result_string(validation_result));
