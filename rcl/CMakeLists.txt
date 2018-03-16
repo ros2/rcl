@@ -27,6 +27,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(${PROJECT_NAME}_sources
+  src/rcl/arguments.c
   src/rcl/client.c
   src/rcl/common.c
   src/rcl/expand_topic_name.c
@@ -35,6 +36,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/node.c
   src/rcl/publisher.c
   src/rcl/rcl.c
+  src/rcl/remap.c
   src/rcl/rmw_implementation_identifier_check.c
   src/rcl/service.c
   src/rcl/subscription.c

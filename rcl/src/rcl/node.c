@@ -24,8 +24,10 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
+#include "rcl/arguments.h"
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
+#include "rcl/remap.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/find.h"
 #include "rcutils/format_string.h"
@@ -142,6 +144,7 @@ rcl_node_init(
     rcl_guard_condition_get_default_options();
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
+  char * remapped_node_name = NULL;
 
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -191,7 +194,7 @@ rcl_node_init(
     // length + 2, because new leading / and terminating \0
     char * temp = (char *)allocator->allocate(namespace_length + 2, allocator->state);
     RCL_CHECK_FOR_NULL_WITH_MSG(
-      temp, "allocating memory failed", return RCL_RET_BAD_ALLOC, *allocator);
+      temp, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup, *allocator);
     temp[0] = '/';
     memcpy(temp + 1, namespace_, strlen(namespace_) + 1);
     local_namespace_ = temp;
@@ -202,33 +205,53 @@ rcl_node_init(
   ret = rmw_validate_namespace(local_namespace_, &validation_result, NULL);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
-    if (should_free_local_namespace_) {
-      allocator->deallocate((char *)local_namespace_, allocator->state);
-    }
-    return ret;
+    goto cleanup;
   }
   if (validation_result != RMW_NAMESPACE_VALID) {
     const char * msg = rmw_namespace_validation_result_string(validation_result);
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING((*allocator), "%s, result: %d", msg, validation_result);
 
-    if (should_free_local_namespace_) {
-      allocator->deallocate((char *)local_namespace_, allocator->state);
-    }
-    return RCL_RET_NODE_INVALID_NAMESPACE;
+    ret = RCL_RET_NODE_INVALID_NAMESPACE;
+    goto cleanup;
   }
 
   // Allocate space for the implementation struct.
   node->impl = (rcl_node_impl_t *)allocator->allocate(sizeof(rcl_node_impl_t), allocator->state);
-  if (!node->impl && should_free_local_namespace_) {
-    allocator->deallocate((char *)local_namespace_, allocator->state);
-  }
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC, *allocator);
+    node->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup, *allocator);
   node->impl->rmw_node_handle = NULL;
   node->impl->graph_guard_condition = NULL;
+  node->impl->logger_name = NULL;
   // Initialize node impl.
   // node options (assume it is trivially copyable)
   node->impl->options = *options;
+
+  // Remap the node name and namespace if remap rules are given
+  rcl_arguments_t * global_args = NULL;
+  if (node->impl->options.use_global_arguments) {
+    global_args = rcl_get_global_arguments();
+  }
+  ret = rcl_remap_node_name(
+    &(node->impl->options.arguments), global_args, name, *allocator,
+    &remapped_node_name);
+  if (RCL_RET_OK != ret) {
+    goto fail;
+  } else if (NULL != remapped_node_name) {
+    name = remapped_node_name;
+  }
+  char * remapped_namespace = NULL;
+  ret = rcl_remap_node_namespace(
+    &(node->impl->options.arguments), global_args, local_namespace_,
+    *allocator, &remapped_namespace);
+  if (RCL_RET_OK != ret) {
+    goto fail;
+  } else if (NULL != remapped_namespace) {
+    if (should_free_local_namespace_) {
+      allocator->deallocate((char *)local_namespace_, allocator->state);
+    }
+    should_free_local_namespace_ = true;
+    local_namespace_ = remapped_namespace;
+  }
 
   // node logger name
   node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);
@@ -264,10 +287,8 @@ rcl_node_init(
     RCL_SET_ERROR_MSG(
       "Environment variable " RCUTILS_STRINGIFY(ROS_SECURITY_ENABLE_VAR_NAME)
       " could not be read", rcl_get_default_allocator());
-    if (should_free_local_namespace_) {
-      allocator->deallocate((char *)local_namespace_, allocator->state);
-    }
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
+    goto fail;
   }
 
   bool use_security = (0 == strcmp(ros_security_enable, "true"));
@@ -278,10 +299,8 @@ rcl_node_init(
     RCL_SET_ERROR_MSG(
       "Environment variable " RCUTILS_STRINGIFY(ROS_SECURITY_STRATEGY_VAR_NAME)
       " could not be read", rcl_get_default_allocator());
-    if (should_free_local_namespace_) {
-      allocator->deallocate((char *)local_namespace_, allocator->state);
-    }
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
+    goto fail;
   }
 
   rmw_node_security_options_t node_security_options =
@@ -302,10 +321,8 @@ rcl_node_init(
           "SECURITY ERROR: unable to find a folder matching the node name in the "
           RCUTILS_STRINGIFY(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME)
           " directory while the requested security strategy requires it", *allocator);
-        if (should_free_local_namespace_) {
-          allocator->deallocate((char *)local_namespace_, allocator->state);
-        }
-        return RCL_RET_ERROR;
+        ret = RCL_RET_ERROR;
+        goto cleanup;
       }
     }
   }
@@ -314,11 +331,6 @@ rcl_node_init(
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string_safe(), goto fail, *allocator);
-  // free local_namespace_ if necessary
-  if (should_free_local_namespace_) {
-    allocator->deallocate((char *)local_namespace_, allocator->state);
-    should_free_local_namespace_ = false;
-  }
   // instance id
   node->impl->rcl_instance_id = rcl_get_instance_id();
   // graph guard condition
@@ -345,7 +357,8 @@ rcl_node_init(
     goto fail;
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized")
-  return RCL_RET_OK;
+  ret = RCL_RET_OK;
+  goto cleanup;
 fail:
   if (node->impl) {
     if (node->impl->logger_name) {
@@ -374,11 +387,17 @@ fail:
   }
   *node = rcl_get_zero_initialized_node();
 
+  ret = fail_ret;
+  // fall through from fail -> cleanup
+cleanup:
   if (should_free_local_namespace_) {
     allocator->deallocate((char *)local_namespace_, allocator->state);
     local_namespace_ = NULL;
   }
-  return fail_ret;
+  if (NULL != remapped_node_name) {
+    allocator->deallocate(remapped_node_name, allocator->state);
+  }
+  return ret;
 }
 
 rcl_ret_t
@@ -435,9 +454,11 @@ rcl_node_get_default_options()
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_node_options_t default_options = {
     .domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID,
+    .use_global_arguments = true,
   };
   // Must set the allocator after because it is not a compile time constant.
   default_options.allocator = rcl_get_default_allocator();
+  default_options.arguments = rcl_get_zero_initialized_arguments();
   return default_options;
 }
 

@@ -87,4 +87,8 @@ typedef rmw_ret_t rcl_ret_t;
 /// Given rcl_wait_set_t is full return code.
 #define RCL_RET_WAIT_SET_FULL 902
 
+// rcl argument parsing specific ret codes in 1XXX
+/// Argument is not a valid remap rule
+#define RCL_RET_INVALID_REMAP_RULE 1001
+
 #endif  // RCL__TYPES_H_
