@@ -108,8 +108,8 @@ _rcl_parse_remap_rule(
   if (len_node_name) {
     int validation_result;
     size_t invalid_index;
-    rmw_ret_t rmw_ret = rmw_validate_node_name_with_size(arg, len_node_name, &validation_result,
-        &invalid_index);
+    rmw_ret_t rmw_ret = rmw_validate_node_name_with_size(
+      arg, len_node_name, &validation_result, &invalid_index);
     if (RMW_RET_OK != rmw_ret) {
       RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
       return RCL_RET_ERROR;
