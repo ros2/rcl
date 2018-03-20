@@ -126,9 +126,9 @@ _rcl_parse_remap_rule(
 
   // Figure out what type of rule this is, default is to apply to topic and service names
   rcl_remap_type_t type = RCL_TOPIC_REMAP | RCL_SERVICE_REMAP;
-  if (0 == strncmp("__ns", match_begin, len_match)) {
+  if (4 == len_match && 0 == strncmp("__ns", match_begin, len_match)) {
     type = RCL_NAMESPACE_REMAP;
-  } else if (0 == strncmp("__node", match_begin, len_match)) {
+  } else if (6 == len_match && 0 == strncmp("__node", match_begin, len_match)) {
     type = RCL_NODENAME_REMAP;
   }
 
