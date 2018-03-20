@@ -354,6 +354,7 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
  * Lock-Free          | Yes
  *
  * \param[in] publisher pointer to the rcl publisher
+ * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `publisher` is valid, otherwise `false`
  */
 RCL_PUBLIC

@@ -403,6 +403,7 @@ rcl_service_get_rmw_handle(const rcl_service_t * service);
  * Lock-Free          | Yes
  *
  * \param[in] service pointer to the rcl service
+ * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `service` is valid, otherwise `false`
  */
 RCL_PUBLIC
