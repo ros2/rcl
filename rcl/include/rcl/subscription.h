@@ -358,6 +358,7 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
  * Lock-Free          | Yes
  *
  * \param[in] subscription pointer to the rcl subscription
+ * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `subscription` is valid, otherwise `false`
  */
 RCL_PUBLIC
