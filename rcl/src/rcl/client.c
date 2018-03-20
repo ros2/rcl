@@ -263,8 +263,6 @@ rcl_client_get_rmw_handle(const rcl_client_t * client)
   return client->impl->rmw_handle;
 }
 
-RCL_PUBLIC
-RCL_WARN_UNUSED
 rcl_ret_t
 rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t * sequence_number)
 {
@@ -286,8 +284,6 @@ rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t 
   return RCL_RET_OK;
 }
 
-RCL_PUBLIC
-RCL_WARN_UNUSED
 rcl_ret_t
 rcl_take_response(
   const rcl_client_t * client,
@@ -318,7 +314,8 @@ rcl_take_response(
   return RCL_RET_OK;
 }
 
-bool rcl_client_is_valid(const rcl_client_t * client, rcl_allocator_t * error_msg_allocator)
+bool
+rcl_client_is_valid(const rcl_client_t * client, rcl_allocator_t * error_msg_allocator)
 {
   const rcl_client_options_t * options;
   rcl_allocator_t alloc =
