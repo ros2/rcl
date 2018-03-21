@@ -192,7 +192,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_twice) {
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args) {
-  const char * argv[] = {"process_name", "-d", "__ns:=/foo/bar", "__ns:=/fiz/buz", "--foo=bar", "--baz"};
+  const char * argv[] =
+  {"process_name", "-d", "__ns:=/foo/bar", "__ns:=/fiz/buz", "--foo=bar", "--baz"};
   int argc = sizeof(argv) / sizeof(const char *);
 
   rcl_allocator_t alloc = rcl_get_default_allocator();
@@ -202,14 +203,14 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   int nonros_argc = 0;
-  const char** nonros_argv = NULL;
+  const char ** nonros_argv = NULL;
 
   ret = rcl_remove_ros_arguments(
-        argv,
-        &parsed_args,
-        alloc,
-        &nonros_argc,
-        &nonros_argv);
+    argv,
+    &parsed_args,
+    alloc,
+    &nonros_argc,
+    &nonros_argv);
 
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_EQ(nonros_argc, 4);
@@ -222,7 +223,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   if (NULL != nonros_argv) {
     alloc.deallocate(nonros_argv, alloc.state);
   }
-
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args_no_args) {
@@ -236,15 +236,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   int nonros_argc;
-  const char** nonros_argv = NULL;
+  const char ** nonros_argv = NULL;
 
   ret = RCL_RET_ERROR;
   ret = rcl_remove_ros_arguments(
-        argv,
-        &parsed_args,
-        alloc,
-        &nonros_argc,
-        &nonros_argv);
+    argv,
+    &parsed_args,
+    alloc,
+    &nonros_argc,
+    &nonros_argv);
 
   EXPECT_EQ(nonros_argc, 0);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();

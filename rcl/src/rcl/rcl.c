@@ -61,7 +61,7 @@ __clean_up_init()
 }
 
 rcl_ret_t
-rcl_init(int argc, char const * const* argv, rcl_allocator_t allocator)
+rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
 {
   rcl_ret_t fail_ret = RCL_RET_ERROR;
 

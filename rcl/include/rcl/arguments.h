@@ -164,11 +164,11 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remove_ros_arguments(
-    char const * const argv[],
-    rcl_arguments_t * args,
-    rcl_allocator_t allocator,
-    int* nonros_argc,
-    const char** nonros_argv[]);
+  char const * const argv[],
+  rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int * nonros_argc,
+  const char ** nonros_argv[]);
 
 /// Reclaim resources held inside rcl_arguments_t structure.
 /**
