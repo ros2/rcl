@@ -42,8 +42,8 @@ rcl_get_zero_initialized_arguments(void);
 
 /// Parse command line arguments into a structure usable by code.
 /**
- * If an argument does not appear to be a valid ROS argument then it is skipped and parsing
- * continues with the next argument in `argv`.
+ * If an argument does not appear to be a valid ROS argument then it is skipped
+ * and parsing continues with the next argument in `argv`.
  * \sa rcl_arguments_get_count_unparsed()
  * \sa rcl_arguments_get_unparsed()
  *
@@ -136,9 +136,10 @@ rcl_arguments_get_unparsed(
 
 /// Return a list of arguments with ROS-specific arguments removed.
 /**
- * Some arguments may not have been intended as ROS arguments. This function
- * populates an array of the aruments in a new argv array. Since the first argument is
- * always assumed to be a process name, the list will always contain the process name.
+ * Some arguments may not have been intended as ROS arguments.
+ * This function populates an array of the aruments in a new argv array.
+ * Since the first argument is always assumed to be a process name, the list
+ * will always contain the first value from the argument vector.
  *
  * <hr>
  * Attribute          | Adherence
