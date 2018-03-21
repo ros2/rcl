@@ -190,3 +190,67 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_twice) {
   EXPECT_EQ(RCL_RET_ERROR, rcl_arguments_fini(&parsed_args));
   rcl_reset_error();
 }
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args) {
+  const char * argv[] = {"process_name", "-d", "__ns:=/foo/bar", "__ns:=/fiz/buz", "--foo=bar", "--baz"};
+  int argc = sizeof(argv) / sizeof(const char *);
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args;
+  rcl_ret_t ret;
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int nonros_argc = 0;
+  const char** nonros_argv = NULL;
+
+  ret = rcl_remove_ros_arguments(
+        argv,
+        &parsed_args,
+        alloc,
+        &nonros_argc,
+        &nonros_argv);
+
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(nonros_argc, 4);
+  EXPECT_STREQ(nonros_argv[0], "process_name");
+  EXPECT_STREQ(nonros_argv[1], "-d");
+  EXPECT_STREQ(nonros_argv[2], "--foo=bar");
+  EXPECT_STREQ(nonros_argv[3], "--baz");
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+
+  if (NULL != nonros_argv) {
+    alloc.deallocate(nonros_argv, alloc.state);
+  }
+
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args_no_args) {
+  const char * argv[] = {};
+  int argc = sizeof(argv) / sizeof(const char *);
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args;
+  rcl_ret_t ret;
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int nonros_argc;
+  const char** nonros_argv = NULL;
+
+  ret = RCL_RET_ERROR;
+  ret = rcl_remove_ros_arguments(
+        argv,
+        &parsed_args,
+        alloc,
+        &nonros_argc,
+        &nonros_argv);
+
+  EXPECT_EQ(nonros_argc, 0);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+
+  if (NULL != nonros_argv) {
+    alloc.deallocate(nonros_argv, alloc.state);
+  }
+}

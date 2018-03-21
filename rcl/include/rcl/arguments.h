@@ -134,6 +134,20 @@ rcl_arguments_get_unparsed(
   rcl_allocator_t allocator,
   int ** output_unparsed_indices);
 
+/// Return a list of arguments with ROS-specific arguments removed.
+/**
+ *
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_remove_ros_arguments(
+    char const * const argv[],
+    rcl_arguments_t * args,
+    rcl_allocator_t allocator,
+    int* nonros_argc,
+    const char** nonros_argv[]);
+
 /// Reclaim resources held inside rcl_arguments_t structure.
 /**
  * <hr>
