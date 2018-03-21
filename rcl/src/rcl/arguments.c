@@ -50,6 +50,9 @@ _rcl_parse_remap_rule(
   rcl_allocator_t allocator,
   rcl_remap_t * output_rule)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_rule, RCL_RET_INVALID_ARGUMENT, allocator);
+
   size_t len_node_name = 0;
   size_t len_match = 0;
   size_t len_replacement = 0;
@@ -108,14 +111,12 @@ _rcl_parse_remap_rule(
   if (len_node_name) {
     int validation_result;
     size_t invalid_index;
-    if (
-      RMW_RET_OK != rmw_validate_node_name_with_size(arg, len_node_name, &validation_result,
-      &invalid_index))
-    {
+    rmw_ret_t rmw_ret = rmw_validate_node_name_with_size(
+      arg, len_node_name, &validation_result, &invalid_index);
+    if (RMW_RET_OK != rmw_ret) {
       RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
       return RCL_RET_ERROR;
-    }
-    if (RMW_NODE_NAME_VALID != validation_result) {
+    } else if (RMW_NODE_NAME_VALID != validation_result) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         allocator,
         "node name prefix invalid: %s", rmw_node_name_validation_result_string(validation_result));
@@ -125,9 +126,9 @@ _rcl_parse_remap_rule(
 
   // Figure out what type of rule this is, default is to apply to topic and service names
   rcl_remap_type_t type = RCL_TOPIC_REMAP | RCL_SERVICE_REMAP;
-  if (0 == strncmp("__ns", match_begin, len_match)) {
+  if (4 == len_match && 0 == strncmp("__ns", match_begin, len_match)) {
     type = RCL_NAMESPACE_REMAP;
-  } else if (0 == strncmp("__node", match_begin, len_match)) {
+  } else if (6 == len_match && 0 == strncmp("__node", match_begin, len_match)) {
     type = RCL_NODENAME_REMAP;
   }
 
@@ -158,11 +159,11 @@ _rcl_parse_remap_rule(
   } else if (RCL_NAMESPACE_REMAP == type) {
     int validation_result;
     size_t invalid_idx;
-    if (RMW_RET_OK != rmw_validate_namespace(replacement_begin, &validation_result, &invalid_idx)) {
+    rmw_ret_t rmw_ret = rmw_validate_namespace(replacement_begin, &validation_result, &invalid_idx);
+    if (RMW_RET_OK != rmw_ret) {
       RCL_SET_ERROR_MSG("failed to run check on namespace", allocator);
       return RCL_RET_ERROR;
-    }
-    if (RMW_NAMESPACE_VALID != validation_result) {
+    } else if (RMW_NAMESPACE_VALID != validation_result) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         allocator,
         "namespace is invalid: %s", rmw_namespace_validation_result_string(validation_result));
@@ -171,11 +172,11 @@ _rcl_parse_remap_rule(
   } else if (RCL_NODENAME_REMAP == type) {
     int validation_result;
     size_t invalid_idx;
-    if (RMW_RET_OK != rmw_validate_node_name(replacement_begin, &validation_result, &invalid_idx)) {
+    rmw_ret_t rmw_ret = rmw_validate_node_name(replacement_begin, &validation_result, &invalid_idx);
+    if (RMW_RET_OK != rmw_ret) {
       RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
       return RCL_RET_ERROR;
-    }
-    if (RMW_NODE_NAME_VALID != validation_result) {
+    } else if (RMW_NODE_NAME_VALID != validation_result) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         allocator,
         "node name is invalid: %s", rmw_node_name_validation_result_string(validation_result));

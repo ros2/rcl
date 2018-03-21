@@ -87,6 +87,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_TRUE(is_valid_arg("__node:=nodename123"));
   EXPECT_TRUE(is_valid_arg("__ns:=/foo/bar"));
   EXPECT_TRUE(is_valid_arg("__ns:=/"));
+  EXPECT_TRUE(is_valid_arg("_:=kq"));
   EXPECT_TRUE(is_valid_arg("nodename:__ns:=/foobar"));
   EXPECT_TRUE(is_valid_arg("foo:=bar"));
   EXPECT_TRUE(is_valid_arg("~/foo:=~/bar"));

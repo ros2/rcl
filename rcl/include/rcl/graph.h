@@ -56,6 +56,10 @@ typedef rmw_names_and_types_t rcl_names_and_types_t;
  *
  * \see rmw_get_topic_names_and_types for more details on no_demangle
  *
+ * The returned names are not automatically remapped by this function.
+ * Attempting to create publishers or subscribers using names returned by this function may not
+ * result in the desired topic name being used depending on the remap rules in use.
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -95,6 +99,10 @@ rcl_get_topic_names_and_types(
  * Therefore, it should be passed to rcl_names_and_types_fini() when
  * it is no longer needed.
  * Failing to do so will result in leaked memory.
+ *
+ * The returned names are not automatically remapped by this function.
+ * Attempting to create clients or services using names returned by this function may not result in
+ * the desired service name being used depending on the remap rules in use.
  *
  * <hr>
  * Attribute          | Adherence
@@ -219,6 +227,12 @@ rcl_get_node_names(
  * In the event that error handling needs to allocate memory, this function
  * will try to use the node's allocator.
  *
+ * The topic name is not automatically remapped by this function.
+ * If there is a publisher created with topic name `foo` and remap rule `foo:=bar` then calling
+ * this with `topic_name` set to `bar` will return a count of 1, and with `topic_name` set to `foo`
+ * will return a count of 0.
+ * /sa rcl_remap_topic_name()
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -259,6 +273,12 @@ rcl_count_publishers(
  *
  * In the event that error handling needs to allocate memory, this function
  * will try to use the node's allocator.
+ *
+ * The topic name is not automatically remapped by this function.
+ * If there is a subscriber created with topic name `foo` and remap rule `foo:=bar` then calling
+ * this with `topic_name` set to `bar` will return a count of 1, and with `topic_name` set to `foo`
+ * will return a count of 0.
+ * /sa rcl_remap_topic_name()
  *
  * <hr>
  * Attribute          | Adherence

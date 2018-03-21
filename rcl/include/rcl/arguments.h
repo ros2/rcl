@@ -64,7 +64,7 @@ rcl_get_zero_initialized_arguments(void);
  * Lock-Free          | Yes
  *
  * \param[in] argc The number of arguments in argv.
- * \param[in] argv Whe values of the arguments.
+ * \param[in] argv The values of the arguments.
  * \param[in] allocator A valid allocator.
  * \param[out] args_output A structure that will contain the result of parsing.
  * \return `RCL_RET_OK` if the arguments were parsed successfully, or
