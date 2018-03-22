@@ -218,9 +218,9 @@ rcl_difference_times(
   }
   if (finish->nanoseconds < start->nanoseconds) {
     rcl_time_point_value_t intermediate = start->nanoseconds - finish->nanoseconds;
-    delta->nanoseconds = -1 * (int) intermediate;
+    delta->nanoseconds = -1 * (int64_t) intermediate;
   } else {
-    delta->nanoseconds = (int)(finish->nanoseconds - start->nanoseconds);
+    delta->nanoseconds = (int64_t)(finish->nanoseconds - start->nanoseconds);
   }
   return RCL_RET_OK;
 }
