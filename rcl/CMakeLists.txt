@@ -47,11 +47,12 @@ set(${PROJECT_NAME}_sources
 )
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})
+# specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
   "rcl_interfaces"
-  "rcutils"
-  "rmw"
   "rmw_implementation"
+  "rmw"
+  "rcutils"
   "rosidl_generator_c"
 )
 
@@ -71,16 +72,16 @@ install(
 # This is overwritten each loop, but which one it points to doesn't really matter.
 set(rcl_lib_dir "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 
+# specific order: dependents before dependencies
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl_interfaces)
-ament_export_dependencies(rcutils)
-ament_export_dependencies(rmw)
 ament_export_dependencies(rmw_implementation)
+ament_export_dependencies(rmw)
+ament_export_dependencies(rcutils)
 ament_export_dependencies(rosidl_generator_c)
-
-ament_export_include_directories(include)
-
-ament_export_libraries(${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

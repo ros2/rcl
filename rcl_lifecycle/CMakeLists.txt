@@ -40,9 +40,10 @@ add_library(
   rcl_lifecycle
   ${rcl_lifecycle_sources})
 
+# specific order: dependents before dependencies
 ament_target_dependencies(rcl_lifecycle
-  "lifecycle_msgs"
   "rcl"
+  "lifecycle_msgs"
   "rcutils"
 )
 
@@ -94,10 +95,13 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-ament_export_dependencies(ament_cmake)
-ament_export_dependencies(lifecycle_msgs)
+# specific order: dependents before dependencies
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(ament_cmake)
+ament_export_dependencies(rcl)
+ament_export_dependencies(lifecycle_msgs)
+ament_export_dependencies(rcutils)
 ament_package()
 
 install(
