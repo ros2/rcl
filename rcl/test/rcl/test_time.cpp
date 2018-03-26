@@ -279,6 +279,58 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   EXPECT_EQ(d.nanoseconds, -1000);
 }
 
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference_signed) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_clock_t * ros_clock =
+    reinterpret_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
+  rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
+  EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+
+  rcl_time_point_t a, b;
+  a.nanoseconds = RCL_S_TO_NS(0LL) + 0LL;
+  b.nanoseconds = RCL_S_TO_NS(10LL) + 0LL;
+  a.clock_type = RCL_ROS_TIME;
+  b.clock_type = RCL_ROS_TIME;
+
+  {
+    rcl_duration_t d;
+    rcl_ret_t ret;
+    ret = rcl_difference_times(&a, &b, &d);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(d.nanoseconds, RCL_S_TO_NS(10LL));
+  }
+
+  {
+    rcl_duration_t d;
+    rcl_ret_t ret;
+    ret = rcl_difference_times(&b, &a, &d);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(d.nanoseconds, RCL_S_TO_NS(-10LL));
+  }
+
+  // Construct example from issue.
+  a.nanoseconds = RCL_S_TO_NS(1514423496LL) + 0LL;
+  b.nanoseconds = RCL_S_TO_NS(1514423498LL) + 147483647LL;
+
+  {
+    rcl_duration_t d;
+    rcl_ret_t ret;
+    ret = rcl_difference_times(&a, &b, &d);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(d.nanoseconds, 2147483647LL);
+  }
+
+  {
+    rcl_duration_t d;
+    rcl_ret_t ret;
+    ret = rcl_difference_times(&b, &a, &d);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    // The erroneous value was -2147483648 (https://github.com/ros2/rcl/issues/204)
+    EXPECT_EQ(d.nanoseconds, -2147483647LL);
+  }
+}
+
+
 static bool pre_callback_called = false;
 static bool post_callback_called = false;
 
