@@ -313,7 +313,7 @@ fail:
 
 int
 rcl_arguments_get_count_unparsed(
-  rcl_arguments_t * args)
+  const rcl_arguments_t * args)
 {
   if (NULL == args || NULL == args->impl) {
     return -1;
@@ -323,7 +323,7 @@ rcl_arguments_get_count_unparsed(
 
 rcl_ret_t
 rcl_arguments_get_unparsed(
-  rcl_arguments_t * args,
+  const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int ** output_unparsed_indices)
 {
@@ -358,7 +358,7 @@ rcl_get_zero_initialized_arguments(void)
 rcl_ret_t
 rcl_remove_ros_arguments(
   char const * const argv[],
-  rcl_arguments_t * args,
+  const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int * nonros_argc,
   const char ** nonros_argv[])

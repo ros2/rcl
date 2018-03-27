@@ -99,7 +99,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 int
 rcl_arguments_get_count_unparsed(
-  rcl_arguments_t * args);
+  const rcl_arguments_t * args);
 
 /// Return a list of indexes that weren't successfully parsed.
 /**
@@ -130,7 +130,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_arguments_get_unparsed(
-  rcl_arguments_t * args,
+  const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int ** output_unparsed_indices);
 
@@ -166,7 +166,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remove_ros_arguments(
   char const * const argv[],
-  rcl_arguments_t * args,
+  const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int * nonros_argc,
   const char ** nonros_argv[]);
