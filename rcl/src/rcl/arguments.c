@@ -373,26 +373,27 @@ rcl_remove_ros_arguments(
 
   if (*nonros_argc <= 0) {
     return RCL_RET_INVALID_ARGUMENT;
-  } else {
-    int * unparsed_indices = NULL;
-    rcl_ret_t ret;
-    ret = rcl_arguments_get_unparsed(args, allocator, &unparsed_indices);
-
-    if (RCL_RET_OK != ret) {
-      return ret;
-    }
-    size_t alloc_size = sizeof(char *) * *nonros_argc;
-    *nonros_argv = allocator.allocate(alloc_size, allocator.state);
-    if (NULL == *nonros_argv) {
-      allocator.deallocate(unparsed_indices, allocator.state);
-      return RCL_RET_BAD_ALLOC;
-    }
-    for (int i = 0; i < *nonros_argc; ++i) {
-      (*nonros_argv)[i] = argv[unparsed_indices[i]];
-    }
-
-    allocator.deallocate(unparsed_indices, allocator.state);
   }
+
+  int * unparsed_indices = NULL;
+  rcl_ret_t ret;
+  ret = rcl_arguments_get_unparsed(args, allocator, &unparsed_indices);
+
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  size_t alloc_size = sizeof(char *) * *nonros_argc;
+  *nonros_argv = allocator.allocate(alloc_size, allocator.state);
+  if (NULL == *nonros_argv) {
+    allocator.deallocate(unparsed_indices, allocator.state);
+    return RCL_RET_BAD_ALLOC;
+  }
+  for (int i = 0; i < *nonros_argc; ++i) {
+    (*nonros_argv)[i] = argv[unparsed_indices[i]];
+  }
+
+  allocator.deallocate(unparsed_indices, allocator.state);
   return RCL_RET_OK;
 }
 

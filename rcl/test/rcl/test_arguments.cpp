@@ -200,7 +200,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   rcl_arguments_t parsed_args;
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   int nonros_argc = 0;
   const char ** nonros_argv = NULL;
@@ -213,7 +213,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
     &nonros_argv);
 
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_EQ(nonros_argc, 4);
+  ASSERT_EQ(nonros_argc, 4);
   EXPECT_STREQ(nonros_argv[0], "process_name");
   EXPECT_STREQ(nonros_argv[1], "-d");
   EXPECT_STREQ(nonros_argv[2], "--foo=bar");
