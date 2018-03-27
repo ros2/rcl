@@ -42,8 +42,8 @@ rcl_get_zero_initialized_arguments(void);
 
 /// Parse command line arguments into a structure usable by code.
 /**
- * If an argument does not appear to be a valid ROS argument then it is skipped and parsing
- * continues with the next argument in `argv`.
+ * If an argument does not appear to be a valid ROS argument then it is skipped
+ * and parsing continues with the next argument in `argv`.
  * \sa rcl_arguments_get_count_unparsed()
  * \sa rcl_arguments_get_unparsed()
  *
@@ -99,7 +99,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 int
 rcl_arguments_get_count_unparsed(
-  rcl_arguments_t * args);
+  const rcl_arguments_t * args);
 
 /// Return a list of indexes that weren't successfully parsed.
 /**
@@ -130,9 +130,46 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_arguments_get_unparsed(
-  rcl_arguments_t * args,
+  const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int ** output_unparsed_indices);
+
+/// Return a list of arguments with ROS-specific arguments removed.
+/**
+ * Some arguments may not have been intended as ROS arguments.
+ * This function populates an array of the aruments in a new argv array.
+ * Since the first argument is always assumed to be a process name, the list
+ * will always contain the first value from the argument vector.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] argv The argument vector
+ * \param[in] args An arguments structure that has been parsed.
+ * \param[in] allocator A valid allocator.
+ * \param[out] nonros_argc The count of arguments that aren't ROS-specific
+ * \param[out] nonros_argv An allocated array of arguments that aren't ROS-specific
+ *   This array must be deallocated by the caller using the given allocator.
+ *   If there are no non-ROS args, then the output will be set to NULL.
+ * \return `RCL_RET_OK` if everything goes correctly, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_remove_ros_arguments(
+  char const * const argv[],
+  const rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int * nonros_argc,
+  const char ** nonros_argv[]);
 
 /// Reclaim resources held inside rcl_arguments_t structure.
 /**

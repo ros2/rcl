@@ -121,7 +121,7 @@ extern "C"
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_init(int argc, char ** argv, rcl_allocator_t allocator);
+rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator);
 
 /// Signal global shutdown of rcl.
 /**
