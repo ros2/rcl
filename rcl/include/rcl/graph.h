@@ -166,6 +166,7 @@ rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
  * The node_names parameter must be allocated and zero initialized.
  * The node_names is the output for this function, and contains
  * allocated memory.
+ * Note that entries in the array might contain `NULL` value.
  * Use rcutils_get_zero_initialized_string_array() for initializing an empty
  * rcutils_string_array_t struct.
  * This node_names struct should therefore be passed to rcutils_string_array_fini()
