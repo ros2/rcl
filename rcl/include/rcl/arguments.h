@@ -44,6 +44,8 @@ rcl_get_zero_initialized_arguments(void);
 /**
  * If an argument does not appear to be a valid ROS argument then it is skipped
  * and parsing continues with the next argument in `argv`.
+ *
+ * \sa rcl_get_zero_initialized_arguments()
  * \sa rcl_arguments_get_count_unparsed()
  * \sa rcl_arguments_get_unparsed()
  *
@@ -67,6 +69,7 @@ rcl_get_zero_initialized_arguments(void);
  * \param[in] argv The values of the arguments.
  * \param[in] allocator A valid allocator.
  * \param[out] args_output A structure that will contain the result of parsing.
+ *   Must be zero initialized before use.
  * \return `RCL_RET_OK` if the arguments were parsed successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
