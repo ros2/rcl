@@ -221,11 +221,17 @@ rcl_parse_arguments(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   if (argc < 0) {
+    RCL_SET_ERROR_MSG("Argument count cannot be negative", allocator);
     return RCL_RET_INVALID_ARGUMENT;
   } else if (argc > 0) {
     RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(args_output, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  if (args_output->impl != NULL) {
+    RCL_SET_ERROR_MSG("Parse output is not zero-initialized", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
 
   rcl_ret_t ret;
   rcl_ret_t fail_ret;

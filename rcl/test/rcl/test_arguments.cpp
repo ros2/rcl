@@ -72,7 +72,7 @@ bool
 is_valid_arg(const char * arg)
 {
   const char * argv[] = {arg};
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(1, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   bool is_valid = 0 == rcl_arguments_get_count_unparsed(&parsed_args);
@@ -113,7 +113,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_EQ(0, rcl_arguments_get_count_unparsed(&parsed_args));
@@ -122,7 +122,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args) {
   int argc = 1;
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(argc, NULL, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
@@ -139,7 +139,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args_outpu
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
   const char * argv[] = {"process_name", "/foo/bar:=/fiz/buz"};
   int argc = sizeof(argv) / sizeof(const char *);
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -150,7 +150,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_invalid_rules) {
   const char * argv[] = {"process_name", "/foo/bar:=", "bar:=/fiz/buz", "}bar:=fiz"};
   int argc = sizeof(argv) / sizeof(const char *);
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -161,12 +161,21 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_inval
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_namespace) {
   const char * argv[] = {"process_name", "__ns:=/foo/bar", "__ns:=/fiz/buz"};
   int argc = sizeof(argv) / sizeof(const char *);
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_UNPARSED(parsed_args, 0);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_uninitialized_parsed_args) {
+  const char * argv[] = {"process_name"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args;
+  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT,
+    rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
+  rcl_reset_error();
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_null) {
@@ -175,7 +184,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_null) {
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_impl_null) {
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   parsed_args.impl = NULL;
   EXPECT_EQ(RCL_RET_ERROR, rcl_arguments_fini(&parsed_args));
   rcl_reset_error();
@@ -184,7 +193,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_impl_null)
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_twice) {
   const char * argv[] = {"process_name"};
   int argc = sizeof(argv) / sizeof(const char *);
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   ASSERT_EQ(RCL_RET_OK, rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   EXPECT_EQ(RCL_RET_ERROR, rcl_arguments_fini(&parsed_args));
@@ -197,7 +206,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   int argc = sizeof(argv) / sizeof(const char *);
 
   rcl_allocator_t alloc = rcl_get_default_allocator();
-  rcl_arguments_t parsed_args;
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
