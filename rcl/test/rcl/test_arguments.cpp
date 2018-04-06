@@ -174,7 +174,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_uninitialized_p
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args;
   int not_null = 1;
-  parsed_args.impl = reinterpret_cast<rcl_arguments_impl_t*>(&not_null);
+  parsed_args.impl = reinterpret_cast<rcl_arguments_impl_t *>(&not_null);
   ASSERT_EQ(RCL_RET_INVALID_ARGUMENT,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   rcl_reset_error();
@@ -190,9 +190,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_double_parse) {
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   rcl_reset_error();
 }
-
-
-
 
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_null) {
