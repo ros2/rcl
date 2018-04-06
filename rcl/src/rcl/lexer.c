@@ -16,11 +16,23 @@
 #include "lexer.h"
 
 
-/* This lexer is implemented as a finite state machine.
+/* The lexer tries to find a lexeme in a string.
+ * It looks at one character at a time, and uses that character's value to decide how to transition
+ * a state machine.
+ * A transition is taken if a character's ASCII value falls within its range.
+ * No transition's ranges overlap; there is never more than one matching transition.
  *
- * Every character in a string causes a tranisition in the state machine.
- * Transitions labeled '<else>' are special.
- * They cause the lexer to re analyze the same character in another state.
+ * If no transition matches then the state machine takes an '<else,M>' transition.
+ * Every state has exactly one '<else,M>' transition.
+ * All states have an `<else,0>` to T_NONE unless otherwise specified in the diagram below.
+ *
+ * When a transition is taken it causes the lexer to move to another character in the string.
+ * Normal transitions always move the lexer to the forwards one character.
+ * '<else,M>' transitions may cause the lexer to move forwards 1, or backwards N.
+ * The movement M is written as M = 1 - N so it can be stored in an unsigned integer.
+ * For example, an `<else>` transition with M = 0 moves the lexer forwards 1 character, M = 1 keeps
+ * the lexer at the current character, and M = 2 moves the lexer backwards one character.
+ *
  *
  * dot graph of state machine
 
@@ -69,56 +81,60 @@ digraph remapping_lexer {
   S1 -> T_BR9 [ label = "9"];
   S2 -> T_TILDE_SLASH [ label ="/" ];
   S3 -> S4 [ label = "_" ];
-  S3 -> S9 [ label = "<else>", color = crimson, fontcolor = crimson];
+  S3 -> S9 [ label = "<else,1>", color = crimson, fontcolor = crimson];
   S4 -> S5 [ label = "n" ];
   S5 -> T_NS [ label = "s"];
   S5 -> S6 [ label = "o" ];
   S6 -> S7 [ label = "d" ];
   S7 -> T_NODE [ label = "e"];
-  S8 -> T_TOKEN [ label = "<else>", color=crimson, fontcolor=crimson];
+  S8 -> T_TOKEN [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S8 -> S8 [ label = "a-zA-Z0-9"];
   S8 -> S9 [ label = "_"];
-  S9 -> T_TOKEN [ label = "<else>", color=crimson, fontcolor=crimson];
+  S9 -> T_TOKEN [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S9 -> S8 [ label = "a-zA-Z0-9"];
-  S10 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S10 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S10 -> S11 [ label = "o"];
-  S11 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S11 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S11 -> S12 [ label = "s"];
-  S12 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S12 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S12 -> S13 [ label = "t"];
   S12 -> S20 [ label = "s"];
-  S13 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S13 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S13 -> S14 [ label = "o"];
-  S14 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S14 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S14 -> S15 [ label = "p"];
-  S15 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S15 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S15 -> S16 [ label = "i"];
-  S16 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S16 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S16 -> S17 [ label = "c"];
-  S17 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S17 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S17 -> S18 [ label = ":"];
   S18 -> S19 [ label = "/"];
+  S18 -> S8 [ label = "<else,2>", color=crimson, fontcolor=crimson];
   S19 -> T_URL_TOPIC [ label = "/"];
-  S20 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S19 -> S8 [ label = "<else,3>", color=crimson, fontcolor=crimson];
+  S20 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S20 -> S21 [ label = "e"];
-  S21 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S21 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S21 -> S22 [ label = "r"];
-  S22 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S22 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S22 -> S23 [ label = "v"];
-  S23 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S23 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S23 -> S24 [ label = "i"];
-  S24 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S24 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S24 -> S25 [ label = "c"];
-  S25 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S25 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S25 -> S26 [ label = "e"];
   S26 -> S27 [ label = ":"];
-  S26 -> S8 [ label = "<else>", color=crimson, fontcolor=crimson];
+  S26 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S27 -> S28 [ label = "/"];
+  S27 -> S8 [ label = "<else,2>", color=crimson, fontcolor=crimson];
   S28 -> T_URL_SERVICE [ label = "/"];
+  S28 -> S8 [ label = "<else,3>", color=crimson, fontcolor=crimson];
   S29 -> T_WILD_MULTI[ label = "*"];
-  S29 -> T_WILD_ONE [ label = "<else>", color=crimson, fontcolor=crimson];
+  S29 -> T_WILD_ONE [ label = "<else,1>", color=crimson, fontcolor=crimson];
   S30 -> T_SEPARATOR [ label = "="];
-  S30 -> T_COLON [ label = "<else>", color=crimson, fontcolor=crimson];
+  S30 -> T_COLON [ label = "<else,1>", color=crimson, fontcolor=crimson];
 }
 */
 
@@ -139,6 +155,8 @@ typedef struct rcl_lexer_state_t
 {
   // If no transition matches this causes a character to be analyzed a second time in another state
   const size_t else_state;
+  // Movement associated with taking else state
+  const size_t else_movement;
   // A value of a terminal if this is a terminal state
   const rcl_lexer_terminal_t terminal;
   // Transitions in the state machine (NULL value at end of array)
@@ -211,6 +229,7 @@ static const rcl_lexer_state_t g_states[] =
   // S0
   {
     T_NONE,
+    0,
     RCL_TERMINAL_NONE,
     {
       {T_FORWARD_SLASH, '/', '/' },
@@ -229,6 +248,7 @@ static const rcl_lexer_state_t g_states[] =
   // S1
   {
     T_NONE,
+    0,
     RCL_TERMINAL_NONE,
     {
       {T_BR1, '1', '1'},
@@ -246,6 +266,7 @@ static const rcl_lexer_state_t g_states[] =
   // S2
   {
     T_NONE,
+    0,
     RCL_TERMINAL_NONE,
     {
       {T_TILDE_SLASH, '/', '/'},
@@ -255,6 +276,7 @@ static const rcl_lexer_state_t g_states[] =
   // S3
   {
     S9,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S4, '_', '_'},
@@ -264,6 +286,7 @@ static const rcl_lexer_state_t g_states[] =
   // S4
   {
     T_NONE,
+    0,
     RCL_TERMINAL_NONE,
     {
       {S5, 'n', 'n'},
@@ -273,6 +296,7 @@ static const rcl_lexer_state_t g_states[] =
   // S5
   {
     T_NONE,
+    0,
     RCL_TERMINAL_NONE,
     {
       {T_NS, 's', 's'},
@@ -283,6 +307,7 @@ static const rcl_lexer_state_t g_states[] =
   // S6
   {
     T_NONE,
+    0,
     RCL_TERMINAL_NONE,
     {
       {S7, 'd', 'd'},
@@ -292,6 +317,7 @@ static const rcl_lexer_state_t g_states[] =
   // S7
   {
     T_NONE,
+    0,
     RCL_TERMINAL_NONE,
     {
       {T_NODE, 'e', 'e'},
@@ -301,6 +327,7 @@ static const rcl_lexer_state_t g_states[] =
   // S8
   {
     T_TOKEN,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S8, 'a', 'z'},
@@ -313,6 +340,7 @@ static const rcl_lexer_state_t g_states[] =
   // S9
   {
     T_TOKEN,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S8, 'a', 'z'},
@@ -324,6 +352,7 @@ static const rcl_lexer_state_t g_states[] =
   // S10
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S11, 'o', 'o'},
@@ -333,6 +362,7 @@ static const rcl_lexer_state_t g_states[] =
   // S11
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S12, 's', 's'},
@@ -342,6 +372,7 @@ static const rcl_lexer_state_t g_states[] =
   // S12
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S13, 't', 't'},
@@ -352,6 +383,7 @@ static const rcl_lexer_state_t g_states[] =
   // S13
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S14, 'o', 'o'},
@@ -361,6 +393,7 @@ static const rcl_lexer_state_t g_states[] =
   // S14
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S15, 'p', 'p'},
@@ -370,6 +403,7 @@ static const rcl_lexer_state_t g_states[] =
   // S15
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S16, 'i', 'i'},
@@ -379,6 +413,7 @@ static const rcl_lexer_state_t g_states[] =
   // S16
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S17, 'c', 'c'},
@@ -388,6 +423,7 @@ static const rcl_lexer_state_t g_states[] =
   // S17
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S18, ':', ':'},
@@ -396,7 +432,8 @@ static const rcl_lexer_state_t g_states[] =
   },
   // S18
   {
-    T_NONE,
+    S8,
+    2,
     RCL_TERMINAL_NONE,
     {
       {S19, '/', '/'},
@@ -405,7 +442,8 @@ static const rcl_lexer_state_t g_states[] =
   },
   // S19
   {
-    T_NONE,
+    S8,
+    3,
     RCL_TERMINAL_NONE,
     {
       {T_URL_TOPIC, '/', '/'},
@@ -415,6 +453,7 @@ static const rcl_lexer_state_t g_states[] =
   // S20
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S21, 'e', 'e'},
@@ -424,6 +463,7 @@ static const rcl_lexer_state_t g_states[] =
   // S21
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S22, 'r', 'r'},
@@ -433,6 +473,7 @@ static const rcl_lexer_state_t g_states[] =
   // S22
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S23, 'v', 'v'},
@@ -442,6 +483,7 @@ static const rcl_lexer_state_t g_states[] =
   // S23
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S24, 'i', 'i'},
@@ -451,6 +493,7 @@ static const rcl_lexer_state_t g_states[] =
   // S24
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S25, 'c', 'c'},
@@ -460,6 +503,7 @@ static const rcl_lexer_state_t g_states[] =
   // S25
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S26, 'e', 'e'},
@@ -469,6 +513,7 @@ static const rcl_lexer_state_t g_states[] =
   // S26
   {
     S8,
+    1,
     RCL_TERMINAL_NONE,
     {
       {S27, ':', ':'},
@@ -477,7 +522,8 @@ static const rcl_lexer_state_t g_states[] =
   },
   // S27
   {
-    T_NONE,
+    S8,
+    2,
     RCL_TERMINAL_NONE,
     {
       {S28, '/', '/'},
@@ -486,7 +532,8 @@ static const rcl_lexer_state_t g_states[] =
   },
   // S28
   {
-    T_NONE,
+    S8,
+    3,
     RCL_TERMINAL_NONE,
     {
       {T_URL_SERVICE, '/', '/'},
@@ -496,6 +543,7 @@ static const rcl_lexer_state_t g_states[] =
   // S29
   {
     T_WILD_ONE,
+    1,
     RCL_TERMINAL_NONE,
     {
       {T_WILD_MULTI, '*', '*'},
@@ -505,6 +553,7 @@ static const rcl_lexer_state_t g_states[] =
   // S30
   {
     T_COLON,
+    1,
     RCL_TERMINAL_NONE,
     {
       {T_SEPARATOR, '=', '='},
@@ -513,63 +562,63 @@ static const rcl_lexer_state_t g_states[] =
   },
   // Terminal states
   // 31
-  {S0, RCL_TERMINAL_TILDE_SLASH, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_TILDE_SLASH, {END_TRANSITIONS}},
   // 32
-  {S0, RCL_TERMINAL_URL_SERVICE, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_URL_SERVICE, {END_TRANSITIONS}},
   // 33
-  {S0, RCL_TERMINAL_URL_TOPIC, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_URL_TOPIC, {END_TRANSITIONS}},
   // 34
-  {S0, RCL_TERMINAL_COLON, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_COLON, {END_TRANSITIONS}},
   // 35
-  {S0, RCL_TERMINAL_NODE, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_NODE, {END_TRANSITIONS}},
   // 36
-  {S0, RCL_TERMINAL_NS, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_NS, {END_TRANSITIONS}},
   // 37
-  {S0, RCL_TERMINAL_SEPARATOR, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_SEPARATOR, {END_TRANSITIONS}},
   // 38
-  {S0, RCL_TERMINAL_BR1, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR1, {END_TRANSITIONS}},
   // 39
-  {S0, RCL_TERMINAL_BR2, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR2, {END_TRANSITIONS}},
   // 40
-  {S0, RCL_TERMINAL_BR3, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR3, {END_TRANSITIONS}},
   // 41
-  {S0, RCL_TERMINAL_BR4, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR4, {END_TRANSITIONS}},
   // 42
-  {S0, RCL_TERMINAL_BR5, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR5, {END_TRANSITIONS}},
   // 43
-  {S0, RCL_TERMINAL_BR6, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR6, {END_TRANSITIONS}},
   // 44
-  {S0, RCL_TERMINAL_BR7, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR7, {END_TRANSITIONS}},
   // 45
-  {S0, RCL_TERMINAL_BR8, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR8, {END_TRANSITIONS}},
   // 46
-  {S0, RCL_TERMINAL_BR9, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_BR9, {END_TRANSITIONS}},
   // 47
-  {S0, RCL_TERMINAL_TOKEN, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_TOKEN, {END_TRANSITIONS}},
   // 48
-  {S0, RCL_TERMINAL_FORWARD_SLASH, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_FORWARD_SLASH, {END_TRANSITIONS}},
   // 49
-  {S0, RCL_TERMINAL_WILD_ONE, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_WILD_ONE, {END_TRANSITIONS}},
   // 50
-  {S0, RCL_TERMINAL_WILD_MULTI, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_WILD_MULTI, {END_TRANSITIONS}},
   // 51
-  {S0, RCL_TERMINAL_EOF, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_EOF, {END_TRANSITIONS}},
   // 52
-  {S0, RCL_TERMINAL_NONE, {END_TRANSITIONS}},
+  {S0, 0, RCL_TERMINAL_NONE, {END_TRANSITIONS}},
 };
 
 rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
   rcl_lexer_terminal_t * terminal,
-  size_t * end_position)
+  size_t * length)
 {
   // TODO accept allocator just for error checking
   // RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT, allocator);
   // RCL_CHECK_ARGUMENT_FOR_NULL(terminal, RCL_RET_INVALID_ARGUMENT, allocator);
-  // RCL_CHECK_ARGUMENT_FOR_NULL(end_position, RCL_RET_INVALID_ARGUMENT, allocator);
+  // RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT, allocator);
 
-  *end_position = 0;
+  *length = 0;
 
   if ('\0' == text[0]){
     // Early exit if string is empty
@@ -580,9 +629,11 @@ rcl_lexer_analyze(
   const rcl_lexer_state_t * state = &(g_states[S0]);
   char current_char;
   size_t next_state;
+  size_t movement;
   do {
-    current_char = text[*end_position];
+    current_char = text[*length];
     next_state = 0;
+    movement = 0;
 
     // Loop through all transitions in current state and find one that matches
     size_t transition_idx = 0;
@@ -597,15 +648,18 @@ rcl_lexer_analyze(
     } while (transition->to_state != 0);
 
     if (0 == next_state) {
-      // no transition found, try evaluating this char again in a different state
+      // no transition found, take the else transition
       next_state = state->else_state;
-      if (T_NONE == next_state) {
-        // advance so a substring using end_position includes this char
-        ++(*end_position);
-      }
-    } else {
+      movement = state->else_movement;
+    }
+
+    if (0 == movement) {
       // Advance position in string to test next char
-      ++(*end_position);
+      ++(*length);
+    } else {
+      // Go backwards in string
+      *length -= movement - 1;
+      // Error if movement would cause length to overflow
     }
 
     state = &(g_states[next_state]);

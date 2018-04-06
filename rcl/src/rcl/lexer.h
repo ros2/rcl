@@ -77,15 +77,12 @@ typedef enum rcl_lexer_terminal_t
 
 // Analize string until one terminal is found
 // If the string does not begin with a valid terminal, terminal will be RCL_TERMINAL_NONE
-//
-// Known Bugs
-//  1. "rosservice:" returns T_NONE when it should T_TOKEN up to "rosservice"
-//  2. "rostopic:" returns T_NONE when it should T_TOKEN up to "rostopic"
+// If the first character is '\0', the terminal will be RCL_TERMINAL_EOF
 rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
   rcl_lexer_terminal_t * terminal,
-  size_t * end_position);
+  size_t * length);
 
 #if __cplusplus
 }

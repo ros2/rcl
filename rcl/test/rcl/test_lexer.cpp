@@ -194,17 +194,19 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservi", "rosservi");
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservic", "rosservic");
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservice", "rosservice");
-  // Known Bugs
-  // EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservice", "rosservice:");
-  // EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservice", "rosservice:/");
+  EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservice", "rosservice:");
+  EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservice", "rosservice:=");
+  EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservice", "rosservice:/");
+  EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosservice", "rosservice:/a");
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "rost", "rost");
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "rosto", "rosto");
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostop", "rostop");
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostopi", "rostopi");
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostopic", "rostopic");
-  // Known bugs
-  // EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostopic", "rostopic:");
-  // EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostopic", "rostopic:/");
+  EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostopic", "rostopic:");
+  EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostopic", "rostopic:=");
+  EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostopic", "rostopic:/");
+  EXPECT_LEX(RCL_TERMINAL_TOKEN, "rostopic", "rostopic:/a");
 
   // Tokens may contain uppercase characters
   EXPECT_LEX(RCL_TERMINAL_TOKEN, "ABC", "ABC");
