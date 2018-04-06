@@ -16,7 +16,8 @@
 
 #include <string>
 
-#include "lexer.h"
+// test include directory has src
+#include "rcl/lexer.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -40,13 +41,13 @@ public:
 // Not using a function because with a macro gtest shows the line number where the macro is used
 #define EXPECT_LEX(expected_terminal, expected_text, text) \
   do { \
-  rcl_lexer_terminal_t actual_terminal; \
-  size_t end_pos; \
-  rcl_ret_t ret = rcl_lexer_analyze(text, &actual_terminal, &end_pos); \
-  ASSERT_EQ(RCL_RET_OK, ret); \
-  EXPECT_EQ(expected_terminal, actual_terminal); \
-  std::string actual_text(text, end_pos); \
-  EXPECT_STREQ(expected_text, actual_text.c_str()); \
+    rcl_lexer_terminal_t actual_terminal; \
+    size_t end_pos; \
+    rcl_ret_t ret = rcl_lexer_analyze(text, &actual_terminal, &end_pos); \
+    ASSERT_EQ(RCL_RET_OK, ret); \
+    EXPECT_EQ(expected_terminal, actual_terminal); \
+    std::string actual_text(text, end_pos); \
+    EXPECT_STREQ(expected_text, actual_text.c_str()); \
   } while (false)
 
 TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)

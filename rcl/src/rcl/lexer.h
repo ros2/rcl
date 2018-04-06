@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__ARGUMENTS_H_
-#define RCL__ARGUMENTS_H_
+#ifndef RCL__LEXER_H_
+#define RCL__LEXER_H_
 
 #include <stddef.h>
 

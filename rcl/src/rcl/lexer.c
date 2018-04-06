@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#include "lexer.h"
-
+#include "./lexer.h"
 
 /* The lexer tries to find a lexeme in a string.
  * It looks at one character at a time, and uses that character's value to decide how to transition
@@ -232,7 +230,7 @@ static const rcl_lexer_state_t g_states[] =
     0,
     RCL_TERMINAL_NONE,
     {
-      {T_FORWARD_SLASH, '/', '/' },
+      {T_FORWARD_SLASH, '/', '/'},
       {S1, '\\', '\\'},
       {S2, '~', '~'},
       {S3, '_', '_'},
@@ -613,14 +611,14 @@ rcl_lexer_analyze(
   rcl_lexer_terminal_t * terminal,
   size_t * length)
 {
-  // TODO accept allocator just for error checking
+  // TODO(sloretz) accept allocator just for error checking
   // RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT, allocator);
   // RCL_CHECK_ARGUMENT_FOR_NULL(terminal, RCL_RET_INVALID_ARGUMENT, allocator);
   // RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT, allocator);
 
   *length = 0;
 
-  if ('\0' == text[0]){
+  if ('\0' == text[0]) {
     // Early exit if string is empty
     *terminal = RCL_TERMINAL_EOF;
     return RCL_RET_OK;
@@ -659,7 +657,7 @@ rcl_lexer_analyze(
     } else {
       // Go backwards in string
       *length -= movement - 1;
-      // Error if movement would cause length to overflow
+      // TODO(sloretz) Error if movement would cause length to overflow
     }
 
     state = &(g_states[next_state]);
