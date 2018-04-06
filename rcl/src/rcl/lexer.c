@@ -576,9 +576,9 @@ static const rcl_lexeme_t g_terminals[LAST_TERMINAL + 1] = {
 rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
+  rcl_allocator_t alloc,
   rcl_lexeme_t * lexeme,
-  size_t * length,
-  rcl_allocator_t alloc)
+  size_t * length)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT, alloc);
