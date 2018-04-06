@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "./lexer.h"
+#include "rcl/lexer.h"
 
 /* The lexer tries to find a lexeme in a string.
  * It looks at one character at a time, and uses that character's value to decide how to transition
