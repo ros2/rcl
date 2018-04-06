@@ -155,8 +155,6 @@ typedef struct rcl_lexer_state_t
   const size_t else_state;
   // Movement associated with taking else state
   const size_t else_movement;
-  // A value of a terminal if this is a terminal state
-  const rcl_lexer_terminal_t terminal;
   // Transitions in the state machine (NULL value at end of array)
   const rcl_lexer_transition_t transitions[11];
 } rcl_lexer_state_t;
@@ -192,6 +190,7 @@ typedef struct rcl_lexer_state_t
 #define S28 28u
 #define S29 29u
 #define S30 30u
+#define LAST_STATE S30
 
 #define T_TILDE_SLASH 31u
 #define T_URL_SERVICE 32u
@@ -218,17 +217,18 @@ typedef struct rcl_lexer_state_t
 
 // used to figure out if a state is terminal or not
 #define FIRST_TERMINAL T_TILDE_SLASH
+#define LAST_TERMINAL T_NONE
 
+// Used to mark where the last transition is in a state
 #define END_TRANSITIONS {0, '\0', '\0'}
 
-static const rcl_lexer_state_t g_states[] =
+static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
 {
   // Nonterminal states
   // S0
   {
     T_NONE,
     0,
-    RCL_TERMINAL_NONE,
     {
       {T_FORWARD_SLASH, '/', '/'},
       {S1, '\\', '\\'},
@@ -247,7 +247,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_NONE,
     0,
-    RCL_TERMINAL_NONE,
     {
       {T_BR1, '1', '1'},
       {T_BR2, '2', '2'},
@@ -265,7 +264,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_NONE,
     0,
-    RCL_TERMINAL_NONE,
     {
       {T_TILDE_SLASH, '/', '/'},
       END_TRANSITIONS
@@ -275,7 +273,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S9,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S4, '_', '_'},
       END_TRANSITIONS
@@ -285,7 +282,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_NONE,
     0,
-    RCL_TERMINAL_NONE,
     {
       {S5, 'n', 'n'},
       END_TRANSITIONS
@@ -295,7 +291,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_NONE,
     0,
-    RCL_TERMINAL_NONE,
     {
       {T_NS, 's', 's'},
       {S6, 'o', 'o'},
@@ -306,7 +301,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_NONE,
     0,
-    RCL_TERMINAL_NONE,
     {
       {S7, 'd', 'd'},
       END_TRANSITIONS
@@ -316,7 +310,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_NONE,
     0,
-    RCL_TERMINAL_NONE,
     {
       {T_NODE, 'e', 'e'},
       END_TRANSITIONS
@@ -326,7 +319,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_TOKEN,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S8, 'a', 'z'},
       {S8, 'A', 'Z'},
@@ -339,7 +331,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_TOKEN,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S8, 'a', 'z'},
       {S8, 'A', 'Z'},
@@ -351,7 +342,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S11, 'o', 'o'},
       END_TRANSITIONS
@@ -361,7 +351,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S12, 's', 's'},
       END_TRANSITIONS
@@ -371,7 +360,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S13, 't', 't'},
       {S20, 's', 's'},
@@ -382,7 +370,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S14, 'o', 'o'},
       END_TRANSITIONS
@@ -392,7 +379,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S15, 'p', 'p'},
       END_TRANSITIONS
@@ -402,7 +388,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S16, 'i', 'i'},
       END_TRANSITIONS
@@ -412,7 +397,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S17, 'c', 'c'},
       END_TRANSITIONS
@@ -422,7 +406,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S18, ':', ':'},
       END_TRANSITIONS
@@ -432,7 +415,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     2,
-    RCL_TERMINAL_NONE,
     {
       {S19, '/', '/'},
       END_TRANSITIONS
@@ -442,7 +424,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     3,
-    RCL_TERMINAL_NONE,
     {
       {T_URL_TOPIC, '/', '/'},
       END_TRANSITIONS
@@ -452,7 +433,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S21, 'e', 'e'},
       END_TRANSITIONS
@@ -462,7 +442,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S22, 'r', 'r'},
       END_TRANSITIONS
@@ -472,7 +451,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S23, 'v', 'v'},
       END_TRANSITIONS
@@ -482,7 +460,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S24, 'i', 'i'},
       END_TRANSITIONS
@@ -492,7 +469,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S25, 'c', 'c'},
       END_TRANSITIONS
@@ -502,7 +478,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S26, 'e', 'e'},
       END_TRANSITIONS
@@ -512,7 +487,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     1,
-    RCL_TERMINAL_NONE,
     {
       {S27, ':', ':'},
       END_TRANSITIONS
@@ -522,7 +496,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     2,
-    RCL_TERMINAL_NONE,
     {
       {S28, '/', '/'},
       END_TRANSITIONS
@@ -532,7 +505,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     S8,
     3,
-    RCL_TERMINAL_NONE,
     {
       {T_URL_SERVICE, '/', '/'},
       END_TRANSITIONS
@@ -542,7 +514,6 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_WILD_ONE,
     1,
-    RCL_TERMINAL_NONE,
     {
       {T_WILD_MULTI, '*', '*'},
       END_TRANSITIONS
@@ -552,57 +523,60 @@ static const rcl_lexer_state_t g_states[] =
   {
     T_COLON,
     1,
-    RCL_TERMINAL_NONE,
     {
       {T_SEPARATOR, '=', '='},
       END_TRANSITIONS
     }
   },
-  // Terminal states
-  // 31
-  {S0, 0, RCL_TERMINAL_TILDE_SLASH, {END_TRANSITIONS}},
-  // 32
-  {S0, 0, RCL_TERMINAL_URL_SERVICE, {END_TRANSITIONS}},
-  // 33
-  {S0, 0, RCL_TERMINAL_URL_TOPIC, {END_TRANSITIONS}},
-  // 34
-  {S0, 0, RCL_TERMINAL_COLON, {END_TRANSITIONS}},
-  // 35
-  {S0, 0, RCL_TERMINAL_NODE, {END_TRANSITIONS}},
-  // 36
-  {S0, 0, RCL_TERMINAL_NS, {END_TRANSITIONS}},
-  // 37
-  {S0, 0, RCL_TERMINAL_SEPARATOR, {END_TRANSITIONS}},
-  // 38
-  {S0, 0, RCL_TERMINAL_BR1, {END_TRANSITIONS}},
-  // 39
-  {S0, 0, RCL_TERMINAL_BR2, {END_TRANSITIONS}},
-  // 40
-  {S0, 0, RCL_TERMINAL_BR3, {END_TRANSITIONS}},
-  // 41
-  {S0, 0, RCL_TERMINAL_BR4, {END_TRANSITIONS}},
-  // 42
-  {S0, 0, RCL_TERMINAL_BR5, {END_TRANSITIONS}},
-  // 43
-  {S0, 0, RCL_TERMINAL_BR6, {END_TRANSITIONS}},
-  // 44
-  {S0, 0, RCL_TERMINAL_BR7, {END_TRANSITIONS}},
-  // 45
-  {S0, 0, RCL_TERMINAL_BR8, {END_TRANSITIONS}},
-  // 46
-  {S0, 0, RCL_TERMINAL_BR9, {END_TRANSITIONS}},
-  // 47
-  {S0, 0, RCL_TERMINAL_TOKEN, {END_TRANSITIONS}},
-  // 48
-  {S0, 0, RCL_TERMINAL_FORWARD_SLASH, {END_TRANSITIONS}},
-  // 49
-  {S0, 0, RCL_TERMINAL_WILD_ONE, {END_TRANSITIONS}},
-  // 50
-  {S0, 0, RCL_TERMINAL_WILD_MULTI, {END_TRANSITIONS}},
-  // 51
-  {S0, 0, RCL_TERMINAL_EOF, {END_TRANSITIONS}},
-  // 52
-  {S0, 0, RCL_TERMINAL_NONE, {END_TRANSITIONS}},
+};
+
+#include <stdio.h>
+
+rcl_lexer_terminal_t g_terminals[LAST_TERMINAL + 1] = {
+  // 0
+  RCL_TERMINAL_TILDE_SLASH,
+  // 1
+  RCL_TERMINAL_URL_SERVICE,
+  // 2
+  RCL_TERMINAL_URL_TOPIC,
+  // 3
+  RCL_TERMINAL_COLON,
+  // 4
+  RCL_TERMINAL_NODE,
+  // 5
+  RCL_TERMINAL_NS,
+  // 6
+  RCL_TERMINAL_SEPARATOR,
+  // 7
+  RCL_TERMINAL_BR1,
+  // 8
+  RCL_TERMINAL_BR2,
+  // 9
+  RCL_TERMINAL_BR3,
+  // 10
+  RCL_TERMINAL_BR4,
+  // 11
+  RCL_TERMINAL_BR5,
+  // 12
+  RCL_TERMINAL_BR6,
+  // 13
+  RCL_TERMINAL_BR7,
+  // 14
+  RCL_TERMINAL_BR8,
+  // 15
+  RCL_TERMINAL_BR9,
+  // 16
+  RCL_TERMINAL_TOKEN,
+  // 17
+  RCL_TERMINAL_FORWARD_SLASH,
+  // 18
+  RCL_TERMINAL_WILD_ONE,
+  // 19
+  RCL_TERMINAL_WILD_MULTI,
+  // 20
+  RCL_TERMINAL_EOF,
+  // 21
+  RCL_TERMINAL_NONE,
 };
 
 rcl_ret_t
@@ -615,6 +589,7 @@ rcl_lexer_analyze(
   // RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT, allocator);
   // RCL_CHECK_ARGUMENT_FOR_NULL(terminal, RCL_RET_INVALID_ARGUMENT, allocator);
   // RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT, allocator);
+  printf("XXX sizeof state machine %lu\n", sizeof(g_states) + sizeof(g_terminals));
 
   *length = 0;
 
@@ -624,16 +599,17 @@ rcl_lexer_analyze(
     return RCL_RET_OK;
   }
 
-  const rcl_lexer_state_t * state = &(g_states[S0]);
+  const rcl_lexer_state_t * state;
   char current_char;
-  size_t next_state;
+  size_t next_state = S0;
   size_t movement;
   do {
+    state = &(g_states[next_state]);
     current_char = text[*length];
     next_state = 0;
     movement = 0;
 
-    // Loop through all transitions in current state and find one that matches
+    // Look for a transition that contains this character in its range
     size_t transition_idx = 0;
     const rcl_lexer_transition_t * transition;
     do {
@@ -645,24 +621,23 @@ rcl_lexer_analyze(
       ++transition_idx;
     } while (transition->to_state != 0);
 
+    // if no transition was found, take the else transition
     if (0 == next_state) {
-      // no transition found, take the else transition
       next_state = state->else_state;
       movement = state->else_movement;
     }
 
+    // Move the lexer to another character in the string
     if (0 == movement) {
-      // Advance position in string to test next char
+      // Go forwards 1 char
       ++(*length);
     } else {
-      // Go backwards in string
+      // Go backwards N chars
       *length -= movement - 1;
       // TODO(sloretz) Error if movement would cause length to overflow
     }
-
-    state = &(g_states[next_state]);
   } while (next_state < FIRST_TERMINAL);
 
-  *terminal = state->terminal;
+  *terminal = g_terminals[next_state - FIRST_TERMINAL];
   return RCL_RET_OK;
 }
