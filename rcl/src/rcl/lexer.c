@@ -145,7 +145,7 @@ typedef struct rcl_lexer_transition_t
   const char range_end;
 } rcl_lexer_transition_t;
 
-// Represents a state that either has transitions or is terminal
+// Represents a non-terminal state
 typedef struct rcl_lexer_state_t
 {
   // If no transition matches this causes a character to be analyzed a second time in another state
@@ -526,70 +526,70 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   },
 };
 
-rcl_lexer_terminal_t g_terminals[LAST_TERMINAL + 1] = {
+rcl_lexeme_t g_terminals[LAST_TERMINAL + 1] = {
   // 0
-  RCL_TERMINAL_TILDE_SLASH,
+  RCL_LEXEME_TILDE_SLASH,
   // 1
-  RCL_TERMINAL_URL_SERVICE,
+  RCL_LEXEME_URL_SERVICE,
   // 2
-  RCL_TERMINAL_URL_TOPIC,
+  RCL_LEXEME_URL_TOPIC,
   // 3
-  RCL_TERMINAL_COLON,
+  RCL_LEXEME_COLON,
   // 4
-  RCL_TERMINAL_NODE,
+  RCL_LEXEME_NODE,
   // 5
-  RCL_TERMINAL_NS,
+  RCL_LEXEME_NS,
   // 6
-  RCL_TERMINAL_SEPARATOR,
+  RCL_LEXEME_SEPARATOR,
   // 7
-  RCL_TERMINAL_BR1,
+  RCL_LEXEME_BR1,
   // 8
-  RCL_TERMINAL_BR2,
+  RCL_LEXEME_BR2,
   // 9
-  RCL_TERMINAL_BR3,
+  RCL_LEXEME_BR3,
   // 10
-  RCL_TERMINAL_BR4,
+  RCL_LEXEME_BR4,
   // 11
-  RCL_TERMINAL_BR5,
+  RCL_LEXEME_BR5,
   // 12
-  RCL_TERMINAL_BR6,
+  RCL_LEXEME_BR6,
   // 13
-  RCL_TERMINAL_BR7,
+  RCL_LEXEME_BR7,
   // 14
-  RCL_TERMINAL_BR8,
+  RCL_LEXEME_BR8,
   // 15
-  RCL_TERMINAL_BR9,
+  RCL_LEXEME_BR9,
   // 16
-  RCL_TERMINAL_TOKEN,
+  RCL_LEXEME_TOKEN,
   // 17
-  RCL_TERMINAL_FORWARD_SLASH,
+  RCL_LEXEME_FORWARD_SLASH,
   // 18
-  RCL_TERMINAL_WILD_ONE,
+  RCL_LEXEME_WILD_ONE,
   // 19
-  RCL_TERMINAL_WILD_MULTI,
+  RCL_LEXEME_WILD_MULTI,
   // 20
-  RCL_TERMINAL_EOF,
+  RCL_LEXEME_EOF,
   // 21
-  RCL_TERMINAL_NONE,
+  RCL_LEXEME_NONE,
 };
 
 rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
-  rcl_lexer_terminal_t * terminal,
+  rcl_lexeme_t * lexeme,
   size_t * length,
   rcl_allocator_t alloc)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT, alloc);
-  RCL_CHECK_ARGUMENT_FOR_NULL(terminal, RCL_RET_INVALID_ARGUMENT, alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(lexeme, RCL_RET_INVALID_ARGUMENT, alloc);
   RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT, alloc);
 
   *length = 0;
 
   if ('\0' == text[0]) {
     // Early exit if string is empty
-    *terminal = RCL_TERMINAL_EOF;
+    *lexeme = RCL_LEXEME_EOF;
     return RCL_RET_OK;
   }
 
@@ -645,6 +645,6 @@ rcl_lexer_analyze(
     RCL_SET_ERROR_MSG("Internal lexer bug: terminal state does not exist", alloc);
     return RCL_RET_ERROR;
   }
-  *terminal = g_terminals[next_state - FIRST_TERMINAL];
+  *lexeme = g_terminals[next_state - FIRST_TERMINAL];
   return RCL_RET_OK;
 }

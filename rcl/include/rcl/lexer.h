@@ -27,63 +27,63 @@ extern "C"
 {
 #endif
 
-typedef enum rcl_lexer_terminal_t
+typedef enum rcl_lexeme_t
 {
-  // Indicates no valid terminal was found
-  RCL_TERMINAL_NONE = 0,
+  // Indicates no valid lexeme was found
+  RCL_LEXEME_NONE = 0,
   // Indicates end of input has been reached
-  RCL_TERMINAL_EOF = 1,
+  RCL_LEXEME_EOF = 1,
   // ~/
-  RCL_TERMINAL_TILDE_SLASH = 2,
+  RCL_LEXEME_TILDE_SLASH = 2,
   // rosservice://
-  RCL_TERMINAL_URL_SERVICE = 3,
+  RCL_LEXEME_URL_SERVICE = 3,
   // rostopic://
-  RCL_TERMINAL_URL_TOPIC = 4,
+  RCL_LEXEME_URL_TOPIC = 4,
   // :
-  RCL_TERMINAL_COLON = 5,
+  RCL_LEXEME_COLON = 5,
   // __node
-  RCL_TERMINAL_NODE = 6,
+  RCL_LEXEME_NODE = 6,
   // __ns
-  RCL_TERMINAL_NS = 7,
+  RCL_LEXEME_NS = 7,
   // :=
-  RCL_TERMINAL_SEPARATOR = 8,
+  RCL_LEXEME_SEPARATOR = 8,
   // \1
-  RCL_TERMINAL_BR1 = 9,
+  RCL_LEXEME_BR1 = 9,
   // \2
-  RCL_TERMINAL_BR2 = 10,
+  RCL_LEXEME_BR2 = 10,
   // \3
-  RCL_TERMINAL_BR3 = 11,
+  RCL_LEXEME_BR3 = 11,
   // \4
-  RCL_TERMINAL_BR4 = 12,
+  RCL_LEXEME_BR4 = 12,
   // \5
-  RCL_TERMINAL_BR5 = 13,
+  RCL_LEXEME_BR5 = 13,
   // \6
-  RCL_TERMINAL_BR6 = 14,
+  RCL_LEXEME_BR6 = 14,
   // \7
-  RCL_TERMINAL_BR7 = 15,
+  RCL_LEXEME_BR7 = 15,
   // \8
-  RCL_TERMINAL_BR8 = 16,
+  RCL_LEXEME_BR8 = 16,
   // \9
-  RCL_TERMINAL_BR9 = 17,
+  RCL_LEXEME_BR9 = 17,
   // a name between slashes, must match (([a-zA-Z](_)?)|_)([0-9a-zA-Z](_)?)*
-  RCL_TERMINAL_TOKEN = 18,
+  RCL_LEXEME_TOKEN = 18,
   // /
-  RCL_TERMINAL_FORWARD_SLASH = 19,
+  RCL_LEXEME_FORWARD_SLASH = 19,
   // *
-  RCL_TERMINAL_WILD_ONE = 20,
+  RCL_LEXEME_WILD_ONE = 20,
   // **
-  RCL_TERMINAL_WILD_MULTI = 21
-} rcl_lexer_terminal_t;
+  RCL_LEXEME_WILD_MULTI = 21
+} rcl_lexeme_t;
 
-// Analize string until one terminal is found
-// If the string does not begin with a valid terminal, terminal will be RCL_TERMINAL_NONE
-// If the first character is '\0', the terminal will be RCL_TERMINAL_EOF
+// Analize string until one lexeme is found
+// If the string does not begin with a valid lexeme, lexeme will be RCL_LEXEME_NONE
+// If the first character is '\0', the lexeme will be RCL_LEXEME_EOF
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
-  rcl_lexer_terminal_t * terminal,
+  rcl_lexeme_t * lexeme,
   size_t * length,
   rcl_allocator_t allocator);
 
