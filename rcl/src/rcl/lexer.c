@@ -31,9 +31,6 @@
  * The movement M is written as M = 1 - N so it can be stored in an unsigned integer.
  * For example, an `<else>` transition with M = 0 moves the lexer forwards 1 character, M = 1 keeps
  * the lexer at the current character, and M = 2 moves the lexer backwards one character.
- *
- *
- * dot graph of state machine
 
 digraph remapping_lexer {
   rankdir=LR;
@@ -137,7 +134,6 @@ digraph remapping_lexer {
 }
 */
 
-
 // Represents a transition from one state to another
 typedef struct rcl_lexer_transition_t
 {
@@ -225,7 +221,6 @@ typedef struct rcl_lexer_state_t
 
 static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
 {
-  // Nonterminal states
   // S0
   {
     T_NONE,
@@ -602,6 +597,8 @@ rcl_lexer_analyze(
   char current_char;
   size_t next_state = S0;
   size_t movement;
+
+  // Analyze one character at a time until lexeme is found
   do {
     if (next_state > LAST_STATE) {
       RCL_SET_ERROR_MSG("Internal lexer bug: next state does not exist", alloc);
