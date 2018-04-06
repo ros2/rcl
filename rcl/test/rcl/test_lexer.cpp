@@ -38,7 +38,7 @@ public:
   }
 };
 
-// Not using a function because with a macro gtest shows the line number where the macro is used
+// Not using a function so gtest failure output shows the line number where the macro is used
 #define EXPECT_LEX(expected_terminal, expected_text, text) \
   do { \
     rcl_lexer_terminal_t actual_terminal; \
