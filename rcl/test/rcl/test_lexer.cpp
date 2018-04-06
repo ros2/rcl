@@ -43,7 +43,8 @@ public:
   do { \
     rcl_lexer_terminal_t actual_terminal; \
     size_t end_pos; \
-    rcl_ret_t ret = rcl_lexer_analyze(text, &actual_terminal, &end_pos); \
+    rcl_allocator_t allocator = rcl_get_default_allocator(); \
+    rcl_ret_t ret = rcl_lexer_analyze(text, &actual_terminal, &end_pos, allocator); \
     ASSERT_EQ(RCL_RET_OK, ret); \
     EXPECT_EQ(expected_terminal, actual_terminal); \
     std::string actual_text(text, end_pos); \

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rcl/error_handling.h"
 #include "rcl/lexer.h"
 
 /* The lexer tries to find a lexeme in a string.
@@ -141,7 +142,7 @@ digraph remapping_lexer {
 typedef struct rcl_lexer_transition_t
 {
   // Index of a state to transition to
-  const size_t to_state;
+  const unsigned char to_state;
   // Start of a range of chars (inclusive) which activates this transition
   const char range_start;
   // End of a range of chars (inclusive) which activates this transition
@@ -152,9 +153,9 @@ typedef struct rcl_lexer_transition_t
 typedef struct rcl_lexer_state_t
 {
   // If no transition matches this causes a character to be analyzed a second time in another state
-  const size_t else_state;
+  const unsigned char else_state;
   // Movement associated with taking else state
-  const size_t else_movement;
+  const unsigned char else_movement;
   // Transitions in the state machine (NULL value at end of array)
   const rcl_lexer_transition_t transitions[11];
 } rcl_lexer_state_t;
@@ -228,7 +229,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S0
   {
     T_NONE,
-    0,
+    0u,
     {
       {T_FORWARD_SLASH, '/', '/'},
       {S1, '\\', '\\'},
@@ -246,7 +247,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S1
   {
     T_NONE,
-    0,
+    0u,
     {
       {T_BR1, '1', '1'},
       {T_BR2, '2', '2'},
@@ -263,7 +264,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S2
   {
     T_NONE,
-    0,
+    0u,
     {
       {T_TILDE_SLASH, '/', '/'},
       END_TRANSITIONS
@@ -272,7 +273,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S3
   {
     S9,
-    1,
+    1u,
     {
       {S4, '_', '_'},
       END_TRANSITIONS
@@ -281,7 +282,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S4
   {
     T_NONE,
-    0,
+    0u,
     {
       {S5, 'n', 'n'},
       END_TRANSITIONS
@@ -290,7 +291,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S5
   {
     T_NONE,
-    0,
+    0u,
     {
       {T_NS, 's', 's'},
       {S6, 'o', 'o'},
@@ -300,7 +301,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S6
   {
     T_NONE,
-    0,
+    0u,
     {
       {S7, 'd', 'd'},
       END_TRANSITIONS
@@ -309,7 +310,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S7
   {
     T_NONE,
-    0,
+    0u,
     {
       {T_NODE, 'e', 'e'},
       END_TRANSITIONS
@@ -318,7 +319,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S8
   {
     T_TOKEN,
-    1,
+    1u,
     {
       {S8, 'a', 'z'},
       {S8, 'A', 'Z'},
@@ -330,7 +331,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S9
   {
     T_TOKEN,
-    1,
+    1u,
     {
       {S8, 'a', 'z'},
       {S8, 'A', 'Z'},
@@ -341,7 +342,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S10
   {
     S8,
-    1,
+    1u,
     {
       {S11, 'o', 'o'},
       END_TRANSITIONS
@@ -350,7 +351,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S11
   {
     S8,
-    1,
+    1u,
     {
       {S12, 's', 's'},
       END_TRANSITIONS
@@ -359,7 +360,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S12
   {
     S8,
-    1,
+    1u,
     {
       {S13, 't', 't'},
       {S20, 's', 's'},
@@ -369,7 +370,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S13
   {
     S8,
-    1,
+    1u,
     {
       {S14, 'o', 'o'},
       END_TRANSITIONS
@@ -378,7 +379,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S14
   {
     S8,
-    1,
+    1u,
     {
       {S15, 'p', 'p'},
       END_TRANSITIONS
@@ -387,7 +388,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S15
   {
     S8,
-    1,
+    1u,
     {
       {S16, 'i', 'i'},
       END_TRANSITIONS
@@ -396,7 +397,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S16
   {
     S8,
-    1,
+    1u,
     {
       {S17, 'c', 'c'},
       END_TRANSITIONS
@@ -405,7 +406,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S17
   {
     S8,
-    1,
+    1u,
     {
       {S18, ':', ':'},
       END_TRANSITIONS
@@ -414,7 +415,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S18
   {
     S8,
-    2,
+    2u,
     {
       {S19, '/', '/'},
       END_TRANSITIONS
@@ -423,7 +424,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S19
   {
     S8,
-    3,
+    3u,
     {
       {T_URL_TOPIC, '/', '/'},
       END_TRANSITIONS
@@ -432,7 +433,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S20
   {
     S8,
-    1,
+    1u,
     {
       {S21, 'e', 'e'},
       END_TRANSITIONS
@@ -441,7 +442,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S21
   {
     S8,
-    1,
+    1u,
     {
       {S22, 'r', 'r'},
       END_TRANSITIONS
@@ -450,7 +451,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S22
   {
     S8,
-    1,
+    1u,
     {
       {S23, 'v', 'v'},
       END_TRANSITIONS
@@ -459,7 +460,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S23
   {
     S8,
-    1,
+    1u,
     {
       {S24, 'i', 'i'},
       END_TRANSITIONS
@@ -468,7 +469,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S24
   {
     S8,
-    1,
+    1u,
     {
       {S25, 'c', 'c'},
       END_TRANSITIONS
@@ -477,7 +478,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S25
   {
     S8,
-    1,
+    1u,
     {
       {S26, 'e', 'e'},
       END_TRANSITIONS
@@ -486,7 +487,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S26
   {
     S8,
-    1,
+    1u,
     {
       {S27, ':', ':'},
       END_TRANSITIONS
@@ -495,7 +496,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S27
   {
     S8,
-    2,
+    2u,
     {
       {S28, '/', '/'},
       END_TRANSITIONS
@@ -504,7 +505,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S28
   {
     S8,
-    3,
+    3u,
     {
       {T_URL_SERVICE, '/', '/'},
       END_TRANSITIONS
@@ -513,7 +514,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S29
   {
     T_WILD_ONE,
-    1,
+    1u,
     {
       {T_WILD_MULTI, '*', '*'},
       END_TRANSITIONS
@@ -522,15 +523,13 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   // S30
   {
     T_COLON,
-    1,
+    1u,
     {
       {T_SEPARATOR, '=', '='},
       END_TRANSITIONS
     }
   },
 };
-
-#include <stdio.h>
 
 rcl_lexer_terminal_t g_terminals[LAST_TERMINAL + 1] = {
   // 0
@@ -583,13 +582,13 @@ rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
   rcl_lexer_terminal_t * terminal,
-  size_t * length)
+  size_t * length,
+  rcl_allocator_t alloc)
 {
-  // TODO(sloretz) accept allocator just for error checking
-  // RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT, allocator);
-  // RCL_CHECK_ARGUMENT_FOR_NULL(terminal, RCL_RET_INVALID_ARGUMENT, allocator);
-  // RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT, allocator);
-  printf("XXX sizeof state machine %lu\n", sizeof(g_states) + sizeof(g_terminals));
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT, alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(terminal, RCL_RET_INVALID_ARGUMENT, alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT, alloc);
 
   *length = 0;
 
@@ -604,6 +603,10 @@ rcl_lexer_analyze(
   size_t next_state = S0;
   size_t movement;
   do {
+    if (next_state > LAST_STATE) {
+      RCL_SET_ERROR_MSG("Internal lexer bug: next state does not exist", alloc);
+      return RCL_RET_ERROR;
+    }
     state = &(g_states[next_state]);
     current_char = text[*length];
     next_state = 0;
@@ -633,11 +636,18 @@ rcl_lexer_analyze(
       ++(*length);
     } else {
       // Go backwards N chars
+      if (movement - 1 > *length) {
+        RCL_SET_ERROR_MSG("Internal lexer bug: movement would read before start of string", alloc);
+        return RCL_RET_ERROR;
+      }
       *length -= movement - 1;
-      // TODO(sloretz) Error if movement would cause length to overflow
     }
   } while (next_state < FIRST_TERMINAL);
 
+  if (FIRST_TERMINAL > next_state || next_state - FIRST_TERMINAL > LAST_TERMINAL) {
+    RCL_SET_ERROR_MSG("Internal lexer bug: terminal state does not exist", alloc);
+    return RCL_RET_ERROR;
+  }
   *terminal = g_terminals[next_state - FIRST_TERMINAL];
   return RCL_RET_OK;
 }

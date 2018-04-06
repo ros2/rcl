@@ -78,11 +78,14 @@ typedef enum rcl_lexer_terminal_t
 // Analize string until one terminal is found
 // If the string does not begin with a valid terminal, terminal will be RCL_TERMINAL_NONE
 // If the first character is '\0', the terminal will be RCL_TERMINAL_EOF
+RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
   rcl_lexer_terminal_t * terminal,
-  size_t * length);
+  size_t * length,
+  rcl_allocator_t allocator);
 
 #if __cplusplus
 }
