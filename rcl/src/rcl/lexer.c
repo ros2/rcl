@@ -526,7 +526,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   },
 };
 
-rcl_lexeme_t g_terminals[LAST_TERMINAL + 1] = {
+static const rcl_lexeme_t g_terminals[LAST_TERMINAL + 1] = {
   // 0
   RCL_LEXEME_TILDE_SLASH,
   // 1
