@@ -19,6 +19,7 @@
 #include "./arguments_impl.h"
 #include "./remap_impl.h"
 #include "rcl/error_handling.h"
+#include "rcl/lexer_lookahead.h"
 #include "rcl/validate_topic_name.h"
 #include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
@@ -33,6 +34,236 @@ extern "C"
 
 // Instance of global arguments.
 static rcl_arguments_t __rcl_global_arguments;
+
+/// Parses a fully qualified namespace for a namespace replacement rule (ex: `/foo/bar`)
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_fully_qualified_namespace(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  return RCL_RET_OK;
+}
+
+/// Parse either a token or a backreference (ex: `bar`, or `\7`).
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_replacement_token(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  return RCL_RET_OK;
+}
+
+/// Parse the replacement side of a name remapping rule (ex: `bar/\1/foo`).
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_replacement_name(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  return RCL_RET_OK;
+}
+
+/// Parse either a token or a wildcard (ex: `foobar`, or `*`, or `**`).
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_match_token(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  return RCL_RET_OK;
+}
+
+/// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_match_name(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  return RCL_RET_OK;
+}
+
+/// Parse a name remapping rule (ex: `rostopic:///foo:=bar`).
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_name_remap(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  return RCL_RET_OK;
+}
+
+/// Parse a namespace replacement rule (ex: `__ns:=/new/ns`).
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_namespace_replacement(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  rcl_ret_t ret;
+  // __ns
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_NS, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+  // :=
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_SEPARATOR, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+  // /foo/bar
+  // TODO(sloretz) rcl_lexer_lookahead2_current_text(lex_lookahead) to return the current text ptr
+  return _rcl_parse_remap_fully_qualified_namespace(lex_lookahead, rule);
+}
+
+/// Parse a nodename replacement rule (ex: `__node:=new_name`).
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_nodename_replacement(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  rcl_ret_t ret;
+  const char * node_name;
+  size_t length;
+
+  // __node
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_NODE, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+  // :=
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_SEPARATOR, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+  // new_node_name
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, &node_name, &length);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+
+  // copy the node name into the replacement side of the rule
+  rule->replacement = rcutils_strndup(node_name, length, rule->allocator);
+  if (NULL == rule->replacement) {
+    RCL_SET_ERROR_MSG("failed to allocate node name", rule->allocator);
+    ret = RCL_RET_BAD_ALLOC;
+  }
+
+  return ret;
+}
+
+/// Parse a nodename prefix including trailing colon (ex: `node_name:`).
+/// \sa _rcl_parse_remap_begin_remap_rule()
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_nodename_prefix(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  rcl_ret_t ret;
+  const char * node_name;
+  size_t length;
+
+  // Expect a token and a colon
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, &node_name, &length);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_COLON, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+
+  // copy the node name into the rule
+  rule->node_name = rcutils_strndup(node_name, length, rule->allocator);
+  if (NULL == rule->node_name) {
+    RCL_SET_ERROR_MSG("failed to allocate node name", rule->allocator);
+    ret = RCL_RET_BAD_ALLOC;
+  }
+
+  return ret;
+}
+
+/// Start recursive descent parseing of a remap rule.
+/// \param[in] lex_lookahead a lookahead(2) buffer for the parser to use.
+/// \param[in,out] rule input a zero intialized rule, output a fully initialized one.
+/// \return RCL_RET_OK if a valid rule was parsed, or
+/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
+/// \return RLC_RET_ERROR if an unspecified error occurred.
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_begin_remap_rule(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_remap_t * rule)
+{
+  rcl_ret_t ret;
+  rcl_lexeme_t lexeme1;
+  rcl_lexeme_t lexeme2;
+
+  // Check for optional nodename prefix
+  ret = rcl_lexer_lookahead2_peek2(lex_lookahead, &lexeme1, &lexeme2);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  if (RCL_LEXEME_TOKEN == lexeme1 && RCL_LEXEME_COLON == lexeme2) {
+    ret = _rcl_parse_remap_nodename_prefix(lex_lookahead, rule);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme1);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  // What type of rule is this (node name replacement, namespace replacement, or name remap)?
+  if (RCL_LEXEME_NODE == lexeme1) {
+    ret = _rcl_parse_remap_nodename_replacement(lex_lookahead, rule);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  } else if (RCL_LEXEME_NS == lexeme1) {
+    ret = _rcl_parse_remap_namespace_replacement(lex_lookahead, rule);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  } else {
+    ret = _rcl_parse_remap_name_remap(lex_lookahead, rule);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+
+  // Make sure all characters in string have been consumed
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_EOF, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+  return ret;
+}
 
 /// Parse an argument that may or may not be a remap rule.
 /// \param[in] arg the argument to parse
