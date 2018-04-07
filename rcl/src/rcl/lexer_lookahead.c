@@ -176,9 +176,9 @@ rcl_lexer_lookahead2_accept(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     buffer->impl, "buffer not initialized", return RCL_RET_INVALID_ARGUMENT,
     rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(lexeme_text, RCL_RET_INVALID_ARGUMENT, buffer->impl->allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(
-    lexeme_text_length, RCL_RET_INVALID_ARGUMENT, buffer->impl->allocator);
+  if ((NULL == lexeme_text || NULL == lexeme_text_length) && lexeme_text != lexeme_text_length) {
+    RCL_SET_ERROR_MSG("text and length must both be set or both be NULL", buffer->impl->allocator);
+  }
 
   if (RCL_LEXEME_EOF == buffer->impl->type1) {
     // Reached EOF, nothing to accept
