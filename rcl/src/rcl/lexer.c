@@ -150,7 +150,7 @@ typedef struct rcl_lexer_transition_t
 /// \internal
 typedef struct rcl_lexer_state_t
 {
-  /// If no transition matches this causes a character to be analyzed a second time in another state
+  /// Transition to this state if no other transition matches
   const unsigned char else_state;
   /// Movement associated with taking else state
   const unsigned char else_movement;
