@@ -118,6 +118,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   EXPECT_LEX(RCL_LEXEME_NONE, "[", "[");
   EXPECT_LEX(RCL_LEXEME_NONE, "`", "`");
   EXPECT_LEX(RCL_LEXEME_NONE, "{", "{");
+
   // Tokens cannot start with digits
   EXPECT_LEX(RCL_LEXEME_NONE, "0", "0");
   EXPECT_LEX(RCL_LEXEME_NONE, "1", "1");
