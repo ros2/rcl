@@ -90,5 +90,7 @@ typedef rmw_ret_t rcl_ret_t;
 // rcl argument parsing specific ret codes in 1XXX
 /// Argument is not a valid remap rule
 #define RCL_RET_INVALID_REMAP_RULE 1001
+/// Expected one type of lexeme but got another
+#define RCL_RET_WRONG_LEXEME 1002
 
 #endif  // RCL__TYPES_H_
