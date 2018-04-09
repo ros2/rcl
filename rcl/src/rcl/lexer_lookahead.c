@@ -130,7 +130,7 @@ rcl_lexer_lookahead2_peek2(
   rcl_lexeme_t * next_type2)
 {
   rcl_ret_t ret;
-  // Peek 1 ahead first (reusing its error checking for buffer and next_type[0])
+  // Peek 1 ahead first (reusing its error checking for buffer and next_type1)
   ret = rcl_lexer_lookahead2_peek(buffer, next_type1);
   if (RCL_RET_OK != ret) {
     return ret;
@@ -174,6 +174,7 @@ rcl_lexer_lookahead2_accept(
     (NULL != lexeme_text && NULL == lexeme_text_length))
   {
     RCL_SET_ERROR_MSG("text and length must both be set or both be NULL", buffer->impl->allocator);
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   if (RCL_LEXEME_EOF == buffer->impl->type[0]) {
