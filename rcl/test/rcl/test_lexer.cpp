@@ -41,12 +41,12 @@ public:
 #define EXPECT_LEX(expected_lexeme, expected_text, text) \
   do { \
     rcl_lexeme_t actual_lexeme; \
-    size_t end_pos; \
+    size_t length; \
     rcl_allocator_t allocator = rcl_get_default_allocator(); \
-    rcl_ret_t ret = rcl_lexer_analyze(text, allocator, &actual_lexeme, &end_pos); \
+    rcl_ret_t ret = rcl_lexer_analyze(text, allocator, &actual_lexeme, &length); \
     ASSERT_EQ(RCL_RET_OK, ret); \
     EXPECT_EQ(expected_lexeme, actual_lexeme); \
-    std::string actual_text(text, end_pos); \
+    std::string actual_text(text, length); \
     EXPECT_STREQ(expected_text, actual_text.c_str()); \
   } while (false)
 
