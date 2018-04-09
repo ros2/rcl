@@ -19,14 +19,14 @@
  * It looks at one character at a time, and uses that character's value to decide how to transition
  * a state machine.
  * A transition is taken if a character's ASCII value falls within its range.
- * No transition's ranges overlap; there is never more than one matching transition.
+ * There is never more than one matching transition.
  *
- * If no transition matches then the state machine takes an '<else,M>' transition.
+ * If no transition matches then it uses a state's '<else,M>' transition.
  * Every state has exactly one '<else,M>' transition.
- * All states have an `<else,0>` to T_NONE unless otherwise specified in the diagram below.
+ * In the diagram below all states have an `<else,0>` to T_NONE unless otherwise specified.
  *
  * When a transition is taken it causes the lexer to move to another character in the string.
- * Normal transitions always move the lexer to the forwards one character.
+ * Normal transitions always move the lexer forwards one character.
  * '<else,M>' transitions may cause the lexer to move forwards 1, or backwards N.
  * The movement M is written as M = 1 + N so it can be stored in an unsigned integer.
  * For example, an `<else>` transition with M = 0 moves the lexer forwards 1 character, M = 1 keeps
@@ -134,25 +134,27 @@ digraph remapping_lexer {
 }
 */
 
-// Represents a transition from one state to another
+/// Represents a transition from one state to another
+/// \internal
 typedef struct rcl_lexer_transition_t
 {
-  // Index of a state to transition to
+  /// Index of a state to transition to
   const unsigned char to_state;
-  // Start of a range of chars (inclusive) which activates this transition
+  /// Start of a range of chars (inclusive) which activates this transition
   const char range_start;
-  // End of a range of chars (inclusive) which activates this transition
+  /// End of a range of chars (inclusive) which activates this transition
   const char range_end;
 } rcl_lexer_transition_t;
 
-// Represents a non-terminal state
+/// Represents a non-terminal state
+/// \internal
 typedef struct rcl_lexer_state_t
 {
-  // If no transition matches this causes a character to be analyzed a second time in another state
+  /// If no transition matches this causes a character to be analyzed a second time in another state
   const unsigned char else_state;
-  // Movement associated with taking else state
+  /// Movement associated with taking else state
   const unsigned char else_movement;
-  // Transitions in the state machine (NULL value at end of array)
+  /// Transitions in the state machine (NULL value at end of array)
   const rcl_lexer_transition_t transitions[11];
 } rcl_lexer_state_t;
 
