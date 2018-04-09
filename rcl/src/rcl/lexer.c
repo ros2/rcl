@@ -603,6 +603,7 @@ rcl_lexer_analyze(
   // Analyze one character at a time until lexeme is found
   do {
     if (next_state > LAST_STATE) {
+      // Should never happen
       RCL_SET_ERROR_MSG("Internal lexer bug: next state does not exist", alloc);
       return RCL_RET_ERROR;
     }
@@ -636,6 +637,7 @@ rcl_lexer_analyze(
     } else {
       // Go backwards N chars
       if (movement - 1 > *length) {
+        // Should never happen
         RCL_SET_ERROR_MSG("Internal lexer bug: movement would read before start of string", alloc);
         return RCL_RET_ERROR;
       }
@@ -644,6 +646,7 @@ rcl_lexer_analyze(
   } while (next_state < FIRST_TERMINAL);
 
   if (FIRST_TERMINAL > next_state || next_state - FIRST_TERMINAL > LAST_TERMINAL) {
+    // Should never happen
     RCL_SET_ERROR_MSG("Internal lexer bug: terminal state does not exist", alloc);
     return RCL_RET_ERROR;
   }
