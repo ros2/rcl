@@ -35,6 +35,251 @@ extern "C"
 // Instance of global arguments.
 static rcl_arguments_t __rcl_global_arguments;
 
+/// Parse an argument that may or may not be a remap rule.
+/// \param[in] arg the argument to parse
+/// \param[in] allocator an allocator to use
+/// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
+/// \return RCL_RET_OK if a valid rule was parsed, or
+/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
+/// \return RLC_RET_ERROR if an unspecified error occurred.
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_remap_rule(
+  const char * arg,
+  rcl_allocator_t allocator,
+  rcl_remap_t * output_rule);
+
+rcl_ret_t
+rcl_parse_arguments(
+  int argc,
+  const char * const argv[],
+  rcl_allocator_t allocator,
+  rcl_arguments_t * args_output)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  if (argc < 0) {
+    return RCL_RET_INVALID_ARGUMENT;
+  } else if (argc > 0) {
+    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(args_output, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  rcl_ret_t ret;
+  rcl_ret_t fail_ret;
+
+  args_output->impl = allocator.allocate(sizeof(rcl_arguments_impl_t), allocator.state);
+  if (NULL == args_output->impl) {
+    return RCL_RET_BAD_ALLOC;
+  }
+  rcl_arguments_impl_t * args_impl = args_output->impl;
+  args_impl->num_remap_rules = 0;
+  args_impl->remap_rules = NULL;
+  args_impl->unparsed_args = NULL;
+  args_impl->num_unparsed_args = 0;
+  args_impl->allocator = allocator;
+
+  if (argc == 0) {
+    // there are no arguments to parse
+    return RCL_RET_OK;
+  }
+
+  // over-allocate arrays to match the number of arguments
+  args_impl->remap_rules = allocator.allocate(sizeof(rcl_remap_t) * argc, allocator.state);
+  if (NULL == args_impl->remap_rules) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
+  args_impl->unparsed_args = allocator.allocate(sizeof(int) * argc, allocator.state);
+  if (NULL == args_impl->unparsed_args) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
+
+  // Attempt to parse arguments as remap rules
+  for (int i = 0; i < argc; ++i) {
+    rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
+    *rule = rcl_remap_get_zero_initialized();
+    if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
+      ++(args_impl->num_remap_rules);
+    } else {
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d error '%s'", i, rcl_get_error_string());
+      rcl_reset_error();
+      args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
+      ++(args_impl->num_unparsed_args);
+    }
+  }
+
+  // Shrink remap_rules array to match number of successfully parsed rules
+  if (args_impl->num_remap_rules > 0) {
+    args_impl->remap_rules = rcutils_reallocf(
+      args_impl->remap_rules, sizeof(rcl_remap_t) * args_impl->num_remap_rules, &allocator);
+    if (NULL == args_impl->remap_rules) {
+      ret = RCL_RET_BAD_ALLOC;
+      goto fail;
+    }
+  } else {
+    // No remap rules
+    allocator.deallocate(args_impl->remap_rules, allocator.state);
+    args_impl->remap_rules = NULL;
+  }
+  // Shrink unparsed_args
+  if (0 == args_impl->num_unparsed_args) {
+    // No unparsed args
+    allocator.deallocate(args_impl->unparsed_args, allocator.state);
+    args_impl->unparsed_args = NULL;
+  } else if (args_impl->num_unparsed_args < argc) {
+    args_impl->unparsed_args = rcutils_reallocf(
+      args_impl->unparsed_args, sizeof(int) * args_impl->num_unparsed_args, &allocator);
+    if (NULL == args_impl->unparsed_args) {
+      ret = RCL_RET_BAD_ALLOC;
+      goto fail;
+    }
+  }
+
+  return RCL_RET_OK;
+fail:
+  fail_ret = ret;
+  if (NULL != args_impl) {
+    ret = rcl_arguments_fini(args_output);
+    if (RCL_RET_OK != ret) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini arguments after earlier failure");
+    }
+  }
+  return fail_ret;
+}
+
+int
+rcl_arguments_get_count_unparsed(
+  const rcl_arguments_t * args)
+{
+  if (NULL == args || NULL == args->impl) {
+    return -1;
+  }
+  return args->impl->num_unparsed_args;
+}
+
+rcl_ret_t
+rcl_arguments_get_unparsed(
+  const rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int ** output_unparsed_indices)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_unparsed_indices, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  *output_unparsed_indices = NULL;
+  if (args->impl->num_unparsed_args) {
+    *output_unparsed_indices = allocator.allocate(
+      sizeof(int) * args->impl->num_unparsed_args, allocator.state);
+    if (NULL == *output_unparsed_indices) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    for (int i = 0; i < args->impl->num_unparsed_args; ++i) {
+      (*output_unparsed_indices)[i] = args->impl->unparsed_args[i];
+    }
+  }
+  return RCL_RET_OK;
+}
+
+rcl_arguments_t
+rcl_get_zero_initialized_arguments(void)
+{
+  static rcl_arguments_t default_arguments = {
+    .impl = NULL
+  };
+  return default_arguments;
+}
+
+rcl_ret_t
+rcl_remove_ros_arguments(
+  char const * const argv[],
+  const rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int * nonros_argc,
+  const char ** nonros_argv[])
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argc, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  *nonros_argc = rcl_arguments_get_count_unparsed(args);
+  *nonros_argv = NULL;
+
+  if (*nonros_argc <= 0) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  int * unparsed_indices = NULL;
+  rcl_ret_t ret;
+  ret = rcl_arguments_get_unparsed(args, allocator, &unparsed_indices);
+
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  size_t alloc_size = sizeof(char *) * *nonros_argc;
+  *nonros_argv = allocator.allocate(alloc_size, allocator.state);
+  if (NULL == *nonros_argv) {
+    allocator.deallocate(unparsed_indices, allocator.state);
+    return RCL_RET_BAD_ALLOC;
+  }
+  for (int i = 0; i < *nonros_argc; ++i) {
+    (*nonros_argv)[i] = argv[unparsed_indices[i]];
+  }
+
+  allocator.deallocate(unparsed_indices, allocator.state);
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_arguments_fini(
+  rcl_arguments_t * args)
+{
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, alloc);
+  if (args->impl) {
+    rcl_ret_t ret = RCL_RET_OK;
+    alloc = args->impl->allocator;
+    if (args->impl->remap_rules) {
+      for (int i = 0; i < args->impl->num_remap_rules; ++i) {
+        rcl_ret_t remap_ret = rcl_remap_fini(&(args->impl->remap_rules[i]));
+        if (remap_ret != RCL_RET_OK) {
+          ret = remap_ret;
+          RCUTILS_LOG_ERROR_NAMED(
+            ROS_PACKAGE_NAME,
+            "Failed to finalize remap rule while finalizing arguments. Continuing...");
+        }
+      }
+      args->impl->allocator.deallocate(args->impl->remap_rules, args->impl->allocator.state);
+      args->impl->remap_rules = NULL;
+      args->impl->num_remap_rules = 0;
+    }
+
+    args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
+    args->impl->num_unparsed_args = 0;
+    args->impl->unparsed_args = NULL;
+
+    args->impl->allocator.deallocate(args->impl, args->impl->allocator.state);
+    args->impl = NULL;
+    return ret;
+  }
+  RCL_SET_ERROR_MSG("rcl_arguments_t finalized twice", alloc);
+  return RCL_RET_ERROR;
+}
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_arguments_t *
+rcl_get_global_arguments()
+{
+  return &__rcl_global_arguments;
+}
+
 /// Parses a fully qualified namespace for a namespace replacement rule (ex: `/foo/bar`)
 /// \sa _rcl_parse_remap_begin_remap_rule()
 /// \internal
@@ -490,16 +735,6 @@ _rcl_parse_remap_begin_remap_rule(
   return ret;
 }
 
-/// Parse an argument that may or may not be a remap rule.
-/// \param[in] arg the argument to parse
-/// \param[in] allocator an allocator to use
-/// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
-/// \return RCL_RET_OK if a valid rule was parsed, or
-/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
-/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
-/// \return RLC_RET_ERROR if an unspecified error occurred.
-/// \internal
-RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_rule(
   const char * arg,
@@ -533,235 +768,6 @@ _rcl_parse_remap_rule(
     ret = rcl_lexer_lookahead2_fini(&lex_lookahead);
   }
   return ret;
-}
-
-rcl_ret_t
-rcl_parse_arguments(
-  int argc,
-  const char * const argv[],
-  rcl_allocator_t allocator,
-  rcl_arguments_t * args_output)
-{
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  if (argc < 0) {
-    return RCL_RET_INVALID_ARGUMENT;
-  } else if (argc > 0) {
-    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(args_output, RCL_RET_INVALID_ARGUMENT, allocator);
-
-  rcl_ret_t ret;
-  rcl_ret_t fail_ret;
-
-  args_output->impl = allocator.allocate(sizeof(rcl_arguments_impl_t), allocator.state);
-  if (NULL == args_output->impl) {
-    return RCL_RET_BAD_ALLOC;
-  }
-  rcl_arguments_impl_t * args_impl = args_output->impl;
-  args_impl->num_remap_rules = 0;
-  args_impl->remap_rules = NULL;
-  args_impl->unparsed_args = NULL;
-  args_impl->num_unparsed_args = 0;
-  args_impl->allocator = allocator;
-
-  if (argc == 0) {
-    // there are no arguments to parse
-    return RCL_RET_OK;
-  }
-
-  // over-allocate arrays to match the number of arguments
-  args_impl->remap_rules = allocator.allocate(sizeof(rcl_remap_t) * argc, allocator.state);
-  if (NULL == args_impl->remap_rules) {
-    ret = RCL_RET_BAD_ALLOC;
-    goto fail;
-  }
-  args_impl->unparsed_args = allocator.allocate(sizeof(int) * argc, allocator.state);
-  if (NULL == args_impl->unparsed_args) {
-    ret = RCL_RET_BAD_ALLOC;
-    goto fail;
-  }
-
-  // Attempt to parse arguments as remap rules
-  for (int i = 0; i < argc; ++i) {
-    rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
-    *rule = rcl_remap_get_zero_initialized();
-    if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
-      ++(args_impl->num_remap_rules);
-    } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d error '%s'", i, rcl_get_error_string());
-      rcl_reset_error();
-      args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
-      ++(args_impl->num_unparsed_args);
-    }
-  }
-
-  // Shrink remap_rules array to match number of successfully parsed rules
-  if (args_impl->num_remap_rules > 0) {
-    args_impl->remap_rules = rcutils_reallocf(
-      args_impl->remap_rules, sizeof(rcl_remap_t) * args_impl->num_remap_rules, &allocator);
-    if (NULL == args_impl->remap_rules) {
-      ret = RCL_RET_BAD_ALLOC;
-      goto fail;
-    }
-  } else {
-    // No remap rules
-    allocator.deallocate(args_impl->remap_rules, allocator.state);
-    args_impl->remap_rules = NULL;
-  }
-  // Shrink unparsed_args
-  if (0 == args_impl->num_unparsed_args) {
-    // No unparsed args
-    allocator.deallocate(args_impl->unparsed_args, allocator.state);
-    args_impl->unparsed_args = NULL;
-  } else if (args_impl->num_unparsed_args < argc) {
-    args_impl->unparsed_args = rcutils_reallocf(
-      args_impl->unparsed_args, sizeof(int) * args_impl->num_unparsed_args, &allocator);
-    if (NULL == args_impl->unparsed_args) {
-      ret = RCL_RET_BAD_ALLOC;
-      goto fail;
-    }
-  }
-
-  return RCL_RET_OK;
-fail:
-  fail_ret = ret;
-  if (NULL != args_impl) {
-    ret = rcl_arguments_fini(args_output);
-    if (RCL_RET_OK != ret) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini arguments after earlier failure");
-    }
-  }
-  return fail_ret;
-}
-
-int
-rcl_arguments_get_count_unparsed(
-  const rcl_arguments_t * args)
-{
-  if (NULL == args || NULL == args->impl) {
-    return -1;
-  }
-  return args->impl->num_unparsed_args;
-}
-
-rcl_ret_t
-rcl_arguments_get_unparsed(
-  const rcl_arguments_t * args,
-  rcl_allocator_t allocator,
-  int ** output_unparsed_indices)
-{
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(output_unparsed_indices, RCL_RET_INVALID_ARGUMENT, allocator);
-
-  *output_unparsed_indices = NULL;
-  if (args->impl->num_unparsed_args) {
-    *output_unparsed_indices = allocator.allocate(
-      sizeof(int) * args->impl->num_unparsed_args, allocator.state);
-    if (NULL == *output_unparsed_indices) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    for (int i = 0; i < args->impl->num_unparsed_args; ++i) {
-      (*output_unparsed_indices)[i] = args->impl->unparsed_args[i];
-    }
-  }
-  return RCL_RET_OK;
-}
-
-rcl_arguments_t
-rcl_get_zero_initialized_arguments(void)
-{
-  static rcl_arguments_t default_arguments = {
-    .impl = NULL
-  };
-  return default_arguments;
-}
-
-rcl_ret_t
-rcl_remove_ros_arguments(
-  char const * const argv[],
-  const rcl_arguments_t * args,
-  rcl_allocator_t allocator,
-  int * nonros_argc,
-  const char ** nonros_argv[])
-{
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argc, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, allocator);
-
-  *nonros_argc = rcl_arguments_get_count_unparsed(args);
-  *nonros_argv = NULL;
-
-  if (*nonros_argc <= 0) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-
-  int * unparsed_indices = NULL;
-  rcl_ret_t ret;
-  ret = rcl_arguments_get_unparsed(args, allocator, &unparsed_indices);
-
-  if (RCL_RET_OK != ret) {
-    return ret;
-  }
-
-  size_t alloc_size = sizeof(char *) * *nonros_argc;
-  *nonros_argv = allocator.allocate(alloc_size, allocator.state);
-  if (NULL == *nonros_argv) {
-    allocator.deallocate(unparsed_indices, allocator.state);
-    return RCL_RET_BAD_ALLOC;
-  }
-  for (int i = 0; i < *nonros_argc; ++i) {
-    (*nonros_argv)[i] = argv[unparsed_indices[i]];
-  }
-
-  allocator.deallocate(unparsed_indices, allocator.state);
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_arguments_fini(
-  rcl_arguments_t * args)
-{
-  rcl_allocator_t alloc = rcl_get_default_allocator();
-  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, alloc);
-  if (args->impl) {
-    rcl_ret_t ret = RCL_RET_OK;
-    alloc = args->impl->allocator;
-    if (args->impl->remap_rules) {
-      for (int i = 0; i < args->impl->num_remap_rules; ++i) {
-        rcl_ret_t remap_ret = rcl_remap_fini(&(args->impl->remap_rules[i]));
-        if (remap_ret != RCL_RET_OK) {
-          ret = remap_ret;
-          RCUTILS_LOG_ERROR_NAMED(
-            ROS_PACKAGE_NAME,
-            "Failed to finalize remap rule while finalizing arguments. Continuing...");
-        }
-      }
-      args->impl->allocator.deallocate(args->impl->remap_rules, args->impl->allocator.state);
-      args->impl->remap_rules = NULL;
-      args->impl->num_remap_rules = 0;
-    }
-
-    args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
-    args->impl->num_unparsed_args = 0;
-    args->impl->unparsed_args = NULL;
-
-    args->impl->allocator.deallocate(args->impl, args->impl->allocator.state);
-    args->impl = NULL;
-    return ret;
-  }
-  RCL_SET_ERROR_MSG("rcl_arguments_t finalized twice", alloc);
-  return RCL_RET_ERROR;
-}
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_arguments_t *
-rcl_get_global_arguments()
-{
-  return &__rcl_global_arguments;
 }
 
 #if __cplusplus
