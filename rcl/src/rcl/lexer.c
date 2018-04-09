@@ -587,9 +587,9 @@ rcl_lexer_analyze(
   RCL_CHECK_ARGUMENT_FOR_NULL(lexeme, RCL_RET_INVALID_ARGUMENT, alloc);
   RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT, alloc);
 
-  *length = 0;
+  *length = 0u;
 
-  if ('\0' == text[0]) {
+  if ('\0' == text[0u]) {
     // Early exit if string is empty
     *lexeme = RCL_LEXEME_EOF;
     return RCL_RET_OK;
@@ -609,11 +609,11 @@ rcl_lexer_analyze(
     }
     state = &(g_states[next_state]);
     current_char = text[*length];
-    next_state = 0;
-    movement = 0;
+    next_state = 0u;
+    movement = 0u;
 
     // Look for a transition that contains this character in its range
-    size_t transition_idx = 0;
+    size_t transition_idx = 0u;
     const rcl_lexer_transition_t * transition;
     do {
       transition = &(state->transitions[transition_idx]);
@@ -622,26 +622,26 @@ rcl_lexer_analyze(
         break;
       }
       ++transition_idx;
-    } while (transition->to_state != 0);
+    } while (0u != transition->to_state);
 
     // if no transition was found, take the else transition
-    if (0 == next_state) {
+    if (0u == next_state) {
       next_state = state->else_state;
       movement = state->else_movement;
     }
 
     // Move the lexer to another character in the string
-    if (0 == movement) {
+    if (0u == movement) {
       // Go forwards 1 char
       ++(*length);
     } else {
       // Go backwards N chars
-      if (movement - 1 > *length) {
+      if (movement - 1u > *length) {
         // Should never happen
         RCL_SET_ERROR_MSG("Internal lexer bug: movement would read before start of string", alloc);
         return RCL_RET_ERROR;
       }
-      *length -= movement - 1;
+      *length -= movement - 1u;
     }
   } while (next_state < FIRST_TERMINAL);
 
