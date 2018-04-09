@@ -16,7 +16,6 @@
 
 #include <string>
 
-// test include directory has src
 #include "rcl/lexer.h"
 
 #ifdef RMW_IMPLEMENTATION
