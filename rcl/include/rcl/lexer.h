@@ -27,51 +27,52 @@ extern "C"
 {
 #endif
 
+/// Type of lexeme found by lexical analysis.
 typedef enum rcl_lexeme_t
 {
-  // Indicates no valid lexeme was found
+  /// Indicates no valid lexeme was found
   RCL_LEXEME_NONE = 0,
-  // Indicates end of input has been reached
+  /// Indicates end of input has been reached
   RCL_LEXEME_EOF = 1,
-  // ~/
+  /// ~/
   RCL_LEXEME_TILDE_SLASH = 2,
-  // rosservice://
+  /// rosservice://
   RCL_LEXEME_URL_SERVICE = 3,
-  // rostopic://
+  /// rostopic://
   RCL_LEXEME_URL_TOPIC = 4,
-  // :
+  /// :
   RCL_LEXEME_COLON = 5,
-  // __node
+  /// __node
   RCL_LEXEME_NODE = 6,
-  // __ns
+  /// __ns
   RCL_LEXEME_NS = 7,
-  // :=
+  /// :=
   RCL_LEXEME_SEPARATOR = 8,
-  // \1
+  /// \1
   RCL_LEXEME_BR1 = 9,
-  // \2
+  /// \2
   RCL_LEXEME_BR2 = 10,
-  // \3
+  /// \3
   RCL_LEXEME_BR3 = 11,
-  // \4
+  /// \4
   RCL_LEXEME_BR4 = 12,
-  // \5
+  /// \5
   RCL_LEXEME_BR5 = 13,
-  // \6
+  /// \6
   RCL_LEXEME_BR6 = 14,
-  // \7
+  /// \7
   RCL_LEXEME_BR7 = 15,
-  // \8
+  /// \8
   RCL_LEXEME_BR8 = 16,
-  // \9
+  /// \9
   RCL_LEXEME_BR9 = 17,
-  // a name between slashes, must match (([a-zA-Z](_)?)|_)([0-9a-zA-Z](_)?)*
+  /// a name between slashes, must match (([a-zA-Z](_)?)|_)([0-9a-zA-Z](_)?)*
   RCL_LEXEME_TOKEN = 18,
-  // /
+  /// /
   RCL_LEXEME_FORWARD_SLASH = 19,
-  // *
+  /// *
   RCL_LEXEME_WILD_ONE = 20,
-  // **
+  /// **
   RCL_LEXEME_WILD_MULTI = 21
 } rcl_lexeme_t;
 
