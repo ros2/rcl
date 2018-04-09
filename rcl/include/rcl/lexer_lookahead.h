@@ -233,6 +233,27 @@ rcl_lexer_lookahead2_expect(
   const char ** lexeme_text,
   size_t * lexeme_text_length);
 
+/// Get the text at the point where it is currently being analyzed.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] buffer the lookahead2 buffer being used to analyze a string.
+ * \return a pointer inside the original text at the position being analyzed, or
+ * \return `NULL` if buffer is itself `NULL` or zero initialized, or
+ * \return an undefined value if buffer is not initialized or has been finalized.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const char *
+rcl_lexer_lookahead2_get_text(
+  const rcl_lexer_lookahead2_t * buffer);
+
 #if __cplusplus
 }
 #endif

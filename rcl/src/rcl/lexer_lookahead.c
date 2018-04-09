@@ -113,7 +113,7 @@ rcl_lexer_lookahead2_peek(
   if (buffer->impl->text_idx >= buffer->impl->end1) {
     // No buffered lexeme; get one
     ret = rcl_lexer_analyze(
-      &(buffer->impl->text[buffer->impl->text_idx]),
+      rcl_lexer_lookahead2_get_text(buffer),
       buffer->impl->allocator,
       &(buffer->impl->type1),
       &length);
@@ -176,14 +176,19 @@ rcl_lexer_lookahead2_accept(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     buffer->impl, "buffer not initialized", return RCL_RET_INVALID_ARGUMENT,
     rcl_get_default_allocator());
-  if ((NULL == lexeme_text || NULL == lexeme_text_length) && lexeme_text != lexeme_text_length) {
+  if (
+    (NULL == lexeme_text && NULL != lexeme_text_length) ||
+    (NULL != lexeme_text && NULL == lexeme_text_length))
+  {
     RCL_SET_ERROR_MSG("text and length must both be set or both be NULL", buffer->impl->allocator);
   }
 
   if (RCL_LEXEME_EOF == buffer->impl->type1) {
     // Reached EOF, nothing to accept
-    *lexeme_text = &(buffer->impl->text[buffer->impl->text_idx]);
-    *lexeme_text_length = 0;
+    if (NULL != lexeme_text && NULL != lexeme_text_length) {
+      *lexeme_text = rcl_lexer_lookahead2_get_text(buffer);
+      *lexeme_text_length = 0;
+    }
     return RCL_RET_OK;
   }
 
@@ -192,8 +197,10 @@ rcl_lexer_lookahead2_accept(
     return RCL_RET_ERROR;
   }
 
-  *lexeme_text = &(buffer->impl->text[buffer->impl->start1]);
-  *lexeme_text_length = buffer->impl->end1 - buffer->impl->start1;
+  if (NULL != lexeme_text && NULL != lexeme_text_length) {
+    *lexeme_text = &(buffer->impl->text[buffer->impl->start1]);
+    *lexeme_text_length = buffer->impl->end1 - buffer->impl->start1;
+  }
 
   // Advance lexer position
   buffer->impl->text_idx = buffer->impl->end1;
@@ -221,8 +228,16 @@ rcl_lexer_lookahead2_expect(
     return ret;
   }
   if (type != lexeme) {
-    RCL_SET_ERROR_MSG("Unexpected lexeme", buffer->impl->allocator);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      buffer->impl->allocator, "Expected %d got %d at %lu", type, lexeme, buffer->impl->text_idx);
     return RCL_RET_WRONG_LEXEME;
   }
   return rcl_lexer_lookahead2_accept(buffer, lexeme_text, lexeme_text_length);
+}
+
+const char *
+rcl_lexer_lookahead2_get_text(
+  const rcl_lexer_lookahead2_t * buffer)
+{
+  return &(buffer->impl->text[buffer->impl->text_idx]);
 }
