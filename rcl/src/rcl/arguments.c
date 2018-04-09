@@ -41,9 +41,29 @@ static rcl_arguments_t __rcl_global_arguments;
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_fully_qualified_namespace(
-  rcl_lexer_lookahead2_t * lex_lookahead,
-  rcl_remap_t * rule)
+  rcl_lexer_lookahead2_t * lex_lookahead)
 {
+  rcl_ret_t ret;
+
+  // Must have at least one Forward slash /
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+
+  // repeated tokens and slashes (allow trailing slash, but don't require it)
+  while (true) {
+    ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, NULL, NULL);
+    if (RCL_RET_WRONG_LEXEME == ret) {
+      rcl_reset_error();
+      break;
+    }
+    ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
+    if (RCL_RET_WRONG_LEXEME == ret) {
+      rcl_reset_error();
+      break;
+    }
+  }
   return RCL_RET_OK;
 }
 
@@ -56,7 +76,28 @@ _rcl_parse_remap_replacement_token(
   rcl_lexer_lookahead2_t * lex_lookahead,
   rcl_remap_t * rule)
 {
-  return RCL_RET_OK;
+  rcl_ret_t ret;
+  rcl_lexeme_t lexeme;
+
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  if (
+    RCL_LEXEME_BR1 == lexeme || RCL_LEXEME_BR2 == lexeme || RCL_LEXEME_BR3 == lexeme ||
+    RCL_LEXEME_BR4 == lexeme || RCL_LEXEME_BR5 == lexeme || RCL_LEXEME_BR6 == lexeme ||
+    RCL_LEXEME_BR7 == lexeme || RCL_LEXEME_BR8 == lexeme || RCL_LEXEME_BR9 == lexeme)
+  {
+    RCL_SET_ERROR_MSG("Backreferences are not implemented", rule->allocator);
+    return RCL_RET_ERROR;
+  } else if (RCL_LEXEME_TOKEN == lexeme) {
+    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
+  } else {
+    ret = RCL_RET_INVALID_REMAP_RULE;
+  }
+
+  return ret;
 }
 
 /// Parse the replacement side of a name remapping rule (ex: `bar/\1/foo`).
@@ -68,6 +109,60 @@ _rcl_parse_remap_replacement_name(
   rcl_lexer_lookahead2_t * lex_lookahead,
   rcl_remap_t * rule)
 {
+  rcl_ret_t ret;
+  rcl_lexeme_t lexeme;
+
+  const char * replacement_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  if (NULL == replacement_start) {
+    RCL_SET_ERROR_MSG("failed to get start of replacement", rule->allocator);
+    return RCL_RET_ERROR;
+  }
+
+  // private name (~/...) or fully qualified name (/...) ?
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  if (RCL_LEXEME_TILDE_SLASH == lexeme || RCL_LEXEME_FORWARD_SLASH == lexeme) {
+    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
+  }
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  // token ( '/' token )*
+  ret = _rcl_parse_remap_replacement_token(lex_lookahead, rule);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  while (RCL_LEXEME_EOF != lexeme) {
+    ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
+    if (RCL_RET_WRONG_LEXEME == ret) {
+      return RCL_RET_INVALID_REMAP_RULE;
+    }
+    ret = _rcl_parse_remap_replacement_token(lex_lookahead, rule);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+    ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+
+  // Copy replacement into rule
+  const char * replacement_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  size_t length = (size_t)(replacement_end - replacement_start);
+  rule->replacement = rcutils_strndup(replacement_start, length, rule->allocator);
+  if (NULL == rule->replacement) {
+    RCL_SET_ERROR_MSG("failed to copy replacement", rule->allocator);
+    return RCL_RET_BAD_ALLOC;
+  }
+
   return RCL_RET_OK;
 }
 
@@ -80,7 +175,27 @@ _rcl_parse_remap_match_token(
   rcl_lexer_lookahead2_t * lex_lookahead,
   rcl_remap_t * rule)
 {
-  return RCL_RET_OK;
+  rcl_ret_t ret;
+  rcl_lexeme_t lexeme;
+
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  if (RCL_LEXEME_TOKEN == lexeme) {
+    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
+  } else if (RCL_LEXEME_WILD_ONE == lexeme) {
+    RCL_SET_ERROR_MSG("Wildcard '*' is not implemented", rule->allocator);
+    return RCL_RET_ERROR;
+  } else if (RCL_LEXEME_WILD_MULTI == lexeme) {
+    RCL_SET_ERROR_MSG("Wildcard '**' is not implemented", rule->allocator);
+    return RCL_RET_ERROR;
+  } else {
+    ret = RCL_RET_INVALID_REMAP_RULE;
+  }
+
+  return ret;
 }
 
 /// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
@@ -92,6 +207,77 @@ _rcl_parse_remap_match_name(
   rcl_lexer_lookahead2_t * lex_lookahead,
   rcl_remap_t * rule)
 {
+  rcl_ret_t ret;
+  rcl_lexeme_t lexeme;
+  // rostopic:// rosservice://
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  if (RCL_LEXEME_URL_SERVICE == lexeme) {
+    rule->type = RCL_SERVICE_REMAP;
+    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
+  } else if (RCL_LEXEME_URL_TOPIC == lexeme) {
+    rule->type = RCL_TOPIC_REMAP;
+    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
+  } else {
+    rule->type = (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP);
+  }
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  const char * match_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  if (NULL == match_start) {
+    RCL_SET_ERROR_MSG("failed to get start of match", rule->allocator);
+    return RCL_RET_ERROR;
+  }
+
+  // private name (~/...) or fully qualified name (/...) ?
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  if (RCL_LEXEME_TILDE_SLASH == lexeme || RCL_LEXEME_FORWARD_SLASH == lexeme) {
+    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
+  }
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  // token ( '/' token )*
+  ret = _rcl_parse_remap_match_token(lex_lookahead, rule);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  while (RCL_LEXEME_SEPARATOR != lexeme) {
+    ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
+    if (RCL_RET_WRONG_LEXEME == ret) {
+      return RCL_RET_INVALID_REMAP_RULE;
+    }
+    ret = _rcl_parse_remap_match_token(lex_lookahead, rule);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+    ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+
+  // Copy match into rule
+  const char * match_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  size_t length = (size_t)(match_end - match_start);
+  rule->match = rcutils_strndup(match_start, length, rule->allocator);
+  if (NULL == rule->match) {
+    RCL_SET_ERROR_MSG("failed to copy match", rule->allocator);
+    return RCL_RET_BAD_ALLOC;
+  }
+
   return RCL_RET_OK;
 }
 
@@ -104,6 +290,23 @@ _rcl_parse_remap_name_remap(
   rcl_lexer_lookahead2_t * lex_lookahead,
   rcl_remap_t * rule)
 {
+  rcl_ret_t ret;
+  // match
+  ret = _rcl_parse_remap_match_name(lex_lookahead, rule);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // :=
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_SEPARATOR, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    return RCL_RET_INVALID_REMAP_RULE;
+  }
+  // replacement
+  ret = _rcl_parse_remap_replacement_name(lex_lookahead, rule);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
   return RCL_RET_OK;
 }
 
@@ -128,8 +331,27 @@ _rcl_parse_remap_namespace_replacement(
     return RCL_RET_INVALID_REMAP_RULE;
   }
   // /foo/bar
-  // TODO(sloretz) rcl_lexer_lookahead2_current_text(lex_lookahead) to return the current text ptr
-  return _rcl_parse_remap_fully_qualified_namespace(lex_lookahead, rule);
+  const char * ns_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  if (NULL == ns_start) {
+    RCL_SET_ERROR_MSG("failed to get start of namespace", rule->allocator);
+    return RCL_RET_ERROR;
+  }
+  ret = _rcl_parse_remap_fully_qualified_namespace(lex_lookahead);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  // Copy namespace into rule
+  const char * ns_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  size_t length = (size_t)(ns_end - ns_start);
+  rule->replacement = rcutils_strndup(ns_start, length, rule->allocator);
+  if (NULL == rule->replacement) {
+    RCL_SET_ERROR_MSG("failed to copy namespace", rule->allocator);
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  rule->type = RCL_NAMESPACE_REMAP;
+  return RCL_RET_OK;
 }
 
 /// Parse a nodename replacement rule (ex: `__node:=new_name`).
@@ -160,15 +382,18 @@ _rcl_parse_remap_nodename_replacement(
   if (RCL_RET_WRONG_LEXEME == ret) {
     return RCL_RET_INVALID_REMAP_RULE;
   }
-
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
   // copy the node name into the replacement side of the rule
   rule->replacement = rcutils_strndup(node_name, length, rule->allocator);
   if (NULL == rule->replacement) {
     RCL_SET_ERROR_MSG("failed to allocate node name", rule->allocator);
-    ret = RCL_RET_BAD_ALLOC;
+    return RCL_RET_BAD_ALLOC;
   }
 
-  return ret;
+  rule->type = RCL_NODENAME_REMAP;
+  return RCL_RET_OK;
 }
 
 /// Parse a nodename prefix including trailing colon (ex: `node_name:`).
@@ -198,13 +423,13 @@ _rcl_parse_remap_nodename_prefix(
   rule->node_name = rcutils_strndup(node_name, length, rule->allocator);
   if (NULL == rule->node_name) {
     RCL_SET_ERROR_MSG("failed to allocate node name", rule->allocator);
-    ret = RCL_RET_BAD_ALLOC;
+    return RCL_RET_BAD_ALLOC;
   }
 
-  return ret;
+  return RCL_RET_OK;
 }
 
-/// Start recursive descent parseing of a remap rule.
+/// Start recursive descent parsing of a remap rule.
 /// \param[in] lex_lookahead a lookahead(2) buffer for the parser to use.
 /// \param[in,out] rule input a zero intialized rule, output a fully initialized one.
 /// \return RCL_RET_OK if a valid rule was parsed, or
@@ -284,163 +509,30 @@ _rcl_parse_remap_rule(
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_rule, RCL_RET_INVALID_ARGUMENT, allocator);
 
-  size_t len_node_name = 0;
-  size_t len_match = 0;
-  size_t len_replacement = 0;
+  rcl_ret_t ret;
 
-  const char * separator = NULL;
-  const char * colon = NULL;
-  const char * match_begin = arg;
-  const char * replacement_begin = NULL;
-
-  // A valid rule has two parts separated by :=
-  separator = strstr(arg, ":=");
-  if (NULL == separator) {
-    RCL_SET_ERROR_MSG("missing :=", allocator);
-    return RCL_RET_INVALID_REMAP_RULE;
-  }
-
-  replacement_begin = separator + 2;
-
-  // must have characters on both sides of the separator
-  len_match = separator - arg;
-  len_replacement = strlen(replacement_begin);
-  if (0 == len_match) {
-    RCL_SET_ERROR_MSG("match is zero length", allocator);
-    return RCL_RET_INVALID_REMAP_RULE;
-  } else if (0 == len_replacement) {
-    RCL_SET_ERROR_MSG("replacement has zero length", allocator);
-    return RCL_RET_INVALID_REMAP_RULE;
-  }
-
-  colon = strchr(arg, ':');
-  if (NULL != colon) {
-    if (colon < separator) {
-      // If there is a : on the match side then there is a node-name prefix
-      match_begin = colon + 1;
-      len_node_name = colon - arg;
-      len_match = separator - match_begin;
-      // node name must have at least one character
-      if (len_node_name <= 0) {
-        RCL_SET_ERROR_MSG("node name previx has zero length", allocator);
-        return RCL_RET_INVALID_REMAP_RULE;
-      }
-    } else if (colon > separator) {
-      // If the colon is on the replacement side then this couldn't be a valid rule
-      RCL_SET_ERROR_MSG("replacement side cannot contain a :", allocator);
-      return RCL_RET_INVALID_REMAP_RULE;
-    }
-  }
-
-  // Maybe match length changed because there was a node name prefix
-  if (0 == len_match) {
-    RCL_SET_ERROR_MSG("match is zero length", allocator);
-    return RCL_RET_INVALID_REMAP_RULE;
-  }
-
-  // Make sure node name contains only valid characters
-  if (len_node_name) {
-    int validation_result;
-    size_t invalid_index;
-    rmw_ret_t rmw_ret = rmw_validate_node_name_with_size(
-      arg, len_node_name, &validation_result, &invalid_index);
-    if (RMW_RET_OK != rmw_ret) {
-      RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
-      return RCL_RET_ERROR;
-    } else if (RMW_NODE_NAME_VALID != validation_result) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        allocator,
-        "node name prefix invalid: %s", rmw_node_name_validation_result_string(validation_result));
-      return RCL_RET_INVALID_REMAP_RULE;
-    }
-  }
-
-  // Figure out what type of rule this is, default is to apply to topic and service names
-  rcl_remap_type_t type = RCL_TOPIC_REMAP | RCL_SERVICE_REMAP;
-  if (4 == len_match && 0 == strncmp("__ns", match_begin, len_match)) {
-    type = RCL_NAMESPACE_REMAP;
-  } else if (6 == len_match && 0 == strncmp("__node", match_begin, len_match)) {
-    type = RCL_NODENAME_REMAP;
-  }
-
-  if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
-    // Replacement must be a valid topic name
-    int validation_result;
-    size_t invalid_index;
-    rcl_ret_t ret = rcl_validate_topic_name(replacement_begin, &validation_result, &invalid_index);
-    if (ret != RCL_RET_OK) {
-      return RCL_RET_ERROR;
-    } else if (validation_result != RCL_TOPIC_NAME_VALID) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        allocator,
-        "replacement is invalid: %s", rcl_topic_name_validation_result_string(validation_result));
-      return RCL_RET_INVALID_REMAP_RULE;
-    }
-    // Match must be a valid topic name
-    ret = rcl_validate_topic_name_with_size(
-      match_begin, len_match, &validation_result, &invalid_index);
-    if (ret != RCL_RET_OK) {
-      return RCL_RET_ERROR;
-    } else if (validation_result != RCL_TOPIC_NAME_VALID) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        allocator,
-        "match is invalid: %s", rcl_topic_name_validation_result_string(validation_result));
-      return RCL_RET_INVALID_REMAP_RULE;
-    }
-  } else if (RCL_NAMESPACE_REMAP == type) {
-    int validation_result;
-    size_t invalid_idx;
-    rmw_ret_t rmw_ret = rmw_validate_namespace(replacement_begin, &validation_result, &invalid_idx);
-    if (RMW_RET_OK != rmw_ret) {
-      RCL_SET_ERROR_MSG("failed to run check on namespace", allocator);
-      return RCL_RET_ERROR;
-    } else if (RMW_NAMESPACE_VALID != validation_result) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        allocator,
-        "namespace is invalid: %s", rmw_namespace_validation_result_string(validation_result));
-      return RCL_RET_INVALID_REMAP_RULE;
-    }
-  } else if (RCL_NODENAME_REMAP == type) {
-    int validation_result;
-    size_t invalid_idx;
-    rmw_ret_t rmw_ret = rmw_validate_node_name(replacement_begin, &validation_result, &invalid_idx);
-    if (RMW_RET_OK != rmw_ret) {
-      RCL_SET_ERROR_MSG("failed to run check on node name", allocator);
-      return RCL_RET_ERROR;
-    } else if (RMW_NODE_NAME_VALID != validation_result) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        allocator,
-        "node name is invalid: %s", rmw_node_name_validation_result_string(validation_result));
-      return RCL_RET_INVALID_REMAP_RULE;
-    }
-  }
-
-  // Rule is valid, construct a structure for it
   output_rule->allocator = allocator;
-  output_rule->type = type;
-  if (len_node_name > 0) {
-    output_rule->node_name = rcutils_strndup(arg, len_node_name, allocator);
-    if (NULL == output_rule->node_name) {
-      goto cleanup_rule;
-    }
-  }
-  if (type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
-    output_rule->match = rcutils_strndup(match_begin, len_match, allocator);
-    if (NULL == output_rule->match) {
-      goto cleanup_rule;
-    }
-  }
-  output_rule->replacement = rcutils_strndup(replacement_begin, len_replacement, allocator);
-  if (NULL == output_rule->replacement) {
-    goto cleanup_rule;
-  }
-  return RCL_RET_OK;
+  rcl_lexer_lookahead2_t lex_lookahead = rcl_get_zero_initialized_lexer_lookahead2();
 
-cleanup_rule:
-  if (RCL_RET_OK != rcl_remap_fini(output_rule)) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini remap rule after error occurred");
+  ret = rcl_lexer_lookahead2_init(&lex_lookahead, arg, allocator);
+  if (RCL_RET_OK != ret) {
+    return ret;
   }
-  return RCL_RET_BAD_ALLOC;
+
+  ret = _rcl_parse_remap_begin_remap_rule(&lex_lookahead, output_rule);
+
+  if (RCL_RET_OK != ret) {
+    // cleanup stuff, but return the original error code
+    if (RCL_RET_OK != rcl_remap_fini(output_rule)) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini remap rule after error occurred");
+    }
+    if (RCL_RET_OK != rcl_lexer_lookahead2_fini(&lex_lookahead)) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini lookahead2 after error occurred");
+    }
+  } else {
+    ret = rcl_lexer_lookahead2_fini(&lex_lookahead);
+  }
+  return ret;
 }
 
 rcl_ret_t
