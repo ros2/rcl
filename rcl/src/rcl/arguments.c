@@ -437,6 +437,7 @@ _rcl_parse_remap_match_token(
     RCL_SET_ERROR_MSG("Wildcard '**' is not implemented", rule->allocator);
     return RCL_RET_ERROR;
   } else {
+    RCL_SET_ERROR_MSG("Expecting token or wildcard", rule->allocator);
     ret = RCL_RET_INVALID_REMAP_RULE;
   }
 
