@@ -55,6 +55,8 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   // Things get recognized as tokens whether input ends or non token characters come after them
   EXPECT_LEX(RCL_LEXEME_TOKEN, "foo", "foo");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "foo", "foo:");
+  EXPECT_LEX(RCL_LEXEME_TOKEN, "foo_", "foo_");
+  EXPECT_LEX(RCL_LEXEME_TOKEN, "foo_", "foo_:");
 
   // Check full range for starting character
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a", "a");
