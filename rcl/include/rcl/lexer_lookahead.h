@@ -142,7 +142,7 @@ rcl_lexer_lookahead2_peek(
 /// Look ahead at the next two lexemes in the string.
 /**
  * Repeated calls to peek2 will return the same two lexemes.
- * A parser that deems the next two lexemes as valid must call accept twice to advance lexing.
+ * A parser that deems the next two lexemes as valid must accept twice to advance lexing.
  * \sa rcl_lexer_lookahead2_accept()
  *
  * <hr>
