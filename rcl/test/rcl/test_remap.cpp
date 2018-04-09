@@ -465,3 +465,39 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_noden
   EXPECT_STREQ("remap_name", output);
   allocator.deallocate(output, allocator.state);
 }
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), url_scheme_rosservice) {
+  rcl_ret_t ret;
+  rcl_arguments_t global_arguments;
+  SCOPE_ARGS(global_arguments, "process_name", "rosservice://foo:=bar");
+
+  char * output = NULL;
+  ret = rcl_remap_service_name(
+    NULL, &global_arguments, "/ns/foo", "NodeName", "/ns", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  ASSERT_STREQ("/ns/bar", output);
+  rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
+
+  ret = rcl_remap_topic_name(
+    NULL, &global_arguments, "/ns/foo", "NodeName", "/ns", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(NULL, output);
+}
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), url_scheme_rostopic) {
+  rcl_ret_t ret;
+  rcl_arguments_t global_arguments;
+  SCOPE_ARGS(global_arguments, "process_name", "rostopic://foo:=bar");
+
+  char * output = NULL;
+  ret = rcl_remap_topic_name(
+    NULL, &global_arguments, "/ns/foo", "NodeName", "/ns", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  ASSERT_STREQ("/ns/bar", output);
+  rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
+
+  ret = rcl_remap_service_name(
+    NULL, &global_arguments, "/ns/foo", "NodeName", "/ns", rcl_get_default_allocator(), &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(NULL, output);
+}

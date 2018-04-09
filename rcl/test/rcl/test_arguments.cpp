@@ -95,6 +95,11 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_TRUE(is_valid_arg("foo:=/bar"));
   EXPECT_TRUE(is_valid_arg("/foo123:=/bar123"));
   EXPECT_TRUE(is_valid_arg("node:/foo123:=/bar123"));
+  EXPECT_TRUE(is_valid_arg("rostopic:=/foo/bar"));
+  EXPECT_TRUE(is_valid_arg("rosservice:=baz"));
+  EXPECT_TRUE(is_valid_arg("rostopic://rostopic:=rosservice"));
+  EXPECT_TRUE(is_valid_arg("rostopic:///rosservice:=rostopic"));
+  EXPECT_TRUE(is_valid_arg("rostopic:///foo/bar:=baz"));
 
   EXPECT_FALSE(is_valid_arg(":="));
   EXPECT_FALSE(is_valid_arg("foo:="));
