@@ -22,19 +22,12 @@ struct rcl_lexer_lookahead2_impl_t
   // Where in the text analysis is being performed
   size_t text_idx;
 
-  // index of first character of first terminal in buffer
-  size_t start1;
-  // One past last character of first terminal in buffer
-  size_t end1;
-  // Type of first terminal in buffer
-  rcl_lexeme_t type1;
-
-  // index of first character of second terminal in buffer
-  size_t start2;
-  // One past last character of second terminal in buffer
-  size_t end2;
-  // Type of second terminal in buffer
-  rcl_lexeme_t type2;
+  // first character of lexeme
+  size_t start[2];
+  // One past last character of lexeme
+  size_t end[2];
+  // Type of lexeme
+  rcl_lexeme_t type[2];
 
   // Allocator to use if an error occurrs
   rcl_allocator_t allocator;
@@ -68,13 +61,13 @@ rcl_lexer_lookahead2_init(
     buffer->impl, "Failed to allocate lookahead impl", return RCL_RET_BAD_ALLOC, allocator);
 
   buffer->impl->text = text;
-  buffer->impl->text_idx = 0;
-  buffer->impl->start1 = 0;
-  buffer->impl->end1 = 0;
-  buffer->impl->type1 = RCL_LEXEME_NONE;
-  buffer->impl->start2 = 0;
-  buffer->impl->end2 = 0;
-  buffer->impl->type2 = RCL_LEXEME_NONE;
+  buffer->impl->text_idx = 0u;
+  buffer->impl->start[0] = 0u;
+  buffer->impl->start[1] = 0u;
+  buffer->impl->end[0] = 0u;
+  buffer->impl->end[1] = 0u;
+  buffer->impl->type[0] = RCL_LEXEME_NONE;
+  buffer->impl->type[1] = RCL_LEXEME_NONE;
   buffer->impl->allocator = allocator;
 
   return RCL_RET_OK;
@@ -110,23 +103,23 @@ rcl_lexer_lookahead2_peek(
   rcl_ret_t ret;
   size_t length;
 
-  if (buffer->impl->text_idx >= buffer->impl->end1) {
+  if (buffer->impl->text_idx >= buffer->impl->end[0]) {
     // No buffered lexeme; get one
     ret = rcl_lexer_analyze(
       rcl_lexer_lookahead2_get_text(buffer),
       buffer->impl->allocator,
-      &(buffer->impl->type1),
+      &(buffer->impl->type[0]),
       &length);
 
     if (RCL_RET_OK != ret) {
       return ret;
     }
 
-    buffer->impl->start1 = buffer->impl->text_idx;
-    buffer->impl->end1 = buffer->impl->start1 + length;
+    buffer->impl->start[0] = buffer->impl->text_idx;
+    buffer->impl->end[0] = buffer->impl->start[0] + length;
   }
 
-  *next_type = buffer->impl->type1;
+  *next_type = buffer->impl->type[0];
   return RCL_RET_OK;
 }
 
@@ -137,7 +130,7 @@ rcl_lexer_lookahead2_peek2(
   rcl_lexeme_t * next_type2)
 {
   rcl_ret_t ret;
-  // Peek 1 ahead first (reusing its error checking for buffer and next_type1)
+  // Peek 1 ahead first (reusing its error checking for buffer and next_type[0])
   ret = rcl_lexer_lookahead2_peek(buffer, next_type1);
   if (RCL_RET_OK != ret) {
     return ret;
@@ -146,23 +139,23 @@ rcl_lexer_lookahead2_peek2(
 
   size_t length;
 
-  if (buffer->impl->text_idx >= buffer->impl->end2) {
+  if (buffer->impl->text_idx >= buffer->impl->end[1]) {
     // No buffered lexeme; get one
     ret = rcl_lexer_analyze(
-      &(buffer->impl->text[buffer->impl->end1]),
+      &(buffer->impl->text[buffer->impl->end[0]]),
       buffer->impl->allocator,
-      &(buffer->impl->type2),
+      &(buffer->impl->type[1]),
       &length);
 
     if (RCL_RET_OK != ret) {
       return ret;
     }
 
-    buffer->impl->start2 = buffer->impl->end1;
-    buffer->impl->end2 = buffer->impl->start2 + length;
+    buffer->impl->start[1] = buffer->impl->end[0];
+    buffer->impl->end[1] = buffer->impl->start[1] + length;
   }
 
-  *next_type2 = buffer->impl->type2;
+  *next_type2 = buffer->impl->type[1];
   return RCL_RET_OK;
 }
 
@@ -183,32 +176,32 @@ rcl_lexer_lookahead2_accept(
     RCL_SET_ERROR_MSG("text and length must both be set or both be NULL", buffer->impl->allocator);
   }
 
-  if (RCL_LEXEME_EOF == buffer->impl->type1) {
+  if (RCL_LEXEME_EOF == buffer->impl->type[0]) {
     // Reached EOF, nothing to accept
     if (NULL != lexeme_text && NULL != lexeme_text_length) {
       *lexeme_text = rcl_lexer_lookahead2_get_text(buffer);
-      *lexeme_text_length = 0;
+      *lexeme_text_length = 0u;
     }
     return RCL_RET_OK;
   }
 
-  if (buffer->impl->text_idx >= buffer->impl->end1) {
+  if (buffer->impl->text_idx >= buffer->impl->end[0]) {
     RCL_SET_ERROR_MSG("no lexeme to accept", buffer->impl->allocator);
     return RCL_RET_ERROR;
   }
 
   if (NULL != lexeme_text && NULL != lexeme_text_length) {
-    *lexeme_text = &(buffer->impl->text[buffer->impl->start1]);
-    *lexeme_text_length = buffer->impl->end1 - buffer->impl->start1;
+    *lexeme_text = &(buffer->impl->text[buffer->impl->start[0]]);
+    *lexeme_text_length = buffer->impl->end[0] - buffer->impl->start[0];
   }
 
   // Advance lexer position
-  buffer->impl->text_idx = buffer->impl->end1;
+  buffer->impl->text_idx = buffer->impl->end[0];
 
   // Move second lexeme in buffer to first position
-  buffer->impl->start1 = buffer->impl->start2;
-  buffer->impl->end1 = buffer->impl->end2;
-  buffer->impl->type1 = buffer->impl->type2;
+  buffer->impl->start[0] = buffer->impl->start[1];
+  buffer->impl->end[0] = buffer->impl->end[1];
+  buffer->impl->type[0] = buffer->impl->type[1];
 
   return RCL_RET_OK;
 }
