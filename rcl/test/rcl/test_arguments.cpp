@@ -115,6 +115,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_FALSE(is_valid_arg("foo:=/b ar"));
   EXPECT_FALSE(is_valid_arg("f{oo:=/bar"));
   EXPECT_FALSE(is_valid_arg("foo:=/b}ar"));
+  EXPECT_FALSE(is_valid_arg("rostopic://:=rosservice"));
+  EXPECT_FALSE(is_valid_arg("rostopic::=rosservice"));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
