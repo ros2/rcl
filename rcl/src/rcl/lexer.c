@@ -28,7 +28,7 @@
  * When a transition is taken it causes the lexer to move to another character in the string.
  * Normal transitions always move the lexer to the forwards one character.
  * '<else,M>' transitions may cause the lexer to move forwards 1, or backwards N.
- * The movement M is written as M = 1 - N so it can be stored in an unsigned integer.
+ * The movement M is written as M = 1 + N so it can be stored in an unsigned integer.
  * For example, an `<else>` transition with M = 0 moves the lexer forwards 1 character, M = 1 keeps
  * the lexer at the current character, and M = 2 moves the lexer backwards one character.
 
