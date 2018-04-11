@@ -61,6 +61,7 @@ destroy_args(int argc, char ** args)
 
 #define SCOPE_ARGS(local_arguments, ...) \
   { \
+    local_arguments = rcl_get_zero_initialized_arguments(); \
     const char * local_argv[] = {__VA_ARGS__}; \
     unsigned int local_argc = (sizeof(local_argv) / sizeof(const char *)); \
     rcl_ret_t ret = rcl_parse_arguments( \
