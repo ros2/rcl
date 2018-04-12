@@ -212,116 +212,163 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_expect)
   EXPECT_EQ(RCL_RET_WRONG_LEXEME, ret) << rcl_get_error_string_safe();
 }
 
+#define EXPECT_LOOKAHEAD(expected_lexeme, expected_text, buffer) \
+  do { \
+    const char * lexeme_text; \
+    size_t lexeme_text_length; \
+    rcl_lexeme_t lexeme; \
+    ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme); \
+    EXPECT_EQ(expected_lexeme, lexeme); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+    ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+    EXPECT_STREQ(expected_text, std::string(lexeme_text, lexeme_text_length).c_str()); \
+  } while (false)
+
 TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_lex_long_string)
 {
   rcl_ret_t ret;
   rcl_lexer_lookahead2_t buffer;
   SCOPE_LOOKAHEAD2(buffer, ":\\1rostopic://\\2rosservice://~/\\8:=**:*foobar");
-  const char * lexeme_text;
-  size_t lexeme_text_length;
-  rcl_lexeme_t lexeme;
 
-  // :
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_COLON, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ(":", std::string(lexeme_text, lexeme_text_length).c_str());
+  EXPECT_LOOKAHEAD(RCL_LEXEME_COLON, ":", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_BR1, "\\1", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_URL_TOPIC, "rostopic://", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_BR2, "\\2", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_URL_SERVICE, "rosservice://", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_TILDE_SLASH, "~/", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_BR8, "\\8", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_WILD_MULTI, "**", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_COLON, ":", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_WILD_ONE, "*", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foobar", buffer);
+  EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+}
 
-  // \1
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_BR1, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("\\1", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // rostopic://
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_URL_TOPIC, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("rostopic://", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // \2
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_BR2, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("\\2", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // rosservice://
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_URL_SERVICE, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("rosservice://", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // ~/
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_TILDE_SLASH, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("~/", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // \8
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_BR8, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("\\8", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // :=
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_SEPARATOR, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ(":=", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // **
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_WILD_MULTI, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("**", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // :
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_COLON, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ(":", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // *
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_WILD_ONE, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("*", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // foobar
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_TOKEN, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("foobar", std::string(lexeme_text, lexeme_text_length).c_str());
-
-  // eof
-  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_LEXEME_EOF, lexeme);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_STREQ("", std::string(lexeme_text, lexeme_text_length).c_str());
+TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_lex_remap_rules)
+{
+  rcl_ret_t ret;
+  rcl_lexer_lookahead2_t buffer;
+  {
+    SCOPE_LOOKAHEAD2(buffer, "foo:=bar");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    SCOPE_LOOKAHEAD2(buffer, "/foo/bar:=fiz/buzz");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "fiz", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "buzz", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    // Nodename prefix
+    SCOPE_LOOKAHEAD2(buffer, "nodename:~/foo:=foo");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "nodename", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_COLON, ":", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TILDE_SLASH, "~/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    // Partial namespace replacement
+    SCOPE_LOOKAHEAD2(buffer, "/foo/**:=/fizz/\\1");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_WILD_MULTI, "**", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "fizz", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_BR1, "\\1", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    // Full namespace replacement
+    SCOPE_LOOKAHEAD2(buffer, "/foo/bar/*:=/bar/foo/\\1");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_WILD_ONE, "*", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_BR1, "\\1", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    // Change a base name
+    SCOPE_LOOKAHEAD2(buffer, "**/foo:=\\1/bar");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_WILD_MULTI, "**", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_BR1, "\\1", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    // Change namespace
+    SCOPE_LOOKAHEAD2(buffer, "__ns:=/new/namespace");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_NS, "__ns", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "new", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "namespace", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    // Change node name
+    SCOPE_LOOKAHEAD2(buffer, "__node:=left_camera_driver");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_NODE, "__node", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "left_camera_driver", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    // Topic only remap
+    SCOPE_LOOKAHEAD2(buffer, "rostopic://foo/bar:=bar/foo");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_URL_TOPIC, "rostopic://", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
+  {
+    // Service only remap
+    SCOPE_LOOKAHEAD2(buffer, "rosservice:///foo/bar:=/bar/foo");
+    EXPECT_LOOKAHEAD(RCL_LEXEME_URL_SERVICE, "rosservice://", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_SEPARATOR, ":=", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "bar", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_FORWARD_SLASH, "/", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_TOKEN, "foo", buffer);
+    EXPECT_LOOKAHEAD(RCL_LEXEME_EOF, "", buffer);
+  }
 }
