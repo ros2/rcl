@@ -69,7 +69,7 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_init_fini_
 TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_init_not_zero_initialized)
 {
   rcl_lexer_lookahead2_t buffer;
-  const int not_zero = 1;
+  int not_zero = 1;
   buffer.impl = reinterpret_cast<rcl_lexer_lookahead2_impl_t *>(&not_zero);
   rcl_ret_t ret = rcl_lexer_lookahead2_init(&buffer, "foobar", rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
