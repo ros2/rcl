@@ -1,0 +1,8 @@
+# config/test_yaml
+---
+
+lidar_ns:
+  lidar_1:
+    params:
+      id:
+      name: "front lidar"
