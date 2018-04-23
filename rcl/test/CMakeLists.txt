@@ -67,6 +67,22 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+  rcl_add_custom_gtest(test_lexer${target_suffix}
+    SRCS rcl/test_lexer.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation}
+  )
+
+  rcl_add_custom_gtest(test_lexer_lookahead${target_suffix}
+    SRCS rcl/test_lexer_lookahead.cpp
+    ENV ${extra_test_env}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    AMENT_DEPENDENCIES ${rmw_implementation}
+  )
+
   set(SKIP_TEST "")
   # TODO(wjwwood): remove this when the graph API works properly for connext dynamic
   if(

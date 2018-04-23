@@ -33,6 +33,8 @@ set(${PROJECT_NAME}_sources
   src/rcl/expand_topic_name.c
   src/rcl/graph.c
   src/rcl/guard_condition.c
+  src/rcl/lexer.c
+  src/rcl/lexer_lookahead.c
   src/rcl/node.c
   src/rcl/publisher.c
   src/rcl/rcl.c
