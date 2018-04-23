@@ -21,7 +21,7 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -232,7 +232,7 @@ rcl_remap_node_namespace(
   rcl_allocator_t allocator,
   char ** output_namespace);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

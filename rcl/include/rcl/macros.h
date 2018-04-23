@@ -15,7 +15,7 @@
 #ifndef RCL__MACROS_H_
 #define RCL__MACROS_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -27,7 +27,7 @@ extern "C"
 # define RCL_WARN_UNUSED _Check_return_
 #endif
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

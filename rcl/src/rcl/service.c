@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -338,6 +338,6 @@ rcl_service_is_valid(const rcl_service_t * service, rcl_allocator_t * error_msg_
   return true;
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -197,6 +197,6 @@ rcl_lifecycle_get_transitions(
   return NULL;
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

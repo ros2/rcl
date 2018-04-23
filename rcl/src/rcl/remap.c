@@ -22,7 +22,7 @@
 #include "rcutils/strdup.h"
 #include "rcutils/types/string_map.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -313,6 +313,6 @@ rcl_remap_node_namespace(
     allocator, output_namespace);
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

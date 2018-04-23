@@ -27,7 +27,7 @@
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -843,6 +843,6 @@ _rcl_parse_remap_rule(
   return ret;
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

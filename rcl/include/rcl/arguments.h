@@ -20,7 +20,7 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -248,7 +248,7 @@ RCL_WARN_UNUSED
 rcl_arguments_t *
 rcl_get_global_arguments();
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

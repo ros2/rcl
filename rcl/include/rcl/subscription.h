@@ -15,7 +15,7 @@
 #ifndef RCL__SUBSCRIPTION_H_
 #define RCL__SUBSCRIPTION_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -367,7 +367,7 @@ rcl_subscription_is_valid(
   const rcl_subscription_t * subscription,
   rcl_allocator_t * error_msg_allocator);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

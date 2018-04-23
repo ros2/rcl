@@ -15,7 +15,7 @@
 #ifndef RCL__WAIT_H_
 #define RCL__WAIT_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -501,7 +501,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

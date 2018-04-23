@@ -15,7 +15,7 @@
 #ifndef RCL_LIFECYCLE__RCL_LIFECYCLE_H_
 #define RCL_LIFECYCLE__RCL_LIFECYCLE_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -135,7 +135,7 @@ RCL_LIFECYCLE_PUBLIC
 void
 rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif  // extern "C"
 

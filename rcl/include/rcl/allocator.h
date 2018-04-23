@@ -15,7 +15,7 @@
 #ifndef RCL__ALLOCATOR_H_
 #define RCL__ALLOCATOR_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -34,7 +34,7 @@ typedef rcutils_allocator_t rcl_allocator_t;
 #define RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, msg, fail_statement) \
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, msg, fail_statement)
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

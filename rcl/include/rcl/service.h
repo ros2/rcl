@@ -15,7 +15,7 @@
 #ifndef RCL__SERVICE_H_
 #define RCL__SERVICE_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -410,7 +410,7 @@ RCL_PUBLIC
 bool
 rcl_service_is_valid(const rcl_service_t * service, rcl_allocator_t * error_msg_allocator);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

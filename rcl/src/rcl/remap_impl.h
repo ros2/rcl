@@ -17,7 +17,7 @@
 
 #include "rcl/types.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -101,7 +101,7 @@ rcl_ret_t
 rcl_remap_fini(
   rcl_remap_t * rule);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

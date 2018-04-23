@@ -15,7 +15,7 @@
 #ifndef RCL__EXPAND_TOPIC_NAME_H_
 #define RCL__EXPAND_TOPIC_NAME_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -137,7 +137,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_get_default_topic_name_substitutions(rcutils_string_map_t * string_map);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

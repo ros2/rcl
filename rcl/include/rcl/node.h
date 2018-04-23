@@ -15,7 +15,7 @@
 #ifndef RCL__NODE_H_
 #define RCL__NODE_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -516,7 +516,7 @@ RCL_WARN_UNUSED
 const char *
 rcl_node_get_logger_name(const rcl_node_t * node);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

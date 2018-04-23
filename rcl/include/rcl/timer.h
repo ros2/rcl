@@ -15,7 +15,7 @@
 #ifndef RCL__TIMER_H_
 #define RCL__TIMER_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -526,7 +526,7 @@ rcl_timer_reset(rcl_timer_t * timer);
 const rcl_allocator_t *
 rcl_timer_get_allocator(const rcl_timer_t * timer);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

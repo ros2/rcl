@@ -21,7 +21,7 @@
 #include "rcl_lifecycle/data_types.h"
 #include "rcl_lifecycle/visibility_control.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -32,7 +32,7 @@ rcl_ret_t
 rcl_lifecycle_init_default_state_machine(
   rcl_lifecycle_state_machine_t * state_machine, const rcl_allocator_t * allocator);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

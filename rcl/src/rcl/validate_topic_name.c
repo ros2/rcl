@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -231,6 +231,6 @@ rcl_topic_name_validation_result_string(int validation_result)
   }
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

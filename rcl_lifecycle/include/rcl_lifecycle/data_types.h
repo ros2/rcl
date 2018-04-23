@@ -19,7 +19,7 @@
 
 #include "rcl_lifecycle/visibility_control.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -82,7 +82,7 @@ typedef struct rcl_lifecycle_state_machine_t
   rcl_lifecycle_com_interface_t com_interface;
 } rcl_lifecycle_state_machine_t;
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

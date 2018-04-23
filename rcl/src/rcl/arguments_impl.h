@@ -18,7 +18,7 @@
 #include "rcl/arguments.h"
 #include "./remap_impl.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -40,7 +40,7 @@ typedef struct rcl_arguments_impl_t
   rcl_allocator_t allocator;
 } rcl_arguments_impl_t;
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

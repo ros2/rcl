@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -323,6 +323,6 @@ rcl_lifecycle_com_interface_publish_notification(
   return rcl_publish(&com_interface->pub_transition_event, &msg);
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

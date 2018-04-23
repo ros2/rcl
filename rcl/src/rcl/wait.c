@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -684,6 +684,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   return RCL_RET_OK;
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

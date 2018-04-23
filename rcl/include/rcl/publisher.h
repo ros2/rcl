@@ -15,7 +15,7 @@
 #ifndef RCL__PUBLISHER_H_
 #define RCL__PUBLISHER_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -363,7 +363,7 @@ rcl_publisher_is_valid(
   const rcl_publisher_t * publisher,
   rcl_allocator_t * error_msg_allocator);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
