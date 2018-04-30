@@ -152,7 +152,9 @@ rcl_get_zero_initialized_node(void);
  * \param[inout] node a preallocated rcl_node_t
  * \param[in] name the name of the node, must be a valid c-string
  * \param[in] namespace_ the namespace of the node, must be a valid c-string
- * \param[in] options the node options
+ * \param[in] options the node options.
+ *  The options are deep copied into the node.
+ *  The caller is always responsible for freeing memory used options they pass in.
  * \return `RCL_RET_OK` if the node was initialized successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the node has already be initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
