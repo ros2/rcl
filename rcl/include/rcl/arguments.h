@@ -174,6 +174,34 @@ rcl_remove_ros_arguments(
   int * nonros_argc,
   const char ** nonros_argv[]);
 
+/// Copy one arguments structure into another.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] error_alloc an alocator to use if an error occurs.
+ *  This allocator is not used to allocate args_out.
+ * \param[in] args The structure to be copied.
+ *  Its allocator is used to copy memory into the new structure.
+ * \param[out] args_out A zero-initialized arguments structure to be copied into.
+ * \return `RCL_RET_OK` if the structure was copied successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_arguments_copy(
+  rcl_allocator_t error_alloc,
+  const rcl_arguments_t * args,
+  rcl_arguments_t * args_out);
+
 /// Reclaim resources held inside rcl_arguments_t structure.
 /**
  * <hr>

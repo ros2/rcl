@@ -243,6 +243,73 @@ rcl_remove_ros_arguments(
 }
 
 rcl_ret_t
+rcl_arguments_copy(
+  rcl_allocator_t error_alloc,
+  const rcl_arguments_t * args,
+  rcl_arguments_t * args_out)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&error_alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args_out, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  if (NULL != args_out->impl) {
+    RCL_SET_ERROR_MSG("args_out must be zero initialized", error_alloc);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  rcl_allocator_t allocator = args->impl->allocator;
+
+  args_out->impl = allocator.allocate(sizeof(rcl_arguments_impl_t), allocator.state);
+  if (NULL == args_out->impl) {
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  args_out->impl->allocator = allocator;
+
+  // Zero so it's safe to call rcl_arguments_fini() if an error occurrs while copying.
+  args_out->impl->num_remap_rules = 0;
+  args_out->impl->num_unparsed_args = 0;
+
+
+  // Copy unparsed args
+  args_out->impl->unparsed_args = allocator.allocate(
+    sizeof(int) * args->impl->num_unparsed_args, allocator.state);
+  if (NULL == args_out->impl->unparsed_args) {
+    if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+    }
+    return RCL_RET_BAD_ALLOC;
+  }
+  for (int i = 0; i < args->impl->num_unparsed_args; ++i) {
+    args_out->impl->unparsed_args[i]= args->impl->unparsed_args[i];
+  }
+  args_out->impl->num_unparsed_args = args->impl->num_unparsed_args;
+
+  // Copy remap rules
+  args_out->impl->remap_rules = allocator.allocate(
+    sizeof(rcl_remap_t) * args->impl->num_remap_rules, allocator.state);
+  if (NULL == args_out->impl->remap_rules) {
+    if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+    }
+    return RCL_RET_BAD_ALLOC;
+  }
+  args_out->impl->num_remap_rules = args->impl->num_remap_rules;
+  for (int i = 0; i < args->impl->num_remap_rules; ++i) {
+    args_out->impl->remap_rules[i] = rcl_remap_get_zero_initialized();
+    rcl_ret_t ret = rcl_remap_copy(
+      error_alloc, &(args->impl->remap_rules[i]), &(args_out->impl->remap_rules[i]));
+    if (RCL_RET_OK != ret) {
+      if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+      }
+      return ret;
+    }
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 rcl_arguments_fini(
   rcl_arguments_t * args)
 {
