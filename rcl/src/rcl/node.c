@@ -462,6 +462,31 @@ rcl_node_get_default_options()
   return default_options;
 }
 
+rcl_ret_t
+rcl_node_options_copy(
+  rcl_allocator_t error_alloc,
+  const rcl_node_options_t * options,
+  rcl_node_options_t * options_out)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&error_alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(options_out, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  if (options_out == options) {
+    RCL_SET_ERROR_MSG(
+      "Attempted to copy options into itself", error_alloc);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  options_out->domain_id = options->domain_id;
+  options_out->allocator = options->allocator;
+  options_out->use_global_arguments = options->use_global_arguments;
+  if (NULL != options->arguments.impl) {
+    rcl_ret_t ret = rcl_arguments_copy(
+      error_alloc, &(options->arguments), &(options_out->arguments));
+    return ret;
+  }
+  return RCL_RET_OK;
+}
+
 const char *
 rcl_node_get_name(const rcl_node_t * node)
 {

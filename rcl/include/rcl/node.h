@@ -208,6 +208,34 @@ RCL_PUBLIC
 rcl_node_options_t
 rcl_node_get_default_options(void);
 
+/// Copy one options structure into another.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] error_alloc an alocator to use if an error occurs.
+ *  This allocator is not used to allocate the output.
+ * \param[in] options The structure to be copied.
+ *  Its allocator is used to copy memory into the new structure.
+ * \param[out] options_out An options structure containing default values.
+ * \return `RCL_RET_OK` if the structure was copied successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_node_options_copy(
+  rcl_allocator_t error_alloc,
+  const rcl_node_options_t * options,
+  rcl_node_options_t * options_out);
+
 /// Return `true` if the node is valid, else `false`.
 /**
  * Also return `false` if the node pointer is `NULL` or the allocator is invalid.
