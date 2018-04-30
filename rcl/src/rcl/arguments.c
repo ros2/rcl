@@ -270,7 +270,6 @@ rcl_arguments_copy(
   args_out->impl->num_remap_rules = 0;
   args_out->impl->num_unparsed_args = 0;
 
-
   // Copy unparsed args
   args_out->impl->unparsed_args = allocator.allocate(
     sizeof(int) * args->impl->num_unparsed_args, allocator.state);
