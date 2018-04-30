@@ -196,6 +196,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_double_parse) {
   ASSERT_EQ(RCL_RET_INVALID_ARGUMENT,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   rcl_reset_error();
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 
