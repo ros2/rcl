@@ -281,7 +281,7 @@ rcl_arguments_copy(
     return RCL_RET_BAD_ALLOC;
   }
   for (int i = 0; i < args->impl->num_unparsed_args; ++i) {
-    args_out->impl->unparsed_args[i]= args->impl->unparsed_args[i];
+    args_out->impl->unparsed_args[i] = args->impl->unparsed_args[i];
   }
   args_out->impl->num_unparsed_args = args->impl->num_unparsed_args;
 
