@@ -165,6 +165,26 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_inval
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy) {
+  const char * argv[] = {"process_name", "/foo/bar:=", "bar:=/fiz/buz", "__ns:=/foo"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret;
+
+  ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
+  ret = rcl_arguments_copy(rcl_get_default_allocator(), &parsed_args, &copied_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  EXPECT_UNPARSED(parsed_args, 0, 1);
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+
+  EXPECT_UNPARSED(copied_args, 0, 1);
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
+}
+
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_namespace) {
   const char * argv[] = {"process_name", "__ns:=/foo/bar", "__ns:=/fiz/buz"};
   int argc = sizeof(argv) / sizeof(const char *);

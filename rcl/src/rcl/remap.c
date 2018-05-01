@@ -40,6 +40,45 @@ rcl_remap_get_zero_initialized()
 }
 
 rcl_ret_t
+rcl_remap_copy(
+  rcl_allocator_t error_alloc,
+  const rcl_remap_t * rule,
+  rcl_remap_t * rule_out)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&error_alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(rule, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(rule_out, RCL_RET_INVALID_ARGUMENT, error_alloc);
+
+  rcl_allocator_t allocator = rule->allocator;
+  rule_out->allocator = allocator;
+  rule_out->type = rule->type;
+  if (NULL != rule->node_name) {
+    rule_out->node_name = rcutils_strdup(rule->node_name, allocator);
+    if (NULL == rule_out->node_name) {
+      goto fail;
+    }
+  }
+  if (NULL != rule->match) {
+    rule_out->match = rcutils_strdup(rule->match, allocator);
+    if (NULL == rule_out->match) {
+      goto fail;
+    }
+  }
+  if (NULL != rule->replacement) {
+    rule_out->replacement = rcutils_strdup(rule->replacement, allocator);
+    if (NULL == rule_out->replacement) {
+      goto fail;
+    }
+  }
+  return RCL_RET_OK;
+fail:
+  if (RCL_RET_OK != rcl_remap_fini(rule_out)) {
+    RCL_SET_ERROR_MSG("Error while finalizing remap rule due to another error", error_alloc);
+  }
+  return RCL_RET_BAD_ALLOC;
+}
+
+rcl_ret_t
 rcl_remap_fini(
   rcl_remap_t * rule)
 {

@@ -222,9 +222,12 @@ rcl_node_init(
   node->impl->rmw_node_handle = NULL;
   node->impl->graph_guard_condition = NULL;
   node->impl->logger_name = NULL;
+  node->impl->options = rcl_node_get_default_options();
   // Initialize node impl.
-  // node options (assume it is trivially copyable)
-  node->impl->options = *options;
+  ret = rcl_node_options_copy(*allocator, options, &(node->impl->options));
+  if (RCL_RET_OK != ret) {
+    goto fail;
+  }
 
   // Remap the node name and namespace if remap rules are given
   rcl_arguments_t * global_args = NULL;
@@ -383,6 +386,15 @@ fail:
       }
       allocator->deallocate(node->impl->graph_guard_condition, allocator->state);
     }
+    if (NULL != node->impl->options.arguments.impl) {
+      ret = rcl_arguments_fini(&(node->impl->options.arguments));
+      if (ret != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME,
+          "failed to fini arguments in error recovery: %s", rcl_get_error_string_safe()
+        )
+      }
+    }
     allocator->deallocate(node->impl, allocator->state);
   }
   *node = rcl_get_zero_initialized_node();
@@ -424,6 +436,12 @@ rcl_node_fini(rcl_node_t * node)
   allocator.deallocate(node->impl->graph_guard_condition, allocator.state);
   // assuming that allocate and deallocate are ok since they are checked in init
   allocator.deallocate((char *)node->impl->logger_name, allocator.state);
+  if (NULL != node->impl->options.arguments.impl) {
+    rcl_ret_t ret = rcl_arguments_fini(&(node->impl->options.arguments));
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
+  }
   allocator.deallocate(node->impl, allocator.state);
   node->impl = NULL;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node finalized")
@@ -460,6 +478,31 @@ rcl_node_get_default_options()
   default_options.allocator = rcl_get_default_allocator();
   default_options.arguments = rcl_get_zero_initialized_arguments();
   return default_options;
+}
+
+rcl_ret_t
+rcl_node_options_copy(
+  rcl_allocator_t error_alloc,
+  const rcl_node_options_t * options,
+  rcl_node_options_t * options_out)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&error_alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(options_out, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  if (options_out == options) {
+    RCL_SET_ERROR_MSG(
+      "Attempted to copy options into itself", error_alloc);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  options_out->domain_id = options->domain_id;
+  options_out->allocator = options->allocator;
+  options_out->use_global_arguments = options->use_global_arguments;
+  if (NULL != options->arguments.impl) {
+    rcl_ret_t ret = rcl_arguments_copy(
+      error_alloc, &(options->arguments), &(options_out->arguments));
+    return ret;
+  }
+  return RCL_RET_OK;
 }
 
 const char *
