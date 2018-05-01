@@ -15,7 +15,7 @@
 #ifndef RCL__VALIDATE_TOPIC_NAME_H_
 #define RCL__VALIDATE_TOPIC_NAME_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -116,7 +116,7 @@ RCL_WARN_UNUSED
 const char *
 rcl_topic_name_validation_result_string(int validation_result);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

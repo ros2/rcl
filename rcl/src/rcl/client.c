@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -331,6 +331,6 @@ rcl_client_is_valid(const rcl_client_t * client, rcl_allocator_t * error_msg_all
     client->impl->rmw_handle, "client's rmw handle is invalid", return false, alloc);
   return true;
 }
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

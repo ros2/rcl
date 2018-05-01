@@ -20,7 +20,7 @@
 
 #include "rcl_lifecycle/data_types.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -74,7 +74,7 @@ rcl_lifecycle_get_transitions(
   rcl_lifecycle_transition_map_t * transition_map,
   unsigned int state_id);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -15,7 +15,7 @@
 #ifndef RCL__CLIENT_H_
 #define RCL__CLIENT_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -398,7 +398,7 @@ RCL_PUBLIC
 bool
 rcl_client_is_valid(const rcl_client_t * client, rcl_allocator_t * error_msg_allocator);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

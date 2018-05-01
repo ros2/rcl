@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -280,6 +280,6 @@ rcl_timer_get_allocator(const rcl_timer_t * timer)
   return &timer->impl->allocator;
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

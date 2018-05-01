@@ -18,7 +18,7 @@
 #include "rcl_lifecycle/data_types.h"
 #include "rcl_lifecycle/visibility_control.h"
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -44,7 +44,7 @@ extern const rcl_lifecycle_transition_t rcl_transition_shutdown;
 extern const rcl_lifecycle_transition_t rcl_transition_activate;
 extern const rcl_lifecycle_transition_t rcl_transition_deactivate;
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif  // extern "C"
 

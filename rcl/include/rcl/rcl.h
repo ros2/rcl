@@ -68,7 +68,7 @@
 #ifndef RCL__RCL_H_
 #define RCL__RCL_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -193,7 +193,7 @@ RCL_WARN_UNUSED
 bool
 rcl_ok(void);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

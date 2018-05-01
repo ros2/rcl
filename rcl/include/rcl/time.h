@@ -15,7 +15,7 @@
 #ifndef RCL__TIME_H_
 #define RCL__TIME_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -358,7 +358,7 @@ rcl_ret_t
 rcl_set_ros_time_override(
   rcl_clock_t * clock, rcl_time_point_value_t time_value);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

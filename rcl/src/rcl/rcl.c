@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -155,6 +155,6 @@ rcl_ok()
   return rcl_atomic_load_bool(&__rcl_is_initialized);
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

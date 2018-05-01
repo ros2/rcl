@@ -15,7 +15,7 @@
 #ifndef RCL__GRAPH_H_
 #define RCL__GRAPH_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -349,7 +349,7 @@ rcl_service_server_is_available(
   const rcl_client_t * client,
   bool * is_available);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

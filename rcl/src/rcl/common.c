@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -68,6 +68,6 @@ rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret)
   }
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif

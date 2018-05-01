@@ -15,7 +15,7 @@
 #ifndef RCL__COMMON_H_
 #define RCL__COMMON_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -47,7 +47,7 @@ rcl_impl_getenv(const char * env_name, const char ** env_value);
 rcl_ret_t
 rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

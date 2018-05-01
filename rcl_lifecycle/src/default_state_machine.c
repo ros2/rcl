@@ -27,7 +27,7 @@
 #include "default_state_machine.h"  // NOLINT
 #include "states.h"  // NOLINT
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -476,6 +476,6 @@ fail:
   return RCL_RET_ERROR;
 }
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif  // extern "C"

@@ -15,7 +15,7 @@
 #ifndef RCL__GUARD_CONDITION_H_
 #define RCL__GUARD_CONDITION_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -245,7 +245,7 @@ RCL_WARN_UNUSED
 rmw_guard_condition_t *
 rcl_guard_condition_get_rmw_handle(const rcl_guard_condition_t * guard_condition);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

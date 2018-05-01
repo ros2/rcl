@@ -15,7 +15,7 @@
 #ifndef COM_INTERFACE_H_
 #define COM_INTERFACE_H_
 
-#if __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -51,7 +51,7 @@ rcl_lifecycle_com_interface_publish_notification(
   rcl_lifecycle_com_interface_t * com_interface,
   const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal);
 
-#if __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
