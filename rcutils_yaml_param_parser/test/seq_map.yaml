@@ -1,0 +1,15 @@
+# config/test_yaml
+---
+
+lidar_ns:
+  lidar_1:
+    params:
+      id: 10
+      name: "front lidar"
+      driver: 'fr'
+      fr:
+        dx: 2.03
+        dy: 0.45
+      bk:
+        dx: 1.23
+        dy: 6.45
