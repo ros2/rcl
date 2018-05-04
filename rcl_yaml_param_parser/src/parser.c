@@ -1,4 +1,4 @@
-// Copyright 2018 Open Source Robotics Foundation, Inc.
+// Copyright 2018 Apex.AI, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
 #include <errno.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <yaml.h>
 
-#include "rcutils_yaml_param_parser/parser.h"
-#include "rcutils/error_handling.h"
+#include "rcl_yaml_param_parser/parser.h"
+#include "rcl_yaml_param_parser/types.h"
+
+#include "rcl/error_handling.h"
+#include "rcl/types.h"
 #include "rcutils/strdup.h"
 
 /// NOTE: Will allow a max YAML mapping depth of 5
@@ -55,122 +58,122 @@ typedef enum data_types_e
 #define MAX_NUM_NODE_ENTRIES 256U
 #define MAX_NUM_PARAMS_PER_NODE 512U
 
-static rcutils_ret_t node_params_create(
-  node_params_t * node_params,
-  const rcutils_allocator_t allocator);
+static rcl_ret_t node_params_init(
+  rcl_node_params_t * node_params,
+  const rcl_allocator_t allocator);
 
-static rcutils_ret_t param_struct_initialize(
-  params_t * params_st,
-  const rcutils_allocator_t allocator);
+static rcl_ret_t param_struct_init(
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator);
 
-static rcutils_ret_t add_val_to_bool_arr(
-  bool_array_t * const val_array,
+static rcl_ret_t add_val_to_bool_arr(
+  rcl_bool_array_t * const val_array,
   bool * value,
-  const rcutils_allocator_t allocator);
+  const rcl_allocator_t allocator);
 
-static rcutils_ret_t add_val_to_int_arr(
-  int64_array_t * const val_array,
+static rcl_ret_t add_val_to_int_arr(
+  rcl_int64_array_t * const val_array,
   int64_t * value,
-  const rcutils_allocator_t allocator);
+  const rcl_allocator_t allocator);
 
-static rcutils_ret_t add_val_to_double_arr(
-  double_array_t * const val_array,
+static rcl_ret_t add_val_to_double_arr(
+  rcl_double_array_t * const val_array,
   double * value,
-  const rcutils_allocator_t allocator);
+  const rcl_allocator_t allocator);
 
-static rcutils_ret_t add_val_to_string_arr(
+static rcl_ret_t add_val_to_string_arr(
   rcutils_string_array_t * const val_array,
   char * value,
-  const rcutils_allocator_t allocator);
+  const rcl_allocator_t allocator);
 
 static void * get_value(
   const char * const value,
   data_types_t * val_type,
-  const rcutils_allocator_t allocator);
+  const rcl_allocator_t allocator);
 
-static rcutils_ret_t parse_value(
+static rcl_ret_t parse_value(
   const yaml_event_t event,
   const bool is_seq,
   data_types_t * seq_data_type,
-  params_t * params_st,
-  const rcutils_allocator_t allocator);
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator);
 
-static rcutils_ret_t parse_key(
+static rcl_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   char ** param_ns,
-  params_t * params_st,
-  const rcutils_allocator_t allocator);
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator);
 
-static rcutils_ret_t parse_events(
+static rcl_ret_t parse_events(
   yaml_parser_t * parser,
-  params_t * params_st,
-  const rcutils_allocator_t allocator);
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator);
 
 ///
-/// Create node_params_t structure
+/// Create rcl_node_params_t structure
 ///
-static rcutils_ret_t node_params_create(
-  node_params_t * node_params,
-  const rcutils_allocator_t allocator)
+static rcl_ret_t node_params_init(
+  rcl_node_params_t * node_params,
+  const rcl_allocator_t allocator)
 {
   if (NULL == node_params) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   node_params->parameter_names = allocator.zero_allocate(MAX_NUM_PARAMS_PER_NODE,
       sizeof(char *), NULL);
   if (NULL == node_params->parameter_names) {
-    return RCUTILS_RET_BAD_ALLOC;
+    return RCL_RET_BAD_ALLOC;
   }
 
   node_params->parameter_values = allocator.zero_allocate(MAX_NUM_PARAMS_PER_NODE,
-      sizeof(variant_t), NULL);
+      sizeof(rcl_variant_t), NULL);
   if (NULL == node_params->parameter_values) {
     allocator.deallocate(node_params->parameter_names, NULL);
-    return RCUTILS_RET_BAD_ALLOC;
+    return RCL_RET_BAD_ALLOC;
   }
 
-  return RCUTILS_RET_OK;
+  return RCL_RET_OK;
 }
 
 ///
-/// Create the params_t parameter structure
+/// Create the rcl_params_t parameter structure
 ///
-static rcutils_ret_t param_struct_initialize(
-  params_t * params_st,
-  const rcutils_allocator_t allocator)
+static rcl_ret_t param_struct_init(
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator)
 {
   if (NULL == params_st) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
   params_st->node_namespaces = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES,
       sizeof(char *), NULL);
   if (NULL == params_st->node_namespaces) {
-    free_node_struct(params_st, allocator);
-    RCUTILS_SET_ERROR_MSG("Error allocating mem", allocator);
-    return RCUTILS_RET_BAD_ALLOC;
+    rcl_yaml_node_struct_fini(params_st, allocator);
+    RCL_SET_ERROR_MSG("Error allocating mem", allocator);
+    return RCL_RET_BAD_ALLOC;
   }
 
   params_st->node_names = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES,
       sizeof(char *), NULL);
   if (NULL == params_st->node_names) {
-    free_node_struct(params_st, allocator);
-    RCUTILS_SET_ERROR_MSG("Error allocating mem", allocator);
-    return RCUTILS_RET_BAD_ALLOC;
+    rcl_yaml_node_struct_fini(params_st, allocator);
+    RCL_SET_ERROR_MSG("Error allocating mem", allocator);
+    return RCL_RET_BAD_ALLOC;
   }
 
-  params_st->params = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES, sizeof(node_params_t),
+  params_st->params = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES, sizeof(rcl_node_params_t),
       NULL);
   if (NULL == params_st->params) {
-    free_node_struct(params_st, allocator);
-    RCUTILS_SET_ERROR_MSG("Error allocating mem", allocator);
-    return RCUTILS_RET_BAD_ALLOC;
+    rcl_yaml_node_struct_fini(params_st, allocator);
+    RCL_SET_ERROR_MSG("Error allocating mem", allocator);
+    return RCL_RET_BAD_ALLOC;
   }
 
   params_st->num_nodes = 0U;
 
-  return RCUTILS_RET_OK;
+  return RCL_RET_OK;
 }
 
 ///
@@ -178,9 +181,9 @@ static rcutils_ret_t param_struct_initialize(
 /// NOTE: If there is an error, would recommend just to safely exit the process instead
 /// of calling this free function and continuing
 ///
-void free_node_struct(
-  params_t * params_st,
-  const rcutils_allocator_t allocator)
+void rcl_yaml_node_struct_fini(
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator)
 {
   uint32_t nd_idx;
   uint32_t pr_idx = 0U;
@@ -201,7 +204,7 @@ void free_node_struct(
 
     if (NULL != params_st->params) {
       char * param_name;
-      variant_t * param_var;
+      rcl_variant_t * param_var;
       for (pr_idx = 0; pr_idx < params_st->params[nd_idx].num_params; pr_idx++) {
         param_name = params_st->params[nd_idx].parameter_names[pr_idx];
         param_var = &(params_st->params[nd_idx].parameter_values[pr_idx]);
@@ -267,8 +270,8 @@ void free_node_struct(
 ///
 /// Dump the param structure
 ///
-void print_node_struct(
-  const params_t * const params_st)
+void rcl_yaml_node_struct_print(
+  const rcl_params_t * const params_st)
 {
   uint32_t nd_idx;
   uint32_t pr_idx = 0U;
@@ -293,7 +296,7 @@ void print_node_struct(
 
     if (NULL != params_st->params) {
       char * param_name;
-      variant_t * param_var;
+      rcl_variant_t * param_var;
       for (pr_idx = 0; pr_idx < params_st->params[nd_idx].num_params; pr_idx++) {
         param_name = params_st->params[nd_idx].parameter_names[pr_idx];
         param_var = &(params_st->params[nd_idx].parameter_values[pr_idx]);
@@ -353,13 +356,13 @@ void print_node_struct(
 ///
 /// Add a value to a bool array. Create the array if it does not exist
 ///
-static rcutils_ret_t add_val_to_bool_arr(
-  bool_array_t * const val_array,
+static rcl_ret_t add_val_to_bool_arr(
+  rcl_bool_array_t * const val_array,
   bool * value,
-  const rcutils_allocator_t allocator)
+  const rcl_allocator_t allocator)
 {
   if ((NULL == value) || (NULL == val_array)) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   if (NULL == val_array->values) {
@@ -370,8 +373,8 @@ static rcutils_ret_t add_val_to_bool_arr(
     bool * tmp_arr = val_array->values;
     val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(bool), NULL);
     if (NULL == val_array->values) {
-      RCUTILS_SET_ERROR_MSG("Error allocating memory", allocator);
-      return RCUTILS_RET_BAD_ALLOC;
+      RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+      return RCL_RET_BAD_ALLOC;
     }
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(bool)));
     val_array->values[val_array->size] = *value;
@@ -379,19 +382,19 @@ static rcutils_ret_t add_val_to_bool_arr(
     allocator.deallocate(value, NULL);
     allocator.deallocate(tmp_arr, NULL);
   }
-  return RCUTILS_RET_OK;
+  return RCL_RET_OK;
 }
 
 ///
 /// Add a value to an integer array. Create the array if it does not exist
 ///
-static rcutils_ret_t add_val_to_int_arr(
-  int64_array_t * const val_array,
+static rcl_ret_t add_val_to_int_arr(
+  rcl_int64_array_t * const val_array,
   int64_t * value,
-  const rcutils_allocator_t allocator)
+  const rcl_allocator_t allocator)
 {
   if ((NULL == value) || (NULL == val_array)) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   if (NULL == val_array->values) {
@@ -403,8 +406,8 @@ static rcutils_ret_t add_val_to_int_arr(
     val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(int64_t),
         NULL);
     if (NULL == val_array->values) {
-      RCUTILS_SET_ERROR_MSG("Error allocating memory", allocator);
-      return RCUTILS_RET_BAD_ALLOC;
+      RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+      return RCL_RET_BAD_ALLOC;
     }
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(int64_t)));
     val_array->values[val_array->size] = *value;
@@ -412,19 +415,19 @@ static rcutils_ret_t add_val_to_int_arr(
     allocator.deallocate(value, NULL);
     allocator.deallocate(tmp_arr, NULL);
   }
-  return RCUTILS_RET_OK;
+  return RCL_RET_OK;
 }
 
 ///
 /// Add a value to a double array. Create the array if it does not exist
 ///
-static rcutils_ret_t add_val_to_double_arr(
-  double_array_t * const val_array,
+static rcl_ret_t add_val_to_double_arr(
+  rcl_double_array_t * const val_array,
   double * value,
-  const rcutils_allocator_t allocator)
+  const rcl_allocator_t allocator)
 {
   if ((NULL == value) || (NULL == val_array)) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   if (NULL == val_array->values) {
@@ -436,8 +439,8 @@ static rcutils_ret_t add_val_to_double_arr(
     val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(double),
         NULL);
     if (NULL == val_array->values) {
-      RCUTILS_SET_ERROR_MSG("Error allocating memory", allocator);
-      return RCUTILS_RET_BAD_ALLOC;
+      RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+      return RCL_RET_BAD_ALLOC;
     }
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(double)));
     val_array->values[val_array->size] = *value;
@@ -445,26 +448,26 @@ static rcutils_ret_t add_val_to_double_arr(
     allocator.deallocate(value, NULL);
     allocator.deallocate(tmp_arr, NULL);
   }
-  return RCUTILS_RET_OK;
+  return RCL_RET_OK;
 }
 
 ///
 /// Add a value to a string array. Create the array if it does not exist
 ///
-static rcutils_ret_t add_val_to_string_arr(
+static rcl_ret_t add_val_to_string_arr(
   rcutils_string_array_t * const val_array,
   char * value,
-  const rcutils_allocator_t allocator)
+  const rcl_allocator_t allocator)
 {
   if ((NULL == value) || (NULL == val_array)) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   if (NULL == val_array->data) {
-    rcutils_ret_t res;
+    rcl_ret_t res;
 
     res = rcutils_string_array_init(val_array, 1, &allocator);
-    if (RCUTILS_RET_OK != res) {
+    if (RCL_RET_OK != res) {
       return res;
     }
     val_array->data[0U] = value;
@@ -473,15 +476,15 @@ static rcutils_ret_t add_val_to_string_arr(
     char ** tmp_arr = val_array->data;
     val_array->data = allocator.zero_allocate(val_array->size + 1U, sizeof(char *), NULL);
     if (NULL == val_array->data) {
-      RCUTILS_SET_ERROR_MSG("Error allocating memory", allocator);
-      return RCUTILS_RET_BAD_ALLOC;
+      RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+      return RCL_RET_BAD_ALLOC;
     }
     memmove(val_array->data, tmp_arr, (val_array->size * sizeof(char *)));
     val_array->data[val_array->size] = value;
     val_array->size++;
     allocator.deallocate(tmp_arr, NULL);
   }
-  return RCUTILS_RET_OK;
+  return RCL_RET_OK;
 }
 
 ///
@@ -491,7 +494,7 @@ static rcutils_ret_t add_val_to_string_arr(
 static void * get_value(
   const char * const value,
   data_types_t * val_type,
-  const rcutils_allocator_t allocator)
+  const rcl_allocator_t allocator)
 {
   void * ret_val;
   int64_t ival;
@@ -499,7 +502,7 @@ static void * get_value(
   char * endptr = NULL;
 
   if ((NULL == value) || (NULL == val_type)) {
-    RCUTILS_SET_ERROR_MSG("Invalid arguments", allocator);
+    RCL_SET_ERROR_MSG("Invalid arguments", allocator);
     return NULL;
   }
 
@@ -591,50 +594,50 @@ static void * get_value(
 ///
 /// Parse the value part of the <key:value> pair
 ///
-static rcutils_ret_t parse_value(
+static rcl_ret_t parse_value(
   const yaml_event_t event,
   const bool is_seq,
   data_types_t * seq_data_type,
-  params_t * params_st,
-  const rcutils_allocator_t allocator)
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator)
 {
   void * ret_val;
   data_types_t val_type;
-  int res = RCUTILS_RET_OK;
+  int res = RCL_RET_OK;
 
   if ((NULL == params_st) || (0U == params_st->num_nodes) || (NULL == seq_data_type)) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   const uint32_t node_idx = (params_st->num_nodes - 1U);
   if (0U == params_st->params[node_idx].num_params) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   const uint32_t param_idx = ((params_st->params[node_idx].num_params) - 1U);
   const size_t val_size = event.data.scalar.length;
   const char * value = event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
-  variant_t * param_value;
+  rcl_variant_t * param_value;
 
   if (val_size > MAX_STRING_SZ) {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Scalar value at line %d"
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Scalar value at line %d"
       " is bigger than %d bytes", line_num, MAX_STRING_SZ);
-    return RCUTILS_RET_ERROR;
+    return RCL_RET_ERROR;
   } else {
     if (0U == val_size) {
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "No value at line %d", line_num);
-      return RCUTILS_RET_ERROR;
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "No value at line %d", line_num);
+      return RCL_RET_ERROR;
     }
   }
 
   if (NULL == value) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   if (NULL == params_st->params[node_idx].parameter_values) {
-    RCUTILS_SET_ERROR_MSG("Internal error: Invalid mem", allocator);
-    return RCUTILS_RET_BAD_ALLOC;
+    RCL_SET_ERROR_MSG("Internal error: Invalid mem", allocator);
+    return RCL_RET_BAD_ALLOC;
   }
 
   param_value = &(params_st->params[node_idx].parameter_values[param_idx]);
@@ -643,16 +646,16 @@ static rcutils_ret_t parse_value(
   // param_value->string_value = rcutils_strdup(value, allocator);
   ret_val = get_value(value, &val_type, allocator);
   if (NULL == ret_val) {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Error parsing value %s at"
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Error parsing value %s at"
       " line %d", value, line_num);
-    return RCUTILS_RET_ERROR;
+    return RCL_RET_ERROR;
   }
 
   switch (val_type) {
     case DATA_TYPE_UNKNOWN:
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown data type of"
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown data type of"
         " value %s at line %d\n", value, line_num);
-      res = RCUTILS_RET_ERROR;
+      res = RCL_RET_ERROR;
       break;
     case DATA_TYPE_BOOL:
       if (false == is_seq) {
@@ -661,21 +664,21 @@ static rcutils_ret_t parse_value(
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
           *seq_data_type = val_type;
           param_value->bool_array_value =
-            allocator.zero_allocate(1U, sizeof(bool_array_t), NULL);
+            allocator.zero_allocate(1U, sizeof(rcl_bool_array_t), NULL);
           if (NULL == param_value->bool_array_value) {
-            RCUTILS_SET_ERROR_MSG("Error allocating memory", allocator);
-            return RCUTILS_RET_BAD_ALLOC;
+            RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+            return RCL_RET_BAD_ALLOC;
           }
         } else {
           if (*seq_data_type != val_type) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
               " type. Value type bool do not belong at line_num %d", line_num);
             allocator.deallocate(ret_val, NULL);
-            return RCUTILS_RET_ERROR;
+            return RCL_RET_ERROR;
           }
         }
         res = add_val_to_bool_arr(param_value->bool_array_value, ret_val, allocator);
-        if (RCUTILS_RET_OK != res) {
+        if (RCL_RET_OK != res) {
           if (NULL != ret_val) {
             allocator.deallocate(ret_val, NULL);
           }
@@ -690,21 +693,21 @@ static rcutils_ret_t parse_value(
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
           *seq_data_type = val_type;
           param_value->integer_array_value =
-            allocator.zero_allocate(1U, sizeof(int64_array_t), NULL);
+            allocator.zero_allocate(1U, sizeof(rcl_int64_array_t), NULL);
           if (NULL == param_value->integer_array_value) {
-            RCUTILS_SET_ERROR_MSG("Error allocating memory", allocator);
-            return RCUTILS_RET_BAD_ALLOC;
+            RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+            return RCL_RET_BAD_ALLOC;
           }
         } else {
           if (*seq_data_type != val_type) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
               " type. Value type integer do not belong at line_num %d", line_num);
             allocator.deallocate(ret_val, NULL);
-            return RCUTILS_RET_ERROR;
+            return RCL_RET_ERROR;
           }
         }
         res = add_val_to_int_arr(param_value->integer_array_value, ret_val, allocator);
-        if (RCUTILS_RET_OK != res) {
+        if (RCL_RET_OK != res) {
           if (NULL != ret_val) {
             allocator.deallocate(ret_val, NULL);
           }
@@ -719,21 +722,21 @@ static rcutils_ret_t parse_value(
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
           *seq_data_type = val_type;
           param_value->double_array_value =
-            allocator.zero_allocate(1U, sizeof(double_array_t), NULL);
+            allocator.zero_allocate(1U, sizeof(rcl_double_array_t), NULL);
           if (NULL == param_value->double_array_value) {
-            RCUTILS_SET_ERROR_MSG("Error allocating memory", allocator);
-            return RCUTILS_RET_BAD_ALLOC;
+            RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+            return RCL_RET_BAD_ALLOC;
           }
         } else {
           if (*seq_data_type != val_type) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
               " type. Value type double do not belong at line_num %d", line_num);
             allocator.deallocate(ret_val, NULL);
-            return RCUTILS_RET_ERROR;
+            return RCL_RET_ERROR;
           }
         }
         res = add_val_to_double_arr(param_value->double_array_value, ret_val, allocator);
-        if (RCUTILS_RET_OK != res) {
+        if (RCL_RET_OK != res) {
           if (NULL != ret_val) {
             allocator.deallocate(ret_val, NULL);
           }
@@ -750,19 +753,19 @@ static rcutils_ret_t parse_value(
           param_value->string_array_value =
             allocator.zero_allocate(1U, sizeof(rcutils_string_array_t), NULL);
           if (NULL == param_value->string_array_value) {
-            RCUTILS_SET_ERROR_MSG("Error allocating memory", allocator);
-            return RCUTILS_RET_BAD_ALLOC;
+            RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+            return RCL_RET_BAD_ALLOC;
           }
         } else {
           if (*seq_data_type != val_type) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
               " type. Value type string do not belong at line_num %d", line_num);
             allocator.deallocate(ret_val, NULL);
-            return RCUTILS_RET_ERROR;
+            return RCL_RET_ERROR;
           }
         }
         res = add_val_to_string_arr(param_value->string_array_value, ret_val, allocator);
-        if (RCUTILS_RET_OK != res) {
+        if (RCL_RET_OK != res) {
           if (NULL != ret_val) {
             allocator.deallocate(ret_val, NULL);
           }
@@ -771,9 +774,9 @@ static rcutils_ret_t parse_value(
       }
       break;
     default:
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown data type of value"
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown data type of value"
         " %s at line %d", value, line_num);
-      res = RCUTILS_RET_ERROR;
+      res = RCL_RET_ERROR;
       break;
   }
   return res;
@@ -782,14 +785,14 @@ static rcutils_ret_t parse_value(
 ///
 /// Parse the key part of the <key:value> pair
 ///
-static rcutils_ret_t parse_key(
+static rcl_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   char ** param_ns,
-  params_t * params_st,
-  const rcutils_allocator_t allocator)
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator)
 {
-  int32_t res = RCUTILS_RET_OK;
+  int32_t res = RCL_RET_OK;
   const size_t val_size = event.data.scalar.length;
   const char * value = event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
@@ -797,22 +800,22 @@ static rcutils_ret_t parse_key(
   uint32_t node_idx = 0U;
 
   if ((NULL == map_level) || (NULL == params_st) || (NULL == param_ns)) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   if (val_size > MAX_STRING_SZ) {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Scalar value at line %d"
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Scalar value at line %d"
       " is bigger than %d bytes", line_num, MAX_STRING_SZ);
-    return RCUTILS_RET_ERROR;
+    return RCL_RET_ERROR;
   } else {
     if (0U == val_size) {
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "No key at line %d", line_num);
-      return RCUTILS_RET_ERROR;
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "No key at line %d", line_num);
+      return RCL_RET_ERROR;
     }
   }
 
   if (NULL == value) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
   num_nodes = params_st->num_nodes;  // New node index
   if (num_nodes > 0U) {
@@ -820,22 +823,22 @@ static rcutils_ret_t parse_key(
   }
   switch (*map_level) {
     case MAP_UNINIT_LVL:
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unintialized map level"
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unintialized map level"
         " at line %d", line_num);
-      res = RCUTILS_RET_ERROR;
+      res = RCL_RET_ERROR;
       break;
     case MAP_TOP_LVL:
       {
         char * node_ns;
         /// Assume it is node namespace for now
         if (0 == strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "%s at line %d should"
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "%s at line %d should"
             " belong to a node", PARAMS_KEY, line_num);
-          return RCUTILS_RET_ERROR;
+          return RCL_RET_ERROR;
         }
         node_ns = rcutils_strdup(value, allocator);
         if (NULL == node_ns) {
-          return RCUTILS_RET_BAD_ALLOC;
+          return RCL_RET_BAD_ALLOC;
         }
         params_st->node_namespaces[num_nodes] = node_ns;
       }
@@ -850,24 +853,24 @@ static rcutils_ret_t parse_key(
         if (0 == strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
           if (NULL == params_st->node_namespaces[num_nodes]) {
             /// There should have been node name space entry present
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error"
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error"
               " while processing line %d", line_num);
-            return RCUTILS_RET_ERROR;
+            return RCL_RET_ERROR;
           }
           params_st->node_names[num_nodes] = params_st->node_namespaces[num_nodes];
           params_st->node_namespaces[num_nodes] = NULL;
 
-          res = node_params_create(&(params_st->params[num_nodes]), allocator);
-          if (RCUTILS_RET_OK != res) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Error creating node"
+          res = node_params_init(&(params_st->params[num_nodes]), allocator);
+          if (RCL_RET_OK != res) {
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Error creating node"
               " parameter at line %d", line_num);
-            return RCUTILS_RET_ERROR;
+            return RCL_RET_ERROR;
           }
           (*map_level)++;
         } else {
           node_name = rcutils_strdup(value, allocator);
           if (NULL == node_name) {
-            return RCUTILS_RET_BAD_ALLOC;
+            return RCL_RET_BAD_ALLOC;
           }
           params_st->node_names[num_nodes] = node_name;
           /// If the node namespace entry for this node is NULL, then this is part of
@@ -878,7 +881,7 @@ static rcutils_ret_t parse_key(
               params_st->node_namespaces[num_nodes] = rcutils_strdup(prev_node_ns,
                   allocator);
               if (NULL == params_st->node_namespaces[num_nodes]) {
-                return RCUTILS_RET_BAD_ALLOC;
+                return RCL_RET_BAD_ALLOC;
               }
             }
           }
@@ -891,15 +894,15 @@ static rcutils_ret_t parse_key(
       {
         /// The value should be "params"
         if (0 != strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Expected %s at"
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Expected %s at"
             " line %d", PARAMS_KEY, line_num);
-          return RCUTILS_RET_ERROR;
+          return RCL_RET_ERROR;
         }
-        res = node_params_create(&(params_st->params[node_idx]), allocator);
-        if (RCUTILS_RET_OK != res) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Error creating node"
+        res = node_params_init(&(params_st->params[node_idx]), allocator);
+        if (RCL_RET_OK != res) {
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Error creating node"
             " parameter at line %d", line_num);
-          return RCUTILS_RET_ERROR;
+          return RCL_RET_ERROR;
         }
       }
       break;
@@ -909,7 +912,7 @@ static rcutils_ret_t parse_key(
         const uint32_t param_idx = params_st->params[node_idx].num_params;
         char * const param_name = rcutils_strdup(value, allocator);
         if (NULL == param_name) {
-          return RCUTILS_RET_BAD_ALLOC;
+          return RCL_RET_BAD_ALLOC;
         }
         params_st->params[node_idx].parameter_names[param_idx] = param_name;
         params_st->params[node_idx].num_params++;
@@ -925,17 +928,17 @@ static rcutils_ret_t parse_key(
           /// The parameter namespace is already scanned during the previous scalar
           /// event and put into struct under MAP_PARAMS_LVL
           if (0U == params_st->params[node_idx].num_params) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error while"
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error while"
               " parsing line %d", line_num);
-            return RCUTILS_RET_ERROR;
+            return RCL_RET_ERROR;
           }
           params_st->params[node_idx].num_params--;
           param_idx = params_st->params[node_idx].num_params;
           *param_ns = params_st->params[node_idx].parameter_names[param_idx];
           if (NULL == *param_ns) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error"
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error"
               " creating param namespace at line %d", line_num);
-            return RCUTILS_RET_ERROR;
+            return RCL_RET_ERROR;
           }
         }
         /// It is name of the parameter
@@ -945,14 +948,14 @@ static rcutils_ret_t parse_key(
         const size_t tot_len = (params_ns_len + param_name_len + 2U);
         char * param_name;
         if (tot_len > MAX_STRING_SZ) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "The name length"
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "The name length"
             " exceeds the MAX size %d at line %d", MAX_STRING_SZ, line_num);
-          return RCUTILS_RET_OK;
+          return RCL_RET_OK;
         }
 
         param_name = allocator.zero_allocate(1U, tot_len, NULL);
         if (NULL == param_name) {
-          return RCUTILS_RET_BAD_ALLOC;
+          return RCL_RET_BAD_ALLOC;
         }
 
         memmove(param_name, *param_ns, params_ns_len);
@@ -965,9 +968,9 @@ static rcutils_ret_t parse_key(
       }
       break;
     default:
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown map level at"
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown map level at"
         " line %d", line_num);
-      res = RCUTILS_RET_ERROR;
+      res = RCL_RET_ERROR;
       break;
   }
   return res;
@@ -976,14 +979,14 @@ static rcutils_ret_t parse_key(
 ///
 /// Get events from the parser and process the events
 ///
-static rcutils_ret_t parse_events(
+static rcl_ret_t parse_events(
   yaml_parser_t * parser,
-  params_t * params_st,
-  const rcutils_allocator_t allocator)
+  rcl_params_t * params_st,
+  const rcl_allocator_t allocator)
 {
   int32_t done_parsing = 0;
   yaml_event_t event;
-  int32_t res = RCUTILS_RET_OK;
+  int32_t res = RCL_RET_OK;
   bool is_key = true;
   bool is_seq = false;
   bool bumped_map_lvl = false;
@@ -993,20 +996,20 @@ static rcutils_ret_t parse_events(
   uint32_t map_level = 0U;
 
   if ((NULL == parser) || (NULL == params_st)) {
-    return RCUTILS_RET_INVALID_ARGUMENT;
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   while (0 == done_parsing) {
-    if (RCUTILS_RET_OK != res) {
+    if (RCL_RET_OK != res) {
       return res;
     }
     res = yaml_parser_parse(parser, &event);
     if (0 == res) {
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Error parsing a"
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Error parsing a"
         " event near line %d", line_num);
-      return RCUTILS_RET_ERROR;
+      return RCL_RET_ERROR;
     } else {
-      res = RCUTILS_RET_OK;
+      res = RCL_RET_OK;
     }
     line_num = ((uint32_t)(event.start_mark.line) + 1U);
     switch (event.type) {
@@ -1019,7 +1022,7 @@ static rcutils_ret_t parse_events(
           if (true == is_key) {
             const uint32_t prev_map_lvl = map_level;
             res = parse_key(event, &map_level, &params_ns, params_st, allocator);
-            if (RCUTILS_RET_OK != res) {
+            if (RCL_RET_OK != res) {
               return res;
             }
             if ((map_level - prev_map_lvl) > 0U) {
@@ -1027,21 +1030,21 @@ static rcutils_ret_t parse_events(
               if ((uint32_t)(MAP_NODE_NAME_LVL) == map_level) {
                 bumped_map_lvl = true;
               } else {
-                RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Invalid mapping at"
+                RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Invalid mapping at"
                   " line %d", line_num);
-                return RCUTILS_RET_ERROR;
+                return RCL_RET_ERROR;
               }
             }
             is_key = false;
           } else {
             /// It is a value
             if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
-              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Cannot have a value"
+              RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Cannot have a value"
                 " before params at line %d", line_num);
-              return RCUTILS_RET_ERROR;
+              return RCL_RET_ERROR;
             }
             res = parse_value(event, is_seq, &seq_data_type, params_st, allocator);
-            if (RCUTILS_RET_OK != res) {
+            if (RCL_RET_OK != res) {
               return res;
             }
             if (false == is_seq) {
@@ -1052,14 +1055,14 @@ static rcutils_ret_t parse_events(
         break;
       case YAML_SEQUENCE_START_EVENT:
         if (true == is_key) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequences cannot be key"
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequences cannot be key"
             " at line %d", line_num);
-          return RCUTILS_RET_ERROR;
+          return RCL_RET_ERROR;
         }
         if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequences can only be"
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequences can only be"
             " values of keys in params. Error at line %d\n", line_num);
-          return RCUTILS_RET_ERROR;
+          return RCL_RET_ERROR;
         }
         is_seq = true;
         seq_data_type = DATA_TYPE_UNKNOWN;
@@ -1072,9 +1075,9 @@ static rcutils_ret_t parse_events(
         map_level++;
         is_key = true;
         if (map_level > (uint32_t)(MAP_PARAMS_NS_LVL)) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Will not support deeper"
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Will not support deeper"
             " mappings at line %d", line_num);
-          return RCUTILS_RET_ERROR;
+          return RCL_RET_ERROR;
         }
         break;
       case YAML_MAPPING_END_EVENT:
@@ -1093,9 +1096,9 @@ static rcutils_ret_t parse_events(
         }
         break;
       case YAML_ALIAS_EVENT:
-        RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Will not support aliasing"
+        RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Will not support aliasing"
           " at line %d\n", line_num);
-        res = RCUTILS_RET_ERROR;
+        res = RCL_RET_ERROR;
         break;
       case YAML_STREAM_START_EVENT:
         break;
@@ -1104,57 +1107,57 @@ static rcutils_ret_t parse_events(
       case YAML_DOCUMENT_END_EVENT:
         break;
       case YAML_NO_EVENT:
-        RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Received an empty event at"
+        RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Received an empty event at"
           " line %d", line_num);
-        res = RCUTILS_RET_ERROR;
+        res = RCL_RET_ERROR;
         break;
       default:
-        RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown YAML event at line"
+        RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown YAML event at line"
           " %d", line_num);
-        res = RCUTILS_RET_ERROR;
+        res = RCL_RET_ERROR;
         break;
     }
   }
-  return RCUTILS_RET_OK;
+  return RCL_RET_OK;
 }
 
 ///
 /// Parse the YAML file and populate params_st
 ///
-bool parse_yaml_file(const char * file_path, params_t * params_st)
+bool rcl_parse_yaml_file(const char * file_path, rcl_params_t * params_st)
 {
   int32_t res;
   FILE * yaml_file;
   yaml_parser_t parser;
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  rcl_allocator_t allocator = rcutils_get_default_allocator();
 
   if (NULL == file_path) {
-    RCUTILS_SET_ERROR_MSG("YAML file path is NULL", allocator);
+    RCL_SET_ERROR_MSG("YAML file path is NULL", allocator);
     return false;
   }
 
   res = yaml_parser_initialize(&parser);
   if (0 == res) {
-    RCUTILS_SET_ERROR_MSG("Could not initialize the parser", allocator);
+    RCL_SET_ERROR_MSG("Could not initialize the parser", allocator);
     return false;
   }
 
   yaml_file = fopen(file_path, "r");
   if (NULL == yaml_file) {
-    RCUTILS_SET_ERROR_MSG("Error opening YAML file", allocator);
+    RCL_SET_ERROR_MSG("Error opening YAML file", allocator);
     return false;
   }
 
   yaml_parser_set_input_file(&parser, yaml_file);
 
-  res = param_struct_initialize(params_st, allocator);
-  if (RCUTILS_RET_OK != res) {
-    RCUTILS_SET_ERROR_MSG("Error creating node structure", allocator);
+  res = param_struct_init(params_st, allocator);
+  if (RCL_RET_OK != res) {
+    RCL_SET_ERROR_MSG("Error creating node structure", allocator);
     return false;
   }
 
   res = parse_events(&parser, params_st, allocator);
-  if (RCUTILS_RET_OK != res) {
+  if (RCL_RET_OK != res) {
     return false;
   }
 
