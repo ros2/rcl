@@ -3,9 +3,10 @@ cmake_minimum_required(VERSION 3.5)
 project(rcl_yaml_param_parser)
 
 find_package(ament_cmake_ros REQUIRED)
-find_package(yaml REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rcl REQUIRED)
+find_package(libyaml_vendor REQUIRED)
+find_package(yaml REQUIRED)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
