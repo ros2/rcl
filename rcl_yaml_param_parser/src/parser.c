@@ -106,6 +106,7 @@ static rcl_ret_t parse_value(
 static rcl_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
+  char ** node_ns,
   char ** param_ns,
   rcl_params_t * params_st,
   const rcl_allocator_t allocator);
@@ -152,13 +153,6 @@ static rcl_ret_t param_struct_init(
   if (NULL == params_st) {
     return RCL_RET_INVALID_ARGUMENT;
   }
-  params_st->node_namespaces = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES,
-      sizeof(char *), NULL);
-  if (NULL == params_st->node_namespaces) {
-    rcl_yaml_node_struct_fini(params_st, allocator);
-    RCL_SET_ERROR_MSG("Error allocating mem", allocator);
-    return RCL_RET_BAD_ALLOC;
-  }
 
   params_st->node_names = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES,
       sizeof(char *), NULL);
@@ -198,11 +192,7 @@ void rcl_yaml_node_struct_fini(
   }
 
   for (nd_idx = 0; nd_idx < params_st->num_nodes; nd_idx++) {
-    char * node_ns = params_st->node_namespaces[nd_idx];
     char * node_name = params_st->node_names[nd_idx];
-    if (NULL != node_ns) {
-      allocator.deallocate(node_ns, NULL);
-    }
     if (NULL != node_name) {
       allocator.deallocate(node_name, NULL);
     }
@@ -261,9 +251,6 @@ void rcl_yaml_node_struct_fini(
       }
     }  // if (params)
   }  // for (node_idx)
-  if (NULL != params_st->node_namespaces) {
-    allocator.deallocate(params_st->node_namespaces, NULL);
-  }
   if (NULL != params_st->node_names) {
     allocator.deallocate(params_st->node_names, NULL);
   }
@@ -285,18 +272,12 @@ void rcl_yaml_node_struct_print(
     return;
   }
 
-  printf("\n Node Namespace\t\tNode Name\t\tParameters\n");
+  printf("\n Node Name\t\t\t\tParameters\n");
   for (nd_idx = 0; nd_idx < params_st->num_nodes; nd_idx++) {
-    int32_t node_name_col = 30;
     int32_t param_col = 50;
-    const char * const node_ns = params_st->node_namespaces[nd_idx];
     const char * const node_name = params_st->node_names[nd_idx];
-    if (NULL != node_ns) {
-      printf("%s", node_ns);
-      node_name_col = (node_name_col - strlen(node_ns));
-    }
     if (NULL != node_name) {
-      printf("%*s\n", node_name_col, node_name);
+      printf("%s\n", node_name);
     }
 
     if (NULL != params_st->params) {
@@ -331,7 +312,7 @@ void rcl_yaml_node_struct_print(
             printf(": ");
             for (uint32_t i = 0; i < param_var->integer_array_value->size; i++) {
               if (param_var->integer_array_value->values) {
-                printf("%" PRId64, param_var->integer_array_value->values[i]);
+                printf("%" PRId64 ", ", param_var->integer_array_value->values[i]);
               }
             }
             printf("\n");
@@ -793,6 +774,7 @@ static rcl_ret_t parse_value(
 static rcl_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
+  char ** node_ns,
   char ** param_ns,
   rcl_params_t * params_st,
   const rcl_allocator_t allocator)
@@ -834,18 +816,18 @@ static rcl_ret_t parse_key(
       break;
     case MAP_TOP_LVL:
       {
-        char * node_ns;
+        char * tmp_ns;
         /// Assume it is node namespace for now
         if (0 == strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "%s at line %d should"
             " belong to a node", PARAMS_KEY, line_num);
           return RCL_RET_ERROR;
         }
-        node_ns = rcutils_strdup(value, allocator);
-        if (NULL == node_ns) {
+        tmp_ns = rcutils_strdup(value, allocator);
+        if (NULL == tmp_ns) {
           return RCL_RET_BAD_ALLOC;
         }
-        params_st->node_namespaces[num_nodes] = node_ns;
+        params_st->node_names[num_nodes] = tmp_ns;
       }
       break;
     case MAP_NODE_NS_LVL:
@@ -853,17 +835,14 @@ static rcl_ret_t parse_key(
         /// The value should be node name. If the value is "params", then there
         /// is no node namespace and previous value in node namespace becomes
         /// node name.
-        char * node_name;
-
         if (0 == strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
-          if (NULL == params_st->node_namespaces[num_nodes]) {
+          if (NULL == params_st->node_names[num_nodes]) {
             /// There should have been node name space entry present
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error"
               " while processing line %d", line_num);
             return RCL_RET_ERROR;
           }
-          params_st->node_names[num_nodes] = params_st->node_namespaces[num_nodes];
-          params_st->node_namespaces[num_nodes] = NULL;
+          *node_ns = NULL;
 
           res = node_params_init(&(params_st->params[num_nodes]), allocator);
           if (RCL_RET_OK != res) {
@@ -873,23 +852,29 @@ static rcl_ret_t parse_key(
           }
           (*map_level)++;
         } else {
-          node_name = rcutils_strdup(value, allocator);
+          if (NULL == *node_ns) {
+            *node_ns = params_st->node_names[num_nodes];
+          }
+          const size_t node_ns_len = strlen(*node_ns);
+          const size_t node_name_len = strlen(value);
+          const size_t tot_len = (node_ns_len + node_name_len + 2U);
+          char * node_name;
+          if (tot_len > MAX_STRING_SZ) {
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "The name length"
+              " exceeds the MAX size %d at line %d", MAX_STRING_SZ, line_num);
+            return RCL_RET_OK;
+          }
+
+          node_name = allocator.zero_allocate(1U, tot_len, NULL);
           if (NULL == node_name) {
             return RCL_RET_BAD_ALLOC;
           }
+          memmove(node_name, *node_ns, node_ns_len);
+          node_name[node_ns_len] = '/';
+          memmove((node_name + node_ns_len + 1U), value, node_name_len);
+          node_name[tot_len - 1U] = '\0';
+
           params_st->node_names[num_nodes] = node_name;
-          /// If the node namespace entry for this node is NULL, then this is part of
-          /// the same node names space as the previous node
-          if (num_nodes > 0U) {
-            const char * const prev_node_ns = params_st->node_namespaces[node_idx];
-            if (NULL != prev_node_ns) {
-              params_st->node_namespaces[num_nodes] = rcutils_strdup(prev_node_ns,
-                  allocator);
-              if (NULL == params_st->node_namespaces[num_nodes]) {
-                return RCL_RET_BAD_ALLOC;
-              }
-            }
-          }
         }
         num_nodes++;
         params_st->num_nodes = num_nodes;
@@ -997,6 +982,7 @@ static rcl_ret_t parse_events(
   bool bumped_map_lvl = false;
   uint32_t line_num = 0;
   char * params_ns = NULL;
+  char * node_ns = NULL;
   data_types_t seq_data_type;
   uint32_t map_level = 0U;
 
@@ -1026,7 +1012,7 @@ static rcl_ret_t parse_events(
           /// Need to toggle between key and value at params level
           if (true == is_key) {
             const uint32_t prev_map_lvl = map_level;
-            res = parse_key(event, &map_level, &params_ns, params_st, allocator);
+            res = parse_key(event, &map_level, &node_ns, &params_ns, params_st, allocator);
             if (RCL_RET_OK != res) {
               return res;
             }
@@ -1045,7 +1031,7 @@ static rcl_ret_t parse_events(
             /// It is a value
             if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
               RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Cannot have a value"
-                " before params at line %d", line_num);
+                " before %s at line %d", PARAMS_KEY, line_num);
               return RCL_RET_ERROR;
             }
             res = parse_value(event, is_seq, &seq_data_type, params_st, allocator);
@@ -1066,7 +1052,7 @@ static rcl_ret_t parse_events(
         }
         if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequences can only be"
-            " values of keys in params. Error at line %d\n", line_num);
+            " values and not keys in params. Error at line %d\n", line_num);
           return RCL_RET_ERROR;
         }
         is_seq = true;
@@ -1091,6 +1077,13 @@ static rcl_ret_t parse_events(
           if (NULL != params_ns) {
             allocator.deallocate(params_ns, NULL);
             params_ns = NULL;
+          }
+        }
+        if ((uint32_t)(MAP_TOP_LVL) == map_level) {
+          /// If a node namespace mapping is closing, remove the cached namespace name
+          if (NULL != node_ns) {
+            allocator.deallocate(node_ns, NULL);
+            node_ns = NULL;
           }
         }
         map_level--;

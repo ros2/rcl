@@ -63,17 +63,16 @@ typedef struct rcl_node_params_s
 {
   char ** parameter_names;  ///< Array of parameter names (keys)
   rcl_variant_t * parameter_values;  ///< Array of coressponding parameter values
-  uint32_t num_params;  ///< Number of parameters in the node
+  size_t num_params;  ///< Number of parameters in the node
 } rcl_node_params_t;
 
 /// \typedef params_t
 /// \brief params_t stores all the parameters of all nodes of a process
 typedef struct rcl_params_s
 {
-  char ** node_namespaces;  ///< List of namespaces the corresponding node belongs to
   char ** node_names;  ///< List of names of the node
   rcl_node_params_t * params;  ///<  Array of parameters
-  uint32_t num_nodes;       ///< Number of nodes
+  size_t num_nodes;       ///< Number of nodes
 } rcl_params_t;
 
 #endif  // RCL_YAML_PARAM_PARSER__TYPES_H_
