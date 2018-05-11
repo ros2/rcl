@@ -3,7 +3,7 @@
 
 lidar_ns:
   lidar_1:
-    params:
+    ros__parameters:
       frame: base_link
       filtered_topic: filtered_points
       driver_1:
@@ -16,10 +16,10 @@ lidar_ns:
         sensor_height: 0.36
         some_arr: [1, 2, 3, 4.2]
   lidar_2:
-    params:
+    ros__parameters:
       frame: base_link1
 camera_2:
-  params:
+  ros__parameters:
     camera_id: "camera1"
     camera_info: false
     arr: [5, 6, 7, 8]

@@ -2,7 +2,7 @@
 ---
 lidar_ns:
   lidar_1:
-      params:
+      ros__parameters:
         id: 10
         name: front_lidar
         ports: [2438, 2439, 2440]

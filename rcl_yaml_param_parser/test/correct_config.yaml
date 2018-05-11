@@ -3,7 +3,7 @@
 
 lidar_ns:
   lidar_1:
-    params:
+    ros__parameters:
       id: 10
       name: front_lidar
       ports: [2438, 2439, 2440]
@@ -17,7 +17,7 @@ lidar_ns:
         dx: 1.23
         dy: 0.45
   lidar_2:
-    params:
+    ros__parameters:
       id: 11
       name: back_lidar
       dy1: 0.003
@@ -25,7 +25,7 @@ lidar_ns:
       driver:
         dz: 7.89
 camera:
-  params:
+  ros__parameters:
     name: camera1
     loc: front
     cam_spec:
@@ -33,11 +33,11 @@ camera:
       supported_brands: ["Bosch", "Novatek", "Mobius"]
 new_camera_ns:
   new_camera1:
-    params:
+    ros__parameters:
       is_cam_on: [true, true, false, true, false, false]
       brand: Bosch
   new_camera2:
-    params:
+    ros__parameters:
       camera_dr:
         dr_name: default
       brand: Mobius 

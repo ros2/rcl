@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -53,7 +54,7 @@ typedef enum data_types_e
 } data_types_t;
 
 #define MAX_STRING_SZ 128U
-#define PARAMS_KEY "params"
+#define PARAMS_KEY "ros__parameters"
 
 #define MAX_NUM_NODE_ENTRIES 256U
 #define MAX_NUM_PARAMS_PER_NODE 512U
@@ -85,6 +86,10 @@ static rcl_ret_t add_val_to_string_arr(
   rcutils_string_array_t * const val_array,
   char * value,
   const rcl_allocator_t allocator);
+
+///
+/// TODO (anup.pemmaiah): Support byte array
+///
 
 static void * get_value(
   const char * const value,
@@ -308,14 +313,14 @@ void rcl_yaml_node_struct_print(
           if (NULL != param_var->bool_value) {
             printf(": %s\n", *(param_var->bool_value) ? "true" : "false");
           } else if (NULL != param_var->integer_value) {
-            printf(": %ld\n", *(param_var->integer_value));
+            printf(": %" PRId64 "\n", *(param_var->integer_value));
           } else if (NULL != param_var->double_value) {
             printf(": %lf\n", *(param_var->double_value));
           } else if (NULL != param_var->string_value) {
             printf(": %s\n", param_var->string_value);
           } else if (NULL != param_var->bool_array_value) {
             printf(": ");
-            for (int i = 0; i < param_var->bool_array_value->size; i++) {
+            for (uint32_t i = 0; i < param_var->bool_array_value->size; i++) {
               if (param_var->bool_array_value->values) {
                 printf("%s, ",
                   (param_var->bool_array_value->values[i]) ? "true" : "false");
@@ -324,15 +329,15 @@ void rcl_yaml_node_struct_print(
             printf("\n");
           } else if (NULL != param_var->integer_array_value) {
             printf(": ");
-            for (int i = 0; i < param_var->integer_array_value->size; i++) {
+            for (uint32_t i = 0; i < param_var->integer_array_value->size; i++) {
               if (param_var->integer_array_value->values) {
-                printf("%ld, ", param_var->integer_array_value->values[i]);
+                printf("%" PRId64, param_var->integer_array_value->values[i]);
               }
             }
             printf("\n");
           } else if (NULL != param_var->double_array_value) {
             printf(": ");
-            for (int i = 0; i < param_var->double_array_value->size; i++) {
+            for (uint32_t i = 0; i < param_var->double_array_value->size; i++) {
               if (param_var->double_array_value->values) {
                 printf("%lf, ", param_var->double_array_value->values[i]);
               }
@@ -340,7 +345,7 @@ void rcl_yaml_node_struct_print(
             printf("\n");
           } else if (NULL != param_var->string_array_value) {
             printf(": ");
-            for (int i = 0; i < param_var->string_array_value->size; i++) {
+            for (uint32_t i = 0; i < param_var->string_array_value->size; i++) {
               if (param_var->string_array_value->data[i]) {
                 printf("%s, ", param_var->string_array_value->data[i]);
               }
@@ -616,7 +621,7 @@ static rcl_ret_t parse_value(
 
   const uint32_t param_idx = ((params_st->params[node_idx].num_params) - 1U);
   const size_t val_size = event.data.scalar.length;
-  const char * value = event.data.scalar.value;
+  const char * value = (char *)event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
   rcl_variant_t * param_value;
 
@@ -794,7 +799,7 @@ static rcl_ret_t parse_key(
 {
   int32_t res = RCL_RET_OK;
   const size_t val_size = event.data.scalar.length;
-  const char * value = event.data.scalar.value;
+  const char * value = (char *)event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
   uint32_t num_nodes;
   uint32_t node_idx = 0U;
@@ -1121,6 +1126,10 @@ static rcl_ret_t parse_events(
   return RCL_RET_OK;
 }
 
+///
+/// TODO (anup.pemmaiah): Support string yaml similar to yaml file
+/// TODO (anup.pemmaiah): Support Mutiple yaml files
+///
 ///
 /// Parse the YAML file and populate params_st
 ///

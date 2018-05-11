@@ -7,8 +7,8 @@ find_package(yaml REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rcl REQUIRED)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 include_directories(include ${yaml_INCLUDE_DIRS} ${rcutils_INCLUDE_DIRS} ${rcl_INCLUDE_DIRS})
@@ -41,7 +41,7 @@ if(BUILD_TESTING)
   endmacro()
 
   # Gtests
-  rcutils_custom_add_gtest(test_parse_yaml
+  ament_add_gtest(test_parse_yaml
     test/test_parse_yaml.cpp
   )
   if(TARGET test_parse_yaml)

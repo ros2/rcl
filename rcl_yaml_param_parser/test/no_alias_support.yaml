@@ -3,7 +3,7 @@
 
 lidar_ns:
   lidar_1:
-    params:
+    ros__parameters:
       id: 10
       name: &FL "front_lidar"
       spec: *FL

@@ -3,7 +3,7 @@
 
 lidar_ns:
   lidar_1:
-    params:
+    ros__parameters:
       - driver: front_driver
         dx: 4.56
         dy: 2.30
