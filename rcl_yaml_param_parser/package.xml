@@ -9,6 +9,7 @@
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
+  <depend>libyaml_vendor</depend>
   <depend>yaml</depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rcl</build_depend>
