@@ -41,6 +41,14 @@ typedef struct rcl_double_array_s
   size_t size;
 } rcl_double_array_t;
 
+/// \typedef byte_array_t
+/// \brief Array of byte values
+typedef struct rcl_byte_array_s
+{
+  uint8_t * values;
+  size_t size;
+} rcl_byte_array_t;
+
 /// \typedef variant_t
 /// \brief variant_t stores the value of a parameter
 /// Only one pointer in this struct will store the value
@@ -50,6 +58,7 @@ typedef struct rcl_variant_s
   int64_t * integer_value;  ///< If integer, gets stored here
   double * double_value;  ///< If double, gets stored here
   char * string_value;  ///< If string, gets stored here
+  rcl_byte_array_t * byte_array_value;  ///< If array of bytes
   rcl_bool_array_t * bool_array_value;  ///< If array of bool's
   rcl_int64_array_t * integer_array_value;  ///< If array of integers
   rcl_double_array_t * double_array_value;  ///< If array of doubles

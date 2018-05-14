@@ -8,6 +8,16 @@ find_package(rcl REQUIRED)
 find_package(libyaml_vendor REQUIRED)
 find_package(yaml REQUIRED)
 
+# Default to C11
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 11)
+endif()
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -29,10 +39,6 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin)
 
 if(BUILD_TESTING)
-  if(NOT WIN32)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-  endif()
-
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
