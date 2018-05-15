@@ -42,10 +42,6 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  macro(rcutils_custom_add_gtest target)
-    ament_add_gtest(${target} ${ARGN})
-  endmacro()
-
   # Gtests
   ament_add_gtest(test_parse_yaml
     test/test_parse_yaml.cpp
