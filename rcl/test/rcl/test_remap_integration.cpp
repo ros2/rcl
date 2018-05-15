@@ -14,11 +14,12 @@
 
 #include <gtest/gtest.h>
 
-#include "example_interfaces/srv/add_two_ints.h"
 #include "rcl/rcl.h"
 #include "rcl/remap.h"
 #include "rcl/error_handling.h"
+
 #include "std_msgs/msg/int64.h"
+#include "test_msgs/srv/primitives.h"
 
 #include "./arg_macros.hpp"
 
@@ -81,7 +82,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
   }
   {  // Client service name gets remapped
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
+      test_msgs, Primitives);
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
@@ -91,7 +92,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
   }
   {  // Server service name gets remapped
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
+      test_msgs, Primitives);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
@@ -147,7 +148,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
   }
   {  // Client service name does not get remapped
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
+      test_msgs, Primitives);
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
@@ -157,7 +158,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
   }
   {  // Server service name does not get remapped
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
+      test_msgs, Primitives);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
@@ -214,7 +215,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
   }
   {  // Client service name
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
+      test_msgs, Primitives);
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
@@ -224,7 +225,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
   }
   {  // Server service name
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
+      test_msgs, Primitives);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
@@ -266,7 +267,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
   }
   {  // Client service name
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
+      test_msgs, Primitives);
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "bar", &client_options);
@@ -276,7 +277,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
   }
   {  // Server service name
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
+      test_msgs, Primitives);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "bar", &service_options);

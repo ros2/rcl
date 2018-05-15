@@ -18,8 +18,8 @@
 
 #include "rcl/rcl.h"
 
-#include "example_interfaces/srv/add_two_ints.h"
 #include "rosidl_generator_c/string_functions.h"
+#include "test_msgs/srv/primitives.h"
 
 #include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -64,7 +64,7 @@ TEST_F(TestClientFixture, test_client_nominal) {
   rcl_client_options_t client_options = rcl_client_get_default_options();
 
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    example_interfaces, AddTwoInts);
+    test_msgs, Primitives);
   ret = rcl_client_init(&client, this->node_ptr, ts, topic_name, &client_options);
 
   // Check the return code of initialization and that the service name matches what's expected
@@ -77,10 +77,10 @@ TEST_F(TestClientFixture, test_client_nominal) {
   });
 
   // Initialize the client request.
-  example_interfaces__srv__AddTwoInts_Request req;
-  example_interfaces__srv__AddTwoInts_Request__init(&req);
-  req.a = 1;
-  req.b = 2;
+  test_msgs__srv__Primitives_Request req;
+  test_msgs__srv__Primitives_Request__init(&req);
+  req.uint8_value = 1;
+  req.uint32_value = 2;
 
   // Check that there were no errors while sending the request.
   int64_t sequence_number = 0;
@@ -98,7 +98,7 @@ TEST_F(TestClientFixture, test_client_init_fini) {
   rcl_client_t client;
 
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    example_interfaces, AddTwoInts);
+    test_msgs, Primitives);
   const char * topic_name = "chatter";
   rcl_client_options_t default_client_options = rcl_client_get_default_options();
 

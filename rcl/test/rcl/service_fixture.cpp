@@ -22,7 +22,7 @@
 
 #include "rcl/rcl.h"
 
-#include "example_interfaces/srv/add_two_ints.h"
+#include "test_msgs/srv/primitives.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
@@ -103,12 +103,12 @@ int main(int argc, char ** argv)
     });
 
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      example_interfaces, AddTwoInts);
-    const char * topic = "add_two_ints";
+      test_msgs, Primitives);
+    const char * service_name = "primitives";
 
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(&service, &node, ts, topic, &service_options);
+    rcl_ret_t ret = rcl_service_init(&service, &node, ts, service_name, &service_options);
     if (ret != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in service init: %s", rcl_get_error_string_safe())
@@ -124,10 +124,10 @@ int main(int argc, char ** argv)
     });
 
     // Initialize a response.
-    example_interfaces__srv__AddTwoInts_Response service_response;
-    example_interfaces__srv__AddTwoInts_Response__init(&service_response);
+    test_msgs__srv__Primitives_Response service_response;
+    test_msgs__srv__Primitives_Response__init(&service_response);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
+      test_msgs__srv__Primitives_Response__fini(&service_response);
     });
 
     // Block until a client request comes in.
@@ -138,10 +138,10 @@ int main(int argc, char ** argv)
     }
 
     // Take the pending request.
-    example_interfaces__srv__AddTwoInts_Request service_request;
-    example_interfaces__srv__AddTwoInts_Request__init(&service_request);
+    test_msgs__srv__Primitives_Request service_request;
+    test_msgs__srv__Primitives_Request__init(&service_request);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      example_interfaces__srv__AddTwoInts_Request__fini(&service_request);
+      test_msgs__srv__Primitives_Request__fini(&service_request);
     });
     rmw_request_id_t header;
     // TODO(jacquelinekay) May have to check for timeout error codes
@@ -152,7 +152,7 @@ int main(int argc, char ** argv)
     }
 
     // Sum the request and send the response.
-    service_response.sum = service_request.a + service_request.b;
+    service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
     if (rcl_send_response(&service, &header, &service_response) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in send_response: %s", rcl_get_error_string_safe())
