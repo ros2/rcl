@@ -18,6 +18,7 @@
 #include <stdlib.h>
 
 #include "rcl_yaml_param_parser/types.h"
+#include "rcl_yaml_param_parser/visibility_control.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -28,6 +29,7 @@ extern "C"
 /// \param[in] file_path is the path to the YAML file
 /// \param[out] params_st points to the populated paramter struct
 /// \return true on success and false on failure
+RCL_YAML_PARAM_PARSER_PUBLIC
 bool rcl_parse_yaml_file(
   const char * file_path,
   rcl_params_t * params_st);
@@ -35,12 +37,14 @@ bool rcl_parse_yaml_file(
 /// \brief Free param structure
 /// \param[in] params_st points to the populated paramter struct
 /// \param[in] allocator memeory allocator to be used
+RCL_YAML_PARAM_PARSER_PUBLIC
 void rcl_yaml_node_struct_fini(
   rcl_params_t * params_st,
   const rcutils_allocator_t allocator);
 
 /// \brief Print the parameter structure to stdout
 /// \param[in] params_st points to the populated paramter struct
+RCL_YAML_PARAM_PARSER_PUBLIC
 void rcl_yaml_node_struct_print(
   const rcl_params_t * const params_st);
 

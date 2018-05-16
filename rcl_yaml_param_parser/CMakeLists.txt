@@ -28,6 +28,10 @@ add_library(
   ${rcl_yaml_parser_sources})
 ament_target_dependencies(${PROJECT_NAME} "yaml" "rcutils" "rcl")
 
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_YAML_PARAM_PARSER_BUILDING_DLL")
+
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -37,10 +41,6 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
-
-  macro(rcutils_custom_add_gtest target)
-    ament_add_gtest(${target} ${ARGN})
-  endmacro()
 
   # Gtests
   ament_add_gtest(test_parse_yaml
