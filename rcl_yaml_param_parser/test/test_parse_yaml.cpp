@@ -21,7 +21,6 @@
 #include "rcutils/filesystem.h"
 
 static char cur_dir[1024];
-
 rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
 TEST(test_file_parser, correct_syntax) {
@@ -39,45 +38,18 @@ TEST(test_file_parser, correct_syntax) {
   rcl_yaml_node_struct_fini(&params_hdl, allocator);
 }
 
-TEST(test_file_parser, indented_ns) {
+TEST(test_file_parser, multi_ns_correct_syntax) {
   rcutils_reset_error();
   EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
   char * path = rcutils_join_path(cur_dir, "test");
-  path = rcutils_join_path(path, "indented_name_space.yaml");
+  path = rcutils_join_path(path, "multi_ns_correct.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t params_hdl;
   bool res = rcl_parse_yaml_file(path, &params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
-  EXPECT_FALSE(res);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
-}
-
-TEST(test_file_parser, invalid_map1) {
-  rcutils_reset_error();
-  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
-  char * path = rcutils_join_path(cur_dir, "test");
-  path = rcutils_join_path(path, "invalid_map1.yaml");
-  fprintf(stderr, "cur_path: %s\n", path);
-  EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
-  EXPECT_FALSE(res);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
-}
-
-TEST(test_file_parser, invalid_map2) {
-  rcutils_reset_error();
-  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
-  char * path = rcutils_join_path(cur_dir, "test");
-  path = rcutils_join_path(path, "invalid_map2.yaml");
-  fprintf(stderr, "cur_path: %s\n", path);
-  EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
-  EXPECT_FALSE(res);
+  EXPECT_TRUE(res);
+  rcl_yaml_node_struct_print(&params_hdl);
   rcl_yaml_node_struct_fini(&params_hdl, allocator);
 }
 
@@ -92,7 +64,6 @@ TEST(test_file_parser, seq_map1) {
   bool res = rcl_parse_yaml_file(path, &params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
 }
 
 TEST(test_file_parser, seq_map2) {
@@ -106,7 +77,19 @@ TEST(test_file_parser, seq_map2) {
   bool res = rcl_parse_yaml_file(path, &params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
+}
+
+TEST(test_file_parser, params_with_no_node) {
+  rcutils_reset_error();
+  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
+  char * path = rcutils_join_path(cur_dir, "test");
+  path = rcutils_join_path(path, "params_with_no_node.yaml");
+  fprintf(stderr, "cur_path: %s\n", path);
+  EXPECT_TRUE(rcutils_exists(path));
+  rcl_params_t params_hdl;
+  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  EXPECT_FALSE(res);
 }
 
 TEST(test_file_parser, no_alias_support) {
@@ -120,7 +103,6 @@ TEST(test_file_parser, no_alias_support) {
   bool res = rcl_parse_yaml_file(path, &params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
 }
 
 TEST(test_file_parser, max_string_sz) {
@@ -134,7 +116,6 @@ TEST(test_file_parser, max_string_sz) {
   bool res = rcl_parse_yaml_file(path, &params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
 }
 
 TEST(test_file_parser, no_value1) {
@@ -148,7 +129,19 @@ TEST(test_file_parser, no_value1) {
   bool res = rcl_parse_yaml_file(path, &params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
+}
+
+TEST(test_file_parser, indented_ns) {
+  rcutils_reset_error();
+  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
+  char * path = rcutils_join_path(cur_dir, "test");
+  path = rcutils_join_path(path, "indented_name_space.yaml");
+  fprintf(stderr, "cur_path: %s\n", path);
+  EXPECT_TRUE(rcutils_exists(path));
+  rcl_params_t params_hdl;
+  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  EXPECT_FALSE(res);
 }
 
 int32_t main(int32_t argc, char ** argv)
