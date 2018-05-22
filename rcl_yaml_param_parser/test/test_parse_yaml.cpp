@@ -30,12 +30,13 @@ TEST(test_file_parser, correct_syntax) {
   path = rcutils_join_path(path, "correct_config.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_TRUE(res);
-  rcl_yaml_node_struct_print(&params_hdl);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
+  rcl_yaml_node_struct_print(params_hdl);
+  rcl_yaml_node_struct_fini(params_hdl, allocator);
 }
 
 TEST(test_file_parser, multi_ns_correct_syntax) {
@@ -45,12 +46,13 @@ TEST(test_file_parser, multi_ns_correct_syntax) {
   path = rcutils_join_path(path, "multi_ns_correct.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_TRUE(res);
-  rcl_yaml_node_struct_print(&params_hdl);
-  rcl_yaml_node_struct_fini(&params_hdl, allocator);
+  rcl_yaml_node_struct_print(params_hdl);
+  rcl_yaml_node_struct_fini(params_hdl, allocator);
 }
 
 TEST(test_file_parser, seq_map1) {
@@ -60,8 +62,9 @@ TEST(test_file_parser, seq_map1) {
   path = rcutils_join_path(path, "seq_map1.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
 }
@@ -73,8 +76,9 @@ TEST(test_file_parser, seq_map2) {
   path = rcutils_join_path(path, "seq_map2.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
 }
@@ -86,8 +90,9 @@ TEST(test_file_parser, params_with_no_node) {
   path = rcutils_join_path(path, "params_with_no_node.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
 }
@@ -99,8 +104,9 @@ TEST(test_file_parser, no_alias_support) {
   path = rcutils_join_path(path, "no_alias_support.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
 }
@@ -112,8 +118,9 @@ TEST(test_file_parser, max_string_sz) {
   path = rcutils_join_path(path, "max_string_sz.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
 }
@@ -125,8 +132,9 @@ TEST(test_file_parser, no_value1) {
   path = rcutils_join_path(path, "no_value1.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
 }
@@ -138,8 +146,9 @@ TEST(test_file_parser, indented_ns) {
   path = rcutils_join_path(path, "indented_name_space.yaml");
   fprintf(stderr, "cur_path: %s\n", path);
   EXPECT_TRUE(rcutils_exists(path));
-  rcl_params_t params_hdl;
-  bool res = rcl_parse_yaml_file(path, &params_hdl);
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
 }

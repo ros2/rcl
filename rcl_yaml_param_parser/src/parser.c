@@ -29,11 +29,8 @@
 #include "rcutils/strdup.h"
 
 /// NOTE: Will allow a max YAML mapping depth of 5
-/// map level 1 : Top level mapping of the config file
-/// map level 2 : Node namespace mapping
-/// map level 3 : Node name mapping
-/// map level 4 : Params mapping
-/// map level 5 : Params namespace mapping
+/// map level 1 : Node name mapping
+/// map level 2 : Params mapping
 typedef enum yaml_map_lvl_e
 {
   MAP_UNINIT_LVL = 0U,
@@ -51,33 +48,31 @@ typedef enum data_types_e
   DATA_TYPE_STRING = 4U
 } data_types_t;
 
-typedef enum ns_type_e
+typedef enum namespace_type_e
 {
   NS_TYPE_NODE = 1U,
   NS_TYPE_PARAM = 2U
-} ns_type_t;
+} namespace_type_t;
 
 /// Keep track of node and parameter name spaces
-typedef struct name_space_tracker_s
+typedef struct namespace_tracker_s
 {
   char * node_ns;
   uint32_t num_node_ns;
-  char * param_ns;
-  uint32_t num_param_ns;
-} name_space_tracker_t;
+  char * parameter_ns;
+  uint32_t num_parameter_ns;
+} namespace_tracker_t;
 
-#define MAX_STRING_SZ 128U
+#define MAX_STRING_SIZE 128U
 #define PARAMS_KEY "ros__parameters"
+#define NODE_NS_SEPERATOR "/"
+#define PARAMETER_NS_SEPERATOR "."
 
 #define MAX_NUM_NODE_ENTRIES 256U
 #define MAX_NUM_PARAMS_PER_NODE 512U
 
 static rcl_ret_t node_params_init(
   rcl_node_params_t * node_params,
-  const rcl_allocator_t allocator);
-
-static rcl_ret_t param_struct_init(
-  rcl_params_t * params_st,
   const rcl_allocator_t allocator);
 
 static rcl_ret_t add_val_to_bool_arr(
@@ -105,21 +100,21 @@ static rcl_ret_t add_val_to_string_arr(
 ///
 
 static rcl_ret_t add_name_to_ns(
-  name_space_tracker_t * ns_tracker,
+  namespace_tracker_t * ns_tracker,
   const char * name,
-  const ns_type_t ns_type,
+  const namespace_type_t namespace_type,
   rcl_allocator_t allocator);
 
 static rcl_ret_t rem_name_from_ns(
-  name_space_tracker_t * ns_tracker,
-  const ns_type_t ns_type,
+  namespace_tracker_t * ns_tracker,
+  const namespace_type_t namespace_type,
   rcl_allocator_t allocator);
 
 static rcl_ret_t replace_ns(
-  name_space_tracker_t * ns_tracker,
+  namespace_tracker_t * ns_tracker,
   char * const new_ns,
   const uint32_t new_ns_count,
-  const ns_type_t ns_type,
+  const namespace_type_t namespace_type,
   rcl_allocator_t allocator);
 
 static void * get_value(
@@ -138,13 +133,13 @@ static rcl_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
-  name_space_tracker_t * ns_tracker,
+  namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st,
   const rcl_allocator_t allocator);
 
 static rcl_ret_t parse_events(
   yaml_parser_t * parser,
-  name_space_tracker_t * ns_tracker,
+  namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st,
   const rcl_allocator_t allocator);
 
@@ -153,29 +148,30 @@ static rcl_ret_t parse_events(
 /// Add name to namespace tracker
 ///
 static rcl_ret_t add_name_to_ns(
-  name_space_tracker_t * ns_tracker,
+  namespace_tracker_t * ns_tracker,
   const char * name,
-  const ns_type_t ns_type,
+  const namespace_type_t namespace_type,
   rcl_allocator_t allocator)
 {
   char * cur_ns;
   uint32_t * cur_count;
-  char sep_char;
+  char * sep_str;
   size_t name_len;
   size_t ns_len;
+  size_t sep_len;
   size_t tot_len;
   rcl_ret_t res = RCL_RET_OK;
 
-  switch (ns_type) {
+  switch (namespace_type) {
     case NS_TYPE_NODE:
       cur_ns = ns_tracker->node_ns;
       cur_count = &(ns_tracker->num_node_ns);
-      sep_char = '/';
+      sep_str = NODE_NS_SEPERATOR;
       break;
     case NS_TYPE_PARAM:
-      cur_ns = ns_tracker->param_ns;
-      cur_count = &(ns_tracker->num_param_ns);
-      sep_char = '.';
+      cur_ns = ns_tracker->parameter_ns;
+      cur_count = &(ns_tracker->num_parameter_ns);
+      sep_str = PARAMETER_NS_SEPERATOR;
       break;
     default:
       res = RCL_RET_ERROR;
@@ -195,22 +191,28 @@ static rcl_ret_t add_name_to_ns(
     } else {
       ns_len = strlen(cur_ns);
       name_len = strlen(name);
-      tot_len = ns_len + name_len + 2U;
+      sep_len = strlen(sep_str);
+      tot_len = ns_len + name_len + sep_len + 1U;
 
+      if (tot_len > MAX_STRING_SIZE) {
+        RCL_SET_ERROR_MSG("New namespace string is exceeding max string size",
+          allocator);
+        return RCL_RET_ERROR;
+      }
       cur_ns = allocator.reallocate(cur_ns, tot_len, NULL);
       if (NULL == cur_ns) {
         return RCL_RET_BAD_ALLOC;
       }
-      cur_ns[ns_len] = sep_char;
-      memmove((cur_ns + ns_len + 1U), name, name_len);
+      memmove((cur_ns + ns_len), sep_str, sep_len);
+      memmove((cur_ns + ns_len + sep_len), name, name_len);
       cur_ns[tot_len - 1U] = '\0';
     }
     *cur_count = (*cur_count + 1U);
 
-    if (NS_TYPE_NODE == ns_type) {
+    if (NS_TYPE_NODE == namespace_type) {
       ns_tracker->node_ns = cur_ns;
     } else {
-      ns_tracker->param_ns = cur_ns;
+      ns_tracker->parameter_ns = cur_ns;
     }
   }
   return res;
@@ -220,28 +222,27 @@ static rcl_ret_t add_name_to_ns(
 /// Remove name from namespace tracker
 ///
 static rcl_ret_t rem_name_from_ns(
-  name_space_tracker_t * ns_tracker,
-  const ns_type_t ns_type,
+  namespace_tracker_t * ns_tracker,
+  const namespace_type_t namespace_type,
   rcl_allocator_t allocator)
 {
   char * cur_ns;
   uint32_t * cur_count;
-  char sep_char;
-  size_t name_len;
+  char * sep_str;
   size_t ns_len;
   size_t tot_len;
   rcl_ret_t res = RCL_RET_OK;
 
-  switch (ns_type) {
+  switch (namespace_type) {
     case NS_TYPE_NODE:
       cur_ns = ns_tracker->node_ns;
       cur_count = &(ns_tracker->num_node_ns);
-      sep_char = '/';
+      sep_str = NODE_NS_SEPERATOR;
       break;
     case NS_TYPE_PARAM:
-      cur_ns = ns_tracker->param_ns;
-      cur_count = &(ns_tracker->num_param_ns);
-      sep_char = '.';
+      cur_ns = ns_tracker->parameter_ns;
+      cur_count = &(ns_tracker->num_parameter_ns);
+      sep_str = PARAMETER_NS_SEPERATOR;
       break;
     default:
       res = RCL_RET_ERROR;
@@ -255,28 +256,36 @@ static rcl_ret_t rem_name_from_ns(
         allocator.deallocate(cur_ns, NULL);
         cur_ns = NULL;
       } else {
-        char * last_name = cur_ns;
         ns_len = strlen(cur_ns);
-        name_len = 0U;
+        char * last_idx = NULL;
+        char * next_str = NULL;
+        const char * end_ptr = (cur_ns + ns_len);
 
-        last_name = (last_name + ns_len);
-        while ((NULL != last_name) && (sep_char != *(last_name))) {
-          last_name--;
-          name_len++;
+        next_str = strstr(cur_ns, sep_str);
+        while (NULL != next_str) {
+          if (next_str > end_ptr) {
+            RCL_SET_ERROR_MSG("Internal error. Crossing arrau boundary", allocator);
+            return RCL_RET_ERROR;
+          }
+          last_idx = next_str;
+          next_str = (next_str + strlen(sep_str));
+          next_str = strstr(next_str, sep_str);
         }
-        tot_len = (ns_len - name_len);
-        cur_ns = allocator.reallocate(cur_ns, tot_len, NULL);
-        if (NULL == cur_ns) {
-          return RCL_RET_BAD_ALLOC;
+        if (NULL != last_idx) {
+          tot_len = (size_t)(last_idx - cur_ns);
+          cur_ns = allocator.reallocate(cur_ns, tot_len, NULL);
+          if (NULL == cur_ns) {
+            return RCL_RET_BAD_ALLOC;
+          }
+          cur_ns[tot_len] = '\0';
         }
-        cur_ns[tot_len] = '\0';
       }
       *cur_count = (*cur_count - 1U);
     }
-    if (NS_TYPE_NODE == ns_type) {
+    if (NS_TYPE_NODE == namespace_type) {
       ns_tracker->node_ns = cur_ns;
     } else {
-      ns_tracker->param_ns = cur_ns;
+      ns_tracker->parameter_ns = cur_ns;
     }
   }
   return res;
@@ -286,16 +295,16 @@ static rcl_ret_t rem_name_from_ns(
 /// Replace namespace in namespace tracker
 ///
 static rcl_ret_t replace_ns(
-  name_space_tracker_t * ns_tracker,
+  namespace_tracker_t * ns_tracker,
   char * const new_ns,
   const uint32_t new_ns_count,
-  const ns_type_t ns_type,
+  const namespace_type_t namespace_type,
   rcl_allocator_t allocator)
 {
   rcl_ret_t res = RCL_RET_OK;
 
   /// Remove the old namespace and point to the new namespace
-  switch (ns_type) {
+  switch (namespace_type) {
     case NS_TYPE_NODE:
       if (NULL != ns_tracker->node_ns) {
         allocator.deallocate(ns_tracker->node_ns, NULL);
@@ -304,11 +313,11 @@ static rcl_ret_t replace_ns(
       ns_tracker->num_node_ns = new_ns_count;
       break;
     case NS_TYPE_PARAM:
-      if (NULL != ns_tracker->param_ns) {
-        allocator.deallocate(ns_tracker->param_ns, NULL);
+      if (NULL != ns_tracker->parameter_ns) {
+        allocator.deallocate(ns_tracker->parameter_ns, NULL);
       }
-      ns_tracker->param_ns = new_ns;
-      ns_tracker->num_param_ns = new_ns_count;
+      ns_tracker->parameter_ns = new_ns;
+      ns_tracker->num_parameter_ns = new_ns_count;
       break;
     default:
       res = RCL_RET_ERROR;
@@ -347,33 +356,36 @@ static rcl_ret_t node_params_init(
 ///
 /// Create the rcl_params_t parameter structure
 ///
-static rcl_ret_t param_struct_init(
-  rcl_params_t * params_st,
+rcl_params_t * rcl_yaml_node_struct_init(
   const rcl_allocator_t allocator)
 {
+  rcl_params_t * params_st;
+
+  params_st = allocator.zero_allocate(1, sizeof(rcl_params_t), NULL);
   if (NULL == params_st) {
-    return RCL_RET_INVALID_ARGUMENT;
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
+    return NULL;
   }
 
   params_st->node_names = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES,
       sizeof(char *), NULL);
   if (NULL == params_st->node_names) {
     rcl_yaml_node_struct_fini(params_st, allocator);
-    RCL_SET_ERROR_MSG("Error allocating mem", allocator);
-    return RCL_RET_BAD_ALLOC;
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
+    return NULL;
   }
 
   params_st->params = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES, sizeof(rcl_node_params_t),
       NULL);
   if (NULL == params_st->params) {
     rcl_yaml_node_struct_fini(params_st, allocator);
-    RCL_SET_ERROR_MSG("Error allocating mem", allocator);
-    return RCL_RET_BAD_ALLOC;
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
+    return NULL;
   }
 
   params_st->num_nodes = 0U;
 
-  return RCL_RET_OK;
+  return params_st;
 }
 
 ///
@@ -385,15 +397,15 @@ void rcl_yaml_node_struct_fini(
   rcl_params_t * params_st,
   const rcl_allocator_t allocator)
 {
-  uint32_t nd_idx;
-  uint32_t pr_idx = 0U;
+  uint32_t node_idx;
+  uint32_t parameter_idx = 0U;
 
   if (NULL == params_st) {
     return;
   }
 
-  for (nd_idx = 0; nd_idx < params_st->num_nodes; nd_idx++) {
-    char * node_name = params_st->node_names[nd_idx];
+  for (node_idx = 0; node_idx < params_st->num_nodes; node_idx++) {
+    char * node_name = params_st->node_names[node_idx];
     if (NULL != node_name) {
       allocator.deallocate(node_name, NULL);
     }
@@ -401,54 +413,60 @@ void rcl_yaml_node_struct_fini(
     if (NULL != params_st->params) {
       char * param_name;
       rcl_variant_t * param_var;
-      for (pr_idx = 0; pr_idx < params_st->params[nd_idx].num_params; pr_idx++) {
-        param_name = params_st->params[nd_idx].parameter_names[pr_idx];
-        param_var = &(params_st->params[nd_idx].parameter_values[pr_idx]);
-        if (NULL != param_name) {
-          allocator.deallocate(param_name, NULL);
-        }
-
-        if (NULL != param_var) {
-          if (NULL != param_var->bool_value) {
-            allocator.deallocate(param_var->bool_value, NULL);
-          } else if (NULL != param_var->integer_value) {
-            allocator.deallocate(param_var->integer_value, NULL);
-          } else if (NULL != param_var->double_value) {
-            allocator.deallocate(param_var->double_value, NULL);
-          } else if (NULL != param_var->string_value) {
-            allocator.deallocate(param_var->string_value, NULL);
-          } else if (NULL != param_var->bool_array_value) {
-            if (NULL != param_var->bool_array_value->values) {
-              allocator.deallocate(param_var->bool_array_value->values, NULL);
-            }
-            allocator.deallocate(param_var->bool_array_value, NULL);
-          } else if (NULL != param_var->integer_array_value) {
-            if (NULL != param_var->integer_array_value->values) {
-              allocator.deallocate(param_var->integer_array_value->values, NULL);
-            }
-            allocator.deallocate(param_var->integer_array_value, NULL);
-          } else if (NULL != param_var->double_array_value) {
-            if (NULL != param_var->double_array_value->values) {
-              allocator.deallocate(param_var->double_array_value->values, NULL);
-            }
-            allocator.deallocate(param_var->double_array_value, NULL);
-          } else if (NULL != param_var->string_array_value) {
-            for (uint32_t i = 0; i < param_var->string_array_value->size; i++) {
-              if (NULL != param_var->string_array_value->data[i]) {
-                allocator.deallocate(param_var->string_array_value->data[i], NULL);
-              }
-            }
-            allocator.deallocate(param_var->string_array_value, NULL);
-          } else {
-            /// Nothing to do to keep pclint happy
+      for (parameter_idx = 0; parameter_idx < params_st->params[node_idx].num_params;
+        parameter_idx++)
+      {
+        if ((NULL != params_st->params[node_idx].parameter_names) &&
+          (NULL != params_st->params[node_idx].parameter_values))
+        {
+          param_name = params_st->params[node_idx].parameter_names[parameter_idx];
+          param_var = &(params_st->params[node_idx].parameter_values[parameter_idx]);
+          if (NULL != param_name) {
+            allocator.deallocate(param_name, NULL);
           }
-        }  // if (param_var)
-      }  // for (pr_idx)
-      if (NULL != params_st->params[nd_idx].parameter_values) {
-        allocator.deallocate(params_st->params[nd_idx].parameter_values, NULL);
+
+          if (NULL != param_var) {
+            if (NULL != param_var->bool_value) {
+              allocator.deallocate(param_var->bool_value, NULL);
+            } else if (NULL != param_var->integer_value) {
+              allocator.deallocate(param_var->integer_value, NULL);
+            } else if (NULL != param_var->double_value) {
+              allocator.deallocate(param_var->double_value, NULL);
+            } else if (NULL != param_var->string_value) {
+              allocator.deallocate(param_var->string_value, NULL);
+            } else if (NULL != param_var->bool_array_value) {
+              if (NULL != param_var->bool_array_value->values) {
+                allocator.deallocate(param_var->bool_array_value->values, NULL);
+              }
+              allocator.deallocate(param_var->bool_array_value, NULL);
+            } else if (NULL != param_var->integer_array_value) {
+              if (NULL != param_var->integer_array_value->values) {
+                allocator.deallocate(param_var->integer_array_value->values, NULL);
+              }
+              allocator.deallocate(param_var->integer_array_value, NULL);
+            } else if (NULL != param_var->double_array_value) {
+              if (NULL != param_var->double_array_value->values) {
+                allocator.deallocate(param_var->double_array_value->values, NULL);
+              }
+              allocator.deallocate(param_var->double_array_value, NULL);
+            } else if (NULL != param_var->string_array_value) {
+              for (uint32_t i = 0; i < param_var->string_array_value->size; i++) {
+                if (NULL != param_var->string_array_value->data[i]) {
+                  allocator.deallocate(param_var->string_array_value->data[i], NULL);
+                }
+              }
+              allocator.deallocate(param_var->string_array_value, NULL);
+            } else {
+              /// Nothing to do to keep pclint happy
+            }
+          }  // if (param_var)
+        }
+      }  // for (parameter_idx)
+      if (NULL != params_st->params[node_idx].parameter_values) {
+        allocator.deallocate(params_st->params[node_idx].parameter_values, NULL);
       }
-      if (NULL != params_st->params[nd_idx].parameter_names) {
-        allocator.deallocate(params_st->params[nd_idx].parameter_names, NULL);
+      if (NULL != params_st->params[node_idx].parameter_names) {
+        allocator.deallocate(params_st->params[node_idx].parameter_names, NULL);
       }
     }  // if (params)
   }  // for (node_idx)
@@ -461,6 +479,7 @@ void rcl_yaml_node_struct_fini(
     params_st->params = NULL;
   }
   params_st->num_nodes = 0U;
+  allocator.deallocate(params_st, NULL);
 }
 
 ///
@@ -469,17 +488,17 @@ void rcl_yaml_node_struct_fini(
 void rcl_yaml_node_struct_print(
   const rcl_params_t * const params_st)
 {
-  uint32_t nd_idx;
-  uint32_t pr_idx = 0U;
+  uint32_t node_idx;
+  uint32_t parameter_idx = 0U;
 
   if (NULL == params_st) {
     return;
   }
 
   printf("\n Node Name\t\t\t\tParameters\n");
-  for (nd_idx = 0; nd_idx < params_st->num_nodes; nd_idx++) {
+  for (node_idx = 0; node_idx < params_st->num_nodes; node_idx++) {
     int32_t param_col = 50;
-    const char * const node_name = params_st->node_names[nd_idx];
+    const char * const node_name = params_st->node_names[node_idx];
     if (NULL != node_name) {
       printf("%s\n", node_name);
     }
@@ -487,55 +506,61 @@ void rcl_yaml_node_struct_print(
     if (NULL != params_st->params) {
       char * param_name;
       rcl_variant_t * param_var;
-      for (pr_idx = 0; pr_idx < params_st->params[nd_idx].num_params; pr_idx++) {
-        param_name = params_st->params[nd_idx].parameter_names[pr_idx];
-        param_var = &(params_st->params[nd_idx].parameter_values[pr_idx]);
-        if (NULL != param_name) {
-          printf("%*s", param_col, param_name);
-        }
+      for (parameter_idx = 0; parameter_idx < params_st->params[node_idx].num_params;
+        parameter_idx++)
+      {
+        if ((NULL != params_st->params[node_idx].parameter_names) &&
+          (NULL != params_st->params[node_idx].parameter_values))
+        {
+          param_name = params_st->params[node_idx].parameter_names[parameter_idx];
+          param_var = &(params_st->params[node_idx].parameter_values[parameter_idx]);
+          if (NULL != param_name) {
+            printf("%*s", param_col, param_name);
+          }
 
-        if (NULL != param_var) {
-          if (NULL != param_var->bool_value) {
-            printf(": %s\n", *(param_var->bool_value) ? "true" : "false");
-          } else if (NULL != param_var->integer_value) {
-            printf(": %" PRId64 "\n", *(param_var->integer_value));
-          } else if (NULL != param_var->double_value) {
-            printf(": %lf\n", *(param_var->double_value));
-          } else if (NULL != param_var->string_value) {
-            printf(": %s\n", param_var->string_value);
-          } else if (NULL != param_var->bool_array_value) {
-            printf(": ");
-            for (uint32_t i = 0; i < param_var->bool_array_value->size; i++) {
-              if (param_var->bool_array_value->values) {
-                printf("%s, ",
-                  (param_var->bool_array_value->values[i]) ? "true" : "false");
+          if (NULL != param_var) {
+            if (NULL != param_var->bool_value) {
+              printf(": %s\n", *(param_var->bool_value) ? "true" : "false");
+            } else if (NULL != param_var->integer_value) {
+              printf(": %" PRId64 "\n", *(param_var->integer_value));
+            } else if (NULL != param_var->double_value) {
+              printf(": %lf\n", *(param_var->double_value));
+            } else if (NULL != param_var->string_value) {
+              printf(": %s\n", param_var->string_value);
+            } else if (NULL != param_var->bool_array_value) {
+              printf(": ");
+              for (uint32_t i = 0; i < param_var->bool_array_value->size; i++) {
+                if (param_var->bool_array_value->values) {
+                  printf("%s, ",
+                    (param_var->bool_array_value->values[i]) ? "true" : "false");
+                }
               }
-            }
-            printf("\n");
-          } else if (NULL != param_var->integer_array_value) {
-            printf(": ");
-            for (uint32_t i = 0; i < param_var->integer_array_value->size; i++) {
-              if (param_var->integer_array_value->values) {
-                printf("%" PRId64 ", ", param_var->integer_array_value->values[i]);
+              printf("\n");
+            } else if (NULL != param_var->integer_array_value) {
+              printf(": ");
+              for (uint32_t i = 0; i < param_var->integer_array_value->size; i++) {
+                if (param_var->integer_array_value->values) {
+                  printf("%" PRId64 ", ", param_var->integer_array_value->values[i]);
+                }
               }
-            }
-            printf("\n");
-          } else if (NULL != param_var->double_array_value) {
-            printf(": ");
-            for (uint32_t i = 0; i < param_var->double_array_value->size; i++) {
-              if (param_var->double_array_value->values) {
-                printf("%lf, ", param_var->double_array_value->values[i]);
+              printf("\n");
+            } else if (NULL != param_var->double_array_value) {
+              printf(": ");
+              for (uint32_t i = 0; i < param_var->double_array_value->size; i++) {
+                if (param_var->double_array_value->values) {
+                  printf("%lf, ", param_var->double_array_value->values[i]);
+                }
               }
-            }
-            printf("\n");
-          } else if (NULL != param_var->string_array_value) {
-            printf(": ");
-            for (uint32_t i = 0; i < param_var->string_array_value->size; i++) {
-              if (param_var->string_array_value->data[i]) {
-                printf("%s, ", param_var->string_array_value->data[i]);
+              printf("\n");
+            } else if (NULL != param_var->string_array_value) {
+              printf(": ");
+              for (uint32_t i = 0; i < param_var->string_array_value->size; i++) {
+                if (param_var->string_array_value->data[i]) {
+                  printf("%s, ", param_var->string_array_value->data[i]);
+                }
               }
+              printf("\n");
             }
-            printf("\n");
           }
         }
       }
@@ -563,7 +588,7 @@ static rcl_ret_t add_val_to_bool_arr(
     bool * tmp_arr = val_array->values;
     val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(bool), NULL);
     if (NULL == val_array->values) {
-      RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCL_RET_BAD_ALLOC;
     }
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(bool)));
@@ -596,7 +621,7 @@ static rcl_ret_t add_val_to_int_arr(
     val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(int64_t),
         NULL);
     if (NULL == val_array->values) {
-      RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCL_RET_BAD_ALLOC;
     }
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(int64_t)));
@@ -629,7 +654,7 @@ static rcl_ret_t add_val_to_double_arr(
     val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(double),
         NULL);
     if (NULL == val_array->values) {
-      RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCL_RET_BAD_ALLOC;
     }
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(double)));
@@ -666,7 +691,7 @@ static rcl_ret_t add_val_to_string_arr(
     char ** tmp_arr = val_array->data;
     val_array->data = allocator.zero_allocate(val_array->size + 1U, sizeof(char *), NULL);
     if (NULL == val_array->data) {
-      RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCL_RET_BAD_ALLOC;
     }
     memmove(val_array->data, tmp_arr, (val_array->size * sizeof(char *)));
@@ -804,15 +829,15 @@ static rcl_ret_t parse_value(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  const uint32_t param_idx = ((params_st->params[node_idx].num_params) - 1U);
+  const uint32_t parameter_idx = ((params_st->params[node_idx].num_params) - 1U);
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
   rcl_variant_t * param_value;
 
-  if (val_size > MAX_STRING_SZ) {
+  if (val_size > MAX_STRING_SIZE) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Scalar value at line %d"
-      " is bigger than %d bytes", line_num, MAX_STRING_SZ);
+      " is bigger than %d bytes", line_num, MAX_STRING_SIZE);
     return RCL_RET_ERROR;
   } else {
     if (0U == val_size) {
@@ -830,7 +855,7 @@ static rcl_ret_t parse_value(
     return RCL_RET_BAD_ALLOC;
   }
 
-  param_value = &(params_st->params[node_idx].parameter_values[param_idx]);
+  param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
   param_value->allocator = allocator;
 
   // param_value->string_value = rcutils_strdup(value, allocator);
@@ -856,13 +881,13 @@ static rcl_ret_t parse_value(
           param_value->bool_array_value =
             allocator.zero_allocate(1U, sizeof(rcl_bool_array_t), NULL);
           if (NULL == param_value->bool_array_value) {
-            RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+            RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             return RCL_RET_BAD_ALLOC;
           }
         } else {
           if (*seq_data_type != val_type) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
-              " type. Value type bool do not belong at line_num %d", line_num);
+              " type. Value type 'bool' do not belong at line_num %d", line_num);
             allocator.deallocate(ret_val, NULL);
             return RCL_RET_ERROR;
           }
@@ -885,13 +910,13 @@ static rcl_ret_t parse_value(
           param_value->integer_array_value =
             allocator.zero_allocate(1U, sizeof(rcl_int64_array_t), NULL);
           if (NULL == param_value->integer_array_value) {
-            RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+            RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             return RCL_RET_BAD_ALLOC;
           }
         } else {
           if (*seq_data_type != val_type) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
-              " type. Value type integer do not belong at line_num %d", line_num);
+              " type. Value type 'integer' do not belong at line_num %d", line_num);
             allocator.deallocate(ret_val, NULL);
             return RCL_RET_ERROR;
           }
@@ -914,13 +939,13 @@ static rcl_ret_t parse_value(
           param_value->double_array_value =
             allocator.zero_allocate(1U, sizeof(rcl_double_array_t), NULL);
           if (NULL == param_value->double_array_value) {
-            RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+            RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             return RCL_RET_BAD_ALLOC;
           }
         } else {
           if (*seq_data_type != val_type) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
-              " type. Value type double do not belong at line_num %d", line_num);
+              " type. Value type 'double' do not belong at line_num %d", line_num);
             allocator.deallocate(ret_val, NULL);
             return RCL_RET_ERROR;
           }
@@ -943,13 +968,13 @@ static rcl_ret_t parse_value(
           param_value->string_array_value =
             allocator.zero_allocate(1U, sizeof(rcutils_string_array_t), NULL);
           if (NULL == param_value->string_array_value) {
-            RCL_SET_ERROR_MSG("Error allocating memory", allocator);
+            RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             return RCL_RET_BAD_ALLOC;
           }
         } else {
           if (*seq_data_type != val_type) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
-              " type. Value type string do not belong at line_num %d", line_num);
+              " type. Value type 'string' do not belong at line_num %d", line_num);
             allocator.deallocate(ret_val, NULL);
             return RCL_RET_ERROR;
           }
@@ -979,7 +1004,7 @@ static rcl_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
-  name_space_tracker_t * ns_tracker,
+  namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st,
   const rcl_allocator_t allocator)
 {
@@ -994,9 +1019,9 @@ static rcl_ret_t parse_key(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  if (val_size > MAX_STRING_SZ) {
+  if (val_size > MAX_STRING_SIZE) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Scalar value at line %d"
-      " is bigger than %d bytes", line_num, MAX_STRING_SZ);
+      " is bigger than %d bytes", line_num, MAX_STRING_SIZE);
     return RCL_RET_ERROR;
   } else {
     if (0U == val_size) {
@@ -1063,21 +1088,21 @@ static rcl_ret_t parse_key(
       break;
     case MAP_PARAMS_LVL:
       {
-        char * param_ns;
-        uint32_t param_idx;
+        char * parameter_ns;
+        uint32_t parameter_idx;
         char * param_name;
 
         /// If it is a new map, the previous key is param namespace
         if (true == *is_new_map) {
           params_st->params[node_idx].num_params--;
-          param_idx = params_st->params[node_idx].num_params;
-          param_ns = params_st->params[node_idx].parameter_names[param_idx];
-          if (NULL == param_ns) {
+          parameter_idx = params_st->params[node_idx].num_params;
+          parameter_ns = params_st->params[node_idx].parameter_names[parameter_idx];
+          if (NULL == parameter_ns) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error"
               " creating param namespace at line %d", line_num);
             return RCL_RET_ERROR;
           }
-          res = replace_ns(ns_tracker, param_ns, (ns_tracker->num_param_ns + 1U),
+          res = replace_ns(ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
               NS_TYPE_PARAM, allocator);
           if (RCL_RET_OK != res) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error replacing"
@@ -1087,21 +1112,21 @@ static rcl_ret_t parse_key(
           *is_new_map = false;
         }
         /// Add a parameter name into the node parameters
-        param_idx = params_st->params[node_idx].num_params;
-        param_ns = ns_tracker->param_ns;
-        if (NULL == param_ns) {
+        parameter_idx = params_st->params[node_idx].num_params;
+        parameter_ns = ns_tracker->parameter_ns;
+        if (NULL == parameter_ns) {
           param_name = rcutils_strdup(value, allocator);
           if (NULL == param_name) {
             return RCL_RET_BAD_ALLOC;
           }
         } else {
-          const size_t params_ns_len = strlen(param_ns);
+          const size_t params_ns_len = strlen(parameter_ns);
           const size_t param_name_len = strlen(value);
           const size_t tot_len = (params_ns_len + param_name_len + 2U);
 
-          if (tot_len > MAX_STRING_SZ) {
+          if (tot_len > MAX_STRING_SIZE) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "The name length"
-              " exceeds the MAX size %d at line %d", MAX_STRING_SZ, line_num);
+              " exceeds the MAX size %d at line %d", MAX_STRING_SIZE, line_num);
             return RCL_RET_OK;
           }
 
@@ -1110,12 +1135,12 @@ static rcl_ret_t parse_key(
             return RCL_RET_BAD_ALLOC;
           }
 
-          memmove(param_name, param_ns, params_ns_len);
+          memmove(param_name, parameter_ns, params_ns_len);
           param_name[params_ns_len] = '.';
           memmove((param_name + params_ns_len + 1U), value, param_name_len);
           param_name[tot_len - 1U] = '\0';
         }
-        params_st->params[node_idx].parameter_names[param_idx] = param_name;
+        params_st->params[node_idx].parameter_names[parameter_idx] = param_name;
         params_st->params[node_idx].num_params++;
       }
       break;
@@ -1133,7 +1158,7 @@ static rcl_ret_t parse_key(
 ///
 static rcl_ret_t parse_events(
   yaml_parser_t * parser,
-  name_space_tracker_t * ns_tracker,
+  namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st,
   const rcl_allocator_t allocator)
 {
@@ -1227,7 +1252,7 @@ static rcl_ret_t parse_events(
         break;
       case YAML_MAPPING_END_EVENT:
         if (MAP_PARAMS_LVL == map_level) {
-          if (ns_tracker->num_param_ns > 0U) {
+          if (ns_tracker->num_parameter_ns > 0U) {
             /// Remove param namesapce
             res = rem_name_from_ns(ns_tracker, NS_TYPE_PARAM, allocator);
             if (RCL_RET_OK != res) {
@@ -1286,16 +1311,23 @@ static rcl_ret_t parse_events(
 ///
 /// Parse the YAML file and populate params_st
 ///
-bool rcl_parse_yaml_file(const char * file_path, rcl_params_t * params_st)
+bool rcl_parse_yaml_file(
+  const char * file_path,
+  rcl_params_t * params_st,
+  const rcutils_allocator_t allocator)
 {
   int32_t res;
   FILE * yaml_file;
   yaml_parser_t parser;
-  name_space_tracker_t ns_tracker;
-  rcl_allocator_t allocator = rcutils_get_default_allocator();
+  namespace_tracker_t ns_tracker;
 
   if (NULL == file_path) {
     RCL_SET_ERROR_MSG("YAML file path is NULL", allocator);
+    return false;
+  }
+
+  if (NULL == params_st) {
+    RCL_SET_ERROR_MSG("Pass a initialized paramter structure", allocator);
     return false;
   }
 
@@ -1313,20 +1345,14 @@ bool rcl_parse_yaml_file(const char * file_path, rcl_params_t * params_st)
 
   yaml_parser_set_input_file(&parser, yaml_file);
 
-  res = param_struct_init(params_st, allocator);
-  if (RCL_RET_OK != res) {
-    RCL_SET_ERROR_MSG("Error creating node structure", allocator);
-    return false;
-  }
-
-  memset(&ns_tracker, 0, sizeof(name_space_tracker_t));
+  memset(&ns_tracker, 0, sizeof(namespace_tracker_t));
   res = parse_events(&parser, &ns_tracker, params_st, allocator);
   if (RCL_RET_OK != res) {
     if (NULL != ns_tracker.node_ns) {
       allocator.deallocate(ns_tracker.node_ns, NULL);
     }
-    if (NULL != ns_tracker.param_ns) {
-      allocator.deallocate(ns_tracker.param_ns, NULL);
+    if (NULL != ns_tracker.parameter_ns) {
+      allocator.deallocate(ns_tracker.parameter_ns, NULL);
     }
     rcl_yaml_node_struct_fini(params_st, allocator);
     return false;

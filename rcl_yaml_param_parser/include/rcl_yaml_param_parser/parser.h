@@ -25,25 +25,34 @@ extern "C"
 {
 #endif
 
-/// \brief Parse the YAML file, initialize and populate params_st
-/// \param[in] file_path is the path to the YAML file
-/// \param[out] params_st points to the populated paramter struct
-/// \return true on success and false on failure
+/// \brief Init param structure
+/// \param[in] allocator memory allocator to be used
+/// \return a pointer to param structure on success or NULL on failure
 RCL_YAML_PARAM_PARSER_PUBLIC
-bool rcl_parse_yaml_file(
-  const char * file_path,
-  rcl_params_t * params_st);
+rcl_params_t * rcl_yaml_node_struct_init(
+  const rcutils_allocator_t allocator);
 
 /// \brief Free param structure
 /// \param[in] params_st points to the populated paramter struct
-/// \param[in] allocator memeory allocator to be used
+/// \param[in] allocator memory allocator to be used
 RCL_YAML_PARAM_PARSER_PUBLIC
 void rcl_yaml_node_struct_fini(
   rcl_params_t * params_st,
   const rcutils_allocator_t allocator);
 
+/// \brief Parse the YAML file, initialize and populate params_st
+/// \param[in] file_path is the path to the YAML file
+/// \param[in/out] params_st points to the populated paramter struct
+/// \param[in] allocator memory allocator to be used
+/// \return true on success and false on failure
+RCL_YAML_PARAM_PARSER_PUBLIC
+bool rcl_parse_yaml_file(
+  const char * file_path,
+  rcl_params_t * params_st,
+  const rcutils_allocator_t allocator);
+
 /// \brief Print the parameter structure to stdout
-/// \param[in] params_st points to the populated paramter struct
+/// \param[in] params_st points to the populated parameter struct
 RCL_YAML_PARAM_PARSER_PUBLIC
 void rcl_yaml_node_struct_print(
   const rcl_params_t * const params_st);

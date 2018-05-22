@@ -17,7 +17,7 @@
 #include "rcl/allocator.h"
 #include "rcutils/types/string_array.h"
 
-/// \typedef bool_array_t
+/// \typedef rcl_bool_array_t
 /// \brief Array of bool values
 typedef struct rcl_bool_array_s
 {
@@ -25,7 +25,7 @@ typedef struct rcl_bool_array_s
   size_t size;
 } rcl_bool_array_t;
 
-/// \typedef int64_array_t
+/// \typedef rcl_int64_array_t
 /// \brief Array of int64_t values
 typedef struct rcl_int64_array_s
 {
@@ -33,7 +33,7 @@ typedef struct rcl_int64_array_s
   size_t size;
 } rcl_int64_array_t;
 
-/// \typedef double_array_t
+/// \typedef rcl_double_array_t
 /// \brief Array of double values
 typedef struct rcl_double_array_s
 {
@@ -41,7 +41,7 @@ typedef struct rcl_double_array_s
   size_t size;
 } rcl_double_array_t;
 
-/// \typedef byte_array_t
+/// \typedef rcl_byte_array_t
 /// \brief Array of byte values
 typedef struct rcl_byte_array_s
 {
@@ -49,7 +49,7 @@ typedef struct rcl_byte_array_s
   size_t size;
 } rcl_byte_array_t;
 
-/// \typedef variant_t
+/// \typedef rcl_variant_t
 /// \brief variant_t stores the value of a parameter
 /// Only one pointer in this struct will store the value
 typedef struct rcl_variant_s
@@ -66,7 +66,7 @@ typedef struct rcl_variant_s
   rcl_allocator_t allocator;  ///< Allocator used
 } rcl_variant_t;
 
-/// \typedef node_params_t
+/// \typedef rcl_node_params_t
 /// \brief node_params_t stores all the parameters(key:value) of a single node
 typedef struct rcl_node_params_s
 {
@@ -75,7 +75,7 @@ typedef struct rcl_node_params_s
   size_t num_params;  ///< Number of parameters in the node
 } rcl_node_params_t;
 
-/// \typedef params_t
+/// \typedef rcl_params_t
 /// \brief params_t stores all the parameters of all nodes of a process
 typedef struct rcl_params_s
 {
