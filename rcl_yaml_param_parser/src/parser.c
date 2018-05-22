@@ -277,7 +277,7 @@ static rcl_ret_t rem_name_from_ns(
           if (NULL == cur_ns) {
             return RCL_RET_BAD_ALLOC;
           }
-          cur_ns[tot_len] = '\0';
+          cur_ns[tot_len - 1] = '\0';
         }
       }
       *cur_count = (*cur_count - 1U);
