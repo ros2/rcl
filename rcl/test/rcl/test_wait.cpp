@@ -263,9 +263,9 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
   std::vector<TestSet> test_sets(number_of_threads);
   // Setup common function for waiting on the triggered guard conditions.
   auto wait_func_factory =
-    [](TestSet & test_set) {
+    [=](TestSet & test_set) {
       return
-        [&test_set]() {
+        [=, &test_set]() {
           while (test_set.wake_count < count_target) {
             bool change_detected = false;
             size_t wake_try_count = 0;
@@ -341,7 +341,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
   }
   // Loop, triggering every trigger_period until the threads are done.
   auto loop_test =
-    [&test_sets]() -> bool {
+    [=, &test_sets]() -> bool {
       for (const auto & test_set : test_sets) {
         if (test_set.wake_count.load() < count_target) {
           return true;
