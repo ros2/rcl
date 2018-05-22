@@ -1350,6 +1350,7 @@ bool rcl_parse_yaml_file(
   res = parse_events(&parser, &ns_tracker, params_st, allocator);
 
   yaml_parser_delete(&parser);
+  fclose(yaml_file);
 
   if (RCL_RET_OK != res) {
     if (NULL != ns_tracker.node_ns) {
