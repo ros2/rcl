@@ -1193,6 +1193,7 @@ static rcl_ret_t parse_events(
     switch (event.type) {
       case YAML_STREAM_END_EVENT:
         done_parsing = 1;
+        yaml_event_delete(&event);
         break;
       case YAML_SCALAR_EVENT:
         {
@@ -1201,6 +1202,7 @@ static rcl_ret_t parse_events(
             res = parse_key(event, &map_level, &is_new_map, ns_tracker,
                 params_st, allocator);
             if (RCL_RET_OK != res) {
+              yaml_event_delete(&event);
               return res;
             }
             is_key = false;
@@ -1209,10 +1211,12 @@ static rcl_ret_t parse_events(
             if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
               RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Cannot have a value"
                 " before %s at line %d", PARAMS_KEY, line_num);
+              yaml_event_delete(&event);
               return RCL_RET_ERROR;
             }
             res = parse_value(event, is_seq, &seq_data_type, params_st, allocator);
             if (RCL_RET_OK != res) {
+              yaml_event_delete(&event);
               return res;
             }
             if (false == is_seq) {
@@ -1220,24 +1224,29 @@ static rcl_ret_t parse_events(
             }
           }
         }
+        yaml_event_delete(&event);
         break;
       case YAML_SEQUENCE_START_EVENT:
         if (true == is_key) {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequences cannot be key"
             " at line %d", line_num);
+          yaml_event_delete(&event);
           return RCL_RET_ERROR;
         }
         if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequences can only be"
             " values and not keys in params. Error at line %d\n", line_num);
+          yaml_event_delete(&event);
           return RCL_RET_ERROR;
         }
         is_seq = true;
         seq_data_type = DATA_TYPE_UNKNOWN;
+        yaml_event_delete(&event);
         break;
       case YAML_SEQUENCE_END_EVENT:
         is_seq = false;
         is_key = true;
+        yaml_event_delete(&event);
         break;
       case YAML_MAPPING_START_EVENT:
         map_depth++;
@@ -1249,6 +1258,7 @@ static rcl_ret_t parse_events(
         {
           is_new_map = false;
         }
+        yaml_event_delete(&event);
         break;
       case YAML_MAPPING_END_EVENT:
         if (MAP_PARAMS_LVL == map_level) {
@@ -1258,6 +1268,7 @@ static rcl_ret_t parse_events(
             if (RCL_RET_OK != res) {
               RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error"
                 " removing parameter namespace at line %d", line_num);
+              yaml_event_delete(&event);
               return res;
             }
           } else {
@@ -1272,36 +1283,44 @@ static rcl_ret_t parse_events(
             if (RCL_RET_OK != res) {
               RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Internal error"
                 " removing node namespace at line %d", line_num);
+              yaml_event_delete(&event);
               return res;
             }
           }
         }
         map_depth--;
+        yaml_event_delete(&event);
         break;
       case YAML_ALIAS_EVENT:
         RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Will not support aliasing"
           " at line %d\n", line_num);
         res = RCL_RET_ERROR;
+        yaml_event_delete(&event);
         break;
       case YAML_STREAM_START_EVENT:
+        yaml_event_delete(&event);
         break;
       case YAML_DOCUMENT_START_EVENT:
+        yaml_event_delete(&event);
         break;
       case YAML_DOCUMENT_END_EVENT:
+        yaml_event_delete(&event);
         break;
       case YAML_NO_EVENT:
         RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Received an empty event at"
           " line %d", line_num);
         res = RCL_RET_ERROR;
+        yaml_event_delete(&event);
         break;
       default:
         RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Unknown YAML event at line"
           " %d", line_num);
         res = RCL_RET_ERROR;
+        yaml_event_delete(&event);
         break;
     }
   }
-  return RCL_RET_OK;
+  return res;
 }
 
 ///
