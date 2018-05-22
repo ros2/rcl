@@ -24,8 +24,7 @@
 
 #include "example_interfaces/srv/add_two_ints.h"
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
 bool
@@ -41,14 +40,13 @@ wait_for_service_to_be_ready(
       ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string_safe())
     return false;
   }
-  auto wait_set_exit = make_scope_exit(
-    [&wait_set]() {
-      if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string_safe())
-        throw std::runtime_error("error waiting for service to be ready");
-      }
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string_safe())
+      throw std::runtime_error("error waiting for service to be ready");
+    }
+  });
   size_t iteration = 0;
   do {
     ++iteration;
@@ -96,14 +94,13 @@ int main(int argc, char ** argv)
         ROS_PACKAGE_NAME, "Error in node init: %s", rcl_get_error_string_safe())
       return -1;
     }
-    auto node_exit = make_scope_exit(
-      [&main_ret, &node]() {
-        if (rcl_node_fini(&node) != RCL_RET_OK) {
-          RCUTILS_LOG_ERROR_NAMED(
-            ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string_safe())
-          main_ret = -1;
-        }
-      });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      if (rcl_node_fini(&node) != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string_safe())
+        main_ret = -1;
+      }
+    });
 
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
       example_interfaces, AddTwoInts);
@@ -118,22 +115,20 @@ int main(int argc, char ** argv)
       return -1;
     }
 
-    auto service_exit = make_scope_exit(
-      [&main_ret, &service, &node]() {
-        if (rcl_service_fini(&service, &node)) {
-          RCUTILS_LOG_ERROR_NAMED(
-            ROS_PACKAGE_NAME, "Error in service fini: %s", rcl_get_error_string_safe())
-          main_ret = -1;
-        }
-      });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      if (rcl_service_fini(&service, &node)) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error in service fini: %s", rcl_get_error_string_safe())
+        main_ret = -1;
+      }
+    });
 
     // Initialize a response.
     example_interfaces__srv__AddTwoInts_Response service_response;
     example_interfaces__srv__AddTwoInts_Response__init(&service_response);
-    auto response_exit = make_scope_exit(
-      [&service_response]() {
-        example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
-      });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
+    });
 
     // Block until a client request comes in.
 
@@ -145,10 +140,9 @@ int main(int argc, char ** argv)
     // Take the pending request.
     example_interfaces__srv__AddTwoInts_Request service_request;
     example_interfaces__srv__AddTwoInts_Request__init(&service_request);
-    auto request_exit = make_scope_exit(
-      [&service_request]() {
-        example_interfaces__srv__AddTwoInts_Request__fini(&service_request);
-      });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      example_interfaces__srv__AddTwoInts_Request__fini(&service_request);
+    });
     rmw_request_id_t header;
     // TODO(jacquelinekay) May have to check for timeout error codes
     if (rcl_take_request(&service, &header, &service_request) != RCL_RET_OK) {

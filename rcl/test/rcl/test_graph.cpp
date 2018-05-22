@@ -35,8 +35,7 @@
 #include "std_msgs/msg/string.h"
 #include "example_interfaces/srv/add_two_ints.h"
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -57,7 +56,6 @@ public:
   rcl_wait_set_t * wait_set_ptr;
   void SetUp()
   {
-    stop_memory_checking();
     rcl_ret_t ret;
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -81,22 +79,10 @@ public:
     this->wait_set_ptr = new rcl_wait_set_t;
     *this->wait_set_ptr = rcl_get_zero_initialized_wait_set();
     ret = rcl_wait_set_init(this->wait_set_ptr, 0, 1, 0, 0, 0, rcl_get_default_allocator());
-
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
     rcl_ret_t ret;
     ret = rcl_node_fini(this->old_node_ptr);
     delete this->old_node_ptr;
@@ -123,7 +109,6 @@ TEST_F(
   CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
   test_rcl_get_and_destroy_topic_names_and_types
 ) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_names_and_types_t tnat {};
@@ -165,7 +150,6 @@ TEST_F(
   CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
   test_rcl_count_publishers
 ) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * topic_name = "/topic_test_rcl_count_publishers";
@@ -203,7 +187,6 @@ TEST_F(
   CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
   test_rcl_count_subscribers
 ) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * topic_name = "/topic_test_rcl_count_subscribers";
@@ -330,7 +313,6 @@ check_graph_state(
 /* Test graph queries with a hand crafted graph.
  */
 TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functions) {
-  stop_memory_checking();
   std::string topic_name("/test_graph_query_functions__");
   std::chrono::nanoseconds now = std::chrono::system_clock::now().time_since_epoch();
   topic_name += std::to_string(now.count());
@@ -416,7 +398,6 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
  * Note: this test could be impacted by other communications on the same ROS Domain.
  */
 TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_condition_topics) {
-  stop_memory_checking();
   rcl_ret_t ret;
   // Create a thread to sleep for a time, then create a publisher, sleep more, then a subscriber,
   // sleep more, destroy the subscriber, sleep more, and then destroy the publisher.
@@ -485,7 +466,6 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
 /* Test the rcl_service_server_is_available function.
  */
 TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_is_available) {
-  stop_memory_checking();
   rcl_ret_t ret;
   // First create a client which will be used to call the function.
   rcl_client_t client = rcl_get_zero_initialized_client();
@@ -494,12 +474,10 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   rcl_client_options_t client_options = rcl_client_get_default_options();
   ret = rcl_client_init(&client, this->node_ptr, ts, service_name, &client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto client_exit = make_scope_exit(
-    [&client, this]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
   // Check, knowing there is no service server (created by us at least).
   bool is_available;
   ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
@@ -563,12 +541,10 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
     rcl_service_options_t service_options = rcl_service_get_default_options();
     ret = rcl_service_init(&service, this->node_ptr, ts, service_name, &service_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    auto service_exit = make_scope_exit(
-      [&service, this]() {
-        stop_memory_checking();
-        rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    });
     // Wait for and then assert that it is available.
     wait_for_service_state_to_change(true, is_available);
     ASSERT_TRUE(is_available);

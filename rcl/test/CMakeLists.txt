@@ -6,20 +6,20 @@ find_package(std_msgs REQUIRED)
 
 find_package(rmw_implementation_cmake REQUIRED)
 
+find_package(osrf_testing_tools_cpp REQUIRED)
+
+get_target_property(memory_tools_ld_preload_env_var
+    osrf_testing_tools_cpp::memory_tools LIBRARY_PRELOAD_ENVIRONMENT_VARIABLE)
+
 include(cmake/rcl_add_custom_executable.cmake)
 include(cmake/rcl_add_custom_gtest.cmake)
 include(cmake/rcl_add_custom_launch_test.cmake)
 
-set(extra_test_libraries)
-set(extra_test_env)
 set(extra_lib_dirs "${rcl_lib_dir}")
 
 # finding gtest once in the highest scope
 # prevents finding it repeatedly in each local scope
 ament_find_gtest()
-
-# This subdirectory extends both extra_test_libraries, extra_test_env, and extra_lib_dirs.
-add_subdirectory(memory_tools)
 
 macro(test_target)
   find_package(${rmw_implementation} REQUIRED)
@@ -28,42 +28,43 @@ endmacro()
 
 function(test_target_function)
   message(STATUS "Creating tests for '${rmw_implementation}'")
-  list(APPEND extra_test_env RMW_IMPLEMENTATION=${rmw_implementation})
+  set(rmw_implementation_env_var RMW_IMPLEMENTATION=${rmw_implementation})
 
   # Gtests
 
   rcl_add_custom_gtest(test_client${target_suffix}
     SRCS rcl/test_client.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
   rcl_add_custom_gtest(test_time${target_suffix}
     SRCS rcl/test_time.cpp
-    ENV ${extra_test_env}
+    ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   rcl_add_custom_gtest(test_common${target_suffix}
     SRCS rcl/test_common.cpp
     ENV
-      ${extra_test_env}
+      ${rmw_implementation_env_var}
       EMPTY_TEST=
       NORMAL_TEST=foo
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   rcl_add_custom_gtest(test_get_node_names${target_suffix}
     SRCS rcl/test_get_node_names.cpp
-    ENV ${extra_test_env}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -93,97 +94,107 @@ function(test_target_function)
   endif()
   rcl_add_custom_gtest(test_graph${target_suffix}
     SRCS rcl/test_graph.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces" "std_msgs"
     ${SKIP_TEST}
   )
 
   rcl_add_custom_gtest(test_rcl${target_suffix}
     SRCS rcl/test_rcl.cpp
-    ENV ${extra_test_env}
+    ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   rcl_add_custom_gtest(test_node${target_suffix}
     SRCS rcl/test_node.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   rcl_add_custom_gtest(test_arguments${target_suffix}
     SRCS rcl/test_arguments.cpp
-    ENV ${extra_test_env}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
   )
 
   rcl_add_custom_gtest(test_remap${target_suffix}
     SRCS rcl/test_remap.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
   )
 
   rcl_add_custom_gtest(test_remap_integration${target_suffix}
     SRCS rcl/test_remap_integration.cpp
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     TIMEOUT 200
-    ENV ${extra_test_env}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES "std_msgs" "example_interfaces"
   )
 
   rcl_add_custom_gtest(test_guard_condition${target_suffix}
     SRCS rcl/test_guard_condition.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   rcl_add_custom_gtest(test_publisher${target_suffix}
     SRCS rcl/test_publisher.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
   )
 
   rcl_add_custom_gtest(test_service${target_suffix}
     SRCS rcl/test_service.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
   rcl_add_custom_gtest(test_subscription${target_suffix}
     SRCS rcl/test_subscription.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
   )
 
   rcl_add_custom_gtest(test_wait${target_suffix}
     SRCS rcl/test_wait.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   rcl_add_custom_gtest(test_namespace${target_suffix}
     SRCS test_namespace.cpp
-    ENV ${extra_test_env}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
@@ -191,20 +202,22 @@ function(test_target_function)
 
   rcl_add_custom_executable(service_fixture${target_suffix}
     SRCS rcl/service_fixture.cpp
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
   rcl_add_custom_executable(client_fixture${target_suffix}
     SRCS rcl/client_fixture.cpp
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "example_interfaces"
   )
 
   rcl_add_custom_launch_test(test_services
     service_fixture
     client_fixture
-    ENV ${extra_test_env}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     TIMEOUT 15
   )
@@ -249,21 +262,22 @@ call_for_each_rmw_implementation(test_target)
 
 rcl_add_custom_gtest(test_validate_topic_name
   SRCS rcl/test_validate_topic_name.cpp
-  ENV ${extra_test_env}
+  ENV ${rmw_implementation_env_var}
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+  LIBRARIES ${PROJECT_NAME}
 )
 
 rcl_add_custom_gtest(test_expand_topic_name
   SRCS rcl/test_expand_topic_name.cpp
-  ENV ${extra_test_env}
+  ENV ${rmw_implementation_env_var}
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+  LIBRARIES ${PROJECT_NAME}
 )
 
 rcl_add_custom_gtest(test_timer${target_suffix}
   SRCS rcl/test_timer.cpp
-  ENV ${extra_test_env}
+  INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+  ENV ${rmw_implementation_env_var}
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+  LIBRARIES ${PROJECT_NAME}
 )

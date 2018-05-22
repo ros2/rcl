@@ -18,10 +18,8 @@
 
 #include "rcl/rcl.h"
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
-
 
 class TestTimerFixture : public ::testing::Test
 {
@@ -29,7 +27,6 @@ public:
   rcl_node_t * node_ptr;
   void SetUp()
   {
-    stop_memory_checking();
     rcl_ret_t ret;
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -39,21 +36,10 @@ public:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -63,7 +49,6 @@ public:
 };
 
 TEST_F(TestTimerFixture, test_two_timers) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
   rcl_timer_t timer2 = rcl_get_zero_initialized_timer();
@@ -82,15 +67,14 @@ TEST_F(TestTimerFixture, test_two_timers) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   ret = rcl_wait_set_add_timer(&wait_set, &timer2);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto timer_exit = make_scope_exit([&timer, &timer2, &wait_set]() {
-        stop_memory_checking();
-        rcl_ret_t ret = rcl_timer_fini(&timer);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        ret = rcl_timer_fini(&timer2);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        ret = rcl_wait_set_fini(&wait_set);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_timer_fini(&timer2);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(10));
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   uint8_t nonnull_timers = 0;
@@ -110,7 +94,6 @@ TEST_F(TestTimerFixture, test_two_timers) {
 }
 
 TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
   rcl_timer_t timer2 = rcl_get_zero_initialized_timer();
@@ -129,15 +112,14 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   ret = rcl_wait_set_add_timer(&wait_set, &timer2);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto timer_exit = make_scope_exit([&timer, &timer2, &wait_set]() {
-        stop_memory_checking();
-        rcl_ret_t ret = rcl_timer_fini(&timer);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        ret = rcl_timer_fini(&timer2);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        ret = rcl_wait_set_fini(&wait_set);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_timer_fini(&timer2);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(20));
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   uint8_t nonnull_timers = 0;
@@ -157,7 +139,6 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
 }
 
 TEST_F(TestTimerFixture, test_timer_not_ready) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
 
@@ -171,13 +152,12 @@ TEST_F(TestTimerFixture, test_timer_not_ready) {
   ret = rcl_wait_set_add_timer(&wait_set, &timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto timer_exit = make_scope_exit([&timer, &wait_set]() {
-        stop_memory_checking();
-        rcl_ret_t ret = rcl_timer_fini(&timer);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        ret = rcl_wait_set_fini(&wait_set);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1));
   EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
   uint8_t nonnull_timers = 0;
@@ -194,7 +174,6 @@ TEST_F(TestTimerFixture, test_timer_not_ready) {
 }
 
 TEST_F(TestTimerFixture, test_canceled_timer) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
 
@@ -211,13 +190,12 @@ TEST_F(TestTimerFixture, test_canceled_timer) {
   ret = rcl_wait_set_add_timer(&wait_set, &timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto timer_exit = make_scope_exit([&timer, &wait_set]() {
-        stop_memory_checking();
-        rcl_ret_t ret = rcl_timer_fini(&timer);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        ret = rcl_wait_set_fini(&wait_set);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1));
   EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string_safe();
   uint8_t nonnull_timers = 0;

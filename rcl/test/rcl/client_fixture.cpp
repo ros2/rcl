@@ -23,8 +23,7 @@
 
 #include "example_interfaces/srv/add_two_ints.h"
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
 
@@ -68,14 +67,13 @@ wait_for_client_to_be_ready(
       ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string_safe())
     return false;
   }
-  auto wait_set_exit = make_scope_exit(
-    [&wait_set]() {
-      if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string_safe())
-        throw std::runtime_error("error while waiting for client");
-      }
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string_safe())
+      throw std::runtime_error("error while waiting for client");
+    }
+  });
   size_t iteration = 0;
   do {
     ++iteration;
@@ -123,14 +121,13 @@ int main(int argc, char ** argv)
         ROS_PACKAGE_NAME, "Error in node init: %s", rcl_get_error_string_safe())
       return -1;
     }
-    auto node_exit = make_scope_exit(
-      [&main_ret, &node]() {
-        if (rcl_node_fini(&node) != RCL_RET_OK) {
-          RCUTILS_LOG_ERROR_NAMED(
-            ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string_safe())
-          main_ret = -1;
-        }
-      });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      if (rcl_node_fini(&node) != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string_safe())
+        main_ret = -1;
+      }
+    });
 
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
       example_interfaces, AddTwoInts);
@@ -145,14 +142,13 @@ int main(int argc, char ** argv)
       return -1;
     }
 
-    auto client_exit = make_scope_exit(
-      [&client, &main_ret, &node]() {
-        if (rcl_client_fini(&client, &node)) {
-          RCUTILS_LOG_ERROR_NAMED(
-            ROS_PACKAGE_NAME, "Error in client fini: %s", rcl_get_error_string_safe())
-          main_ret = -1;
-        }
-      });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      if (rcl_client_fini(&client, &node)) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error in client fini: %s", rcl_get_error_string_safe())
+        main_ret = -1;
+      }
+    });
 
     // Wait until server is available
     if (!wait_for_server_to_be_available(&node, &client, 1000, 100)) {
