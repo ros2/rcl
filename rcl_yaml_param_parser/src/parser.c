@@ -1339,6 +1339,7 @@ bool rcl_parse_yaml_file(
 
   yaml_file = fopen(file_path, "r");
   if (NULL == yaml_file) {
+    yaml_parser_delete(&parser);
     RCL_SET_ERROR_MSG("Error opening YAML file", allocator);
     return false;
   }
@@ -1347,6 +1348,9 @@ bool rcl_parse_yaml_file(
 
   memset(&ns_tracker, 0, sizeof(namespace_tracker_t));
   res = parse_events(&parser, &ns_tracker, params_st, allocator);
+
+  yaml_parser_delete(&parser);
+
   if (RCL_RET_OK != res) {
     if (NULL != ns_tracker.node_ns) {
       allocator.deallocate(ns_tracker.node_ns, NULL);
