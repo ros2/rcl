@@ -16,7 +16,7 @@
 
 #include <string>
 
-#include "../scope_exit.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 #include "rcl/error_handling.h"
 #include "rcl/lexer_lookahead.h"
@@ -46,7 +46,7 @@ public:
     rcl_ret_t ret = rcl_lexer_lookahead2_init(&name, text, rcl_get_default_allocator()); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
   } \
-  auto __scope_lookahead2_ ## name = make_scope_exit( \
+  auto __scope_lookahead2_ ## name = osrf_testing_tools_cpp::make_scope_exit( \
     [&name]() { \
       rcl_ret_t ret = rcl_lexer_lookahead2_fini(&buffer); \
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
