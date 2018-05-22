@@ -450,10 +450,9 @@ void rcl_yaml_node_struct_fini(
               }
               allocator.deallocate(param_var->double_array_value, NULL);
             } else if (NULL != param_var->string_array_value) {
-              for (uint32_t i = 0; i < param_var->string_array_value->size; i++) {
-                if (NULL != param_var->string_array_value->data[i]) {
-                  allocator.deallocate(param_var->string_array_value->data[i], NULL);
-                }
+              if (RCL_RET_OK != rcutils_string_array_fini(param_var->string_array_value)) {
+                // Log and continue ...
+                RCUTILS_SAFE_FWRITE_TO_STDERR("Error deallocating string array");
               }
               allocator.deallocate(param_var->string_array_value, NULL);
             } else {
