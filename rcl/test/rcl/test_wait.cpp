@@ -261,6 +261,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     size_t thread_id;
   };
   std::vector<TestSet> test_sets(number_of_threads);
+  // *INDENT-OFF* (prevent uncrustify from making unnecessary whitespace around [=])
   // Setup common function for waiting on the triggered guard conditions.
   auto wait_func_factory =
     [=](TestSet & test_set) {
@@ -305,6 +306,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
           }
         };
     };
+  // *INDENT-ON*
   // Setup each test set.
   for (auto & test_set : test_sets) {
     rcl_ret_t ret;
@@ -340,6 +342,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     test_set.thread = std::thread(wait_func_factory(test_set));
   }
   // Loop, triggering every trigger_period until the threads are done.
+  // *INDENT-OFF* (prevent uncrustify from making unnecessary whitespace around [=])
   auto loop_test =
     [=, &test_sets]() -> bool {
       for (const auto & test_set : test_sets) {
@@ -349,6 +352,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
       }
       return false;
     };
+  // *INDENT-ON*
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
