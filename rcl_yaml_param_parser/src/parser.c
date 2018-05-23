@@ -199,7 +199,7 @@ static rcl_ret_t add_name_to_ns(
           allocator);
         return RCL_RET_ERROR;
       }
-      cur_ns = allocator.reallocate(cur_ns, tot_len, NULL);
+      cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
       if (NULL == cur_ns) {
         return RCL_RET_BAD_ALLOC;
       }
@@ -253,7 +253,7 @@ static rcl_ret_t rem_name_from_ns(
     /// Remove last name from ns
     if (*cur_count > 0U) {
       if (1U == *cur_count) {
-        allocator.deallocate(cur_ns, NULL);
+        allocator.deallocate(cur_ns, allocator.state);
         cur_ns = NULL;
       } else {
         ns_len = strlen(cur_ns);
@@ -272,12 +272,12 @@ static rcl_ret_t rem_name_from_ns(
           next_str = strstr(next_str, sep_str);
         }
         if (NULL != last_idx) {
-          tot_len = (size_t)(last_idx - cur_ns);
-          cur_ns = allocator.reallocate(cur_ns, tot_len, NULL);
+          tot_len = ((size_t)(last_idx - cur_ns) + 1U);
+          cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
           if (NULL == cur_ns) {
             return RCL_RET_BAD_ALLOC;
           }
-          cur_ns[tot_len - 1] = '\0';
+          cur_ns[tot_len - 1U] = '\0';
         }
       }
       *cur_count = (*cur_count - 1U);
@@ -307,14 +307,14 @@ static rcl_ret_t replace_ns(
   switch (namespace_type) {
     case NS_TYPE_NODE:
       if (NULL != ns_tracker->node_ns) {
-        allocator.deallocate(ns_tracker->node_ns, NULL);
+        allocator.deallocate(ns_tracker->node_ns, allocator.state);
       }
       ns_tracker->node_ns = new_ns;
       ns_tracker->num_node_ns = new_ns_count;
       break;
     case NS_TYPE_PARAM:
       if (NULL != ns_tracker->parameter_ns) {
-        allocator.deallocate(ns_tracker->parameter_ns, NULL);
+        allocator.deallocate(ns_tracker->parameter_ns, allocator.state);
       }
       ns_tracker->parameter_ns = new_ns;
       ns_tracker->num_parameter_ns = new_ns_count;
@@ -338,15 +338,15 @@ static rcl_ret_t node_params_init(
   }
 
   node_params->parameter_names = allocator.zero_allocate(MAX_NUM_PARAMS_PER_NODE,
-      sizeof(char *), NULL);
+      sizeof(char *), allocator.state);
   if (NULL == node_params->parameter_names) {
     return RCL_RET_BAD_ALLOC;
   }
 
   node_params->parameter_values = allocator.zero_allocate(MAX_NUM_PARAMS_PER_NODE,
-      sizeof(rcl_variant_t), NULL);
+      sizeof(rcl_variant_t), allocator.state);
   if (NULL == node_params->parameter_values) {
-    allocator.deallocate(node_params->parameter_names, NULL);
+    allocator.deallocate(node_params->parameter_names, allocator.state);
     return RCL_RET_BAD_ALLOC;
   }
 
@@ -361,14 +361,14 @@ rcl_params_t * rcl_yaml_node_struct_init(
 {
   rcl_params_t * params_st;
 
-  params_st = allocator.zero_allocate(1, sizeof(rcl_params_t), NULL);
+  params_st = allocator.zero_allocate(1, sizeof(rcl_params_t), allocator.state);
   if (NULL == params_st) {
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
     return NULL;
   }
 
   params_st->node_names = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES,
-      sizeof(char *), NULL);
+      sizeof(char *), allocator.state);
   if (NULL == params_st->node_names) {
     rcl_yaml_node_struct_fini(params_st, allocator);
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
@@ -376,7 +376,7 @@ rcl_params_t * rcl_yaml_node_struct_init(
   }
 
   params_st->params = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES, sizeof(rcl_node_params_t),
-      NULL);
+      allocator.state);
   if (NULL == params_st->params) {
     rcl_yaml_node_struct_fini(params_st, allocator);
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
@@ -407,7 +407,7 @@ void rcl_yaml_node_struct_fini(
   for (node_idx = 0; node_idx < params_st->num_nodes; node_idx++) {
     char * node_name = params_st->node_names[node_idx];
     if (NULL != node_name) {
-      allocator.deallocate(node_name, NULL);
+      allocator.deallocate(node_name, allocator.state);
     }
 
     if (NULL != params_st->params) {
@@ -422,39 +422,39 @@ void rcl_yaml_node_struct_fini(
           param_name = params_st->params[node_idx].parameter_names[parameter_idx];
           param_var = &(params_st->params[node_idx].parameter_values[parameter_idx]);
           if (NULL != param_name) {
-            allocator.deallocate(param_name, NULL);
+            allocator.deallocate(param_name, allocator.state);
           }
 
           if (NULL != param_var) {
             if (NULL != param_var->bool_value) {
-              allocator.deallocate(param_var->bool_value, NULL);
+              allocator.deallocate(param_var->bool_value, allocator.state);
             } else if (NULL != param_var->integer_value) {
-              allocator.deallocate(param_var->integer_value, NULL);
+              allocator.deallocate(param_var->integer_value, allocator.state);
             } else if (NULL != param_var->double_value) {
-              allocator.deallocate(param_var->double_value, NULL);
+              allocator.deallocate(param_var->double_value, allocator.state);
             } else if (NULL != param_var->string_value) {
-              allocator.deallocate(param_var->string_value, NULL);
+              allocator.deallocate(param_var->string_value, allocator.state);
             } else if (NULL != param_var->bool_array_value) {
               if (NULL != param_var->bool_array_value->values) {
-                allocator.deallocate(param_var->bool_array_value->values, NULL);
+                allocator.deallocate(param_var->bool_array_value->values, allocator.state);
               }
-              allocator.deallocate(param_var->bool_array_value, NULL);
+              allocator.deallocate(param_var->bool_array_value, allocator.state);
             } else if (NULL != param_var->integer_array_value) {
               if (NULL != param_var->integer_array_value->values) {
-                allocator.deallocate(param_var->integer_array_value->values, NULL);
+                allocator.deallocate(param_var->integer_array_value->values, allocator.state);
               }
-              allocator.deallocate(param_var->integer_array_value, NULL);
+              allocator.deallocate(param_var->integer_array_value, allocator.state);
             } else if (NULL != param_var->double_array_value) {
               if (NULL != param_var->double_array_value->values) {
-                allocator.deallocate(param_var->double_array_value->values, NULL);
+                allocator.deallocate(param_var->double_array_value->values, allocator.state);
               }
-              allocator.deallocate(param_var->double_array_value, NULL);
+              allocator.deallocate(param_var->double_array_value, allocator.state);
             } else if (NULL != param_var->string_array_value) {
               if (RCL_RET_OK != rcutils_string_array_fini(param_var->string_array_value)) {
                 // Log and continue ...
                 RCUTILS_SAFE_FWRITE_TO_STDERR("Error deallocating string array");
               }
-              allocator.deallocate(param_var->string_array_value, NULL);
+              allocator.deallocate(param_var->string_array_value, allocator.state);
             } else {
               /// Nothing to do to keep pclint happy
             }
@@ -462,23 +462,23 @@ void rcl_yaml_node_struct_fini(
         }
       }  // for (parameter_idx)
       if (NULL != params_st->params[node_idx].parameter_values) {
-        allocator.deallocate(params_st->params[node_idx].parameter_values, NULL);
+        allocator.deallocate(params_st->params[node_idx].parameter_values, allocator.state);
       }
       if (NULL != params_st->params[node_idx].parameter_names) {
-        allocator.deallocate(params_st->params[node_idx].parameter_names, NULL);
+        allocator.deallocate(params_st->params[node_idx].parameter_names, allocator.state);
       }
     }  // if (params)
   }  // for (node_idx)
   if (NULL != params_st->node_names) {
-    allocator.deallocate(params_st->node_names, NULL);
+    allocator.deallocate(params_st->node_names, allocator.state);
     params_st->node_names = NULL;
   }
   if (NULL != params_st->params) {
-    allocator.deallocate(params_st->params, NULL);
+    allocator.deallocate(params_st->params, allocator.state);
     params_st->params = NULL;
   }
   params_st->num_nodes = 0U;
-  allocator.deallocate(params_st, NULL);
+  allocator.deallocate(params_st, allocator.state);
 }
 
 ///
@@ -585,7 +585,8 @@ static rcl_ret_t add_val_to_bool_arr(
   } else {
     /// Increase the array size by one and add the new value
     bool * tmp_arr = val_array->values;
-    val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(bool), NULL);
+    val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(bool),
+        allocator.state);
     if (NULL == val_array->values) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCL_RET_BAD_ALLOC;
@@ -593,8 +594,8 @@ static rcl_ret_t add_val_to_bool_arr(
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(bool)));
     val_array->values[val_array->size] = *value;
     val_array->size++;
-    allocator.deallocate(value, NULL);
-    allocator.deallocate(tmp_arr, NULL);
+    allocator.deallocate(value, allocator.state);
+    allocator.deallocate(tmp_arr, allocator.state);
   }
   return RCL_RET_OK;
 }
@@ -618,7 +619,7 @@ static rcl_ret_t add_val_to_int_arr(
     /// Increase the array size by one and add the new value
     int64_t * tmp_arr = val_array->values;
     val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(int64_t),
-        NULL);
+        allocator.state);
     if (NULL == val_array->values) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCL_RET_BAD_ALLOC;
@@ -626,8 +627,8 @@ static rcl_ret_t add_val_to_int_arr(
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(int64_t)));
     val_array->values[val_array->size] = *value;
     val_array->size++;
-    allocator.deallocate(value, NULL);
-    allocator.deallocate(tmp_arr, NULL);
+    allocator.deallocate(value, allocator.state);
+    allocator.deallocate(tmp_arr, allocator.state);
   }
   return RCL_RET_OK;
 }
@@ -651,7 +652,7 @@ static rcl_ret_t add_val_to_double_arr(
     /// Increase the array size by one and add the new value
     double * tmp_arr = val_array->values;
     val_array->values = allocator.zero_allocate(val_array->size + 1U, sizeof(double),
-        NULL);
+        allocator.state);
     if (NULL == val_array->values) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCL_RET_BAD_ALLOC;
@@ -659,8 +660,8 @@ static rcl_ret_t add_val_to_double_arr(
     memmove(val_array->values, tmp_arr, (val_array->size * sizeof(double)));
     val_array->values[val_array->size] = *value;
     val_array->size++;
-    allocator.deallocate(value, NULL);
-    allocator.deallocate(tmp_arr, NULL);
+    allocator.deallocate(value, allocator.state);
+    allocator.deallocate(tmp_arr, allocator.state);
   }
   return RCL_RET_OK;
 }
@@ -687,16 +688,14 @@ static rcl_ret_t add_val_to_string_arr(
     val_array->data[0U] = value;
   } else {
     /// Increase the array size by one and add the new value
-    char ** tmp_arr = val_array->data;
-    val_array->data = allocator.zero_allocate(val_array->size + 1U, sizeof(char *), NULL);
+    val_array->data = allocator.reallocate(val_array->data,
+        ((val_array->size + 1U) * sizeof(char *)), allocator.state);
     if (NULL == val_array->data) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCL_RET_BAD_ALLOC;
     }
-    memmove(val_array->data, tmp_arr, (val_array->size * sizeof(char *)));
     val_array->data[val_array->size] = value;
     val_array->size++;
-    allocator.deallocate(tmp_arr, NULL);
   }
   return RCL_RET_OK;
 }
@@ -734,7 +733,7 @@ static void * get_value(
     (0 == strncmp(value, "ON", strlen(value))))
   {
     *val_type = DATA_TYPE_BOOL;
-    ret_val = allocator.zero_allocate(1U, sizeof(bool), NULL);
+    ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
     if (NULL == ret_val) {
       return NULL;
     }
@@ -755,7 +754,7 @@ static void * get_value(
     (0 == strncmp(value, "OFF", strlen(value))))
   {
     *val_type = DATA_TYPE_BOOL;
-    ret_val = allocator.zero_allocate(1U, sizeof(bool), NULL);
+    ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
     if (NULL == ret_val) {
       return NULL;
     }
@@ -770,7 +769,7 @@ static void * get_value(
     if ((NULL != endptr) && (endptr != value)) {
       if (('\0' != *value) && ('\0' == *endptr)) {
         *val_type = DATA_TYPE_INT64;
-        ret_val = allocator.zero_allocate(1U, sizeof(int64_t), NULL);
+        ret_val = allocator.zero_allocate(1U, sizeof(int64_t), allocator.state);
         if (NULL == ret_val) {
           return NULL;
         }
@@ -788,7 +787,7 @@ static void * get_value(
     if ((NULL != endptr) && (endptr != value)) {
       if (('\0' != *value) && ('\0' == *endptr)) {
         *val_type = DATA_TYPE_DOUBLE;
-        ret_val = allocator.zero_allocate(1U, sizeof(double), NULL);
+        ret_val = allocator.zero_allocate(1U, sizeof(double), allocator.state);
         if (NULL == ret_val) {
           return NULL;
         }
@@ -878,7 +877,7 @@ static rcl_ret_t parse_value(
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
           *seq_data_type = val_type;
           param_value->bool_array_value =
-            allocator.zero_allocate(1U, sizeof(rcl_bool_array_t), NULL);
+            allocator.zero_allocate(1U, sizeof(rcl_bool_array_t), allocator.state);
           if (NULL == param_value->bool_array_value) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             return RCL_RET_BAD_ALLOC;
@@ -887,14 +886,14 @@ static rcl_ret_t parse_value(
           if (*seq_data_type != val_type) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
               " type. Value type 'bool' do not belong at line_num %d", line_num);
-            allocator.deallocate(ret_val, NULL);
+            allocator.deallocate(ret_val, allocator.state);
             return RCL_RET_ERROR;
           }
         }
         res = add_val_to_bool_arr(param_value->bool_array_value, ret_val, allocator);
         if (RCL_RET_OK != res) {
           if (NULL != ret_val) {
-            allocator.deallocate(ret_val, NULL);
+            allocator.deallocate(ret_val, allocator.state);
           }
           return res;
         }
@@ -907,7 +906,7 @@ static rcl_ret_t parse_value(
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
           *seq_data_type = val_type;
           param_value->integer_array_value =
-            allocator.zero_allocate(1U, sizeof(rcl_int64_array_t), NULL);
+            allocator.zero_allocate(1U, sizeof(rcl_int64_array_t), allocator.state);
           if (NULL == param_value->integer_array_value) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             return RCL_RET_BAD_ALLOC;
@@ -916,14 +915,14 @@ static rcl_ret_t parse_value(
           if (*seq_data_type != val_type) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
               " type. Value type 'integer' do not belong at line_num %d", line_num);
-            allocator.deallocate(ret_val, NULL);
+            allocator.deallocate(ret_val, allocator.state);
             return RCL_RET_ERROR;
           }
         }
         res = add_val_to_int_arr(param_value->integer_array_value, ret_val, allocator);
         if (RCL_RET_OK != res) {
           if (NULL != ret_val) {
-            allocator.deallocate(ret_val, NULL);
+            allocator.deallocate(ret_val, allocator.state);
           }
           return res;
         }
@@ -936,7 +935,7 @@ static rcl_ret_t parse_value(
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
           *seq_data_type = val_type;
           param_value->double_array_value =
-            allocator.zero_allocate(1U, sizeof(rcl_double_array_t), NULL);
+            allocator.zero_allocate(1U, sizeof(rcl_double_array_t), allocator.state);
           if (NULL == param_value->double_array_value) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             return RCL_RET_BAD_ALLOC;
@@ -945,14 +944,14 @@ static rcl_ret_t parse_value(
           if (*seq_data_type != val_type) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
               " type. Value type 'double' do not belong at line_num %d", line_num);
-            allocator.deallocate(ret_val, NULL);
+            allocator.deallocate(ret_val, allocator.state);
             return RCL_RET_ERROR;
           }
         }
         res = add_val_to_double_arr(param_value->double_array_value, ret_val, allocator);
         if (RCL_RET_OK != res) {
           if (NULL != ret_val) {
-            allocator.deallocate(ret_val, NULL);
+            allocator.deallocate(ret_val, allocator.state);
           }
           return res;
         }
@@ -965,7 +964,7 @@ static rcl_ret_t parse_value(
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
           *seq_data_type = val_type;
           param_value->string_array_value =
-            allocator.zero_allocate(1U, sizeof(rcutils_string_array_t), NULL);
+            allocator.zero_allocate(1U, sizeof(rcutils_string_array_t), allocator.state);
           if (NULL == param_value->string_array_value) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             return RCL_RET_BAD_ALLOC;
@@ -974,14 +973,14 @@ static rcl_ret_t parse_value(
           if (*seq_data_type != val_type) {
             RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Sequence should be of same"
               " type. Value type 'string' do not belong at line_num %d", line_num);
-            allocator.deallocate(ret_val, NULL);
+            allocator.deallocate(ret_val, allocator.state);
             return RCL_RET_ERROR;
           }
         }
         res = add_val_to_string_arr(param_value->string_array_value, ret_val, allocator);
         if (RCL_RET_OK != res) {
           if (NULL != ret_val) {
-            allocator.deallocate(ret_val, NULL);
+            allocator.deallocate(ret_val, allocator.state);
           }
           return res;
         }
@@ -1129,7 +1128,7 @@ static rcl_ret_t parse_key(
             return RCL_RET_OK;
           }
 
-          param_name = allocator.zero_allocate(1U, tot_len, NULL);
+          param_name = allocator.zero_allocate(1U, tot_len, allocator.state);
           if (NULL == param_name) {
             return RCL_RET_BAD_ALLOC;
           }
@@ -1163,7 +1162,7 @@ static rcl_ret_t parse_events(
 {
   int32_t done_parsing = 0;
   yaml_event_t event;
-  int32_t res = RCL_RET_OK;
+  rcl_ret_t res = RCL_RET_OK;
   bool is_key = true;
   bool is_seq = false;
   uint32_t line_num = 0;
@@ -1372,10 +1371,10 @@ bool rcl_parse_yaml_file(
 
   if (RCL_RET_OK != res) {
     if (NULL != ns_tracker.node_ns) {
-      allocator.deallocate(ns_tracker.node_ns, NULL);
+      allocator.deallocate(ns_tracker.node_ns, allocator.state);
     }
     if (NULL != ns_tracker.parameter_ns) {
-      allocator.deallocate(ns_tracker.parameter_ns, NULL);
+      allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
     }
     rcl_yaml_node_struct_fini(params_st, allocator);
     return false;

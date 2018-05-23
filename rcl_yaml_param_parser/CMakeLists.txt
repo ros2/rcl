@@ -54,5 +54,9 @@ endif()
 
 ament_export_dependencies(ament_cmake)
 ament_export_include_directories(include)
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
 ament_export_libraries(${PROJECT_NAME})
 ament_package()
