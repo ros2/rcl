@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <yaml.h>
 
 #include "rcl_yaml_param_parser/parser.h"
