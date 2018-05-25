@@ -32,11 +32,11 @@ TEST(test_file_parser, correct_syntax) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_TRUE(res);
   rcl_yaml_node_struct_print(params_hdl);
-  rcl_yaml_node_struct_fini(params_hdl, allocator);
+  rcl_yaml_node_struct_fini(params_hdl);
   free(test_path);
   free(path);
 }
@@ -50,11 +50,11 @@ TEST(test_file_parser, multi_ns_correct_syntax) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_TRUE(res);
   rcl_yaml_node_struct_print(params_hdl);
-  rcl_yaml_node_struct_fini(params_hdl, allocator);
+  rcl_yaml_node_struct_fini(params_hdl);
   free(test_path);
   free(path);
 }
@@ -68,7 +68,7 @@ TEST(test_file_parser, seq_map1) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
   free(test_path);
@@ -84,7 +84,7 @@ TEST(test_file_parser, seq_map2) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
   free(test_path);
@@ -100,7 +100,7 @@ TEST(test_file_parser, params_with_no_node) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
   free(test_path);
@@ -116,7 +116,7 @@ TEST(test_file_parser, no_alias_support) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
   free(test_path);
@@ -132,7 +132,7 @@ TEST(test_file_parser, max_string_sz) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
   free(test_path);
@@ -148,7 +148,7 @@ TEST(test_file_parser, no_value1) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
   free(test_path);
@@ -164,7 +164,7 @@ TEST(test_file_parser, indented_ns) {
   EXPECT_TRUE(rcutils_exists(path));
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
-  bool res = rcl_parse_yaml_file(path, params_hdl, allocator);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
   fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
   EXPECT_FALSE(res);
   free(test_path);

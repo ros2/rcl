@@ -63,7 +63,6 @@ typedef struct rcl_variant_s
   rcl_int64_array_t * integer_array_value;  ///< If array of integers
   rcl_double_array_t * double_array_value;  ///< If array of doubles
   rcutils_string_array_t * string_array_value;  ///< If array of strings
-  rcl_allocator_t allocator;  ///< Allocator used
 } rcl_variant_t;
 
 /// \typedef rcl_node_params_t
@@ -82,6 +81,7 @@ typedef struct rcl_params_s
   char ** node_names;  ///< List of names of the node
   rcl_node_params_t * params;  ///<  Array of parameters
   size_t num_nodes;       ///< Number of nodes
+  rcl_allocator_t allocator;  ///< Allocator used
 } rcl_params_t;
 
 #endif  // RCL_YAML_PARAM_PARSER__TYPES_H_

@@ -125,23 +125,19 @@ static rcl_ret_t parse_value(
   const yaml_event_t event,
   const bool is_seq,
   data_types_t * seq_data_type,
-  rcl_params_t * params_st,
-  const rcl_allocator_t allocator);
+  rcl_params_t * params_st);
 
 static rcl_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
   namespace_tracker_t * ns_tracker,
-  rcl_params_t * params_st,
-  const rcl_allocator_t allocator);
+  rcl_params_t * params_st);
 
 static rcl_ret_t parse_events(
   yaml_parser_t * parser,
   namespace_tracker_t * ns_tracker,
-  rcl_params_t * params_st,
-  const rcl_allocator_t allocator);
-
+  rcl_params_t * params_st);
 
 ///
 /// Add name to namespace tracker
@@ -369,7 +365,7 @@ rcl_params_t * rcl_yaml_node_struct_init(
   params_st->node_names = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES,
       sizeof(char *), allocator.state);
   if (NULL == params_st->node_names) {
-    rcl_yaml_node_struct_fini(params_st, allocator);
+    rcl_yaml_node_struct_fini(params_st);
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
     return NULL;
   }
@@ -377,12 +373,13 @@ rcl_params_t * rcl_yaml_node_struct_init(
   params_st->params = allocator.zero_allocate(MAX_NUM_NODE_ENTRIES, sizeof(rcl_node_params_t),
       allocator.state);
   if (NULL == params_st->params) {
-    rcl_yaml_node_struct_fini(params_st, allocator);
+    rcl_yaml_node_struct_fini(params_st);
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
     return NULL;
   }
 
   params_st->num_nodes = 0U;
+  params_st->allocator = allocator;
 
   return params_st;
 }
@@ -393,15 +390,16 @@ rcl_params_t * rcl_yaml_node_struct_init(
 /// of calling this free function and continuing
 ///
 void rcl_yaml_node_struct_fini(
-  rcl_params_t * params_st,
-  const rcl_allocator_t allocator)
+  rcl_params_t * params_st)
 {
   uint32_t node_idx;
   size_t parameter_idx = 0U;
+  rcl_allocator_t allocator;
 
   if (NULL == params_st) {
     return;
   }
+  allocator = params_st->allocator;
 
   for (node_idx = 0; node_idx < params_st->num_nodes; node_idx++) {
     char * node_name = params_st->node_names[node_idx];
@@ -810,16 +808,17 @@ static rcl_ret_t parse_value(
   const yaml_event_t event,
   const bool is_seq,
   data_types_t * seq_data_type,
-  rcl_params_t * params_st,
-  const rcl_allocator_t allocator)
+  rcl_params_t * params_st)
 {
   void * ret_val;
   data_types_t val_type;
   int res = RCL_RET_OK;
+  rcl_allocator_t allocator;
 
   if ((NULL == params_st) || (0U == params_st->num_nodes) || (NULL == seq_data_type)) {
     return RCL_RET_INVALID_ARGUMENT;
   }
+  allocator = params_st->allocator;
 
   const size_t node_idx = (params_st->num_nodes - 1U);
   if (0U == params_st->params[node_idx].num_params) {
@@ -853,7 +852,6 @@ static rcl_ret_t parse_value(
   }
 
   param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
-  param_value->allocator = allocator;
 
   // param_value->string_value = rcutils_strdup(value, allocator);
   ret_val = get_value(value, &val_type, allocator);
@@ -1002,8 +1000,7 @@ static rcl_ret_t parse_key(
   uint32_t * map_level,
   bool * is_new_map,
   namespace_tracker_t * ns_tracker,
-  rcl_params_t * params_st,
-  const rcl_allocator_t allocator)
+  rcl_params_t * params_st)
 {
   int32_t res = RCL_RET_OK;
   const size_t val_size = event.data.scalar.length;
@@ -1011,10 +1008,12 @@ static rcl_ret_t parse_key(
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
   size_t num_nodes;
   size_t node_idx = 0U;
+  rcl_allocator_t allocator;
 
   if ((NULL == map_level) || (NULL == params_st)) {
     return RCL_RET_INVALID_ARGUMENT;
   }
+  allocator = params_st->allocator;
 
   if (val_size > MAX_STRING_SIZE) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, "Scalar value at line %d"
@@ -1156,8 +1155,7 @@ static rcl_ret_t parse_key(
 static rcl_ret_t parse_events(
   yaml_parser_t * parser,
   namespace_tracker_t * ns_tracker,
-  rcl_params_t * params_st,
-  const rcl_allocator_t allocator)
+  rcl_params_t * params_st)
 {
   int32_t done_parsing = 0;
   yaml_event_t event;
@@ -1169,10 +1167,12 @@ static rcl_ret_t parse_events(
   uint32_t map_level = 1U;
   uint32_t map_depth = 0U;
   bool is_new_map = false;
+  rcl_allocator_t allocator;
 
   if ((NULL == parser) || (NULL == params_st)) {
     return RCL_RET_INVALID_ARGUMENT;
   }
+  allocator = params_st->allocator;
 
   while (0 == done_parsing) {
     if (RCL_RET_OK != res) {
@@ -1197,7 +1197,7 @@ static rcl_ret_t parse_events(
           /// Need to toggle between key and value at params level
           if (true == is_key) {
             res = parse_key(event, &map_level, &is_new_map, ns_tracker,
-                params_st, allocator);
+                params_st);
             if (RCL_RET_OK != res) {
               yaml_event_delete(&event);
               return res;
@@ -1211,7 +1211,7 @@ static rcl_ret_t parse_events(
               yaml_event_delete(&event);
               return RCL_RET_ERROR;
             }
-            res = parse_value(event, is_seq, &seq_data_type, params_st, allocator);
+            res = parse_value(event, is_seq, &seq_data_type, params_st);
             if (RCL_RET_OK != res) {
               yaml_event_delete(&event);
               return res;
@@ -1329,21 +1329,22 @@ static rcl_ret_t parse_events(
 ///
 bool rcl_parse_yaml_file(
   const char * file_path,
-  rcl_params_t * params_st,
-  const rcutils_allocator_t allocator)
+  rcl_params_t * params_st)
 {
   int32_t res;
   FILE * yaml_file;
   yaml_parser_t parser;
   namespace_tracker_t ns_tracker;
+  rcutils_allocator_t allocator;
+
+  if (NULL == params_st) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Pass a initialized paramter structure");
+    return false;
+  }
+  allocator = params_st->allocator;
 
   if (NULL == file_path) {
     RCL_SET_ERROR_MSG("YAML file path is NULL", allocator);
-    return false;
-  }
-
-  if (NULL == params_st) {
-    RCL_SET_ERROR_MSG("Pass a initialized paramter structure", allocator);
     return false;
   }
 
@@ -1363,7 +1364,7 @@ bool rcl_parse_yaml_file(
   yaml_parser_set_input_file(&parser, yaml_file);
 
   memset(&ns_tracker, 0, sizeof(namespace_tracker_t));
-  res = parse_events(&parser, &ns_tracker, params_st, allocator);
+  res = parse_events(&parser, &ns_tracker, params_st);
 
   yaml_parser_delete(&parser);
   fclose(yaml_file);
@@ -1375,7 +1376,7 @@ bool rcl_parse_yaml_file(
     if (NULL != ns_tracker.parameter_ns) {
       allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
     }
-    rcl_yaml_node_struct_fini(params_st, allocator);
+    rcl_yaml_node_struct_fini(params_st);
     return false;
   }
 
