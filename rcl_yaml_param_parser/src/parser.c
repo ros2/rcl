@@ -397,7 +397,7 @@ void rcl_yaml_node_struct_fini(
   const rcl_allocator_t allocator)
 {
   uint32_t node_idx;
-  uint32_t parameter_idx = 0U;
+  size_t parameter_idx = 0U;
 
   if (NULL == params_st) {
     return;
@@ -486,8 +486,8 @@ void rcl_yaml_node_struct_fini(
 void rcl_yaml_node_struct_print(
   const rcl_params_t * const params_st)
 {
-  uint32_t node_idx;
-  uint32_t parameter_idx = 0U;
+  size_t node_idx;
+  size_t parameter_idx = 0U;
 
   if (NULL == params_st) {
     return;
@@ -527,7 +527,7 @@ void rcl_yaml_node_struct_print(
               printf(": %s\n", param_var->string_value);
             } else if (NULL != param_var->bool_array_value) {
               printf(": ");
-              for (uint32_t i = 0; i < param_var->bool_array_value->size; i++) {
+              for (size_t i = 0; i < param_var->bool_array_value->size; i++) {
                 if (param_var->bool_array_value->values) {
                   printf("%s, ",
                     (param_var->bool_array_value->values[i]) ? "true" : "false");
@@ -536,7 +536,7 @@ void rcl_yaml_node_struct_print(
               printf("\n");
             } else if (NULL != param_var->integer_array_value) {
               printf(": ");
-              for (uint32_t i = 0; i < param_var->integer_array_value->size; i++) {
+              for (size_t i = 0; i < param_var->integer_array_value->size; i++) {
                 if (param_var->integer_array_value->values) {
                   printf("%" PRId64 ", ", param_var->integer_array_value->values[i]);
                 }
@@ -544,7 +544,7 @@ void rcl_yaml_node_struct_print(
               printf("\n");
             } else if (NULL != param_var->double_array_value) {
               printf(": ");
-              for (uint32_t i = 0; i < param_var->double_array_value->size; i++) {
+              for (size_t i = 0; i < param_var->double_array_value->size; i++) {
                 if (param_var->double_array_value->values) {
                   printf("%lf, ", param_var->double_array_value->values[i]);
                 }
@@ -552,7 +552,7 @@ void rcl_yaml_node_struct_print(
               printf("\n");
             } else if (NULL != param_var->string_array_value) {
               printf(": ");
-              for (uint32_t i = 0; i < param_var->string_array_value->size; i++) {
+              for (size_t i = 0; i < param_var->string_array_value->size; i++) {
                 if (param_var->string_array_value->data[i]) {
                   printf("%s, ", param_var->string_array_value->data[i]);
                 }
@@ -821,12 +821,12 @@ static rcl_ret_t parse_value(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  const uint32_t node_idx = (params_st->num_nodes - 1U);
+  const size_t node_idx = (params_st->num_nodes - 1U);
   if (0U == params_st->params[node_idx].num_params) {
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  const uint32_t parameter_idx = ((params_st->params[node_idx].num_params) - 1U);
+  const size_t parameter_idx = ((params_st->params[node_idx].num_params) - 1U);
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
@@ -1009,8 +1009,8 @@ static rcl_ret_t parse_key(
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
-  uint32_t num_nodes;
-  uint32_t node_idx = 0U;
+  size_t num_nodes;
+  size_t node_idx = 0U;
 
   if ((NULL == map_level) || (NULL == params_st)) {
     return RCL_RET_INVALID_ARGUMENT;
@@ -1086,7 +1086,7 @@ static rcl_ret_t parse_key(
     case MAP_PARAMS_LVL:
       {
         char * parameter_ns;
-        uint32_t parameter_idx;
+        size_t parameter_idx;
         char * param_name;
 
         /// If it is a new map, the previous key is param namespace
