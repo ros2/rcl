@@ -252,6 +252,36 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
 
+/// Publish a serialized message on a topic using a publisher.
+/**
+ * It is the job of the caller to ensure that the type of the serialized raw message
+ * parameter and the type associate with the publisher (via the type support)
+ * match.
+ * Even though this call to publish takes an already serialized raw message,
+ * the publisher has to register its type as a ROS known message type.
+ * Passing a raw message from a different type leads to undefined behavior on the subscriber side.
+ * The publish call might be able to send any abitrary raw message, it is however
+ * not garantueed that the subscriber side successfully deserializes this byte stream.
+ *
+ * Apart from this, the `publish_raw` function has the same behavior as `rcl_publish`
+ * expect that no serialization step is done.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes [1]
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] for unique pairs of publishers and messages, see above for more</i>
+ *
+ * \param[in] publisher handle to the publisher which will do the publishing
+ * \param[in] raw_message  pointer to the already serialized message in raw form
+ * \return `RCL_RET_OK` if the message was published successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t

@@ -256,6 +256,41 @@ rcl_take(
   void * ros_message,
   rmw_message_info_t * message_info);
 
+/// Take a serialized raw  message from a topic using a rcl subscription.
+/**
+ * In contrast to `rcl_take`, this function return the incoming message in
+ * its binary raw representation.
+ * It is the job of the caller to ensure that the type associate with the subscription,
+ * match and can optionally be deserialized into its ROS message via the correct
+ * type support.
+ * If the `raw_message` parameter contains enough preallocated memory, the incoming
+ * message can be taken without any additional memory allocation.
+ * If not, the function will dynamically allocate enough memory for the message.
+ * Passing a different type to rcl_take produces undefined behavior and cannot
+ * be checked by this function and therefore no deliberate error will occur.
+ *
+ * Apart from the contrast above, this function behaves like `rcl_take`.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Maybe [1]
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] only if required when filling the message, avoided for fixed sizes</i>
+ *
+ * \param[in] subscription the handle to the subscription from which to take
+ * \param[inout] raw_message pointer to a (pre-allocated) raw message.
+ * \param[out] message_info rmw struct which contains meta-data for the message
+ * \return `RCL_RET_OK` if the message was published, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_SUBSCRIPTION_TAKE_FAILED` if take failed but no error
+ *         occurred in the middleware, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
