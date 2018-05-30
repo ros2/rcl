@@ -1163,7 +1163,7 @@ static rcl_ret_t parse_events(
   bool is_key = true;
   bool is_seq = false;
   uint32_t line_num = 0;
-  data_types_t seq_data_type;
+  data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
   uint32_t map_level = 1U;
   uint32_t map_depth = 0U;
   bool is_new_map = false;
