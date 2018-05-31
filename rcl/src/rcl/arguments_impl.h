@@ -31,6 +31,12 @@ typedef struct rcl_arguments_impl_t
   /// Length of unparsed_args.
   int num_unparsed_args;
 
+  // TODO(mikaelarguedas) consider storing CLI parameter rules here
+  /// Array of yaml parameter file paths
+  char ** parameter_files;
+  /// Length of parameter_files.
+  int num_param_files_args;
+
   /// Array of rules for name remapping.
   rcl_remap_t * remap_rules;
   /// Length of remap_rules.

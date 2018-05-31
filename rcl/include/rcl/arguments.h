@@ -20,6 +20,8 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
+#include "rcutils/types.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -136,6 +138,23 @@ rcl_arguments_get_unparsed(
   const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int ** output_unparsed_indices);
+
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+int
+rcl_arguments_get_param_files_count(
+  const rcl_arguments_t * args);
+
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_arguments_get_param_files(
+  const rcl_arguments_t * arguments,
+  rcl_allocator_t allocator,
+  char ** parameter_files);
+  // rcutils_string_array_t * parameter_files);
 
 /// Return a list of arguments with ROS-specific arguments removed.
 /**

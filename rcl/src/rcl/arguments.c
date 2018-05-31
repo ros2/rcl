@@ -51,6 +51,48 @@ _rcl_parse_remap_rule(
   rcl_allocator_t allocator,
   rcl_remap_t * output_rule);
 
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_param_rule(
+  const char * arg,
+  rcl_allocator_t allocator,
+  char * output_rule);
+
+rcl_ret_t
+rcl_arguments_get_param_files(
+  const rcl_arguments_t * arguments,
+  rcl_allocator_t allocator,
+  // char ** parameter_files)
+  rcutils_string_array_t * parameter_files)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_files, RCL_RET_INVALID_ARGUMENT, allocator);
+  rcutils_ret_t ret = rcutils_string_array_init(
+    parameter_files, arguments->impl->num_param_files_args, &allocator);
+  if (ret != RCUTILS_RET_OK) {
+    return RCL_RET_BAD_ALLOC;
+  }
+  for (int i = 0; i < arguments->impl->num_param_files_args; ++i) {
+    snprintf(
+      parameter_files->data[i],
+      strlen(arguments->impl->parameter_files[i]),
+      "%s", arguments->impl->parameter_files[i]);
+  }
+  return RCL_RET_OK;
+}
+
+int
+rcl_arguments_get_param_files_count(
+  const rcl_arguments_t * args)
+{
+  if (NULL == args || NULL == args->impl) {
+    return -1;
+  }
+  return args->impl->num_param_files_args;
+}
+
 rcl_ret_t
 rcl_parse_arguments(
   int argc,
@@ -84,6 +126,8 @@ rcl_parse_arguments(
   args_impl->remap_rules = NULL;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
+  args_impl->parameter_files = NULL;
+  args_impl->num_param_files_args = 0;
   args_impl->allocator = allocator;
 
   if (argc == 0) {
@@ -102,12 +146,39 @@ rcl_parse_arguments(
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
+  args_impl->parameter_files = allocator.allocate(sizeof(char *) * argc, allocator.state);
+  if (NULL == args_impl->parameter_files) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
 
+  RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "coucou1");
   // Attempt to parse arguments as remap rules
   for (int i = 0; i < argc; ++i) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "coucou2 : %d", i);
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
     *rule = rcl_remap_get_zero_initialized();
-    if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
+    args_impl->parameter_files[args_impl->num_param_files_args] = allocator.allocate(sizeof(char) * (strlen(argv[i]) + 1), allocator.state);
+    if (NULL == args_impl->parameter_files[args_impl->num_param_files_args]) {
+      ret = RCL_RET_BAD_ALLOC;
+      goto fail;
+    }
+    // char * foobar = allocator.allocate(sizeof(char) * (strlen(argv[i]) + 1), allocator.state);
+    if (
+      RCL_RET_OK == _rcl_parse_param_rule(
+        argv[i], allocator, args_impl->parameter_files[args_impl->num_param_files_args])
+      // RCL_RET_OK == _rcl_parse_param_rule(
+      //    argv[i], allocator, foobar)
+    ) {
+      ++(args_impl->num_param_files_args);
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME,
+        "params rule : %s\n total num param rules %d",
+        args_impl->parameter_files[args_impl->num_param_files_args],
+        // args_impl->parameter_files[args_impl->num_param_files_args],
+        // foobar,
+        args_impl->num_param_files_args)
+    } else if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "remap rule")
       ++(args_impl->num_remap_rules);
     } else {
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
@@ -117,6 +188,7 @@ rcl_parse_arguments(
       ++(args_impl->num_unparsed_args);
     }
   }
+  RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "coucou3");
 
   // Shrink remap_rules array to match number of successfully parsed rules
   if (args_impl->num_remap_rules > 0) {
@@ -855,6 +927,36 @@ _rcl_parse_remap_rule(
     ret = rcl_lexer_lookahead2_fini(&lex_lookahead);
   }
   return ret;
+}
+
+rcl_ret_t
+_rcl_parse_param_rule(
+  const char * arg,
+  rcl_allocator_t allocator,
+  char * output_rule)
+{
+  RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "enter param parsing");
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
+  // RCL_CHECK_ARGUMENT_FOR_NULL(output_rule, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  const char * param_prefix = "__params:=";
+  size_t param_prefix_len = strlen(param_prefix);
+  RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "looking for '%s' in '%s'", param_prefix, arg);
+  if (strncmp(param_prefix, arg, param_prefix_len) == 0) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Found '%s' in '%s'", param_prefix, arg);
+    size_t outlen = strlen(arg) - param_prefix_len;
+    // output_rule = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
+    if (NULL == output_rule) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    snprintf(output_rule, outlen + 1, "%s", arg + strlen("__params:="));
+    // memcpy(&output_rule, arg + param_prefix_len, outlen);
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Stripped param string: '%s'", output_rule);
+    return RCL_RET_OK;
+  } else{
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Couldn't find '%s' in '%s'", param_prefix, arg);
+  }
+  return RCL_RET_INVALID_PARAM_RULE;
 }
 
 #ifdef __cplusplus
