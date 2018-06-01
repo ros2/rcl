@@ -162,13 +162,13 @@ rcl_parse_arguments(
       RCL_RET_OK == _rcl_parse_param_rule(
         argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args]))
     ) {
-      ++(args_impl->num_param_files_args);
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME,
         "params rule : %s\n total num param rules %d",
         args_impl->parameter_files[args_impl->num_param_files_args],
         // args_impl->parameter_files[args_impl->num_param_files_args],
         // foobar,
         args_impl->num_param_files_args)
+      ++(args_impl->num_param_files_args);
     } else if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "remap rule")
       ++(args_impl->num_remap_rules);
