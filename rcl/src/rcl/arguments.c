@@ -74,10 +74,16 @@ rcl_arguments_get_param_files(
     return RCL_RET_BAD_ALLOC;
   }
   for (int i = 0; i < arguments->impl->num_param_files_args; ++i) {
-    snprintf(
-      (*parameter_files)[i],
-      strlen(arguments->impl->parameter_files[i]),
-      "%s", arguments->impl->parameter_files[i]);
+    (*parameter_files)[i] = rcutils_strdup(arguments->impl->parameter_files[i], allocator);
+    if (NULL == *parameter_files) {
+      // deallocate allocated memory
+      for (int r = i; r >= 0; --r) {
+        allocator.deallocate((*parameter_files[i]), allocator.state);
+      }
+      allocator.deallocate((*parameter_files), allocator.state);
+      (*parameter_files) = NULL;
+      return RCL_RET_BAD_ALLOC;
+    }
   }
   return RCL_RET_OK;
 }
