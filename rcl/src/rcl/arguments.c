@@ -56,7 +56,7 @@ rcl_ret_t
 _rcl_parse_param_rule(
   const char * arg,
   rcl_allocator_t allocator,
-  char * output_rule);
+  char ** output_rule);
 
 rcl_ret_t
 rcl_arguments_get_param_files(
@@ -157,17 +157,10 @@ rcl_parse_arguments(
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "coucou2 : %d", i);
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
     *rule = rcl_remap_get_zero_initialized();
-    args_impl->parameter_files[args_impl->num_param_files_args] = allocator.allocate(sizeof(char) * (strlen(argv[i]) + 1), allocator.state);
-    if (NULL == args_impl->parameter_files[args_impl->num_param_files_args]) {
-      ret = RCL_RET_BAD_ALLOC;
-      goto fail;
-    }
-    // char * foobar = allocator.allocate(sizeof(char) * (strlen(argv[i]) + 1), allocator.state);
+    args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
     if (
       RCL_RET_OK == _rcl_parse_param_rule(
-        argv[i], allocator, args_impl->parameter_files[args_impl->num_param_files_args])
-      // RCL_RET_OK == _rcl_parse_param_rule(
-      //    argv[i], allocator, foobar)
+        argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args]))
     ) {
       ++(args_impl->num_param_files_args);
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME,
@@ -932,28 +925,20 @@ rcl_ret_t
 _rcl_parse_param_rule(
   const char * arg,
   rcl_allocator_t allocator,
-  char * output_rule)
+  char ** output_rule)
 {
-  RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "enter param parsing");
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
-  // RCL_CHECK_ARGUMENT_FOR_NULL(output_rule, RCL_RET_INVALID_ARGUMENT, allocator);
 
   const char * param_prefix = "__params:=";
   size_t param_prefix_len = strlen(param_prefix);
-  RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "looking for '%s' in '%s'", param_prefix, arg);
   if (strncmp(param_prefix, arg, param_prefix_len) == 0) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Found '%s' in '%s'", param_prefix, arg);
     size_t outlen = strlen(arg) - param_prefix_len;
-    // output_rule = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
+    *output_rule = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
     if (NULL == output_rule) {
       return RCL_RET_BAD_ALLOC;
     }
-    snprintf(output_rule, outlen + 1, "%s", arg + strlen("__params:="));
-    // memcpy(&output_rule, arg + param_prefix_len, outlen);
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Stripped param string: '%s'", output_rule);
+    snprintf(*output_rule, outlen + 1, "%s", arg + param_prefix_len);
     return RCL_RET_OK;
-  } else{
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Couldn't find '%s' in '%s'", param_prefix, arg);
   }
   return RCL_RET_INVALID_PARAM_RULE;
 }
