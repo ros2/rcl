@@ -147,14 +147,33 @@ rcl_arguments_get_param_files_count(
   const rcl_arguments_t * args);
 
 
+/// Return a list of yaml parameter file paths specified on the command line.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] arguments An arguments structure that has been parsed.
+ * \param[in] allocator A valid allocator.
+ * \param[out] parameter_files An allocated array of paramter file names.
+ *   This array must be deallocated by the caller using the given allocator.
+ *   The output is NULL if there were no paramter files.
+ * \return `RCL_RET_OK` if everything goes correctly, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_arguments_get_param_files(
   const rcl_arguments_t * arguments,
   rcl_allocator_t allocator,
-  char ** parameter_files);
-  // rcutils_string_array_t * parameter_files);
+  char *** parameter_files);
 
 /// Return a list of arguments with ROS-specific arguments removed.
 /**

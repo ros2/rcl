@@ -62,21 +62,20 @@ rcl_ret_t
 rcl_arguments_get_param_files(
   const rcl_arguments_t * arguments,
   rcl_allocator_t allocator,
-  // char ** parameter_files)
-  rcutils_string_array_t * parameter_files)
+  char *** parameter_files)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(parameter_files, RCL_RET_INVALID_ARGUMENT, allocator);
-  rcutils_ret_t ret = rcutils_string_array_init(
-    parameter_files, arguments->impl->num_param_files_args, &allocator);
-  if (ret != RCUTILS_RET_OK) {
+  *(parameter_files) = allocator.allocate(
+    sizeof(char *) * arguments->impl->num_param_files_args, allocator.state);
+  if (NULL == *parameter_files) {
     return RCL_RET_BAD_ALLOC;
   }
   for (int i = 0; i < arguments->impl->num_param_files_args; ++i) {
     snprintf(
-      parameter_files->data[i],
+      (*parameter_files)[i],
       strlen(arguments->impl->parameter_files[i]),
       "%s", arguments->impl->parameter_files[i]);
   }
