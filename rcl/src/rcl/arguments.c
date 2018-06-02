@@ -658,9 +658,18 @@ _rcl_parse_remap_namespace_replacement(
   ret = _rcl_parse_remap_fully_qualified_namespace(lex_lookahead);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_INVALID_REMAP_RULE == ret) {
+      // The name didn't start with a leading forward slash
       RCUTILS_LOG_WARN_NAMED(
         ROS_PACKAGE_NAME, "Namespace not remapped to a fully qualified name (found: %s)", ns_start);
     }
+    return ret;
+  }
+  // There should be nothing left
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_EOF, NULL, NULL);
+  if (RCL_RET_OK != ret) {
+    // The name must have started with a leading forward slash but had an otherwise invalid format
+    RCUTILS_LOG_WARN_NAMED(
+      ROS_PACKAGE_NAME, "Namespace not remapped to a fully qualified name (found: %s)", ns_start);
     return ret;
   }
 
