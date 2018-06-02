@@ -223,7 +223,8 @@ rcl_lexer_lookahead2_expect(
   }
   if (type != lexeme) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      buffer->impl->allocator, "Expected %d got %d at %lu", type, lexeme, buffer->impl->text_idx);
+      buffer->impl->allocator, "Expected lexeme type %d, got %d at index %lu", type, lexeme,
+      buffer->impl->text_idx);
     return RCL_RET_WRONG_LEXEME;
   }
   return rcl_lexer_lookahead2_accept(buffer, lexeme_text, lexeme_text_length);

@@ -110,7 +110,8 @@ rcl_parse_arguments(
     if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       ++(args_impl->num_remap_rules);
     } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d error '%s'", i, rcl_get_error_string());
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
+        rcl_get_error_string());
       rcl_reset_error();
       args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
       ++(args_impl->num_unparsed_args);
