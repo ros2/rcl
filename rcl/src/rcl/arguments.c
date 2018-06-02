@@ -104,7 +104,8 @@ rcl_parse_arguments(
   }
 
   // Attempt to parse arguments as remap rules
-  for (int i = 0; i < argc; ++i) {
+  // Start at index 1 because argv[0] represents the program name
+  for (int i = 1; i < argc; ++i) {
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
     *rule = rcl_remap_get_zero_initialized();
     if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
