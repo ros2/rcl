@@ -657,6 +657,10 @@ _rcl_parse_remap_namespace_replacement(
   }
   ret = _rcl_parse_remap_fully_qualified_namespace(lex_lookahead);
   if (RCL_RET_OK != ret) {
+    if (RCL_RET_INVALID_REMAP_RULE == ret) {
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME, "Namespace not remapped to a fully qualified name (found: %s)", ns_start);
+    }
     return ret;
   }
 
