@@ -224,7 +224,8 @@ rcl_lexer_lookahead2_expect(
   if (type != lexeme) {
     if (RCL_LEXEME_NONE == lexeme || RCL_LEXEME_EOF == lexeme) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        buffer->impl->allocator, "Expected lexeme type (%d) not found", type);
+        buffer->impl->allocator, "Expected lexeme type (%d) not found, search ended at index %lu",
+        type, buffer->impl->text_idx);
       return RCL_RET_WRONG_LEXEME;
     }
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
