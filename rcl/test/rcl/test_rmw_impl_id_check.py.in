@@ -2,8 +2,8 @@
 
 import os
 
-from launch import LaunchDescriptor
-from launch.launcher import DefaultLauncher
+from launch.legacy import LaunchDescriptor
+from launch.legacy.launcher import DefaultLauncher
 
 
 def launch_test(

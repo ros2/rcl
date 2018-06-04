@@ -1,9 +1,9 @@
 # generated from rcl/test/test_two_executables.py.in
 
-from launch import LaunchDescriptor
-from launch.exit_handler import ignore_signal_exit_handler
-from launch.exit_handler import primary_exit_handler
-from launch.launcher import DefaultLauncher
+from launch.legacy import LaunchDescriptor
+from launch.legacy.exit_handler import ignore_signal_exit_handler
+from launch.legacy.exit_handler import primary_exit_handler
+from launch.legacy.launcher import DefaultLauncher
 
 
 def @TEST_NAME@():
