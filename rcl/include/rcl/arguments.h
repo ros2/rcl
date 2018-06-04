@@ -20,8 +20,6 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-#include "rcutils/types.h"
-
 #ifdef __cplusplus
 extern "C"
 {
