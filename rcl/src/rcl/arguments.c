@@ -110,7 +110,8 @@ rcl_parse_arguments(
     if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       ++(args_impl->num_remap_rules);
     } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d error '%s'", i, rcl_get_error_string());
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
+        rcl_get_error_string());
       rcl_reset_error();
       args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
       ++(args_impl->num_unparsed_args);
@@ -656,6 +657,19 @@ _rcl_parse_remap_namespace_replacement(
   }
   ret = _rcl_parse_remap_fully_qualified_namespace(lex_lookahead);
   if (RCL_RET_OK != ret) {
+    if (RCL_RET_INVALID_REMAP_RULE == ret) {
+      // The name didn't start with a leading forward slash
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME, "Namespace not remapped to a fully qualified name (found: %s)", ns_start);
+    }
+    return ret;
+  }
+  // There should be nothing left
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_EOF, NULL, NULL);
+  if (RCL_RET_OK != ret) {
+    // The name must have started with a leading forward slash but had an otherwise invalid format
+    RCUTILS_LOG_WARN_NAMED(
+      ROS_PACKAGE_NAME, "Namespace not remapped to a fully qualified name (found: %s)", ns_start);
     return ret;
   }
 

@@ -30,7 +30,7 @@ extern "C"
 /// Type of lexeme found by lexical analysis.
 typedef enum rcl_lexeme_t
 {
-  /// Indicates no valid lexeme was found
+  /// Indicates no valid lexeme was found (end of input not reached)
   RCL_LEXEME_NONE = 0,
   /// Indicates end of input has been reached
   RCL_LEXEME_EOF = 1,
