@@ -346,6 +346,7 @@ rcl_arguments_copy(
   // Zero so it's safe to call rcl_arguments_fini() if an error occurrs while copying.
   args_out->impl->num_remap_rules = 0;
   args_out->impl->num_unparsed_args = 0;
+  args_out->impl->num_param_files_args = 0;
 
   // Copy unparsed args
   args_out->impl->unparsed_args = allocator.allocate(
@@ -381,6 +382,30 @@ rcl_arguments_copy(
       }
       return ret;
     }
+  }
+  // Copy parameter files
+  if (args->impl->num_param_files_args) {
+    args_out->impl->parameter_files = allocator.allocate(
+      sizeof(char *) * args->impl->num_param_files_args, allocator.state);
+    if (NULL == args_out->impl->parameter_files) {
+      if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+      }
+      return RCL_RET_BAD_ALLOC;
+    }
+    args_out->impl->num_param_files_args = args->impl->num_param_files_args;
+    for (int i = 0; i < args->impl->num_param_files_args; ++i) {
+      args_out->impl->parameter_files[i] =
+        rcutils_strdup(args->impl->parameter_files[i], allocator);
+      if (NULL == args_out->impl->parameter_files[i]) {
+        if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+          RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+        }
+        return RCL_RET_BAD_ALLOC;
+      }
+    }
+  } else {
+    args_out->impl->parameter_files = NULL;
   }
   return RCL_RET_OK;
 }
