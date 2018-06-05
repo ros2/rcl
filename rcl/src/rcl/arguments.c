@@ -164,8 +164,8 @@ rcl_parse_arguments(
     args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
     if (
       RCL_RET_OK == _rcl_parse_param_rule(
-        argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args]))
-    ) {
+        argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args])))
+    {
       ++(args_impl->num_param_files_args);
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
         "params rule : %s\n total num param rules %d",
