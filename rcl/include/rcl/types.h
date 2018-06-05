@@ -92,7 +92,7 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_INVALID_REMAP_RULE 1001
 /// Expected one type of lexeme but got another
 #define RCL_RET_WRONG_LEXEME 1002
-/// Argument is not a valid remap rule
+/// Argument is not a valid parameter rule
 #define RCL_RET_INVALID_PARAM_RULE 1010
 
 #endif  // RCL__TYPES_H_

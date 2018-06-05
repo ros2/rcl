@@ -157,10 +157,8 @@ rcl_parse_arguments(
     goto fail;
   }
 
-  RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "coucou1");
   // Attempt to parse arguments as remap rules
   for (int i = 0; i < argc; ++i) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "coucou2 : %d", i);
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
     *rule = rcl_remap_get_zero_initialized();
     args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
@@ -169,12 +167,11 @@ rcl_parse_arguments(
         argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args]))
     ) {
       ++(args_impl->num_param_files_args);
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
         "params rule : %s\n total num param rules %d",
         args_impl->parameter_files[args_impl->num_param_files_args - 1],
         args_impl->num_param_files_args)
     } else if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "remap rule")
       ++(args_impl->num_remap_rules);
     } else {
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
@@ -184,7 +181,6 @@ rcl_parse_arguments(
       ++(args_impl->num_unparsed_args);
     }
   }
-  RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "coucou3");
 
   // Shrink remap_rules array to match number of successfully parsed rules
   if (args_impl->num_remap_rules > 0) {
