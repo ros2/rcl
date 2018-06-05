@@ -942,7 +942,7 @@ _rcl_parse_param_rule(
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
 
   const char * param_prefix = "__params:=";
-  size_t param_prefix_len = strlen(param_prefix);
+  const size_t param_prefix_len = strlen(param_prefix);
   if (strncmp(param_prefix, arg, param_prefix_len) == 0) {
     size_t outlen = strlen(arg) - param_prefix_len;
     *output_rule = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
