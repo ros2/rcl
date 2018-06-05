@@ -51,6 +51,53 @@ _rcl_parse_remap_rule(
   rcl_allocator_t allocator,
   rcl_remap_t * output_rule);
 
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_param_rule(
+  const char * arg,
+  rcl_allocator_t allocator,
+  char ** output_rule);
+
+rcl_ret_t
+rcl_arguments_get_param_files(
+  const rcl_arguments_t * arguments,
+  rcl_allocator_t allocator,
+  char *** parameter_files)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_files, RCL_RET_INVALID_ARGUMENT, allocator);
+  *(parameter_files) = allocator.allocate(
+    sizeof(char *) * arguments->impl->num_param_files_args, allocator.state);
+  if (NULL == *parameter_files) {
+    return RCL_RET_BAD_ALLOC;
+  }
+  for (int i = 0; i < arguments->impl->num_param_files_args; ++i) {
+    (*parameter_files)[i] = rcutils_strdup(arguments->impl->parameter_files[i], allocator);
+    if (NULL == *parameter_files) {
+      // deallocate allocated memory
+      for (int r = i; r >= 0; --r) {
+        allocator.deallocate((*parameter_files[i]), allocator.state);
+      }
+      allocator.deallocate((*parameter_files), allocator.state);
+      (*parameter_files) = NULL;
+      return RCL_RET_BAD_ALLOC;
+    }
+  }
+  return RCL_RET_OK;
+}
+
+int
+rcl_arguments_get_param_files_count(
+  const rcl_arguments_t * args)
+{
+  if (NULL == args || NULL == args->impl) {
+    return -1;
+  }
+  return args->impl->num_param_files_args;
+}
+
 rcl_ret_t
 rcl_parse_arguments(
   int argc,
@@ -84,6 +131,8 @@ rcl_parse_arguments(
   args_impl->remap_rules = NULL;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
+  args_impl->parameter_files = NULL;
+  args_impl->num_param_files_args = 0;
   args_impl->allocator = allocator;
 
   if (argc == 0) {
@@ -102,12 +151,27 @@ rcl_parse_arguments(
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
+  args_impl->parameter_files = allocator.allocate(sizeof(char *) * argc, allocator.state);
+  if (NULL == args_impl->parameter_files) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
 
   // Attempt to parse arguments as remap rules
   for (int i = 0; i < argc; ++i) {
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
     *rule = rcl_remap_get_zero_initialized();
-    if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
+    args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
+    if (
+      RCL_RET_OK == _rcl_parse_param_rule(
+        argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args])))
+    {
+      ++(args_impl->num_param_files_args);
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "params rule : %s\n total num param rules %d",
+        args_impl->parameter_files[args_impl->num_param_files_args - 1],
+        args_impl->num_param_files_args)
+    } else if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       ++(args_impl->num_remap_rules);
     } else {
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
@@ -130,6 +194,18 @@ rcl_parse_arguments(
     // No remap rules
     allocator.deallocate(args_impl->remap_rules, allocator.state);
     args_impl->remap_rules = NULL;
+  }
+  // Shrink Parameter files
+  if (0 == args_impl->num_param_files_args) {
+    allocator.deallocate(args_impl->parameter_files, allocator.state);
+    args_impl->parameter_files = NULL;
+  } else if (args_impl->num_param_files_args < argc) {
+    args_impl->parameter_files = rcutils_reallocf(
+      args_impl->parameter_files, sizeof(char *) * args_impl->num_param_files_args, &allocator);
+    if (NULL == args_impl->parameter_files) {
+      ret = RCL_RET_BAD_ALLOC;
+      goto fail;
+    }
   }
   // Shrink unparsed_args
   if (0 == args_impl->num_unparsed_args) {
@@ -270,6 +346,7 @@ rcl_arguments_copy(
   // Zero so it's safe to call rcl_arguments_fini() if an error occurrs while copying.
   args_out->impl->num_remap_rules = 0;
   args_out->impl->num_unparsed_args = 0;
+  args_out->impl->num_param_files_args = 0;
 
   // Copy unparsed args
   args_out->impl->unparsed_args = allocator.allocate(
@@ -306,6 +383,30 @@ rcl_arguments_copy(
       return ret;
     }
   }
+  // Copy parameter files
+  if (args->impl->num_param_files_args) {
+    args_out->impl->parameter_files = allocator.allocate(
+      sizeof(char *) * args->impl->num_param_files_args, allocator.state);
+    if (NULL == args_out->impl->parameter_files) {
+      if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+      }
+      return RCL_RET_BAD_ALLOC;
+    }
+    args_out->impl->num_param_files_args = args->impl->num_param_files_args;
+    for (int i = 0; i < args->impl->num_param_files_args; ++i) {
+      args_out->impl->parameter_files[i] =
+        rcutils_strdup(args->impl->parameter_files[i], allocator);
+      if (NULL == args_out->impl->parameter_files[i]) {
+        if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+          RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+        }
+        return RCL_RET_BAD_ALLOC;
+      }
+    }
+  } else {
+    args_out->impl->parameter_files = NULL;
+  }
   return RCL_RET_OK;
 }
 
@@ -336,6 +437,16 @@ rcl_arguments_fini(
     args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
     args->impl->num_unparsed_args = 0;
     args->impl->unparsed_args = NULL;
+
+    if (args->impl->parameter_files) {
+      for (int p = 0; p < args->impl->num_param_files_args; ++p) {
+        args->impl->allocator.deallocate(
+          args->impl->parameter_files[p], args->impl->allocator.state);
+      }
+      args->impl->allocator.deallocate(args->impl->parameter_files, args->impl->allocator.state);
+      args->impl->num_param_files_args = 0;
+      args->impl->parameter_files = NULL;
+    }
 
     args->impl->allocator.deallocate(args->impl, args->impl->allocator.state);
     args->impl = NULL;
@@ -855,6 +966,28 @@ _rcl_parse_remap_rule(
     ret = rcl_lexer_lookahead2_fini(&lex_lookahead);
   }
   return ret;
+}
+
+rcl_ret_t
+_rcl_parse_param_rule(
+  const char * arg,
+  rcl_allocator_t allocator,
+  char ** output_rule)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  const char * param_prefix = "__params:=";
+  const size_t param_prefix_len = strlen(param_prefix);
+  if (strncmp(param_prefix, arg, param_prefix_len) == 0) {
+    size_t outlen = strlen(arg) - param_prefix_len;
+    *output_rule = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
+    if (NULL == output_rule) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    snprintf(*output_rule, outlen + 1, "%s", arg + param_prefix_len);
+    return RCL_RET_OK;
+  }
+  return RCL_RET_INVALID_PARAM_RULE;
 }
 
 #ifdef __cplusplus

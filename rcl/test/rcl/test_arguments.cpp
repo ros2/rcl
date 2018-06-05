@@ -100,6 +100,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_TRUE(is_valid_arg("rostopic://rostopic:=rosservice"));
   EXPECT_TRUE(is_valid_arg("rostopic:///rosservice:=rostopic"));
   EXPECT_TRUE(is_valid_arg("rostopic:///foo/bar:=baz"));
+  EXPECT_TRUE(is_valid_arg("__params:=node_name"));
 
   EXPECT_FALSE(is_valid_arg(":="));
   EXPECT_FALSE(is_valid_arg("foo:="));
@@ -117,6 +118,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_FALSE(is_valid_arg("foo:=/b}ar"));
   EXPECT_FALSE(is_valid_arg("rostopic://:=rosservice"));
   EXPECT_FALSE(is_valid_arg("rostopic::=rosservice"));
+  EXPECT_FALSE(is_valid_arg("__param:=node_name"));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
@@ -298,4 +300,75 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   if (NULL != nonros_argv) {
     alloc.deallocate(nonros_argv, alloc.state);
   }
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_zero) {
+  const char * argv[] = {"process_name", "__ns:=/namespace", "random:=arg"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_ret_t ret;
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
+  EXPECT_EQ(0, parameter_filecount);
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_single) {
+  const char * argv[] = {
+    "process_name", "__ns:=/namespace", "random:=arg", "__params:=parameter_filepath"
+  };
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_ret_t ret;
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
+  EXPECT_EQ(1, parameter_filecount);
+  char ** parameter_files = NULL;
+  ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_STREQ("parameter_filepath", parameter_files[0]);
+
+  for (int i = 0; i < parameter_filecount; ++i) {
+    alloc.deallocate(parameter_files[i], alloc.state);
+  }
+  alloc.deallocate(parameter_files, alloc.state);
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
+  const char * argv[] = {
+    "process_name", "__params:=parameter_filepath1", "__ns:=/namespace",
+    "random:=arg", "__params:=parameter_filepath2"
+  };
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_ret_t ret;
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
+  EXPECT_EQ(2, parameter_filecount);
+  char ** parameter_files = NULL;
+  ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_STREQ("parameter_filepath1", parameter_files[0]);
+  EXPECT_STREQ("parameter_filepath2", parameter_files[1]);
+  for (int i = 0; i < parameter_filecount; ++i) {
+    alloc.deallocate(parameter_files[i], alloc.state);
+  }
+  alloc.deallocate(parameter_files, alloc.state);
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
