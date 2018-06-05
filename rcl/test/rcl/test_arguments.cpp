@@ -301,3 +301,59 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
     alloc.deallocate(nonros_argv, alloc.state);
   }
 }
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_zero) {
+  const char * argv[] = {"process_name", "__ns:=/namespace", "random:=arg"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_ret_t ret;
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
+  EXPECT_EQ(0, parameter_filecount);
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_single) {
+  const char * argv[] = {"process_name", "__ns:=/namespace", "random:=arg", "__params:=parameter_filepath"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_ret_t ret;
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
+  EXPECT_EQ(1, parameter_filecount);
+  char ** parameter_files = NULL;
+  ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_STREQ("parameter_filepath", parameter_files[0]);
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
+  const char * argv[] = {
+    "process_name", "__params:=parameter_filepath1", "__ns:=/namespace",
+    "random:=arg", "__params:=parameter_filepath2"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_ret_t ret;
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
+  EXPECT_EQ(2, parameter_filecount);
+  char ** parameter_files = NULL;
+  ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_STREQ("parameter_filepath1", parameter_files[0]);
+  EXPECT_STREQ("parameter_filepath2", parameter_files[1]);
+}
