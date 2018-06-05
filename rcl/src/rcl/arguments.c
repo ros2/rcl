@@ -438,6 +438,16 @@ rcl_arguments_fini(
     args->impl->num_unparsed_args = 0;
     args->impl->unparsed_args = NULL;
 
+    if (args->impl->parameter_files) {
+      for (int p = 0; p < args->impl->num_param_files_args; ++p) {
+        args->impl->allocator.deallocate(
+          args->impl->parameter_files[p], args->impl->allocator.state);
+      }
+      args->impl->allocator.deallocate(args->impl->parameter_files, args->impl->allocator.state);
+      args->impl->num_param_files_args = 0;
+      args->impl->parameter_files = NULL;
+    }
+
     args->impl->allocator.deallocate(args->impl, args->impl->allocator.state);
     args->impl = NULL;
     return ret;
