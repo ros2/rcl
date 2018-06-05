@@ -195,6 +195,18 @@ rcl_parse_arguments(
     allocator.deallocate(args_impl->remap_rules, allocator.state);
     args_impl->remap_rules = NULL;
   }
+  // Shrink Parameter files
+  if (0 == args_impl->num_param_files_args) {
+    allocator.deallocate(args_impl->parameter_files, allocator.state);
+    args_impl->parameter_files = NULL;
+  } else if (args_impl->num_param_files_args < argc) {
+    args_impl->parameter_files = rcutils_reallocf(
+      args_impl->parameter_files, sizeof(char *) * args_impl->num_param_files_args, &allocator);
+    if (NULL == args_impl->parameter_files) {
+      ret = RCL_RET_BAD_ALLOC;
+      goto fail;
+    }
+  }
   // Shrink unparsed_args
   if (0 == args_impl->num_unparsed_args) {
     // No unparsed args
