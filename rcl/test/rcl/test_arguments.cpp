@@ -318,7 +318,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_single) {
-  const char * argv[] = {"process_name", "__ns:=/namespace", "random:=arg", "__params:=parameter_filepath"};
+  const char * argv[] = {
+    "process_name", "__ns:=/namespace", "random:=arg", "__params:=parameter_filepath"
+  };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret;
 
@@ -339,7 +341,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
   const char * argv[] = {
     "process_name", "__params:=parameter_filepath1", "__ns:=/namespace",
-    "random:=arg", "__params:=parameter_filepath2"};
+    "random:=arg", "__params:=parameter_filepath2"
+  };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret;
 
