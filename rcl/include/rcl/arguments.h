@@ -137,7 +137,20 @@ rcl_arguments_get_unparsed(
   rcl_allocator_t allocator,
   int ** output_unparsed_indices);
 
-
+/// Return the number of parameter yaml files given in the arguments.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] args An arguments structure that has been parsed.
+ * \return number of yaml files, or
+ * \return -1 if args is `NULL` or zero initialized.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 int
