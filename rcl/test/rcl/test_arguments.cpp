@@ -127,8 +127,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_TRUE(is_valid_arg("__log:=WARN"));
   EXPECT_TRUE(is_valid_arg("__log:=ERROR"));
   EXPECT_TRUE(is_valid_arg("__log:=FATAL"));
+  EXPECT_TRUE(is_valid_arg("__log:=debug"));
+  EXPECT_TRUE(is_valid_arg("__log:=Info"));
 
-  EXPECT_FALSE(is_valid_arg("__log:=Debug"));
   EXPECT_FALSE(is_valid_arg("__log:="));
   EXPECT_FALSE(is_valid_arg("__log:=foo"));
 }

@@ -22,6 +22,7 @@
 #include "rcl/lexer_lookahead.h"
 #include "rcl/validate_topic_name.h"
 #include "rcutils/allocator.h"
+#include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rmw/validate_namespace.h"
@@ -194,6 +195,7 @@ rcl_parse_arguments(
     } else {
       // Attempt to parse argument as log level configuration
       if (RCL_RET_OK == _rcl_parse_log_level(argv[i], allocator, &log_level)) {
+        // Set the log level immediately so it can take effect for the rest of the argument parsing.
         rcutils_logging_set_default_logger_level(log_level);
       } else {
         RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
@@ -965,25 +967,17 @@ _rcl_parse_log_level(
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT, allocator);
 
+  static const char LOG_ARG_RULE[] = "__log:=";
   const char * severity_string = arg;
-  int severity;
-  if (strcmp("__log:=DEBUG", severity_string) == 0) {
-    severity = RCUTILS_LOG_SEVERITY_DEBUG;
-  } else if (strcmp("__log:=INFO", severity_string) == 0) {
-    severity = RCUTILS_LOG_SEVERITY_INFO;
-  } else if (strcmp("__log:=WARN", severity_string) == 0) {
-    severity = RCUTILS_LOG_SEVERITY_WARN;
-  } else if (strcmp("__log:=ERROR", severity_string) == 0) {
-    severity = RCUTILS_LOG_SEVERITY_ERROR;
-  } else if (strcmp("__log:=FATAL", severity_string) == 0) {
-    severity = RCUTILS_LOG_SEVERITY_FATAL;
-  } else if (strcmp("__log:=UNSET", severity_string) == 0) {
-    severity = RCUTILS_LOG_SEVERITY_UNSET;
-  } else {
-    return RCL_INVALID_REMAP_RULE;
+  if (strncmp(LOG_ARG_RULE, severity_string, strlen(LOG_ARG_RULE)) != 0) {
+    return RCL_RET_INVALID_REMAP_RULE;
   }
-  *log_level = severity;
-  return RCL_RET_OK;
+  rcutils_ret_t ret = rcutils_logging_severity_level_from_string(
+    severity_string + strlen(LOG_ARG_RULE), allocator, log_level);
+  if (RCUTILS_RET_OK == ret) {
+    return RCL_RET_OK;
+  }
+  return RCL_RET_INVALID_REMAP_RULE;
 }
 
 
