@@ -98,6 +98,22 @@ rcl_arguments_get_param_files_count(
   return args->impl->num_param_files_args;
 }
 
+/// Parse an argument that may or may not be a remap rule.
+/// \param[in] arg the argument to parse
+/// \param[in] allocator an allocator to use
+/// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
+/// \return RCL_RET_OK if a valid rule was parsed, or
+/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
+/// \return RLC_RET_ERROR if an unspecified error occurred.
+/// \internal
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_log_level(
+  const char * arg,
+  rcl_allocator_t allocator,
+  int * log_level);
+
 rcl_ret_t
 rcl_parse_arguments(
   int argc,
@@ -157,8 +173,10 @@ rcl_parse_arguments(
     goto fail;
   }
 
+
   // Attempt to parse arguments as remap rules
   for (int i = 0; i < argc; ++i) {
+    int log_level;
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
     *rule = rcl_remap_get_zero_initialized();
     args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
@@ -174,11 +192,16 @@ rcl_parse_arguments(
     } else if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       ++(args_impl->num_remap_rules);
     } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
-        rcl_get_error_string());
+      // Attempt to parse argument as log level configuration
+      if (RCL_RET_OK == _rcl_parse_log_level(argv[i], allocator, &log_level)) {
+        rcutils_logging_set_default_logger_level(log_level);
+      } else {
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
+          rcl_get_error_string());
+        args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
+        ++(args_impl->num_unparsed_args);
+      }
       rcl_reset_error();
-      args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
-      ++(args_impl->num_unparsed_args);
     }
   }
 
@@ -932,6 +955,37 @@ _rcl_parse_remap_begin_remap_rule(
   }
   return ret;
 }
+
+rcl_ret_t
+_rcl_parse_log_level(
+  const char * arg,
+  rcl_allocator_t allocator,
+  int * log_level)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  const char * severity_string = arg;
+  int severity;
+  if (strcmp("__log:=DEBUG", severity_string) == 0) {
+    severity = RCUTILS_LOG_SEVERITY_DEBUG;
+  } else if (strcmp("__log:=INFO", severity_string) == 0) {
+    severity = RCUTILS_LOG_SEVERITY_INFO;
+  } else if (strcmp("__log:=WARN", severity_string) == 0) {
+    severity = RCUTILS_LOG_SEVERITY_WARN;
+  } else if (strcmp("__log:=ERROR", severity_string) == 0) {
+    severity = RCUTILS_LOG_SEVERITY_ERROR;
+  } else if (strcmp("__log:=FATAL", severity_string) == 0) {
+    severity = RCUTILS_LOG_SEVERITY_FATAL;
+  } else if (strcmp("__log:=UNSET", severity_string) == 0) {
+    severity = RCUTILS_LOG_SEVERITY_UNSET;
+  } else {
+    return RCL_RET_ERROR;
+  }
+  *log_level = severity;
+  return RCL_RET_OK;
+}
+
 
 rcl_ret_t
 _rcl_parse_remap_rule(
