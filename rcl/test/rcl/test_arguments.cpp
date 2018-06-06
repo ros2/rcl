@@ -119,6 +119,18 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_FALSE(is_valid_arg("rostopic://:=rosservice"));
   EXPECT_FALSE(is_valid_arg("rostopic::=rosservice"));
   EXPECT_FALSE(is_valid_arg("__param:=node_name"));
+
+  // Setting logger level
+  EXPECT_TRUE(is_valid_arg("__log:=UNSET"));
+  EXPECT_TRUE(is_valid_arg("__log:=DEBUG"));
+  EXPECT_TRUE(is_valid_arg("__log:=INFO"));
+  EXPECT_TRUE(is_valid_arg("__log:=WARN"));
+  EXPECT_TRUE(is_valid_arg("__log:=ERROR"));
+  EXPECT_TRUE(is_valid_arg("__log:=FATAL"));
+
+  EXPECT_FALSE(is_valid_arg("__log:=Debug"));
+  EXPECT_FALSE(is_valid_arg("__log:="));
+  EXPECT_FALSE(is_valid_arg("__log:=foo"));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
