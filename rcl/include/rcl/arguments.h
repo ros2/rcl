@@ -34,7 +34,8 @@ typedef struct rcl_arguments_t
   struct rcl_arguments_impl_t * impl;
 } rcl_arguments_t;
 
-static const char LOG_LEVEL_ARG_RULE[] = "__log:=";
+#define RCL_LOG_LEVEL_ARG_RULE "__log:="
+#define RCL_PARAM_FILE_ARG_RULE "__params:="
 
 /// Return a rcl_node_t struct with members initialized to `NULL`.
 RCL_PUBLIC

@@ -175,12 +175,8 @@ rcl_parse_arguments(
     goto fail;
   }
 
-
-  // Attempt to parse arguments as remap rules
   for (int i = 0; i < argc; ++i) {
-    int log_level;
-    rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
-    *rule = rcl_remap_get_zero_initialized();
+    // Attempt to parse argument as parameter file rule
     args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
     if (
       RCL_RET_OK == _rcl_parse_param_rule(
@@ -190,21 +186,39 @@ rcl_parse_arguments(
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
         "params rule : %s\n total num param rules %d",
         args_impl->parameter_files[args_impl->num_param_files_args - 1],
-        args_impl->num_param_files_args)
-    } else if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
-      ++(args_impl->num_remap_rules);
-    } else {
-      // Attempt to parse argument as log level configuration
-      if (RCL_RET_OK == _rcl_parse_log_level_rule(argv[i], allocator, &log_level)) {
-        args_impl->log_level = log_level;
-      } else {
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
-          rcl_get_error_string());
-        args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
-        ++(args_impl->num_unparsed_args);
-      }
-      rcl_reset_error();
+        args_impl->num_param_files_args);
+      continue;
     }
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      "Couldn't parse arg %d (%s) as parameter file rule. Error: %s", i, argv[i],
+      rcl_get_error_string());
+    rcl_reset_error();
+
+    // Attempt to parse argument as remap rule
+    rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
+    *rule = rcl_remap_get_zero_initialized();
+    if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
+      ++(args_impl->num_remap_rules);
+      continue;
+    }
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      "Couldn't parse arg %d (%s) as remap rule. Error: %s", i, argv[i], rcl_get_error_string());
+    rcl_reset_error();
+
+    // Attempt to parse argument as log level configuration
+    int log_level;
+    if (RCL_RET_OK == _rcl_parse_log_level_rule(argv[i], allocator, &log_level)) {
+      args_impl->log_level = log_level;
+      continue;
+    }
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      "Couldn't parse arg %d (%s) as log level rule. Error: %s", i, argv[i],
+      rcl_get_error_string());
+    rcl_reset_error();
+
+    // Argument wasn't parsed by any rule
+    args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
+    ++(args_impl->num_unparsed_args);
   }
 
   // Shrink remap_rules array to match number of successfully parsed rules
@@ -967,14 +981,16 @@ _rcl_parse_log_level_rule(
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT, allocator);
 
-  if (strncmp(LOG_LEVEL_ARG_RULE, arg, strlen(LOG_LEVEL_ARG_RULE)) != 0) {
+  if (strncmp(RCL_LOG_LEVEL_ARG_RULE, arg, strlen(RCL_LOG_LEVEL_ARG_RULE)) != 0) {
+    RCL_SET_ERROR_MSG("Argument does not start with '" RCL_LOG_LEVEL_ARG_RULE "'", allocator);
     return RCL_RET_INVALID_LOG_LEVEL_RULE;
   }
   rcutils_ret_t ret = rcutils_logging_severity_level_from_string(
-    arg + strlen(LOG_LEVEL_ARG_RULE), allocator, log_level);
+    arg + strlen(RCL_LOG_LEVEL_ARG_RULE), allocator, log_level);
   if (RCUTILS_RET_OK == ret) {
     return RCL_RET_OK;
   }
+  RCL_SET_ERROR_MSG("Argument does not use a valid severity level", allocator);
   return RCL_RET_INVALID_LOG_LEVEL_RULE;
 }
 
@@ -1022,17 +1038,18 @@ _rcl_parse_param_rule(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
 
-  const char * param_prefix = "__params:=";
-  const size_t param_prefix_len = strlen(param_prefix);
-  if (strncmp(param_prefix, arg, param_prefix_len) == 0) {
+  const size_t param_prefix_len = strlen(RCL_PARAM_FILE_ARG_RULE);
+  if (strncmp(RCL_PARAM_FILE_ARG_RULE, arg, param_prefix_len) == 0) {
     size_t outlen = strlen(arg) - param_prefix_len;
     *output_rule = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
     if (NULL == output_rule) {
+      RCL_SET_ERROR_MSG("Failed to allocate memory for parameters file path", allocator)
       return RCL_RET_BAD_ALLOC;
     }
     snprintf(*output_rule, outlen + 1, "%s", arg + param_prefix_len);
     return RCL_RET_OK;
   }
+  RCL_SET_ERROR_MSG("Argument does not start with '" RCL_PARAM_FILE_ARG_RULE "'", allocator);
   return RCL_RET_INVALID_PARAM_RULE;
 }
 
