@@ -52,12 +52,22 @@ _rcl_parse_remap_rule(
   rcl_allocator_t allocator,
   rcl_remap_t * output_rule);
 
+/// Parse an argument that may or may not be a parameter file rule.
+/// The syntax of the file name is not validated.
+/// \param[in] arg the argument to parse
+/// \param[in] allocator an allocator to use
+/// \param[in,out] param_file string that could be a parameter file name
+/// \return RCL_RET_OK if the rule was parsed correctly, or
+/// \return RCL_RET_INVALID_PARAM_RULE if the argument is not a valid rule, or
+/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
+/// \return RLC_RET_ERROR if an unspecified error occurred.
+/// \internal
 RCL_LOCAL
 rcl_ret_t
-_rcl_parse_param_rule(
+_rcl_parse_param_file_rule(
   const char * arg,
   rcl_allocator_t allocator,
-  char ** output_rule);
+  char ** param_file);
 
 rcl_ret_t
 rcl_arguments_get_param_files(
@@ -179,7 +189,7 @@ rcl_parse_arguments(
     // Attempt to parse argument as parameter file rule
     args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
     if (
-      RCL_RET_OK == _rcl_parse_param_rule(
+      RCL_RET_OK == _rcl_parse_param_file_rule(
         argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args])))
     {
       ++(args_impl->num_param_files_args);
@@ -1031,22 +1041,22 @@ _rcl_parse_remap_rule(
 }
 
 rcl_ret_t
-_rcl_parse_param_rule(
+_rcl_parse_param_file_rule(
   const char * arg,
   rcl_allocator_t allocator,
-  char ** output_rule)
+  char ** param_file)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
 
   const size_t param_prefix_len = strlen(RCL_PARAM_FILE_ARG_RULE);
   if (strncmp(RCL_PARAM_FILE_ARG_RULE, arg, param_prefix_len) == 0) {
     size_t outlen = strlen(arg) - param_prefix_len;
-    *output_rule = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
-    if (NULL == output_rule) {
+    *param_file = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
+    if (NULL == param_file) {
       RCL_SET_ERROR_MSG("Failed to allocate memory for parameters file path", allocator)
       return RCL_RET_BAD_ALLOC;
     }
-    snprintf(*output_rule, outlen + 1, "%s", arg + param_prefix_len);
+    snprintf(*param_file, outlen + 1, "%s", arg + param_prefix_len);
     return RCL_RET_OK;
   }
   RCL_SET_ERROR_MSG("Argument does not start with '" RCL_PARAM_FILE_ARG_RULE "'", allocator);
