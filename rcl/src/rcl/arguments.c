@@ -39,8 +39,8 @@ static rcl_arguments_t __rcl_global_arguments;
 /// Parse an argument that may or may not be a remap rule.
 /// \param[in] arg the argument to parse
 /// \param[in] allocator an allocator to use
-/// \param[in,out] log_level parsed log level represented by RCUTILS_LOG_SEVERITY enum
-/// \return RCL_RET_OK if a valid log level was parsed, or
+/// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
+/// \return RCL_RET_OK if a valid rule was parsed, or
 /// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
 /// \return RCL_RET_BAD_ALLOC if an allocation failed, or
 /// \return RLC_RET_ERROR if an unspecified error occurred.
@@ -109,10 +109,10 @@ rcl_arguments_get_param_files_count(
   return args->impl->num_param_files_args;
 }
 
-/// Parse an argument that may or may not be a remap rule.
+/// Parse an argument that may or may not be a log level rule.
 /// \param[in] arg the argument to parse
 /// \param[in] allocator an allocator to use
-/// \param[in,out] log_level parsed log level represented by RCUTILS_LOG_SEVERITY enum
+/// \param[in,out] log_level parsed log level represented by `RCUTILS_LOG_SEVERITY` enum
 /// \return RCL_RET_OK if a valid log level was parsed, or
 /// \return RCL_RET_INVALID_LOG_LEVEL_RULE if the argument is not a valid rule, or
 /// \return RCL_RET_BAD_ALLOC if an allocation failed, or
