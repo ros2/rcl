@@ -102,15 +102,15 @@ rcl_arguments_get_param_files_count(
 /// Parse an argument that may or may not be a remap rule.
 /// \param[in] arg the argument to parse
 /// \param[in] allocator an allocator to use
-/// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
-/// \return RCL_RET_OK if a valid rule was parsed, or
-/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+/// \param[in,out] log_level parsed log level represented by RCUTILS_LOG_SEVERITY enum
+/// \return RCL_RET_OK if a valid log level was parsed, or
+/// \return RCL_RET_INVALID_LOG_LEVEL_RULE if the argument is not a valid rule, or
 /// \return RCL_RET_BAD_ALLOC if an allocation failed, or
 /// \return RLC_RET_ERROR if an unspecified error occurred.
 /// \internal
 RCL_LOCAL
 rcl_ret_t
-_rcl_parse_log_level(
+_rcl_parse_log_level_rule(
   const char * arg,
   rcl_allocator_t allocator,
   int * log_level);
@@ -195,7 +195,7 @@ rcl_parse_arguments(
       ++(args_impl->num_remap_rules);
     } else {
       // Attempt to parse argument as log level configuration
-      if (RCL_RET_OK == _rcl_parse_log_level(argv[i], allocator, &log_level)) {
+      if (RCL_RET_OK == _rcl_parse_log_level_rule(argv[i], allocator, &log_level)) {
         args_impl->log_level = log_level;
       } else {
         RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
@@ -959,7 +959,7 @@ _rcl_parse_remap_begin_remap_rule(
 }
 
 rcl_ret_t
-_rcl_parse_log_level(
+_rcl_parse_log_level_rule(
   const char * severity_string,
   rcl_allocator_t allocator,
   int * log_level)
