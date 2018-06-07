@@ -94,5 +94,7 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_WRONG_LEXEME 1002
 /// Argument is not a valid parameter rule
 #define RCL_RET_INVALID_PARAM_RULE 1010
+/// Argument is not a valid log level rule
+#define RCL_RET_INVALID_LOG_LEVEL_RULE 1020
 
 #endif  // RCL__TYPES_H_

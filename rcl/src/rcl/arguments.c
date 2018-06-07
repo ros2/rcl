@@ -960,24 +960,22 @@ _rcl_parse_remap_begin_remap_rule(
 
 rcl_ret_t
 _rcl_parse_log_level(
-  const char * arg,
+  const char * severity_string,
   rcl_allocator_t allocator,
   int * log_level)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(severity_string, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT, allocator);
 
-  static const char LOG_ARG_RULE[] = "__log:=";
-  const char * severity_string = arg;
-  if (strncmp(LOG_ARG_RULE, severity_string, strlen(LOG_ARG_RULE)) != 0) {
-    return RCL_RET_INVALID_REMAP_RULE;
+  if (strncmp(LOG_LEVEL_ARG_RULE, severity_string, strlen(LOG_LEVEL_ARG_RULE)) != 0) {
+    return RCL_RET_INVALID_LOG_LEVEL_RULE;
   }
   rcutils_ret_t ret = rcutils_logging_severity_level_from_string(
-    severity_string + strlen(LOG_ARG_RULE), allocator, log_level);
+    severity_string + strlen(LOG_LEVEL_ARG_RULE), allocator, log_level);
   if (RCUTILS_RET_OK == ret) {
     return RCL_RET_OK;
   }
-  return RCL_RET_INVALID_REMAP_RULE;
+  return RCL_RET_INVALID_LOG_LEVEL_RULE;
 }
 
 
