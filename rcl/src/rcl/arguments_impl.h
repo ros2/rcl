@@ -42,6 +42,9 @@ typedef struct rcl_arguments_impl_t
   /// Length of remap_rules.
   int num_remap_rules;
 
+  /// Default log level (represented by `RCUTILS_LOG_SEVERITY` enum or -1 if not specified.
+  int log_level;
+
   /// Allocator used to allocate objects in this struct
   rcl_allocator_t allocator;
 } rcl_arguments_impl_t;

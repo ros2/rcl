@@ -146,6 +146,7 @@ rcl_parse_arguments(
   rcl_arguments_impl_t * args_impl = args_output->impl;
   args_impl->num_remap_rules = 0;
   args_impl->remap_rules = NULL;
+  args_impl->log_level = -1;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
   args_impl->parameter_files = NULL;
@@ -195,8 +196,7 @@ rcl_parse_arguments(
     } else {
       // Attempt to parse argument as log level configuration
       if (RCL_RET_OK == _rcl_parse_log_level(argv[i], allocator, &log_level)) {
-        // Set the log level immediately so it can take effect for the rest of the argument parsing.
-        rcutils_logging_set_default_logger_level(log_level);
+        args_impl->log_level = log_level;
       } else {
         RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
           rcl_get_error_string());
