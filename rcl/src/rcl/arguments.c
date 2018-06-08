@@ -22,6 +22,7 @@
 #include "rcl/lexer_lookahead.h"
 #include "rcl/validate_topic_name.h"
 #include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
@@ -1053,7 +1054,7 @@ _rcl_parse_param_file_rule(
     size_t outlen = strlen(arg) - param_prefix_len;
     *param_file = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
     if (NULL == param_file) {
-      RCL_SET_ERROR_MSG("Failed to allocate memory for parameters file path", allocator)
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to allocate memory for parameters file path\n");
       return RCL_RET_BAD_ALLOC;
     }
     snprintf(*param_file, outlen + 1, "%s", arg + param_prefix_len);
