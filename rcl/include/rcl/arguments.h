@@ -56,7 +56,7 @@ rcl_get_zero_initialized_arguments(void);
  * If given arguments `{"__ns:=/foo", "__ns:=/bar"}` then the namespace used by nodes in this
  * process will be `/foo` and not `/bar`.
  *
- * The default log level will be parsed as `__log:=level`, where `level` is a name representing
+ * The default log level will be parsed as `__log_level:=level`, where `level` is a name representing
  * one of the log levels in the `RCUTILS_LOG_SEVERITY` enum, e.g. `info`, `debug`, `warn`, not case
  * sensitive.
  *
