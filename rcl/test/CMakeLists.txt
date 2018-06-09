@@ -72,7 +72,7 @@ function(test_target_function)
     SRCS rcl/test_lexer.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -81,7 +81,7 @@ function(test_target_function)
     INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
+    LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
