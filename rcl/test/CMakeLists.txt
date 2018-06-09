@@ -70,7 +70,7 @@ function(test_target_function)
 
   rcl_add_custom_gtest(test_lexer${target_suffix}
     SRCS rcl/test_lexer.cpp
-    ENV ${extra_test_env}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
@@ -79,7 +79,7 @@ function(test_target_function)
   rcl_add_custom_gtest(test_lexer_lookahead${target_suffix}
     SRCS rcl/test_lexer_lookahead.cpp
     INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
-    ENV ${extra_test_env}
+    ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} ${extra_test_libraries}
     AMENT_DEPENDENCIES ${rmw_implementation}
