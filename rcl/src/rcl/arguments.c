@@ -38,14 +38,16 @@ extern "C"
 static rcl_arguments_t __rcl_global_arguments;
 
 /// Parse an argument that may or may not be a remap rule.
-/// \param[in] arg the argument to parse
-/// \param[in] allocator an allocator to use
-/// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
-/// \return RCL_RET_OK if a valid rule was parsed, or
-/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
-/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
-/// \return RLC_RET_ERROR if an unspecified error occurred.
-/// \internal
+/**
+ * \param[in] arg the argument to parse
+ * \param[in] allocator an allocator to use
+ * \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
+ * \return RCL_RET_OK if a valid rule was parsed, or
+ * \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_rule(
@@ -54,15 +56,17 @@ _rcl_parse_remap_rule(
   rcl_remap_t * output_rule);
 
 /// Parse an argument that may or may not be a parameter file rule.
-/// The syntax of the file name is not validated.
-/// \param[in] arg the argument to parse
-/// \param[in] allocator an allocator to use
-/// \param[in,out] param_file string that could be a parameter file name
-/// \return RCL_RET_OK if the rule was parsed correctly, or
-/// \return RCL_RET_INVALID_PARAM_RULE if the argument is not a valid rule, or
-/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
-/// \return RLC_RET_ERROR if an unspecified error occurred.
-/// \internal
+/**
+ * The syntax of the file name is not validated.
+ * \param[in] arg the argument to parse
+ * \param[in] allocator an allocator to use
+ * \param[in,out] param_file string that could be a parameter file name
+ * \return RCL_RET_OK if the rule was parsed correctly, or
+ * \return RCL_RET_INVALID_PARAM_RULE if the argument is not a valid rule, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_param_file_rule(
@@ -111,14 +115,16 @@ rcl_arguments_get_param_files_count(
 }
 
 /// Parse an argument that may or may not be a log level rule.
-/// \param[in] arg the argument to parse
-/// \param[in] allocator an allocator to use
-/// \param[in,out] log_level parsed log level represented by `RCUTILS_LOG_SEVERITY` enum
-/// \return RCL_RET_OK if a valid log level was parsed, or
-/// \return RCL_RET_INVALID_LOG_LEVEL_RULE if the argument is not a valid rule, or
-/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
-/// \return RLC_RET_ERROR if an unspecified error occurred.
-/// \internal
+/**
+ * \param[in] arg the argument to parse
+ * \param[in] allocator an allocator to use
+ * \param[in,out] log_level parsed log level represented by `RCUTILS_LOG_SEVERITY` enum
+ * \return RCL_RET_OK if a valid log level was parsed, or
+ * \return RCL_RET_INVALID_LOG_LEVEL_RULE if the argument is not a valid rule, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_log_level_rule(
@@ -515,8 +521,10 @@ rcl_get_global_arguments()
 }
 
 /// Parses a fully qualified namespace for a namespace replacement rule (ex: `/foo/bar`)
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_fully_qualified_namespace(
@@ -547,8 +555,10 @@ _rcl_parse_remap_fully_qualified_namespace(
 }
 
 /// Parse either a token or a backreference (ex: `bar`, or `\7`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_replacement_token(
@@ -580,8 +590,10 @@ _rcl_parse_remap_replacement_token(
 }
 
 /// Parse the replacement side of a name remapping rule (ex: `bar/\1/foo`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_replacement_name(
@@ -646,8 +658,10 @@ _rcl_parse_remap_replacement_name(
 }
 
 /// Parse either a token or a wildcard (ex: `foobar`, or `*`, or `**`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_match_token(
@@ -679,8 +693,10 @@ _rcl_parse_remap_match_token(
 }
 
 /// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_match_name(
@@ -762,8 +778,10 @@ _rcl_parse_remap_match_name(
 }
 
 /// Parse a name remapping rule (ex: `rostopic:///foo:=bar`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_name_remap(
@@ -791,8 +809,10 @@ _rcl_parse_remap_name_remap(
 }
 
 /// Parse a namespace replacement rule (ex: `__ns:=/new/ns`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_namespace_replacement(
@@ -848,8 +868,10 @@ _rcl_parse_remap_namespace_replacement(
 }
 
 /// Parse a nodename replacement rule (ex: `__node:=new_name`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_nodename_replacement(
@@ -890,8 +912,10 @@ _rcl_parse_remap_nodename_replacement(
 }
 
 /// Parse a nodename prefix including trailing colon (ex: `node_name:`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_nodename_prefix(
@@ -923,13 +947,15 @@ _rcl_parse_remap_nodename_prefix(
 }
 
 /// Start recursive descent parsing of a remap rule.
-/// \param[in] lex_lookahead a lookahead(2) buffer for the parser to use.
-/// \param[in,out] rule input a zero intialized rule, output a fully initialized one.
-/// \return RCL_RET_OK if a valid rule was parsed, or
-/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
-/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
-/// \return RLC_RET_ERROR if an unspecified error occurred.
-/// \internal
+/**
+ * \param[in] lex_lookahead a lookahead(2) buffer for the parser to use.
+ * \param[in,out] rule input a zero intialized rule, output a fully initialized one.
+ * \return RCL_RET_OK if a valid rule was parsed, or
+ * \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ * \internal
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_begin_remap_rule(
