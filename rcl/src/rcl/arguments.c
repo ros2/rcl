@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// \cond INTERNAL  // Internal Doxygen documentation
+
 #include "rcl/arguments.h"
 
 #include <string.h>
@@ -46,7 +48,6 @@ static rcl_arguments_t __rcl_global_arguments;
  * \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
  * \return RCL_RET_BAD_ALLOC if an allocation failed, or
  * \return RLC_RET_ERROR if an unspecified error occurred.
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -65,7 +66,6 @@ _rcl_parse_remap_rule(
  * \return RCL_RET_INVALID_PARAM_RULE if the argument is not a valid rule, or
  * \return RCL_RET_BAD_ALLOC if an allocation failed, or
  * \return RLC_RET_ERROR if an unspecified error occurred.
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -123,7 +123,6 @@ rcl_arguments_get_param_files_count(
  * \return RCL_RET_INVALID_LOG_LEVEL_RULE if the argument is not a valid rule, or
  * \return RCL_RET_BAD_ALLOC if an allocation failed, or
  * \return RLC_RET_ERROR if an unspecified error occurred.
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -523,7 +522,6 @@ rcl_get_global_arguments()
 /// Parses a fully qualified namespace for a namespace replacement rule (ex: `/foo/bar`)
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -557,7 +555,6 @@ _rcl_parse_remap_fully_qualified_namespace(
 /// Parse either a token or a backreference (ex: `bar`, or `\7`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -592,7 +589,6 @@ _rcl_parse_remap_replacement_token(
 /// Parse the replacement side of a name remapping rule (ex: `bar/\1/foo`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -660,7 +656,6 @@ _rcl_parse_remap_replacement_name(
 /// Parse either a token or a wildcard (ex: `foobar`, or `*`, or `**`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -695,7 +690,6 @@ _rcl_parse_remap_match_token(
 /// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -780,7 +774,6 @@ _rcl_parse_remap_match_name(
 /// Parse a name remapping rule (ex: `rostopic:///foo:=bar`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -811,7 +804,6 @@ _rcl_parse_remap_name_remap(
 /// Parse a namespace replacement rule (ex: `__ns:=/new/ns`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -870,7 +862,6 @@ _rcl_parse_remap_namespace_replacement(
 /// Parse a nodename replacement rule (ex: `__node:=new_name`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -914,7 +905,6 @@ _rcl_parse_remap_nodename_replacement(
 /// Parse a nodename prefix including trailing colon (ex: `node_name:`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -954,7 +944,6 @@ _rcl_parse_remap_nodename_prefix(
  * \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
  * \return RCL_RET_BAD_ALLOC if an allocation failed, or
  * \return RLC_RET_ERROR if an unspecified error occurred.
- * \internal
  */
 RCL_LOCAL
 rcl_ret_t
@@ -1093,3 +1082,5 @@ _rcl_parse_param_file_rule(
 #ifdef __cplusplus
 }
 #endif
+
+/// \endcond  // Internal Doxygen documentation
