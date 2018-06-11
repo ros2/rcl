@@ -9,7 +9,7 @@ find_package(rmw_implementation_cmake REQUIRED)
 find_package(osrf_testing_tools_cpp REQUIRED)
 
 get_target_property(memory_tools_ld_preload_env_var
-    osrf_testing_tools_cpp::memory_tools LIBRARY_PRELOAD_ENVIRONMENT_VARIABLE)
+  osrf_testing_tools_cpp::memory_tools LIBRARY_PRELOAD_ENVIRONMENT_VARIABLE)
 
 include(cmake/rcl_add_custom_executable.cmake)
 include(cmake/rcl_add_custom_gtest.cmake)
