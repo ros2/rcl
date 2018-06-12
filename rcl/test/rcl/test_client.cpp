@@ -21,8 +21,8 @@
 #include "example_interfaces/srv/add_two_ints.h"
 #include "rosidl_generator_c/string_functions.h"
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "./failing_allocator_functions.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
 class TestClientFixture : public ::testing::Test
@@ -31,7 +31,6 @@ public:
   rcl_node_t * node_ptr;
   void SetUp()
   {
-    stop_memory_checking();
     rcl_ret_t ret;
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -41,21 +40,10 @@ public:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -67,7 +55,6 @@ public:
 /* Basic nominal test of a client.
  */
 TEST_F(TestClientFixture, test_client_nominal) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_client_t client = rcl_get_zero_initialized_client();
 
@@ -84,12 +71,10 @@ TEST_F(TestClientFixture, test_client_nominal) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_EQ(strcmp(rcl_client_get_service_name(&client), expected_topic_name), 0);
 
-  auto client_exit = make_scope_exit(
-    [&client, this]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   // Initialize the client request.
   example_interfaces__srv__AddTwoInts_Request req;
@@ -108,7 +93,6 @@ TEST_F(TestClientFixture, test_client_nominal) {
 /* Testing the client init and fini functions.
  */
 TEST_F(TestClientFixture, test_client_init_fini) {
-  stop_memory_checking();
   rcl_ret_t ret;
   // Setup valid inputs.
   rcl_client_t client;
@@ -197,7 +181,6 @@ TEST_F(TestClientFixture, test_client_init_fini) {
   rcl_client_options_t client_options_with_failing_allocator;
   client_options_with_failing_allocator = rcl_client_get_default_options();
   client_options_with_failing_allocator.allocator.allocate = failing_malloc;
-  client_options_with_failing_allocator.allocator.deallocate = failing_free;
   client_options_with_failing_allocator.allocator.reallocate = failing_realloc;
   ret = rcl_client_init(
     &client, this->node_ptr, ts, topic_name, &client_options_with_failing_allocator);

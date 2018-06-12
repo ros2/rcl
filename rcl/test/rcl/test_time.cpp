@@ -19,10 +19,9 @@
 #include <chrono>
 #include <thread>
 
+#include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/time.h"
-
-#include "../memory_tools/memory_tools.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -31,37 +30,37 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_realloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_calloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_free;
+
 class CLASSNAME (TestTimeFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
   {
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
+    osrf_testing_tools_cpp::memory_tools::initialize();
+    on_unexpected_malloc([]() {ADD_FAILURE() << "UNEXPECTED MALLOC";});
+    on_unexpected_realloc([]() {ADD_FAILURE() << "UNEXPECTED REALLOC";});
+    on_unexpected_calloc([]() {ADD_FAILURE() << "UNEXPECTED CALLOC";});
+    on_unexpected_free([]() {ADD_FAILURE() << "UNEXPECTED FREE";});
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
+    osrf_testing_tools_cpp::memory_tools::uninitialize();
   }
 };
 
 // Tests the rcl_set_ros_time_override() function.
 TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_override) {
+  osrf_testing_tools_cpp::memory_tools::enable_monitoring_in_all_threads();
   rcl_clock_t ros_clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t retval = rcl_ros_clock_init(&ros_clock, &allocator);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
 
-  assert_no_realloc_begin();
   rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
   ret = rcl_set_ros_time_override(nullptr, 0);
@@ -82,14 +81,10 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   ret = rcl_is_enabled_ros_time_override(&ros_clock, &is_enabled);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_EQ(is_enabled, false);
-  assert_no_malloc_begin();
-  assert_no_free_begin();
-  // Check for normal operation (not allowed to alloc).
-  ret = rcl_clock_get_now(&ros_clock, &query_now);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    // Check for normal operation (not allowed to alloc).
+    ret = rcl_clock_get_now(&ros_clock, &query_now);
+  });
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_NE(query_now.nanoseconds, 0u);
   // Compare to std::chrono::system_clock time (within a second).

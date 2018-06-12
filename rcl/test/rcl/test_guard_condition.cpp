@@ -19,8 +19,9 @@
 #include "rcl/rcl.h"
 #include "rcl/guard_condition.h"
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "./failing_allocator_functions.hpp"
+#include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -30,26 +31,26 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_realloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_calloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_free;
+
 class CLASSNAME (TestGuardConditionFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
   {
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
+    osrf_testing_tools_cpp::memory_tools::initialize();
+    on_unexpected_malloc([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
+    on_unexpected_realloc([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
+    on_unexpected_calloc([]() {ASSERT_FALSE(true) << "UNEXPECTED CALLOC";});
+    on_unexpected_free([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
+    osrf_testing_tools_cpp::memory_tools::uninitialize();
   }
 };
 
@@ -57,19 +58,19 @@ public:
  */
 TEST_F(
   CLASSNAME(TestGuardConditionFixture, RMW_IMPLEMENTATION), test_rcl_guard_condition_accessors) {
-  stop_memory_checking();
+  osrf_testing_tools_cpp::memory_tools::enable_monitoring_in_all_threads();
+
   rcl_ret_t ret;
 
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
   // Setup automatic rcl_shutdown()
-  auto rcl_shutdown_exit = make_scope_exit(
-    []() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_shutdown();
-      ASSERT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    rcl_ret_t ret = rcl_shutdown();
+    ASSERT_EQ(RCL_RET_OK, ret);
+  });
 
   // Create a zero initialized guard_condition (but not initialized).
   rcl_guard_condition_t zero_guard_condition = rcl_get_zero_initialized_guard_condition();
@@ -80,12 +81,11 @@ TEST_F(
   ret = rcl_guard_condition_init(&guard_condition, default_options);
   ASSERT_EQ(RCL_RET_OK, ret);
   // Setup automatic finalization of guard condition.
-  auto rcl_guard_condition_exit = make_scope_exit(
-    [&guard_condition]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_guard_condition_fini(&guard_condition);
-      EXPECT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_condition);
+    EXPECT_EQ(RCL_RET_OK, ret);
+  });
 
   // Test rcl_guard_condition_get_options().
   const rcl_guard_condition_options_t * actual_options;
@@ -95,15 +95,9 @@ TEST_F(
   actual_options = rcl_guard_condition_get_options(&zero_guard_condition);
   EXPECT_EQ(nullptr, actual_options);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  actual_options = rcl_guard_condition_get_options(&guard_condition);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    actual_options = rcl_guard_condition_get_options(&guard_condition);
+  });
   EXPECT_NE(nullptr, actual_options);
   if (actual_options) {
     EXPECT_EQ(default_options.allocator.allocate, actual_options->allocator.allocate);
@@ -116,15 +110,9 @@ TEST_F(
   gc_handle = rcl_guard_condition_get_rmw_handle(&zero_guard_condition);
   EXPECT_EQ(nullptr, gc_handle);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  gc_handle = rcl_guard_condition_get_rmw_handle(&guard_condition);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    gc_handle = rcl_guard_condition_get_rmw_handle(&guard_condition);
+  });
   EXPECT_NE(nullptr, gc_handle);
 }
 
@@ -132,7 +120,6 @@ TEST_F(
  */
 TEST_F(
   CLASSNAME(TestGuardConditionFixture, RMW_IMPLEMENTATION), test_rcl_guard_condition_life_cycle) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
   rcl_guard_condition_options_t default_options = rcl_guard_condition_get_default_options();
@@ -144,11 +131,10 @@ TEST_F(
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit(
-    []() {
-      rcl_ret_t ret = rcl_shutdown();
-      ASSERT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_shutdown();
+    ASSERT_EQ(RCL_RET_OK, ret);
+  });
   // Try invalid arguments.
   ret = rcl_guard_condition_init(nullptr, default_options);
   ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
@@ -168,8 +154,8 @@ TEST_F(
   rcl_guard_condition_options_t options_with_failing_allocator =
     rcl_guard_condition_get_default_options();
   options_with_failing_allocator.allocator.allocate = failing_malloc;
-  options_with_failing_allocator.allocator.deallocate = failing_free;
   options_with_failing_allocator.allocator.reallocate = failing_realloc;
+  options_with_failing_allocator.allocator.zero_allocate = failing_calloc;
   ret = rcl_guard_condition_init(&guard_condition, options_with_failing_allocator);
   ASSERT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
   // The error will not be set because the allocator will not work.

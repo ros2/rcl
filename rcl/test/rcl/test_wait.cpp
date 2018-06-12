@@ -22,9 +22,9 @@
 
 #include "gtest/gtest.h"
 
-#include "../scope_exit.hpp"
-#include "rcl/rcl.h"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rcl/rcl.h"
 #include "rcl/wait.h"
 
 #include "rcutils/logging_macros.h"
@@ -109,15 +109,14 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   ret = rcl_wait_set_add_timer(&wait_set, &timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit(
-    [&guard_cond, &wait_set, &timer]() {
-      rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      ret = rcl_wait_set_fini(&wait_set);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      ret = rcl_timer_fini(&timer);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   int64_t timeout = -1;
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
@@ -143,13 +142,12 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
   ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit(
-    [&guard_cond, &wait_set]() {
-      rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      ret = rcl_wait_set_fini(&wait_set);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   // Time spent during wait should be negligible.
   int64_t timeout = 0;
@@ -176,15 +174,14 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_triggered
   ret = rcl_trigger_guard_condition(&guard_cond);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit(
-    [&guard_cond, &wait_set]() {
-      rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      ret = rcl_wait_set_fini(&wait_set);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
-  // Time spent during wait should be negligible.
+// Time spent during wait should be negligible.
   int64_t timeout = 0;
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
   ret = rcl_wait(&wait_set, timeout);
@@ -216,15 +213,14 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   ret = rcl_wait_set_add_timer(&wait_set, &canceled_timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit(
-    [&guard_cond, &wait_set, &canceled_timer]() {
-      rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      ret = rcl_wait_set_fini(&wait_set);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      ret = rcl_timer_fini(&canceled_timer);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_timer_fini(&canceled_timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   int64_t timeout = RCL_MS_TO_NS(10);
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
@@ -265,11 +261,12 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     size_t thread_id;
   };
   std::vector<TestSet> test_sets(number_of_threads);
+  // *INDENT-OFF* (prevent uncrustify from making unnecessary whitespace around [=])
   // Setup common function for waiting on the triggered guard conditions.
   auto wait_func_factory =
-    [count_target, retry_limit, wait_period](TestSet & test_set) {
+    [=](TestSet & test_set) {
       return
-        [&test_set, count_target, retry_limit, wait_period]() {
+        [=, &test_set]() {
           while (test_set.wake_count < count_target) {
             bool change_detected = false;
             size_t wake_try_count = 0;
@@ -309,6 +306,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
           }
         };
     };
+  // *INDENT-ON*
   // Setup each test set.
   for (auto & test_set : test_sets) {
     rcl_ret_t ret;
@@ -328,15 +326,14 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     test_set.thread_id = 0;
   }
   // Setup safe tear-down.
-  auto scope_exit = make_scope_exit(
-    [&test_sets]() {
-      for (auto & test_set : test_sets) {
-        rcl_ret_t ret = rcl_guard_condition_fini(&test_set.guard_condition);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-        ret = rcl_wait_set_fini(&test_set.wait_set);
-        EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      }
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    for (auto & test_set : test_sets) {
+      rcl_ret_t ret = rcl_guard_condition_fini(&test_set.guard_condition);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      ret = rcl_wait_set_fini(&test_set.wait_set);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    }
+  });
   // Now kick off all the threads.
   size_t thread_enumeration = 0;
   for (auto & test_set : test_sets) {
@@ -345,8 +342,9 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     test_set.thread = std::thread(wait_func_factory(test_set));
   }
   // Loop, triggering every trigger_period until the threads are done.
+  // *INDENT-OFF* (prevent uncrustify from making unnecessary whitespace around [=])
   auto loop_test =
-    [&test_sets, count_target]() -> bool {
+    [=, &test_sets]() -> bool {
       for (const auto & test_set : test_sets) {
         if (test_set.wake_count.load() < count_target) {
           return true;
@@ -354,6 +352,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
       }
       return false;
     };
+  // *INDENT-ON*
   size_t loop_count = 0;
   while (loop_test()) {
     loop_count++;
@@ -385,13 +384,12 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-  auto scope_exit = make_scope_exit(
-    [&wait_set, &guard_cond]() {
-      rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-      ret = rcl_guard_condition_fini(&guard_cond);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ret = rcl_guard_condition_fini(&guard_cond);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   std::promise<rcl_ret_t> p;
 

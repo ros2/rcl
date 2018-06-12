@@ -14,14 +14,16 @@
 
 #include <gtest/gtest.h>
 
+#include <regex>
 #include <string>
 
 #include "rcl/rcl.h"
 #include "rcl/node.h"
 #include "rmw/rmw.h"  // For rmw_get_implementation_identifier.
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "./failing_allocator_functions.hpp"
+#include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -31,26 +33,42 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_realloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_calloc;
+using osrf_testing_tools_cpp::memory_tools::on_unexpected_free;
+
 class CLASSNAME (TestNodeFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
   {
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
+    auto common =
+      [](auto service, const char * name) {
+        // only fail if call originated in our library, librcl.<something>
+        std::regex pattern("/?librcl\\.");
+        auto st = service.get_stack_trace();  // nullptr if stack trace not available
+        if (st && st->matches_any_object_filename(pattern)) {
+          // Implicitly this means if one of the rmw implementations uses threads
+          // and does memory allocations in them, but the calls didn't originate
+          // from an rcl call, we will ignore it.
+          // The goal here is ensure that no rcl function or thread is using memory.
+          // Separate tests will be needed to ensure the rmw implementation does
+          // not allocate memory or cause it to be allocated.
+          service.print_backtrace();
+          ADD_FAILURE() << "Unexpected call to " << name << " originating from within librcl.";
+        }
+      };
+    osrf_testing_tools_cpp::memory_tools::initialize();
+    on_unexpected_malloc([common](auto service) {common(service, "malloc");});
+    on_unexpected_realloc([common](auto service) {common(service, "realloc");});
+    on_unexpected_calloc([common](auto service) {common(service, "calloc");});
+    on_unexpected_free([common](auto service) {common(service, "free");});
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
+    osrf_testing_tools_cpp::memory_tools::uninitialize();
   }
 };
 
@@ -65,7 +83,7 @@ bool is_windows = false;
 /* Tests the node accessors, i.e. rcl_node_get_* functions.
  */
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) {
-  stop_memory_checking();
+  osrf_testing_tools_cpp::memory_tools::enable_monitoring_in_all_threads();
   rcl_ret_t ret;
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
@@ -88,34 +106,31 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     // This is the normal check (not windows and windows if not opensplice)
     ASSERT_EQ(RCL_RET_OK, ret);
   }
-  auto rcl_invalid_node_exit = make_scope_exit(
-    [&invalid_node]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_node_fini(&invalid_node);
-      EXPECT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    rcl_ret_t ret = rcl_node_fini(&invalid_node);
+    EXPECT_EQ(RCL_RET_OK, ret);
+  });
   ret = rcl_shutdown();  // Shutdown to invalidate the node.
   ASSERT_EQ(RCL_RET_OK, ret);
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit(
-    []() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_shutdown();
-      ASSERT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    rcl_ret_t ret = rcl_shutdown();
+    ASSERT_EQ(RCL_RET_OK, ret);
+  });
   // Create a zero init node.
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // Create a normal node.
   rcl_node_t node = rcl_get_zero_initialized_node();
   ret = rcl_node_init(&node, name, namespace_, &default_options);
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_node_exit = make_scope_exit(
-    [&node]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_node_fini(&node);
-      EXPECT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    rcl_ret_t ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_OK, ret);
+  });
   // Test rcl_node_is_valid().
   bool is_valid;
   is_valid = rcl_node_is_valid(nullptr, nullptr);
@@ -141,15 +156,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   actual_node_name = rcl_node_get_name(&invalid_node);
   EXPECT_EQ(nullptr, actual_node_name);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  actual_node_name = rcl_node_get_name(&node);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    actual_node_name = rcl_node_get_name(&node);
+  });
   EXPECT_TRUE(actual_node_name ? true : false);
   if (actual_node_name) {
     EXPECT_EQ(std::string(name), std::string(actual_node_name));
@@ -165,15 +174,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   actual_node_namespace = rcl_node_get_namespace(&invalid_node);
   EXPECT_EQ(nullptr, actual_node_namespace);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  actual_node_namespace = rcl_node_get_namespace(&node);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    actual_node_namespace = rcl_node_get_namespace(&node);
+  });
   EXPECT_TRUE(actual_node_namespace ? true : false);
   if (actual_node_namespace) {
     EXPECT_EQ(std::string(namespace_), std::string(actual_node_namespace));
@@ -189,15 +192,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   actual_node_logger_name = rcl_node_get_logger_name(&invalid_node);
   EXPECT_EQ(nullptr, actual_node_logger_name);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  actual_node_logger_name = rcl_node_get_logger_name(&node);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    actual_node_logger_name = rcl_node_get_logger_name(&node);
+  });
   EXPECT_TRUE(actual_node_logger_name ? true : false);
   if (actual_node_logger_name) {
     EXPECT_EQ("ns." + std::string(name), std::string(actual_node_logger_name));
@@ -213,15 +210,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   actual_options = rcl_node_get_options(&invalid_node);
   EXPECT_EQ(nullptr, actual_options);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  actual_options = rcl_node_get_options(&node);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    actual_options = rcl_node_get_options(&node);
+  });
   EXPECT_NE(nullptr, actual_options);
   if (actual_options) {
     EXPECT_EQ(default_options.allocator.allocate, actual_options->allocator.allocate);
@@ -241,15 +232,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  ret = rcl_node_get_domain_id(&node, &actual_domain_id);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    ret = rcl_node_get_domain_id(&node, &actual_domain_id);
+  });
   EXPECT_EQ(RCL_RET_OK, ret);
   if (RCL_RET_OK == ret && (!is_windows || !is_opensplice)) {
     // Can only expect the domain id to be 42 if not windows or not opensplice.
@@ -266,15 +251,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   node_handle = rcl_node_get_rmw_handle(&invalid_node);
   EXPECT_EQ(nullptr, node_handle);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  node_handle = rcl_node_get_rmw_handle(&node);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    node_handle = rcl_node_get_rmw_handle(&node);
+  });
   EXPECT_NE(nullptr, node_handle);
   // Test rcl_node_get_rcl_instance_id().
   uint64_t instance_id;
@@ -288,15 +267,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_NE(0u, instance_id);
   EXPECT_NE(42u, instance_id);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  instance_id = rcl_node_get_rcl_instance_id(&node);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    instance_id = rcl_node_get_rcl_instance_id(&node);
+  });
   EXPECT_NE(0u, instance_id);
   // Test rcl_node_get_graph_guard_condition
   const rcl_guard_condition_t * graph_guard_condition = nullptr;
@@ -309,22 +282,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   graph_guard_condition = rcl_node_get_graph_guard_condition(&invalid_node);
   EXPECT_EQ(nullptr, graph_guard_condition);
   rcl_reset_error();
-  start_memory_checking();
-  assert_no_malloc_begin();
-  assert_no_realloc_begin();
-  assert_no_free_begin();
-  graph_guard_condition = rcl_node_get_graph_guard_condition(&node);
-  assert_no_malloc_end();
-  assert_no_realloc_end();
-  assert_no_free_end();
-  stop_memory_checking();
+  EXPECT_NO_MEMORY_OPERATIONS({
+    graph_guard_condition = rcl_node_get_graph_guard_condition(&node);
+  });
   EXPECT_NE(nullptr, graph_guard_condition);
 }
 
 /* Tests the node life cycle, including rcl_node_init() and rcl_node_fini().
  */
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle) {
-  stop_memory_checking();
   rcl_ret_t ret;
   rcl_node_t node = rcl_get_zero_initialized_node();
   const char * name = "test_rcl_node_life_cycle_node";
@@ -338,11 +304,10 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit(
-    []() {
-      rcl_ret_t ret = rcl_shutdown();
-      ASSERT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_shutdown();
+    ASSERT_EQ(RCL_RET_OK, ret);
+  });
   // Try invalid arguments.
   ret = rcl_node_init(nullptr, name, namespace_, &default_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
@@ -372,7 +337,6 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   // Try with failing allocator.
   rcl_node_options_t options_with_failing_allocator = rcl_node_get_default_options();
   options_with_failing_allocator.allocator.allocate = failing_malloc;
-  options_with_failing_allocator.allocator.deallocate = failing_free;
   options_with_failing_allocator.allocator.reallocate = failing_realloc;
   ret = rcl_node_init(&node, name, namespace_, &options_with_failing_allocator);
   EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
@@ -423,17 +387,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
 /* Tests the node name restrictions enforcement.
  */
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restrictions) {
-  stop_memory_checking();
   rcl_ret_t ret;
 
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit(
-    []() {
-      rcl_ret_t ret = rcl_shutdown();
-      ASSERT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_shutdown();
+    ASSERT_EQ(RCL_RET_OK, ret);
+  });
 
   const char * namespace_ = "/ns";
   rcl_node_options_t default_options = rcl_node_get_default_options();
@@ -484,17 +446,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
 /* Tests the node namespace restrictions enforcement.
  */
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_restrictions) {
-  stop_memory_checking();
   rcl_ret_t ret;
 
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit(
-    []() {
-      rcl_ret_t ret = rcl_shutdown();
-      ASSERT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_shutdown();
+    ASSERT_EQ(RCL_RET_OK, ret);
+  });
 
   const char * name = "node";
   rcl_node_options_t default_options = rcl_node_get_default_options();
@@ -583,17 +543,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
 /* Tests the logger name associated with the node.
  */
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_logger_name) {
-  stop_memory_checking();
   rcl_ret_t ret;
 
   // Initialize rcl with rcl_init().
   ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret);
-  auto rcl_shutdown_exit = make_scope_exit(
-    []() {
-      rcl_ret_t ret = rcl_shutdown();
-      ASSERT_EQ(RCL_RET_OK, ret);
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_shutdown();
+    ASSERT_EQ(RCL_RET_OK, ret);
+  });
 
   const char * name = "node";
   const char * actual_node_logger_name;

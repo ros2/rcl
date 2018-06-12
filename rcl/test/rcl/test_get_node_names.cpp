@@ -25,7 +25,6 @@
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
 
-#include "../memory_tools/memory_tools.hpp"
 #include "rcl/error_handling.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -41,23 +40,10 @@ class CLASSNAME (TestGetNodeNames, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
-  {
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
-  }
+  {}
 
   void TearDown()
-  {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
-  }
+  {}
 };
 
 TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names) {

@@ -25,8 +25,7 @@
 #include "example_interfaces/srv/add_two_ints.h"
 #include "rosidl_generator_c/string_functions.h"
 
-#include "./memory_tools/memory_tools.hpp"
-#include "./scope_exit.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
 using namespace std::chrono_literals;
@@ -37,7 +36,6 @@ public:
   rcl_node_t * node_ptr;
   void SetUp()
   {
-    stop_memory_checking();
     rcl_ret_t ret;
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -47,21 +45,10 @@ public:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -73,8 +60,6 @@ public:
 /* Basic nominal test of a client.
  */
 TEST_F(TestNamespaceFixture, test_client_server) {
-  stop_memory_checking();
-
   rcl_ret_t ret;
   auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
   const char * service_name = "/my/namespace/test_namespace_client_server";
@@ -86,24 +71,20 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   rcl_service_options_t service_options = rcl_service_get_default_options();
   ret = rcl_service_init(&service, this->node_ptr, ts, service_name, &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto service_exit = make_scope_exit(
-    [&service, this]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   rcl_client_t unmatched_client = rcl_get_zero_initialized_client();
   rcl_client_options_t unmatched_client_options = rcl_client_get_default_options();
   ret = rcl_client_init(
     &unmatched_client, this->node_ptr, ts, unmatched_client_name, &unmatched_client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto unmatched_client_exit = make_scope_exit(
-    [&unmatched_client, this]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_client_fini(&unmatched_client, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_client_fini(&unmatched_client, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   bool is_available = false;
   for (auto i = 0; i < timeout; ++i) {
@@ -121,12 +102,10 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   ret = rcl_client_init(
     &matched_client, this->node_ptr, ts, matched_client_name, &matched_client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto matched_client_exit = make_scope_exit(
-    [&matched_client, this]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_client_fini(&matched_client, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_client_fini(&matched_client, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   is_available = false;
   for (auto i = 0; i < timeout; ++i) {

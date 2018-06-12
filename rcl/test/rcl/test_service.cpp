@@ -24,8 +24,7 @@
 
 #include "example_interfaces/srv/add_two_ints.h"
 
-#include "../memory_tools/memory_tools.hpp"
-#include "../scope_exit.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -41,7 +40,6 @@ public:
   rcl_node_t * node_ptr;
   void SetUp()
   {
-    stop_memory_checking();
     rcl_ret_t ret;
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -51,21 +49,10 @@ public:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    set_on_unexpected_malloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    set_on_unexpected_realloc_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    set_on_unexpected_free_callback([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
-    start_memory_checking();
   }
 
   void TearDown()
   {
-    assert_no_malloc_end();
-    assert_no_realloc_end();
-    assert_no_free_end();
-    stop_memory_checking();
-    set_on_unexpected_malloc_callback(nullptr);
-    set_on_unexpected_realloc_callback(nullptr);
-    set_on_unexpected_free_callback(nullptr);
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -84,12 +71,10 @@ wait_for_service_to_be_ready(
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto wait_set_exit = make_scope_exit(
-    [&wait_set]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
   size_t iteration = 0;
   do {
     ++iteration;
@@ -115,7 +100,6 @@ wait_for_service_to_be_ready(
 /* Basic nominal test of a service.
  */
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) {
-  stop_memory_checking();
   rcl_ret_t ret;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     example_interfaces, AddTwoInts);
@@ -145,23 +129,19 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
 
   // Check that the service name matches what we assigned.
   EXPECT_EQ(strcmp(rcl_service_get_service_name(&service), expected_topic), 0);
-  auto service_exit = make_scope_exit(
-    [&service, this]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   rcl_client_t client = rcl_get_zero_initialized_client();
   rcl_client_options_t client_options = rcl_client_get_default_options();
   ret = rcl_client_init(&client, this->node_ptr, ts, topic, &client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  auto client_exit = make_scope_exit(
-    [&client, this]() {
-      stop_memory_checking();
-      rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    });
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  });
 
   // TODO(wjwwood): add logic to wait for the connection to be established
   //                use count_services busy wait mechanism
@@ -189,11 +169,9 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     // Initialize a response.
     example_interfaces__srv__AddTwoInts_Response service_response;
     example_interfaces__srv__AddTwoInts_Response__init(&service_response);
-    auto msg_exit = make_scope_exit(
-      [&service_response]() {
-        stop_memory_checking();
-        example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
-      });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
+    });
 
     // Initialize a separate instance of the request and take the pending request.
     example_interfaces__srv__AddTwoInts_Request service_request;

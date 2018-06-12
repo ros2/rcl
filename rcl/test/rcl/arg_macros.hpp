@@ -19,7 +19,7 @@
 #include "rcl/rcl.h"
 #include "rcutils/strdup.h"
 
-#include "../scope_exit.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 /// Helper to get around non-const args passed to rcl_init().
 char **
@@ -52,12 +52,11 @@ destroy_args(int argc, char ** args)
     rcl_ret_t ret = rcl_init(argc, argv, rcl_get_default_allocator()); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
   } \
-  auto __scope_global_args_exit = make_scope_exit( \
-    [argc, argv] { \
-      destroy_args(argc, argv); \
-      rcl_ret_t ret = rcl_shutdown(); \
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
-    })
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({ \
+    destroy_args(argc, argv); \
+    rcl_ret_t ret = rcl_shutdown(); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+  })
 
 #define SCOPE_ARGS(local_arguments, ...) \
   { \
@@ -68,9 +67,8 @@ destroy_args(int argc, char ** args)
       local_argc, local_argv, rcl_get_default_allocator(), &local_arguments); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
   } \
-  auto __scope_ ## local_arguments ## _exit = make_scope_exit( \
-    [&local_arguments] { \
-      ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments)); \
-    })
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({ \
+    ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments)); \
+  })
 
 #endif  // RCL__ARG_MACROS_HPP_
