@@ -149,7 +149,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   });
 
-// Time spent during wait should be negligible.
+  // Time spent during wait should be negligible.
   int64_t timeout = 0;
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
   ret = rcl_wait(&wait_set, timeout);
