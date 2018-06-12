@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// \cond INTERNAL  // Internal Doxygen documentation
+
 #include "rcl/arguments.h"
 
 #include <string.h>
@@ -22,6 +24,8 @@
 #include "rcl/lexer_lookahead.h"
 #include "rcl/validate_topic_name.h"
 #include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
+#include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rmw/validate_namespace.h"
@@ -36,14 +40,15 @@ extern "C"
 static rcl_arguments_t __rcl_global_arguments;
 
 /// Parse an argument that may or may not be a remap rule.
-/// \param[in] arg the argument to parse
-/// \param[in] allocator an allocator to use
-/// \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
-/// \return RCL_RET_OK if a valid rule was parsed, or
-/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
-/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
-/// \return RLC_RET_ERROR if an unspecified error occurred.
-/// \internal
+/**
+ * \param[in] arg the argument to parse
+ * \param[in] allocator an allocator to use
+ * \param[in,out] output_rule input a zero intialized rule, output a fully initialized one
+ * \return RCL_RET_OK if a valid rule was parsed, or
+ * \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_rule(
@@ -51,12 +56,23 @@ _rcl_parse_remap_rule(
   rcl_allocator_t allocator,
   rcl_remap_t * output_rule);
 
+/// Parse an argument that may or may not be a parameter file rule.
+/**
+ * The syntax of the file name is not validated.
+ * \param[in] arg the argument to parse
+ * \param[in] allocator an allocator to use
+ * \param[in,out] param_file string that could be a parameter file name
+ * \return RCL_RET_OK if the rule was parsed correctly, or
+ * \return RCL_RET_INVALID_PARAM_RULE if the argument is not a valid rule, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ */
 RCL_LOCAL
 rcl_ret_t
-_rcl_parse_param_rule(
+_rcl_parse_param_file_rule(
   const char * arg,
   rcl_allocator_t allocator,
-  char ** output_rule);
+  char ** param_file);
 
 rcl_ret_t
 rcl_arguments_get_param_files(
@@ -98,6 +114,23 @@ rcl_arguments_get_param_files_count(
   return args->impl->num_param_files_args;
 }
 
+/// Parse an argument that may or may not be a log level rule.
+/**
+ * \param[in] arg the argument to parse
+ * \param[in] allocator an allocator to use
+ * \param[in,out] log_level parsed log level represented by `RCUTILS_LOG_SEVERITY` enum
+ * \return RCL_RET_OK if a valid log level was parsed, or
+ * \return RCL_RET_INVALID_LOG_LEVEL_RULE if the argument is not a valid rule, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ */
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_log_level_rule(
+  const char * arg,
+  rcl_allocator_t allocator,
+  int * log_level);
+
 rcl_ret_t
 rcl_parse_arguments(
   int argc,
@@ -129,6 +162,7 @@ rcl_parse_arguments(
   rcl_arguments_impl_t * args_impl = args_output->impl;
   args_impl->num_remap_rules = 0;
   args_impl->remap_rules = NULL;
+  args_impl->log_level = -1;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
   args_impl->parameter_files = NULL;
@@ -157,29 +191,50 @@ rcl_parse_arguments(
     goto fail;
   }
 
-  // Attempt to parse arguments as remap rules
   for (int i = 0; i < argc; ++i) {
-    rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
-    *rule = rcl_remap_get_zero_initialized();
+    // Attempt to parse argument as parameter file rule
     args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
     if (
-      RCL_RET_OK == _rcl_parse_param_rule(
+      RCL_RET_OK == _rcl_parse_param_file_rule(
         argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args])))
     {
       ++(args_impl->num_param_files_args);
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
         "params rule : %s\n total num param rules %d",
         args_impl->parameter_files[args_impl->num_param_files_args - 1],
-        args_impl->num_param_files_args)
-    } else if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
-      ++(args_impl->num_remap_rules);
-    } else {
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "arg %d (%s) error '%s'", i, argv[i],
-        rcl_get_error_string());
-      rcl_reset_error();
-      args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
-      ++(args_impl->num_unparsed_args);
+        args_impl->num_param_files_args);
+      continue;
     }
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      "Couldn't parse arg %d (%s) as parameter file rule. Error: %s", i, argv[i],
+      rcl_get_error_string());
+    rcl_reset_error();
+
+    // Attempt to parse argument as remap rule
+    rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
+    *rule = rcl_remap_get_zero_initialized();
+    if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
+      ++(args_impl->num_remap_rules);
+      continue;
+    }
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      "Couldn't parse arg %d (%s) as remap rule. Error: %s", i, argv[i], rcl_get_error_string());
+    rcl_reset_error();
+
+    // Attempt to parse argument as log level configuration
+    int log_level;
+    if (RCL_RET_OK == _rcl_parse_log_level_rule(argv[i], allocator, &log_level)) {
+      args_impl->log_level = log_level;
+      continue;
+    }
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      "Couldn't parse arg %d (%s) as log level rule. Error: %s", i, argv[i],
+      rcl_get_error_string());
+    rcl_reset_error();
+
+    // Argument wasn't parsed by any rule
+    args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
+    ++(args_impl->num_unparsed_args);
   }
 
   // Shrink remap_rules array to match number of successfully parsed rules
@@ -465,8 +520,9 @@ rcl_get_global_arguments()
 }
 
 /// Parses a fully qualified namespace for a namespace replacement rule (ex: `/foo/bar`)
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_fully_qualified_namespace(
@@ -497,8 +553,9 @@ _rcl_parse_remap_fully_qualified_namespace(
 }
 
 /// Parse either a token or a backreference (ex: `bar`, or `\7`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_replacement_token(
@@ -530,8 +587,9 @@ _rcl_parse_remap_replacement_token(
 }
 
 /// Parse the replacement side of a name remapping rule (ex: `bar/\1/foo`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_replacement_name(
@@ -596,8 +654,9 @@ _rcl_parse_remap_replacement_name(
 }
 
 /// Parse either a token or a wildcard (ex: `foobar`, or `*`, or `**`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_match_token(
@@ -629,8 +688,9 @@ _rcl_parse_remap_match_token(
 }
 
 /// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_match_name(
@@ -712,8 +772,9 @@ _rcl_parse_remap_match_name(
 }
 
 /// Parse a name remapping rule (ex: `rostopic:///foo:=bar`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_name_remap(
@@ -741,8 +802,9 @@ _rcl_parse_remap_name_remap(
 }
 
 /// Parse a namespace replacement rule (ex: `__ns:=/new/ns`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_namespace_replacement(
@@ -798,8 +860,9 @@ _rcl_parse_remap_namespace_replacement(
 }
 
 /// Parse a nodename replacement rule (ex: `__node:=new_name`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_nodename_replacement(
@@ -840,8 +903,9 @@ _rcl_parse_remap_nodename_replacement(
 }
 
 /// Parse a nodename prefix including trailing colon (ex: `node_name:`).
-/// \sa _rcl_parse_remap_begin_remap_rule()
-/// \internal
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_nodename_prefix(
@@ -873,13 +937,14 @@ _rcl_parse_remap_nodename_prefix(
 }
 
 /// Start recursive descent parsing of a remap rule.
-/// \param[in] lex_lookahead a lookahead(2) buffer for the parser to use.
-/// \param[in,out] rule input a zero intialized rule, output a fully initialized one.
-/// \return RCL_RET_OK if a valid rule was parsed, or
-/// \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
-/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
-/// \return RLC_RET_ERROR if an unspecified error occurred.
-/// \internal
+/**
+ * \param[in] lex_lookahead a lookahead(2) buffer for the parser to use.
+ * \param[in,out] rule input a zero intialized rule, output a fully initialized one.
+ * \return RCL_RET_OK if a valid rule was parsed, or
+ * \return RCL_RET_INVALID_REMAP_RULE if the argument is not a valid rule, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ */
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_remap_begin_remap_rule(
@@ -934,6 +999,29 @@ _rcl_parse_remap_begin_remap_rule(
 }
 
 rcl_ret_t
+_rcl_parse_log_level_rule(
+  const char * arg,
+  rcl_allocator_t allocator,
+  int * log_level)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT, allocator);
+
+  if (strncmp(RCL_LOG_LEVEL_ARG_RULE, arg, strlen(RCL_LOG_LEVEL_ARG_RULE)) != 0) {
+    RCL_SET_ERROR_MSG("Argument does not start with '" RCL_LOG_LEVEL_ARG_RULE "'", allocator);
+    return RCL_RET_INVALID_LOG_LEVEL_RULE;
+  }
+  rcutils_ret_t ret = rcutils_logging_severity_level_from_string(
+    arg + strlen(RCL_LOG_LEVEL_ARG_RULE), allocator, log_level);
+  if (RCUTILS_RET_OK == ret) {
+    return RCL_RET_OK;
+  }
+  RCL_SET_ERROR_MSG("Argument does not use a valid severity level", allocator);
+  return RCL_RET_INVALID_LOG_LEVEL_RULE;
+}
+
+
+rcl_ret_t
 _rcl_parse_remap_rule(
   const char * arg,
   rcl_allocator_t allocator,
@@ -969,27 +1057,30 @@ _rcl_parse_remap_rule(
 }
 
 rcl_ret_t
-_rcl_parse_param_rule(
+_rcl_parse_param_file_rule(
   const char * arg,
   rcl_allocator_t allocator,
-  char ** output_rule)
+  char ** param_file)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
 
-  const char * param_prefix = "__params:=";
-  const size_t param_prefix_len = strlen(param_prefix);
-  if (strncmp(param_prefix, arg, param_prefix_len) == 0) {
+  const size_t param_prefix_len = strlen(RCL_PARAM_FILE_ARG_RULE);
+  if (strncmp(RCL_PARAM_FILE_ARG_RULE, arg, param_prefix_len) == 0) {
     size_t outlen = strlen(arg) - param_prefix_len;
-    *output_rule = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
-    if (NULL == output_rule) {
+    *param_file = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
+    if (NULL == param_file) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to allocate memory for parameters file path\n");
       return RCL_RET_BAD_ALLOC;
     }
-    snprintf(*output_rule, outlen + 1, "%s", arg + param_prefix_len);
+    snprintf(*param_file, outlen + 1, "%s", arg + param_prefix_len);
     return RCL_RET_OK;
   }
+  RCL_SET_ERROR_MSG("Argument does not start with '" RCL_PARAM_FILE_ARG_RULE "'", allocator);
   return RCL_RET_INVALID_PARAM_RULE;
 }
 
 #ifdef __cplusplus
 }
 #endif
+
+/// \endcond  // Internal Doxygen documentation

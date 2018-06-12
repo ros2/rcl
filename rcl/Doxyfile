@@ -19,6 +19,10 @@ EXPAND_ONLY_PREDEF     = YES
 PREDEFINED             += RCL_PUBLIC=
 PREDEFINED             += RCL_WARN_UNUSED=
 
+# Uncomment to generate internal documentation.
+ENABLED_SECTIONS       = INTERNAL
+INPUT                  += ./src/rcl/arguments.c
+
 # Tag files that do not exist will produce a warning and cross-project linking will not work.
 TAGFILES += "../../../../doxygen_tag_files/cppreference-doxygen-web.tag.xml=http://en.cppreference.com/w/"
 # Consider changing "latest" to the version you want to reference (e.g. beta1 or 1.0.0)

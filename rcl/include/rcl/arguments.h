@@ -34,6 +34,9 @@ typedef struct rcl_arguments_t
   struct rcl_arguments_impl_t * impl;
 } rcl_arguments_t;
 
+#define RCL_LOG_LEVEL_ARG_RULE "__log_level:="
+#define RCL_PARAM_FILE_ARG_RULE "__params:="
+
 /// Return a rcl_node_t struct with members initialized to `NULL`.
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -52,6 +55,12 @@ rcl_get_zero_initialized_arguments(void);
  * Successfully parsed remap rules are stored in the order they were given in `argv`.
  * If given arguments `{"__ns:=/foo", "__ns:=/bar"}` then the namespace used by nodes in this
  * process will be `/foo` and not `/bar`.
+ *
+ * The default log level will be parsed as `__log_level:=level`, where `level` is a name
+ * representing one of the log levels in the `RCUTILS_LOG_SEVERITY` enum, e.g. `info`, `debug`,
+ * `warn`, not case sensitive.
+ * If multiple of these rules are found, the last one parsed will be used.
+ *
  * \sa rcl_remap_topic_name()
  * \sa rcl_remap_service_name()
  * \sa rcl_remap_node_name()

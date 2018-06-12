@@ -117,6 +117,12 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to parse global arguments");
     goto fail;
   }
+
+  // Update the default log level if specified in arguments.
+  if (global_args->impl->log_level >= 0) {
+    rcutils_logging_set_default_logger_level(global_args->impl->log_level);
+  }
+
   rcl_atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
   if (rcl_atomic_load_uint64_t(&__rcl_instance_id) == 0) {
     // Roll over occurred.

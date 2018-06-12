@@ -100,7 +100,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_TRUE(is_valid_arg("rostopic://rostopic:=rosservice"));
   EXPECT_TRUE(is_valid_arg("rostopic:///rosservice:=rostopic"));
   EXPECT_TRUE(is_valid_arg("rostopic:///foo/bar:=baz"));
-  EXPECT_TRUE(is_valid_arg("__params:=node_name"));
+  EXPECT_TRUE(is_valid_arg("__params:=file_name.yaml"));
 
   EXPECT_FALSE(is_valid_arg(":="));
   EXPECT_FALSE(is_valid_arg("foo:="));
@@ -118,7 +118,22 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_FALSE(is_valid_arg("foo:=/b}ar"));
   EXPECT_FALSE(is_valid_arg("rostopic://:=rosservice"));
   EXPECT_FALSE(is_valid_arg("rostopic::=rosservice"));
-  EXPECT_FALSE(is_valid_arg("__param:=node_name"));
+  EXPECT_FALSE(is_valid_arg("__param:=file_name.yaml"));
+
+  // Setting logger level
+  EXPECT_TRUE(is_valid_arg("__log_level:=UNSET"));
+  EXPECT_TRUE(is_valid_arg("__log_level:=DEBUG"));
+  EXPECT_TRUE(is_valid_arg("__log_level:=INFO"));
+  EXPECT_TRUE(is_valid_arg("__log_level:=WARN"));
+  EXPECT_TRUE(is_valid_arg("__log_level:=ERROR"));
+  EXPECT_TRUE(is_valid_arg("__log_level:=FATAL"));
+  EXPECT_TRUE(is_valid_arg("__log_level:=debug"));
+  EXPECT_TRUE(is_valid_arg("__log_level:=Info"));
+
+  EXPECT_FALSE(is_valid_arg("__log:=foo"));
+  EXPECT_FALSE(is_valid_arg("__loglevel:=foo"));
+  EXPECT_FALSE(is_valid_arg("__log_level:="));
+  EXPECT_FALSE(is_valid_arg("__log_level:=foo"));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
