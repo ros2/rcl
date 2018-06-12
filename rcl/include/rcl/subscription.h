@@ -256,12 +256,12 @@ rcl_take(
   void * ros_message,
   rmw_message_info_t * message_info);
 
-/// Take a serialized raw  message from a topic using a rcl subscription.
+/// Take a serialized raw message from a topic using a rcl subscription.
 /**
- * In contrast to `rcl_take`, this function return the incoming message in
- * its binary raw representation.
- * It is the job of the caller to ensure that the type associate with the subscription,
- * match and can optionally be deserialized into its ROS message via the correct
+ * In contrast to `rcl_take`, this function stores the taken message in
+ * its raw binary representation.
+ * It is the job of the caller to ensure that the type associate with the subscription
+ * matches, and can optionally be deserialized into its ROS message via, the correct
  * type support.
  * If the `raw_message` parameter contains enough preallocated memory, the incoming
  * message can be taken without any additional memory allocation.
@@ -269,7 +269,7 @@ rcl_take(
  * Passing a different type to rcl_take produces undefined behavior and cannot
  * be checked by this function and therefore no deliberate error will occur.
  *
- * Apart from the contrast above, this function behaves like `rcl_take`.
+ * Apart from the differences above, this function behaves like `rcl_take`.
  *
  * <hr>
  * Attribute          | Adherence
@@ -278,7 +278,7 @@ rcl_take(
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] only if required when filling the message, avoided for fixed sizes</i>
+ * <i>[1] only if storage in the raw_message is insufficient</i>
  *
  * \param[in] subscription the handle to the subscription from which to take
  * \param[inout] raw_message pointer to a (pre-allocated) raw message.
