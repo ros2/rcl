@@ -288,6 +288,9 @@ rcl_take_raw(
     rmw_take_raw_with_info(subscription->impl->rmw_handle, raw_message, &taken, message_info_local);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), error_allocator);
+    if (ret == RMW_RET_BAD_ALLOC) {
+      return RCL_RET_BAD_ALLOC;
+    }
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(

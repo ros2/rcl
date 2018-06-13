@@ -250,9 +250,13 @@ rcl_publish_raw(const rcl_publisher_t * publisher, const rcl_message_raw_t * raw
   if (!rcl_publisher_is_valid(publisher, NULL)) {
     return RCL_RET_PUBLISHER_INVALID;
   }
-  if (rmw_publish_raw(publisher->impl->rmw_handle, raw_message) != RMW_RET_OK) {
+  rmw_ret_t ret = rmw_publish_raw(publisher->impl->rmw_handle, raw_message);
+  if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), rcl_get_default_allocator());
-    return RCL_RET_ERROR;
+    if (ret == RMW_RET_BAD_ALLOC) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    return RMW_RET_ERROR;
   }
   return RCL_RET_OK;
 }
