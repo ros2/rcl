@@ -22,7 +22,7 @@
 
 #include "rcl/rcl.h"
 
-#include "example_interfaces/srv/add_two_ints.h"
+#include "test_msgs/srv/primitives.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
@@ -102,9 +102,9 @@ wait_for_service_to_be_ready(
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) {
   rcl_ret_t ret;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    example_interfaces, AddTwoInts);
-  const char * topic = "add_two_ints";
-  const char * expected_topic = "/add_two_ints";
+    test_msgs, Primitives);
+  const char * topic = "primitives";
+  const char * expected_topic = "/primitives";
 
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
@@ -149,14 +149,14 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   // Initialize a request.
-  example_interfaces__srv__AddTwoInts_Request client_request;
-  example_interfaces__srv__AddTwoInts_Request__init(&client_request);
-  client_request.a = 1;
-  client_request.b = 2;
+  test_msgs__srv__Primitives_Request client_request;
+  test_msgs__srv__Primitives_Request__init(&client_request);
+  client_request.uint8_value = 1;
+  client_request.uint32_value = 2;
   int64_t sequence_number;
   ret = rcl_send_request(&client, &client_request, &sequence_number);
   EXPECT_EQ(sequence_number, 1);
-  example_interfaces__srv__AddTwoInts_Request__fini(&client_request);
+  test_msgs__srv__Primitives_Request__fini(&client_request);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
   bool success;
@@ -167,35 +167,35 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   // test take_request/send_response in a single-threaded, deterministic execution.
   {
     // Initialize a response.
-    example_interfaces__srv__AddTwoInts_Response service_response;
-    example_interfaces__srv__AddTwoInts_Response__init(&service_response);
+    test_msgs__srv__Primitives_Response service_response;
+    test_msgs__srv__Primitives_Response__init(&service_response);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      example_interfaces__srv__AddTwoInts_Response__fini(&service_response);
+      test_msgs__srv__Primitives_Response__fini(&service_response);
     });
 
     // Initialize a separate instance of the request and take the pending request.
-    example_interfaces__srv__AddTwoInts_Request service_request;
-    example_interfaces__srv__AddTwoInts_Request__init(&service_request);
+    test_msgs__srv__Primitives_Request service_request;
+    test_msgs__srv__Primitives_Request__init(&service_request);
     rmw_request_id_t header;
     ret = rcl_take_request(&service, &header, &service_request);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
-    EXPECT_EQ(1, service_request.a);
-    EXPECT_EQ(2, service_request.b);
+    EXPECT_EQ(1, service_request.uint8_value);
+    EXPECT_EQ(2UL, service_request.uint32_value);
     // Simulate a response callback by summing the request and send the response..
-    service_response.sum = service_request.a + service_request.b;
+    service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
     ret = rcl_send_response(&service, &header, &service_response);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   }
   wait_for_service_to_be_ready(&service, 10, 100, success);
 
   // Initialize the response owned by the client and take the response.
-  example_interfaces__srv__AddTwoInts_Response client_response;
-  example_interfaces__srv__AddTwoInts_Response__init(&client_response);
+  test_msgs__srv__Primitives_Response client_response;
+  test_msgs__srv__Primitives_Response__init(&client_response);
 
   rmw_request_id_t header;
   ret = rcl_take_response(&client, &header, &client_response);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_EQ(client_response.sum, 3);
+  EXPECT_EQ(client_response.uint64_value, 3ULL);
   EXPECT_EQ(header.sequence_number, 1);
 }
