@@ -263,7 +263,7 @@ rcl_take(
  * It is the job of the caller to ensure that the type associate with the subscription
  * matches, and can optionally be deserialized into its ROS message via, the correct
  * type support.
- * If the `raw_message` parameter contains enough preallocated memory, the incoming
+ * If the `serialized_message` parameter contains enough preallocated memory, the incoming
  * message can be taken without any additional memory allocation.
  * If not, the function will dynamically allocate enough memory for the message.
  * Passing a different type to rcl_take produces undefined behavior and cannot
@@ -278,10 +278,10 @@ rcl_take(
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] only if storage in the raw_message is insufficient</i>
+ * <i>[1] only if storage in the serialized_message is insufficient</i>
  *
  * \param[in] subscription the handle to the subscription from which to take
- * \param[inout] raw_message pointer to a (pre-allocated) raw message.
+ * \param[inout] serialized_message pointer to a (pre-allocated) serialized message.
  * \param[out] message_info rmw struct which contains meta-data for the message
  * \return `RCL_RET_OK` if the message was published, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -294,9 +294,9 @@ rcl_take(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_take_raw(
+rcl_take_serialized_message(
   const rcl_subscription_t * subscription,
-  rcl_message_raw_t * raw_message,
+  rcl_serialized_message_t * serialized_message,
   rmw_message_info_t * message_info);
 
 /// Get the topic name for the subscription.

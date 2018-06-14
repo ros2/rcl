@@ -267,25 +267,25 @@ rcl_take(
 }
 
 rcl_ret_t
-rcl_take_raw(
+rcl_take_serialized_message(
   const rcl_subscription_t * subscription,
-  rcl_message_raw_t * raw_message,
+  rcl_serialized_message_t * serialized_message,
   rmw_message_info_t * message_info)
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking raw message")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking serialized message")
   rcl_allocator_t error_allocator = rcl_get_default_allocator();
   if (!rcl_subscription_is_valid(subscription, &error_allocator)) {
     return RCL_RET_SUBSCRIPTION_INVALID;  // error message already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(
-    raw_message, RCL_RET_INVALID_ARGUMENT, error_allocator);
+    serialized_message, RCL_RET_INVALID_ARGUMENT, error_allocator);
   // If message_info is NULL, use a place holder which can be discarded.
   rmw_message_info_t dummy_message_info;
   rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
   // Call rmw_take_with_info.
   bool taken = false;
-  rmw_ret_t ret =
-    rmw_take_raw_with_info(subscription->impl->rmw_handle, raw_message, &taken, message_info_local);
+  rmw_ret_t ret = rmw_take_serialized_message_with_info(
+    subscription->impl->rmw_handle, serialized_message, &taken, message_info_local);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), error_allocator);
     if (ret == RMW_RET_BAD_ALLOC) {
@@ -294,7 +294,7 @@ rcl_take_raw(
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Subscription raw take succeeded: %s", taken ? "true" : "false")
+    ROS_PACKAGE_NAME, "Subscription serialized take succeeded: %s", taken ? "true" : "false")
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }

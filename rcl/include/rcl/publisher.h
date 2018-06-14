@@ -254,16 +254,16 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
 
 /// Publish a serialized message on a topic using a publisher.
 /**
- * It is the job of the caller to ensure that the type of the serialized raw message
+ * It is the job of the caller to ensure that the type of the serialized message
  * parameter and the type associate with the publisher (via the type support)
  * match.
- * Even though this call to publish takes an already serialized raw message,
+ * Even though this call to publish takes an already serialized serialized message,
  * the publisher has to register its type as a ROS known message type.
- * Passing a raw message from a different type leads to undefined behavior on the subscriber side.
- * The publish call might be able to send any abitrary raw message, it is however
+ * Passing a serialized message from a different type leads to undefined behavior on the subscriber side.
+ * The publish call might be able to send any abitrary serialized message, it is however
  * not garantueed that the subscriber side successfully deserializes this byte stream.
  *
- * Apart from this, the `publish_raw` function has the same behavior as `rcl_publish`
+ * Apart from this, the `publish_serialized` function has the same behavior as `rcl_publish`
  * expect that no serialization step is done.
  *
  * <hr>
@@ -276,7 +276,7 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
  * <i>[1] for unique pairs of publishers and messages, see above for more</i>
  *
  * \param[in] publisher handle to the publisher which will do the publishing
- * \param[in] raw_message  pointer to the already serialized message in raw form
+ * \param[in] serialized_message  pointer to the already serialized message in raw form
  * \return `RCL_RET_OK` if the message was published successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
@@ -285,7 +285,8 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_publish_raw(const rcl_publisher_t * publisher, const rcl_message_raw_t * raw_message);
+rcl_publish_serialized_message(
+  const rcl_publisher_t * publisher, const rcl_serialized_message_t * serialized_message);
 
 /// Get the topic name for the publisher.
 /**
