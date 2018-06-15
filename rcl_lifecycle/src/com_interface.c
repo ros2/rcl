@@ -67,30 +67,16 @@ rcl_lifecycle_com_interface_init(
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
   const rcl_allocator_t * allocator)
 {
-  if (!node_handle) {
-    RCL_SET_ERROR_MSG("node_handle is null", rcl_get_default_allocator());
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-  if (!ts_pub_notify) {
-    RCL_SET_ERROR_MSG("ts_pub_notify is NULL", rcl_get_default_allocator());
-    return RCL_RET_ERROR;
-  }
-  if (!ts_srv_change_state) {
-    RCL_SET_ERROR_MSG("ts_srv_change_state is NULL", rcl_get_default_allocator());
-    return RCL_RET_ERROR;
-  }
-  if (!ts_srv_get_state) {
-    RCL_SET_ERROR_MSG("ts_srv_get_state is NULL", rcl_get_default_allocator());
-    return RCL_RET_ERROR;
-  }
-  if (!ts_srv_get_available_states) {
-    RCL_SET_ERROR_MSG("ts_srv_get_available_states is NULL", rcl_get_default_allocator());
-    return RCL_RET_ERROR;
-  }
-  if (!ts_srv_get_available_states) {
-    RCL_SET_ERROR_MSG("ts_srv_get_available_transitions is NULL", rcl_get_default_allocator());
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator())
+  RCL_CHECK_ARGUMENT_FOR_NULL(com_interface, RCL_RET_INVALID_ARGUMENT, *allocator)
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_handle, RCL_RET_INVALID_ARGUMENT, *allocator)
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_pub_notify, RCL_RET_INVALID_ARGUMENT, *allocator)
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_change_state, RCL_RET_INVALID_ARGUMENT, *allocator)
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_state, RCL_RET_INVALID_ARGUMENT, *allocator)
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    ts_srv_get_available_states, RCL_RET_INVALID_ARGUMENT, *allocator)
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    ts_srv_get_available_transitions, RCL_RET_INVALID_ARGUMENT, *allocator)
 
   // initialize publisher
   {
