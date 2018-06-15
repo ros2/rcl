@@ -117,7 +117,7 @@ const char * rcl_get_secure_root(const char * node_name, const rcl_allocator_t *
   }
   char * node_secure_root = rcutils_join_path(ros_secure_root_env, node_name, *allocator);
   if (!rcutils_is_directory(node_secure_root)) {
-    free(node_secure_root);
+    allocator->deallocate(node_secure_root, allocator->state);
     return NULL;
   }
   return node_secure_root;

@@ -193,14 +193,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), default_clock_instanciation) {
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
   ASSERT_TRUE(rcl_clock_valid(&ros_clock));
 
-  rcl_clock_t * steady_clock =
-    reinterpret_cast<rcl_clock_t *>(calloc(1, sizeof(rcl_clock_t)));
+  rcl_clock_t * steady_clock = reinterpret_cast<rcl_clock_t *>(
+    allocator.zero_allocate(1, sizeof(rcl_clock_t), allocator.state));
   retval = rcl_steady_clock_init(steady_clock, &allocator);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
   ASSERT_TRUE(rcl_clock_valid(steady_clock));
 
-  rcl_clock_t * system_clock =
-    reinterpret_cast<rcl_clock_t *>(calloc(1, sizeof(rcl_clock_t)));
+  rcl_clock_t * system_clock = reinterpret_cast<rcl_clock_t *>(
+    allocator.zero_allocate(1, sizeof(rcl_clock_t), allocator.state));
   retval = rcl_system_clock_init(system_clock, &allocator);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
   ASSERT_TRUE(rcl_clock_valid(system_clock));
