@@ -53,17 +53,24 @@ public:
 struct FakeTestArgv
 {
   FakeTestArgv()
-  : argc(2)
+  : allocator(rcutils_get_default_allocator()), argc(2)
   {
-    this->argv = reinterpret_cast<char **>(malloc(2 * sizeof(char *)));
+    this->argv =
+      reinterpret_cast<char **>(allocator.allocate(2 * sizeof(char *), allocator.state));
     if (!this->argv) {
       throw std::bad_alloc();
     }
-    static const size_t size = 10;
-    this->argv[0] = reinterpret_cast<char *>(malloc(size * sizeof(char)));
-    rcutils_snprintf(this->argv[0], size, "foo");
-    this->argv[1] = reinterpret_cast<char *>(malloc(size * sizeof(char)));
-    rcutils_snprintf(this->argv[1], size, "bar");
+    this->argv[0] = rcutils_format_string(allocator, "%s", "foo");
+    if (!this->argv[0]) {
+      allocator.deallocate(this->argv, allocator.state);
+      throw std::bad_alloc();
+    }
+    this->argv[1] = rcutils_format_string(allocator, "%s", "bar");
+    if (!this->argv[1]) {
+      allocator.deallocate(this->argv[0], allocator.state);
+      allocator.deallocate(this->argv, allocator.state);
+      throw std::bad_alloc();
+    }
   }
 
   ~FakeTestArgv()
@@ -72,13 +79,14 @@ struct FakeTestArgv
       if (this->argc > 0) {
         size_t unsigned_argc = this->argc;
         for (size_t i = 0; i < unsigned_argc; --i) {
-          free(this->argv[i]);
+          allocator.deallocate(this->argv[i], allocator.state);
         }
       }
     }
-    free(this->argv);
+    allocator.deallocate(this->argv, allocator.state);
   }
 
+  rcutils_allocator_t allocator;
   int argc;
   char ** argv;
 
