@@ -88,10 +88,7 @@ struct FakeTestArgv
 
   rcutils_allocator_t allocator;
   int argc;
-  std::string foo;
-  std::string bar;
   char ** argv;
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
 private:
   FakeTestArgv(const FakeTestArgv &) = delete;
