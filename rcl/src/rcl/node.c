@@ -99,7 +99,7 @@ const char * rcl_create_node_logger_name(
   return node_logger_name;
 }
 
-const char * rcl_get_secure_root(const char * node_name)
+const char * rcl_get_secure_root(const char * node_name, const rcl_allocator_t * allocator)
 {
   const char * ros_secure_root_env = NULL;
   if (NULL == node_name) {
@@ -115,9 +115,9 @@ const char * rcl_get_secure_root(const char * node_name)
   if (!ros_secure_root_size) {
     return NULL;  // environment variable was empty
   }
-  char * node_secure_root = rcutils_join_path(ros_secure_root_env, node_name);
+  char * node_secure_root = rcutils_join_path(ros_secure_root_env, node_name, *allocator);
   if (!rcutils_is_directory(node_secure_root)) {
-    free(node_secure_root);
+    allocator->deallocate(node_secure_root, allocator->state);
     return NULL;
   }
   return node_secure_root;
@@ -315,7 +315,7 @@ rcl_node_init(
     node_security_options.enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
   } else {  // if use_security
     // File discovery magic here
-    const char * node_secure_root = rcl_get_secure_root(name);
+    const char * node_secure_root = rcl_get_secure_root(name, allocator);
     if (node_secure_root) {
       node_security_options.security_root_path = node_secure_root;
     } else {
