@@ -97,4 +97,7 @@ typedef rmw_ret_t rcl_ret_t;
 /// Argument is not a valid log level rule
 #define RCL_RET_INVALID_LOG_LEVEL_RULE 1020
 
+/// typedef for rmw_serialized_message_t;
+typedef rmw_serialized_message_t rcl_serialized_message_t;
+
 #endif  // RCL__TYPES_H_

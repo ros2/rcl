@@ -53,18 +53,22 @@ public:
 struct FakeTestArgv
 {
   FakeTestArgv()
-  : argc(2), argv(nullptr)
+  : allocator(rcutils_get_default_allocator()), argc(2)
   {
-    this->argv = new char *[2];
+    this->argv =
+      reinterpret_cast<char **>(allocator.allocate(2 * sizeof(char *), allocator.state));
+    if (!this->argv) {
+      throw std::bad_alloc();
+    }
     this->argv[0] = rcutils_format_string(allocator, "%s", "foo");
     if (!this->argv[0]) {
-      delete[] this->argv;
+      allocator.deallocate(this->argv, allocator.state);
       throw std::bad_alloc();
     }
     this->argv[1] = rcutils_format_string(allocator, "%s", "bar");
     if (!this->argv[1]) {
       allocator.deallocate(this->argv[0], allocator.state);
-      delete[] this->argv;
+      allocator.deallocate(this->argv, allocator.state);
       throw std::bad_alloc();
     }
   }
@@ -79,9 +83,10 @@ struct FakeTestArgv
         }
       }
     }
-    delete[] this->argv;
+    allocator.deallocate(this->argv, allocator.state);
   }
 
+  rcutils_allocator_t allocator;
   int argc;
   std::string foo;
   std::string bar;
