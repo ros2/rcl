@@ -37,13 +37,14 @@ set_source_files_properties(
 
 ### C-Library depending only on RCL
 add_library(
-  rcl_lifecycle
+  ${PROJECT_NAME}
   ${rcl_lifecycle_sources})
 
 # specific order: dependents before dependencies
 ament_target_dependencies(rcl_lifecycle
   "rcl"
   "lifecycle_msgs"
+  "rosidl_generator_c"
   "rcutils"
 )
 
