@@ -304,7 +304,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     } \
     ExtraDealloc \
   } else { \
-    wait_set->Type ## s = (const rcl_ ## Type ## _t * *)allocator.reallocate( \
+    wait_set->Type ## s = (const rcl_ ## Type ## _t **)allocator.reallocate( \
       (void *)wait_set->Type ## s, sizeof(rcl_ ## Type ## _t *) * size, allocator.state); \
     RCL_CHECK_FOR_NULL_WITH_MSG( \
       wait_set->Type ## s, "allocating memory failed", \
