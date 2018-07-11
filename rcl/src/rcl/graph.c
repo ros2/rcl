@@ -53,7 +53,7 @@ rcl_get_topic_names_and_types(
     &rcutils_allocator,
     no_demangle,
     topic_names_and_types
-    );
+  );
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
@@ -78,7 +78,7 @@ rcl_get_service_names_and_types(
     rcl_node_get_rmw_handle(node),
     &rcutils_allocator,
     service_names_and_types
-    );
+  );
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
@@ -176,7 +176,7 @@ rcl_service_server_is_available(
     rcl_node_get_rmw_handle(node),
     rcl_client_get_rmw_handle(client),
     is_available
-    );
+  );
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
