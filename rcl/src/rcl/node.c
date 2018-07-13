@@ -244,7 +244,7 @@ rcl_node_init(
   }
   char * remapped_namespace = NULL;
   ret = rcl_remap_node_namespace(
-    &(node->impl->options.arguments), global_args, local_namespace_,
+    &(node->impl->options.arguments), global_args, name,
     *allocator, &remapped_namespace);
   if (RCL_RET_OK != ret) {
     goto fail;
