@@ -32,7 +32,7 @@
 
 #include "rcutils/logging_macros.h"
 
-#include "std_msgs/msg/string.h"
+#include "test_msgs/msg/primitives.h"
 #include "test_msgs/srv/primitives.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -333,7 +333,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   // Now create a publisher on "topic_name" and check that it is seen.
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
-  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
   ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   rcl_reset_error();
@@ -410,7 +410,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
       rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
       rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
       rcl_ret_t ret = rcl_publisher_init(
-        &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives),
         "/chatter_test_graph_guard_condition_topics", &pub_ops);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
       // sleep
@@ -419,7 +419,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
       rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
       rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
       ret = rcl_subscription_init(
-        &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives),
         "/chatter_test_graph_guard_condition_topics", &sub_ops);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
       // sleep

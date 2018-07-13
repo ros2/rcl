@@ -18,7 +18,7 @@
 #include "rcl/remap.h"
 #include "rcl/error_handling.h"
 
-#include "std_msgs/msg/int64.h"
+#include "test_msgs/msg/primitives.h"
 #include "test_msgs/srv/primitives.h"
 
 #include "./arg_macros.hpp"
@@ -62,7 +62,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
     EXPECT_STREQ("new_ns.new_name", rcl_node_get_logger_name(&node));
   }
   {  // Publisher topic gets remapped
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    const rosidl_message_type_support_t * ts =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
@@ -71,7 +72,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
   }
   {  // Subscription topic gets remapped
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    const rosidl_message_type_support_t * ts =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
@@ -128,7 +130,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
     EXPECT_STREQ("original_ns.original_name", rcl_node_get_logger_name(&node));
   }
   {  // Publisher topic does not get remapped
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    const rosidl_message_type_support_t * ts =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
@@ -137,7 +140,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
   }
   {  // Subscription topic does not get remapped
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    const rosidl_message_type_support_t * ts =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
@@ -195,7 +199,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
     EXPECT_STREQ("local_ns.local_name", rcl_node_get_logger_name(&node));
   }
   {  // Publisher topic
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    const rosidl_message_type_support_t * ts =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
@@ -204,7 +209,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
   }
   {  // Subscription topic
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    const rosidl_message_type_support_t * ts =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
@@ -247,7 +253,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
   ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/foo", &default_options));
 
   {  // Publisher topic
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    const rosidl_message_type_support_t * ts =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "bar", &publisher_options);
@@ -256,7 +263,8 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
   }
   {  // Subscription topic
-    const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
+    const rosidl_message_type_support_t * ts =
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(

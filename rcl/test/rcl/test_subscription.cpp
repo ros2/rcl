@@ -21,8 +21,7 @@
 #include "rcl/subscription.h"
 
 #include "rcl/rcl.h"
-#include "std_msgs/msg/int64.h"
-#include "std_msgs/msg/string.h"
+#include "test_msgs/msg/primitives.h"
 #include "rosidl_generator_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -103,19 +102,10 @@ wait_for_subscription_to_be_ready(
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int64);
-  // TODO(wjwwood): Change this back to just chatter when this OpenSplice problem is resolved:
-  //  ========================================================================================
-  //  Report      : WARNING
-  //  Date        : Wed Feb 10 18:17:03 PST 2016
-  //  Description : Create Topic "chatter" failed: typename <std_msgs::msg::dds_::Int64_>
-  //                differs exiting definition <std_msgs::msg::dds_::String_>.
-  //  Node        : farl
-  //  Process     : test_subscription__rmw_opensplice_cpp <23524>
-  //  Thread      : main thread 7fff7342d000
-  //  Internals   : V6.4.140407OSS///v_topicNew/v_topic.c/448/21/1455157023.781423000
-  const char * topic = "rcl_test_subscription_nominal_chatter_int64";
-  const char * expected_topic = "/rcl_test_subscription_nominal_chatter_int64";
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  const char * topic = "chatter";
+  const char * expected_topic = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -154,25 +144,25 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   //                until then we will sleep for a short period of time
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   {
-    std_msgs__msg__Int64 msg;
-    std_msgs__msg__Int64__init(&msg);
-    msg.data = 42;
+    test_msgs__msg__Primitives msg;
+    test_msgs__msg__Primitives__init(&msg);
+    msg.int64_value = 42;
     ret = rcl_publish(&publisher, &msg);
-    std_msgs__msg__Int64__fini(&msg);
+    test_msgs__msg__Primitives__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   }
   bool success;
   wait_for_subscription_to_be_ready(&subscription, 10, 100, success);
   ASSERT_TRUE(success);
   {
-    std_msgs__msg__Int64 msg;
-    std_msgs__msg__Int64__init(&msg);
+    test_msgs__msg__Primitives msg;
+    test_msgs__msg__Primitives__init(&msg);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      std_msgs__msg__Int64__fini(&msg);
+      test_msgs__msg__Primitives__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ASSERT_EQ(42, msg.data);
+    ASSERT_EQ(42, msg.int64_value);
   }
 }
 
@@ -181,7 +171,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal_string) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
   const char * topic = "rcl_test_subscription_nominal_string_chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
@@ -204,24 +195,24 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   const char * test_string = "testing";
   {
-    std_msgs__msg__String msg;
-    std_msgs__msg__String__init(&msg);
-    ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.data, test_string));
+    test_msgs__msg__Primitives msg;
+    test_msgs__msg__Primitives__init(&msg);
+    ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg);
-    std_msgs__msg__String__fini(&msg);
+    test_msgs__msg__Primitives__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   }
   bool success;
   wait_for_subscription_to_be_ready(&subscription, 10, 100, success);
   ASSERT_TRUE(success);
   {
-    std_msgs__msg__String msg;
-    std_msgs__msg__String__init(&msg);
+    test_msgs__msg__Primitives msg;
+    test_msgs__msg__Primitives__init(&msg);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      std_msgs__msg__String__fini(&msg);
+      test_msgs__msg__Primitives__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-    ASSERT_EQ(std::string(test_string), std::string(msg.data.data, msg.data.size));
+    ASSERT_EQ(std::string(test_string), std::string(msg.string_value.data, msg.string_value.size));
   }
 }
