@@ -302,4 +302,5 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_n
   {  // Node namespace gets remapped
     EXPECT_STREQ("/new_ns", rcl_node_get_namespace(&node));
   }
+  EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
 }
