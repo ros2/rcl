@@ -1,7 +1,6 @@
 find_package(ament_cmake_gtest REQUIRED)
 find_package(ament_cmake_pytest REQUIRED)
 
-find_package(std_msgs REQUIRED)
 find_package(test_msgs REQUIRED)
 
 find_package(rmw_implementation_cmake REQUIRED)
@@ -99,7 +98,7 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs" "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
     ${SKIP_TEST}
   )
 
@@ -142,7 +141,7 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES "std_msgs" "test_msgs"
+    AMENT_DEPENDENCIES "test_msgs"
   )
 
   rcl_add_custom_gtest(test_guard_condition${target_suffix}
@@ -160,7 +159,7 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
   )
 
   rcl_add_custom_gtest(test_service${target_suffix}
@@ -178,7 +177,7 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
   )
 
   rcl_add_custom_gtest(test_wait${target_suffix}
