@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2018-07-17)
+------------------
 * Add regression test for node:__ns remapping backport of `#263 <https://github.com/ros2/rcl/issues/263>`_ (`#271 <https://github.com/ros2/rcl/issues/271>`_)
 * Contributors: Mikael Arguedas, dhood
 
