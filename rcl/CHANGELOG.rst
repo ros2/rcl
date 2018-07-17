@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add regression test for node:__ns remapping backport of `#263 <https://github.com/ros2/rcl/issues/263>`_ (`#271 <https://github.com/ros2/rcl/issues/271>`_)
+* Contributors: Mikael Arguedas, dhood
+
 0.5.0 (2018-06-25)
 ------------------
 * Updated code to only use ``rcutils_allocator_t`` and not use system memory functions directly. (`#261 <https://github.com/ros2/rcl/issues/261>`_)
