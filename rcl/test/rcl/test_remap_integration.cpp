@@ -288,3 +288,19 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
 
   EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
 }
+
+TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_node_rules) {
+  int argc;
+  char ** argv;
+  SCOPE_GLOBAL_ARGS(
+    argc, argv, "process_name", "original_name:__ns:=/new_ns");
+
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_options_t default_options = rcl_node_get_default_options();
+  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "", &default_options));
+
+  {  // Node namespace gets remapped
+    EXPECT_STREQ("/new_ns", rcl_node_get_namespace(&node));
+  }
+  EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+}
