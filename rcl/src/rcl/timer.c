@@ -28,6 +28,8 @@ extern "C"
 
 typedef struct rcl_timer_impl_t
 {
+  // The clock providing time.
+  rcl_clock_t * clock;
   // The user supplied callback.
   atomic_uintptr_t callback;
   // This is a duration in nanoseconds.
@@ -50,26 +52,29 @@ rcl_get_zero_initialized_timer()
 rcl_ret_t
 rcl_timer_init(
   rcl_timer_t * timer,
+  rcl_clock_t * clock,
   int64_t period,
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, allocator);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Initializing timer with period: %" PRIu64 "ns", period)
   if (timer->impl) {
     RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized", allocator);
     return RCL_RET_ALREADY_INIT;
   }
-  rcl_time_point_value_t now_steady;
-  rcl_ret_t now_ret = rcutils_steady_time_now(&now_steady);
+  rcl_time_point_value_t now;
+  rcl_ret_t now_ret = clock->get_now(clock->data, &now);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
   rcl_timer_impl_t impl;
+  impl.clock = clock;
   atomic_init(&impl.callback, (uintptr_t)callback);
   atomic_init(&impl.period, period);
-  atomic_init(&impl.last_call_time, now_steady);
+  atomic_init(&impl.last_call_time, now);
   atomic_init(&impl.canceled, false);
   impl.allocator = allocator;
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
@@ -105,18 +110,18 @@ rcl_timer_call(rcl_timer_t * timer)
     RCL_SET_ERROR_MSG("timer is canceled", *allocator);
     return RCL_RET_TIMER_CANCELED;
   }
-  rcl_time_point_value_t now_steady;
-  rcl_ret_t now_ret = rcutils_steady_time_now(&now_steady);
+  rcl_time_point_value_t now;
+  rcl_ret_t now_ret = timer->impl->clock->get_now(timer->impl->clock->data, &now);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
   rcl_time_point_value_t previous_ns =
-    rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now_steady);
+    rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now);
   rcl_timer_callback_t typed_callback =
     (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
 
   if (typed_callback != NULL) {
-    int64_t since_last_call = now_steady - previous_ns;
+    int64_t since_last_call = now - previous_ns;
     typed_callback(timer, since_last_call);
   }
   return RCL_RET_OK;

@@ -103,8 +103,13 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init(&timer, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
+  ret = rcl_timer_init(&timer, &clock, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   ret = rcl_wait_set_add_timer(&wait_set, &timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -205,8 +210,14 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
   rcl_timer_t canceled_timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init(&canceled_timer, RCL_MS_TO_NS(1), nullptr, rcl_get_default_allocator());
+  ret = rcl_timer_init(
+    &canceled_timer, &clock, RCL_MS_TO_NS(1), nullptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   ret = rcl_timer_cancel(&canceled_timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();

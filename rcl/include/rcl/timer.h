@@ -137,6 +137,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_init(
   rcl_timer_t * timer,
+  rcl_clock_t * clock,
   int64_t period,
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator);
