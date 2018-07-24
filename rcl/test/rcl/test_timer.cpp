@@ -97,6 +97,9 @@ TEST_F(TestTimerFixture, test_two_timers) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_FALSE(is_ready);
   ASSERT_EQ(1, nonnull_timers);
+
+  ret = rcl_clock_fini(&clock);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
 
 TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
@@ -148,6 +151,9 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_FALSE(is_ready);
   ASSERT_EQ(1, nonnull_timers);
+
+  ret = rcl_clock_fini(&clock);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
 
 TEST_F(TestTimerFixture, test_timer_not_ready) {
@@ -189,6 +195,9 @@ TEST_F(TestTimerFixture, test_timer_not_ready) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_FALSE(is_ready);
   ASSERT_EQ(0, nonnull_timers);
+
+  ret = rcl_clock_fini(&clock);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
 
 TEST_F(TestTimerFixture, test_canceled_timer) {
@@ -233,4 +242,7 @@ TEST_F(TestTimerFixture, test_canceled_timer) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   EXPECT_FALSE(is_ready);
   ASSERT_EQ(0, nonnull_timers);
+
+  ret = rcl_clock_fini(&clock);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
