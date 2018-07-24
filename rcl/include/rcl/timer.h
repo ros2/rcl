@@ -60,7 +60,7 @@ rcl_get_zero_initialized_timer(void);
 
 /// Initialize a timer.
 /**
- * A timer consists of a callback function and a period.
+ * A timer consists of a clock, a callback function and a period.
  * A timer can be added to a wait set and waited on, such that the wait set
  * will wake up when a timer is ready to be executed.
  *
@@ -76,6 +76,9 @@ rcl_get_zero_initialized_timer(void);
  * Calling this function on an already initialized timer will fail.
  * Calling this function on a timer struct which has been allocated but not
  * zero initialized is undefined behavior.
+ *
+ * The clock handle must be a pointer to an initialized rcl_clock_t struct.
+ * The life time of the clock must exceed the life time of the timer.
  *
  * The period is a duration (rather an absolute time in the future).
  * If the period is `0` then it will always be ready.
@@ -101,9 +104,14 @@ rcl_get_zero_initialized_timer(void);
  *   // Optionally reconfigure, cancel, or reset the timer...
  * }
  *
+ * rcl_clock_t clock;
+ * rcl_allocator_t allocator = rcl_get_default_allocator();
+ * rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+ * // ... error handling
+ *
  * rcl_timer_t timer = rcl_get_zero_initialized_timer();
- * rcl_ret_t ret = rcl_timer_init(
- *   &timer, RCL_MS_TO_NS(100), my_timer_callback, rcl_get_default_allocator());
+ * ret = rcl_timer_init(
+ *   &timer, &clock, RCL_MS_TO_NS(100), my_timer_callback, allocator);
  * // ... error handling, use the timer with a wait set, or poll it manually, then cleanup
  * ret = rcl_timer_fini(&timer);
  * // ... error handling
@@ -124,6 +132,7 @@ rcl_get_zero_initialized_timer(void);
  *
  * \param[inout] timer the timer handle to be initialized
  * \param[in] period the duration between calls to the callback in nanoseconds
+ * \param[in] clock the clock providing the current time
  * \param[in] callback the user defined function to be called every period
  * \param[in] allocator the allocator to use for allocations
  * \return `RCL_RET_OK` if the timer was initialized successfully, or
