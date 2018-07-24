@@ -65,8 +65,8 @@ rcl_timer_init(
     RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized", allocator);
     return RCL_RET_ALREADY_INIT;
   }
-  rcl_time_point_value_t now;
-  rcl_ret_t now_ret = clock->get_now(clock->data, &now);
+  rcl_time_point_t now;
+  rcl_ret_t now_ret = rcl_clock_get_now(clock, &now);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
@@ -74,7 +74,7 @@ rcl_timer_init(
   impl.clock = clock;
   atomic_init(&impl.callback, (uintptr_t)callback);
   atomic_init(&impl.period, period);
-  atomic_init(&impl.last_call_time, now);
+  atomic_init(&impl.last_call_time, now.nanoseconds);
   atomic_init(&impl.canceled, false);
   impl.allocator = allocator;
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
@@ -110,18 +110,18 @@ rcl_timer_call(rcl_timer_t * timer)
     RCL_SET_ERROR_MSG("timer is canceled", *allocator);
     return RCL_RET_TIMER_CANCELED;
   }
-  rcl_time_point_value_t now;
-  rcl_ret_t now_ret = timer->impl->clock->get_now(timer->impl->clock->data, &now);
+  rcl_time_point_t now;
+  rcl_ret_t now_ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
   rcl_time_point_value_t previous_ns =
-    rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now);
+    rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now.nanoseconds);
   rcl_timer_callback_t typed_callback =
     (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
 
   if (typed_callback != NULL) {
-    int64_t since_last_call = now - previous_ns;
+    int64_t since_last_call = now.nanoseconds - previous_ns;
     typed_callback(timer, since_last_call);
   }
   return RCL_RET_OK;
