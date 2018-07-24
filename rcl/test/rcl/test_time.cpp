@@ -76,7 +76,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   ret = rcl_is_enabled_ros_time_override(nullptr, nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
   rcl_reset_error();
-  rcl_time_point_t query_now;
+  rcl_time_point_value_t query_now;
   bool is_enabled;
   ret = rcl_is_enabled_ros_time_override(&ros_clock, &is_enabled);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
@@ -86,7 +86,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
     ret = rcl_clock_get_now(&ros_clock, &query_now);
   });
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  EXPECT_NE(query_now.nanoseconds, 0u);
+  EXPECT_NE(query_now, 0u);
   // Compare to std::chrono::system_clock time (within a second).
   ret = rcl_clock_get_now(&ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
@@ -94,7 +94,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
     int64_t now_ns_int = now_ns.count();
-    int64_t now_diff = query_now.nanoseconds - now_ns_int;
+    int64_t now_diff = query_now - now_ns_int;
     const int k_tolerance_ms = 1000;
     EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "ros_clock differs";
   }
@@ -118,7 +118,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
     int64_t now_ns_int = now_ns.count();
-    int64_t now_diff = query_now.nanoseconds - now_ns_int;
+    int64_t now_diff = query_now - now_ns_int;
     const int k_tolerance_ms = 1000;
     EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "ros_clock differs";
   }
@@ -132,7 +132,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   // get sim
   ret = rcl_clock_get_now(&ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-  EXPECT_EQ(query_now.nanoseconds, set_point);
+  EXPECT_EQ(query_now, set_point);
   // disable
   ret = rcl_disable_ros_time_override(&ros_clock);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
@@ -147,7 +147,7 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
     int64_t now_ns_int = now_ns.count();
-    int64_t now_diff = query_now.nanoseconds - now_ns_int;
+    int64_t now_diff = query_now - now_ns_int;
     const int k_tolerance_ms = 1000;
     EXPECT_LE(llabs(now_diff), RCL_MS_TO_NS(k_tolerance_ms)) << "ros_clock differs";
   }
@@ -352,7 +352,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_update_callbacks) {
     reinterpret_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
-  rcl_time_point_t query_now;
+  rcl_time_point_value_t query_now;
   rcl_ret_t ret;
   rcl_time_point_value_t set_point = 1000000000ull;
 

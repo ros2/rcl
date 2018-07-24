@@ -226,12 +226,12 @@ rcl_difference_times(
 }
 
 rcl_ret_t
-rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_t * time_point)
+rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_value_t * time_point_value)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_point, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_point_value, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   if (clock->type && clock->get_now) {
-    return clock->get_now(clock->data,
-             &(time_point->nanoseconds));
+    return clock->get_now(clock->data, time_point_value);
   }
   RCL_SET_ERROR_MSG(
     "clock is not initialized or does not have get_now registered.",
