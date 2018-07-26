@@ -110,6 +110,7 @@ rcl_ret_t
 rcl_clock_fini(
   rcl_clock_t * clock)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   switch (clock->type) {
     case RCL_ROS_TIME:
       return rcl_ros_clock_fini(clock);
