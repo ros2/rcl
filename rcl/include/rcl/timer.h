@@ -28,6 +28,7 @@ extern "C"
 #include "rcl/types.h"
 #include "rmw/rmw.h"
 
+struct rcl_clock_t;
 struct rcl_timer_impl_t;
 
 /// Structure which encapsulates a ROS Timer.
@@ -225,6 +226,32 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_call(rcl_timer_t * timer);
+
+/// Retrieve the clock of the timer.
+/**
+ * This function retrieves the clock pointer and copies it into the give variable.
+ *
+ * The clock argument must be a pointer to an already allocated rcl_clock_t *.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] timer the handle to the timer which is being queried
+ * \param[out] clock the rcl_clock_t * in which the clock is stored
+ * \return `RCL_RET_OK` if the period was retrieved successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_TIMER_INVALID` if the timer is invalid, or
+ * \return `RCL_RET_ERROR` an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_clock(rcl_timer_t * timer, rcl_clock_t ** clock);
 
 /// Calculates whether or not the timer should be called.
 /**

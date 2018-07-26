@@ -97,6 +97,18 @@ rcl_timer_fini(rcl_timer_t * timer)
   return result;
 }
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_clock(rcl_timer_t * timer, rcl_clock_t ** clock)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer->impl, RCL_RET_TIMER_INVALID, rcl_get_default_allocator());
+  *clock = timer->impl->clock;
+  return RCL_RET_OK;
+}
+
 rcl_ret_t
 rcl_timer_call(rcl_timer_t * timer)
 {
