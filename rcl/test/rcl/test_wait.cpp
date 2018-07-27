@@ -242,6 +242,9 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   // Check time
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
   EXPECT_LE(diff, RCL_MS_TO_NS(10) + TOLERANCE);
+
+  ret = rcl_clock_fini(&clock);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
 }
 
 // Test rcl_wait_set_t with excess capacity works.
