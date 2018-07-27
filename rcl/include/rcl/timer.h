@@ -132,8 +132,8 @@ rcl_get_zero_initialized_timer(void);
  * <i>[3] if `atomic_is_lock_free()` returns true for `atomic_bool`</i>
  *
  * \param[inout] timer the timer handle to be initialized
- * \param[in] period the duration between calls to the callback in nanoseconds
  * \param[in] clock the clock providing the current time
+ * \param[in] period the duration between calls to the callback in nanoseconds
  * \param[in] callback the user defined function to be called every period
  * \param[in] allocator the allocator to use for allocations
  * \return `RCL_RET_OK` if the timer was initialized successfully, or
@@ -229,7 +229,7 @@ rcl_timer_call(rcl_timer_t * timer);
 
 /// Retrieve the clock of the timer.
 /**
- * This function retrieves the clock pointer and copies it into the give variable.
+ * This function retrieves the clock pointer and copies it into the given variable.
  *
  * The clock argument must be a pointer to an already allocated rcl_clock_t *.
  *
@@ -352,7 +352,7 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, int64_t * time_sin
 
 /// Retrieve the period of the timer.
 /**
- * This function retrieves the period and copies it into the give variable.
+ * This function retrieves the period and copies it into the given variable.
  *
  * The period argument must be a pointer to an already allocated int64_t.
  *
@@ -380,7 +380,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period);
 /// Exchange the period of the timer and return the previous period.
 /**
  * This function exchanges the period in the timer and copies the old one into
- * the give variable.
+ * the given variable.
  *
  * Exchanging (changing) the period will not affect already waiting wait sets.
  *
