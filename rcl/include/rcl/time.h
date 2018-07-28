@@ -272,12 +272,12 @@ rcl_ret_t
 rcl_difference_times(
   rcl_time_point_t * start, rcl_time_point_t * finish, rcl_duration_t * delta);
 
-/// Fill the time point with the current value of the associated clock.
+/// Fill the time point value with the current value of the associated clock.
 /**
- * This function will populate the data of the time_point object with the
+ * This function will populate the data of the time_point_value object with the
  * current value from it's associated time abstraction.
  * \param[in] clock The time source from which to set the value.
- * \param[out] time_point The time_point to populate.
+ * \param[out] time_point_value The time_point value to populate.
  * \return `RCL_RET_OK` if the last call time was retrieved successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
@@ -285,7 +285,7 @@ rcl_difference_times(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_t * time_point);
+rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_value_t * time_point_value);
 
 
 /// Enable the ROS time abstraction override.
