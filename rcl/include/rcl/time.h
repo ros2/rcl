@@ -63,7 +63,7 @@ typedef struct rcl_clock_t
   rcl_ret_t (* get_now)(void * data, rcl_time_point_value_t * now);
   // void (*set_now) (rcl_time_point_value_t);
   void * data;
-  rcl_allocator_t * allocator;
+  rcl_allocator_t allocator;
 } rcl_clock_t;
 
 /// A single point in time, measured in nanoseconds, the reference point is based on the source.

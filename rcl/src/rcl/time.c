@@ -88,7 +88,7 @@ rcl_clock_init(
   enum rcl_clock_type_t clock_type, rcl_clock_t * clock,
   rcl_allocator_t * allocator)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   switch (clock_type) {
     case RCL_CLOCK_UNINITIALIZED:
       RCL_CHECK_ARGUMENT_FOR_NULL(
@@ -111,6 +111,7 @@ rcl_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&clock->allocator, "clock has invalid allocator", return RCL_RET_ERROR);
   switch (clock->type) {
     case RCL_ROS_TIME:
       return rcl_ros_clock_fini(clock);
@@ -138,7 +139,7 @@ rcl_ros_clock_init(
   storage->active = false;
   clock->get_now = rcl_get_ros_time;
   clock->type = RCL_ROS_TIME;
-  clock->allocator = allocator;
+  clock->allocator = *allocator;
   return RCL_RET_OK;
 }
 
@@ -151,7 +152,11 @@ rcl_ros_clock_fini(
     RCL_SET_ERROR_MSG("clock not of type RCL_ROS_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
-  clock->allocator->deallocate((rcl_ros_clock_storage_t *)clock->data, clock->allocator->state);
+  if (!clock->data) {
+    RCL_SET_ERROR_MSG("clock data invalid", rcl_get_default_allocator());
+    return RCL_RET_ERROR;
+  }
+  clock->allocator.deallocate((rcl_ros_clock_storage_t *)clock->data, clock->allocator.state);
   return RCL_RET_OK;
 }
 
@@ -165,7 +170,7 @@ rcl_steady_clock_init(
   rcl_init_generic_clock(clock);
   clock->get_now = rcl_get_steady_time;
   clock->type = RCL_STEADY_TIME;
-  clock->allocator = allocator;
+  clock->allocator = *allocator;
   return RCL_RET_OK;
 }
 
@@ -191,7 +196,7 @@ rcl_system_clock_init(
   rcl_init_generic_clock(clock);
   clock->get_now = rcl_get_system_time;
   clock->type = RCL_SYSTEM_TIME;
-  clock->allocator = allocator;
+  clock->allocator = *allocator;
   return RCL_RET_OK;
 }
 
