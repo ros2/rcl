@@ -111,7 +111,8 @@ rcl_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&clock->allocator, "clock has invalid allocator", return RCL_RET_ERROR);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&clock->allocator, "clock has invalid allocator",
+    return RCL_RET_ERROR);
   switch (clock->type) {
     case RCL_ROS_TIME:
       return rcl_ros_clock_fini(clock);
