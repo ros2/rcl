@@ -85,7 +85,7 @@ rcl_arguments_get_param_files(
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(parameter_files, RCL_RET_INVALID_ARGUMENT, allocator);
   *(parameter_files) = allocator.allocate(
-    sizeof(char *) * arguments->impl->num_param_files_args, allocator.state);
+    sizeof(char *) * (size_t)arguments->impl->num_param_files_args, allocator.state);
   if (NULL == *parameter_files) {
     return RCL_RET_BAD_ALLOC;
   }
@@ -175,17 +175,17 @@ rcl_parse_arguments(
   }
 
   // over-allocate arrays to match the number of arguments
-  args_impl->remap_rules = allocator.allocate(sizeof(rcl_remap_t) * argc, allocator.state);
+  args_impl->remap_rules = allocator.allocate(sizeof(rcl_remap_t) * (size_t)argc, allocator.state);
   if (NULL == args_impl->remap_rules) {
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
-  args_impl->unparsed_args = allocator.allocate(sizeof(int) * argc, allocator.state);
+  args_impl->unparsed_args = allocator.allocate(sizeof(int) * (size_t)argc, allocator.state);
   if (NULL == args_impl->unparsed_args) {
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
-  args_impl->parameter_files = allocator.allocate(sizeof(char *) * argc, allocator.state);
+  args_impl->parameter_files = allocator.allocate(sizeof(char *) * (size_t)argc, allocator.state);
   if (NULL == args_impl->parameter_files) {
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
@@ -240,7 +240,7 @@ rcl_parse_arguments(
   // Shrink remap_rules array to match number of successfully parsed rules
   if (args_impl->num_remap_rules > 0) {
     args_impl->remap_rules = rcutils_reallocf(
-      args_impl->remap_rules, sizeof(rcl_remap_t) * args_impl->num_remap_rules, &allocator);
+      args_impl->remap_rules, sizeof(rcl_remap_t) * (size_t)args_impl->num_remap_rules, &allocator);
     if (NULL == args_impl->remap_rules) {
       ret = RCL_RET_BAD_ALLOC;
       goto fail;
@@ -256,7 +256,8 @@ rcl_parse_arguments(
     args_impl->parameter_files = NULL;
   } else if (args_impl->num_param_files_args < argc) {
     args_impl->parameter_files = rcutils_reallocf(
-      args_impl->parameter_files, sizeof(char *) * args_impl->num_param_files_args, &allocator);
+      args_impl->parameter_files, sizeof(char *) *
+      (size_t)args_impl->num_param_files_args, &allocator);
     if (NULL == args_impl->parameter_files) {
       ret = RCL_RET_BAD_ALLOC;
       goto fail;
@@ -269,7 +270,7 @@ rcl_parse_arguments(
     args_impl->unparsed_args = NULL;
   } else if (args_impl->num_unparsed_args < argc) {
     args_impl->unparsed_args = rcutils_reallocf(
-      args_impl->unparsed_args, sizeof(int) * args_impl->num_unparsed_args, &allocator);
+      args_impl->unparsed_args, sizeof(int) * (size_t)args_impl->num_unparsed_args, &allocator);
     if (NULL == args_impl->unparsed_args) {
       ret = RCL_RET_BAD_ALLOC;
       goto fail;
@@ -312,7 +313,7 @@ rcl_arguments_get_unparsed(
   *output_unparsed_indices = NULL;
   if (args->impl->num_unparsed_args) {
     *output_unparsed_indices = allocator.allocate(
-      sizeof(int) * args->impl->num_unparsed_args, allocator.state);
+      sizeof(int) * (size_t)args->impl->num_unparsed_args, allocator.state);
     if (NULL == *output_unparsed_indices) {
       return RCL_RET_BAD_ALLOC;
     }
@@ -360,7 +361,7 @@ rcl_remove_ros_arguments(
     return ret;
   }
 
-  size_t alloc_size = sizeof(char *) * *nonros_argc;
+  size_t alloc_size = sizeof(char *) * (size_t)*nonros_argc;
   *nonros_argv = allocator.allocate(alloc_size, allocator.state);
   if (NULL == *nonros_argv) {
     allocator.deallocate(unparsed_indices, allocator.state);
@@ -405,7 +406,7 @@ rcl_arguments_copy(
 
   // Copy unparsed args
   args_out->impl->unparsed_args = allocator.allocate(
-    sizeof(int) * args->impl->num_unparsed_args, allocator.state);
+    sizeof(int) * (size_t)args->impl->num_unparsed_args, allocator.state);
   if (NULL == args_out->impl->unparsed_args) {
     if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
       RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
@@ -419,7 +420,7 @@ rcl_arguments_copy(
 
   // Copy remap rules
   args_out->impl->remap_rules = allocator.allocate(
-    sizeof(rcl_remap_t) * args->impl->num_remap_rules, allocator.state);
+    sizeof(rcl_remap_t) * (size_t)args->impl->num_remap_rules, allocator.state);
   if (NULL == args_out->impl->remap_rules) {
     if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
       RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
@@ -441,7 +442,7 @@ rcl_arguments_copy(
   // Copy parameter files
   if (args->impl->num_param_files_args) {
     args_out->impl->parameter_files = allocator.allocate(
-      sizeof(char *) * args->impl->num_param_files_args, allocator.state);
+      sizeof(char *) * (size_t)args->impl->num_param_files_args, allocator.state);
     if (NULL == args_out->impl->parameter_files) {
       if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
         RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);

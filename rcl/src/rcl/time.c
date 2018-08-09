@@ -67,7 +67,7 @@ rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
   if (!t->active) {
     return rcl_get_system_time(data, current_time);
   }
-  *current_time = rcl_atomic_load_uint64_t(&(t->current_time));
+  *current_time = (rcl_time_point_value_t)rcl_atomic_load_uint64_t(&(t->current_time));
   return RCL_RET_OK;
 }
 
@@ -326,7 +326,7 @@ rcl_set_ros_time_override(
   if (storage->active && clock->pre_update) {
     clock->pre_update();
   }
-  rcl_atomic_store(&(storage->current_time), time_value);
+  rcl_atomic_store(&(storage->current_time), (uint64_t)time_value);
   if (storage->active && clock->post_update) {
     clock->post_update();
   }

@@ -145,7 +145,7 @@ rcl_expand_topic_name(
     while ((next_opening_brace = strchr(current_output, '{')) != NULL) {
       char * next_closing_brace = strchr(current_output, '}');
       // conclusion based on above assumptions: next_closing_brace - next_opening_brace > 1
-      size_t substitution_substr_len = next_closing_brace - next_opening_brace + 1;
+      size_t substitution_substr_len = (size_t)(next_closing_brace - next_opening_brace) + 1U;
       // figure out what the replacement is for this substitution
       const char * replacement = NULL;
       if (strncmp(SUBSTITUION_NODE_NAME, next_opening_brace, substitution_substr_len) == 0) {

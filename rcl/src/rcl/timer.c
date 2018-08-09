@@ -73,8 +73,8 @@ rcl_timer_init(
   rcl_timer_impl_t impl;
   impl.clock = clock;
   atomic_init(&impl.callback, (uintptr_t)callback);
-  atomic_init(&impl.period, period);
-  atomic_init(&impl.last_call_time, now);
+  atomic_init(&impl.period, (unint64_t)(period));
+  atomic_init(&impl.last_call_time, (unit64_t)(now));
   atomic_init(&impl.canceled, false);
   impl.allocator = allocator;
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
@@ -128,7 +128,7 @@ rcl_timer_call(rcl_timer_t * timer)
     return now_ret;  // rcl error state should already be set.
   }
   rcl_time_point_value_t previous_ns =
-    rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now);
+    (rcl_time_point_value_t)rcl_atomic_exchange_uint64_t(&timer->impl->last_call_time, now);
   rcl_timer_callback_t typed_callback =
     (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
 
@@ -171,9 +171,9 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
-  int64_t period = rcl_atomic_load_uint64_t(&timer->impl->period);
+  int64_t period = (int64_t)rcl_atomic_load_uint64_t(&timer->impl->period);
   *time_until_next_call =
-    (rcl_atomic_load_uint64_t(&timer->impl->last_call_time) + period) - now;
+    (int64_t)(rcl_atomic_load_uint64_t(&timer->impl->last_call_time) + (uint64_t)period) - now;
   return RCL_RET_OK;
 }
 
@@ -194,7 +194,7 @@ rcl_timer_get_time_since_last_call(
     return ret;  // rcl error state should already be set.
   }
   *time_since_last_call =
-    now - rcl_atomic_load_uint64_t(&timer->impl->last_call_time);
+    now - (int64_t)rcl_atomic_load_uint64_t(&timer->impl->last_call_time);
   return RCL_RET_OK;
 }
 
@@ -207,7 +207,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period)
     return RCL_RET_TIMER_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(period, RCL_RET_INVALID_ARGUMENT, *allocator);
-  *period = rcl_atomic_load_uint64_t(&timer->impl->period);
+  *period = (int64_t)rcl_atomic_load_uint64_t(&timer->impl->period);
   return RCL_RET_OK;
 }
 
@@ -220,7 +220,7 @@ rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t
     return RCL_RET_TIMER_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT, *allocator);
-  *old_period = rcl_atomic_exchange_uint64_t(&timer->impl->period, new_period);
+  *old_period = (int64_t)rcl_atomic_exchange_uint64_t(&timer->impl->period, (uint64_t)new_period);
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Updated timer period from '%" PRIu64 "ns' to '%" PRIu64 "ns'",
     *old_period, new_period)
@@ -282,7 +282,7 @@ rcl_timer_reset(rcl_timer_t * timer)
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
-  rcl_atomic_store(&timer->impl->last_call_time, now);
+  rcl_atomic_store(&timer->impl->last_call_time, (uint64_t)now);
   rcl_atomic_store(&timer->impl->canceled, false);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset")
   return RCL_RET_OK;

@@ -96,13 +96,14 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
   // TODO(wjwwood): Remove rcl specific command line arguments.
   // For now just copy the argc and argv.
   __rcl_argc = argc;
-  __rcl_argv = (char **)__rcl_allocator.allocate(sizeof(char *) * argc, __rcl_allocator.state);
+  __rcl_argv =
+    (char **)__rcl_allocator.allocate(sizeof(char *) * (size_t)argc, __rcl_allocator.state);
   if (!__rcl_argv) {
     RCL_SET_ERROR_MSG("allocation failed", allocator);
     fail_ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
-  memset(__rcl_argv, 0, sizeof(char **) * argc);
+  memset(__rcl_argv, 0, sizeof(char **) * (size_t)argc);
   int i;
   for (i = 0; i < argc; ++i) {
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);

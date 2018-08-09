@@ -583,8 +583,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (min_timeout < 0) {
       min_timeout = 0;
     }
-    temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
-    temporary_timeout_storage.nsec = min_timeout % 1000000000;
+    temporary_timeout_storage.sec = (uint64_t)RCL_NS_TO_S(min_timeout);
+    temporary_timeout_storage.nsec = (uint64_t)(min_timeout % 1000000000);
     timeout_argument = &temporary_timeout_storage;
   }
   RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
