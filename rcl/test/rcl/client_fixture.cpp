@@ -158,6 +158,7 @@ int main(int argc, char ** argv)
 
     // Initialize a request.
     test_msgs__srv__Primitives_Request client_request;
+    // TODO zero initialization necessary until https://github.com/ros2/ros2/issues/397 is implemented
     memset(&client_request, 0, sizeof(test_msgs__srv__Primitives_Request));
     test_msgs__srv__Primitives_Request__init(&client_request);
     client_request.uint8_value = 1;
@@ -179,6 +180,7 @@ int main(int argc, char ** argv)
 
     // Initialize the response owned by the client and take the response.
     test_msgs__srv__Primitives_Response client_response;
+    // TODO zero initialization necessary until https://github.com/ros2/ros2/issues/397 is implemented
     memset(&client_response, 0, sizeof(test_msgs__srv__Primitives_Response));
     test_msgs__srv__Primitives_Response__init(&client_response);
 
