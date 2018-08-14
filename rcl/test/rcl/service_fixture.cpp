@@ -125,6 +125,9 @@ int main(int argc, char ** argv)
 
     // Initialize a response.
     test_msgs__srv__Primitives_Response service_response;
+    // TODO(dirk-thomas) zero initialization necessary until
+    // https://github.com/ros2/ros2/issues/397 is implemented
+    memset(&service_response, 0, sizeof(test_msgs__srv__Primitives_Response));
     test_msgs__srv__Primitives_Response__init(&service_response);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
       test_msgs__srv__Primitives_Response__fini(&service_response);
@@ -139,6 +142,9 @@ int main(int argc, char ** argv)
 
     // Take the pending request.
     test_msgs__srv__Primitives_Request service_request;
+    // TODO(dirk-thomas) zero initialization necessary until
+    // https://github.com/ros2/ros2/issues/397 is implemented
+    memset(&service_request, 0, sizeof(test_msgs__srv__Primitives_Request));
     test_msgs__srv__Primitives_Request__init(&service_request);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
       test_msgs__srv__Primitives_Request__fini(&service_request);
