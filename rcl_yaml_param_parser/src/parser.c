@@ -964,6 +964,9 @@ static rcl_ret_t parse_value(
             allocator.zero_allocate(1U, sizeof(rcutils_string_array_t), allocator.state);
           if (NULL == param_value->string_array_value) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
+            if (NULL != ret_val) {
+              allocator.deallocate(ret_val, allocator.state);
+            }
             return RCL_RET_BAD_ALLOC;
           }
         } else {
