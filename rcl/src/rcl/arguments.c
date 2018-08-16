@@ -91,10 +91,13 @@ rcl_arguments_get_param_files(
   }
   for (int i = 0; i < arguments->impl->num_param_files_args; ++i) {
     (*parameter_files)[i] = rcutils_strdup(arguments->impl->parameter_files[i], allocator);
-    if (NULL == *parameter_files) {
+    if (NULL == (*parameter_files)[i]) {
       // deallocate allocated memory
       for (int r = i; r >= 0; --r) {
-        allocator.deallocate((*parameter_files[i]), allocator.state);
+        if (NULL == (*parameter_files[r])) {
+          break;
+        }
+        allocator.deallocate((*parameter_files[r]), allocator.state);
       }
       allocator.deallocate((*parameter_files), allocator.state);
       (*parameter_files) = NULL;
