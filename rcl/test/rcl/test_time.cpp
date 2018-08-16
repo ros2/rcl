@@ -339,19 +339,22 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference_signed) {
   }
 }
 
-
 static bool pre_callback_called = false;
 static bool post_callback_called = false;
 
-void pre_callback(void)
+void clock_callback(
+  const struct rcl_time_jump_t * time_jump,
+  bool before_jump,
+  void * user_data)
 {
-  pre_callback_called = true;
-  EXPECT_FALSE(post_callback_called);
-}
-void post_callback(void)
-{
-  EXPECT_TRUE(pre_callback_called);
-  post_callback_called = true;
+  if (before_jump) {
+    pre_callback_called = true;
+    EXPECT_FALSE(post_callback_called);
+  } else {
+    EXPECT_TRUE(pre_callback_called);
+    post_callback_called = true;
+  }
+  *(static_cast<rcl_time_jump_t *>(user_data)) = *time_jump;
 }
 
 void reset_callback_triggers(void)
@@ -360,7 +363,7 @@ void reset_callback_triggers(void)
   post_callback_called = false;
 }
 
-TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_update_callbacks) {
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_clock_t * ros_clock =
     reinterpret_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
@@ -368,40 +371,227 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_update_callbacks) {
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
   rcl_time_point_value_t query_now;
   rcl_ret_t ret;
-  rcl_time_point_value_t set_point = 1000000000ull;
 
   // set callbacks
-  ros_clock->pre_update = pre_callback;
-  ros_clock->post_update = post_callback;
-
-  EXPECT_FALSE(pre_callback_called);
-  EXPECT_FALSE(post_callback_called);
+  rcl_time_jump_t time_jump;
+  rcl_jump_threshold_t threshold;
+  threshold.on_clock_change = true;
+  threshold.min_forward.nanoseconds = 0;
+  threshold.min_backward.nanoseconds = 0;
+  ASSERT_EQ(RCL_RET_OK,
+    rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
+    rcl_get_error_string_safe();
+  reset_callback_triggers();
 
   // Query it to do something different. no changes expected
   ret = rcl_clock_get_now(ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-
-  EXPECT_FALSE(pre_callback_called);
-  EXPECT_FALSE(post_callback_called);
-
-  // Set the time before it's enabled. Should be no callbacks
-  ret = rcl_set_ros_time_override(ros_clock, set_point);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // enable
   ret = rcl_enable_ros_time_override(ros_clock);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_TRUE(pre_callback_called);
+  EXPECT_TRUE(post_callback_called);
+  EXPECT_EQ(RCL_ROS_TIME_ACTIVATED, time_jump.clock_change);
+  reset_callback_triggers();
 
+  // disable
+  ret = rcl_disable_ros_time_override(ros_clock);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_TRUE(pre_callback_called);
+  EXPECT_TRUE(post_callback_called);
+  EXPECT_EQ(RCL_ROS_TIME_DEACTIVATED, time_jump.clock_change);
+  reset_callback_triggers();
+
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
+}
+
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_forward_jump_callbacks) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_clock_t * ros_clock =
+    reinterpret_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
+  rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
+  EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  rcl_ret_t ret;
+  rcl_time_point_value_t set_point1 = 1000000000;
+  rcl_time_point_value_t set_point2 = 2000000000;
+
+  rcl_time_jump_t time_jump;
+  rcl_jump_threshold_t threshold;
+  threshold.on_clock_change = false;
+  threshold.min_forward.nanoseconds = 1;
+  threshold.min_backward.nanoseconds = 0;
+  ASSERT_EQ(RCL_RET_OK,
+    rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
+    rcl_get_error_string_safe();
+  reset_callback_triggers();
+
+  // Set the time before it's enabled. Should be no callbacks
+  ret = rcl_set_ros_time_override(ros_clock, set_point1);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // enable no callbacks
+  ret = rcl_enable_ros_time_override(ros_clock);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // Set the time now that it's enabled, now get callbacks
-  ret = rcl_set_ros_time_override(ros_clock, set_point);
+  ret = rcl_set_ros_time_override(ros_clock, set_point2);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
-
   EXPECT_TRUE(pre_callback_called);
   EXPECT_TRUE(post_callback_called);
+  EXPECT_EQ(set_point2 - set_point1, time_jump.delta.nanoseconds);
+  EXPECT_EQ(RCL_ROS_TIME_NO_CHANGE, time_jump.clock_change);
+  reset_callback_triggers();
+
+  // Setting same value as previous time, not a jump
+  ret = rcl_set_ros_time_override(ros_clock, set_point2);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // disable no callbacks
+  ret = rcl_disable_ros_time_override(ros_clock);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
+}
+
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_backward_jump_callbacks) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_clock_t * ros_clock =
+    reinterpret_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
+  rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
+  EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  rcl_ret_t ret;
+  rcl_time_point_value_t set_point1 = 1000000000;
+  rcl_time_point_value_t set_point2 = 2000000000;
+
+  rcl_time_jump_t time_jump;
+  rcl_jump_threshold_t threshold;
+  threshold.on_clock_change = false;
+  threshold.min_forward.nanoseconds = 0;
+  threshold.min_backward.nanoseconds = -1;
+  ASSERT_EQ(RCL_RET_OK,
+    rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
+    rcl_get_error_string_safe();
+  reset_callback_triggers();
+
+  // Set the time before it's enabled. Should be no callbacks
+  ret = rcl_set_ros_time_override(ros_clock, set_point2);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // enable no callbacks
+  ret = rcl_enable_ros_time_override(ros_clock);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // Set the time now that it's enabled, now get callbacks
+  ret = rcl_set_ros_time_override(ros_clock, set_point1);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_TRUE(pre_callback_called);
+  EXPECT_TRUE(post_callback_called);
+  EXPECT_EQ(set_point1 - set_point2, time_jump.delta.nanoseconds);
+  EXPECT_EQ(RCL_ROS_TIME_NO_CHANGE, time_jump.clock_change);
+  reset_callback_triggers();
+
+  // Setting same value as previous time, not a jump
+  ret = rcl_set_ros_time_override(ros_clock, set_point1);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // disable no callbacks
+  ret = rcl_disable_ros_time_override(ros_clock);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
+}
+
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_add_jump_callback) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_clock_t * clock =
+    reinterpret_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
+  rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string_safe();
+
+  rcl_jump_threshold_t threshold;
+  threshold.on_clock_change = false;
+  threshold.min_forward.nanoseconds = 0u;
+  threshold.min_backward.nanoseconds = 0u;
+  rcl_jump_callback_t cb = reinterpret_cast<rcl_jump_callback_t>(0xBEEF);
+  void * user_data = reinterpret_cast<void *>(0xCAFE);
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_clock_add_jump_callback(clock, threshold, NULL, NULL));
+  rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, NULL)) <<
+    rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_ERROR, rcl_clock_add_jump_callback(clock, threshold, cb, NULL));
+  rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data)) <<
+    rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_ERROR, rcl_clock_add_jump_callback(clock, threshold, cb, user_data));
+  rcl_reset_error();
+
+  EXPECT_EQ(2u, clock->num_jump_callbacks);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
+}
+
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_remove_jump_callback) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_clock_t * clock =
+    reinterpret_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
+  rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string_safe();
+
+  rcl_jump_threshold_t threshold;
+  threshold.on_clock_change = false;
+  threshold.min_forward.nanoseconds = 0u;
+  threshold.min_backward.nanoseconds = 0u;
+  rcl_jump_callback_t cb = reinterpret_cast<rcl_jump_callback_t>(0xBEEF);
+  void * user_data1 = reinterpret_cast<void *>(0xCAFE);
+  void * user_data2 = reinterpret_cast<void *>(0xFACE);
+  void * user_data3 = reinterpret_cast<void *>(0xBEAD);
+  void * user_data4 = reinterpret_cast<void *>(0xDEED);
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_clock_remove_jump_callback(clock, NULL, NULL));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_ERROR, rcl_clock_remove_jump_callback(clock, cb, NULL));
+  rcl_reset_error();
+
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data1)) <<
+    rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data2)) <<
+    rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data3)) <<
+    rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data4)) <<
+    rcl_get_error_string_safe();
+  EXPECT_EQ(4u, clock->num_jump_callbacks);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_remove_jump_callback(clock, cb, user_data3));
+  EXPECT_EQ(3u, clock->num_jump_callbacks);
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_remove_jump_callback(clock, cb, user_data4));
+  EXPECT_EQ(2u, clock->num_jump_callbacks);
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_remove_jump_callback(clock, cb, user_data1));
+  EXPECT_EQ(1u, clock->num_jump_callbacks);
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_remove_jump_callback(clock, cb, user_data2));
+  EXPECT_EQ(0u, clock->num_jump_callbacks);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
 }

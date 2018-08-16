@@ -52,8 +52,8 @@ void
 rcl_init_generic_clock(rcl_clock_t * clock)
 {
   clock->type = RCL_CLOCK_UNINITIALIZED;
-  clock->pre_update = NULL;
-  clock->post_update = NULL;
+  clock->jump_callbacks = NULL;
+  clock->num_jump_callbacks = 0u;
   clock->get_now = NULL;
   clock->data = NULL;
 }
@@ -106,6 +106,18 @@ rcl_clock_init(
   }
 }
 
+void
+_rcl_clock_generic_fini(
+  rcl_clock_t * clock)
+{
+  // Internal function; assume caller has already checked that clock is valid.
+  if (clock->num_jump_callbacks > 0) {
+    clock->num_jump_callbacks = 0;
+    clock->allocator.deallocate(clock->jump_callbacks, clock->allocator.state);
+    clock->jump_callbacks = NULL;
+  }
+}
+
 rcl_ret_t
 rcl_clock_fini(
   rcl_clock_t * clock)
@@ -151,6 +163,7 @@ rcl_ros_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  _rcl_clock_generic_fini(clock);
   if (clock->type != RCL_ROS_TIME) {
     RCL_SET_ERROR_MSG("clock not of type RCL_ROS_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
@@ -182,6 +195,7 @@ rcl_steady_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  _rcl_clock_generic_fini(clock);
   if (clock->type != RCL_STEADY_TIME) {
     RCL_SET_ERROR_MSG("clock not of type RCL_STEADY_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
@@ -208,6 +222,7 @@ rcl_system_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  _rcl_clock_generic_fini(clock);
   if (clock->type != RCL_SYSTEM_TIME) {
     RCL_SET_ERROR_MSG("clock not of type RCL_SYSTEM_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
@@ -249,6 +264,27 @@ rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_value_t * time_point_value
   return RCL_RET_ERROR;
 }
 
+void
+_rcl_clock_call_callbacks(
+  rcl_clock_t * clock, const rcl_time_jump_t * time_jump, bool before_jump)
+{
+  // Internal function; assume parameters are valid.
+  bool is_clock_change = time_jump->clock_change == RCL_ROS_TIME_ACTIVATED ||
+    time_jump->clock_change == RCL_ROS_TIME_DEACTIVATED;
+  for (size_t cb_idx = 0; cb_idx < clock->num_jump_callbacks; ++cb_idx) {
+    rcl_jump_callback_info_t * info = &(clock->jump_callbacks[cb_idx]);
+    if (
+      (is_clock_change && info->threshold.on_clock_change) ||
+      (time_jump->delta.nanoseconds < 0 &&
+      time_jump->delta.nanoseconds <= info->threshold.min_backward.nanoseconds) ||
+      (time_jump->delta.nanoseconds > 0 &&
+      time_jump->delta.nanoseconds >= info->threshold.min_forward.nanoseconds))
+    {
+      info->callback(time_jump, before_jump, info->user_data);
+    }
+  }
+}
+
 rcl_ret_t
 rcl_enable_ros_time_override(rcl_clock_t * clock)
 {
@@ -264,7 +300,14 @@ rcl_enable_ros_time_override(rcl_clock_t * clock)
       rcl_get_default_allocator())
     return RCL_RET_ERROR;
   }
-  storage->active = true;
+  if (!storage->active) {
+    rcl_time_jump_t time_jump;
+    time_jump.delta.nanoseconds = 0;
+    time_jump.clock_change = RCL_ROS_TIME_ACTIVATED;
+    _rcl_clock_call_callbacks(clock, &time_jump, true);
+    storage->active = true;
+    _rcl_clock_call_callbacks(clock, &time_jump, false);
+  }
   return RCL_RET_OK;
 }
 
@@ -284,7 +327,14 @@ rcl_disable_ros_time_override(rcl_clock_t * clock)
       rcl_get_default_allocator())
     return RCL_RET_ERROR;
   }
-  storage->active = false;
+  if (storage->active) {
+    rcl_time_jump_t time_jump;
+    time_jump.delta.nanoseconds = 0;
+    time_jump.clock_change = RCL_ROS_TIME_DEACTIVATED;
+    _rcl_clock_call_callbacks(clock, &time_jump, true);
+    storage->active = false;
+    _rcl_clock_call_callbacks(clock, &time_jump, false);
+  }
   return RCL_RET_OK;
 }
 
@@ -323,14 +373,102 @@ rcl_set_ros_time_override(
       "Clock is not of type RCL_ROS_TIME, cannot set time override.", rcl_get_default_allocator())
     return RCL_RET_ERROR;
   }
-  rcl_ros_clock_storage_t * storage = \
-    (rcl_ros_clock_storage_t *)clock->data;
-  if (storage->active && clock->pre_update) {
-    clock->pre_update();
+  rcl_time_jump_t time_jump;
+  rcl_ros_clock_storage_t * storage = (rcl_ros_clock_storage_t *)clock->data;
+  if (storage->active) {
+    time_jump.clock_change = storage->active ? RCL_ROS_TIME_NO_CHANGE : RCL_SYSTEM_TIME_NO_CHANGE;
+    rcl_time_point_value_t current_time;
+    rcl_ret_t ret = rcl_get_ros_time(storage, &current_time);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+    time_jump.delta.nanoseconds = time_value - current_time;
+    _rcl_clock_call_callbacks(clock, &time_jump, true);
   }
   rcl_atomic_store(&(storage->current_time), time_value);
-  if (storage->active && clock->post_update) {
-    clock->post_update();
+  if (storage->active) {
+    _rcl_clock_call_callbacks(clock, &time_jump, false);
   }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_clock_add_jump_callback(
+  rcl_clock_t * clock, rcl_jump_threshold_t threshold, rcl_jump_callback_t callback,
+  void * user_data)
+{
+  // Make sure parameters are legal
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT, clock->allocator);
+  if (threshold.min_forward.nanoseconds < 0) {
+    RCL_SET_ERROR_MSG("forward jump theshold must be positive", clock->allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  } else if (threshold.min_backward.nanoseconds > 0) {
+    RCL_SET_ERROR_MSG("backward jump theshold must be negative", clock->allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  // Callback/user_data pair must be unique
+  for (size_t cb_idx = 0; cb_idx < clock->num_jump_callbacks; ++cb_idx) {
+    const rcl_jump_callback_info_t * info = &(clock->jump_callbacks[cb_idx]);
+    if (info->callback == callback && info->user_data == user_data) {
+      RCL_SET_ERROR_MSG("callback/user_data are already added to this clock", clock->allocator);
+      return RCL_RET_ERROR;
+    }
+  }
+
+  // Add the new callback, increasing the size of the callback list
+  rcl_jump_callback_info_t * callbacks = clock->allocator.reallocate(
+    clock->jump_callbacks, sizeof(rcl_jump_callback_info_t) * (clock->num_jump_callbacks + 1),
+    clock->allocator.state);
+  if (NULL == callbacks) {
+    RCL_SET_ERROR_MSG("Failed to realloc jump callbacks", clock->allocator);
+    return RCL_RET_BAD_ALLOC;
+  }
+  clock->jump_callbacks = callbacks;
+  clock->jump_callbacks[clock->num_jump_callbacks].callback = callback;
+  clock->jump_callbacks[clock->num_jump_callbacks].threshold = threshold;
+  clock->jump_callbacks[clock->num_jump_callbacks].user_data = user_data;
+  ++(clock->num_jump_callbacks);
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_clock_remove_jump_callback(
+  rcl_clock_t * clock, rcl_jump_callback_t callback, void * user_data)
+{
+  // Make sure parameters are legal
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT, clock->allocator);
+
+  // Delete callback if found, moving all callbacks after back one
+  bool found_callback = false;
+  for (size_t cb_idx = 0; cb_idx < clock->num_jump_callbacks; ++cb_idx) {
+    const rcl_jump_callback_info_t * info = &(clock->jump_callbacks[cb_idx]);
+    if (found_callback) {
+      clock->jump_callbacks[cb_idx - 1] = *info;
+    } else if (info->callback == callback && info->user_data == user_data) {
+      found_callback = true;
+    }
+  }
+  if (!found_callback) {
+    RCL_SET_ERROR_MSG("jump callback was not found", clock->allocator);
+    return RCL_RET_ERROR;
+  }
+
+  // Shrink size of the callback array
+  if (clock->num_jump_callbacks == 1) {
+    clock->allocator.deallocate(clock->jump_callbacks, clock->allocator.state);
+  } else {
+    rcl_jump_callback_info_t * callbacks = clock->allocator.reallocate(
+      clock->jump_callbacks, sizeof(rcl_jump_callback_info_t) * (clock->num_jump_callbacks - 1),
+      clock->allocator.state);
+    if (NULL == callbacks) {
+      RCL_SET_ERROR_MSG("Failed to shrink jump callbacks", clock->allocator);
+      return RCL_RET_BAD_ALLOC;
+    }
+    clock->jump_callbacks = callbacks;
+  }
+  --(clock->num_jump_callbacks);
   return RCL_RET_OK;
 }
