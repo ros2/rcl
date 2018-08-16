@@ -209,10 +209,10 @@ rcl_wait_set_add_subscription(
   rcl_wait_set_t * wait_set,
   const rcl_subscription_t * subscription);
 
-/// Remove (sets to `NULL`) the subscriptions in the wait set.
+/// Remove (sets to `NULL`) all entities in the wait set.
 /**
  * This function should be used after passing using rcl_wait, but before
- * adding new subscriptions to the set.
+ * adding new entities to the set.
  * Sets all of the entries in the underlying rmw array to `NULL`, and sets the
  * count in the rmw array to `0`.
  *
@@ -226,7 +226,7 @@ rcl_wait_set_add_subscription(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[inout] wait_set struct to have its subscriptions cleared
+ * \param[inout] wait_set struct to have its entities cleared
  * \return `RCL_RET_OK` if cleared successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is zero initialized, or
@@ -235,7 +235,7 @@ rcl_wait_set_add_subscription(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set);
+rcl_wait_set_clear(rcl_wait_set_t * wait_set);
 
 /// Reallocate space for the subscriptions in the wait set.
 /**
@@ -248,7 +248,7 @@ rcl_wait_set_clear_subscriptions(rcl_wait_set_t * wait_set);
  * wait set's initialization.
  *
  * After calling this function all values in the set will be set to `NULL`,
- * effectively the same as calling rcl_wait_set_clear_subscriptions().
+ * effectively the same as calling rcl_wait_set_clear().
  * Similarly, the underlying rmw representation is reallocated and reset:
  * all entries are set to `NULL` and the count is set to zero.
  *
@@ -288,16 +288,6 @@ rcl_wait_set_add_guard_condition(
   rcl_wait_set_t * wait_set,
   const rcl_guard_condition_t * guard_condition);
 
-/// Remove (sets to `NULL`) the guard conditions in the wait set.
-/**
- * This function behaves exactly the same as for subscriptions.
- * \see rcl_wait_set_clear_subscriptions
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_wait_set_clear_guard_conditions(rcl_wait_set_t * wait_set);
-
 /// Reallocate space for the guard conditions in the wait set.
 /**
  * This function behaves exactly the same as for subscriptions.
@@ -319,16 +309,6 @@ rcl_ret_t
 rcl_wait_set_add_timer(
   rcl_wait_set_t * wait_set,
   const rcl_timer_t * timer);
-
-/// Remove (sets to `NULL`) the timers in the wait set.
-/**
- * This function behaves exactly the same as for subscriptions.
- * \see rcl_wait_set_clear_subscriptions
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_wait_set_clear_timers(rcl_wait_set_t * wait_set);
 
 /// Reallocate space for the timers in the wait set.
 /**
@@ -352,16 +332,6 @@ rcl_wait_set_add_client(
   rcl_wait_set_t * wait_set,
   const rcl_client_t * client);
 
-/// Remove (sets to `NULL`) the clients in the wait set.
-/**
- * This function behaves exactly the same as for subscriptions.
- * \see rcl_wait_set_clear_subscriptions
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_wait_set_clear_clients(rcl_wait_set_t * wait_set);
-
 /// Reallocate space for the clients in the wait set.
 /**
  * This function behaves exactly the same as for subscriptions.
@@ -383,16 +353,6 @@ rcl_ret_t
 rcl_wait_set_add_service(
   rcl_wait_set_t * wait_set,
   const rcl_service_t * service);
-
-/// Remove (sets to `NULL`) the services in the wait set.
-/**
- * This function behaves exactly the same as for subscriptions.
- * \see rcl_wait_set_clear_subscriptions
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_wait_set_clear_services(rcl_wait_set_t * wait_set);
 
 /// Reallocate space for the services in the wait set.
 /**
@@ -430,9 +390,7 @@ rcl_wait_set_resize_services(rcl_wait_set_t * wait_set, size_t size);
  * rcl_ret_t ret = rcl_wait_set_init(&wait_set, 2, 1, 0, 0, 0, rcl_get_default_allocator());
  * // ... error handling
  * do {
- *   ret = rcl_wait_set_clear_subscriptions(&wait_set);
- *   // ... error handling
- *   ret = rcl_wait_set_clear_guard_conditions(&wait_set);
+ *   ret = rcl_wait_set_clear(&wait_set);
  *   // ... error handling
  *   ret = rcl_wait_set_add_subscription(&wait_set, &sub1);
  *   // ... error handling

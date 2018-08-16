@@ -77,9 +77,9 @@ wait_for_client_to_be_ready(
   size_t iteration = 0;
   do {
     ++iteration;
-    if (rcl_wait_set_clear_clients(&wait_set) != RCL_RET_OK) {
+    if (rcl_wait_set_clear(&wait_set) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait_set_clear_clients: %s", rcl_get_error_string_safe())
+        ROS_PACKAGE_NAME, "Error in wait_set_clear: %s", rcl_get_error_string_safe())
       return false;
     }
     if (rcl_wait_set_add_client(&wait_set, client) != RCL_RET_OK) {

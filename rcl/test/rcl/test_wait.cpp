@@ -287,7 +287,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
             while (wake_try_count < retry_limit) {
               wake_try_count++;
               rcl_ret_t ret;
-              ret = rcl_wait_set_clear_guard_conditions(&test_set.wait_set);
+              ret = rcl_wait_set_clear(&test_set.wait_set);
               EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
               ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition);
               EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();

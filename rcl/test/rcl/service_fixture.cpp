@@ -50,9 +50,9 @@ wait_for_service_to_be_ready(
   size_t iteration = 0;
   do {
     ++iteration;
-    if (rcl_wait_set_clear_services(&wait_set) != RCL_RET_OK) {
+    if (rcl_wait_set_clear(&wait_set) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait_set_clear_services: %s", rcl_get_error_string_safe())
+        ROS_PACKAGE_NAME, "Error in wait_set_clear: %s", rcl_get_error_string_safe())
       return false;
     }
     if (rcl_wait_set_add_service(&wait_set, service) != RCL_RET_OK) {

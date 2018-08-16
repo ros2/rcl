@@ -285,7 +285,7 @@ check_graph_state(
       // Don't wait for the graph to change on the last loop because we won't check again.
       continue;
     }
-    ret = rcl_wait_set_clear_guard_conditions(wait_set_ptr);
+    ret = rcl_wait_set_clear(wait_set_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_wait_set_add_guard_condition(wait_set_ptr, graph_guard_condition);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -444,7 +444,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   size_t graph_changes_count = 0;
   // while the topic thread is not done, wait and count the graph changes
   while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
-    ret = rcl_wait_set_clear_guard_conditions(this->wait_set_ptr);
+    ret = rcl_wait_set_clear(this->wait_set_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
@@ -502,7 +502,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
         if (time_to_sleep > min_sleep) {
           time_to_sleep = min_sleep;
         }
-        rcl_ret_t ret = rcl_wait_set_clear_guard_conditions(this->wait_set_ptr);
+        rcl_ret_t ret = rcl_wait_set_clear(this->wait_set_ptr);
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
