@@ -237,10 +237,9 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_clear(rcl_wait_set_t * wait_set);
 
-/// Reallocate space for the subscriptions in the wait set.
+/// Reallocate space for entities in the wait set.
 /**
- * This function will deallocate and reallocate the memory for the
- * subscriptions set.
+ * This function will deallocate and reallocate the memory for all entity sets.
  *
  * A size of 0 will just deallocate the memory and assign `NULL` to the array.
  *
@@ -264,8 +263,12 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[inout] wait_set struct to have its subscriptions cleared
- * \param[in] size a size for the new set
+ * \param[inout] wait_set struct to be resized
+ * \param[in] subscriptions_size a size for the new subscriptions set
+ * \param[in] guard_conditions_size a size for the new subscriptions set
+ * \param[in] clients_size a size for the new subscriptions set
+ * \param[in] services_size a size for the new subscriptions set
+ * \param[in] timers_size a size for the new subscriptions set
  * \return `RCL_RET_OK` if resized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
@@ -274,7 +277,13 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_wait_set_resize_subscriptions(rcl_wait_set_t * wait_set, size_t size);
+rcl_wait_set_resize(
+  rcl_wait_set_t * wait_set,
+  size_t subscriptions_size,
+  size_t guard_conditions_size,
+  size_t timers_size,
+  size_t clients_size,
+  size_t services_size);
 
 /// Store a pointer to the guard condition in the next empty spot in the set.
 /**
@@ -288,16 +297,6 @@ rcl_wait_set_add_guard_condition(
   rcl_wait_set_t * wait_set,
   const rcl_guard_condition_t * guard_condition);
 
-/// Reallocate space for the guard conditions in the wait set.
-/**
- * This function behaves exactly the same as for subscriptions.
- * \see rcl_wait_set_resize_subscriptions
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size);
-
 /// Store a pointer to the timer in the next empty spot in the set.
 /**
  * This function behaves exactly the same as for subscriptions.
@@ -309,16 +308,6 @@ rcl_ret_t
 rcl_wait_set_add_timer(
   rcl_wait_set_t * wait_set,
   const rcl_timer_t * timer);
-
-/// Reallocate space for the timers in the wait set.
-/**
- * This function behaves exactly the same as for subscriptions.
- * \see rcl_wait_set_resize_subscriptions
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_wait_set_resize_timers(rcl_wait_set_t * wait_set, size_t size);
 
 /// Store a pointer to the client in the next empty spot in the set.
 /**
@@ -332,16 +321,6 @@ rcl_wait_set_add_client(
   rcl_wait_set_t * wait_set,
   const rcl_client_t * client);
 
-/// Reallocate space for the clients in the wait set.
-/**
- * This function behaves exactly the same as for subscriptions.
- * \see rcl_wait_set_resize_subscriptions
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_wait_set_resize_clients(rcl_wait_set_t * wait_set, size_t size);
-
 /// Store a pointer to the client in the next empty spot in the set.
 /**
  * This function behaves exactly the same as for subscriptions.
@@ -353,16 +332,6 @@ rcl_ret_t
 rcl_wait_set_add_service(
   rcl_wait_set_t * wait_set,
   const rcl_service_t * service);
-
-/// Reallocate space for the services in the wait set.
-/**
- * This function behaves exactly the same as for subscriptions.
- * \see rcl_wait_set_resize_subscriptions
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_wait_set_resize_services(rcl_wait_set_t * wait_set, size_t size);
 
 /// Block until the wait set is ready or until the timeout has been exceeded.
 /**

@@ -80,27 +80,7 @@ static void
 __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 {
   if (wait_set->subscriptions) {
-    rcl_ret_t ret = rcl_wait_set_resize_subscriptions(wait_set, 0);
-    (void)ret;  // NO LINT
-    assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
-  }
-  if (wait_set->guard_conditions) {
-    rcl_ret_t ret = rcl_wait_set_resize_guard_conditions(wait_set, 0);
-    (void)ret;  // NO LINT
-    assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
-  }
-  if (wait_set->timers) {
-    rcl_ret_t ret = rcl_wait_set_resize_timers(wait_set, 0);
-    (void)ret;  // NO LINT
-    assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
-  }
-  if (wait_set->clients) {
-    rcl_ret_t ret = rcl_wait_set_resize_clients(wait_set, 0);
-    (void)ret;  // NO LINT
-    assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
-  }
-  if (wait_set->services) {
-    rcl_ret_t ret = rcl_wait_set_resize_services(wait_set, 0);
+    rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0u, 0u, 0u, 0u, 0u);
     (void)ret;  // NO LINT
     assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
   }
@@ -158,32 +138,10 @@ rcl_wait_set_init(
   // Set allocator.
   wait_set->impl->allocator = allocator;
   // Initialize subscription space.
-  rcl_ret_t ret;
-  if ((ret = rcl_wait_set_resize_subscriptions(wait_set, number_of_subscriptions)) != RCL_RET_OK) {
-    fail_ret = ret;
-    goto fail;
-  }
-  // Initialize guard condition space.
-  ret = rcl_wait_set_resize_guard_conditions(wait_set, number_of_guard_conditions);
-  if (ret != RCL_RET_OK) {
-    fail_ret = ret;
-    goto fail;
-  }
-  // Initialize timer space.
-  ret = rcl_wait_set_resize_timers(wait_set, number_of_timers);
-  if (ret != RCL_RET_OK) {
-    fail_ret = ret;
-    goto fail;
-  }
-  // Initialize client space.
-  ret = rcl_wait_set_resize_clients(wait_set, number_of_clients);
-  if (ret != RCL_RET_OK) {
-    fail_ret = ret;
-    goto fail;
-  }
-  // Initialize service space.
-  ret = rcl_wait_set_resize_services(wait_set, number_of_services);
-  if (ret != RCL_RET_OK) {
+  rcl_ret_t ret = rcl_wait_set_resize(
+    wait_set, number_of_subscriptions, number_of_guard_conditions, number_of_timers,
+    number_of_clients, number_of_services);
+  if (RCL_RET_OK != ret) {
     fail_ret = ret;
     goto fail;
   }
@@ -271,33 +229,28 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   } while (false)
 
 #define SET_RESIZE(Type, ExtraDealloc, ExtraRealloc) \
-  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator()); \
-  RCL_CHECK_FOR_NULL_WITH_MSG( \
-    wait_set->impl, "wait set is invalid", \
-    return RCL_RET_WAIT_SET_INVALID, rcl_get_default_allocator()); \
-  if (size == wait_set->size_of_ ## Type ## s) { \
-    return RCL_RET_OK; \
-  } \
-  rcl_allocator_t allocator = wait_set->impl->allocator; \
-  wait_set->size_of_ ## Type ## s = 0; \
-  wait_set->impl->Type ## _index = 0; \
-  if (size == 0) { \
-    if (wait_set->Type ## s) { \
-      allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
-      wait_set->Type ## s = NULL; \
+  do { \
+    rcl_allocator_t allocator = wait_set->impl->allocator; \
+    wait_set->size_of_ ## Type ## s = 0; \
+    wait_set->impl->Type ## _index = 0; \
+    if (0u == Type ## s_size) { \
+      if (wait_set->Type ## s) { \
+        allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
+        wait_set->Type ## s = NULL; \
+      } \
+      ExtraDealloc \
+    } else { \
+      wait_set->Type ## s = (const rcl_ ## Type ## _t **)allocator.reallocate( \
+        (void *)wait_set->Type ## s, sizeof(rcl_ ## Type ## _t *) * Type ## s_size, \
+        allocator.state); \
+      RCL_CHECK_FOR_NULL_WITH_MSG( \
+        wait_set->Type ## s, "allocating memory failed", \
+        return RCL_RET_BAD_ALLOC, wait_set->impl->allocator); \
+      memset((void *)wait_set->Type ## s, 0, sizeof(rcl_ ## Type ## _t *) * Type ## s_size); \
+      wait_set->size_of_ ## Type ## s = Type ## s_size; \
+      ExtraRealloc \
     } \
-    ExtraDealloc \
-  } else { \
-    wait_set->Type ## s = (const rcl_ ## Type ## _t **)allocator.reallocate( \
-      (void *)wait_set->Type ## s, sizeof(rcl_ ## Type ## _t *) * size, allocator.state); \
-    RCL_CHECK_FOR_NULL_WITH_MSG( \
-      wait_set->Type ## s, "allocating memory failed", \
-      return RCL_RET_BAD_ALLOC, wait_set->impl->allocator); \
-    memset((void *)wait_set->Type ## s, 0, sizeof(rcl_ ## Type ## _t *) * size); \
-    wait_set->size_of_ ## Type ## s = size; \
-    ExtraRealloc \
-  } \
-  return RCL_RET_OK;
+  } while (false)
 
 #define SET_RESIZE_RMW_DEALLOC(RMWStorage, RMWCount) \
   /* Also deallocate the rmw storage. */ \
@@ -311,14 +264,14 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   /* Also resize the rmw storage. */ \
   wait_set->impl->RMWCount = 0; \
   wait_set->impl->RMWStorage = (void **)allocator.reallocate( \
-    wait_set->impl->RMWStorage, sizeof(void *) * size, allocator.state); \
+    wait_set->impl->RMWStorage, sizeof(void *) * Type ## s_size, allocator.state); \
   if (!wait_set->impl->RMWStorage) { \
     allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
     wait_set->size_of_ ## Type ## s = 0; \
     RCL_SET_ERROR_MSG("allocating memory failed", wait_set->impl->allocator); \
     return RCL_RET_BAD_ALLOC; \
   } \
-  memset(wait_set->impl->RMWStorage, 0, sizeof(void *) * size);
+  memset(wait_set->impl->RMWStorage, 0, sizeof(void *) * Type ## s_size);
 
 /* Implementation-specific notes:
  *
@@ -379,15 +332,48 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set)
  * all entries are set to null and the count is set to zero.
  */
 rcl_ret_t
-rcl_wait_set_resize_subscriptions(rcl_wait_set_t * wait_set, size_t size)
+rcl_wait_set_resize(
+  rcl_wait_set_t * wait_set,
+  size_t subscriptions_size,
+  size_t guard_conditions_size,
+  size_t timers_size,
+  size_t clients_size,
+  size_t services_size)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    wait_set->impl, RCL_RET_WAIT_SET_INVALID, rcl_get_default_allocator());
   SET_RESIZE(
     subscription,
     SET_RESIZE_RMW_DEALLOC(
       rmw_subscriptions.subscribers, rmw_subscriptions.subscriber_count),
     SET_RESIZE_RMW_REALLOC(
       subscription, rmw_subscriptions.subscribers, rmw_subscriptions.subscriber_count)
-  )
+  );
+  SET_RESIZE(
+    guard_condition,
+    SET_RESIZE_RMW_DEALLOC(
+      rmw_guard_conditions.guard_conditions,
+      rmw_guard_conditions.guard_condition_count),
+    SET_RESIZE_RMW_REALLOC(
+      guard_condition,
+      rmw_guard_conditions.guard_conditions,
+      rmw_guard_conditions.guard_condition_count)
+  );
+  SET_RESIZE(timer,;,;);  // NOLINT
+  SET_RESIZE(client,
+    SET_RESIZE_RMW_DEALLOC(
+      rmw_clients.clients, rmw_clients.client_count),
+    SET_RESIZE_RMW_REALLOC(
+      client, rmw_clients.clients, rmw_clients.client_count)
+  );
+  SET_RESIZE(service,
+    SET_RESIZE_RMW_DEALLOC(
+      rmw_services.services, rmw_services.service_count),
+    SET_RESIZE_RMW_REALLOC(
+      service, rmw_services.services, rmw_services.service_count)
+  );
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
@@ -402,33 +388,12 @@ rcl_wait_set_add_guard_condition(
 }
 
 rcl_ret_t
-rcl_wait_set_resize_guard_conditions(rcl_wait_set_t * wait_set, size_t size)
-{
-  SET_RESIZE(
-    guard_condition,
-    SET_RESIZE_RMW_DEALLOC(
-      rmw_guard_conditions.guard_conditions,
-      rmw_guard_conditions.guard_condition_count),
-    SET_RESIZE_RMW_REALLOC(
-      guard_condition,
-      rmw_guard_conditions.guard_conditions,
-      rmw_guard_conditions.guard_condition_count)
-  )
-}
-
-rcl_ret_t
 rcl_wait_set_add_timer(
   rcl_wait_set_t * wait_set,
   const rcl_timer_t * timer)
 {
   SET_ADD(timer)
   return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_wait_set_resize_timers(rcl_wait_set_t * wait_set, size_t size)
-{
-  SET_RESIZE(timer,;,;)  // NOLINT
 }
 
 rcl_ret_t
@@ -442,17 +407,6 @@ rcl_wait_set_add_client(
 }
 
 rcl_ret_t
-rcl_wait_set_resize_clients(rcl_wait_set_t * wait_set, size_t size)
-{
-  SET_RESIZE(client,
-    SET_RESIZE_RMW_DEALLOC(
-      rmw_clients.clients, rmw_clients.client_count),
-    SET_RESIZE_RMW_REALLOC(
-      client, rmw_clients.clients, rmw_clients.client_count)
-  )
-}
-
-rcl_ret_t
 rcl_wait_set_add_service(
   rcl_wait_set_t * wait_set,
   const rcl_service_t * service)
@@ -460,17 +414,6 @@ rcl_wait_set_add_service(
   SET_ADD(service)
   SET_ADD_RMW(service, rmw_services.services, rmw_services.service_count)
   return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_wait_set_resize_services(rcl_wait_set_t * wait_set, size_t size)
-{
-  SET_RESIZE(service,
-    SET_RESIZE_RMW_DEALLOC(
-      rmw_services.services, rmw_services.service_count),
-    SET_RESIZE_RMW_REALLOC(
-      service, rmw_services.services, rmw_services.service_count)
-  )
 }
 
 rcl_ret_t
