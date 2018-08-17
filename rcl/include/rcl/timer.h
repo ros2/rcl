@@ -23,6 +23,7 @@ extern "C"
 #include <stdbool.h>
 
 #include "rcl/allocator.h"
+#include "rcl/guard_condition.h"
 #include "rcl/macros.h"
 #include "rcl/time.h"
 #include "rcl/types.h"
@@ -563,6 +564,25 @@ rcl_timer_reset(rcl_timer_t * timer);
  */
 const rcl_allocator_t *
 rcl_timer_get_allocator(const rcl_timer_t * timer);
+
+/// Retrieve a guard condition used by the timer to wake the waitset when using ROSTime.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] timer the timer to be queried
+ * \return `NULL` if the timer is invalid or does not have a guard condition, or
+ * \return a guard condition pointer.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_guard_condition_t *
+rcl_timer_get_guard_condition(const rcl_timer_t * timer);
 
 #ifdef __cplusplus
 }

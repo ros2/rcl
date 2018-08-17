@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
+#include <chrono>
+#include <thread>
 
 #include "rcl/timer.h"
 
@@ -245,4 +247,224 @@ TEST_F(TestTimerFixture, test_canceled_timer) {
 
   ret = rcl_clock_fini(&clock);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+}
+
+TEST_F(TestTimerFixture, test_rostime_time_until_next_call) {
+  rcl_ret_t ret;
+  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
+  int64_t time_until = 0;
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string_safe();
+  });
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&clock)) << rcl_get_error_string_safe();
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init(&timer, &clock, sec_5, nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string_safe();
+  });
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, 1)) << rcl_get_error_string_safe();
+  ret = rcl_timer_get_time_until_next_call(&timer, &time_until);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(sec_5 - 1, time_until);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_5)) << rcl_get_error_string_safe();
+  ret = rcl_timer_get_time_until_next_call(&timer, &time_until);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(0, time_until);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_5 + 1)) <<
+    rcl_get_error_string_safe();
+  ret = rcl_timer_get_time_until_next_call(&timer, &time_until);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(-1, time_until);
+}
+
+TEST_F(TestTimerFixture, test_system_time_to_ros_time) {
+  rcl_ret_t ret;
+  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string_safe();
+  });
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init(&timer, &clock, sec_5, nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string_safe();
+  });
+
+  int64_t time_until_pre = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &time_until_pre)) <<
+    rcl_get_error_string_safe();
+  ASSERT_LT(0, time_until_pre);
+  ASSERT_GT(sec_5, time_until_pre);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, 1)) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&clock)) << rcl_get_error_string_safe();
+
+  int64_t time_until = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &time_until)) <<
+    rcl_get_error_string_safe();
+  // Because of time credit the time until next call should be less than before
+  EXPECT_GT(time_until_pre, time_until);
+  EXPECT_LT(0, time_until);
+}
+
+TEST_F(TestTimerFixture, test_ros_time_to_system_time) {
+  rcl_ret_t ret;
+  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
+  const int64_t sec_1 = 1000LL * 1000LL * 1000LL;
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string_safe();
+  });
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, 1)) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&clock)) << rcl_get_error_string_safe();
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init(&timer, &clock, sec_5, nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string_safe();
+  });
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_1)) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&clock)) << rcl_get_error_string_safe();
+
+  int64_t time_until_pre = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &time_until_pre)) <<
+    rcl_get_error_string_safe();
+  ASSERT_EQ(sec_5 - (sec_1 - 1), time_until_pre);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_disable_ros_time_override(&clock)) << rcl_get_error_string_safe();
+
+  int64_t time_until = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &time_until)) <<
+    rcl_get_error_string_safe();
+  // Because of time credit the time until next call should be less than before
+  EXPECT_GT(time_until_pre, time_until);
+  EXPECT_LT(0, time_until);
+}
+
+TEST_F(TestTimerFixture, test_ros_time_backwards_jump) {
+  rcl_ret_t ret;
+  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
+  const int64_t sec_3 = 3LL * 1000LL * 1000LL * 1000LL;
+  const int64_t sec_2 = 2LL * 1000LL * 1000LL * 1000LL;
+  const int64_t sec_1 = 1000LL * 1000LL * 1000LL;
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string_safe();
+  });
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_2)) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&clock)) << rcl_get_error_string_safe();
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init(&timer, &clock, sec_5, nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string_safe();
+  });
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_3)) << rcl_get_error_string_safe();
+  {
+    // Moved forward a little bit, timer should be closer to being ready
+    int64_t time_until = 0;
+    ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &time_until)) <<
+      rcl_get_error_string_safe();
+    EXPECT_EQ(sec_5 - (sec_3 - sec_2), time_until);
+  }
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_1)) << rcl_get_error_string_safe();
+  {
+    // Jumped back before timer was created, so last_call_time should be 1 period
+    int64_t time_until = 0;
+    ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &time_until)) <<
+      rcl_get_error_string_safe();
+    EXPECT_EQ(sec_5, time_until);
+  }
+}
+
+TEST_F(TestTimerFixture, test_ros_time_wakes_wait) {
+  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
+  const int64_t sec_1 = 1000LL * 1000LL * 1000LL;
+  const int64_t sec_1_5 = 1500LL * 1000LL * 1000LL;
+
+  rcl_ret_t ret;
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_init(RCL_ROS_TIME, &clock, &allocator)) <<
+    rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string_safe();
+  });
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_1)) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&clock)) << rcl_get_error_string_safe();
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init(&timer, &clock, sec_1, nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string_safe();
+  });
+
+  bool timer_was_ready = false;
+
+  std::thread wait_thr([&](void) {
+      rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+      ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, rcl_get_default_allocator());
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+      ASSERT_EQ(RCL_RET_OK, rcl_wait_set_add_timer(&wait_set, &timer)) <<
+        rcl_get_error_string_safe();
+      // *INDENT-OFF* (Uncrustify wants strange un-indentation here)
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+        EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) <<
+          rcl_get_error_string_safe();
+      });
+      // *INDENT-ON*
+
+      ret = rcl_wait(&wait_set, sec_5);
+      // set some flag indicating wait was exited
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+      if (wait_set.timers[0] != NULL) {
+        timer_was_ready = true;
+      }
+    });
+
+  // Timer not exceeded, should not wake
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_1_5)) <<
+    rcl_get_error_string_safe();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_FALSE(timer_was_ready);
+
+  // Timer exceeded, should wake
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_5)) << rcl_get_error_string_safe();
+  auto start = std::chrono::steady_clock::now();
+  wait_thr.join();
+  auto finish = std::chrono::steady_clock::now();
+  EXPECT_TRUE(timer_was_ready);
+  EXPECT_LT(finish - start, std::chrono::milliseconds(100));
 }
