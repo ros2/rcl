@@ -20,6 +20,7 @@
 #include <thread>
 
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/time.h"
 
@@ -173,6 +174,19 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_init_for_clock_a
   rcl_clock_t ros_clock;
   rcl_ret_t retval = rcl_ros_clock_init(&ros_clock, &allocator);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+}
+
+TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_ros_clock_initially_zero) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_clock_t ros_clock;
+  ASSERT_EQ(RCL_RET_OK, rcl_ros_clock_init(&ros_clock, &allocator)) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&ros_clock)) << rcl_get_error_string_safe();
+  });
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&ros_clock)) << rcl_get_error_string_safe();
+  rcl_time_point_value_t query_now = 5;
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_get_now(&ros_clock, &query_now)) << rcl_get_error_string_safe();
+  EXPECT_EQ(0, query_now);
 }
 
 TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), clock_validation) {
