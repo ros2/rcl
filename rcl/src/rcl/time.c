@@ -137,6 +137,8 @@ rcl_ros_clock_init(
   rcl_init_generic_clock(clock);
   clock->data = allocator->allocate(sizeof(rcl_ros_clock_storage_t), allocator->state);
   rcl_ros_clock_storage_t * storage = (rcl_ros_clock_storage_t *)clock->data;
+  // 0 is a special value meaning time has not been set
+  atomic_init(&(storage->current_time), 0);
   storage->active = false;
   clock->get_now = rcl_get_ros_time;
   clock->type = RCL_ROS_TIME;
