@@ -163,11 +163,11 @@ rcl_ros_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  _rcl_clock_generic_fini(clock);
   if (clock->type != RCL_ROS_TIME) {
     RCL_SET_ERROR_MSG("clock not of type RCL_ROS_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
+  _rcl_clock_generic_fini(clock);
   if (!clock->data) {
     RCL_SET_ERROR_MSG("clock data invalid", rcl_get_default_allocator());
     return RCL_RET_ERROR;
@@ -195,11 +195,11 @@ rcl_steady_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  _rcl_clock_generic_fini(clock);
   if (clock->type != RCL_STEADY_TIME) {
     RCL_SET_ERROR_MSG("clock not of type RCL_STEADY_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
+  _rcl_clock_generic_fini(clock);
   return RCL_RET_OK;
 }
 
@@ -222,11 +222,11 @@ rcl_system_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  _rcl_clock_generic_fini(clock);
   if (clock->type != RCL_SYSTEM_TIME) {
     RCL_SET_ERROR_MSG("clock not of type RCL_SYSTEM_TIME", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
+  _rcl_clock_generic_fini(clock);
   return RCL_RET_OK;
 }
 
