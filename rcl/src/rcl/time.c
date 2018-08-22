@@ -399,7 +399,7 @@ rcl_clock_add_jump_callback(
 {
   // Make sure parameters are valid
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ALLOCATOR_WITH_MSG(clock->allocator, "invalid allocator",
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&(clock->allocator), "invalid allocator",
     return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT, clock->allocator);
   if (threshold.min_forward.nanoseconds < 0) {
@@ -441,7 +441,7 @@ rcl_clock_remove_jump_callback(
 {
   // Make sure parameters are valid
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ALLOCATOR_WITH_MSG(clock->allocator, "invalid allocator",
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&(clock->allocator), "invalid allocator",
     return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT, clock->allocator);
 
