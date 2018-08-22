@@ -383,13 +383,13 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
     rcl_get_error_string_safe();
   reset_callback_triggers();
 
-  // Query it to do something different. no changes expected
+  // Query time, no changes expected.
   ret = rcl_clock_get_now(ros_clock, &query_now);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
-  // enable
+  // Clock change callback called when ROS time is enabled
   ret = rcl_enable_ros_time_override(ros_clock);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_TRUE(pre_callback_called);
@@ -397,12 +397,26 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
   EXPECT_EQ(RCL_ROS_TIME_ACTIVATED, time_jump.clock_change);
   reset_callback_triggers();
 
-  // disable
+  // Clock change callback not called because ROS time is already enabled.
+  ret = rcl_enable_ros_time_override(ros_clock);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+  reset_callback_triggers();
+
+  // Clock change callback called when ROS time is disabled
   ret = rcl_disable_ros_time_override(ros_clock);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
   EXPECT_TRUE(pre_callback_called);
   EXPECT_TRUE(post_callback_called);
   EXPECT_EQ(RCL_ROS_TIME_DEACTIVATED, time_jump.clock_change);
+  reset_callback_triggers();
+
+  // Clock change callback not called because ROS time is already disabled.
+  ret = rcl_disable_ros_time_override(ros_clock);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
   reset_callback_triggers();
 
   EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
