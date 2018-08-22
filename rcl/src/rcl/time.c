@@ -376,7 +376,7 @@ rcl_set_ros_time_override(
   rcl_time_jump_t time_jump;
   rcl_ros_clock_storage_t * storage = (rcl_ros_clock_storage_t *)clock->data;
   if (storage->active) {
-    time_jump.clock_change = storage->active ? RCL_ROS_TIME_NO_CHANGE : RCL_SYSTEM_TIME_NO_CHANGE;
+    time_jump.clock_change = RCL_ROS_TIME_NO_CHANGE;
     rcl_time_point_value_t current_time;
     rcl_ret_t ret = rcl_get_ros_time(storage, &current_time);
     if (RCL_RET_OK != ret) {
@@ -397,8 +397,10 @@ rcl_clock_add_jump_callback(
   rcl_clock_t * clock, rcl_jump_threshold_t threshold, rcl_jump_callback_t callback,
   void * user_data)
 {
-  // Make sure parameters are legal
+  // Make sure parameters are valid
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ALLOCATOR_WITH_MSG(clock->allocator, "invalid allocator",
+    return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT, clock->allocator);
   if (threshold.min_forward.nanoseconds < 0) {
     RCL_SET_ERROR_MSG("forward jump theshold must be positive", clock->allocator);
@@ -437,8 +439,10 @@ rcl_ret_t
 rcl_clock_remove_jump_callback(
   rcl_clock_t * clock, rcl_jump_callback_t callback, void * user_data)
 {
-  // Make sure parameters are legal
+  // Make sure parameters are valid
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ALLOCATOR_WITH_MSG(clock->allocator, "invalid allocator",
+    return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT, clock->allocator);
 
   // Delete callback if found, moving all callbacks after back one
