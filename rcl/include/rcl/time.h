@@ -60,38 +60,38 @@ typedef struct rcl_duration_t
   rcl_duration_value_t nanoseconds;
 } rcl_duration_t;
 
-/// An enumeration for use in rcl_time_jump_t
+/// Enumeration to describe the type of time jump.
 typedef enum rcl_clock_change_t
 {
-  /// The time type before and after the jump is ROS_TIME
+  /// The source before and after the jump is ROS_TIME.
   RCL_ROS_TIME_NO_CHANGE = 1,
-  /// The time type switched to ROS_TIME from SYSTEM_TIME
+  /// The source switched to ROS_TIME from SYSTEM_TIME.
   RCL_ROS_TIME_ACTIVATED = 2,
-  /// The time type switched to SYSTEM_TIME from ROS_TIME
+  /// The source switched to SYSTEM_TIME from ROS_TIME.
   RCL_ROS_TIME_DEACTIVATED = 3,
-  /// The time type before and after the jump is SYSTEM_TIME
+  /// The source before and after the jump is SYSTEM_TIME.
   RCL_SYSTEM_TIME_NO_CHANGE = 4
 } rcl_clock_change_t;
 
-/// A jump in the passage of time
+/// Struct to describe a jump in time.
 typedef struct rcl_time_jump_t
 {
-  /// Indicate whether the source of time changed.
+  /// Indicate whether or not the source of time changed.
   rcl_clock_change_t clock_change;
-  /// The current time minus the last time before the jump.
-  /// This is value is zero if the time jump is caused by a clock change
+  /// The new time minus the last time before the jump.
   rcl_duration_t delta;
 } rcl_time_jump_t;
 
-/// A callback called when time changes
+/// Signature of a time jump callback.
 typedef void (* rcl_jump_callback_t)(
   const struct rcl_time_jump_t * time_jump,
   bool before_jump,
   void * user_data);
 
+/// Describe the prerequisites for calling a time jump callback.
 typedef struct rcl_jump_threshold_t
 {
-  /// True to call callbacks when the clock type changes.
+  /// True to call callback when the clock type changes.
   bool on_clock_change;
   /// Minimum jump forwards to be considered exceeded, or zero to disable.
   rcl_duration_t min_forward;
@@ -99,7 +99,7 @@ typedef struct rcl_jump_threshold_t
   rcl_duration_t min_backward;
 } rcl_jump_threshold_t;
 
-/// Struct to hold added jump callbacks to make allocation code easier
+/// Struct to describe an added callback.
 typedef struct rcl_jump_callback_info_t
 {
   rcl_jump_callback_t callback;
@@ -111,7 +111,9 @@ typedef struct rcl_jump_callback_info_t
 typedef struct rcl_clock_t
 {
   enum rcl_clock_type_t type;
+  /// An array of added jump callbacks.
   rcl_jump_callback_info_t * jump_callbacks;
+  /// Number of callbacks in jump_callbacks.
   size_t num_jump_callbacks;
   rcl_ret_t (* get_now)(void * data, rcl_time_point_value_t * now);
   // void (*set_now) (rcl_time_point_value_t);
@@ -405,17 +407,16 @@ rcl_ret_t
 rcl_set_ros_time_override(
   rcl_clock_t * clock, rcl_time_point_value_t time_value);
 
-/// Add a callback to be called when time changes.
+/// Add a callback to be called when a time jump exceeds a threshold.
 /**
- * This adds a callback which will be called twice when the threshold is exceeded.
- * It will be called once before the clock is updated, and once after.
- * The callback must not be null.
- * The callback will be passed the user_data pointer when it is called.
+ * The callback is called twice when the threshold is exceeded: once before the clock is
+ * updated, and once after.
+ * The user_data pointer is passed to the callback as the last argument.
  * A callback and user_data pair must be unique among the callbacks added to a clock.
  *
- * \param[in] clock The clock to add a jump callback to.
- * \param[in] threshold Criteria indicating when to call callback.
- * \param[in] callback The callback to call.
+ * \param[in] clock A clock to add a jump callback to.
+ * \param[in] threshold Criteria indicating when to call the callback.
+ * \param[in] callback A callback to call.
  * \param[in] user_data A pointer to be passed to the callback.
  * \return `RCL_RET_OK` if the callback was added successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
