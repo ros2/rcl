@@ -80,7 +80,7 @@ static void
 __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 {
   if (wait_set->subscriptions) {
-    rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0u, 0u, 0u, 0u, 0u);
+    rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0);
     (void)ret;  // NO LINT
     assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
   }
@@ -233,7 +233,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     rcl_allocator_t allocator = wait_set->impl->allocator; \
     wait_set->size_of_ ## Type ## s = 0; \
     wait_set->impl->Type ## _index = 0; \
-    if (0u == Type ## s_size) { \
+    if (0 == Type ## s_size) { \
       if (wait_set->Type ## s) { \
         allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
         wait_set->Type ## s = NULL; \
