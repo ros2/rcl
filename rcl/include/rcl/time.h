@@ -83,6 +83,10 @@ typedef struct rcl_time_jump_t
 } rcl_time_jump_t;
 
 /// Signature of a time jump callback.
+/// \param[in] time_jump A description of the jump in time.
+/// \param[in] before_jump Every jump callback is called twice: once before the clock changes and
+/// once after. This is true the first call and false the second.
+/// \param[in] user_data A pointer given at callback registration which is passed to the callback.
 typedef void (* rcl_jump_callback_t)(
   const struct rcl_time_jump_t * time_jump,
   bool before_jump,
@@ -93,9 +97,11 @@ typedef struct rcl_jump_threshold_t
 {
   /// True to call callback when the clock type changes.
   bool on_clock_change;
-  /// Minimum jump forwards to be considered exceeded, or zero to disable.
+  /// A positive duration indicating the minimum jump forwards to be considered exceeded, or zero
+  /// to disable.
   rcl_duration_t min_forward;
-  /// Minimum jump backwards to be considered exceeded, or zero to disable.
+  /// A negative duration indicating the minimum jump backwards to be considered exceeded, or zero
+  /// to disable.
   rcl_duration_t min_backward;
 } rcl_jump_threshold_t;
 
