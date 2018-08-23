@@ -99,9 +99,11 @@ typedef struct rcl_jump_threshold_t
   bool on_clock_change;
   /// A positive duration indicating the minimum jump forwards to be considered exceeded, or zero
   /// to disable.
+  /// The struct is invalid if this value is negative.
   rcl_duration_t min_forward;
   /// A negative duration indicating the minimum jump backwards to be considered exceeded, or zero
   /// to disable.
+  /// The struct is invalid if this value is positive.
   rcl_duration_t min_backward;
 } rcl_jump_threshold_t;
 
