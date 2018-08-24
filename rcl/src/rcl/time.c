@@ -405,9 +405,10 @@ rcl_clock_add_jump_callback(
   if (threshold.min_forward.nanoseconds < 0) {
     RCL_SET_ERROR_MSG("forward jump theshold must be positive", clock->allocator);
     return RCL_RET_INVALID_ARGUMENT;
-  } else if (threshold.min_backward.nanoseconds > 0) {
-    RCL_SET_ERROR_MSG("backward jump theshold must be negative", clock->allocator);
-    return RCL_RET_INVALID_ARGUMENT;
+  }
+  if (threshold.min_backward.nanoseconds > 0) {
+    // store threshold with a negative value for convenience
+    threshold.min_backward.nanoseconds *= -1;
   }
 
   // Callback/user_data pair must be unique

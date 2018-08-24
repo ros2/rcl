@@ -101,9 +101,8 @@ typedef struct rcl_jump_threshold_t
   /// to disable.
   /// The struct is invalid if this value is negative.
   rcl_duration_t min_forward;
-  /// A negative duration indicating the minimum jump backwards to be considered exceeded, or zero
-  /// to disable.
-  /// The struct is invalid if this value is positive.
+  /// The minimum jump backwards to be considered exceeded, or zero to disable.
+  /// The duration may be positive or negative; the absolute value will be used.
   rcl_duration_t min_backward;
 } rcl_jump_threshold_t;
 
