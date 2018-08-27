@@ -403,11 +403,11 @@ rcl_clock_add_jump_callback(
     return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT, clock->allocator);
   if (threshold.min_forward.nanoseconds < 0) {
-    RCL_SET_ERROR_MSG("forward jump theshold must be positive or zero", clock->allocator);
+    RCL_SET_ERROR_MSG("forward jump threshold must be positive or zero", clock->allocator);
     return RCL_RET_INVALID_ARGUMENT;
   }
   if (threshold.min_backward.nanoseconds > 0) {
-    RCL_SET_ERROR_MSG("backward jump theshold must be negative or zero", clock->allocator);
+    RCL_SET_ERROR_MSG("backward jump threshold must be negative or zero", clock->allocator);
     return RCL_RET_INVALID_ARGUMENT;
   }
 
