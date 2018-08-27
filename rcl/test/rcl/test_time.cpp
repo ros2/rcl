@@ -547,7 +547,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_backward_jump_callbacks) 
   rcl_jump_threshold_t threshold;
   threshold.on_clock_change = false;
   threshold.min_forward.nanoseconds = 0;
-  threshold.min_backward.nanoseconds = 1;
+  threshold.min_backward.nanoseconds = -1;
   ASSERT_EQ(RCL_RET_OK,
     rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
     rcl_get_error_string_safe();
