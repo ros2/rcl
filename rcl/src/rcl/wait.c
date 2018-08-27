@@ -82,7 +82,7 @@ __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
   if (wait_set->subscriptions) {
     rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0);
     (void)ret;  // NO LINT
-    assert(ret == RCL_RET_OK);  // Defensive, shouldn't fail with size 0.
+    assert(RCL_RET_OK == ret);  // Defensive, shouldn't fail with size 0.
   }
   if (wait_set->impl) {
     allocator.deallocate(wait_set->impl, allocator.state);
@@ -575,7 +575,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     }
   }
 
-  if (ret == RMW_RET_TIMEOUT && !is_timer_timeout) {
+  if (RMW_RET_TIMEOUT == ret && !is_timer_timeout) {
     return RCL_RET_TIMEOUT;
   }
   return RCL_RET_OK;
