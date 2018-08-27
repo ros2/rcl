@@ -78,7 +78,7 @@ wait_for_subscription_to_be_ready(
   size_t iteration = 0;
   do {
     ++iteration;
-    ret = rcl_wait_set_clear_subscriptions(&wait_set);
+    ret = rcl_wait_set_clear(&wait_set);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
     ret = rcl_wait_set_add_subscription(&wait_set, subscription);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
