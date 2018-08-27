@@ -266,9 +266,9 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set);
  * \param[inout] wait_set struct to be resized
  * \param[in] subscriptions_size a size for the new subscriptions set
  * \param[in] guard_conditions_size a size for the new subscriptions set
+ * \param[in] timers_size a size for the new subscriptions set
  * \param[in] clients_size a size for the new subscriptions set
  * \param[in] services_size a size for the new subscriptions set
- * \param[in] timers_size a size for the new subscriptions set
  * \return `RCL_RET_OK` if resized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
