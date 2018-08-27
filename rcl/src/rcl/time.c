@@ -276,6 +276,7 @@ _rcl_clock_call_callbacks(
     if (
       (is_clock_change && info->threshold.on_clock_change) ||
       (time_jump->delta.nanoseconds < 0 &&
+      // Note: min_backward was stored as a negative duration
       time_jump->delta.nanoseconds <= info->threshold.min_backward.nanoseconds) ||
       (time_jump->delta.nanoseconds > 0 &&
       time_jump->delta.nanoseconds >= info->threshold.min_forward.nanoseconds))
@@ -406,9 +407,9 @@ rcl_clock_add_jump_callback(
     RCL_SET_ERROR_MSG("forward jump theshold must be positive", clock->allocator);
     return RCL_RET_INVALID_ARGUMENT;
   }
-  if (threshold.min_backward.nanoseconds > 0) {
-    // store threshold with a negative value for convenience
-    threshold.min_backward.nanoseconds *= -1;
+  if (threshold.min_backward.nanoseconds < 0) {
+    RCL_SET_ERROR_MSG("backward jump theshold must be positive", clock->allocator);
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   // Callback/user_data pair must be unique
@@ -431,6 +432,8 @@ rcl_clock_add_jump_callback(
   clock->jump_callbacks = callbacks;
   clock->jump_callbacks[clock->num_jump_callbacks].callback = callback;
   clock->jump_callbacks[clock->num_jump_callbacks].threshold = threshold;
+  // store backwards jump threshold with a negative value for convenience
+  clock->jump_callbacks[clock->num_jump_callbacks].threshold.min_backward.nanoseconds *= -1;
   clock->jump_callbacks[clock->num_jump_callbacks].user_data = user_data;
   ++(clock->num_jump_callbacks);
   return RCL_RET_OK;
