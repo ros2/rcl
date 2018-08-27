@@ -602,8 +602,8 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_add_jump_callback) {
 
   rcl_jump_threshold_t threshold;
   threshold.on_clock_change = false;
-  threshold.min_forward.nanoseconds = 0u;
-  threshold.min_backward.nanoseconds = 0u;
+  threshold.min_forward.nanoseconds = 0;
+  threshold.min_backward.nanoseconds = 0;
   rcl_jump_callback_t cb = reinterpret_cast<rcl_jump_callback_t>(0xBEEF);
   void * user_data = reinterpret_cast<void *>(0xCAFE);
 
@@ -638,8 +638,8 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_remove_jump_callback) {
 
   rcl_jump_threshold_t threshold;
   threshold.on_clock_change = false;
-  threshold.min_forward.nanoseconds = 0u;
-  threshold.min_backward.nanoseconds = 0u;
+  threshold.min_forward.nanoseconds = 0;
+  threshold.min_backward.nanoseconds = 0;
   rcl_jump_callback_t cb = reinterpret_cast<rcl_jump_callback_t>(0xBEEF);
   void * user_data1 = reinterpret_cast<void *>(0xCAFE);
   void * user_data2 = reinterpret_cast<void *>(0xFACE);
