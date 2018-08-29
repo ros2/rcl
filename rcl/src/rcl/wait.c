@@ -211,21 +211,25 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
 
 #define SET_CLEAR(Type) \
   do { \
-    memset( \
-      (void *)wait_set->Type ## s, \
-      0, \
-      sizeof(rcl_ ## Type ## _t *) * wait_set->size_of_ ## Type ## s); \
-    wait_set->impl->Type ## _index = 0; \
+    if (NULL != wait_set->Type ## s) { \
+      memset( \
+        (void *)wait_set->Type ## s, \
+        0, \
+        sizeof(rcl_ ## Type ## _t *) * wait_set->size_of_ ## Type ## s); \
+      wait_set->impl->Type ## _index = 0; \
+    } \
   } while (false)
 
 #define SET_CLEAR_RMW(Type, RMWStorage, RMWCount) \
   do { \
-    /* Also clear the rmw storage. */ \
-    memset( \
-      wait_set->impl->RMWStorage, \
-      0, \
-      sizeof(void *) * wait_set->impl->RMWCount); \
-    wait_set->impl->RMWCount = 0; \
+    if (NULL != wait_set->impl->RMWStorage) { \
+      /* Also clear the rmw storage. */ \
+      memset( \
+        wait_set->impl->RMWStorage, \
+        0, \
+        sizeof(void *) * wait_set->impl->RMWCount); \
+      wait_set->impl->RMWCount = 0; \
+    } \
   } while (false)
 
 #define SET_RESIZE(Type, ExtraDealloc, ExtraRealloc) \
