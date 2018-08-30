@@ -140,7 +140,7 @@ rcl_ret_t
 rcl_remap_service_name(
   const rcl_arguments_t * local_arguments,
   const rcl_arguments_t * global_arguments,
-  const char * serivice_name,
+  const char * service_name,
   const char * node_name,
   const char * node_namespace,
   rcl_allocator_t allocator,
