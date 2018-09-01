@@ -40,7 +40,7 @@ void rcl_yaml_node_struct_fini(
 
 /// \brief Parse the YAML file, initialize and populate params_st
 /// \param[in] file_path is the path to the YAML file
-/// \param[in/out] params_st points to the populated paramter struct
+/// \param[inout] params_st points to the populated paramter struct
 /// \return true on success and false on failure
 RCL_YAML_PARAM_PARSER_PUBLIC
 bool rcl_parse_yaml_file(
