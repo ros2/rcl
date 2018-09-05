@@ -69,7 +69,7 @@ rcl_client_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Initializing client for service name '%s'", service_name)
+    ROS_PACKAGE_NAME, "Initializing client for service name '%s'", service_name);
   if (client->impl) {
     RCL_SET_ERROR_MSG("client already initialized, or memory was unintialized", *allocator);
     return RCL_RET_ALREADY_INIT;
@@ -93,7 +93,7 @@ rcl_client_init(
         ROS_PACKAGE_NAME,
         "failed to fini string_map (%d) during error handling: %s\n",
         rcutils_ret,
-        rcutils_get_error_string_safe())
+        rcutils_get_error_string_safe());
     }
     if (ret == RCL_RET_BAD_ALLOC) {
       return ret;
@@ -123,7 +123,7 @@ rcl_client_init(
     }
     goto cleanup;
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded service name '%s'", expanded_service_name)
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded service name '%s'", expanded_service_name);
 
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (NULL == node_options) {
@@ -176,7 +176,7 @@ rcl_client_init(
   }
   // options
   client->impl->options = *options;
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client initialized")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client initialized");
   ret = RCL_RET_OK;
   goto cleanup;
 fail:
@@ -199,7 +199,7 @@ rcl_ret_t
 rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
 {
   (void)node;
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing client")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing client");
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -219,7 +219,7 @@ rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
     }
     allocator.deallocate(client->impl, allocator.state);
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client finalized")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client finalized");
   return result;
 }
 
@@ -266,7 +266,7 @@ rcl_client_get_rmw_handle(const rcl_client_t * client)
 rcl_ret_t
 rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t * sequence_number)
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client sending service request")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client sending service request");
   if (!rcl_client_is_valid(client, NULL)) {
     return RCL_RET_CLIENT_INVALID;
   }
@@ -290,7 +290,7 @@ rcl_take_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client taking service response")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client taking service response");
   if (!rcl_client_is_valid(client, NULL)) {
     return RCL_RET_CLIENT_INVALID;
   }
@@ -307,7 +307,7 @@ rcl_take_response(
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Client take response succeeded: %s", taken ? "true" : "false")
+    ROS_PACKAGE_NAME, "Client take response succeeded: %s", taken ? "true" : "false");
   if (!taken) {
     return RCL_RET_CLIENT_TAKE_FAILED;
   }
