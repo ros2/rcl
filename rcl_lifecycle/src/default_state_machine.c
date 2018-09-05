@@ -86,7 +86,7 @@ const rcl_lifecycle_transition_t rcl_transition_configure_failure = {
   &rcl_state_configuring, &rcl_state_unconfigured
 };
 const rcl_lifecycle_transition_t rcl_transition_configure_error = {
-  "configure_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_CLEANUP_ERROR,
+  "configure_error", lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_ERROR,
   &rcl_state_configuring, &rcl_state_errorprocessing
 };
 
