@@ -81,7 +81,8 @@ rcl_get_zero_initialized_timer(void);
  * The clock handle must be a pointer to an initialized rcl_clock_t struct.
  * The life time of the clock must exceed the life time of the timer.
  *
- * The period is a duration (rather an absolute time in the future).
+ * The period is a non-negative duration (rather an absolute time in the
+ * future).
  * If the period is `0` then it will always be ready.
  *
  * The callback is an optional argument.
