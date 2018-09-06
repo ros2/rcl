@@ -95,7 +95,8 @@ rcl_ret_t
 rcl_get_node_names(
   const rcl_node_t * node,
   rcl_allocator_t allocator,
-  rcutils_string_array_t * node_names)
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, allocator);
   if (!rcl_node_is_valid(node, &allocator)) {
@@ -110,9 +111,20 @@ rcl_get_node_names(
     RCL_SET_ERROR_MSG("node_names is not null", allocator);
     return RCL_RET_INVALID_ARGUMENT;
   }
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_namespaces,
+    RCL_RET_INVALID_ARGUMENT, allocator);
+  if (node_namespaces->size != 0) {
+    RCL_SET_ERROR_MSG("node_namespaces size is not zero", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  if (node_namespaces->data) {
+    RCL_SET_ERROR_MSG("node_namespaces is not null", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   rmw_ret_t rmw_ret = rmw_get_node_names(
     rcl_node_get_rmw_handle(node),
-    node_names);
+    node_names,
+    node_namespaces);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
