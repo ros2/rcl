@@ -464,6 +464,7 @@ rcl_clock_remove_jump_callback(
   // Shrink size of the callback array
   if (clock->num_jump_callbacks == 1) {
     clock->allocator.deallocate(clock->jump_callbacks, clock->allocator.state);
+    clock->jump_callbacks = NULL;
   } else {
     rcl_jump_callback_info_t * callbacks = clock->allocator.reallocate(
       clock->jump_callbacks, sizeof(rcl_jump_callback_info_t) * (clock->num_jump_callbacks - 1),

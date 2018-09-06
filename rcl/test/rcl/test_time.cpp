@@ -670,3 +670,33 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_remove_jump_callback) {
   EXPECT_EQ(RCL_RET_OK, rcl_clock_remove_jump_callback(clock, cb, user_data2));
   EXPECT_EQ(0u, clock->num_jump_callbacks);
 }
+
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), add_remove_add_jump_callback) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_clock_t * clock =
+    reinterpret_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    allocator.deallocate(clock, allocator.state);
+  });
+  rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string_safe();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
+  });
+
+  rcl_jump_threshold_t threshold;
+  threshold.on_clock_change = false;
+  threshold.min_forward.nanoseconds = 0;
+  threshold.min_backward.nanoseconds = 0;
+  rcl_jump_callback_t cb = reinterpret_cast<rcl_jump_callback_t>(0xBEEF);
+  void * user_data = reinterpret_cast<void *>(0xCAFE);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data)) <<
+    rcl_get_error_string_safe();
+  EXPECT_EQ(1u, clock->num_jump_callbacks);
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_remove_jump_callback(clock, cb, user_data));
+  EXPECT_EQ(0u, clock->num_jump_callbacks);
+  EXPECT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data)) <<
+    rcl_get_error_string_safe();
+  EXPECT_EQ(1u, clock->num_jump_callbacks);
+}
