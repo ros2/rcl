@@ -148,11 +148,16 @@ rcl_timer_call(rcl_timer_t * timer)
   next_call_time += period;
   // in case the timer has missed at least once cycle
   if (next_call_time < unow) {
-    // move the next call time forward by as many periods as necessary
-    uint64_t now_ahead = unow - next_call_time;
-    // rounding up without overflow
-    uint64_t periods_ahead = 1 + (now_ahead - 1) / period;
-    next_call_time += periods_ahead * period;
+    if (0 == period) {
+      // a timer with a period of zero is considered always ready
+      next_call_time = unow;
+    } else {
+      // move the next call time forward by as many periods as necessary
+      uint64_t now_ahead = unow - next_call_time;
+      // rounding up without overflow
+      uint64_t periods_ahead = 1 + (now_ahead - 1) / period;
+      next_call_time += periods_ahead * period;
+    }
   }
   rcl_atomic_store(&timer->impl->next_call_time, next_call_time);
 
