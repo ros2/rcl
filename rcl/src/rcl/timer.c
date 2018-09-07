@@ -212,6 +212,7 @@ rcl_timer_fini(rcl_timer_t * timer)
     }
   }
   allocator.deallocate(timer->impl, allocator.state);
+  timer->impl = NULL;
   return result;
 }
 
