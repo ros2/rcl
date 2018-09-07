@@ -62,6 +62,10 @@ rcl_timer_init(
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, allocator);
+  if (period < 0) {
+    RCL_SET_ERROR_MSG("timer period must be non-negative", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Initializing timer with period: %" PRIu64 "ns", period)
   if (timer->impl) {
     RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized", allocator);
