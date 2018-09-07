@@ -30,9 +30,8 @@ extern "C"
 #include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/transition_map.h"
 
-#include "com_interface.h"  // NOLINT
-#include "default_state_machine.h"  // NOLINT
-#include "states.h"  // NOLINT
+#include "./com_interface.h"
+#include "./default_state_machine.h"
 
 rcl_lifecycle_state_t
 rcl_lifecycle_get_zero_initialized_state()
@@ -281,9 +280,7 @@ rcl_lifecycle_is_valid_transition(
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_lifecycle_transition_key_t key)
 {
-  unsigned int current_id = state_machine->current_state->id;
-  const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(
-    &state_machine->transition_map, current_id);
+  const rcl_lifecycle_state_t * current_state = state_machine->current_state;
 
   RCL_CHECK_FOR_NULL_WITH_MSG(current_state,
     "rcl_lifecycle_get_state returns NULL", return NULL, rcl_get_default_allocator());
@@ -326,6 +323,7 @@ rcl_lifecycle_trigger_transition(
     return RCL_RET_ERROR;
   }
   state_machine->current_state = transition->goal;
+
   if (publish_notification) {
     rcl_ret_t ret = rcl_lifecycle_com_interface_publish_notification(
       &state_machine->com_interface, transition->start, state_machine->current_state);
@@ -337,7 +335,6 @@ rcl_lifecycle_trigger_transition(
 
   return RCL_RET_OK;
 }
-
 
 void
 rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)

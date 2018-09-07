@@ -97,9 +97,9 @@ TEST_F(TestDefaultStateMachine, zero_init) {
   ASSERT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcl_reset_error();
   const rcl_lifecycle_transition_map_t * transition_map = &state_machine.transition_map;
-  ASSERT_EQ(transition_map->states_size, (unsigned int)0);
+  ASSERT_EQ(transition_map->states_size, 0u);
   ASSERT_EQ(transition_map->states, nullptr);
-  ASSERT_EQ(transition_map->transitions_size, (unsigned int)0);
+  ASSERT_EQ(transition_map->transitions_size, 0u);
   ASSERT_EQ(transition_map->transitions, nullptr);
 
   auto ret = rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr, this->allocator);
