@@ -26,8 +26,7 @@
 #include "rcl/rcl.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
-
-#include "../src/default_state_machine.h"
+#include "rcl_lifecycle/default_state_machine.h"
 
 class TestMultipleInstances : public ::testing::Test
 {

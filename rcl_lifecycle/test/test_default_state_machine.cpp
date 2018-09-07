@@ -28,8 +28,7 @@
 #include "rcutils/logging_macros.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
-
-#include "../src/default_state_machine.h"
+#include "rcl_lifecycle/default_state_machine.h"
 
 class TestDefaultStateMachine : public ::testing::Test
 {
@@ -62,18 +61,6 @@ protected:
   }
 };
 
-std::vector<rcl_lifecycle_transition_key_t> keys =
-{
-  {lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE, ""},
-  {lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE, ""},
-  {lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE, ""},
-  {lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP, ""},
-  {lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN, ""},
-  {lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS, ""},
-  {lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE, ""},
-  {lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR, ""}
-};
-
 void
 test_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
@@ -91,6 +78,7 @@ test_trigger_transition(
   EXPECT_EQ(
     expected_goal_state, state_machine->current_state->id);
 }
+
 /*
  * Test suite
  */
@@ -185,6 +173,18 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
   ret = rcl_lifecycle_init_default_state_machine(&state_machine, this->allocator);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  std::vector<rcl_lifecycle_transition_key_t> keys =
+  {
+    default_transition_key_configure,
+    default_transition_key_cleanup,
+    default_transition_key_activate,
+    default_transition_key_deactivate,
+    default_transition_key_shutdown,
+    default_transition_key_callback_success,
+    default_transition_key_callback_failure,
+    default_transition_key_callback_error,
+  };
 
   { // supposed to stay unconfigured for all invalid
     for (auto it = keys.begin(); it != keys.end(); ++it) {

@@ -17,6 +17,8 @@ extern "C"
 {
 #endif
 
+#include "rcl_lifecycle/rcl_lifecycle.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,11 +29,10 @@ extern "C"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
-#include "rcl_lifecycle/rcl_lifecycle.h"
+#include "rcl_lifecycle/default_state_machine.h"
 #include "rcl_lifecycle/transition_map.h"
 
 #include "./com_interface.h"
-#include "./default_state_machine.h"
 
 rcl_lifecycle_state_t
 rcl_lifecycle_get_zero_initialized_state()
