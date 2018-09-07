@@ -62,10 +62,11 @@ protected:
 void
 test_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  int key,
+  uint8_t key_id,
   unsigned int expected_current_state,
   unsigned int expected_goal_state)
 {
+  rcl_lifecycle_transition_key_t key = {key_id, ""};
   EXPECT_EQ(
     expected_current_state, state_machine->current_state->id);
   EXPECT_EQ(

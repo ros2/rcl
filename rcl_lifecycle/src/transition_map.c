@@ -165,6 +165,7 @@ rcl_lifecycle_register_transition(
   state->valid_transition_keys = new_valid_transition_keys;
 
   // assign key
+  // TODO(karsten1987): Not sure if this copy assignment works or not
   state->valid_transition_keys[state->valid_transition_size - 1] = key;
   state->valid_transitions[state->valid_transition_size - 1] = transition;
 

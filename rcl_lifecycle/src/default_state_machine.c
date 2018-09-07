@@ -241,14 +241,19 @@ _register_transitions(
 
   // register transition from unconfigured to configuring
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      "configure"
+    };
     rcl_lifecycle_transition_t rcl_transition_configure = {
-      "configure_to_configuring", lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      "configure_to_configuring",
+      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
       unconfigured_state, configuring_state
     };
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_configure,
-      lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -257,6 +262,10 @@ _register_transitions(
 
   // register transition from configuring to inactive
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      "on_configure_success"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_configure_success = {
       "configuring_to_inactive",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_SUCCESS,
@@ -265,7 +274,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_configure_success,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -274,6 +283,10 @@ _register_transitions(
 
   // register transition from configuring to unconfigured
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      "on_configure_failure"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_configure_failure = {
       "configuring_to_unconfigured",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_FAILURE,
@@ -282,7 +295,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_configure_failure,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -291,6 +304,10 @@ _register_transitions(
 
   // register transition from configuring to errorprocessing
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      "on_configure_error"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_configure_error = {
       "configuring_to_errorprocessing",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_ERROR,
@@ -299,7 +316,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_configure_error,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -308,6 +325,10 @@ _register_transitions(
 
   // register transition from inactive to cleaningup
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+      "cleanup"
+    };
     rcl_lifecycle_transition_t rcl_transition_cleanup = {
       "inactive_to_cleaningup",
       lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
@@ -316,7 +337,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_cleanup,
-      lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -325,6 +346,10 @@ _register_transitions(
 
   // register transition from cleaningup to unconfigured
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      "on_cleanup_success"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_cleanup_success = {
       "cleaningup_to_unconfigured",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_CLEANUP_SUCCESS,
@@ -333,7 +358,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_cleanup_success,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -342,6 +367,10 @@ _register_transitions(
 
   // register transition from cleaningup to inactive
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      "on_cleanup_failure"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_cleanup_failure = {
       "cleaningup_to_inactive",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_CLEANUP_FAILURE,
@@ -350,7 +379,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_cleanup_failure,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -359,6 +388,10 @@ _register_transitions(
 
   // register transition from cleaniningup to errorprocessing
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      "on_cleanup_error"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_cleanup_error = {
       "cleaningup_to_errorprocessing",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_CLEANUP_ERROR,
@@ -367,7 +400,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_cleanup_error,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -376,6 +409,10 @@ _register_transitions(
 
   // register transition from inactive to activating
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      "activate"
+    };
     rcl_lifecycle_transition_t rcl_transition_activate = {
       "inactive_to_activating",
       lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
@@ -384,7 +421,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_activate,
-      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -393,6 +430,10 @@ _register_transitions(
 
   // register transition from activating to active
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      "on_activate_sucess"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_activate_success = {
       "activating_to_active",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_ACTIVATE_SUCCESS,
@@ -401,7 +442,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_activate_success,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -410,6 +451,10 @@ _register_transitions(
 
   // register transition from activating to inactive
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      "on_activate_failure"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_activate_failure = {
       "activating_to_inactive",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_ACTIVATE_FAILURE,
@@ -418,7 +463,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_activate_failure,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -427,6 +472,10 @@ _register_transitions(
 
   // register transition from activating to errorprocessing
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      "on_activate_error"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_activate_error = {
       "activating_to_errorprocessing",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_ACTIVATE_ERROR,
@@ -435,7 +484,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_activate_error,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -444,6 +493,10 @@ _register_transitions(
 
   // register transition from active to deactivating
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+      "deactivate"
+    };
     rcl_lifecycle_transition_t rcl_transition_deactivate = {
       "active_to_deactivating",
       lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
@@ -452,7 +505,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_deactivate,
-      lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -461,6 +514,10 @@ _register_transitions(
 
   // register transition from deactivating to inactive
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      "on_deactivate_success"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_deactivate_success = {
       "deactivating_to_inactive",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_DEACTIVATE_SUCCESS,
@@ -469,7 +526,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_deactivate_success,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -478,6 +535,10 @@ _register_transitions(
 
   // register transition from deactivating to active
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      "on_deactivate_failure"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_deactivate_failure = {
       "deactivating_to_active",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_DEACTIVATE_FAILURE,
@@ -486,7 +547,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_deactivate_failure,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -495,6 +556,10 @@ _register_transitions(
 
   // register transition from deactivating to errorprocessing
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      "on_deactivate_error"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_deactivate_error = {
       "deactivating_to_errorprocessing",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_DEACTIVATE_ERROR,
@@ -503,7 +568,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_deactivate_error,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -512,6 +577,10 @@ _register_transitions(
 
   // register transition from unconfigured to shuttingdown
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      "shutdown"
+    };
     rcl_lifecycle_transition_t rcl_transition_unconfigured_shutdown = {
       "unconfigured_to_shuttingdown",
       lifecycle_msgs__msg__Transition__TRANSITION_UNCONFIGURED_SHUTDOWN,
@@ -520,7 +589,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_unconfigured_shutdown,
-      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -529,6 +598,10 @@ _register_transitions(
 
   // register transition from inactive to shuttingdown
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      "shutdown"
+    };
     rcl_lifecycle_transition_t rcl_transition_inactive_shutdown = {
       "inactive_to_shuttingdown",
       lifecycle_msgs__msg__Transition__TRANSITION_INACTIVE_SHUTDOWN,
@@ -537,7 +610,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_inactive_shutdown,
-      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -546,6 +619,10 @@ _register_transitions(
 
   // register transition from active to shuttingdown
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      "shutdown"
+    };
     rcl_lifecycle_transition_t rcl_transition_active_shutdown = {
       "active_to_shuttingdown",
       lifecycle_msgs__msg__Transition__TRANSITION_ACTIVE_SHUTDOWN,
@@ -554,7 +631,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_active_shutdown,
-      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -563,6 +640,10 @@ _register_transitions(
 
   // register transition from shutting down to finalized
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      "on_shutdown_success"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_shutdown_success = {
       "shuttingdown_to_finalized",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_SUCCESS,
@@ -571,7 +652,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_shutdown_success,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -580,6 +661,10 @@ _register_transitions(
 
   // register transition from shutting down to finalized
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      "on_shutdown_failure"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_shutdown_failure = {
       "shuttingdown_to_finalized",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_FAILURE,
@@ -588,7 +673,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_shutdown_failure,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -597,6 +682,10 @@ _register_transitions(
 
   // register transition from shutting down to errorprocessing
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      "on_shutdown_error"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_shutdown_error = {
       "shuttingdown_to_errorprocessing",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_ERROR,
@@ -605,7 +694,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_shutdown_error,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -614,6 +703,10 @@ _register_transitions(
 
   // register transition from errorprocessing to uncofigured
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      "on_error_success"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_error_success = {
       "errorprocessing_to_unconfigured",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_ERROR_SUCCESS,
@@ -622,7 +715,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_error_success,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -631,6 +724,10 @@ _register_transitions(
 
   // register transition from errorprocessing to finalized
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      "on_error_failure"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_error_failure = {
       "errorprocessing_to_finalized_on_failure",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_ERROR_FAILURE,
@@ -639,7 +736,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_error_failure,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -648,6 +745,10 @@ _register_transitions(
 
   // register transition from errorprocessing to finalized
   {
+    rcl_lifecycle_transition_key_t key = {
+      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      "on_error_error"
+    };
     rcl_lifecycle_transition_t rcl_transition_on_error_error = {
       "errorprocessing_to_finalized_on_error",
       lifecycle_msgs__msg__Transition__TRANSITION_ON_ERROR_ERROR,
@@ -656,7 +757,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_error_error,
-      lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
+      key,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;

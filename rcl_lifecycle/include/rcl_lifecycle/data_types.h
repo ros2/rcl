@@ -24,7 +24,11 @@ extern "C"
 {
 #endif
 
-typedef uint8_t rcl_lifecycle_transition_key_t;
+typedef struct rcl_lifecycle_transition_key_t
+{
+  uint8_t id;
+  const char * label;
+} rcl_lifecycle_transition_key_t;
 
 typedef struct rcl_lifecycle_transition_t rcl_lifecycle_transition_t;
 

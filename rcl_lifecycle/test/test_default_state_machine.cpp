@@ -64,23 +64,25 @@ protected:
 
 std::vector<rcl_lifecycle_transition_key_t> keys =
 {
-  lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
-  lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
-  lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
-  lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
-  lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
-  lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
-  lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
-  lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR
+  {lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE, ""},
+  {lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE, ""},
+  {lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE, ""},
+  {lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP, ""},
+  {lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN, ""},
+  {lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS, ""},
+  {lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE, ""},
+  {lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR, ""}
 };
 
 void
 test_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  int key,
+  uint8_t key_id,
   unsigned int expected_current_state,
   unsigned int expected_goal_state)
 {
+  rcl_lifecycle_transition_key_t key = {key_id, ""};
+
   EXPECT_EQ(
     expected_current_state, state_machine->current_state->id);
   EXPECT_EQ(
@@ -186,11 +188,10 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
 
   { // supposed to stay unconfigured for all invalid
     for (auto it = keys.begin(); it != keys.end(); ++it) {
-      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
+      if (it->id == lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
 
-      EXPECT_EQ(
-        RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();
       EXPECT_EQ(
         state_machine.current_state->id,
@@ -206,9 +207,9 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
-      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
+      if (it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();
@@ -225,13 +226,12 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
-      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
+      if (it->id == lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
 
-      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "applying key %u", *it);
-      EXPECT_EQ(
-        RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
+      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "applying key %u", it->id)
+      EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();
       EXPECT_EQ(state_machine.current_state->id,
         lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
@@ -246,9 +246,9 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
-      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
+      if (it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();
@@ -265,8 +265,8 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
-      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN)
+      if (it->id == lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN)
       {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
@@ -284,9 +284,9 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       lifecycle_msgs__msg__State__TRANSITION_STATE_DEACTIVATING);
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
-      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
+      if (it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();
@@ -309,9 +309,9 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       lifecycle_msgs__msg__State__TRANSITION_STATE_CLEANINGUP);
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
-      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
+      if (it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();
@@ -334,9 +334,9 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
       lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
 
     for (auto it = keys.begin(); it != keys.end(); ++it) {
-      if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
+      if (it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE ||
+        it->id == lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition(&state_machine, *it, false));
       rcl_reset_error();

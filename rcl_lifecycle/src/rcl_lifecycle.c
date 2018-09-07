@@ -286,7 +286,7 @@ rcl_lifecycle_is_valid_transition(
     "rcl_lifecycle_get_state returns NULL", return NULL, rcl_get_default_allocator());
 
   for (unsigned int i = 0; i < current_state->valid_transition_size; ++i) {
-    if (current_state->valid_transition_keys[i] == key) {
+    if (current_state->valid_transition_keys[i].id == key.id) {
       return &current_state->valid_transitions[i];
     }
   }
@@ -311,8 +311,13 @@ rcl_lifecycle_trigger_transition(
   if (!transition) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
+<<<<<<< HEAD
       "No transition found for node %s with key %d",
       state_machine->current_state->label, key);
+=======
+      "No transition found for node %s with key %s",
+      state_machine->current_state->label, key.label)
+>>>>>>> introduce labeled keys
     RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
@@ -350,10 +355,10 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
     for (size_t j = 0; j < map->states[i].valid_transition_size; ++j) {
       RCUTILS_LOG_INFO_NAMED(
         ROS_PACKAGE_NAME,
-        "\tNode %s: Key %d: Transition: %s",
+        "\tNode %s: Key %s: Transition: %s",
         map->states[i].label,
-        map->states[i].valid_transition_keys[j],
-        map->states[i].valid_transitions[j].label);
+        map->states[i].valid_transition_keys[j].label,
+        map->states[i].valid_transitions[j].label)
     }
   }
 }
