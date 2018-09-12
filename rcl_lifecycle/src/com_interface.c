@@ -42,6 +42,7 @@ static const char * srv_change_state_service = "~/change_state";
 static const char * srv_get_state_service = "~/get_state";
 static const char * srv_get_available_states_service = "~/get_available_states";
 static const char * srv_get_available_transitions_service = "~/get_available_transitions";
+static const char * srv_get_transition_graph = "~/get_transition_graph";
 
 rcl_lifecycle_com_interface_t
 rcl_lifecycle_get_zero_initialized_com_interface()
@@ -53,6 +54,7 @@ rcl_lifecycle_get_zero_initialized_com_interface()
   com_interface.srv_get_state = rcl_get_zero_initialized_service();
   com_interface.srv_get_available_states = rcl_get_zero_initialized_service();
   com_interface.srv_get_available_transitions = rcl_get_zero_initialized_service();
+  com_interface.srv_get_transition_graph = rcl_get_zero_initialized_service();
   return com_interface;
 }
 
@@ -65,6 +67,7 @@ rcl_lifecycle_com_interface_init(
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
+  const rosidl_service_type_support_t * ts_srv_get_transition_graph,
   const rcl_allocator_t * allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator())
@@ -77,6 +80,8 @@ rcl_lifecycle_com_interface_init(
     ts_srv_get_available_states, RCL_RET_INVALID_ARGUMENT, *allocator)
   RCL_CHECK_ARGUMENT_FOR_NULL(
     ts_srv_get_available_transitions, RCL_RET_INVALID_ARGUMENT, *allocator)
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    ts_srv_get_transition_graph, RCL_RET_INVALID_ARGUMENT, *allocator)
 
   // initialize publisher
   {
@@ -141,6 +146,17 @@ rcl_lifecycle_com_interface_init(
     }
   }
 
+  // initialize get transition graph service
+  {
+    rcl_service_options_t service_options = rcl_service_get_default_options();
+    rcl_ret_t ret = rcl_service_init(
+      &com_interface->srv_get_transition_graph, node_handle,
+      ts_srv_get_transition_graph, srv_get_transition_graph, &service_options);
+
+    if (ret != RCL_RET_OK) {
+      goto fail;
+    }
+  }
   return RCL_RET_OK;
 
 fail:
@@ -160,6 +176,10 @@ fail:
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME, "Failed to destroy get_available_transitions service");
   }
+  if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_transition_graph, node_handle)) {
+    RCUTILS_LOG_ERROR_NAMED(
+      ROS_PACKAGE_NAME, "Failed to destroy get_transition_graph service")
+  }
 
   return RCL_RET_ERROR;
 }
@@ -170,6 +190,15 @@ rcl_lifecycle_com_interface_fini(
   rcl_node_t * node_handle)
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
+
+  // destroy get transition graph srv
+  {
+    rcl_ret_t ret = rcl_service_fini(
+      &com_interface->srv_get_transition_graph, node_handle);
+    if (ret != RCL_RET_OK) {
+      fcn_ret = RCL_RET_ERROR;
+    }
+  }
 
   // destroy get available transitions srv
   {

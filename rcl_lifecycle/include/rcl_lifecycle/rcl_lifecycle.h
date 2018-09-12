@@ -23,6 +23,7 @@ extern "C"
 #include <stdbool.h>
 
 #include "rcl_lifecycle/data_types.h"
+#include "rcl_lifecycle/default_state_machine.h"
 #include "rcl_lifecycle/visibility_control.h"
 
 RCL_LIFECYCLE_PUBLIC
@@ -89,6 +90,7 @@ rcl_lifecycle_state_machine_init(
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
+  const rosidl_service_type_support_t * ts_srv_get_transition_graph,
   bool default_states,
   const rcl_allocator_t * allocator);
 

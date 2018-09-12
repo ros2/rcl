@@ -192,6 +192,7 @@ rcl_lifecycle_state_machine_init(
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
+  const rosidl_service_type_support_t * ts_srv_get_transition_graph,
   bool default_states,
   const rcl_allocator_t * allocator)
 {
@@ -205,7 +206,7 @@ rcl_lifecycle_state_machine_init(
     &state_machine->com_interface, node_handle,
     ts_pub_notify,
     ts_srv_change_state, ts_srv_get_state,
-    ts_srv_get_available_states, ts_srv_get_available_transitions,
+    ts_srv_get_available_states, ts_srv_get_available_transitions, ts_srv_get_transition_graph,
     allocator);
   if (ret != RCL_RET_OK) {
     return RCL_RET_ERROR;

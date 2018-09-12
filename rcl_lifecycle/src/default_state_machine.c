@@ -32,37 +32,37 @@ extern "C"
 #endif
 
 // initialize default keys
-rcl_lifecycle_transition_key_t default_transition_key_configure = {
+rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CONFIGURE = {
   lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
   "configure"
 };
 
-rcl_lifecycle_transition_key_t default_transition_key_cleanup = {
+rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CLEANUP = {
   lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
   "cleanup"
 };
-rcl_lifecycle_transition_key_t default_transition_key_activate = {
+rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_ACTIVATE = {
   lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
   "activate"
 };
-rcl_lifecycle_transition_key_t default_transition_key_deactivate = {
+rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_DEACTIVATE = {
   lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
   "deactivate"
 };
-rcl_lifecycle_transition_key_t default_transition_key_shutdown = {
+rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_SHUTDOWN = {
   lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
   "shutdown"
 };
 
-rcl_lifecycle_transition_key_t default_transition_key_callback_success = {
+rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS = {
   lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_SUCCESS,
   "callback_success"
 };
-rcl_lifecycle_transition_key_t default_transition_key_callback_failure = {
+rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE = {
   lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_FAILURE,
   "callback_failure"
 };
-rcl_lifecycle_transition_key_t default_transition_key_callback_error = {
+rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR = {
   lifecycle_msgs__msg__Transition__TRANSITION_CALLBACK_ERROR,
   "callback_error"
 };
@@ -285,7 +285,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_configure,
-      default_transition_key_configure,
+      RCL_LIFECYCLE_TRANSITION_KEY_CONFIGURE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -302,7 +302,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_configure_success,
-      default_transition_key_callback_success,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -319,7 +319,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_configure_failure,
-      default_transition_key_callback_failure,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -336,7 +336,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_configure_error,
-      default_transition_key_callback_error,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -353,7 +353,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_cleanup,
-      default_transition_key_cleanup,
+      RCL_LIFECYCLE_TRANSITION_KEY_CLEANUP,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -370,7 +370,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_cleanup_success,
-      default_transition_key_callback_success,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -387,7 +387,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_cleanup_failure,
-      default_transition_key_callback_failure,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -404,7 +404,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_cleanup_error,
-      default_transition_key_callback_error,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -421,7 +421,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_activate,
-      default_transition_key_activate,
+      RCL_LIFECYCLE_TRANSITION_KEY_ACTIVATE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -438,7 +438,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_activate_success,
-      default_transition_key_callback_success,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -455,7 +455,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_activate_failure,
-      default_transition_key_callback_failure,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -472,7 +472,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_activate_error,
-      default_transition_key_callback_error,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -489,7 +489,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_deactivate,
-      default_transition_key_deactivate,
+      RCL_LIFECYCLE_TRANSITION_KEY_DEACTIVATE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -506,7 +506,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_deactivate_success,
-      default_transition_key_callback_success,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -523,7 +523,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_deactivate_failure,
-      default_transition_key_callback_failure,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -540,7 +540,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_deactivate_error,
-      default_transition_key_callback_error,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -557,7 +557,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_unconfigured_shutdown,
-      default_transition_key_shutdown,
+      RCL_LIFECYCLE_TRANSITION_KEY_SHUTDOWN,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -574,7 +574,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_inactive_shutdown,
-      default_transition_key_shutdown,
+      RCL_LIFECYCLE_TRANSITION_KEY_SHUTDOWN,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -591,7 +591,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_active_shutdown,
-      default_transition_key_shutdown,
+      RCL_LIFECYCLE_TRANSITION_KEY_SHUTDOWN,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -608,7 +608,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_shutdown_success,
-      default_transition_key_callback_success,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -625,7 +625,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_shutdown_failure,
-      default_transition_key_callback_failure,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -642,7 +642,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_shutdown_error,
-      default_transition_key_callback_error,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -659,7 +659,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_error_success,
-      default_transition_key_callback_success,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -676,7 +676,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_error_failure,
-      default_transition_key_callback_failure,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
@@ -693,7 +693,7 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_on_error_error,
-      default_transition_key_callback_error,
+      RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;

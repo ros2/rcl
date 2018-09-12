@@ -186,14 +186,14 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
 
   std::vector<rcl_lifecycle_transition_key_t> keys =
   {
-    default_transition_key_configure,
-    default_transition_key_cleanup,
-    default_transition_key_activate,
-    default_transition_key_deactivate,
-    default_transition_key_shutdown,
-    default_transition_key_callback_success,
-    default_transition_key_callback_failure,
-    default_transition_key_callback_error,
+    RCL_LIFECYCLE_TRANSITION_KEY_CONFIGURE,
+    RCL_LIFECYCLE_TRANSITION_KEY_CLEANUP,
+    RCL_LIFECYCLE_TRANSITION_KEY_ACTIVATE,
+    RCL_LIFECYCLE_TRANSITION_KEY_DEACTIVATE,
+    RCL_LIFECYCLE_TRANSITION_KEY_SHUTDOWN,
+    RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS,
+    RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE,
+    RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR,
   };
 
   { // supposed to stay unconfigured for all invalid
