@@ -251,7 +251,7 @@ TEST_F(TestTimerFixture, test_canceled_timer) {
 
 TEST_F(TestTimerFixture, test_rostime_time_until_next_call) {
   rcl_ret_t ret;
-  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
+  const int64_t sec_5 = RCL_S_TO_NS(5);
   int64_t time_until = 0;
 
   rcl_clock_t clock;
@@ -289,7 +289,7 @@ TEST_F(TestTimerFixture, test_rostime_time_until_next_call) {
 
 TEST_F(TestTimerFixture, test_system_time_to_ros_time) {
   rcl_ret_t ret;
-  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
+  const int64_t sec_5 = RCL_S_TO_NS(5);
 
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -325,8 +325,8 @@ TEST_F(TestTimerFixture, test_system_time_to_ros_time) {
 
 TEST_F(TestTimerFixture, test_ros_time_to_system_time) {
   rcl_ret_t ret;
-  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
-  const int64_t sec_1 = 1000LL * 1000LL * 1000LL;
+  const int64_t sec_5 = RCL_S_TO_NS(5);
+  const int64_t sec_1 = RCL_S_TO_NS(1);
 
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -366,10 +366,10 @@ TEST_F(TestTimerFixture, test_ros_time_to_system_time) {
 
 TEST_F(TestTimerFixture, test_ros_time_backwards_jump) {
   rcl_ret_t ret;
-  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
-  const int64_t sec_3 = 3LL * 1000LL * 1000LL * 1000LL;
-  const int64_t sec_2 = 2LL * 1000LL * 1000LL * 1000LL;
-  const int64_t sec_1 = 1000LL * 1000LL * 1000LL;
+  const int64_t sec_5 = RCL_S_TO_NS(5);
+  const int64_t sec_3 = RCL_S_TO_NS(3);
+  const int64_t sec_2 = RCL_S_TO_NS(2);
+  const int64_t sec_1 = RCL_S_TO_NS(1);
 
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -408,9 +408,9 @@ TEST_F(TestTimerFixture, test_ros_time_backwards_jump) {
 }
 
 TEST_F(TestTimerFixture, test_ros_time_wakes_wait) {
-  const int64_t sec_5 = 5LL * 1000LL * 1000LL * 1000LL;
-  const int64_t sec_1 = 1000LL * 1000LL * 1000LL;
-  const int64_t sec_1_5 = 1500LL * 1000LL * 1000LL;
+  const int64_t sec_5 = RCL_S_TO_NS(5);
+  const int64_t sec_1 = RCL_S_TO_NS(1);
+  const int64_t sec_1_5 = RCL_S_TO_NS(3) / 2;
 
   rcl_ret_t ret;
   rcl_clock_t clock;
