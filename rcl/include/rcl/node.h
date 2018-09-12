@@ -172,7 +172,7 @@ rcl_node_init(
   const char * namespace_,
   const rcl_node_options_t * options);
 
-/// Finalized a rcl_node_t.
+/// Finalize a rcl_node_t.
 /**
  * Destroys any automatically created infrastructure and deallocates memory.
  * After calling, the rcl_node_t can be safely deallocated.
