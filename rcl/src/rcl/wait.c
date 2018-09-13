@@ -354,16 +354,39 @@ rcl_wait_set_resize(
     SET_RESIZE_RMW_REALLOC(
       subscription, rmw_subscriptions.subscribers, rmw_subscriptions.subscriber_count)
   );
-  SET_RESIZE(
-    guard_condition,
-    SET_RESIZE_RMW_DEALLOC(
-      rmw_guard_conditions.guard_conditions,
-      rmw_guard_conditions.guard_condition_count),
-    SET_RESIZE_RMW_REALLOC(
-      guard_condition,
-      rmw_guard_conditions.guard_conditions,
-      rmw_guard_conditions.guard_condition_count)
-  );
+  // Guard condition RCL size is the resize amount given
+  SET_RESIZE(guard_condition,;,;);  // NOLINT
+
+  // Guard condition RMW size needs to be guard conditions + timers
+  rmw_guard_conditions_t * rmw_gcs = &(wait_set->impl->rmw_guard_conditions);
+  const size_t num_rmw_gc = guard_conditions_size + timers_size;
+  // Clear added guard conditions
+  rmw_gcs->guard_condition_count = 0u;
+  if (0u == num_rmw_gc) {
+    if (rmw_gcs->guard_conditions) {
+      wait_set->impl->allocator.deallocate(
+        (void *)rmw_gcs->guard_conditions, wait_set->impl->allocator.state);
+      rmw_gcs->guard_conditions = NULL;
+    }
+  } else {
+    rmw_gcs->guard_conditions = (void **)wait_set->impl->allocator.reallocate(
+      rmw_gcs->guard_conditions, sizeof(void *) * num_rmw_gc, wait_set->impl->allocator.state);
+    if (!rmw_gcs->guard_conditions) {
+      // Deallocate rcl arrays to match unallocated rmw guard conditions
+      wait_set->impl->allocator.deallocate(
+        (void *)wait_set->guard_conditions, wait_set->impl->allocator.state);
+      wait_set->size_of_guard_conditions = 0u;
+      wait_set->guard_conditions = NULL;
+      wait_set->impl->allocator.deallocate(
+        (void *)wait_set->timers, wait_set->impl->allocator.state);
+      wait_set->size_of_timers = 0u;
+      wait_set->timers = NULL;
+      RCL_SET_ERROR_MSG("allocating memory failed", wait_set->impl->allocator);
+      return RCL_RET_BAD_ALLOC;
+    }
+    memset(rmw_gcs->guard_conditions, 0, sizeof(void *) * num_rmw_gc);
+  }
+
   SET_RESIZE(timer,;,;);  // NOLINT
   SET_RESIZE(client,
     SET_RESIZE_RMW_DEALLOC(
@@ -397,6 +420,16 @@ rcl_wait_set_add_timer(
   const rcl_timer_t * timer)
 {
   SET_ADD(timer)
+  // Add timer guard conditions to end of rmw guard condtion set.
+  rcl_guard_condition_t * guard_condition = rcl_timer_get_guard_condition(timer);
+  if (NULL != guard_condition) {
+    // rcl_wait() will take care of moving these backwards and setting guard_condition_count.
+    const size_t index = wait_set->size_of_guard_conditions + (wait_set->impl->timer_index - 1);
+    rmw_guard_condition_t * rmw_handle = rcl_guard_condition_get_rmw_handle(guard_condition);
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+      rmw_handle, rcl_get_error_string_safe(), return RCL_RET_ERROR, wait_set->impl->allocator);
+    wait_set->impl->rmw_guard_conditions.guard_conditions[index] = rmw_handle->data;
+  }
   return RCL_RET_OK;
 }
 
@@ -443,6 +476,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   rmw_time_t * timeout_argument = NULL;
   rmw_time_t temporary_timeout_storage;
 
+  bool is_timer_timeout = false;
+  int64_t min_timeout = timeout > 0 ? timeout : INT64_MAX;
   // calculate the number of valid (non-NULL and non-canceled) timers
   size_t number_of_valid_timers = wait_set->size_of_timers;
   {  // scope to prevent i from colliding below
@@ -460,38 +495,36 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       if (is_canceled) {
         number_of_valid_timers--;
         wait_set->timers[i] = NULL;
+        continue;
+      }
+      rmw_guard_conditions_t * rmw_gcs = &(wait_set->impl->rmw_guard_conditions);
+      size_t gc_idx = wait_set->size_of_guard_conditions + i;
+      if (NULL != rmw_gcs->guard_conditions[gc_idx]) {
+        // This timer has a guard condition, so move it to make a legal wait set.
+        rmw_gcs->guard_conditions[rmw_gcs->guard_condition_count] =
+          rmw_gcs->guard_conditions[gc_idx];
+        ++(rmw_gcs->guard_condition_count);
+      } else {
+        // No guard condition, instead use to set the rmw_wait timeout
+        int64_t timer_timeout = INT64_MAX;
+        rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
+        if (ret != RCL_RET_OK) {
+          return ret;  // The rcl error state should already be set.
+        }
+        if (timer_timeout < min_timeout) {
+          is_timer_timeout = true;
+          min_timeout = timer_timeout;
+        }
       }
     }
   }
 
-  bool is_timer_timeout = false;
   if (timeout == 0) {
     // Then it is non-blocking, so set the temporary storage to 0, 0 and pass it.
     temporary_timeout_storage.sec = 0;
     temporary_timeout_storage.nsec = 0;
     timeout_argument = &temporary_timeout_storage;
   } else if (timeout > 0 || number_of_valid_timers > 0) {
-    int64_t min_timeout = timeout > 0 ? timeout : INT64_MAX;
-    // Compare the timeout to the time until next callback for each timer.
-    // Take the lowest and use that for the wait timeout.
-    uint64_t i = 0;
-    for (i = 0; i < wait_set->impl->timer_index; ++i) {
-      if (!wait_set->timers[i]) {
-        continue;  // Skip NULL timers.
-      }
-      // at this point we know any non-NULL timers are also not canceled
-
-      int64_t timer_timeout = INT64_MAX;
-      rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
-      if (ret != RCL_RET_OK) {
-        return ret;  // The rcl error state should already be set.
-      }
-      if (timer_timeout < min_timeout) {
-        is_timer_timeout = true;
-        min_timeout = timer_timeout;
-      }
-    }
-
     // If min_timeout was negative, we need to wake up immediately.
     if (min_timeout < 0) {
       min_timeout = 0;
