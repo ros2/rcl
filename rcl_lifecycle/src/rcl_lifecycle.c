@@ -278,48 +278,61 @@ rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t *
 }
 
 const rcl_lifecycle_transition_t *
-rcl_lifecycle_is_valid_transition(
-  rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_transition_key_t key)
+rcl_lifecycle_get_transition_by_id(
+  const rcl_lifecycle_state_t * state,
+  uint8_t id)
 {
-  const rcl_lifecycle_state_t * current_state = state_machine->current_state;
+  RCL_CHECK_FOR_NULL_WITH_MSG(state,
+    "state pointer is null", return NULL, rcl_get_default_allocator());
 
-  RCL_CHECK_FOR_NULL_WITH_MSG(current_state,
-    "rcl_lifecycle_get_state returns NULL", return NULL, rcl_get_default_allocator());
-
-  for (unsigned int i = 0; i < current_state->valid_transition_size; ++i) {
-    if (current_state->valid_transition_keys[i].id == key.id) {
-      return &current_state->valid_transitions[i];
+  for (unsigned int i = 0; i < state->valid_transition_size; ++i) {
+    if (state->valid_transitions[i].id == id) {
+      return &state->valid_transitions[i];
     }
   }
 
   RCUTILS_LOG_WARN_NAMED(
     ROS_PACKAGE_NAME,
-    "No callback transition matching %d found for current state %s",
-    key, state_machine->current_state->label);
+    "No transition matching %d found for current state %s",
+    id, state->label)
+
+  return NULL;
+}
+
+const rcl_lifecycle_transition_t *
+rcl_lifecycle_get_transition_by_label(
+  const rcl_lifecycle_state_t * state,
+  const char * label)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(state,
+    "state pointer is null", return NULL, rcl_get_default_allocator());
+
+  for (unsigned int i = 0; i < state->valid_transition_size; ++i) {
+    if (strcmp(state->valid_transitions[i].label, label) == 0) {
+      return &state->valid_transitions[i];
+    }
+  }
+
+  RCUTILS_LOG_WARN_NAMED(
+    ROS_PACKAGE_NAME,
+    "No transition matching %s found for current state %s",
+    label, state->label);
 
   return NULL;
 }
 
 rcl_ret_t
-rcl_lifecycle_trigger_transition(
+_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_transition_key_t key, bool publish_notification)
+  const rcl_lifecycle_transition_t * transition,
+  bool publish_notification)
 {
-  const rcl_lifecycle_transition_t * transition =
-    rcl_lifecycle_is_valid_transition(state_machine, key);
-
   // If we have a faulty transition pointer
   if (!transition) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
-<<<<<<< HEAD
       "No transition found for node %s with key %d",
       state_machine->current_state->label, key);
-=======
-      "No transition found for node %s with key %s",
-      state_machine->current_state->label, key.label)
->>>>>>> introduce labeled keys
     RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
@@ -343,6 +356,40 @@ rcl_lifecycle_trigger_transition(
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_lifecycle_trigger_transition_by_id(
+  rcl_lifecycle_state_machine_t * state_machine,
+  uint8_t id,
+  bool publish_notification)
+{
+  if (!state_machine) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null")
+    return RCL_RET_ERROR;
+  }
+
+  const rcl_lifecycle_transition_t * transition =
+    rcl_lifecycle_get_transition_by_id(state_machine->current_state, id);
+
+  return _trigger_transition(state_machine, transition, publish_notification);
+}
+
+rcl_ret_t
+rcl_lifecycle_trigger_transition_by_label(
+  rcl_lifecycle_state_machine_t * state_machine,
+  const char * label,
+  bool publish_notification)
+{
+  if (!state_machine) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null")
+    return RCL_RET_ERROR;
+  }
+
+  const rcl_lifecycle_transition_t * transition =
+    rcl_lifecycle_get_transition_by_label(state_machine->current_state, label);
+
+  return _trigger_transition(state_machine, transition, publish_notification);
+}
+
 void
 rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
 {
@@ -357,9 +404,8 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
     for (size_t j = 0; j < map->states[i].valid_transition_size; ++j) {
       RCUTILS_LOG_INFO_NAMED(
         ROS_PACKAGE_NAME,
-        "\tNode %s: Key %s: Transition: %s",
+        "\tNode %s: Transition: %s",
         map->states[i].label,
-        map->states[i].valid_transition_keys[j].label,
         map->states[i].valid_transitions[j].label)
     }
   }

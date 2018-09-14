@@ -18,8 +18,6 @@
 #include "rcl/macros.h"
 #include "rcl/types.h"
 
-#include "lifecycle_msgs/msg/transition.h"
-
 #include "rcl_lifecycle/data_types.h"
 #include "rcl_lifecycle/visibility_control.h"
 
@@ -28,29 +26,15 @@ extern "C"
 {
 #endif
 
-RCL_LIFECYCLE_PUBLIC
-extern rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CONFIGURE;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_configure_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_cleanup_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_activate_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_deactivate_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_shutdown_label;
 
-RCL_LIFECYCLE_PUBLIC
-extern rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CLEANUP;
-
-RCL_LIFECYCLE_PUBLIC
-extern rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_ACTIVATE;
-
-RCL_LIFECYCLE_PUBLIC
-extern rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_DEACTIVATE;
-
-RCL_LIFECYCLE_PUBLIC
-extern rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_SHUTDOWN;
-
-RCL_LIFECYCLE_PUBLIC
-extern rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_SUCCESS;
-
-RCL_LIFECYCLE_PUBLIC
-extern rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_FAILURE;
-
-RCL_LIFECYCLE_PUBLIC
-extern rcl_lifecycle_transition_key_t RCL_LIFECYCLE_TRANSITION_KEY_CALLBACK_ERROR;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_transition_success_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_transition_failure_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_transition_error_label;
 
 RCL_LIFECYCLE_PUBLIC
 RCL_WARN_UNUSED

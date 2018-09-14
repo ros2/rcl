@@ -65,12 +65,11 @@ test_trigger_transition(
   unsigned int expected_current_state,
   unsigned int expected_goal_state)
 {
-  rcl_lifecycle_transition_key_t key = {key_id, ""};
   EXPECT_EQ(
     expected_current_state, state_machine->current_state->id);
   EXPECT_EQ(
-    RCL_RET_OK, rcl_lifecycle_trigger_transition(
-      state_machine, key, false));
+    RCL_RET_OK, rcl_lifecycle_trigger_transition_by_id(
+      state_machine, key_id, false));
   EXPECT_EQ(
     expected_goal_state, state_machine->current_state->id);
 }

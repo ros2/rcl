@@ -20,6 +20,7 @@
 
 #include "rcl/error_handling.h"
 
+#include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/transition_map.h"
 
 class TestTransitionMap : public ::testing::Test
@@ -50,7 +51,7 @@ TEST_F(TestTransitionMap, initialized) {
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
-  rcl_lifecycle_state_t state0 = {"my_state", 0, NULL, NULL, 0};
+  rcl_lifecycle_state_t state0 = {"my_state_0", 0, NULL, 0};
   rcl_ret_t ret = rcl_lifecycle_register_state(&transition_map, state0, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_is_initialized(&transition_map));
@@ -58,7 +59,7 @@ TEST_F(TestTransitionMap, initialized) {
   ret = rcl_lifecycle_register_state(&transition_map, state0, &allocator);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string_safe();
 
-  rcl_lifecycle_state_t state1 = {"my_state", 1, NULL, NULL, 0};
+  rcl_lifecycle_state_t state1 = {"my_state_1", 1, NULL, 0};
   ret = rcl_lifecycle_register_state(&transition_map, state1, &allocator);
 
   rcl_lifecycle_state_t * start_state =
@@ -71,7 +72,24 @@ TEST_F(TestTransitionMap, initialized) {
   rcl_lifecycle_transition_t transition01 = {"from0to1", 0,
     start_state, goal_state};
   ret = rcl_lifecycle_register_transition(
-    &transition_map, transition01, {0, ""}, &allocator);
+    &transition_map, transition01, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
+
+  rcl_lifecycle_transition_t transition10 = {"from1to0", 1,
+    goal_state, start_state};
+  ret = rcl_lifecycle_register_transition(
+    &transition_map, transition10, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret);
+
+  const rcl_lifecycle_transition_t * trans =
+    rcl_lifecycle_get_transition_by_id(start_state, 0);
+  EXPECT_EQ(0u, trans->id);
+  trans = rcl_lifecycle_get_transition_by_label(start_state, "from0to1");
+  EXPECT_EQ(0u, trans->id);
+  trans = rcl_lifecycle_get_transition_by_id(goal_state, 1);
+  EXPECT_EQ(1u, trans->id);
+  trans = rcl_lifecycle_get_transition_by_label(goal_state, "from1to0");
+  EXPECT_EQ(1u, trans->id);
+
   EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_fini(&transition_map, &allocator));
 }
