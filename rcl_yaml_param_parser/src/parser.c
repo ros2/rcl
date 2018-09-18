@@ -187,11 +187,13 @@ static rcl_ret_t add_name_to_ns(
       ns_len = strlen(cur_ns);
       name_len = strlen(name);
       sep_len = strlen(sep_str);
-      if (ns_len == sep_len) {
-        // Current NS is only the separator: don't put another separator in.
+      // Check the last sep_len characters of the current NS against the separator string.
+      if (strcmp(cur_ns + ns_len - sep_len, sep_str) == 0) {
+        // Current NS already ends with the separator: don't put another separator in.
         sep_len = 0;
         sep_str = "";
       }
+
       tot_len = ns_len + sep_len + name_len + 1U;
 
       if (tot_len > MAX_STRING_SIZE) {
