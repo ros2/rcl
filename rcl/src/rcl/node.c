@@ -138,7 +138,7 @@ const char * rcl_get_secure_root(
     // Combine node namespace with node name
     node_fqn = rcutils_format_string(*allocator, "%s%s%s", node_namespace, "/", node_name);
     // Get normalized path, ignore the leading forward slash.
-    node_root_norm = rcutils_norm_path(node_fqn + 1, *allocator);
+    node_root_norm = rcutils_to_native_path(node_fqn + 1, *allocator);
     node_secure_root = rcutils_join_path(ros_secure_root_env, node_root_norm, *allocator);
     allocator->deallocate(node_fqn, allocator->state);
     allocator->deallocate(node_root_norm, allocator->state);
