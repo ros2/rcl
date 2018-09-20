@@ -99,7 +99,7 @@ const char * rcl_create_node_logger_name(
   return node_logger_name;
 }
 
-/// Return the secure root directory associated with a node given the validated node name and namespace.
+/// Return the secure root directory associated with a node given its validated name and namespace.
 /**
  * E.g. for a node named "c" in namespace "/a/b", the secure root path will be
  * "a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
@@ -107,7 +107,7 @@ const char * rcl_create_node_logger_name(
  * \param[in] node_name validated node name (a single token)
  * \param[in] node_namespace validated, absolute namespace (starting with "/")
  * \param[in] allocator the allocator to use for allocation
- * \returns machine specific (absolute) node secure root path or null if there is an error
+ * \returns machine specific (absolute) node secure root path or NULL on failure
  */
 const char * rcl_get_secure_root(
   const char * node_name,
@@ -136,11 +136,11 @@ const char * rcl_get_secure_root(
     char * node_fqn = NULL;
     char * node_root_path = NULL;
     // Combine node namespace with node name
-    // TODO: This make assumption on the length of the root namespace as well as its value.
-    // We should likely come from another (rcl/rmw?) function for reuse.
+    // TODO(ros2team): This make assumption on the value of the root namespace.
+    // This should likely come from another (rcl/rmw?) function for reuse.
     node_fqn = rcutils_format_string(*allocator, "%s%s%s", node_namespace, "/", node_name);
     // Get native path, ignore the leading forward slash.
-    // TODO: The offset should be a define we can access, instead of hardcoding + 1
+    // TODO(ros2team): remove the hard-coded length, use the length of the root namespace instead
     node_root_path = rcutils_to_native_path(node_fqn + 1, *allocator);
     node_secure_root = rcutils_join_path(ros_secure_root_env, node_root_path, *allocator);
     allocator->deallocate(node_fqn, allocator->state);
