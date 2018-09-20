@@ -102,7 +102,7 @@ const char * rcl_create_node_logger_name(
 /// Return the secure root directory associated with a node given the validated node name and namespace.
 /**
  * E.g. for a node named "c" in namespace "/a/b", the secure root path will be
- * "a/b/c", where the delimiter "/" is normalized for target file system (e.g. "\\" for _WIN32).
+ * "a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
  *
  * \param[in] node_name validated node name (a single token)
  * \param[in] node_namespace validated, absolute namespace (starting with "/")
@@ -137,7 +137,7 @@ const char * rcl_get_secure_root(
     char * node_root_path = NULL;
     // Combine node namespace with node name
     node_fqn = rcutils_format_string(*allocator, "%s%s%s", node_namespace, "/", node_name);
-    // Get normalized path, ignore the leading forward slash.
+    // Get native path, ignore the leading forward slash.
     node_root_path = rcutils_to_native_path(node_fqn + 1, *allocator);
     node_secure_root = rcutils_join_path(ros_secure_root_env, node_root_path, *allocator);
     allocator->deallocate(node_fqn, allocator->state);
