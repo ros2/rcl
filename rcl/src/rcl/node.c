@@ -99,15 +99,15 @@ const char * rcl_create_node_logger_name(
   return node_logger_name;
 }
 
-/// Return the secure root dir associated with a node given the validated node name and namespace.
+/// Return the secure root directory associated with a node given the validated node name and namespace.
 /**
  * E.g. for a node named "c" in namespace "/a/b", the secure root path will be
- * "a/b/c", where the delimiter "/" is normlized for target file system (e.g. "\\" for _WIN32).
+ * "a/b/c", where the delimiter "/" is normalized for target file system (e.g. "\\" for _WIN32).
  *
  * \param[in] node_name validated node name (a single token)
  * \param[in] node_namespace validated, absolute namespace (starting with "/")
  * \param[in] allocator the allocator to use for allocation
- * \returns duplicated string or null if there is an error
+ * \returns machine specific (absolute) node secure root path or null if there is an error
  */
 const char * rcl_get_secure_root(
   const char * node_name,
