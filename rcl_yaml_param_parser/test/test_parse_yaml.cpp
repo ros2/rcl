@@ -62,6 +62,31 @@ TEST(test_file_parser, multi_ns_correct_syntax) {
   allocator.deallocate(path, allocator.state);
 }
 
+TEST(test_file_parser, root_ns) {
+  rcutils_reset_error();
+  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  char * test_path = rcutils_join_path(cur_dir, "test", allocator);
+  char * path = rcutils_join_path(test_path, "root_ns.yaml", allocator);
+  fprintf(stderr, "cur_path: %s\n", path);
+  EXPECT_TRUE(rcutils_exists(path));
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  EXPECT_FALSE(NULL == params_hdl);
+  bool res = rcl_parse_yaml_file(path, params_hdl);
+  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  EXPECT_TRUE(res);
+  rcl_yaml_node_struct_print(params_hdl);
+
+  // Check that there is only one forward slash in the node's FQN.
+  // (Regression test for https://github.com/ros2/rcl/pull/299).
+  ASSERT_EQ(1u, params_hdl->num_nodes);
+  ASSERT_STREQ("/my_node", params_hdl->node_names[0]);
+
+  rcl_yaml_node_struct_fini(params_hdl);
+  allocator.deallocate(test_path, allocator.state);
+  allocator.deallocate(path, allocator.state);
+}
+
 TEST(test_file_parser, seq_map1) {
   rcutils_reset_error();
   EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
