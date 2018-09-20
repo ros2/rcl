@@ -129,6 +129,8 @@ const char * rcl_get_secure_root(
     return NULL;  // environment variable was empty
   }
   char * node_secure_root = NULL;
+  // TODO(ros2team): This make assumption on the value and length of the root namespace.
+  // This should likely come from another (rcl/rmw?) function for reuse.
   // If the namespace is the root namespace ("/"), the secure root is just the node name.
   if (strlen(node_namespace) == 1) {
     node_secure_root = rcutils_join_path(ros_secure_root_env, node_name, *allocator);
@@ -136,11 +138,10 @@ const char * rcl_get_secure_root(
     char * node_fqn = NULL;
     char * node_root_path = NULL;
     // Combine node namespace with node name
-    // TODO(ros2team): This make assumption on the value of the root namespace.
-    // This should likely come from another (rcl/rmw?) function for reuse.
+    // TODO(ros2team): remove the hard-coded value of the root namespace.
     node_fqn = rcutils_format_string(*allocator, "%s%s%s", node_namespace, "/", node_name);
     // Get native path, ignore the leading forward slash.
-    // TODO(ros2team): remove the hard-coded length, use the length of the root namespace instead
+    // TODO(ros2team): remove the hard-coded length, use the length of the root namespace instead.
     node_root_path = rcutils_to_native_path(node_fqn + 1, *allocator);
     node_secure_root = rcutils_join_path(ros_secure_root_env, node_root_path, *allocator);
     allocator->deallocate(node_fqn, allocator->state);
