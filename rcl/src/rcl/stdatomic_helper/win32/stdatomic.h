@@ -234,7 +234,7 @@ typedef _Atomic (uintmax_t) atomic_uintmax_t;
         out = InterlockedExchange16((SHORT *) object, desired); \
         break; \
       case sizeof(uint8_t): \
-        out = InterlockedExchange8((char *) object, desired); \
+        out = _InterlockedExchange8((char *) object, desired); \
         break; \
       default: \
         RCUTILS_LOG_ERROR_NAMED( \
