@@ -65,14 +65,14 @@ INITIALIZER(initialize) {
       ROS_PACKAGE_NAME,
       "Error getting environment variable 'RMW_IMPLEMENTATION': %s",
       rcl_get_error_string_safe()
-    )
+    );
     exit(ret);
   }
   if (strlen(expected_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
     expected_rmw_impl = rcutils_strdup(expected_rmw_impl_env, allocator);
     if (!expected_rmw_impl) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "allocation failed")
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "allocation failed");
       exit(RCL_RET_BAD_ALLOC);
     }
   }
@@ -85,14 +85,14 @@ INITIALIZER(initialize) {
       ROS_PACKAGE_NAME,
       "Error getting environment variable 'RCL_ASSERT_RMW_ID_MATCHES': %s",
       rcl_get_error_string_safe()
-    )
+    );
     exit(ret);
   }
   if (strlen(asserted_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
     asserted_rmw_impl = rcutils_strdup(asserted_rmw_impl_env, allocator);
     if (!asserted_rmw_impl) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "allocation failed")
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "allocation failed");
       exit(RCL_RET_BAD_ALLOC);
     }
   }
@@ -104,7 +104,7 @@ INITIALIZER(initialize) {
       "Values of RMW_IMPLEMENTATION ('%s') and RCL_ASSERT_RMW_ID_MATCHES ('%s') environment "
       "variables do not match, exiting with %d.",
       expected_rmw_impl, asserted_rmw_impl, RCL_RET_ERROR
-    )
+    );
     exit(RCL_RET_ERROR);
   }
 
@@ -132,7 +132,7 @@ INITIALIZER(initialize) {
         "(expected identifier of '%s'), exiting with %d.",
         expected_rmw_impl,
         RCL_RET_ERROR
-      )
+      );
       exit(RCL_RET_ERROR);
     }
     if (strcmp(actual_rmw_impl_id, expected_rmw_impl) != 0) {
@@ -142,7 +142,7 @@ INITIALIZER(initialize) {
         expected_rmw_impl,
         actual_rmw_impl_id,
         RCL_RET_MISMATCHED_RMW_ID
-      )
+      );
       exit(RCL_RET_MISMATCHED_RMW_ID);
     }
     // Free the memory now that all checking has passed.

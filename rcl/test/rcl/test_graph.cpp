@@ -232,7 +232,7 @@ check_graph_state(
     expected_publisher_count,
     expected_subscriber_count,
     expected_in_tnat ? "" : " not"
-  )
+  );
   size_t publisher_count = 0;
   size_t subscriber_count = 0;
   bool is_in_tnat = false;
@@ -271,13 +271,13 @@ check_graph_state(
       publisher_count,
       subscriber_count,
       is_in_tnat ? "" : " not"
-    )
+    );
     if (
       expected_publisher_count == publisher_count &&
       expected_subscriber_count == subscriber_count &&
       expected_in_tnat == is_in_tnat)
     {
-      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "  state correct!")
+      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "  state correct!");
       break;
     }
     // Wait for graph change before trying again.
@@ -292,13 +292,13 @@ check_graph_state(
     std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
     RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME,
       "  state wrong, waiting up to '%s' nanoseconds for graph changes... ",
-      std::to_string(time_to_sleep.count()).c_str())
+      std::to_string(time_to_sleep.count()).c_str());
     ret = rcl_wait(wait_set_ptr, time_to_sleep.count());
     if (ret == RCL_RET_TIMEOUT) {
-      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "timeout")
+      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "timeout");
       continue;
     }
-    RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "change occurred")
+    RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "change occurred");
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
   }
   EXPECT_EQ(expected_publisher_count, publisher_count);
@@ -316,7 +316,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   std::string topic_name("/test_graph_query_functions__");
   std::chrono::nanoseconds now = std::chrono::system_clock::now().time_since_epoch();
   topic_name += std::to_string(now.count());
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Using topic name: %s", topic_name.c_str())
+  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Using topic name: %s", topic_name.c_str());
   rcl_ret_t ret;
   const rcl_guard_condition_t * graph_guard_condition =
     rcl_node_get_graph_guard_condition(this->node_ptr);
@@ -451,7 +451,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
     RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME,
       "waiting up to '%s' nanoseconds for graph changes",
-      std::to_string(time_to_sleep.count()).c_str())
+      std::to_string(time_to_sleep.count()).c_str());
     ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
     if (ret == RCL_RET_TIMEOUT) {
       continue;
@@ -508,7 +508,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
         RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME,
           "waiting up to '%s' nanoseconds for graph changes",
-          std::to_string(time_to_sleep.count()).c_str())
+          std::to_string(time_to_sleep.count()).c_str());
         ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
         if (ret == RCL_RET_TIMEOUT) {
           if (!is_connext) {

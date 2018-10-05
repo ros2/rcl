@@ -66,7 +66,7 @@ rcl_service_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT, *allocator);
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Initializing service for service name '%s'", service_name)
+    ROS_PACKAGE_NAME, "Initializing service for service name '%s'", service_name);
   if (service->impl) {
     RCL_SET_ERROR_MSG("service already initialized, or memory was unintialized", *allocator);
     return RCL_RET_ALREADY_INIT;
@@ -90,7 +90,7 @@ rcl_service_init(
         ROS_PACKAGE_NAME,
         "failed to fini string_map (%d) during error handling: %s",
         rcutils_ret,
-        rcutils_get_error_string_safe())
+        rcutils_get_error_string_safe());
     }
     if (ret == RCL_RET_BAD_ALLOC) {
       return ret;
@@ -121,7 +121,7 @@ rcl_service_init(
     }
     goto cleanup;
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded service name '%s'", expanded_service_name)
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded service name '%s'", expanded_service_name);
 
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (NULL == node_options) {
@@ -165,7 +165,7 @@ rcl_service_init(
     RCUTILS_LOG_WARN_NAMED(
       ROS_PACKAGE_NAME,
       "Warning: Setting QoS durability to 'transient local' for service servers "
-      "can cause them to receive requests from clients that have since terminated.")
+      "can cause them to receive requests from clients that have since terminated.");
   }
   // Fill out implementation struct.
   // rmw handle (create rmw service)
@@ -181,7 +181,7 @@ rcl_service_init(
   }
   // options
   service->impl->options = *options;
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service initialized")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service initialized");
   ret = RCL_RET_OK;
   goto cleanup;
 fail:
@@ -203,7 +203,7 @@ cleanup:
 rcl_ret_t
 rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing service")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing service");
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
@@ -223,7 +223,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
     }
     allocator.deallocate(service->impl, allocator.state);
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service finalized")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service finalized");
   return result;
 }
 
@@ -276,7 +276,7 @@ rcl_take_request(
   rmw_request_id_t * request_header,
   void * ros_request)
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service server taking service request")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service server taking service request");
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "Failed to get service options", return RCL_RET_ERROR, rcl_get_default_allocator());
@@ -291,7 +291,7 @@ rcl_take_request(
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Service take request succeeded: %s", taken ? "true" : "false")
+    ROS_PACKAGE_NAME, "Service take request succeeded: %s", taken ? "true" : "false");
   if (!taken) {
     return RCL_RET_SERVICE_TAKE_FAILED;
   }
@@ -304,7 +304,7 @@ rcl_send_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response")
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response");
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     options, "Failed to get service options", return RCL_RET_ERROR, rcl_get_default_allocator());
