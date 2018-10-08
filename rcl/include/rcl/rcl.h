@@ -51,7 +51,7 @@
  *
  * Further still there are some useful abstractions and utilities:
  *
- * - Allocator concept, which can used to control allocation in `rcl_*` functions
+ * - Allocator concept, which can be used to control allocation in `rcl_*` functions
  *   - rcl/allocator.h
  * - Concept of ROS Time and access to steady and system wall time
  *   - rcl/time.h

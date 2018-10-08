@@ -69,7 +69,8 @@ rcl_get_zero_initialized_service(void);
  * required rosidl_service_type_support_t object.
  * This object can be obtained using a language appropriate mechanism.
  * \todo TODO(wjwwood) write these instructions once and link to it instead
- * For C a macro can be used (for example `example_interfaces/AddTwoInts`):
+ *
+ * For C, a macro can be used (for example `example_interfaces/AddTwoInts`):
  *
  * ```c
  * #include <rosidl_generator_c/service_type_support_struct.h>
@@ -78,7 +79,7 @@ rcl_get_zero_initialized_service(void);
  *   ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
  * ```
  *
- * For C++ a template function is used:
+ * For C++, a template function is used:
  *
  * ```cpp
  * #include <rosidl_generator_cpp/service_type_support.hpp>
@@ -263,7 +264,7 @@ rcl_take_request(
  * owned by the calling code, but should remain constant during
  * rcl_send_response().
  *
- e This function is thread safe so long as access to both the service and the
+ * This function is thread safe so long as access to both the service and the
  * `ros_response` is synchronized.
  * That means that calling rcl_send_response() from multiple threads is
  * allowed, but calling rcl_send_response() at the same time as non-thread safe

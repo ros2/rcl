@@ -68,7 +68,8 @@ rcl_get_zero_initialized_publisher(void);
  * required rosidl_message_type_support_t object.
  * This object can be obtained using a language appropriate mechanism.
  * \todo TODO(wjwwood) write these instructions once and link to it instead
- * For C a macro can be used (for example `std_msgs/String`):
+ *
+ * For C, a macro can be used (for example `std_msgs/String`):
  *
  * ```c
  * #include <rosidl_generator_c/message_type_support_struct.h>
@@ -77,7 +78,7 @@ rcl_get_zero_initialized_publisher(void);
  *   ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String);
  * ```
  *
- * For C++ a template function is used:
+ * For C++, a template function is used:
  *
  * ```cpp
  * #include <rosidl_typesupport_cpp/message_type_support.hpp>
