@@ -178,7 +178,7 @@ fail:
   }
   if (RCL_RET_OK != rcl_service_fini(&com_interface->srv_get_transition_graph, node_handle)) {
     RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME, "Failed to destroy get_transition_graph service")
+      ROS_PACKAGE_NAME, "Failed to destroy get_transition_graph service");
   }
 
   return RCL_RET_ERROR;

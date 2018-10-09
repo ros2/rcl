@@ -294,7 +294,7 @@ rcl_lifecycle_get_transition_by_id(
   RCUTILS_LOG_WARN_NAMED(
     ROS_PACKAGE_NAME,
     "No transition matching %d found for current state %s",
-    id, state->label)
+    id, state->label);
 
   return NULL;
 }
@@ -329,10 +329,6 @@ _trigger_transition(
 {
   // If we have a faulty transition pointer
   if (!transition) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
-      "No transition found for node %s with key %d",
-      state_machine->current_state->label, key);
     RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
@@ -363,7 +359,7 @@ rcl_lifecycle_trigger_transition_by_id(
   bool publish_notification)
 {
   if (!state_machine) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null")
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null");
     return RCL_RET_ERROR;
   }
 
@@ -380,7 +376,7 @@ rcl_lifecycle_trigger_transition_by_label(
   bool publish_notification)
 {
   if (!state_machine) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null")
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null");
     return RCL_RET_ERROR;
   }
 
@@ -406,7 +402,7 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
         ROS_PACKAGE_NAME,
         "\tNode %s: Transition: %s",
         map->states[i].label,
-        map->states[i].valid_transitions[j].label)
+        map->states[i].valid_transitions[j].label);
     }
   }
 }
