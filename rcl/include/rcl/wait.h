@@ -265,10 +265,10 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set);
  *
  * \param[inout] wait_set struct to be resized
  * \param[in] subscriptions_size a size for the new subscriptions set
- * \param[in] guard_conditions_size a size for the new subscriptions set
- * \param[in] timers_size a size for the new subscriptions set
- * \param[in] clients_size a size for the new subscriptions set
- * \param[in] services_size a size for the new subscriptions set
+ * \param[in] guard_conditions_size a size for the new guard conditions set
+ * \param[in] timers_size a size for the new timers set
+ * \param[in] clients_size a size for the new clients set
+ * \param[in] services_size a size for the new services set
  * \return `RCL_RET_OK` if resized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
@@ -321,7 +321,7 @@ rcl_wait_set_add_client(
   rcl_wait_set_t * wait_set,
   const rcl_client_t * client);
 
-/// Store a pointer to the client in the next empty spot in the set.
+/// Store a pointer to the service in the next empty spot in the set.
 /**
  * This function behaves exactly the same as for subscriptions.
  * \see rcl_wait_set_add_subscription
