@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef DEFAULT_STATE_MACHINE_H_
-#define DEFAULT_STATE_MACHINE_H_
+#ifndef RCL_LIFECYCLE__DEFAULT_STATE_MACHINE_H_
+#define RCL_LIFECYCLE__DEFAULT_STATE_MACHINE_H_
 
 #include "rcl/macros.h"
 #include "rcl/types.h"
@@ -26,6 +26,16 @@ extern "C"
 {
 #endif
 
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_configure_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_cleanup_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_activate_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_deactivate_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_shutdown_label;
+
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_transition_success_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_transition_failure_label;
+RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_transition_error_label;
+
 RCL_LIFECYCLE_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
@@ -36,4 +46,4 @@ rcl_lifecycle_init_default_state_machine(
 }
 #endif
 
-#endif  // DEFAULT_STATE_MACHINE_H_
+#endif  // RCL_LIFECYCLE__DEFAULT_STATE_MACHINE_H_

@@ -24,8 +24,6 @@ extern "C"
 {
 #endif
 
-typedef uint8_t rcl_lifecycle_transition_key_t;
-
 typedef struct rcl_lifecycle_transition_t rcl_lifecycle_transition_t;
 
 typedef struct rcl_lifecycle_state_t
@@ -33,16 +31,6 @@ typedef struct rcl_lifecycle_state_t
   const char * label;
   unsigned int id;
 
-  // a valid key is a generic identifier for deciding
-  // which transitions to trigger.
-  // This serves the purpose of hiding a unique ID from
-  // users prospective.
-  // e.g. shutdown
-  // the concrete transition for the state "unconfigured"
-  // is "unconfigured_shutdown". However, the user only specifies
-  // "shutdown". So we register the "unconfigured_shutdown"
-  // transition with the impuls "shutdown".
-  rcl_lifecycle_transition_key_t * valid_transition_keys;
   rcl_lifecycle_transition_t * valid_transitions;
   unsigned int valid_transition_size;
 } rcl_lifecycle_state_t;
@@ -71,6 +59,7 @@ typedef struct rcl_lifecycle_com_interface_t
   rcl_service_t srv_get_state;
   rcl_service_t srv_get_available_states;
   rcl_service_t srv_get_available_transitions;
+  rcl_service_t srv_get_transition_graph;
 } rcl_lifecycle_com_interface_t;
 
 typedef struct rcl_lifecycle_state_machine_t

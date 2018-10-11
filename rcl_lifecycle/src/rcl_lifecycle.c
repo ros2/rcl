@@ -17,6 +17,8 @@ extern "C"
 {
 #endif
 
+#include "rcl_lifecycle/rcl_lifecycle.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,12 +29,10 @@ extern "C"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
-#include "rcl_lifecycle/rcl_lifecycle.h"
+#include "rcl_lifecycle/default_state_machine.h"
 #include "rcl_lifecycle/transition_map.h"
 
-#include "com_interface.h"  // NOLINT
-#include "default_state_machine.h"  // NOLINT
-#include "states.h"  // NOLINT
+#include "./com_interface.h"
 
 rcl_lifecycle_state_t
 rcl_lifecycle_get_zero_initialized_state()
@@ -192,6 +192,7 @@ rcl_lifecycle_state_machine_init(
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
+  const rosidl_service_type_support_t * ts_srv_get_transition_graph,
   bool default_states,
   const rcl_allocator_t * allocator)
 {
@@ -205,7 +206,7 @@ rcl_lifecycle_state_machine_init(
     &state_machine->com_interface, node_handle,
     ts_pub_notify,
     ts_srv_change_state, ts_srv_get_state,
-    ts_srv_get_available_states, ts_srv_get_available_transitions,
+    ts_srv_get_available_states, ts_srv_get_available_transitions, ts_srv_get_transition_graph,
     allocator);
   if (ret != RCL_RET_OK) {
     return RCL_RET_ERROR;
@@ -277,45 +278,57 @@ rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t *
 }
 
 const rcl_lifecycle_transition_t *
-rcl_lifecycle_is_valid_transition(
-  rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_transition_key_t key)
+rcl_lifecycle_get_transition_by_id(
+  const rcl_lifecycle_state_t * state,
+  uint8_t id)
 {
-  unsigned int current_id = state_machine->current_state->id;
-  const rcl_lifecycle_state_t * current_state = rcl_lifecycle_get_state(
-    &state_machine->transition_map, current_id);
+  RCL_CHECK_FOR_NULL_WITH_MSG(state,
+    "state pointer is null", return NULL, rcl_get_default_allocator());
 
-  RCL_CHECK_FOR_NULL_WITH_MSG(current_state,
-    "rcl_lifecycle_get_state returns NULL", return NULL, rcl_get_default_allocator());
-
-  for (unsigned int i = 0; i < current_state->valid_transition_size; ++i) {
-    if (current_state->valid_transition_keys[i] == key) {
-      return &current_state->valid_transitions[i];
+  for (unsigned int i = 0; i < state->valid_transition_size; ++i) {
+    if (state->valid_transitions[i].id == id) {
+      return &state->valid_transitions[i];
     }
   }
 
   RCUTILS_LOG_WARN_NAMED(
     ROS_PACKAGE_NAME,
-    "No callback transition matching %d found for current state %s",
-    key, state_machine->current_state->label);
+    "No transition matching %d found for current state %s",
+    id, state->label);
+
+  return NULL;
+}
+
+const rcl_lifecycle_transition_t *
+rcl_lifecycle_get_transition_by_label(
+  const rcl_lifecycle_state_t * state,
+  const char * label)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(state,
+    "state pointer is null", return NULL, rcl_get_default_allocator());
+
+  for (unsigned int i = 0; i < state->valid_transition_size; ++i) {
+    if (strcmp(state->valid_transitions[i].label, label) == 0) {
+      return &state->valid_transitions[i];
+    }
+  }
+
+  RCUTILS_LOG_WARN_NAMED(
+    ROS_PACKAGE_NAME,
+    "No transition matching %s found for current state %s",
+    label, state->label);
 
   return NULL;
 }
 
 rcl_ret_t
-rcl_lifecycle_trigger_transition(
+_trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_transition_key_t key, bool publish_notification)
+  const rcl_lifecycle_transition_t * transition,
+  bool publish_notification)
 {
-  const rcl_lifecycle_transition_t * transition =
-    rcl_lifecycle_is_valid_transition(state_machine, key);
-
   // If we have a faulty transition pointer
   if (!transition) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
-      "No transition found for node %s with key %d",
-      state_machine->current_state->label, key);
     RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
     return RCL_RET_ERROR;
   }
@@ -326,6 +339,7 @@ rcl_lifecycle_trigger_transition(
     return RCL_RET_ERROR;
   }
   state_machine->current_state = transition->goal;
+
   if (publish_notification) {
     rcl_ret_t ret = rcl_lifecycle_com_interface_publish_notification(
       &state_machine->com_interface, transition->start, state_machine->current_state);
@@ -338,6 +352,39 @@ rcl_lifecycle_trigger_transition(
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_lifecycle_trigger_transition_by_id(
+  rcl_lifecycle_state_machine_t * state_machine,
+  uint8_t id,
+  bool publish_notification)
+{
+  if (!state_machine) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null");
+    return RCL_RET_ERROR;
+  }
+
+  const rcl_lifecycle_transition_t * transition =
+    rcl_lifecycle_get_transition_by_id(state_machine->current_state, id);
+
+  return _trigger_transition(state_machine, transition, publish_notification);
+}
+
+rcl_ret_t
+rcl_lifecycle_trigger_transition_by_label(
+  rcl_lifecycle_state_machine_t * state_machine,
+  const char * label,
+  bool publish_notification)
+{
+  if (!state_machine) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null");
+    return RCL_RET_ERROR;
+  }
+
+  const rcl_lifecycle_transition_t * transition =
+    rcl_lifecycle_get_transition_by_label(state_machine->current_state, label);
+
+  return _trigger_transition(state_machine, transition, publish_notification);
+}
 
 void
 rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
@@ -353,9 +400,8 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
     for (size_t j = 0; j < map->states[i].valid_transition_size; ++j) {
       RCUTILS_LOG_INFO_NAMED(
         ROS_PACKAGE_NAME,
-        "\tNode %s: Key %d: Transition: %s",
+        "\tNode %s: Transition: %s",
         map->states[i].label,
-        map->states[i].valid_transition_keys[j],
         map->states[i].valid_transitions[j].label);
     }
   }

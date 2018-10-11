@@ -55,11 +55,6 @@ rcl_lifecycle_transition_map_fini(
 {
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
-  // for each state free the allocations for their keys/transitions
-  for (unsigned int i = 0; i < transition_map->states_size; ++i) {
-    allocator->deallocate(transition_map->states[i].valid_transition_keys, allocator->state);
-    allocator->deallocate(transition_map->states[i].valid_transitions, allocator->state);
-  }
   // free the primary states
   allocator->deallocate(transition_map->states, allocator->state);
   transition_map->states = NULL;
@@ -106,7 +101,6 @@ rcl_ret_t
 rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_map_t * transition_map,
   rcl_lifecycle_transition_t transition,
-  rcl_lifecycle_transition_key_t key,
   const rcutils_allocator_t * allocator)
 {
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
@@ -135,7 +129,6 @@ rcl_lifecycle_register_transition(
   // finally set the new transition to the end of the array
   transition_map->transitions[transition_map->transitions_size - 1] = transition;
 
-  // connect transition to state key
   // we have to copy the transitons here once more to the actual state
   // as we can't assign only the pointer. This pointer gets invalidated whenever
   // we add a new transition and re-shuffle/re-allocate new memory for it.
@@ -152,20 +145,6 @@ rcl_lifecycle_register_transition(
   }
   state->valid_transitions = new_valid_transitions;
 
-  rcl_lifecycle_transition_key_t * new_valid_transition_keys = allocator->reallocate(
-    state->valid_transition_keys,
-    state->valid_transition_size * sizeof(rcl_lifecycle_transition_key_t),
-    allocator->state);
-  if (!new_valid_transitions) {
-    RCL_SET_ERROR_MSG(
-      "failed to reallocate memory for new transitions keys on state",
-      rcl_get_default_allocator());
-    return RCL_RET_ERROR;
-  }
-  state->valid_transition_keys = new_valid_transition_keys;
-
-  // assign key
-  state->valid_transition_keys[state->valid_transition_size - 1] = key;
   state->valid_transitions[state->valid_transition_size - 1] = transition;
 
   return RCL_RET_OK;

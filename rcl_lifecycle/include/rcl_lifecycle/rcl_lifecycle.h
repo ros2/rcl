@@ -23,6 +23,7 @@ extern "C"
 #include <stdbool.h>
 
 #include "rcl_lifecycle/data_types.h"
+#include "rcl_lifecycle/default_state_machine.h"
 #include "rcl_lifecycle/visibility_control.h"
 
 RCL_LIFECYCLE_PUBLIC
@@ -89,6 +90,7 @@ rcl_lifecycle_state_machine_init(
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
+  const rosidl_service_type_support_t * ts_srv_get_transition_graph,
   bool default_states,
   const rcl_allocator_t * allocator);
 
@@ -109,27 +111,32 @@ rcl_lifecycle_state_machine_is_initialized(
 RCL_LIFECYCLE_PUBLIC
 RCL_WARN_UNUSED
 const rcl_lifecycle_transition_t *
-rcl_lifecycle_is_valid_callback_transition(
-  rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_transition_key_t key);
+rcl_lifecycle_get_transition_by_id(
+  const rcl_lifecycle_state_t * state,
+  uint8_t id);
 
-/// Execute a transition
-/*
- * Important note for \param key here:
- * This is meant as feedback from the high level
- * callback associated with this transition.
- * The key is the index for the valid transitions
- * associated with the current state.
- * This key may either be a valid external stimuli
- * such as "configure" or direct return codes from
- * callbacks such as RCL_LIFECYCLE_RET_OK et. al.
- */
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+const rcl_lifecycle_transition_t *
+rcl_lifecycle_get_transition_by_label(
+  const rcl_lifecycle_state_t * state,
+  const char * label);
+
 RCL_LIFECYCLE_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_lifecycle_trigger_transition(
+rcl_lifecycle_trigger_transition_by_id(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_lifecycle_transition_key_t key, bool publish_notification);
+  uint8_t id,
+  bool publish_notification);
+
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lifecycle_trigger_transition_by_label(
+  rcl_lifecycle_state_machine_t * state_machine,
+  const char * label,
+  bool publish_notification);
 
 RCL_LIFECYCLE_PUBLIC
 void

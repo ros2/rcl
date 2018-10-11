@@ -57,7 +57,6 @@ rcl_ret_t
 rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_map_t * transition_map,
   rcl_lifecycle_transition_t transition,
-  rcl_lifecycle_transition_key_t key,
   const rcl_allocator_t * allocator);
 
 RCL_LIFECYCLE_PUBLIC
