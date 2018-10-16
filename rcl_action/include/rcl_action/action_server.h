@@ -21,46 +21,25 @@ extern "C"
 #endif
 
 // TODO(jacobperron): replace type support typedef with one defined in rosdl_generator_c
-// #include "rosidl_generator_c/action_server_type_support_struct.h"
-typedef struct rosidl_action_server_type_support_t
+// #include "rosidl_generator_c/action_type_support_struct.h"
+typedef struct rosidl_action_type_support_t
 {
   //TODO(jacobperron): What mock elements go here?
-} rosidl_action_server_type_support_t;
+} rosidl_action_type_support_t;
 
+#include "rcl_action/types.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
 
-#include <uuid/uuid.h>
 
-
-/// Internal rcl implementation struct.
+/// Internal rcl_action implementation struct.
 struct rcl_action_server_impl_t;
-
-/// Action goal ID
-typedef struct rcl_action_goal_id_t
-{
-  /// UUID for a goal
-  uuid_t id;
-  /// Timestamp. Number of seconds since epoch
-  uint64_t timestamp;
-} rcl_action_goal_id_t;
-
-/// Action goal status
-typedef enum rcl_action_status_t
-{
-  ACCEPTED,
-  EXECUTING,
-  CANCELING,
-  SUCCEEDED,
-  CANCELED,
-  ABORTED
-} rcl_action_status_t;
 
 /// Structure which encapsulates a ROS Action Server.
 typedef struct rcl_action_server_t
 {
-  struct rcl_aciton_server_impl_t * impl;
+  struct rcl_action_server_impl_t * impl;
 } rcl_action_server_t;
 
 /// Options available for a rcl action server.
@@ -68,7 +47,7 @@ typedef struct rcl_action_server_options_t
 {
   /// Middleware quality of service settings for the action server.
   rmw_qos_profile_t qos;
-  /// Custom allocator for the server, used for incidental allocations.
+  /// Custom allocator for the action server, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
   // TODO(jacobperron): Consider a server 'policy' defining things like queue length,
@@ -76,7 +55,7 @@ typedef struct rcl_action_server_options_t
 } rcl_action_server_options_t;
 
 /// Structure encapsulating a cancel response
-// TODO (jacobperron): Should this be generated from some common interface
+// TODO (jacobperron): Should this be generated from a common interface?
 //                     (e.g. rcl_interface/action_msgs)
 typedef struct rcl_cancel_response_t
 {
@@ -99,10 +78,10 @@ rcl_action_get_zero_initialized_server(void);
 /// Initialize a rcl action_server.
 /**
  * After calling this function on a rcl_action_server_t, it can be used to take
- * goals of the given type to the given topic using rcl_take_goal()
- * and take cancel requests with rcl_take_cancel_request().
+ * goals of the given type to the given topic using rcl_action_take_goal_request()
+ * and take cancel requests with rcl_aciton_take_cancel_request().
  * It can also send a result for a request using rcl_action_send_result() or
- * rcl_action_send_cancel_result().
+ * rcl_action_send_cancel_response().
  *
  * After accepting a goal with rcl_action_take_goal_request(), the rcl_action_server_t can
  * be used to send feedback with rcl_action_publish_feedback() and send status
@@ -111,35 +90,35 @@ rcl_action_get_zero_initialized_server(void);
  * The given rcl_node_t must be valid and the resulting rcl_action_server_t is
  * only valid as long as the given rcl_node_t remains valid.
  *
- * The rosidl_action_server_type_support_t is obtained on a per .action type basis.
+ * The rosidl_action_type_support_t is obtained on a per .action type basis.
  * When the user defines a ROS action, code is generated which provides the
- * required rosidl_action_server_type_support_t object.
+ * required rosidl_action_type_support_t object.
  * This object can be obtained using a language appropriate mechanism.
  * \todo TODO(jacobperron) write these instructions once and link to it instead
  *
  * For C, a macro can be used (for example `example_interfaces/Fibonacci`):
  *
  * ```c
- * #include <rosidl_generator_c/action_server_type_support_struct.h>
+ * #include <rosidl_generator_c/action_type_support_struct.h>
  * #include <example_interfaces/action/fibonacci.h>
- * const rosidl_action_server_type_support_t * ts =
+ * const rosidl_action_type_support_t * ts =
  *   ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci);
  * ```
  *
  * For C++, a template function is used:
  *
  * ```cpp
- * #include <rosidl_generator_cpp/action_server_type_support.hpp>
+ * #include <rosidl_generator_cpp/action_type_support.hpp>
  * #include <example_interfaces/action/fibonacci.h>
- * using rosidl_typesupport_cpp::get_action_server_type_support_handle;
- * const rosidl_action_server_type_support_t * ts =
- *   get_action_server_type_support_handle<example_interfaces::action::Fibonacci>();
+ * using rosidl_typesupport_cpp::get_action_type_support_handle;
+ * const rosidl_action_type_support_t * ts =
+ *   get_action_type_support_handle<example_interfaces::action::Fibonacci>();
  * ```
  *
- * The rosidl_action_server_type_support_t object contains action_server type specific
+ * The rosidl_action_type_support_t object contains action type specific
  * information used to send or take goals, results, and feedback.
  *
- * The topic name must be a c string which follows the topic and service name
+ * The topic name must be a c string that follows the topic and service name
  * format rules for unexpanded names, also known as non-fully qualified names:
  *
  * \see rcl_expand_topic_name
@@ -153,14 +132,14 @@ rcl_action_get_zero_initialized_server(void);
  * ```c
  * #include <rcl/rcl.h>
  * #include <rcl_action/rcl_action.h>
- * #include <rosidl_generator_c/action_server_type_support_struct.h>
+ * #include <rosidl_generator_c/action_type_support_struct.h>
  * #include <example_interfaces/action/fibonacci.h>
  *
  * rcl_node_t node = rcl_get_zero_initialized_node();
  * rcl_node_options_t node_ops = rcl_node_get_default_options();
  * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/my_namespace", &node_ops);
  * // ... error handling
- * const rosidl_action_server_type_support_t * ts =
+ * const rosidl_action_type_support_t * ts =
  *   ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci);
  * rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
  * rcl_action_server_options_t action_server_ops = rcl_action_server_get_default_options();
@@ -182,14 +161,14 @@ rcl_action_get_zero_initialized_server(void);
  *
  * \param[out] action_server preallocated action server structure
  * \param[in] node valid rcl node handle
- * \param[in] type_support type support object for the action server's type
+ * \param[in] type_support type support object for the action's type
  * \param[in] action_name the name of the action
  * \param[in] options action_server options, including quality of service settings
  * \return `RCL_RET_OK` if action_server was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_ACTION_NAME_INVALID` if the given action server name is invalid, or
+ * \return `RCL_RET_ACTION_NAME_INVALID` if the given action name is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -198,7 +177,7 @@ rcl_ret_t
 rcl_action_server_init(
   rcl_action_server_t * action_server,
   const rcl_node_t * node,
-  const rosidl_action_server_type_support_t * type_support,
+  const rosidl_action_type_support_t * type_support,
   const char * action_name,
   const rcl_action_server_options_t * options);
 
@@ -207,9 +186,10 @@ rcl_action_server_init(
  * After calling, the node will no longer listen for goals for this action server.
  * (assuming this is the only action server of this type in this node).
  *
- * After calling, calls to rcl_wait(), rcl_action_take_goal_request(), rcl_action_take_cancel_request(),
- * rcl_action_publish_feedback(), rcl_action_publish_status(), rcl_action_send_result(),
- * and rcl_action_send_cancel_result() will fail when using this action server.
+ * After calling, calls to rcl_wait(), rcl_action_take_goal_request(),
+ * rcl_action_take_cancel_request(), rcl_action_publish_feedback(),
+ * rcl_action_publish_status(), rcl_action_send_result(), and
+ * rcl_action_send_cancel_response() will fail when using this action server.
  * Additionally, rcl_wait() will be interrupted if currently blocking.
  * However, the given node handle is still valid.
  *
@@ -237,7 +217,7 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node);
 /**
  * The defaults are:
  *
- * - qos = rmw_qos_profile_action_servers_default
+ * - qos = TODO(jacobperron): where to define default? and what should it be?
  * - allocator = rcl_get_default_allocator()
  */
 RCL_PUBLIC
@@ -250,7 +230,7 @@ rcl_action_server_get_default_options(void);
  * It is the job of the caller to ensure that the type of the ros_goal
  * argument and the type associate with the action server, via the type
  * support, match.
- * Passing a different type to rcl_take produces undefined behavior and cannot
+ * Passing a different type produces undefined behavior and cannot
  * be checked by this function and therefore no deliberate error will occur.
  *
  * \todo TODO(jacobperron) blocking of take?
@@ -279,7 +259,7 @@ rcl_action_server_get_default_options(void);
  * <i>[1] only if required when filling the request, avoided for fixed sizes</i>
  *
  * \param[in] action_server the handle to the action server from which to take
- * \param[inout] request_header ptr to the struct holding metadata about the request ID
+ * \param[inout] request_header pointer to struct containing meta-data about the goal
  * \param[inout] ros_request type-erased ptr to an allocated ROS request message
  * \return `RCL_RET_OK` if the request was taken, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -297,14 +277,14 @@ rcl_action_take_goal_request(
   rcl_action_goal_id_t * request_header,
   void * ros_request);
 
-/// Send a response for a goal request to a client using an action server.
+/// Send a response for a goal request to an action client using an action server.
 /**
  * It is the job of the caller to ensure that the type of the `ros_response`
  * parameter and the type associate with the action server (via the type support)
  * match.
- * Passing a different type to send_response produces undefined behavior and
- * cannot be checked by this function and therefore no deliberate error will
- * occur.
+ * Passing a different type to rcl_action_send_goal_response() produces undefined
+ * behavior and cannot be checked by this function and therefore no deliberate
+ * error will occur.
  *
  * rcl_action_send_goal_response() is a non-blocking call.
  *
@@ -350,7 +330,7 @@ rcl_action_send_goal_response(
   rcl_action_goal_id_t * response_header,
   void * ros_response);
 
-/// Publish a ROS feedback message for an active action request.
+/// Publish a ROS feedback message for an active goal.
 /**
  * \todo TODO(jacobperron): Document.
  */
@@ -362,7 +342,7 @@ rcl_action_publish_feedback(
   rcl_action_goal_id_t * feedback_header,
   void * ros_message);
 
-/// Publish a ROS status message for an active action request.
+/// Publish a ROS status message for an active goal.
 /**
  * \todo TODO(jacobperron): Document.
  */
@@ -372,7 +352,7 @@ rcl_ret_t
 rcl_action_publish_status(
   const rcl_action_server_t * action_server,
   rcl_action_goal_id_t * status_header,
-  const rcl_action_status_t * status);
+  void * ros_message);
 
 /// Take a pending cancel request using a rcl action server.
 /**
@@ -381,7 +361,7 @@ rcl_action_publish_status(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_take_cancel_request(
+rcl_action_take_cancel_request(
   const rcl_action_server_t * action_server,
   rcl_action_goal_id_t * request_header);
 
@@ -389,9 +369,12 @@ rcl_take_cancel_request(
 /**
  * \todo TODO(jacobperron): Document.
  */
-rcl_send_cancel_response(
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
-  rcl_action_cancel_response_t * cancel_response);
+  void * ros_message);
 
 /// Get the name of the action for an action server.
 /**
