@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_ACTION__GOAL_STATE_MACHINE_H_
-#define RCL_ACTION__GOAL_STATE_MACHINE_H_
+#ifndef RCL_ACTION__GOAL_HANDLE_H_
+#define RCL_ACTION__GOAL_HANDLE_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -25,7 +25,7 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 /// Internal rcl action goal implementation struct.
-struct rcl_action_goal_handle_impl_t; 
+struct rcl_action_goal_handle_impl_t;
 
 /// Goal handle for an action.
 typedef struct rcl_action_goal_handle_t
@@ -197,7 +197,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_get_message()
-  
+
 /// Get the status of a goal.
 /**
  * TODO: docs
@@ -206,7 +206,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_get_status()
-  
+
 /// Check if the goal is active.
 /**
  * A goal is active if it is in one of the following states: ACCEPTED, EXECUTING, or CANCELING.
@@ -216,7 +216,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_is_active(),
- 
+
 /// Check if a goal handle is valid.
 /**
  * TODO: docs
@@ -232,4 +232,4 @@ rcl_action_goal_handle_is_valid(
 }
 #endif
 
-#endif  // RCL_ACTION__GOAL_STATE_MACHINE_H_
+#endif  // RCL_ACTION__GOAL_HANDLE_H_

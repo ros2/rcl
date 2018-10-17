@@ -50,11 +50,11 @@ typedef enum rcl_action_goal_event_t
 typedef rcl_action_goal_state_t
 (* rcl_action_goal_event_handler)(rcl_action_goal_state_t, rcl_action_goal_event_t);
 
-// Transition functions
+// Transition event handlers
 rcl_action_goal_state_t
 _execute_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if (state != GOAL_STATE_ACCEPTED || event != GOAL_EVENT_EXECUTE) {
+  if (GOAL_STATE_ACCEPTED != state || GOAL_EVENT_EXECUTE != event) {
     return GOAL_STATE_INVALID;
   }
   return GOAL_STATE_EXECUTING;
@@ -63,9 +63,10 @@ _execute_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t ev
 rcl_action_goal_state_t
 _cancel_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if (state != GOAL_STATE_ACCEPTED ||
-      state != GOAL_STATE_EXECUTING ||
-      event != GOAL_EVENT_CANCEL) {
+  if (GOAL_STATE_ACCEPTED != state ||
+    GOAL_STATE_EXECUTING != state ||
+    GOAL_EVENT_CANCEL != event)
+  {
     return GOAL_STATE_INVALID;
   }
   return GOAL_STATE_CANCELING;
@@ -74,9 +75,10 @@ _cancel_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t eve
 rcl_action_goal_state_t
 _set_succeeded_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if (state != GOAL_STATE_EXECUTING ||
-      state != GOAL_STATE_CANCELING ||
-      event != GOAL_EVENT_SET_SUCCEEDED) {
+  if (GOAL_STATE_EXECUTING != state ||
+    GOAL_STATE_CANCELING != state ||
+    GOAL_EVENT_SET_SUCCEEDED != event)
+  {
     return GOAL_STATE_INVALID;
   }
   return GOAL_STATE_SUCCEEDED;
@@ -85,40 +87,41 @@ _set_succeeded_event_handler(rcl_action_goal_state_t state, rcl_action_goal_even
 rcl_action_goal_state_t
 _set_aborted_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if (state != GOAL_STATE_EXECUTING ||
-      state != GOAL_STATE_CANCELING ||
-      event != GOAL_EVENT_SET_ABORTED) {
+  if (GOAL_STATE_EXECUTING != state ||
+    GOAL_STATE_CANCELING != state ||
+    GOAL_EVENT_SET_ABORTED != event)
+  {
     return GOAL_STATE_INVALID;
   }
   return GOAL_STATE_ABORTED;
 }
 
 rcl_action_goal_state_t
-_set_canceled_event_handler(rcl_action_goal_state_t, rcl_action_goal_event_t)
+_set_canceled_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if (state != GOAL_STATE_CANCELING || event != GOAL_EVENT_SET_CANCELED) {
+  if (GOAL_STATE_CANCELING != state || GOAL_EVENT_SET_CANCELED != event) {
     return GOAL_STATE_INVALID;
   }
   return GOAL_STATE_CANCELED;
 }
 
 // Transition map
-rcl_action_goal_event_handler (* _goal_state_transition_map[NUM_EVENTS][NUM_STATES] = {
+rcl_action_goal_event_handler _goal_state_transition_map[NUM_EVENTS][NUM_STATES] = {
   [GOAL_STATE_ACCEPTED] = {
     [GOAL_EVENT_EXECUTE] = _execute_event_handler,
-    [GOAL_EVENT_CANCEL] = _cancel_event_handler
+    [GOAL_EVENT_CANCEL] = _cancel_event_handler,
   },
   [GOAL_STATE_EXECUTING] = {
     [GOAL_EVENT_CANCEL] = _cancel_event_handler,
     [GOAL_EVENT_SET_SUCCEEDED] = _set_succeded_event_handler,
-    [GOAL_EVENT_SET_ABORTED] = _set_aborted_event_handler
+    [GOAL_EVENT_SET_ABORTED] = _set_aborted_event_handler,
   },
   [GOAl_STATE_CANCELING] = {
     [GOAL_EVENT_SET_SUCCEEDED] = _set_succeeded_event_handler,
     [GOAL_EVENT_SET_ABORTED] = _set_aborted_event_handler,
-    [GOAL_EVENT_SET_CANCELED] = _set_canceled_event_handler
-  }
-}
+    [GOAL_EVENT_SET_CANCELED] = _set_canceled_event_handler,
+  },
+};
 
 /// Transition a goal from one state to the next.
 /**
@@ -126,13 +129,13 @@ rcl_action_goal_event_handler (* _goal_state_transition_map[NUM_EVENTS][NUM_STAT
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_action_goal_state_t_
+rcl_action_goal_state_t
 rcl_action_transition_goal_state(
   const rcl_action_goal_state_t state,
   const rcl_action_goal_event_t event)
 {
   rcl_action_goal_event_handler handler = _goal_state_transition_map[event][state];
-  if (handler == NULL) {
+  if (NULL == handler) {
     return GOAL_STATE_INVALID;
   }
   return handler(state, event);

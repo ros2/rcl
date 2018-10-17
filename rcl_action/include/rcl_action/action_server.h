@@ -24,7 +24,7 @@ extern "C"
 // #include "rosidl_generator_c/action_type_support_struct.h"
 typedef struct rosidl_action_type_support_t
 {
-  //TODO(jacobperron): What mock elements go here?
+  // TODO(jacobperron): What mock elements go here?
 } rosidl_action_type_support_t;
 
 #include "rcl_action/goal_handle.h"
