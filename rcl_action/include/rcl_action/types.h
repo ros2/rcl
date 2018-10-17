@@ -40,20 +40,13 @@ typedef struct rcl_action_goal_id_t
 {
   /// UUID for a goal
   uuid_t id;
-  /// Timestamp. Number of seconds since epoch
+  /// Time when the goal was accepted.
+  /**
+   * Number of seconds since epoch.
+   * \todo TODO(jacobperron): Consider moving this to goal handle instead.
+   */
   uint64_t timestamp;
 } rcl_action_goal_id_t;
-
-/// Action goal status
-typedef enum rcl_action_status_t
-{
-  ACCEPTED,
-  EXECUTING,
-  CANCELING,
-  SUCCEEDED,
-  CANCELED,
-  ABORTED
-} rcl_action_status_t;
 
 #ifdef __cplusplus
 }
