@@ -35,18 +35,21 @@ extern "C"
 /// Action server failed to take request return code.
 #define RCL_RET_ACTION_SERVER_TAKE_FAILED 2201
 
-/// Action goal ID
-typedef struct rcl_action_goal_id_t
+
+/// Action goal header.
+/**
+ * Contains metadata for a goal such as the goal ID.
+ */
+typedef struct rcl_action_goal_header_t
 {
   /// UUID for a goal
   uuid_t id;
-  /// Time when the goal was accepted.
+  /// Time when the goal was created or accepted, depending on the use case.
   /**
    * Number of seconds since epoch.
-   * \todo TODO(jacobperron): Consider moving this to goal handle instead.
    */
   uint64_t timestamp;
-} rcl_action_goal_id_t;
+} rcl_action_goal_header_t;
 
 #ifdef __cplusplus
 }

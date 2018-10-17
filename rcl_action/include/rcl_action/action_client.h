@@ -264,7 +264,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_request(
   const rcl_action_client_t * action_client,
-  rcl_action_goal_id_t * request_header,
+  rcl_action_goal_header_t * request_header,
   void * ros_request);
 
 /// Take a response for a goal request from an action server using an action client.
@@ -309,8 +309,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_response(
   const rcl_action_client_t * action_client,
-  rcl_action_goal_id_t * response_header,
-  void * ros_response);
+  rcl_action_goal_header_t * response_header,
+  bool & accepted);
 
 /// Take a ROS feedback message for an active goal.
 /**
@@ -321,7 +321,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_feedback(
   const rcl_action_client_t * action_client,
-  rcl_action_goal_id_t * feedback_header,
+  rcl_action_goal_header_t * feedback_header,
   void * ros_message);
 
 /// Take a ROS status message for an active goal.
@@ -333,7 +333,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_status(
   const rcl_action_client_t * action_client,
-  rcl_action_goal_id_t * status_header,
+  rcl_action_goal_header_t * status_header,
   void * ros_message);
 
 /// Send a cancel request for a goal using a rcl action client.
@@ -345,7 +345,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_request(
   const rcl_action_client_t * action_client,
-  rcl_action_goal_id_t * request_header);
+  rcl_action_goal_header_t * request_header);
 
 /// Take a cancel response using a rcl action client.
 /**
@@ -356,7 +356,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_cancel_response(
   const rcl_action_client_t * action_client,
-  void * ros_message);
+  uint32_t & num_goals_cancelng,
+  rcl_action_goal_headers_t * goals_canceling);
 
 /// Get the name of the action for an action client.
 /**

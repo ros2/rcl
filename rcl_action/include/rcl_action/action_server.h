@@ -27,6 +27,7 @@ typedef struct rosidl_action_type_support_t
   //TODO(jacobperron): What mock elements go here?
 } rosidl_action_type_support_t;
 
+#include "rcl_action/goal_handle.h"
 #include "rcl_action/types.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
@@ -50,20 +51,9 @@ typedef struct rcl_action_server_options_t
   /// Custom allocator for the action server, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
-  // TODO(jacobperron): Consider a server 'policy' defining things like queue length,
-  //                    cancel policy, and threading model
+  // TODO(jacobperron): Consider a server 'policy' defining things like queue length
+  //                    cancel policy, and result timeout policy
 } rcl_action_server_options_t;
-
-/// Structure encapsulating a cancel response
-// TODO (jacobperron): Should this be generated from a common interface?
-//                     (e.g. rcl_interface/action_msgs)
-typedef struct rcl_cancel_response_t
-{
-  /// Number of goals that accepted the cancel request
-  uint32_t num_goals_canceling;
-  /// Array of goals that accepted the cancel request
-  rcl_action_goal_id_t * goals_canceling;
-} rcl_cancel_response_t;
 
 /// Return a rcl_action_server_t struct with members set to `NULL`.
 /**
@@ -274,7 +264,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_request(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_id_t * request_header,
+  rcl_action_goal_header_t * request_header,
   void * ros_request);
 
 /// Send a response for a goal request to an action client using an action server.
@@ -327,8 +317,9 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_id_t * response_header,
-  void * ros_response);
+  const rcl_action_goal_header_t * response_header,
+  const bool accepted,
+  rcl_action_goal_handle_t * goal_handle);
 
 /// Publish a ROS feedback message for an active goal.
 /**
@@ -339,7 +330,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_feedback(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_id_t * feedback_header,
+  rcl_action_goal_handle_t * goal_handle,
   void * ros_message);
 
 /// Publish a ROS status message for an active goal.
@@ -351,7 +342,31 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_status(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_id_t * status_header,
+  rcl_action_goal_handle_t * goal_handle,
+  void * ros_message);
+
+/// Take a pending result request using a rcl action server.
+/**
+ * \todo TODO(jacobperron): Document.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_take_result_request(
+  const rcl_action_server_t * action_server,
+  rcl_action_goal_header_t * request);
+
+/// Send a result response using a rcl action server.
+/**
+ * \todo TODO(jacobperron): Document.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_send_result_response(
+  const rcl_action_server_t * action_server,
+  const rcl_action_goal_handle_t * goal_handle,
+  const rcl_action_goal_state_t terminal_state,
   void * ros_message);
 
 /// Take a pending cancel request using a rcl action server.
@@ -363,7 +378,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_cancel_request(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_id_t * request_header);
+  rcl_action_goal_header_t * request);
 
 /// Send a cancel response using a rcl action server.
 /**
@@ -374,7 +389,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
-  void * ros_message);
+  uint32_t num_goals_canceling
+  rcl_action_goal_handle_t ** goal_handles);
 
 /// Get the name of the action for an action server.
 /**
@@ -430,12 +446,12 @@ RCL_WARN_UNUSED
 const rcl_action_server_options_t *
 rcl_action_server_get_options(const rcl_action_server_t * action_server);
 
-/// Return the goal IDs for all active or terminated goals.
+/// Return the goal handles for all active or terminated goals.
 /**
- * A pointer to the internally held array of goal ID structs is returned
+ * A pointer to the internally held array of goal handle structs is returned
  * along with the number of items in the array.
- * Goals that have terminated and successful responded to a client with a
- * result are not present in the array.
+ * Goals that have terminated, successfully responded to a client with a
+ * result, and have expired (timed out) are not present in the array.
  *
  * This function can fail, and therefore return `NULL`, if the:
  *   - action server is `NULL`
@@ -460,12 +476,14 @@ rcl_action_server_get_options(const rcl_action_server_t * action_server);
  * \param[in] action_server pointer to the rcl action server
  * \param[out] num_goals is set to the number of goals in the returned array if successful,
  *   not set otherwise.
- * \return pointer to an array goal IDs if successful, otherwise `NULL`
+ * \return pointer to an array goal handles if successful, otherwise `NULL`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-const rcl_action_goal_id_t *
-rcl_action_server_get_goal_ids(const rcl_action_server_t * action_server, int32_t & num_goals);
+const rcl_action_goal_handle_t *
+rcl_action_server_get_goal_handles(
+  const rcl_action_server_t * action_server,
+  int32_t & num_goals);
 
 /// Check that the action server is valid.
 /**
