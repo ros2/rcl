@@ -80,6 +80,7 @@ typedef struct rcl_action_goal_info_t
 } rcl_action_goal_info_t;
 
 /// Encapsulates a cancel response
+// TODO(jacobperron): This could be replaced by a generated message in rcl_interfaces
 typedef struct rcl_action_cancel_response_t
 {
   /// Number of goals that transitioned to CANCELING
@@ -92,6 +93,7 @@ typedef struct rcl_action_cancel_response_t
 } rcl_action_cancel_response_t;
 
 /// Status message
+// TODO(jacobperron): This could be replaced by a generated message in rcl_interfaces
 typedef struct rcl_action_status_t
 {
   /// Goal metadata
@@ -101,6 +103,7 @@ typedef struct rcl_action_status_t
 } rcl_action_status_t;
 
 /// Status array message
+// TODO(jacobperron): This could be replaced by a generated message in rcl_interfaces
 typedef struct rcl_action_status_array_t
 {
   /// Number of elements in the array
