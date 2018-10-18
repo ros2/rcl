@@ -43,16 +43,16 @@ typedef struct rcl_action_server_t
   struct rcl_action_server_impl_t * impl;
 } rcl_action_server_t;
 
-/// Options available for a rcl action server.
+/// Options available for a rcl_action_server_t.
 typedef struct rcl_action_server_options_t
 {
   /// Middleware quality of service settings for the action server.
+  // TODO(jacobperron): Multiple QoS settings for services and topics
   rmw_qos_profile_t qos;
   /// Custom allocator for the action server, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
-  // TODO(jacobperron): Consider a server 'policy' defining things like queue length
-  //                    cancel policy, and result timeout policy
+  // TODO(jacobperron): Consider a server 'policy' defining things like a result timeout policy
 } rcl_action_server_options_t;
 
 /// Return a rcl_action_server_t struct with members set to `NULL`.
@@ -65,15 +65,15 @@ RCL_WARN_UNUSED
 rcl_action_server_t
 rcl_action_get_zero_initialized_server(void);
 
-/// Initialize a rcl action_server.
+/// Initialize a rcl_action_server_t.
 /**
  * After calling this function on a rcl_action_server_t, it can be used to take
- * goals of the given type to the given topic using rcl_action_take_goal_request()
+ * goals of the given type for the given action name using rcl_action_take_goal_request()
  * and take cancel requests with rcl_aciton_take_cancel_request().
  * It can also send a result for a request using rcl_action_send_result() or
  * rcl_action_send_cancel_response().
  *
- * After accepting a goal with rcl_action_take_goal_request(), the rcl_action_server_t can
+ * After accepting a goal with rcl_action_take_goal_request(), the action server can
  * be used to send feedback with rcl_action_publish_feedback() and send status
  * messages with rcl_action_publish_status().
  *
@@ -149,7 +149,8 @@ rcl_action_get_zero_initialized_server(void);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[out] action_server preallocated action server structure
+ * \param[out] action_server a preallocated, zero-initialized action server structure
+ *   to be initialized.
  * \param[in] node valid rcl node handle
  * \param[in] type_support type support object for the action's type
  * \param[in] action_name the name of the action
@@ -215,29 +216,31 @@ RCL_WARN_UNUSED
 rcl_action_server_options_t
 rcl_action_server_get_default_options(void);
 
-/// Take a pending ROS goal using a rcl action server.
+/// Take a pending ROS goal using a rcl_action_server_t.
 /**
- * It is the job of the caller to ensure that the type of the ros_goal
- * argument and the type associate with the action server, via the type
+ * This is a non-blocking call.
+ *
+ * It is the job of the caller to ensure that the type of the `ros_goal`
+ * parameter and the type associate with the action server, via the type
  * support, match.
  * Passing a different type produces undefined behavior and cannot
  * be checked by this function and therefore no deliberate error will occur.
  *
  * \todo TODO(jacobperron) blocking of take?
  * \todo TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
- * \todo TODO(jacobperron) is rcl_action_take_goal_request thread-safe?
+ * \todo TODO(jacobperron) is this thread-safe?
  *
- * The ros_goal pointer should point to an already allocated ROS goal message
- * struct of the correct type, into which the taken ROS goal will be copied
- * if one is available.
- * If taken is false after calling, then the ROS goal will be unmodified.
+ * `ros_goal` should point to a preallocated ROS goal message
+ * struct of the correct type.
+ * If a goal message is taken successfully, it will be copied into the struct.
+ *
+ * `goal_info` should point to a preallocated struct.
+ * If a goal message is taken successfully, metadata about the goal will be
+ * copied into the struct.
  *
  * If allocation is required when taking the request, e.g. if space needs to
  * be allocated for a dynamically sized array in the target message, then the
  * allocator given in the action server options is used.
- *
- * request_header is a pointer to a pre-allocated action goal ID struct
- * containing meta-information about the request (e.g. goal ID and timestamp).
  *
  * <hr>
  * Attribute          | Adherence
@@ -249,8 +252,8 @@ rcl_action_server_get_default_options(void);
  * <i>[1] only if required when filling the request, avoided for fixed sizes</i>
  *
  * \param[in] action_server the handle to the action server from which to take
- * \param[inout] request_header pointer to struct containing meta-data about the goal
- * \param[inout] ros_request type-erased ptr to an allocated ROS request message
+ * \param[out] goal_info a preallocated struct where metadata about the goal is copied
+ * \param[out] ros_goal a preallocated struct where the ROS goal message is copied
  * \return `RCL_RET_OK` if the request was taken, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
@@ -264,36 +267,31 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_request(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_header_t * request_header,
-  void * ros_request);
+  rcl_action_goal_info_t * goal_info,
+  void * ros_goal);
 
-/// Send a response for a goal request to an action client using an action server.
+/// Send a response for a goal request to an action client using a rcl_action_server_t.
 /**
- * It is the job of the caller to ensure that the type of the `ros_response`
- * parameter and the type associate with the action server (via the type support)
- * match.
- * Passing a different type to rcl_action_send_goal_response() produces undefined
- * behavior and cannot be checked by this function and therefore no deliberate
- * error will occur.
+ * This is a non-blocking call.
  *
- * rcl_action_send_goal_response() is a non-blocking call.
+ * It is the job of the caller to ensure that the type of the `ros_goal`
+ * parameter and the type associate with the action server, via the type
+ * support, match.
+ * Passing a different type produces undefined behavior and cannot
+ * be checked by this function and therefore no deliberate error will occur.
  *
- * The ROS response message given by the `ros_response` void pointer is always
- * owned by the calling code, but should remain constant during
- * rcl_action_send_goal_response().
+ * `goal_handle` is always owned by the calling code, but should remain constant during
+ * the call to this function.
  *
  * This function is thread safe so long as access to both the action server and the
- * `ros_response` is synchronized.
- * That means that calling rcl_aciton_send_goal_response() from multiple threads is
+ * `goal_handle` are synchronized.
+ * That means that calling rcl_action_send_goal_response() from multiple threads is
  * allowed, but calling rcl_action_send_goal_response() at the same time as non-thread safe
  * action server functions is not, e.g. calling rcl_action_send_goal_response() and
  * rcl_action_server_fini() concurrently is not allowed.
- * Before calling rcl_action_send_goal_response() the message can change and after calling
- * rcl_action_send_goal_response() the message can change, but it cannot be changed during
+ * Before calling rcl_action_send_goal_response() the goal handle can change and after calling
+ * rcl_action_send_goal_response() the goal handle can change, but it cannot be changed during
  * the rcl_action_send_goal_response() call.
- * The same `ros_response`, however, can be passed to multiple calls of
- * rcl_action_send_goal_response() simultaneously, even if the action servers differ.
- * The `ros_response` is unmodified by rcl_action_send_goal_response().
  *
  * <hr>
  * Attribute          | Adherence
@@ -305,8 +303,11 @@ rcl_action_take_goal_request(
  * <i>[1] for unique pairs of action servers and responses, see above for more</i>
  *
  * \param[in] action_server handle to the action server that will make the goal response
- * \param[inout] response_header ptr to the struct holding metadata about the goal ID
- * \param[in] ros_response type-erased pointer to the ROS response message
+ * \param[in] goal_info a struct holding info about the goal the server is responding to
+ * \param[in] ros_goal a struct holding the goal message that the server is responding to
+ * \param[in] accepted whether or not the goal has been accepted
+ * \param[out] goal_handle a preallocated struct that is populated with goal information
+ *   if `accepted` is true, otherwise it is unmodified.
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
@@ -317,49 +318,150 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
-  const rcl_action_goal_header_t * response_header,
+  const rcl_action_goal_info_t * goal_info,
+  const void * ros_goal,
   const bool accepted,
   rcl_action_goal_handle_t * goal_handle);
 
-/// Publish a ROS feedback message for an active goal.
+/// Publish a ROS feedback message for an active goal using a rcl_action_server_t.
 /**
- * \todo TODO(jacobperron): Document.
+ * This is a non-blocking call.
+ *
+ * It is the job of the caller to ensure that the type of the `ros_feedback`
+ * parameter and the type associate with the action server (via the type support)
+ * match.
+ * Passing a different type to publish produces undefined behavior and cannot
+ * be checked by this function and therefore no deliberate error will occur.
+ *
+ * This function acts like a ROS publisher and is potntially a blocking call.
+ * \see rcl_publish()
+ *
+ * The `ros_feedback` pointer is always owned by the calling code, but should
+ * remain constant during publish.
+ *
+ * This function is thread safe so long as access to both the action server and
+ * `ros_feedback` is synchronized.
+ * That means that calling rcl_action_publish_feedback() from multiple threads
+ * is allowed, but calling rcl_action_publish_feedback() at the same time as
+ * non-thread safe action server functions is not, e.g. calling
+ * rcl_action_publish_feedback() and rcl_action_server_fini() concurrently is not
+ * allowed.
+ * Before calling rcl_action_publish_feedback() the message can change and after
+ * calling rcl_action_publish_feedback() the message can change, but it cannot be
+ * changed during the publish call.
+ * The same `ros_feedback`, however, can be passed to multiple calls of
+ * rcl_action_publish_feedback() simultaneously, even if the action servers differ.
+ * `ros_feedback` is unmodified by rcl_action_publish_feedback().
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes [1]
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] for unique pairs of action servers and responses, see above for more</i>
+ *
+ * \param[in] action_server handle to the action server that will publish the feedback
+ * \param[in] goal_handle a struct with the goal handle associated with the feedback
+ * \param[in] ros_feedback a struct containing the goal feedback message
+ * \return `RCL_RET_OK` if the response was sent successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs. *
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_feedback(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_handle_t * goal_handle,
-  void * ros_message);
+  const rcl_action_goal_handle_t * goal_handle,
+  void * ros_feedback);
 
-/// Publish a ROS status message for an active goal.
+/// Publish a status array message for accepted goals associated with a rcl_action_server_t.
 /**
- * \todo TODO(jacobperron): Document.
+ *
+ * This function acts like a ROS publisher and is potntially a blocking call.
+ * \see rcl_publish()
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] action_server handle to the action server that will publish the status message
+ * \param[in] status_message a struct with the status array to publish
+ * \return `RCL_RET_OK` if the response was sent successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_status(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_handle_t * goal_handle,
-  void * ros_message);
+  const rcl_action_status_array_t * status_mesage);
 
-/// Take a pending result request using a rcl action server.
+/// Take a pending result request using a rcl_action_server_t.
 /**
- * \todo TODO(jacobperron): Document.
+ * This is a non-blocking call.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] action_server handle to the action server that will take the result request
+ * \param[out] goal_info a preallocated struct that is populated with the goal info for
+ *   the goal that the result is requested for
+ * \return `RCL_RET_OK` if the response was sent successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ACTION_SERVER_TAKE_FAILED` if take failed but no error occurred
+ *         in the middleware, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_result_request(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_header_t * request);
+  rcl_action_goal_info_t * goal_info);
 
-/// Send a result response using a rcl action server.
+/// Send a result response using a rcl_action_server_t.
 /**
- * \todo TODO(jacobperron): Document.
- */
+ * This is a non-blocking call.
+ *
+ * It is the job of the caller to ensure that the type of the `ros_result`
+ * parameter and the type associate with the action server (via the type support)
+ * match.
+ * Passing a different type to publish produces undefined behavior and cannot
+ * be checked by this function and therefore no deliberate error will occur.
+ * `ros_result` should be allocated and populated with the ROS result message.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] action_server handle to the action server that will send the result response
+ * \param[in] goal_handle a struct containing goal state information related to the response
+ * \param[in] terminal_state the final state of the goal
+ * \param[in] ros_result a struct containing the ROS result message
+ * \return `RCL_RET_OK` if the response was sent successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs. */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
@@ -367,32 +469,77 @@ rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
   const rcl_action_goal_handle_t * goal_handle,
   const rcl_action_goal_state_t terminal_state,
-  void * ros_message);
+  void * ros_result);
 
-/// Take a pending cancel request using a rcl action server.
+/// Take a pending cancel request using a rcl_action_server_t.
 /**
- * \todo TODO(jacobperron): Document.
+ * This is a non-blocking call.
+ *
+ * The following cancel policy applies based on the goal ID and the timestamp
+ * contained in `goal_info`:
+ *
+ * - If the goal ID is zero and timestamp is zero, cancel all goals.
+ * - If the goal ID is zero and timestamp is not zero, cancel all goals accepted
+ *   at or before the timestamp.
+ * - If the goal ID is not zero and timestamp is zero, cancel the goal with the
+ *   given ID regardless of the time it was accepted.
+ * - If the goal ID is not zero and timestamp is not zero, cancel the goal with the
+ *   given ID and all goals accepted at or before the timestamp.
+
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * // TODO(jacobperron): Maybe we need to expose a request ID output for sending the response
+ * \param[in] action_server handle to the action server that will take the cancel request
+ * \param[out] goal_info a preallocated struct containing cancel information for one or
+ *   more goals.
+ * \return `RCL_RET_OK` if the response was sent successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ACTION_SERVER_TAKE_FAILED` if take failed but no error occurred
+ *         in the middleware, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_cancel_request(
   const rcl_action_server_t * action_server,
-  rcl_action_goal_header_t * request);
+  rcl_action_goal_info_t * goal_info);
 
 /// Send a cancel response using a rcl action server.
 /**
- * \todo TODO(jacobperron): Document.
+ * This is a non-blocking call.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * // TODO(jacobperron): Maybe we need to expose a request ID input to associate with request
+ * \param[in] action_server the handle to the action server that will send the cancel response
+ * \param[in] cancel_response a struct containing the cancel response
+ * \return `RCL_RET_OK` if the request was taken, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
-  uint32_t num_goals_canceling
-  rcl_action_goal_handle_t ** goal_handles);
+  const rcl_action_cancel_response_t * cancel_response);
 
-/// Get the name of the action for an action server.
+/// Get the name of the action for a rcl_action_server_t.
 /**
  * This function returns the action server's internal topic name string.
  * This function can fail, and therefore return `NULL`, if the:
@@ -419,7 +566,7 @@ RCL_WARN_UNUSED
 const char *
 rcl_action_server_get_action_name(const rcl_action_server_t * action_server);
 
-/// Return the rcl action server options.
+/// Return the rcl_action_server_options_t for a rcl_action_server_t.
 /**
  * This function returns the action server's internal options struct.
  * This function can fail, and therefore return `NULL`, if the:
@@ -483,7 +630,7 @@ RCL_WARN_UNUSED
 const rcl_action_goal_handle_t *
 rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
-  int32_t & num_goals);
+  int32_t * num_goals);
 
 /// Check that the action server is valid.
 /**

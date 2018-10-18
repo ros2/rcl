@@ -46,6 +46,7 @@ typedef struct rcl_action_client_t
 typedef struct rcl_action_client_options_t
 {
   /// Middleware quality of service settings for the action client.
+  // TODO(jacoberron): Add multiple QoS settings for services and topics
   rmw_qos_profile_t qos;
   /// Custom allocator for the action client, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
@@ -157,7 +158,8 @@ rcl_action_get_zero_initialized_client(void);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[out] action_client preallocated action client structure
+ * \param[out] action_client a preallocated, zero-initialized action client structure
+ *   to be initialized
  * \param[in] node valid rcl node handle
  * \param[in] type_support type support object for the action's type
  * \param[in] action_name the name of the action
@@ -333,11 +335,11 @@ rcl_action_take_goal_response(
  * TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
  * TODO(jacobperron) is rcl_take thread-safe?
  *
- * `goal_info` should point to an already allocated struct.
+ * `goal_info` should point to preallocated struct.
  * If feedback is successfully taken, meta-data about the goal that the feedback
  * is associated with will be copied into the `goal_info struct.
  *
- * `ros_feedback` should point to an already allocated ROS message struct of the
+ * `ros_feedback` should point to a preallocated ROS message struct of the
  * correct type.
  * If feedback is successfully taken, the feedback message is copied to into the
  * `ros_feedback` struct.
@@ -456,14 +458,14 @@ rcl_action_send_result_request(
  * TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
  * TODO(jacobperron) is this thread-safe?
  *
- * `goal_info` should point to an already allocated struct.
+ * `goal_info` should point to a preallocated struct.
  * If a result is successfully taken, meta-data about the goal that the result
  * is associated with will be copied into the `goal_info struct.
  *
- * `terminal_state` should point to an already allocated struct.
+ * `terminal_state` should point to a preallocated struct.
  * If a result is successfully taken, it is set to the goals terminal state.
  *
- * `ros_result` should point to an already allocated ROS message struct of the
+ * `ros_result` should point to a preallocated ROS message struct of the
  * correct type.
  * If a result is successfully taken, the result message is copied to into the
  * `ros_result` struct.
@@ -484,10 +486,10 @@ rcl_action_send_result_request(
  * <i>[1] only if required when filling the feedback message, avoided for fixed sizes</i>
  *
  * \param[in] action_client handle to the client that will take the result response
- * \param[out] goal_info pointer to a struct for metadata about the goal associated
- *   with a taken result
- * \param[out] terminal_state is set to SUCCEEDED, ABORTED, or CANCELED
- * \param[out] ros_result pointer to the ROS result message.
+ * \param[out] goal_info preallocated struct where metadata about the goal associated
+ *   with a taken result is copied
+ * \param[out] terminal_state preallocated variable that is set to SUCCEEDED, ABORTED, or CANCELED
+ * \param[out] ros_result preallocated struct where the ROS result message is copied.
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
@@ -566,7 +568,7 @@ rcl_action_send_cancel_request(
  * Lock-Free          | Yes
  *
  * \param[in] action_client handle to the client that will take the cancel response
- * \param[out] cancel_response a zero-initialized struct for the cancel response.
+ * \param[out] cancel_response a zero-initialized struct where the cancel response is copied.
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or

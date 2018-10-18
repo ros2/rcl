@@ -35,6 +35,10 @@ extern "C"
 #define RCL_RET_ACTION_SERVER_INVALID 2200
 /// Action server failed to take request return code.
 #define RCL_RET_ACTION_SERVER_TAKE_FAILED 2201
+/// Action goal handle invalid return code.
+#define RCL_RET_ACTION_GOAL_HANDLE_INVALID 2300
+/// Action invalid event return code.
+#define RCL_RET_ACTION_GOAL_EVENT_INVALID 2301
 
 /// Goal states
 typedef enum rcl_action_goal_state_t

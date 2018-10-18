@@ -102,7 +102,12 @@ rcl_action_goal_event_handler _goal_state_transition_map[NUM_EVENTS][NUM_STATES]
 
 /// Transition a goal from one state to the next.
 /**
- * \todo TODO(jacobperron): Document
+ * Given a goal state and a goal event, return the next state.
+ *
+ * \param[in] state the state to transition from
+ * \param[in] event the event triggering a transition
+ * \return the next goal state, or
+ * \return `GOAL_STATE_INVALID` if not a valid transition
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
