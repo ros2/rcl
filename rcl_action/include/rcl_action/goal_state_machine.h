@@ -20,32 +20,9 @@ extern "C"
 {
 #endif
 
+#include "rcl_action/types.h"
 #include "rcl/visibility_control.h"
 
-
-/// Goal states
-typedef enum rcl_action_goal_state_t
-{
-  GOAL_STATE_ACCEPTED = 0,
-  GOAL_STATE_EXECUTING,
-  GOAL_STATE_CANCELING,
-  GOAL_STATE_SUCCEEDED,
-  GOAL_STATE_CANCELED,
-  GOAL_STATE_ABORTED,
-  GOAL_STATE_NUM_STATES,
-  GOAL_STATE_INVALID
-} rcl_action_status_t;
-
-/// Transition events
-typedef enum rcl_action_goal_event_t
-{
-  GOAL_EVENT_EXECUTE = 0,
-  GOAL_EVENT_CANCEL,
-  GOAL_EVENT_SET_SUCCEEDED,
-  GOAL_EVENT_SET_ABORTED,
-  GOAL_EVENT_SET_CANCELED,
-  GOAL_EVENT_NUM_EVENTS
-} rcl_action_goal_event_t;
 
 typedef rcl_action_goal_state_t
 (* rcl_action_goal_event_handler)(rcl_action_goal_state_t, rcl_action_goal_event_t);
