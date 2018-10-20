@@ -52,7 +52,7 @@ endif()
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-# target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_LIFECYCLE_BUILDING_DLL")
+# target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_ACTION_BUILDING_DLL")
 
 # install(TARGETS ${PROJECT_NAME}
 #   ARCHIVE DESTINATION lib
@@ -63,7 +63,6 @@ endif()
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
-  find_package(rcl REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
   # Gtests

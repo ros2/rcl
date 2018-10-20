@@ -55,34 +55,6 @@ rcl_action_get_zero_initialized_goal_handle(void);
  * The given rcl_action_server_t must be valid and the resulting rcl_action_goal_handle_t is
  * only valid as long as the given rcl_action_server_t remains valid.
  *
- * The rosidl_action_type_support_t is obtained on a per .action type basis.
- * When the user defines a ROS action, code is generated which provides the
- * required rosidl_action_type_support_t object.
- * This object can be obtained using a language appropriate mechanism.
- * \todo TODO(jacobperron) write these instructions once and link to it instead
- *
- * For C, a macro can be used (for example `example_interfaces/Fibonacci`):
- *
- * ```c
- * #include <rosidl_generator_c/action_type_support_struct.h>
- * #include <example_interfaces/action/fibonacci.h>
- * const rosidl_action_type_support_t * ts =
- *   ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci);
- * ```
- *
- * For C++, a template function is used:
- *
- * ```cpp
- * #include <rosidl_generator_cpp/action_type_support.hpp>
- * #include <example_interfaces/action/fibonacci.h>
- * using rosidl_typesupport_cpp::get_action_type_support_handle;
- * const rosidl_action_type_support_t * ts =
- *   get_action_type_support_handle<example_interfaces::action::Fibonacci>();
- * ```
- *
- * The rosidl_action_type_support_t object contains action type specific
- * information used to send or take goals, results, and feedback.
- *
  * Expected usage:
  *
  * ```c
@@ -99,9 +71,9 @@ rcl_action_get_zero_initialized_goal_handle(void);
  * ret = rcl_action_server_init(&action_server, &node, ts, "fibonacci", &action_server_ops);
  * // ... error handling
  * rcl_action_goal_handle_t goal_handle = rcl_action_get_zero_initialized_goal_handle();
- * ret = rcl_action_goal_handle_init(&goal_handle, &action_server, ts);
+ * ret = rcl_action_goal_handle_init(&goal_handle, &action_server);
  * // ... error handling, and on shutdown do finalization:
- * ret = rcl_action_goal_handle_fini(&goal_handle, &action_server);
+ * ret = rcl_action_goal_handle_fini(&goal_handle);
  * // ... error handling for rcl_goal_handle_fini()
  * ret = rcl_action_server_fini(&action_server, &node);
  * // ... error handling for rcl_action_server_fini()
@@ -121,7 +93,6 @@ rcl_action_get_zero_initialized_goal_handle(void);
  * \param[in] action_server valid rcl action server
  * \param[in] type_support type support object for the action's type
  * \return `RCL_RET_OK` if goal_handle was initialized successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
@@ -132,8 +103,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_init(
   rcl_action_goal_handle_t * goal_handle,
-  const rcl_action_server_t * action_server,
-  const rosidl_action_type_support_t * type_support);
+  const rcl_action_server_t * action_server);
 
 /// Finalize a rcl_action_goal_handle_t.
 /**
@@ -159,15 +129,12 @@ rcl_action_goal_handle_init(
  * \param[in] action_server used to create the goal handle
  * \return `RCL_RET_OK` if the goal handle was deinitialized successfully, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
- * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_action_goal_handle_fini(
-  rcl_action_goal_handle_t * goal_handle,
-  const rcl_action_server_t * action_server);
+rcl_action_goal_handle_fini(rcl_action_goal_handle_t * goal_handle);
 
 /// Update a goal state with a rcl_action_goal_handle_t and an event.
 /**
@@ -219,39 +186,6 @@ rcl_ret_t
 rcl_action_goal_handle_get_info(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_action_goal_info_t * goal_info);
-
-/// Get the request message associated with a goal using a rcl_action_goal_handle_t.
-/**
- * This is a non-blocking call.
- *
- * It is the job of the caller to ensure that the type of the `ros_goal`
- * parameter and the type associate with the goal handle, via the type
- * support, match.
- * Passing a different type produces undefined behavior and cannot
- * be checked by this function and therefore no deliberate error will occur.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Maybe [1]
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- * <i>[1] only if required when filling the goal message, avoided for fixed sizes</i>
- *
- * \param[in] goal_handle struct containing the goal and metadata
- * \param[out] ros_goal a preallocated struct where the goal message is copied
- * \return `RCL_RET_OK` if the goal ID was accessed successfully, or
- * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
- * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_action_goal_handle_get_message(
-  const rcl_action_goal_handle_t * goal_handle,
-  void * ros_goal);
 
 /// Get the status of a goal.
 /**

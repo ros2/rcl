@@ -234,28 +234,21 @@ rcl_action_client_get_default_options(void);
 /**
  * This is a non-blocking call.
  *
- * It is the job of the caller to ensure that the type of the `ros_goal`
- * parameter and the type associate with the client (via the type support)
- * match.
+ * The caller is responsible for ensuring that the type of `ros_goal_request`
+ * and the type associate with the client (via the type support) match.
  * Passing a different type produces undefined behavior and cannot be checked
  * by this function and therefore no deliberate error will occur.
  *
- * It is the job of the caller to ensure that the `goal_info` is populated
- * with a valid goal ID.
- *
- * \todo TODO(jacobperron): Reference utility functions for generating new goal info/IDs
- *
- * The ROS goal message given by the `ros_goal` void pointer is always
+ * The ROS goal message given by the `ros_goal_request` void pointer is always
  * owned by the calling code, but should remain constant during execution of this
  * function. i.e. Before and after calling rcl_action_send_goal_request() the
- * `ros_goal` message can change, but it cannot be changed during the call to
+ * `ros_goal_request` message can change, but it cannot be changed during the call to
  * rcl_action_send_goal_request().
- * The same `ros_goal` can be passed to multiple calls of this function
+ * The same `ros_goal_request` can be passed to multiple calls of this function
  * simultaneously, even if the action clients differ.
- * The `ros_goal` is unmodified by this function.
  *
  * This function is thread safe so long as access to both the rcl_action_client_t
- * and the `ros_goal` are synchronized.
+ * and the `ros_goal_request` are synchronized.
  * That means that calling rcl_action_send_goal_request() from multiple threads is allowed,
  * but calling rcl_action_send_goal_request() at the same time as non-thread safe action
  * client functions is not, e.g. calling rcl_action_send_goal_request() and
@@ -271,8 +264,7 @@ rcl_action_client_get_default_options(void);
  * <i>[1] for unique pairs of clients and goals, see above for more</i>
  *
  * \param[in] action_client handle to the client that will make the goal request
- * \param[in] goal_info pointer to a struct containing meta-data about the goal
- * \param[in] ros_goal pointer to the ROS goal message
+ * \param[in] ros_goal_request pointer to the ROS goal message
  * \return `RCL_RET_OK` if the request was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the client is invalid, or
@@ -283,18 +275,28 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_request(
   const rcl_action_client_t * action_client,
-  const rcl_action_goal_info_t * goal_info,
-  void * ros_goal);
+  const void * ros_goal_request);
 
 /// Take a response for a goal request from an action server using a rcl_action_client_t.
 /**
- * This is a non-blocking call.
+ * \todo TODO(jacobperron) blocking of take?
  *
- * The caller must provide a pointer to an allocated struct for the `goal_info`.
- * If the goal is accepted, this function will populate `goal_info` with the goal ID
- * and the time that the server accepted the goal.
+ * \todo TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
  *
- * This function will set `accepted` to `true` if the server accepted the goal.
+ * \todo TODO(jacobperron) is this thread-safe?
+ *
+ * The caller is responsible for ensuring that the type of `ros_goal_response`
+ * and the type associate with the client (via the type support) match.
+ * Passing a different type produces undefined behavior and cannot be checked
+ * by this function and therefore no deliberate error will occur.
+ *
+ * The caller must provide a pointer to an allocated message for the `ros_goal_response`.
+ * If the take is successful, this function will populate the fields of `ros_goal_response`.
+ * The ROS message given by the `ros_goal_response` void pointer is always
+ * owned by the calling code, but should remain constant during execution of this
+ * function. i.e. Before and after calling rcl_action_send_goal_response() the
+ * `ros_goal_response` message can change, but it cannot be changed during the call to
+ * rcl_action_send_goal_response().
  *
  * <hr>
  * Attribute          | Adherence
@@ -305,12 +307,8 @@ rcl_action_send_goal_request(
  * Lock-Free          | Yes
  *
  * \param[in] action_client handle to the client that will take the goal response
- * \param[inout] goal_info pointer to the goal info
- * \param[out] accepted set to `true` if the goal was accepted by the server, `false` otherwise
- * \return `RCL_RET_ACTION_GOAL_ACCEPTED` if the response was taken successfully and
- *   the goal was accepted, or
- * \return `RCL_RET_ACTION_GOAL_REJECTED` if the response was taken successfully and
- *   the goal was rejected, or
+ * \param[out] ros_goal_response pointer to the response of a goal request
+ * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
  * \return `RCL_RET_ACTION_CLIENT_TAKE_FAILED` if take failed but no error occurred
@@ -322,24 +320,20 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_response(
   const rcl_action_client_t * action_client,
-  rcl_action_goal_info_t * goal_info);
+  void * ros_goal_response)
 
 /// Take a ROS feedback message for an active goal associated with a rcl_action_client_t.
 /**
- * This is a non-blocking call.
+ * The caller is responsible for ensuring that the type of `ros_feedback`
+ * and the type associate with the client (via the type support) match.
+ * Passing a different type produces undefined behavior and cannot be checked
+ * by this function and therefore no deliberate error will occur.
  *
- * It is the job of the caller to ensure that the type of the `ros_feedback` parameter
- * and the type associate with the action client, via the type support, match.
- * Passing a different type to this function produces undefined behavior and cannot
- * be checked by this function and therefore no deliberate error will occur.
+ * \todo TODO(jacobperron) blocking of take?
  *
- * TODO(jacobperron) blocking of take?
- * TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
- * TODO(jacobperron) is rcl_take thread-safe?
+ * \todo TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
  *
- * `goal_info` should point to preallocated struct.
- * If feedback is successfully taken, meta-data about the goal that the feedback
- * is associated with will be copied into the `goal_info struct.
+ * \todo TODO(jacobperron) is this thread-safe?
  *
  * `ros_feedback` should point to a preallocated ROS message struct of the
  * correct type.
@@ -376,18 +370,26 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_feedback(
   const rcl_action_client_t * action_client,
-  rcl_action_goal_info_t * goal_header,
   void * ros_feedback);
 
 /// Take a ROS status message using a rcl_action_client_t.
 /**
- * This is a non-blocking call.
+ * The caller is responsible for ensuring that the type of `ros_status_array`
+ * and the type associate with the client (via the type support) match.
+ * Passing a different type produces undefined behavior and cannot be checked
+ * by this function and therefore no deliberate error will occur.
  *
- * The caller is responsible for allocating the `status_array` struct with a
+ * \todo TODO(jacobperron) blocking of take?
+ *
+ * \todo TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
+ *
+ * \todo TODO(jacobperron) is this thread-safe?
+ *
+ * The caller is responsible for allocating the `ros_status_array` struct with a
  * zero-initialization (the internal array should not be allocated).
- * If there is a successful take, then `status_array` is populated
+ * If there is a successful take, then `ros_status_array` is populated
  * with the allocator given in the action client options.
- * It is the callers responsibility to deallocate the `status_array` struct using
+ * It is the callers responsibility to deallocate the `ros_status_array` struct using
  * the allocator given in the action client options.
  *
  * <hr>
@@ -399,7 +401,8 @@ rcl_action_take_feedback(
  * Lock-Free          | Yes
  *
  * \param[in] action_client handle to the client that will take status message
- * \param[out] status_array pointer to a struct containing an array of goal statuses.
+ * \param[out] ros_status_array pointer to ROS aciton_msgs/StatusArray message that
+ *   will be populated with information about goals that have accepted the cancel request.
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
@@ -413,27 +416,43 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_status(
   const rcl_action_client_t * action_client,
-  rcl_action_status_array_t * status_array);
+  void * ros_status_array);
 
 /// Send a request for the result of a completed goal associated with a rcl_action_client_t.
 /**
  * This is a non-blocking call.
  *
- * It is the job of the caller to ensure that the `goal_info` is populated
- * with a valid goal ID.
- * The rcl_action_client_t will be used to make a request for the result associated with
- * the `goal_info`.
+ * The caller is responsible for ensuring that the type of `ros_result_request`
+ * and the type associate with the client (via the type support) match.
+ * Passing a different type produces undefined behavior and cannot be checked
+ * by this function and therefore no deliberate error will occur.
+ *
+ * The ROS message given by the `ros_result_request` void pointer is always
+ * owned by the calling code, but should remain constant during execution of this
+ * function. i.e. Before and after calling rcl_action_send_result_request() the
+ * `ros_result_request` message can change, but it cannot be changed during the call to
+ * rcl_action_send_result_request().
+ * The same `ros_result_request` can be passed to multiple calls of this function
+ * simultaneously, even if the action clients differ.
+ *
+ * This function is thread safe so long as access to both the rcl_action_client_t
+ * and the `ros_result_request` are synchronized.
+ * That means that calling rcl_action_send_result_request() from multiple threads is allowed,
+ * but calling rcl_action_send_result_request() at the same time as non-thread safe action
+ * client functions is not, e.g. calling rcl_action_send_result_request() and
+ * rcl_action_client_fini() concurrently is not allowed.
  *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | Yes [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
- *
+ * <i>[1] for unique pairs of clients and result requests, see above for more</i>
+
  * \param[in] action_client handle to the client that will send the result request
- * \param[in] goal_info pointer to a struct containing meta-data about the goal
+ * \param[in] ros_result_request pointer to a ROS result request message
  * \return `RCL_RET_OK` if the request was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
@@ -444,39 +463,32 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_result_request(
   const rcl_action_client_t * action_client,
-  const rcl_action_goal_info_t * goal_info);
+  const void * ros_result_request);
 
 /// Take a ROS result message for a completed goal associated with a rcl_action_client_t.
 /**
- * This is a non-blocking call.
+ * \todo TODO(jacobperron) blocking of take?
  *
- * It is the job of the caller to ensure that the type of the `ros_result`
- * parameter and the type associate with the client (via the type support)
- * match.
+ * \todo TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
+ *
+ * \todo TODO(jacobperron) is this thread-safe?
+ *
+ * The caller is responsible for ensuring that the type of `ros_result_response`
+ * and the type associate with the client (via the type support) match.
  * Passing a different type produces undefined behavior and cannot be checked
  * by this function and therefore no deliberate error will occur.
  *
- * TODO(jacobperron) blocking of take?
- * TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
- * TODO(jacobperron) is this thread-safe?
- *
- * `goal_info` should point to a preallocated struct.
- * If a result is successfully taken, meta-data about the goal that the result
- * is associated with will be copied into the `goal_info struct.
- *
- * `terminal_state` should point to a preallocated struct.
- * If a result is successfully taken, it is set to the goals terminal state.
- *
- * `ros_result` should point to a preallocated ROS message struct of the
- * correct type.
- * If a result is successfully taken, the result message is copied to into the
- * `ros_result` struct.
+ * The caller must provide a pointer to an allocated message for the `ros_result_response`.
+ * If the take is successful, this function will populate the fields of `ros_result_response`.
+ * The ROS message given by the `ros_result_response` void pointer is always
+ * owned by the calling code, but should remain constant during execution of this
+ * function. i.e. Before and after calling rcl_action_take_result_response() the
+ * `ros_result_response` message can change, but it cannot be changed during the call to
+ * rcl_action_take_result_response().
  *
  * If allocation is required when taking the result, e.g. if space needs to
  * be allocated for a dynamically sized array in the target message, then the
  * allocator given in the action client options is used.
- *
- * `terminal_state` is the resultant state of the goal.
  *
  * <hr>
  * Attribute          | Adherence
@@ -485,13 +497,11 @@ rcl_action_send_result_request(
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] only if required when filling the feedback message, avoided for fixed sizes</i>
+ * <i>[1] only if required when filling the result response message, avoided for fixed sizes</i>
  *
  * \param[in] action_client handle to the client that will take the result response
- * \param[out] goal_info preallocated struct where metadata about the goal associated
- *   with a taken result is copied
- * \param[out] terminal_state preallocated variable that is set to SUCCEEDED, ABORTED, or CANCELED
- * \param[out] ros_result preallocated struct where the ROS result message is copied.
+ * \param[out] ros_result_response preallocated, zero-initialized, struct where the ROS
+ *   result message is copied.
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
@@ -505,17 +515,19 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_result_response(
   const rcl_action_client_t * action_client,
-  rcl_action_goal_info_t * goal_info,
-  rcl_action_goal_state_t * terminal_state,
   void * ros_result);
 
 /// Send a cancel request for a goal using a rcl_action_client_t.
 /**
  * This is a non-blocking call.
  *
- * It is the job of the caller to ensure that the `goal_info` is populated
- * with a goal ID and a timestamp.
- * The following cancel policy applies based on the goal ID and the timestamp:
+ * The caller is responsible for ensuring that the type of `ros_cancel_request`
+ * and the type associate with the client (via the type support) match.
+ * Passing a different type produces undefined behavior and cannot be checked
+ * by this function and therefore no deliberate error will occur.
+ *
+ * The following cancel policy applies based on the goal ID and the timestamp provided
+ * by the `ros_cancel_request` message:
  *
  * - If the goal ID is zero and timestamp is zero, cancel all goals.
  * - If the goal ID is zero and timestamp is not zero, cancel all goals accepted
@@ -524,9 +536,6 @@ rcl_action_take_result_response(
  *   given ID regardless of the time it was accepted.
  * - If the goal ID is not zero and timestamp is not zero, cancel the goal with the
  *   given ID and all goals accepted at or before the timestamp.
- *
- * The rcl_action_client_t will be used to make the cancel request associated with
- * the `goal_info`.
  *
  * <hr>
  * Attribute          | Adherence
@@ -537,7 +546,7 @@ rcl_action_take_result_response(
  * Lock-Free          | Yes
  *
  * \param[in] action_client handle to the client that will make the cancel request
- * \param[in] goal_info pointer to a struct for metadata about the goal(s) to cancel
+ * \param[in] ros_cancel_request pointer the ROS cancel request message
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
@@ -548,17 +557,26 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_request(
   const rcl_action_client_t * action_client,
-  const rcl_action_goal_info_t * goal_info);
+  const void * ros_cancel_request);
 
 /// Take a cancel response using a rcl_action_client_t.
 /**
- * This is a non-blocking call.
+ * \todo TODO(jacobperron) blocking of take?
  *
- * The caller is responsible for allocating the `cancel_response` struct with a
- * zero-initialization (the internal array should not be allocated).
- * If there is a successful response is taken, then `cancel_response` is populated
- * with the allocator given in the action client options.
- * It is the callers responsibility to deallocate the `cancel_response` struct using
+ * \todo TODO(jacobperron) pre-, during-, and post-conditions for message ownership?
+ *
+ * \todo TODO(jacobperron) is this thread-safe?
+ *
+ * The caller is responsible for ensuring that the type of `ros_cancel_response`
+ * and the type associate with the client (via the type support) match.
+ * Passing a different type produces undefined behavior and cannot be checked
+ * by this function and therefore no deliberate error will occur.
+
+ * The caller is responsible for allocating the `ros_cancel_response` message
+ * with a zero-initialization (the internal array should not be allocated).
+ * If a successful response is taken, then `ros_cancel_response` is populated
+ * using the allocator given in the action client options.
+ * It is the callers responsibility to deallocate `ros_cancel_response` using
  * the allocator given in the action client options.
  *
  * <hr>
@@ -570,7 +588,8 @@ rcl_action_send_cancel_request(
  * Lock-Free          | Yes
  *
  * \param[in] action_client handle to the client that will take the cancel response
- * \param[out] cancel_response a zero-initialized struct where the cancel response is copied.
+ * \param[out] ros_cancel_response a zero-initialized ROS cancel response message where
+ *   the cancel response is copied.
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
@@ -584,11 +603,11 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_cancel_response(
   const rcl_action_client_t * action_client,
-  rcl_action_cancel_response_t * cancel_response);
+  void * ros_cancel_response);
 
-/// Get the name of the action for an action client.
+/// Get the name of the action for a rcl_action_client_t.
 /**
- * This function returns the action client's internal topic name string.
+ * This function returns the action client's name string.
  * This function can fail, and therefore return `NULL`, if the:
  *   - action client is `NULL`
  *   - action client is invalid (never called init, called fini, or invalid)
@@ -613,7 +632,7 @@ RCL_WARN_UNUSED
 const char *
 rcl_action_client_get_action_name(const rcl_action_client_t * action_client);
 
-/// Return the rcl action client options.
+/// Return the options for a rcl_action_client_t.
 /**
  * This function returns the action client's internal options struct.
  * This function can fail, and therefore return `NULL`, if the:
@@ -640,7 +659,7 @@ RCL_WARN_UNUSED
 const rcl_action_client_options_t *
 rcl_action_client_get_options(const rcl_action_client_t * action_client);
 
-/// Check that the action client is valid.
+/// Check that a rcl_action_clieint_t is valid.
 /**
  * The bool returned is `false` if `action_client` is invalid.
  * The bool returned is `true` otherwise.

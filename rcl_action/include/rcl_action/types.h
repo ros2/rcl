@@ -20,6 +20,11 @@ extern "C"
 {
 #endif
 
+#include "action_msgs/msg/goal_info.h"
+#include "action_msgs/msg/goal_status.h"
+#include "action_msgs/msg/goal_status_array.h"
+
+
 // rcl action specific ret codes in 2XXX
 /// Action name does not pass validation return code.
 #define RCL_RET_ACTION_NAME_INVALID 2000
@@ -40,18 +45,24 @@ extern "C"
 /// Action invalid event return code.
 #define RCL_RET_ACTION_GOAL_EVENT_INVALID 2301
 
+// Typedef generated messages for convenience
+typedef action_msgs__msg__GoalInfo rcl_action_goal_info_t;
+typedef action_msgs__msg__GoalStatusArray rcl_action_goal_status_array_t;
+typedef action_msgs__srv__Cancel__Request rcl_action_cancel_request_t;
+typedef action_msgs__srv__Cancel__Response rcl_action_cancel_response_t;
+
 /// Goal states
-typedef enum rcl_action_goal_state_t
-{
-  GOAL_STATE_ACCEPTED = 0,
-  GOAL_STATE_EXECUTING,
-  GOAL_STATE_CANCELING,
-  GOAL_STATE_SUCCEEDED,
-  GOAL_STATE_CANCELED,
-  GOAL_STATE_ABORTED,
-  GOAL_STATE_NUM_STATES,
-  GOAL_STATE_INVALID
-} rcl_action_goal_state_t;
+// TODO(jacobperron): Let states be defined by action_msgs/msg/goal_status.h
+// Ideally, we could use an enum type directly from the message when the feature
+// is available. Issue: https://github.com/ros2/rosidl/issues/260
+int8_t GOAL_STATE_UNKNOWN = action_msgs__msg__GoalStatus__STATUS_UNKNOWN;
+int8_t GOAL_STATE_ACCEPTED = action_msgs__msg__GoalStatus__STATUS_ACCEPTED;
+int8_t GOAL_STATE_EXECUTING = action_msgs__msg__GoalStatus__STATUS_EXECUTING;
+int8_t GOAL_STATE_CANCELING = action_msgs__msg__GoalStatus__STATUS_CANCELING;
+int8_t GOAL_STATE_SUCCEEDED = action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
+int8_t GOAL_STATE_CANCELED = action_msgs__msg__GoalStatus__STATUS_CANCELED;
+int8_t GOAL_STATE_ABORTED = action_msgs__msg__GoalStatus__STATUS_ABORTED;
+int8_t GOAL_STATE_NUM_STATES = 6;  // not counting `UNKNOWN`
 
 /// Goal state transition events
 typedef enum rcl_action_goal_event_t
@@ -63,54 +74,6 @@ typedef enum rcl_action_goal_event_t
   GOAL_EVENT_SET_CANCELED,
   GOAL_EVENT_NUM_EVENTS
 } rcl_action_goal_event_t;
-
-/// Information for a goal
-/**
- * Contains metadata for a goal such as the goal ID.
- */
-typedef struct rcl_action_goal_info_t
-{
-  /// UUID for a goal
-  uint8_t[16] id;
-  /// Time when the goal was created or accepted, depending on the use case.
-  /**
-   * Number of seconds since epoch.
-   */
-  uint64_t timestamp;
-} rcl_action_goal_info_t;
-
-/// Encapsulates a cancel response
-// TODO(jacobperron): This could be replaced by a generated message in rcl_interfaces
-typedef struct rcl_action_cancel_response_t
-{
-  /// Number of goals that transitioned to CANCELING
-  /**
-   * This is also the number of elements in the `goals_canceling` array.
-   */
-  uint32_t num_canceling;
-  /// Array of goal info for those goals that transitioned to CANCELING
-  rcl_action_goal_info_t * goals_canceling;
-} rcl_action_cancel_response_t;
-
-/// Status message
-// TODO(jacobperron): This could be replaced by a generated message in rcl_interfaces
-typedef struct rcl_action_status_t
-{
-  /// Goal metadata
-  rcl_action_goal_info_t goal_info;
-  /// Status of the goal
-  rcl_action_goal_state_t status;
-} rcl_action_status_t;
-
-/// Status array message
-// TODO(jacobperron): This could be replaced by a generated message in rcl_interfaces
-typedef struct rcl_action_status_array_t
-{
-  /// Number of elements in the array
-  uint32_t num_status;
-  /// The array of statuses
-  rcl_action_status_t * statuses;
-} rcl_action_status_array_t;
 
 #ifdef __cplusplus
 }
