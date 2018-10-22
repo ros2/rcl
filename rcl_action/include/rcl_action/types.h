@@ -75,6 +75,16 @@ typedef enum rcl_action_goal_event_t
   GOAL_EVENT_NUM_EVENTS
 } rcl_action_goal_event_t;
 
+/// Return a rcl_action_goal_info_t with members set to `NULL`.
+/**
+ * Should be called to get a null rcl_action_goal_info_t before passing to
+ * rcl_action_goal_info_init().
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_action_server_t
+rcl_action_get_zero_initialized_goal_status_array(void);
+
 /// Return a rcl_action_goal_status_array_t with members set to `NULL`.
 /**
  * Should be called to get a null rcl_action_goal_status_array_t before passing to
