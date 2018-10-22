@@ -73,7 +73,7 @@ rcl_action_get_zero_initialized_server(void);
 /**
  * After calling this function on a rcl_action_server_t, it can be used to take
  * goals of the given type for the given action name using rcl_action_take_goal_request()
- * and take cancel requests with rcl_aciton_take_cancel_request().
+ * and take cancel requests with rcl_action_take_cancel_request().
  * It can also send a result for a request using rcl_action_send_result() or
  * rcl_action_send_cancel_response().
  *
