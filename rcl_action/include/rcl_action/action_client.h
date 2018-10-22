@@ -22,9 +22,12 @@ extern "C"
 
 // TODO(jacobperron): replace type support typedef with one defined in rosdl_generator_c
 // #include "rosidl_generator_c/action_type_support_struct.h"
+#ifndef RCL_ACTION__ROSIDL_ACTION_TYPE_SUPPORT_H_
+#define RCL_ACTION__ROSIDL_ACTION_TYPE_SUPPORT_H_
 typedef struct rosidl_action_type_support_t
 {
 } rosidl_action_type_support_t;
+#endif  // RCL_ACTION__ROSIDL_ACTION_TYPE_SUPPORT_H_
 
 #include "rcl_action/types.h"
 #include "rcl/macros.h"
@@ -320,7 +323,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_response(
   const rcl_action_client_t * action_client,
-  void * ros_goal_response)
+  void * ros_goal_response);
 
 /// Take a ROS feedback message for an active goal associated with a rcl_action_client_t.
 /**

@@ -22,9 +22,12 @@ extern "C"
 
 // TODO(jacobperron): replace type support typedef with one defined in rosdl_generator_c
 // #include "rosidl_generator_c/action_type_support_struct.h"
+#ifndef RCL_ACTION__ROSIDL_ACTION_TYPE_SUPPORT_H_
+#define RCL_ACTION__ROSIDL_ACTION_TYPE_SUPPORT_H_
 typedef struct rosidl_action_type_support_t
 {
 } rosidl_action_type_support_t;
+#endif  // RCL_ACTION__ROSIDL_ACTION_TYPE_SUPPORT_H_
 
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/types.h"
@@ -666,7 +669,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_get_goal_status_array(
   const rcl_action_server_t * action_server,
-  rcl_action_status_array_t * status_message);
+  rcl_action_goal_status_array_t * status_message);
 
 /// Publish a status array message for accepted goals associated with a rcl_action_server_t.
 /**
@@ -696,7 +699,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_status(
   const rcl_action_server_t * action_server,
-  const rcl_action_status_array_t * status_message);
+  const rcl_action_goal_status_array_t * status_message);
 
 /// Take a pending result request using a rcl_action_server_t.
 /**
@@ -792,7 +795,7 @@ rcl_action_send_result_response(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBIC
+RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_clear_expired_goals(
@@ -1002,10 +1005,6 @@ const rcl_action_goal_handle_t *
 rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
   uint32_t * num_goals);
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
 
 /// Check that the action server is valid.
 /**

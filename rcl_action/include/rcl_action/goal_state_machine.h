@@ -28,7 +28,6 @@ typedef rcl_action_goal_state_t
 (* rcl_action_goal_event_handler)(rcl_action_goal_state_t, rcl_action_goal_event_t);
 
 // Transition event handlers
-RCL_LOCAL
 static inline rcl_action_goal_state_t
 _execute_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
@@ -38,7 +37,6 @@ _execute_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t ev
   return GOAL_STATE_EXECUTING;
 }
 
-RCL_LOCAL
 static inline rcl_action_goal_state_t
 _cancel_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
@@ -51,7 +49,6 @@ _cancel_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t eve
   return GOAL_STATE_CANCELING;
 }
 
-RCL_LOCAL
 static inline rcl_action_goal_state_t
 _set_succeeded_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
@@ -64,7 +61,6 @@ _set_succeeded_event_handler(rcl_action_goal_state_t state, rcl_action_goal_even
   return GOAL_STATE_SUCCEEDED;
 }
 
-RCL_LOCAL
 static inline rcl_action_goal_state_t
 _set_aborted_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
@@ -77,7 +73,6 @@ _set_aborted_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_
   return GOAL_STATE_ABORTED;
 }
 
-RCL_LOCAL
 static inline rcl_action_goal_state_t
 _set_canceled_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
@@ -88,17 +83,18 @@ _set_canceled_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event
 }
 
 // Transition map
-static rcl_action_goal_event_handler _goal_state_transition_map[NUM_EVENTS][NUM_STATES] = {
+rcl_action_goal_event_handler
+  _goal_state_transition_map[GOAL_STATE_NUM_STATES][GOAL_EVENT_NUM_EVENTS] = {
   [GOAL_STATE_ACCEPTED] = {
     [GOAL_EVENT_EXECUTE] = _execute_event_handler,
     [GOAL_EVENT_CANCEL] = _cancel_event_handler,
   },
   [GOAL_STATE_EXECUTING] = {
     [GOAL_EVENT_CANCEL] = _cancel_event_handler,
-    [GOAL_EVENT_SET_SUCCEEDED] = _set_succeded_event_handler,
+    [GOAL_EVENT_SET_SUCCEEDED] = _set_succeeded_event_handler,
     [GOAL_EVENT_SET_ABORTED] = _set_aborted_event_handler,
   },
-  [GOAl_STATE_CANCELING] = {
+  [GOAL_STATE_CANCELING] = {
     [GOAL_EVENT_SET_SUCCEEDED] = _set_succeeded_event_handler,
     [GOAL_EVENT_SET_ABORTED] = _set_aborted_event_handler,
     [GOAL_EVENT_SET_CANCELED] = _set_canceled_event_handler,
@@ -116,12 +112,13 @@ static rcl_action_goal_event_handler _goal_state_transition_map[NUM_EVENTS][NUM_
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-int8_t
+rcl_action_goal_state_t
 rcl_action_transition_goal_state(
   const rcl_action_goal_state_t state,
   const rcl_action_goal_event_t event)
 {
-  rcl_action_goal_event_handler handler = _goal_state_transition_map[event][state];
+  // rcl_action_goal_event_handler ** transition_map = get_state_transition_map();
+  rcl_action_goal_event_handler handler = _goal_state_transition_map[state][event];
   if (NULL == handler) {
     return GOAL_STATE_UNKNOWN;
   }

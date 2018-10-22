@@ -23,6 +23,10 @@ extern "C"
 #include "action_msgs/msg/goal_info.h"
 #include "action_msgs/msg/goal_status.h"
 #include "action_msgs/msg/goal_status_array.h"
+#include "action_msgs/srv/cancel_goal.h"
+
+#include "rcl/macros.h"
+#include "rcl/visibility_control.h"
 
 
 // rcl action specific ret codes in 2XXX
@@ -48,21 +52,22 @@ extern "C"
 // Typedef generated messages for convenience
 typedef action_msgs__msg__GoalInfo rcl_action_goal_info_t;
 typedef action_msgs__msg__GoalStatusArray rcl_action_goal_status_array_t;
-typedef action_msgs__srv__Cancel__Request rcl_action_cancel_request_t;
-typedef action_msgs__srv__Cancel__Response rcl_action_cancel_response_t;
+typedef action_msgs__srv__CancelGoal_Request rcl_action_cancel_request_t;
+typedef action_msgs__srv__CancelGoal_Response rcl_action_cancel_response_t;
 
 /// Goal states
 // TODO(jacobperron): Let states be defined by action_msgs/msg/goal_status.h
 // Ideally, we could use an enum type directly from the message when the feature
 // is available. Issue: https://github.com/ros2/rosidl/issues/260
-int8_t GOAL_STATE_UNKNOWN = action_msgs__msg__GoalStatus__STATUS_UNKNOWN;
-int8_t GOAL_STATE_ACCEPTED = action_msgs__msg__GoalStatus__STATUS_ACCEPTED;
-int8_t GOAL_STATE_EXECUTING = action_msgs__msg__GoalStatus__STATUS_EXECUTING;
-int8_t GOAL_STATE_CANCELING = action_msgs__msg__GoalStatus__STATUS_CANCELING;
-int8_t GOAL_STATE_SUCCEEDED = action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
-int8_t GOAL_STATE_CANCELED = action_msgs__msg__GoalStatus__STATUS_CANCELED;
-int8_t GOAL_STATE_ABORTED = action_msgs__msg__GoalStatus__STATUS_ABORTED;
-int8_t GOAL_STATE_NUM_STATES = 6;  // not counting `UNKNOWN`
+typedef int8_t rcl_action_goal_state_t;
+#define GOAL_STATE_UNKNOWN action_msgs__msg__GoalStatus__STATUS_UNKNOWN
+#define GOAL_STATE_ACCEPTED action_msgs__msg__GoalStatus__STATUS_ACCEPTED
+#define GOAL_STATE_EXECUTING action_msgs__msg__GoalStatus__STATUS_EXECUTING
+#define GOAL_STATE_CANCELING action_msgs__msg__GoalStatus__STATUS_CANCELING
+#define GOAL_STATE_SUCCEEDED action_msgs__msg__GoalStatus__STATUS_SUCCEEDED
+#define GOAL_STATE_CANCELED action_msgs__msg__GoalStatus__STATUS_CANCELED
+#define GOAL_STATE_ABORTED action_msgs__msg__GoalStatus__STATUS_ABORTED
+#define GOAL_STATE_NUM_STATES 6  // not counting `UNKNOWN`
 
 /// Goal state transition events
 typedef enum rcl_action_goal_event_t
@@ -82,8 +87,8 @@ typedef enum rcl_action_goal_event_t
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_action_server_t
-rcl_action_get_zero_initialized_goal_status_array(void);
+rcl_action_goal_info_t
+rcl_action_get_zero_initialized_goal_info(void);
 
 /// Return a rcl_action_goal_status_array_t with members set to `NULL`.
 /**
@@ -92,7 +97,7 @@ rcl_action_get_zero_initialized_goal_status_array(void);
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_action_server_t
+rcl_action_goal_status_array_t
 rcl_action_get_zero_initialized_goal_status_array(void);
 
 /// Return a rcl_action_cancel_request_t with members set to `NULL`.

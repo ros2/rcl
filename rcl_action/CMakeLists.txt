@@ -4,12 +4,17 @@ project(rcl_action)
 
 find_package(ament_cmake_ros REQUIRED)
 
-# find_package(action_msgs REQUIRED)
+find_package(action_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 # find_package(rmw REQUIRED)
 
-include_directories(include)
+include_directories(
+  include
+  ${action_msgs_INCLUDE_DIRS}
+  ${rcl_INCLUDE_DIRS}
+  ${rcutils_INCLUDE_DIRS}
+)
 
 # Default to C11
 if(NOT CMAKE_C_STANDARD)

@@ -24,6 +24,9 @@ extern "C"
 #include "rcl_action/types.h"
 #include "rcl/visibility_control.h"
 
+// Forward declare
+typedef struct rcl_action_server_t rcl_action_server_t;
+
 /// Internal rcl action goal implementation struct.
 struct rcl_action_goal_handle_impl_t;
 
