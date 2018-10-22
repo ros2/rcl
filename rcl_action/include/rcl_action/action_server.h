@@ -215,8 +215,13 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node);
 /**
  * The defaults are:
  *
- * - qos = TODO(jacobperron): where to define default? and what should it be?
+ * - goal_service_qos = rmw_qos_profile_services_default;
+ * - result_service_qos = rmw_qos_profile_services_default;
+ * - cancel_service_qos = rmw_qos_profile_services_default;
+ * - feedback_topic_qos = rmw_qos_profile_default;
+ * - status_topic_qos = rcl_action_qos_profile_status_default;
  * - allocator = rcl_get_default_allocator()
+   - result_timeout = 9e+11;  // 15 minutes
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

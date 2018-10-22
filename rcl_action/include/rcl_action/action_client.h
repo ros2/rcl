@@ -225,7 +225,11 @@ rcl_action_client_fini(rcl_action_client_t * action_client, rcl_node_t * node);
 /**
  * The defaults are:
  *
- * - qos = TODO(jacobperron): RFC where to define default? and what should it be?
+ * - goal_service_qos = rmw_qos_profile_services_default;
+ * - result_service_qos = rmw_qos_profile_services_default;
+ * - cancel_service_qos = rmw_qos_profile_services_default;
+ * - feedback_topic_qos = rmw_qos_profile_default;
+ * - status_topic_qos = rcl_action_qos_profile_status_default;
  * - allocator = rcl_get_default_allocator()
  */
 RCL_PUBLIC
