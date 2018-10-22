@@ -220,6 +220,157 @@ RCL_WARN_UNUSED
 rcl_action_server_options_t
 rcl_action_server_get_default_options(void);
 
+/// Initialize a rcl_action_cancel_request_t.
+/**
+ * After calling this function on a rcl_action_cancel_request_t, it can be used populated
+ * and used to process cancel requests with an action server using
+ * rcl_action_process_cancel_request().
+ *
+ * The given rcl_action_server_t must be valid and the resulting
+ * rcl_action_cancel_request_t is only valid as long as the given rcl_action_server_t
+ * remains valid.
+ *
+ * Expected usage (for C action servers):
+ *
+ * ```c
+ * #include <rcl/rcl.h>
+ * #include <rcl_action/rcl_action.h>
+ *
+ * // ... init action server
+ * rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
+ * ret = rcl_action_cancel_request_init(&cancel_request, &action_server);
+ * // ... error handling, and when done processing request, finalize
+ * ret = rcl_action_cancel_request_fini(&cancel_request, &action_server);
+ * // ... error handling
+ * ```
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[out] cancel_request a preallocated, zero-initialized, cancel request message
+ *   to be initialized.
+ * \param[in] action_server a valid action server handle
+ * \return `RCL_RET_OK` if cancel request was initialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_cancel_request_init(
+  rcl_action_cancel_request_t * cancel_request,
+  const rcl_action_server_t * action_server);
+
+/// Finalize a rcl_action_cancel_request_t.
+/**
+ * After calling, the cancel request message will no longer be valid.
+ * However, the given action server handle is still valid.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] cancel_request the cancel request message to be deinitialized
+ * \param[in] action_server handle to the action sever used to create the cancel request
+ * \return `RCL_RET_OK` if the cancel request was deinitialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_cancel_request_fini(
+  rcl_action_cancel_request_t * cancel_request,
+  rcl_action_server_t * action_server);
+
+/// Initialize a rcl_action_cancel_response_t.
+/**
+ * After calling this function on a rcl_action_cancel_response_t, it can be used
+ * and used to process cancel requests with an action server using
+ * rcl_action_process_cancel_request().
+ *
+ * The given rcl_action_server_t must be valid and the resulting
+ * rcl_action_cancel_response_t is only valid as long as the given rcl_action_server_t
+ * remains valid.
+ *
+ * Expected usage (for C action servers):
+ *
+ * ```c
+ * #include <rcl/rcl.h>
+ * #include <rcl_action/rcl_action.h>
+ *
+ * // ... init action server
+ * rcl_action_cancel_response_t cancel_response =
+ *   rcl_action_get_zero_initialized_cancel_response();
+ * ret = rcl_action_cancel_response_init(&cancel_response, &action_server);
+ * // ... error handling, and when done processing response, finalize
+ * ret = rcl_action_cancel_response_fini(&cancel_response, &action_server);
+ * // ... error handling
+ * ```
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[out] cancel_response a preallocated, zero-initialized, cancel response message
+ *   to be initialized.
+ * \param[in] action_server a valid action server handle
+ * \return `RCL_RET_OK` if cancel response was initialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_cancel_response_init(
+  rcl_action_cancel_response_t * cancel_response,
+  const rcl_action_server_t * action_server);
+
+/// Finalize a rcl_action_cancel_response_t.
+/**
+ * After calling, the cancel response message will no longer be valid.
+ * However, the given action server handle is still valid.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] cancel_response the cancel response message to be deinitialized
+ * \param[in] action_server handle to the action sever used to create the cancel response
+ * \return `RCL_RET_OK` if the cancel response was deinitialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_cancel_response_fini(
+  rcl_action_cancel_response_t * cancel_response,
+  rcl_action_server_t * action_server);
+
 /// Take a pending ROS goal using a rcl_action_server_t.
 /**
  * \todo TODO(jacobperron) blocking of take?
@@ -391,13 +542,40 @@ rcl_action_publish_feedback(
   const rcl_action_server_t * action_server,
   void * ros_feedback);
 
+/// Get a status array message for accepted goals associated with a rcl_action_server_t.
+/**
+ * The provided `status_message` should be zero-initialized with
+ * rcl_action_get_zero_initialized_goal_status_array() before calling this function.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] action_server handle to the action server that will publish the status message
+ * \param[out] status_message an action_msgs/StatusArray ROS message
+ * \return `RCL_RET_OK` if the response was sent successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_get_goal_status_array(
+  const rcl_action_server_t * action_server,
+  rcl_action_status_array_t * status_message);
+
 /// Publish a status array message for accepted goals associated with a rcl_action_server_t.
 /**
  * This function acts like a ROS publisher and is potntially a blocking call.
  * \see rcl_publish()
  *
  * A status array message associated with the action server can be created with
- * rcl_action_get_status_array().
+ * rcl_action_get_goal_status_array().
  *
  * <hr>
  * Attribute          | Adherence
@@ -419,7 +597,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_status(
   const rcl_action_server_t * action_server,
-  const rcl_action_status_array_t * status_mesage);
+  const rcl_action_status_array_t * status_message);
 
 /// Take a pending result request using a rcl_action_server_t.
 /**
@@ -725,6 +903,10 @@ const rcl_action_goal_handle_t *
 rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
   uint32_t * num_goals);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
 
 /// Check that the action server is valid.
 /**
