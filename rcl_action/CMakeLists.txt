@@ -30,6 +30,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+add_executable(test_compile_headers
+  src/test_compile_headers.c
+)
+
 # set(rcl_action_sources
 #   src/action_server.c
 #   src/action_client.c
