@@ -34,22 +34,19 @@ add_executable(test_compile_headers
   src/test_compile_headers.c
 )
 
-# set(rcl_action_sources
-#   src/action_server.c
-#   src/action_client.c
-#   src/action_goal.c
-#   src/transition_map.c
-# )
-# set_source_files_properties(
-#   ${rcl_action_sources}
-#   PROPERTIES language "C"
-# )
+set(rcl_action_sources
+  src/${PROJECT_NAME}/goal_state_machine.c
+)
 
-### C-Library depending only on RCL
-# add_library(
-#   ${PROJECT_NAME}
-#   ${rcl_action_sources}
-# )
+set_source_files_properties(
+  ${rcl_action_sources}
+  PROPERTIES language "C"
+)
+
+add_library(
+  ${PROJECT_NAME}
+  ${rcl_action_sources}
+)
 
 # specific order: dependents before dependencies
 # ament_target_dependencies(${PROJECT_NAME}
@@ -63,18 +60,31 @@ add_executable(test_compile_headers
 # which is appropriate when building the dll but not consuming it.
 # target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_ACTION_BUILDING_DLL")
 
-# install(TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION lib
-#   LIBRARY DESTINATION lib
-#   RUNTIME DESTINATION bin
-# )
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
-
+  ament_find_gtest()
   # Gtests
+  ament_add_gtest(test_goal_state_machine
+    test/rcl_action/test_goal_state_machine.cpp
+  )
+  if(TARGET test_goal_state_machine)
+    target_include_directories(test_goal_state_machine PUBLIC
+      include
+      ${rcl_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_goal_state_machine
+      ${PROJECT_NAME}
+    )
+  endif()
+
   # ament_add_gtest(test_action_server
   #   test/test_action_server.cpp
   # )
