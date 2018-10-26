@@ -112,7 +112,7 @@ rcl_action_goal_event_handler
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_action_goal_state_t
+inline rcl_action_goal_state_t
 rcl_action_transition_goal_state(
   const rcl_action_goal_state_t state,
   const rcl_action_goal_event_t event)
