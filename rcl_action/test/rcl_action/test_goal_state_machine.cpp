@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #include <gtest/gtest.h>
 
 #include "rcl_action/goal_state_machine.h"
@@ -64,6 +63,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
     GOAL_STATE_ACCEPTED,
     GOAL_EVENT_SET_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
+
   // Invalid from EXECUTING
   state = rcl_action_transition_goal_state(
     GOAL_STATE_EXECUTING,
@@ -73,6 +73,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
     GOAL_STATE_EXECUTING,
     GOAL_EVENT_SET_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
+
   // Invalid from CANCELING
   state = rcl_action_transition_goal_state(
     GOAL_STATE_CANCELING,
@@ -82,6 +83,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
     GOAL_STATE_CANCELING,
     GOAL_EVENT_CANCEL);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
+
   // Invalid from SUCCEEDED
   state = rcl_action_transition_goal_state(
     GOAL_STATE_SUCCEEDED,
@@ -103,6 +105,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
     GOAL_STATE_SUCCEEDED,
     GOAL_EVENT_SET_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
+
   // Invalid from ABORTED
   state = rcl_action_transition_goal_state(
     GOAL_STATE_ABORTED,
@@ -124,6 +127,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
     GOAL_STATE_ABORTED,
     GOAL_EVENT_SET_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
+
   // Invalid from CANCELED
   state = rcl_action_transition_goal_state(
     GOAL_STATE_CANCELED,
