@@ -175,6 +175,114 @@ TEST_F(TestDefaultStateMachine, default_sequence) {
     rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr, this->allocator));
 }
 
+TEST_F(TestDefaultStateMachine, generic_shutdown_on_unconfigured) {
+  rcl_ret_t ret;
+
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_SUCCESS,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+
+
+  EXPECT_EQ(RCL_RET_OK,
+    rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr, this->allocator));
+}
+
+TEST_F(TestDefaultStateMachine, generic_shutdown_on_inactive) {
+  rcl_ret_t ret;
+
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_SUCCESS,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_SUCCESS,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+
+
+  EXPECT_EQ(RCL_RET_OK,
+    rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr, this->allocator));
+}
+
+TEST_F(TestDefaultStateMachine, generic_shutdown_on_active) {
+  rcl_ret_t ret;
+
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_SUCCESS,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_CONFIGURING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_INACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ON_ACTIVATE_SUCCESS,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_ACTIVATING,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_ACTIVE,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN);
+
+  test_trigger_transition(
+    &state_machine,
+    lifecycle_msgs__msg__Transition__TRANSITION_ON_SHUTDOWN_SUCCESS,
+    lifecycle_msgs__msg__State__TRANSITION_STATE_SHUTTINGDOWN,
+    lifecycle_msgs__msg__State__PRIMARY_STATE_FINALIZED);
+
+  EXPECT_EQ(RCL_RET_OK,
+    rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr, this->allocator));
+}
+
+
 TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
   rcl_ret_t ret;
 

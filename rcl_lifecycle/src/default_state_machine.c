@@ -503,6 +503,54 @@ _register_transitions(
     }
   }
 
+  // register transition from generic (actually active) to shuttingdown
+  {
+    rcl_lifecycle_transition_t rcl_transition_generic_active_shutdown = {
+      rcl_lifecycle_shutdown_label,
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      active_state, shuttingdown_state
+    };
+    ret = rcl_lifecycle_register_transition(
+      transition_map,
+      rcl_transition_generic_active_shutdown,
+      allocator);
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
+  }
+
+  // register transition from generic (actually inactive) to shuttingdown
+  {
+    rcl_lifecycle_transition_t rcl_transition_generic_inactive_shutdown = {
+      rcl_lifecycle_shutdown_label,
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      inactive_state, shuttingdown_state
+    };
+    ret = rcl_lifecycle_register_transition(
+      transition_map,
+      rcl_transition_generic_inactive_shutdown,
+      allocator);
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
+  }
+
+  // register transition from generic (actually unconfigured) to shuttingdown
+  {
+    rcl_lifecycle_transition_t rcl_transition_generic_unconfigured_shutdown = {
+      rcl_lifecycle_shutdown_label,
+      lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+      unconfigured_state, shuttingdown_state
+    };
+    ret = rcl_lifecycle_register_transition(
+      transition_map,
+      rcl_transition_generic_unconfigured_shutdown,
+      allocator);
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
+  }
+
   // register transition from unconfigured to shuttingdown
   {
     rcl_lifecycle_transition_t rcl_transition_unconfigured_shutdown = {
