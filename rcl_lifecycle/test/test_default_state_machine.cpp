@@ -188,7 +188,9 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
     lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP,
     lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE,
     lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE,
-    lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN,
+    lifecycle_msgs__msg__Transition__TRANSITION_UNCONFIGURED_SHUTDOWN,
+    lifecycle_msgs__msg__Transition__TRANSITION_INACTIVE_SHUTDOWN,
+    lifecycle_msgs__msg__Transition__TRANSITION_ACTIVE_SHUTDOWN,
     lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_SUCCESS,
     lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_FAILURE,
     lifecycle_msgs__msg__Transition__TRANSITION_ON_CONFIGURE_ERROR,
@@ -212,7 +214,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
   { // supposed to stay unconfigured for all invalid
     for (auto it = transition_ids.begin(); it != transition_ids.end(); ++it) {
       if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
+        *it == lifecycle_msgs__msg__Transition__TRANSITION_UNCONFIGURED_SHUTDOWN) {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition_by_id(&state_machine, *it, false));
       rcl_reset_error();
@@ -251,7 +253,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
     for (auto it = transition_ids.begin(); it != transition_ids.end(); ++it) {
       if (*it == lifecycle_msgs__msg__Transition__TRANSITION_CLEANUP ||
         *it == lifecycle_msgs__msg__Transition__TRANSITION_ACTIVATE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN) {continue;}
+        *it == lifecycle_msgs__msg__Transition__TRANSITION_INACTIVE_SHUTDOWN) {continue;}
 
       RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "applying key %u", *it);
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition_by_id(&state_machine, *it, false));
@@ -289,7 +291,7 @@ TEST_F(TestDefaultStateMachine, wrong_default_sequence) {
 
     for (auto it = transition_ids.begin(); it != transition_ids.end(); ++it) {
       if (*it == lifecycle_msgs__msg__Transition__TRANSITION_DEACTIVATE ||
-        *it == lifecycle_msgs__msg__Transition__TRANSITION_SHUTDOWN)
+        *it == lifecycle_msgs__msg__Transition__TRANSITION_ACTIVE_SHUTDOWN)
       {continue;}
 
       EXPECT_EQ(RCL_RET_ERROR, rcl_lifecycle_trigger_transition_by_id(&state_machine, *it, false));
