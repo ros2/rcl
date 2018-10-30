@@ -25,9 +25,9 @@ extern "C"
 typedef struct rosidl_action_type_support_t rosidl_action_type_support_t;
 
 #include "rcl_action/types.h"
+#include "rcl_action/visibility_control.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
-#include "rcl/visibility_control.h"
 
 
 /// Internal action client implementation struct.
@@ -58,7 +58,7 @@ typedef struct rcl_action_client_options_t
  * Should be called to get a null rcl_action_client_t before passing to
  * rcl_action_client_init().
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_client_t
 rcl_action_get_zero_initialized_client(void);
@@ -171,7 +171,7 @@ rcl_action_get_zero_initialized_client(void);
  * \return `RCL_RET_ACTION_NAME_INVALID` if the given action name is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_client_init(
@@ -211,7 +211,7 @@ rcl_action_client_init(
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_client_fini(rcl_action_client_t * action_client, rcl_node_t * node);
@@ -227,7 +227,7 @@ rcl_action_client_fini(rcl_action_client_t * action_client, rcl_node_t * node);
  * - status_topic_qos = rcl_action_qos_profile_status_default;
  * - allocator = rcl_get_default_allocator()
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_client_options_t
 rcl_action_client_get_default_options(void);
@@ -272,7 +272,7 @@ rcl_action_client_get_default_options(void);
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the client is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_request(
@@ -317,7 +317,7 @@ rcl_action_send_goal_request(
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_response(
@@ -367,7 +367,7 @@ rcl_action_take_goal_response(
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_feedback(
@@ -413,7 +413,7 @@ rcl_action_take_feedback(
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_status(
@@ -460,7 +460,7 @@ rcl_action_take_status(
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_result_request(
@@ -512,7 +512,7 @@ rcl_action_send_result_request(
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_result_response(
@@ -554,7 +554,7 @@ rcl_action_take_result_response(
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_request(
@@ -600,7 +600,7 @@ rcl_action_send_cancel_request(
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_cancel_response(
@@ -629,7 +629,7 @@ rcl_action_take_cancel_response(
  * \param[in] action_client the pointer to the action client
  * \return name string if successful, otherwise `NULL`
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 const char *
 rcl_action_client_get_action_name(const rcl_action_client_t * action_client);
@@ -656,7 +656,7 @@ rcl_action_client_get_action_name(const rcl_action_client_t * action_client);
  * \param[in] action_client pointer to the action client
  * \return options struct if successful, otherwise `NULL`
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 const rcl_action_client_options_t *
 rcl_action_client_get_options(const rcl_action_client_t * action_client);
@@ -680,7 +680,7 @@ rcl_action_client_get_options(const rcl_action_client_t * action_client);
  * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `action_client` is valid, otherwise `false`
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 bool
 rcl_action_client_is_valid(
   const rcl_action_client_t * action_client,

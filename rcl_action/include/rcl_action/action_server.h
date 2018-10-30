@@ -26,10 +26,10 @@ typedef struct rosidl_action_type_support_t rosidl_action_type_support_t;
 
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/types.h"
+#include "rcl_action/visibility_control.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/time.h"
-#include "rcl/visibility_control.h"
 
 
 /// Internal rcl_action implementation struct.
@@ -62,7 +62,7 @@ typedef struct rcl_action_server_options_t
  * Should be called to get a null rcl_action_server_t before passing to
  * rcl_action_server_init().
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_server_t
 rcl_action_get_zero_initialized_server(void);
@@ -164,7 +164,7 @@ rcl_action_get_zero_initialized_server(void);
  * \return `RCL_RET_ACTION_NAME_INVALID` if the given action name is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_init(
@@ -201,7 +201,7 @@ rcl_action_server_init(
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node);
@@ -218,7 +218,7 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node);
  * - allocator = rcl_get_default_allocator()
    - result_timeout = 9e+11;  // 15 minutes
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_server_options_t
 rcl_action_server_get_default_options(void);
@@ -264,7 +264,7 @@ rcl_action_server_get_default_options(void);
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_request(
@@ -310,7 +310,7 @@ rcl_action_take_goal_request(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_response(
@@ -364,7 +364,7 @@ rcl_action_send_goal_response(
  * \return a pointer to a new goal handle representing the accepted goal, or
  * \return `NULL` if a failure occured.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_goal_handle_t *
 rcl_action_accept_new_goal(
@@ -413,7 +413,7 @@ rcl_action_accept_new_goal(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs. *
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_feedback(
@@ -440,7 +440,7 @@ rcl_action_publish_feedback(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_get_goal_status_array(
@@ -470,7 +470,7 @@ rcl_action_get_goal_status_array(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_status(
@@ -508,7 +508,7 @@ rcl_action_publish_status(
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_result_request(
@@ -542,7 +542,7 @@ rcl_action_take_result_request(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_result_response(
@@ -571,7 +571,7 @@ rcl_action_send_result_response(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_clear_expired_goals(
@@ -612,7 +612,7 @@ rcl_action_clear_expired_goals(
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_cancel_request(
@@ -655,7 +655,7 @@ rcl_action_take_cancel_request(
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_process_cancel_request(
@@ -682,7 +682,7 @@ rcl_action_process_cancel_request(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_response(
@@ -711,7 +711,7 @@ rcl_action_send_cancel_response(
  * \param[in] action_server the pointer to the action server
  * \return name string if successful, otherwise `NULL`
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 const char *
 rcl_action_server_get_action_name(const rcl_action_server_t * action_server);
@@ -738,7 +738,7 @@ rcl_action_server_get_action_name(const rcl_action_server_t * action_server);
  * \param[in] action_server pointer to the action server
  * \return options struct if successful, otherwise `NULL`
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 const rcl_action_server_options_t *
 rcl_action_server_get_options(const rcl_action_server_t * action_server);
@@ -775,7 +775,7 @@ rcl_action_server_get_options(const rcl_action_server_t * action_server);
  *   not set otherwise.
  * \return pointer to an array goal handles if successful, otherwise `NULL`
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 const rcl_action_goal_handle_t *
 rcl_action_server_get_goal_handles(
@@ -802,7 +802,7 @@ rcl_action_server_get_goal_handles(
  * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `action_server` is valid, otherwise `false`
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 bool
 rcl_action_server_is_valid(
   const rcl_action_server_t * action_server,

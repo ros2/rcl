@@ -22,7 +22,7 @@ extern "C"
 
 #include "rcl_action/goal_state_machine.h"
 #include "rcl_action/types.h"
-#include "rcl/visibility_control.h"
+#include "rcl_action/visibility_control.h"
 
 // Forward declare
 typedef struct rcl_action_server_t rcl_action_server_t;
@@ -41,7 +41,7 @@ typedef struct rcl_action_goal_handle_t
  * Should be called to get a null rcl_action_goal_handle_t before passing to
  * rcl_action_goal_handle_init().
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_goal_handle_t
 rcl_action_get_zero_initialized_goal_handle(void);
@@ -101,7 +101,7 @@ rcl_action_get_zero_initialized_goal_handle(void);
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_init(
@@ -134,7 +134,7 @@ rcl_action_goal_handle_init(
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_fini(rcl_action_goal_handle_t * goal_handle);
@@ -158,7 +158,7 @@ rcl_action_goal_handle_fini(rcl_action_goal_handle_t * goal_handle);
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_update_goal_state(
@@ -183,7 +183,7 @@ rcl_action_update_goal_state(
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_get_info(
@@ -208,7 +208,7 @@ rcl_action_goal_handle_get_info(
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_get_status(
@@ -237,7 +237,7 @@ rcl_action_goal_handle_get_status(
  * \return `false` otherwise, also
  * \return `false` if the goal handle pointer is invalid or the allocator is invalid
 */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 bool
 rcl_action_goal_handle_is_active(
@@ -270,7 +270,7 @@ rcl_action_goal_handle_is_active(
  * \return `true` if the goal handle is valid, `false` otherwise, also
  * \return `false` if the allocator is invalid
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 bool
 rcl_action_goal_handle_is_valid(
