@@ -20,7 +20,7 @@ extern "C"
 #include "rcl_action/goal_state_machine.h"
 
 
-inline rcl_action_goal_state_t
+rcl_action_goal_state_t
 rcl_action_transition_goal_state(
   const rcl_action_goal_state_t state,
   const rcl_action_goal_event_t event)
