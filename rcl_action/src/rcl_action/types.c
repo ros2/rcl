@@ -31,7 +31,7 @@ rcl_action_get_zero_initialized_goal_info(void)
 rcl_action_goal_status_array_t
 rcl_action_get_zero_initialized_goal_status_array(void)
 {
-  static rcl_action_goal_status_array_t status_array;
+  static rcl_action_goal_status_array_t status_array = {0};
   return status_array;
 }
 
