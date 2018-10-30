@@ -76,7 +76,6 @@ if(BUILD_TESTING)
   )
   if(TARGET test_goal_state_machine)
     target_include_directories(test_goal_state_machine PUBLIC
-      include
       ${rcl_INCLUDE_DIRS}
     )
     target_link_libraries(test_goal_state_machine
