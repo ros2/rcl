@@ -36,12 +36,12 @@ rcl_get_topic_names_and_types(
   bool no_demangle,
   rcl_names_and_types_t * topic_names_and_types)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT)
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT)
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret;
   rmw_ret = rmw_names_and_types_check_zero(topic_names_and_types);
   if (rmw_ret != RMW_RET_OK) {
@@ -119,6 +119,7 @@ rcl_get_node_names(
     RCL_SET_ERROR_MSG("node_namespaces is not null");
     return RCL_RET_INVALID_ARGUMENT;
   }
+  (void)allocator;  // to be used in rmw_get_node_names in the future
   rmw_ret_t rmw_ret = rmw_get_node_names(
     rcl_node_get_rmw_handle(node),
     node_names,

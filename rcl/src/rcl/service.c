@@ -76,7 +76,7 @@ rcl_service_init(
   rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG(rcutils_get_error_string().str)
+    RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
     if (rcutils_ret == RCUTILS_RET_BAD_ALLOC) {
       return RCL_RET_BAD_ALLOC;
     }
@@ -108,7 +108,7 @@ rcl_service_init(
     &expanded_service_name);
   rcutils_ret = rcutils_string_map_fini(&substitutions_map);
   if (rcutils_ret != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG(rcutils_get_error_string().str)
+    RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
     ret = RCL_RET_ERROR;
     goto cleanup;
     return RCL_RET_ERROR;
@@ -151,7 +151,7 @@ rcl_service_init(
     goto cleanup;
   }
   if (validation_result != RMW_TOPIC_VALID) {
-    RCL_SET_ERROR_MSG(rmw_full_topic_name_validation_result_string(validation_result))
+    RCL_SET_ERROR_MSG(rmw_full_topic_name_validation_result_string(validation_result));
     ret = RCL_RET_SERVICE_NAME_INVALID;
     goto cleanup;
   }

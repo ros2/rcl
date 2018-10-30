@@ -69,14 +69,14 @@ rcl_lifecycle_com_interface_init(
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
   const rosidl_service_type_support_t * ts_srv_get_transition_graph)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(com_interface, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(node_handle, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(ts_pub_notify, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_change_state, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_state, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_available_states, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_available_transitions, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_transition_graph, RCL_RET_INVALID_ARGUMENT)
+  RCL_CHECK_ARGUMENT_FOR_NULL(com_interface, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_handle, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_pub_notify, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_change_state, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_state, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_available_states, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_available_transitions, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_transition_graph, RCL_RET_INVALID_ARGUMENT);
 
   // initialize publisher
   {

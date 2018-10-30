@@ -50,11 +50,11 @@ rcl_expand_topic_name(
   char ** output_topic_name)
 {
   // check arguments that could be null
-  RCL_CHECK_ARGUMENT_FOR_NULL(input_topic_name, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(node_namespace, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(substitutions, RCL_RET_INVALID_ARGUMENT)
-  RCL_CHECK_ARGUMENT_FOR_NULL(output_topic_name, RCL_RET_INVALID_ARGUMENT)
+  RCL_CHECK_ARGUMENT_FOR_NULL(input_topic_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_namespace, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(substitutions, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_topic_name, RCL_RET_INVALID_ARGUMENT);
   // validate the input topic
   int validation_result;
   rcl_ret_t ret = rcl_validate_topic_name(input_topic_name, &validation_result, NULL);
@@ -63,14 +63,14 @@ rcl_expand_topic_name(
     return ret;
   }
   if (validation_result != RCL_TOPIC_NAME_VALID) {
-    RCL_SET_ERROR_MSG("topic name is invalid")
+    RCL_SET_ERROR_MSG("topic name is invalid");
     return RCL_RET_TOPIC_NAME_INVALID;
   }
   // validate the node name
   rmw_ret_t rmw_ret;
   rmw_ret = rmw_validate_node_name(node_name, &validation_result, NULL);
   if (rmw_ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str)
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     switch (rmw_ret) {
       case RMW_RET_INVALID_ARGUMENT:
         return RCL_RET_INVALID_ARGUMENT;
@@ -81,13 +81,13 @@ rcl_expand_topic_name(
     }
   }
   if (validation_result != RMW_NODE_NAME_VALID) {
-    RCL_SET_ERROR_MSG("node name is invalid")
+    RCL_SET_ERROR_MSG("node name is invalid");
     return RCL_RET_NODE_INVALID_NAME;
   }
   // validate the namespace
   rmw_ret = rmw_validate_namespace(node_namespace, &validation_result, NULL);
   if (rmw_ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str)
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     switch (rmw_ret) {
       case RMW_RET_INVALID_ARGUMENT:
         return RCL_RET_INVALID_ARGUMENT;
@@ -98,7 +98,7 @@ rcl_expand_topic_name(
     }
   }
   if (validation_result != RMW_NODE_NAME_VALID) {
-    RCL_SET_ERROR_MSG("node namespace is invalid")
+    RCL_SET_ERROR_MSG("node namespace is invalid");
     return RCL_RET_NODE_INVALID_NAMESPACE;
   }
   // check if the topic has substitutions to be made
@@ -111,7 +111,7 @@ rcl_expand_topic_name(
     *output_topic_name = rcutils_strdup(input_topic_name, allocator);
     if (!*output_topic_name) {
       *output_topic_name = NULL;
-      RCL_SET_ERROR_MSG("failed to allocate memory for output topic")
+      RCL_SET_ERROR_MSG("failed to allocate memory for output topic");
       return RCL_RET_BAD_ALLOC;
     }
     return RCL_RET_OK;
@@ -126,7 +126,7 @@ rcl_expand_topic_name(
       rcutils_format_string(allocator, fmt, node_namespace, node_name, input_topic_name + 1);
     if (!local_output) {
       *output_topic_name = NULL;
-      RCL_SET_ERROR_MSG("failed to allocate memory for output topic")
+      RCL_SET_ERROR_MSG("failed to allocate memory for output topic");
       return RCL_RET_BAD_ALLOC;
     }
   }
@@ -183,7 +183,7 @@ rcl_expand_topic_name(
         rcutils_strndup(next_opening_brace, substitution_substr_len, allocator);
       if (!next_substitution) {
         *output_topic_name = NULL;
-        RCL_SET_ERROR_MSG("failed to allocate memory for substitution")
+        RCL_SET_ERROR_MSG("failed to allocate memory for substitution");
         allocator.deallocate(local_output, allocator.state);
         return RCL_RET_BAD_ALLOC;
       }
@@ -193,7 +193,7 @@ rcl_expand_topic_name(
       allocator.deallocate(original_local_output, allocator.state);  // free no matter what
       if (!local_output) {
         *output_topic_name = NULL;
-        RCL_SET_ERROR_MSG("failed to allocate memory for expanded topic")
+        RCL_SET_ERROR_MSG("failed to allocate memory for expanded topic");
         return RCL_RET_BAD_ALLOC;
       }
       current_output = local_output;
@@ -216,7 +216,7 @@ rcl_expand_topic_name(
     }
     if (!local_output) {
       *output_topic_name = NULL;
-      RCL_SET_ERROR_MSG("failed to allocate memory for output topic")
+      RCL_SET_ERROR_MSG("failed to allocate memory for output topic");
       return RCL_RET_BAD_ALLOC;
     }
   }
@@ -225,7 +225,7 @@ rcl_expand_topic_name(
     local_output = rcutils_strdup(input_topic_name, allocator);
     if (!local_output) {
       *output_topic_name = NULL;
-      RCL_SET_ERROR_MSG("failed to allocate memory for output topic")
+      RCL_SET_ERROR_MSG("failed to allocate memory for output topic");
       return RCL_RET_BAD_ALLOC;
     }
   }
@@ -237,7 +237,7 @@ rcl_expand_topic_name(
 rcl_ret_t
 rcl_get_default_topic_name_substitutions(rcutils_string_map_t * string_map)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(string_map, RCL_RET_INVALID_ARGUMENT)
+  RCL_CHECK_ARGUMENT_FOR_NULL(string_map, RCL_RET_INVALID_ARGUMENT);
 
   // right now there are no default substitutions
 

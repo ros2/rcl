@@ -284,12 +284,12 @@ rcl_enable_ros_time_override(rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   if (clock->type != RCL_ROS_TIME) {
-    RCL_SET_ERROR_MSG("Clock is not of type RCL_ROS_TIME, cannot enable override.")
+    RCL_SET_ERROR_MSG("Clock is not of type RCL_ROS_TIME, cannot enable override.");
     return RCL_RET_ERROR;
   }
   rcl_ros_clock_storage_t * storage = (rcl_ros_clock_storage_t *)clock->data;
   if (!storage) {
-    RCL_SET_ERROR_MSG("Clock storage is not initialized, cannot enable override.")
+    RCL_SET_ERROR_MSG("Clock storage is not initialized, cannot enable override.");
     return RCL_RET_ERROR;
   }
   if (!storage->active) {
@@ -308,13 +308,13 @@ rcl_disable_ros_time_override(rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   if (clock->type != RCL_ROS_TIME) {
-    RCL_SET_ERROR_MSG("Clock is not of type RCL_ROS_TIME, cannot disable override.")
+    RCL_SET_ERROR_MSG("Clock is not of type RCL_ROS_TIME, cannot disable override.");
     return RCL_RET_ERROR;
   }
   rcl_ros_clock_storage_t * storage = \
     (rcl_ros_clock_storage_t *)clock->data;
   if (!storage) {
-    RCL_SET_ERROR_MSG("Clock storage is not initialized, cannot disable override.")
+    RCL_SET_ERROR_MSG("Clock storage is not initialized, cannot disable override.");
     return RCL_RET_ERROR;
   }
   if (storage->active) {
@@ -336,13 +336,13 @@ rcl_is_enabled_ros_time_override(
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_enabled, RCL_RET_INVALID_ARGUMENT);
   if (clock->type != RCL_ROS_TIME) {
-    RCL_SET_ERROR_MSG("Clock is not of type RCL_ROS_TIME, cannot query override state.")
+    RCL_SET_ERROR_MSG("Clock is not of type RCL_ROS_TIME, cannot query override state.");
     return RCL_RET_ERROR;
   }
   rcl_ros_clock_storage_t * storage = \
     (rcl_ros_clock_storage_t *)clock->data;
   if (!storage) {
-    RCL_SET_ERROR_MSG("Clock storage is not initialized, cannot query override state.")
+    RCL_SET_ERROR_MSG("Clock storage is not initialized, cannot query override state.");
     return RCL_RET_ERROR;
   }
   *is_enabled = storage->active;
@@ -356,7 +356,7 @@ rcl_set_ros_time_override(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   if (clock->type != RCL_ROS_TIME) {
-    RCL_SET_ERROR_MSG("Clock is not of type RCL_ROS_TIME, cannot set time override.")
+    RCL_SET_ERROR_MSG("Clock is not of type RCL_ROS_TIME, cannot set time override.");
     return RCL_RET_ERROR;
   }
   rcl_time_jump_t time_jump;
