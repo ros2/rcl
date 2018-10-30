@@ -76,7 +76,7 @@ _set_canceled_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event
 }
 
 // Transition map
-rcl_action_goal_event_handler
+static rcl_action_goal_event_handler
   _goal_state_transition_map[GOAL_STATE_NUM_STATES][GOAL_EVENT_NUM_EVENTS] = {
   [GOAL_STATE_ACCEPTED] = {
     [GOAL_EVENT_EXECUTE] = _execute_event_handler,
