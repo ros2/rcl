@@ -72,7 +72,7 @@ typedef int8_t rcl_action_goal_state_t;
 #define GOAL_STATE_SUCCEEDED action_msgs__msg__GoalStatus__STATUS_SUCCEEDED
 #define GOAL_STATE_CANCELED action_msgs__msg__GoalStatus__STATUS_CANCELED
 #define GOAL_STATE_ABORTED action_msgs__msg__GoalStatus__STATUS_ABORTED
-#define GOAL_STATE_NUM_STATES 6  // not counting `UNKNOWN`
+#define GOAL_STATE_NUM_STATES 7
 
 /// Goal state transition events
 typedef enum rcl_action_goal_event_t
