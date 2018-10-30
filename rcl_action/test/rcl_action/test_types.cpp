@@ -19,7 +19,7 @@
 TEST(TestActionTypes, test_get_zero_inititalized_goal_info)
 {
   rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
-  ASSERT_EQ(sizeof(goal_info.uuid) / sizeof(uint8_t), 16lu);
+  ASSERT_EQ(sizeof(goal_info.uuid) / sizeof(uint8_t), 16u);
   for (int i = 0; i < 16; ++i) {
     EXPECT_EQ(goal_info.uuid[i], 0u);
   }
@@ -47,13 +47,13 @@ TEST(TestActionTypes, test_get_zero_initialized_goal_status_array)
 {
   rcl_action_goal_status_array_t status_array =
     rcl_action_get_zero_initialized_goal_status_array();
-  ASSERT_EQ(sizeof(status_array.status_list) / sizeof(rcl_action_goal_status_t), 0lu);
+  ASSERT_EQ(sizeof(status_array.status_list) / sizeof(rcl_action_goal_status_t), 0u);
 }
 
 TEST(TestActionTypes, test_get_zero_inititalized_cancel_request)
 {
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  ASSERT_EQ(sizeof(cancel_request.goal_info.uuid) / sizeof(uint8_t), 16lu);
+  ASSERT_EQ(sizeof(cancel_request.goal_info.uuid) / sizeof(uint8_t), 16u);
   for (int i = 0; i < 16; ++i) {
     EXPECT_EQ(cancel_request.goal_info.uuid[i], 0u);
   }
@@ -64,15 +64,17 @@ TEST(TestActionTypes, test_get_zero_inititalized_cancel_request)
 TEST(TestActionTypes, test_get_zero_initialized_cancel_response)
 {
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
-  ASSERT_EQ(cancel_response.goals_canceling.size, 0lu);
+  EXPECT_EQ(cancel_response.goals_canceling.size, 0u);
+  EXPECT_EQ(cancel_response.goals_canceling.data, nullptr);
 }
 
 TEST(TestActionTypes, test_init_fini_goal_status_array)
 {
+  const size_t num_status = 3;
   // Initialize with invalid status array
   rcl_ret_t ret = rcl_action_goal_status_array_init(
     nullptr,
-    (size_t) 3,
+    num_status,
     rcl_get_default_allocator());
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
 
@@ -81,16 +83,16 @@ TEST(TestActionTypes, test_init_fini_goal_status_array)
   invalid_allocator.allocate = nullptr;
   rcl_action_goal_status_array_t status_array =
     rcl_action_get_zero_initialized_goal_status_array();
-  ASSERT_EQ(status_array.status_list.size, 0lu);
-  ret = rcl_action_goal_status_array_init(&status_array, (size_t) 3, invalid_allocator);
+  ASSERT_EQ(status_array.status_list.size, 0u);
+  ret = rcl_action_goal_status_array_init(&status_array, num_status, invalid_allocator);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
 
   // Initialize with valid arguments
   status_array = rcl_action_get_zero_initialized_goal_status_array();
-  ASSERT_EQ(status_array.status_list.size, 0lu);
-  ret = rcl_action_goal_status_array_init(&status_array, (size_t) 3, rcl_get_default_allocator());
+  ASSERT_EQ(status_array.status_list.size, 0u);
+  ret = rcl_action_goal_status_array_init(&status_array, num_status, rcl_get_default_allocator());
   EXPECT_EQ(ret, RCL_RET_OK);
-  EXPECT_EQ((size_t) 3, status_array.status_list.size);
+  EXPECT_EQ(num_status, status_array.status_list.size);
   EXPECT_NE(nullptr, status_array.status_list.data);
 
   // Finalize with invalid status array
@@ -108,10 +110,11 @@ TEST(TestActionTypes, test_init_fini_goal_status_array)
 
 TEST(TestActionTypes, test_init_fini_cancel_response)
 {
+  const size_t num_goals_canceling = 3;
   // Initialize with invalid cancel response
   rcl_ret_t ret = rcl_action_cancel_response_init(
     nullptr,
-    (size_t) 3,
+    num_goals_canceling,
     rcl_get_default_allocator());
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
 
@@ -119,16 +122,19 @@ TEST(TestActionTypes, test_init_fini_cancel_response)
   rcl_allocator_t invalid_allocator = rcl_get_default_allocator();
   invalid_allocator.allocate = nullptr;
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
-  ASSERT_EQ(cancel_response.goals_canceling.size, 0lu);
-  ret = rcl_action_cancel_response_init(&cancel_response, (size_t) 3, invalid_allocator);
+  ASSERT_EQ(cancel_response.goals_canceling.size, 0u);
+  ret = rcl_action_cancel_response_init(&cancel_response, num_goals_canceling, invalid_allocator);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
 
   // Initialize with valid arguments
   cancel_response = rcl_action_get_zero_initialized_cancel_response();
-  ASSERT_EQ(cancel_response.goals_canceling.size, 0lu);
-  ret = rcl_action_cancel_response_init(&cancel_response, (size_t) 3, rcl_get_default_allocator());
+  ASSERT_EQ(cancel_response.goals_canceling.size, 0u);
+  ret = rcl_action_cancel_response_init(
+    &cancel_response,
+    num_goals_canceling,
+    rcl_get_default_allocator());
   EXPECT_EQ(ret, RCL_RET_OK);
-  EXPECT_EQ((size_t) 3, cancel_response.goals_canceling.size);
+  EXPECT_EQ(num_goals_canceling, cancel_response.goals_canceling.size);
   EXPECT_NE(nullptr, cancel_response.goals_canceling.data);
 
   // Finalize with invalid cancel response

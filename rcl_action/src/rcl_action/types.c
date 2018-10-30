@@ -24,10 +24,7 @@ extern "C"
 rcl_action_goal_info_t
 rcl_action_get_zero_initialized_goal_info(void)
 {
-  static rcl_action_goal_info_t goal_info = {
-    {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
-    {0, 0u}
-  };
+  static rcl_action_goal_info_t goal_info = {0};
   return goal_info;
 }
 
@@ -41,15 +38,14 @@ rcl_action_get_zero_initialized_goal_status_array(void)
 rcl_action_cancel_request_t
 rcl_action_get_zero_initialized_cancel_request(void)
 {
-  static rcl_action_cancel_request_t request;
-  request.goal_info = rcl_action_get_zero_initialized_goal_info();
+  static rcl_action_cancel_request_t request = {0};
   return request;
 }
 
 rcl_action_cancel_response_t
 rcl_action_get_zero_initialized_cancel_response(void)
 {
-  static rcl_action_cancel_response_t response;
+  static rcl_action_cancel_response_t response = {0};
   return response;
 }
 
