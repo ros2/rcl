@@ -55,7 +55,6 @@ RCL_WARN_UNUSED
 rcl_client_t
 rcl_get_zero_initialized_client(void);
 
-
 /// Initialize a rcl client.
 /**
  * After calling this function on a rcl_client_t, it can be used to send
@@ -378,7 +377,7 @@ rcl_client_get_rmw_handle(const rcl_client_t * client);
 
 /// Check that the client is valid.
 /**
- * The bool returned is `false` if client is invalid
+ * The bool returned is `false` if client is invalid.
  * The bool returned is `true` otherwise.
  * In the case where `false` is to be returned, an error message is set.
  * This function cannot fail.
@@ -392,12 +391,11 @@ rcl_client_get_rmw_handle(const rcl_client_t * client);
  * Lock-Free          | Yes
  *
  * \param[in] client pointer to the rcl client
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `client` is valid, otherwise `false`
  */
 RCL_PUBLIC
 bool
-rcl_client_is_valid(const rcl_client_t * client, rcl_allocator_t * error_msg_allocator);
+rcl_client_is_valid(const rcl_client_t * client);
 
 #ifdef __cplusplus
 }

@@ -39,22 +39,22 @@ public:
   {
     rcl_ret_t ret;
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "test_publisher_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void TearDown()
   {
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown();
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };
 
@@ -69,10 +69,10 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   const char * expected_topic_name = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), expected_topic_name), 0);
   test_msgs__msg__Primitives msg;
@@ -80,7 +80,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   msg.int64_value = 42;
   ret = rcl_publish(&publisher, &msg);
   test_msgs__msg__Primitives__fini(&msg);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 /* Basic nominal test of a publisher with a string.
@@ -93,17 +93,17 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   const char * topic_name = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   test_msgs__msg__Primitives msg;
   test_msgs__msg__Primitives__init(&msg);
   ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, "testing"));
   ret = rcl_publish(&publisher, &msg);
   test_msgs__msg__Primitives__fini(&msg);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 /* Test two publishers using different message types with the same basename.
@@ -121,10 +121,10 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
   const char * expected_topic_name = "/basename";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts_int, topic_name, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), expected_topic_name), 0);
 
@@ -135,10 +135,10 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
   expected_topic_name = "/namespace/basename";
   ret = rcl_publisher_init(
     &publisher_in_namespace, this->node_ptr, ts_string, topic_name, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_publisher_fini(&publisher_in_namespace, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher_in_namespace), expected_topic_name), 0);
 
@@ -146,14 +146,14 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
   test_msgs__msg__Primitives__init(&msg_int);
   msg_int.int64_value = 42;
   ret = rcl_publish(&publisher, &msg_int);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   test_msgs__msg__Primitives__fini(&msg_int);
 
   test_msgs__msg__Primitives msg_string;
   test_msgs__msg__Primitives__init(&msg_string);
   ASSERT_TRUE(rosidl_generator_c__String__assign(&msg_string.string_value, "testing"));
   ret = rcl_publish(&publisher_in_namespace, &msg_string);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 /* Testing the publisher init and fini functions.
@@ -168,56 +168,56 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   rcl_publisher_options_t default_publisher_options = rcl_publisher_get_default_options();
 
   // Check if null publisher is valid
-  EXPECT_FALSE(rcl_publisher_is_valid(nullptr, nullptr));
+  EXPECT_FALSE(rcl_publisher_is_valid(nullptr));
   rcl_reset_error();
 
   // Check if zero initialized node is valid
   publisher = rcl_get_zero_initialized_publisher();
-  EXPECT_FALSE(rcl_publisher_is_valid(&publisher, nullptr));
+  EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
   rcl_reset_error();
 
   // Check that valid publisher is valid
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &default_publisher_options);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_TRUE(rcl_publisher_is_valid(&publisher, nullptr));
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_publisher_is_valid(&publisher));
   rcl_reset_error();
 
   // Try passing null for publisher in init.
   ret = rcl_publisher_init(nullptr, this->node_ptr, ts, topic_name, &default_publisher_options);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing null for a node pointer in init.
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(&publisher, nullptr, ts, topic_name, &default_publisher_options);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing an invalid (uninitialized) node in init.
   publisher = rcl_get_zero_initialized_publisher();
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
   ret = rcl_publisher_init(&publisher, &invalid_node, ts, topic_name, &default_publisher_options);
-  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing null for the type support in init.
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(
     &publisher, this->node_ptr, nullptr, topic_name, &default_publisher_options);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing null for the topic name in init.
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, nullptr, &default_publisher_options);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing null for the options in init.
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, nullptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing options with an invalid allocate in allocator with init.
@@ -227,7 +227,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   publisher_options_with_invalid_allocator.allocator.allocate = nullptr;
   ret = rcl_publisher_init(
     &publisher, this->node_ptr, ts, topic_name, &publisher_options_with_invalid_allocator);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing options with an invalid deallocate in allocator with init.
@@ -236,7 +236,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   publisher_options_with_invalid_allocator.allocator.deallocate = nullptr;
   ret = rcl_publisher_init(
     &publisher, this->node_ptr, ts, topic_name, &publisher_options_with_invalid_allocator);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // An allocator with an invalid realloc will probably work (so we will not test it).
@@ -250,6 +250,6 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   publisher_options_with_failing_allocator.allocator.zero_allocate = failing_calloc;
   ret = rcl_publisher_init(
     &publisher, this->node_ptr, ts, topic_name, &publisher_options_with_failing_allocator);
-  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 }

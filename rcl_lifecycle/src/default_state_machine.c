@@ -692,8 +692,7 @@ rcl_lifecycle_init_default_state_machine(
 
 fail:
   if (rcl_lifecycle_transition_map_fini(&state_machine->transition_map, allocator) != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("could not free lifecycle transition map. Leaking memory!\n",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("could not free lifecycle transition map. Leaking memory!\n");
   }
   return RCL_RET_ERROR;
 }

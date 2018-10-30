@@ -64,7 +64,7 @@ INITIALIZER(initialize) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
       "Error getting environment variable 'RMW_IMPLEMENTATION': %s",
-      rcl_get_error_string_safe()
+      rcl_get_error_string().str
     );
     exit(ret);
   }
@@ -84,7 +84,7 @@ INITIALIZER(initialize) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
       "Error getting environment variable 'RCL_ASSERT_RMW_ID_MATCHES': %s",
-      rcl_get_error_string_safe()
+      rcl_get_error_string().str
     );
     exit(ret);
   }

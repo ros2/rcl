@@ -69,10 +69,10 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   if (argc > 0) {
-    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
+    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
   }
   if (rcl_atomic_exchange_bool(&__rcl_is_initialized, true)) {
-    RCL_SET_ERROR_MSG("rcl_init called while already initialized", allocator);
+    RCL_SET_ERROR_MSG("rcl_init called while already initialized");
     return RCL_RET_ALREADY_INIT;
   }
 
@@ -89,7 +89,7 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
   // Initialize rmw_init.
   rmw_ret_t rmw_ret = rmw_init();
   if (rmw_ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     fail_ret = RCL_RET_ERROR;
     goto fail;
   }
@@ -98,7 +98,7 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
   __rcl_argc = argc;
   __rcl_argv = (char **)__rcl_allocator.allocate(sizeof(char *) * argc, __rcl_allocator.state);
   if (!__rcl_argv) {
-    RCL_SET_ERROR_MSG("allocation failed", allocator);
+    RCL_SET_ERROR_MSG("allocation failed");
     fail_ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
@@ -107,7 +107,7 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
   for (i = 0; i < argc; ++i) {
     __rcl_argv[i] = (char *)__rcl_allocator.allocate(strlen(argv[i]), __rcl_allocator.state);
     if (!__rcl_argv[i]) {
-      RCL_SET_ERROR_MSG("allocation failed", allocator);
+      RCL_SET_ERROR_MSG("allocation failed");
       fail_ret = RCL_RET_BAD_ALLOC;
       goto fail;
     }
@@ -127,7 +127,7 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
   if (rcl_atomic_load_uint64_t(&__rcl_instance_id) == 0) {
     // Roll over occurred.
     __rcl_next_unique_id--;  // roll back to avoid the next call succeeding.
-    RCL_SET_ERROR_MSG("unique rcl instance ids exhausted", allocator);
+    RCL_SET_ERROR_MSG("unique rcl instance ids exhausted");
     goto fail;
   }
   return RCL_RET_OK;
@@ -142,7 +142,7 @@ rcl_shutdown()
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Shutting down");
   if (!rcl_ok()) {
     // must use default allocator here because __rcl_allocator may not be set yet
-    RCL_SET_ERROR_MSG("rcl_shutdown called before rcl_init", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("rcl_shutdown called before rcl_init");
     return RCL_RET_NOT_INIT;
   }
   __clean_up_init();

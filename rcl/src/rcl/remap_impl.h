@@ -15,7 +15,10 @@
 #ifndef RCL__REMAP_IMPL_H_
 #define RCL__REMAP_IMPL_H_
 
+#include "rcl/allocator.h"
+#include "rcl/macros.h"
 #include "rcl/types.h"
+#include "rcl/visibility_control.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -61,8 +64,6 @@ rcl_remap_get_zero_initialized();
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] error_alloc an alocator to use if an error occurs.
- *  This allocator is not used to allocate rule_out.
  * \param[in] rule The structure to be copied.
  *  Its allocator is used to copy memory into the new structure.
  * \param[out] rule_out A zero-initialized rcl_remap_t structure to be copied into.
@@ -75,7 +76,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remap_copy(
-  rcl_allocator_t error_alloc,
   const rcl_remap_t * rule,
   rcl_remap_t * rule_out);
 

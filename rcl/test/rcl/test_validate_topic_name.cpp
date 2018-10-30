@@ -29,7 +29,7 @@ TEST(test_validate_topic_name, normal) {
   {
     int validation_result;
     ret = rcl_validate_topic_name("topic", &validation_result, nullptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_TOPIC_NAME_VALID, validation_result);
     EXPECT_EQ(nullptr, rcl_topic_name_validation_result_string(validation_result));
   }
@@ -39,7 +39,7 @@ TEST(test_validate_topic_name, normal) {
     int validation_result;
     size_t invalid_index = 42;
     ret = rcl_validate_topic_name("topic", &validation_result, &invalid_index);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_TOPIC_NAME_VALID, validation_result);
     EXPECT_EQ(42u, invalid_index);  // ensure invalid_index is not assigned on success
     EXPECT_EQ(nullptr, rcl_topic_name_validation_result_string(validation_result));
@@ -50,7 +50,7 @@ TEST(test_validate_topic_name, normal) {
     int validation_result;
     size_t invalid_index = 42;
     ret = rcl_validate_topic_name("", &validation_result, &invalid_index);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_TOPIC_NAME_INVALID_IS_EMPTY_STRING, validation_result);
     EXPECT_EQ(0u, invalid_index);
     EXPECT_NE(nullptr, rcl_topic_name_validation_result_string(validation_result));
@@ -112,7 +112,7 @@ TEST(test_validate_topic_name, various_valid_topics) {
     int validation_result;
     size_t invalid_index = 42;
     rcl_ret_t ret = rcl_validate_topic_name(topic.c_str(), &validation_result, &invalid_index);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_TOPIC_NAME_VALID, validation_result) <<
       "'" << topic << "' should have passed: " <<
       rcl_topic_name_validation_result_string(validation_result) << "\n" <<
@@ -162,7 +162,7 @@ TEST(test_validate_topic_name, various_invalid_topics) {
     int validation_result;
     size_t invalid_index = 0;
     rcl_ret_t ret = rcl_validate_topic_name(topic.c_str(), &validation_result, &invalid_index);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_EQ(expected_validation_result, validation_result) <<
       "'" << topic << "' should have failed with '" <<
       expected_validation_result << "' but got '" << validation_result << "'.\n" <<

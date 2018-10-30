@@ -41,13 +41,11 @@ rcl_remap_get_zero_initialized()
 
 rcl_ret_t
 rcl_remap_copy(
-  rcl_allocator_t error_alloc,
   const rcl_remap_t * rule,
   rcl_remap_t * rule_out)
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&error_alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(rule, RCL_RET_INVALID_ARGUMENT, error_alloc);
-  RCL_CHECK_ARGUMENT_FOR_NULL(rule_out, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(rule, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(rule_out, RCL_RET_INVALID_ARGUMENT);
 
   rcl_allocator_t allocator = rule->allocator;
   rule_out->allocator = allocator;
@@ -73,7 +71,7 @@ rcl_remap_copy(
   return RCL_RET_OK;
 fail:
   if (RCL_RET_OK != rcl_remap_fini(rule_out)) {
-    RCL_SET_ERROR_MSG("Error while finalizing remap rule due to another error", error_alloc);
+    RCL_SET_ERROR_MSG("Error while finalizing remap rule due to another error");
   }
   return RCL_RET_BAD_ALLOC;
 }
@@ -170,8 +168,8 @@ _rcl_remap_name(
   rcl_allocator_t allocator,
   char ** output_name)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(output_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_name, RCL_RET_INVALID_ARGUMENT);
   if (NULL != local_arguments && NULL == local_arguments->impl) {
     local_arguments = NULL;
   }
@@ -179,7 +177,7 @@ _rcl_remap_name(
     global_arguments = NULL;
   }
   if (NULL == local_arguments && NULL == global_arguments) {
-    RCL_SET_ERROR_MSG("local_arguments invalid and not using global arguments", allocator);
+    RCL_SET_ERROR_MSG("local_arguments invalid and not using global arguments");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
@@ -218,7 +216,7 @@ _rcl_remap_name(
       *output_name = rcutils_strdup(rule->replacement, allocator);
     }
     if (NULL == *output_name) {
-      RCL_SET_ERROR_MSG("Failed to set output", allocator);
+      RCL_SET_ERROR_MSG("Failed to set output");
       return RCL_RET_ERROR;
     }
   }
@@ -236,7 +234,7 @@ rcl_remap_topic_name(
   char ** output_name)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
 
   rcutils_string_map_t substitutions = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions, 0, allocator);
@@ -266,7 +264,7 @@ rcl_remap_service_name(
   char ** output_name)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT);
 
   rcutils_string_map_t substitutions = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions, 0, allocator);

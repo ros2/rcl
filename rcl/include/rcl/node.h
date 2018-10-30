@@ -220,8 +220,6 @@ rcl_node_get_default_options(void);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] error_alloc an alocator to use if an error occurs.
- *  This allocator is not used to allocate the output.
  * \param[in] options The structure to be copied.
  *  Its allocator is used to copy memory into the new structure.
  * \param[out] options_out An options structure containing default values.
@@ -234,17 +232,12 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_node_options_copy(
-  rcl_allocator_t error_alloc,
   const rcl_node_options_t * options,
   rcl_node_options_t * options_out);
 
 /// Return `true` if the node is valid, else `false`.
 /**
  * Also return `false` if the node pointer is `NULL` or the allocator is invalid.
- *
- * The allocator needs to either be a valid allocator or `NULL`, in which case
- * the default allocator will be used.
- * The allocator is used when allocation is needed for an error message.
  *
  * A node is invalid if:
  *   - the implementation is `NULL` (rcl_node_init not called or failed)
@@ -256,7 +249,7 @@ rcl_node_options_copy(
  * Consider:
  *
  * ```c
- * assert(rcl_node_is_valid(node, NULL));  // <-- thread 1
+ * assert(rcl_node_is_valid(node));  // <-- thread 1
  * rcl_shutdown();                   // <-- thread 2
  * // use node as if valid           // <-- thread 1
  * ```
@@ -275,12 +268,11 @@ rcl_node_options_copy(
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] node rcl_node_t to be validated
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if the node and allocator are valid, otherwise `false`.
  */
 RCL_PUBLIC
 bool
-rcl_node_is_valid(const rcl_node_t * node, rcl_allocator_t * error_msg_allocator);
+rcl_node_is_valid(const rcl_node_t * node);
 
 /// Return the name of the node.
 /**

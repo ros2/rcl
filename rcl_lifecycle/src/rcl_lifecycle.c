@@ -51,19 +51,18 @@ rcl_lifecycle_state_init(
   const rcl_allocator_t * allocator)
 {
   if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize state, no allocator given\n",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("can't initialize state, no allocator given\n");
     return RCL_RET_ERROR;
   }
   if (!state) {
-    RCL_SET_ERROR_MSG("state pointer is null\n", *allocator);
+    RCL_SET_ERROR_MSG("state pointer is null\n");
     return RCL_RET_ERROR;
   }
 
   state->id = id;
   state->label = rcutils_strndup(label, strlen(label), *allocator);
   if (!state->label) {
-    RCL_SET_ERROR_MSG("failed to duplicate label for rcl_lifecycle_state_t\n", *allocator);
+    RCL_SET_ERROR_MSG("failed to duplicate label for rcl_lifecycle_state_t\n");
     return RCL_RET_ERROR;
   }
 
@@ -76,8 +75,7 @@ rcl_lifecycle_state_fini(
   const rcl_allocator_t * allocator)
 {
   if (!allocator) {
-    RCL_SET_ERROR_MSG("can't free state, no allocator given\n",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("can't free state, no allocator given\n");
     return RCL_RET_ERROR;
   }
   // it is already NULL
@@ -114,13 +112,12 @@ rcl_lifecycle_transition_init(
   const rcl_allocator_t * allocator)
 {
   if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n");
     return RCL_RET_ERROR;
   }
 
   if (!transition) {
-    RCL_SET_ERROR_MSG("transition pointer is null\n", *allocator);
+    RCL_SET_ERROR_MSG("transition pointer is null\n");
     return RCL_RET_OK;
   }
 
@@ -130,7 +127,7 @@ rcl_lifecycle_transition_init(
   transition->id = id;
   transition->label = rcutils_strndup(label, strlen(label), *allocator);
   if (!transition->label) {
-    RCL_SET_ERROR_MSG("failed to duplicate label for rcl_lifecycle_transition_t\n", *allocator);
+    RCL_SET_ERROR_MSG("failed to duplicate label for rcl_lifecycle_transition_t\n");
     return RCL_RET_ERROR;
   }
 
@@ -143,8 +140,7 @@ rcl_lifecycle_transition_fini(
   const rcl_allocator_t * allocator)
 {
   if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n");
     return RCL_RET_ERROR;
   }
   // it is already NULL
@@ -197,8 +193,7 @@ rcl_lifecycle_state_machine_init(
   const rcl_allocator_t * allocator)
 {
   if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize state machine, no allocator given\n",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("can't initialize state machine, no allocator given\n");
     return RCL_RET_ERROR;
   }
 
@@ -206,8 +201,7 @@ rcl_lifecycle_state_machine_init(
     &state_machine->com_interface, node_handle,
     ts_pub_notify,
     ts_srv_change_state, ts_srv_get_state,
-    ts_srv_get_available_states, ts_srv_get_available_transitions, ts_srv_get_transition_graph,
-    allocator);
+    ts_srv_get_available_states, ts_srv_get_available_transitions, ts_srv_get_transition_graph);
   if (ret != RCL_RET_OK) {
     return RCL_RET_ERROR;
   }
@@ -235,24 +229,21 @@ rcl_lifecycle_state_machine_fini(
   const rcl_allocator_t * allocator)
 {
   if (!allocator) {
-    RCL_SET_ERROR_MSG("can't free state machine, no allocator given\n",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("can't free state machine, no allocator given\n");
     return RCL_RET_ERROR;
   }
 
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
   if (rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle) != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG(
-      "could not free lifecycle com interface. Leaking memory!\n", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("could not free lifecycle com interface. Leaking memory!\n");
     fcn_ret = RCL_RET_ERROR;
   }
 
   if (rcl_lifecycle_transition_map_fini(
       &state_machine->transition_map, allocator) != RCL_RET_OK)
   {
-    RCL_SET_ERROR_MSG(
-      "could not free lifecycle transition map. Leaking memory!\n", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("could not free lifecycle transition map. Leaking memory!\n");
     fcn_ret = RCL_RET_ERROR;
   }
 
@@ -263,15 +254,15 @@ rcl_ret_t
 rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine)
 {
   if (!state_machine->com_interface.srv_get_state.impl) {
-    RCL_SET_ERROR_MSG("get_state service is null", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("get_state service is null");
     return RCL_RET_ERROR;
   }
   if (!state_machine->com_interface.srv_change_state.impl) {
-    RCL_SET_ERROR_MSG("change_state service is null", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("change_state service is null");
     return RCL_RET_ERROR;
   }
   if (rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map) != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("transition map is null", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("transition map is null");
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
@@ -282,8 +273,7 @@ rcl_lifecycle_get_transition_by_id(
   const rcl_lifecycle_state_t * state,
   uint8_t id)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(state,
-    "state pointer is null", return NULL, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(state, "state pointer is null", return NULL);
 
   for (unsigned int i = 0; i < state->valid_transition_size; ++i) {
     if (state->valid_transitions[i].id == id) {
@@ -304,8 +294,7 @@ rcl_lifecycle_get_transition_by_label(
   const rcl_lifecycle_state_t * state,
   const char * label)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(state,
-    "state pointer is null", return NULL, rcl_get_default_allocator());
+  RCL_CHECK_FOR_NULL_WITH_MSG(state, "state pointer is null", return NULL);
 
   for (unsigned int i = 0; i < state->valid_transition_size; ++i) {
     if (strcmp(state->valid_transitions[i].label, label) == 0) {
@@ -329,7 +318,7 @@ _trigger_transition(
 {
   // If we have a faulty transition pointer
   if (!transition) {
-    RCL_SET_ERROR_MSG("Transition is not registered.", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("Transition is not registered.");
     return RCL_RET_ERROR;
   }
 
@@ -344,7 +333,7 @@ _trigger_transition(
     rcl_ret_t ret = rcl_lifecycle_com_interface_publish_notification(
       &state_machine->com_interface, transition->start, state_machine->current_state);
     if (ret != RCL_RET_OK) {
-      RCL_SET_ERROR_MSG("Could not publish transition", rcl_get_default_allocator());
+      RCL_SET_ERROR_MSG("Could not publish transition");
       return RCL_RET_ERROR;
     }
   }

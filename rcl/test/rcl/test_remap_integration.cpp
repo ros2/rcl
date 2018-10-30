@@ -67,7 +67,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/bar/foo", rcl_publisher_get_topic_name(&publisher));
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
   }
@@ -78,7 +78,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
       &subscription, &node, ts, "/foo/bar", &subscription_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/bar/foo", rcl_subscription_get_topic_name(&subscription));
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
   }
@@ -88,7 +88,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/bar/foo", rcl_client_get_service_name(&client));
     EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
   }
@@ -98,7 +98,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/bar/foo", rcl_service_get_service_name(&service));
     EXPECT_EQ(RCL_RET_OK, rcl_service_fini(&service, &node));
   }
@@ -135,7 +135,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/foo/bar", rcl_publisher_get_topic_name(&publisher));
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
   }
@@ -146,7 +146,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
       &subscription, &node, ts, "/foo/bar", &subscription_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/foo/bar", rcl_subscription_get_topic_name(&subscription));
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
   }
@@ -156,7 +156,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/foo/bar", rcl_client_get_service_name(&client));
     EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
   }
@@ -166,7 +166,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/foo/bar", rcl_service_get_service_name(&service));
     EXPECT_EQ(RCL_RET_OK, rcl_service_fini(&service, &node));
   }
@@ -204,7 +204,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/bar/local", rcl_publisher_get_topic_name(&publisher));
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
   }
@@ -215,7 +215,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
       &subscription, &node, ts, "/foo/bar", &subscription_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/bar/local", rcl_subscription_get_topic_name(&subscription));
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
   }
@@ -225,7 +225,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/bar/local", rcl_client_get_service_name(&client));
     EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
   }
@@ -235,7 +235,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/bar/local", rcl_service_get_service_name(&service));
     EXPECT_EQ(RCL_RET_OK, rcl_service_fini(&service, &node));
   }
@@ -258,7 +258,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "bar", &publisher_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/foo/remap/global", rcl_publisher_get_topic_name(&publisher));
     EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&publisher, &node));
   }
@@ -269,7 +269,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
       &subscription, &node, ts, "bar", &subscription_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/foo/remap/global", rcl_subscription_get_topic_name(&subscription));
     EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, &node));
   }
@@ -279,7 +279,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "bar", &client_options);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/foo/remap/global", rcl_client_get_service_name(&client));
     EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, &node));
   }
@@ -289,7 +289,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "bar", &service_options);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/foo/remap/global", rcl_service_get_service_name(&service));
     EXPECT_EQ(RCL_RET_OK, rcl_service_fini(&service, &node));
   }

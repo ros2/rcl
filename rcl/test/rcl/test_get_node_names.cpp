@@ -48,14 +48,14 @@ public:
 
 TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names) {
   auto ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   auto node1_ptr = new rcl_node_t;
   *node1_ptr = rcl_get_zero_initialized_node();
   const char * node1_name = "node1";
   const char * node1_namespace = "/";
   rcl_node_options_t node1_options = rcl_node_get_default_options();
   ret = rcl_node_init(node1_ptr, node1_name, node1_namespace, &node1_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   auto node2_ptr = new rcl_node_t;
   *node2_ptr = rcl_get_zero_initialized_node();
@@ -63,7 +63,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   const char * node2_namespace = "/";
   rcl_node_options_t node2_options = rcl_node_get_default_options();
   ret = rcl_node_init(node2_ptr, node2_name, node2_namespace, &node2_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   auto node3_ptr = new rcl_node_t;
   *node3_ptr = rcl_get_zero_initialized_node();
@@ -71,7 +71,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   const char * node3_namespace = "/ns";
   rcl_node_options_t node3_options = rcl_node_get_default_options();
   ret = rcl_node_init(node3_ptr, node3_name, node3_namespace, &node3_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   auto node4_ptr = new rcl_node_t;
   *node4_ptr = rcl_get_zero_initialized_node();
@@ -79,14 +79,14 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   const char * node4_namespace = "/ns/ns";
   rcl_node_options_t node4_options = rcl_node_get_default_options();
   ret = rcl_node_init(node4_ptr, node4_name, node4_namespace, &node4_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   std::this_thread::sleep_for(1s);
 
   rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
   rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
   ret = rcl_get_node_names(node1_ptr, node1_options.allocator, &node_names, &node_namespaces);
-  ASSERT_EQ(RCUTILS_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCUTILS_RET_OK, ret) << rcl_get_error_string().str;
 
   std::stringstream ss;
   ss << "[test_rcl_get_node_names]: Found node names:" << std::endl;
@@ -113,20 +113,20 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
 
   ret = rcl_node_fini(node1_ptr);
   delete node1_ptr;
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_node_fini(node2_ptr);
   delete node2_ptr;
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_node_fini(node3_ptr);
   delete node3_ptr;
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_node_fini(node4_ptr);
   delete node4_ptr;
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_shutdown();
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }

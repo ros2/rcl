@@ -87,19 +87,16 @@ typedef enum rcl_lexeme_t
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | Yes [1]
+ * Allocates Memory   | No
  * Thread-Safe        | Yes
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] Only allocates if an argument is invalid or an internal bug is detected.</i>
  *
  * \param[in] text The string to analyze.
- * \param[in] allocator An allocator to use if an error occurs.
  * \param[out] lexeme The type of lexeme found in the string.
  * \param[out] length The length of text in the string that constitutes the found lexeme.
  * \return `RCL_RET_OK` if analysis is successful regardless whether a valid lexeme is found, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
- * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an internal bug is detected.
  */
 RCL_PUBLIC
@@ -107,7 +104,6 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
-  rcl_allocator_t allocator,
   rcl_lexeme_t * lexeme,
   size_t * length);
 

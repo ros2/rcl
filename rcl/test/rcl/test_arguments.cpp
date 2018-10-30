@@ -74,7 +74,7 @@ is_valid_arg(const char * arg)
   const char * argv[] = {arg};
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(1, argv, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   bool is_valid = 0 == rcl_arguments_get_count_unparsed(&parsed_args);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   return is_valid;
@@ -139,7 +139,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(0, rcl_arguments_get_count_unparsed(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
@@ -148,7 +148,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args) {
   int argc = 1;
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(argc, NULL, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 }
 
@@ -156,7 +156,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args_outpu
   const char * argv[] = {"process_name"};
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), NULL);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 }
 
@@ -166,7 +166,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_UNPARSED(parsed_args, 0);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
@@ -177,7 +177,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_inval
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_UNPARSED(parsed_args, 0, 1, 3);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
@@ -189,11 +189,11 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy) {
   rcl_ret_t ret;
 
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
-  ret = rcl_arguments_copy(rcl_get_default_allocator(), &parsed_args, &copied_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ret = rcl_arguments_copy(&parsed_args, &copied_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   EXPECT_UNPARSED(parsed_args, 0, 1);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
@@ -208,7 +208,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_namespace) 
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_UNPARSED(parsed_args, 0);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
@@ -268,7 +268,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   int nonros_argc = 0;
   const char ** nonros_argv = NULL;
@@ -280,7 +280,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
     &nonros_argc,
     &nonros_argv);
 
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_EQ(nonros_argc, 4);
   EXPECT_STREQ(nonros_argv[0], "process_name");
   EXPECT_STREQ(nonros_argv[1], "-d");
@@ -310,7 +310,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
     &nonros_argc,
     &nonros_argv);
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
 
   if (NULL != nonros_argv) {
     alloc.deallocate(nonros_argv, alloc.state);
@@ -326,7 +326,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(0, parameter_filecount);
@@ -344,13 +344,13 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(1, parameter_filecount);
   char ** parameter_files = NULL;
   ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_STREQ("parameter_filepath", parameter_files[0]);
 
   for (int i = 0; i < parameter_filecount; ++i) {
@@ -372,13 +372,13 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(2, parameter_filecount);
   char ** parameter_files = NULL;
   ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_STREQ("parameter_filepath1", parameter_files[0]);
   EXPECT_STREQ("parameter_filepath2", parameter_files[1]);
   for (int i = 0; i < parameter_filecount; ++i) {

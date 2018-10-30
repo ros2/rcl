@@ -50,12 +50,12 @@ destroy_args(int argc, char ** args)
     argc = (sizeof(const_argv) / sizeof(const char *)); \
     argv = copy_args(argc, const_argv); \
     rcl_ret_t ret = rcl_init(argc, argv, rcl_get_default_allocator()); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
   } \
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({ \
     destroy_args(argc, argv); \
     rcl_ret_t ret = rcl_shutdown(); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
   })
 
 #define SCOPE_ARGS(local_arguments, ...) \
@@ -65,7 +65,7 @@ destroy_args(int argc, char ** args)
     unsigned int local_argc = (sizeof(local_argv) / sizeof(const char *)); \
     rcl_ret_t ret = rcl_parse_arguments( \
       local_argc, local_argv, rcl_get_default_allocator(), &local_arguments); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
   } \
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({ \
     ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments)); \

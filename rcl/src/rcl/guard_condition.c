@@ -49,23 +49,22 @@ __rcl_guard_condition_init_from_rmw_impl(
   // Perform argument validation.
   const rcl_allocator_t * allocator = &options.allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
   // Ensure the guard_condition handle is zero initialized.
   if (guard_condition->impl) {
-    RCL_SET_ERROR_MSG(
-      "guard_condition already initialized, or memory was unintialized", *allocator);
+    RCL_SET_ERROR_MSG("guard_condition already initialized, or memory was unintialized");
     return RCL_RET_ALREADY_INIT;
   }
   // Make sure rcl has been initialized.
   if (!rcl_ok()) {
-    RCL_SET_ERROR_MSG("rcl_init() has not been called", *allocator);
+    RCL_SET_ERROR_MSG("rcl_init() has not been called");
     return RCL_RET_NOT_INIT;
   }
   // Allocate space for the guard condition impl.
   guard_condition->impl = (rcl_guard_condition_impl_t *)allocator->allocate(
     sizeof(rcl_guard_condition_impl_t), allocator->state);
   if (!guard_condition->impl) {
-    RCL_SET_ERROR_MSG("allocating memory failed", *allocator);
+    RCL_SET_ERROR_MSG("allocating memory failed");
     return RCL_RET_BAD_ALLOC;
   }
   // Create the rmw guard condition.
@@ -79,7 +78,7 @@ __rcl_guard_condition_init_from_rmw_impl(
     if (!guard_condition->impl->rmw_handle) {
       // Deallocate impl and exit.
       allocator->deallocate(guard_condition->impl, allocator->state);
-      RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), *allocator);
+      RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       return RCL_RET_ERROR;
     }
     guard_condition->impl->allocated_rmw_guard_condition = true;
@@ -111,15 +110,14 @@ rcl_ret_t
 rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition)
 {
   // Perform argument validation.
-  RCL_CHECK_ARGUMENT_FOR_NULL(
-    guard_condition, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t result = RCL_RET_OK;
   if (guard_condition->impl) {
     // assuming the allocator is valid because it is checked in rcl_guard_condition_init()
     rcl_allocator_t allocator = guard_condition->impl->options.allocator;
     if (guard_condition->impl->rmw_handle && guard_condition->impl->allocated_rmw_guard_condition) {
       if (rmw_destroy_guard_condition(guard_condition->impl->rmw_handle) != RMW_RET_OK) {
-        RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), allocator);
+        RCL_SET_ERROR_MSG(rmw_get_error_string().str);
         result = RCL_RET_ERROR;
       }
     }
@@ -147,7 +145,7 @@ rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition)
   }
   // Trigger the guard condition.
   if (rmw_trigger_guard_condition(guard_condition->impl->rmw_handle) != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string_safe(), options->allocator);
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
@@ -157,12 +155,11 @@ const rcl_guard_condition_options_t *
 rcl_guard_condition_get_options(const rcl_guard_condition_t * guard_condition)
 {
   // Perform argument validation.
-  RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, NULL, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     guard_condition->impl,
     "guard condition implementation is invalid",
-    return NULL,
-    rcl_get_default_allocator());
+    return NULL);
   return &guard_condition->impl->options;
 }
 

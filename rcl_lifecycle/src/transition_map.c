@@ -72,8 +72,7 @@ rcl_lifecycle_register_state(
   const rcutils_allocator_t * allocator)
 {
   if (rcl_lifecycle_get_state(transition_map, state.id) != NULL) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(rcutils_get_default_allocator(),
-      "state %u is already registered\n", state.id);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("state %u is already registered\n", state.id);
     return RCL_RET_ERROR;
   }
 
@@ -87,8 +86,7 @@ rcl_lifecycle_register_state(
     transition_map->states_size * sizeof(rcl_lifecycle_state_t),
     allocator->state);
   if (!new_states) {
-    RCL_SET_ERROR_MSG(
-      "failed to reallocate memory for new states", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("failed to reallocate memory for new states");
     return RCL_RET_ERROR;
   }
   transition_map->states = new_states;
@@ -108,8 +106,7 @@ rcl_lifecycle_register_transition(
 
   rcl_lifecycle_state_t * state = rcl_lifecycle_get_state(transition_map, transition.start->id);
   if (!state) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(rcl_get_default_allocator(),
-      "state %u is not registered\n", transition.start->id);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("state %u is not registered\n", transition.start->id);
     return RCL_RET_ERROR;
   }
 
@@ -120,9 +117,7 @@ rcl_lifecycle_register_transition(
     transition_map->transitions_size * sizeof(rcl_lifecycle_transition_t),
     allocator->state);
   if (!new_transitions) {
-    RCL_SET_ERROR_MSG(
-      "failed to reallocate memory for new transitions",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("failed to reallocate memory for new transitions");
     return RCL_RET_BAD_ALLOC;
   }
   transition_map->transitions = new_transitions;
@@ -138,9 +133,7 @@ rcl_lifecycle_register_transition(
     state->valid_transition_size * sizeof(rcl_lifecycle_transition_t),
     allocator->state);
   if (!new_valid_transitions) {
-    RCL_SET_ERROR_MSG(
-      "failed to reallocate memory for new transitions on state",
-      rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("failed to reallocate memory for new transitions on state");
     return RCL_RET_ERROR;
   }
   state->valid_transitions = new_valid_transitions;

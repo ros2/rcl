@@ -57,7 +57,7 @@ TEST_F(TestTransitionMap, initialized) {
   EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_is_initialized(&transition_map));
 
   ret = rcl_lifecycle_register_state(&transition_map, state0, &allocator);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
 
   rcl_lifecycle_state_t state1 = {"my_state_1", 1, NULL, 0};
   ret = rcl_lifecycle_register_state(&transition_map, state1, &allocator);
