@@ -120,7 +120,7 @@ rcl_action_goal_transition_map_init()
  * \param[in] state the state to transition from
  * \param[in] event the event triggering a transition
  * \return the next goal state if the transition is valid, or
- * \return `GOAl_STATE_UNKNOWN` if the transition is invalid or an error occured
+ * \return `GOAL_STATE_UNKNOWN` if the transition is invalid or an error occured
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
