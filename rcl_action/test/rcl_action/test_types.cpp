@@ -26,7 +26,8 @@ TEST(TestActionTypes, test_get_zero_inititalized_goal_info)
   EXPECT_EQ(goal_info.stamp.sec, 0);
   EXPECT_EQ(goal_info.stamp.nanosec, 0u);
 
-  // Modify the first, get another zero initialized goal info struct
+  // Modify the first and get another zero initialized goal info struct
+  // to confirm they are independent objects
   for (int i = 0; i < 16; ++i) {
     goal_info.uuid[i] = static_cast<uint8_t>(i);
   }
