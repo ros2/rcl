@@ -21,7 +21,7 @@ extern "C"
 #endif
 
 #include "rcl_action/types.h"
-#include "rcl/visibility_control.h"
+#include "rcl_action/visibility_control.h"
 
 
 typedef rcl_action_goal_state_t
@@ -110,7 +110,7 @@ rcl_action_goal_event_handler
  * \return the next goal state if the transition is valid, or
  * \return `GOAl_STATE_UNKNOWN` if the transition is invalid or an error occured
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 inline rcl_action_goal_state_t
 rcl_action_transition_goal_state(

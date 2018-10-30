@@ -22,6 +22,7 @@ extern "C"
 
 #include "rcl_action/action_client.h"
 #include "rcl_action/action_server.h"
+#include "rcl_action/visibility_control.h"
 #include "rcl/wait.h"
 
 
@@ -54,7 +55,7 @@ extern "C"
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
 */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_wait_set_add_action_client(
@@ -86,7 +87,7 @@ rcl_action_wait_set_add_action_client(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
 */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_wait_set_add_action_server(
@@ -122,7 +123,7 @@ rcl_action_wait_set_add_action_server(
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
 */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_client_wait_set_get_num_entities(
@@ -162,7 +163,7 @@ rcl_action_client_wait_set_get_num_entities(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
 */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_wait_set_get_num_entities(
@@ -203,7 +204,7 @@ rcl_action_server_wait_set_get_num_entities(
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
 */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_client_wait_set_get_entities_ready(
@@ -240,7 +241,7 @@ rcl_action_client_wait_set_get_entities_ready(
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
 */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_wait_set_get_entities_ready(

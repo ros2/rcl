@@ -20,6 +20,8 @@ extern "C"
 {
 #endif
 
+#include "rcl_action/visibility_control.h"
+
 #include "action_msgs/msg/goal_info.h"
 #include "action_msgs/msg/goal_status.h"
 #include "action_msgs/msg/goal_status_array.h"
@@ -27,7 +29,6 @@ extern "C"
 
 #include "rcl/macros.h"
 #include "rcl/types.h"
-#include "rcl/visibility_control.h"
 
 
 // rcl action specific ret codes in 2XXX
@@ -89,7 +90,7 @@ typedef enum rcl_action_goal_event_t
  * Should be called to get a null rcl_action_goal_info_t before passing to
  * rcl_action_goal_info_init().
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_goal_info_t
 rcl_action_get_zero_initialized_goal_info(void);
@@ -133,7 +134,7 @@ rcl_action_get_zero_initialized_goal_info(void);
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_info_init(
@@ -160,7 +161,7 @@ rcl_action_goal_info_init(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_info_fini(
@@ -172,7 +173,7 @@ rcl_action_goal_info_fini(
  * Should be called to get a null rcl_action_goal_status_array_t before passing to
  * rcl_action_server_get_goal_status_array().
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_goal_status_array_t
 rcl_action_get_zero_initialized_goal_status_array(void);
@@ -183,7 +184,7 @@ rcl_action_get_zero_initialized_goal_status_array(void);
  *
  * rcl_action_cancel_request_init().
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_cancel_request_t
 rcl_action_get_zero_initialized_cancel_request(void);
@@ -229,7 +230,7 @@ rcl_action_get_zero_initialized_cancel_request(void);
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_cancel_request_init(
@@ -256,7 +257,7 @@ rcl_action_cancel_request_init(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_cancel_request_fini(
@@ -268,7 +269,7 @@ rcl_action_cancel_request_fini(
  * Should be called to get a null rcl_action_cancel_response_t before passing to
  * rcl_action_cancel_response_init().
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_cancel_response_t
 rcl_action_get_zero_initialized_cancel_response(void);
@@ -315,7 +316,7 @@ rcl_action_get_zero_initialized_cancel_response(void);
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_cancel_response_init(
@@ -342,7 +343,7 @@ rcl_action_cancel_response_init(
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_PUBLIC
+RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_cancel_response_fini(
