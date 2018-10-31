@@ -23,9 +23,8 @@ extern "C"
 #include "rcl_action/goal_state_machine.h"
 #include "rcl_action/types.h"
 #include "rcl_action/visibility_control.h"
+#include "rcl/allocator.h"
 
-// Forward declare
-typedef struct rcl_action_server_t rcl_action_server_t;
 
 /// Internal rcl action goal implementation struct.
 struct rcl_action_goal_handle_impl_t;
@@ -55,33 +54,10 @@ rcl_action_get_zero_initialized_goal_handle(void);
  * Goal information can be accessed with rcl_action_goal_handle_get_message() and
  * rcl_action_goal_handle_get_info().
  *
- * The given rcl_action_server_t must be valid and the resulting rcl_action_goal_handle_t is
- * only valid as long as the given rcl_action_server_t remains valid.
- *
- * Expected usage:
- *
- * ```c
- * #include <rcl/rcl.h>
- * #include <rcl_action/rcl_action.h>
- * #include <rosidl_generator_c/action_type_support_struct.h>
- * #include <example_interfaces/action/fibonacci.h>
- *
- * // ... initialize node
- * const rosidl_action_type_support_t * ts =
- *   ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci);
- * rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
- * rcl_action_server_options_t action_server_ops = rcl_action_server_get_default_options();
- * ret = rcl_action_server_init(&action_server, &node, ts, "fibonacci", &action_server_ops);
- * // ... error handling
- * rcl_action_goal_handle_t goal_handle = rcl_action_get_zero_initialized_goal_handle();
- * ret = rcl_action_goal_handle_init(&goal_handle, &action_server);
- * // ... error handling, and on shutdown do finalization:
- * ret = rcl_action_goal_handle_fini(&goal_handle);
- * // ... error handling for rcl_goal_handle_fini()
- * ret = rcl_action_server_fini(&action_server, &node);
- * // ... error handling for rcl_action_server_fini()
- * // ... finalize and error handling for node
- * ```
+ * Goal handles are typically initialized and finalized by action servers.
+ * I.e. The allocator should be provided by the action server.
+ * Goal handles are created with rcl_action_accept_new_goal() and destroyed with
+ * rcl_action_clear_expired_goals() or rcl_action_server_fini().
  *
  * <hr>
  * Attribute          | Adherence
@@ -96,8 +72,9 @@ rcl_action_get_zero_initialized_goal_handle(void);
  * \param[in] action_server valid rcl action server
  * \param[in] type_support type support object for the action's type
  * \return `RCL_RET_OK` if goal_handle was initialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the allocator is invalid, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
- * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_ALREADY_INIT` if the goal handle has already been initialized, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
@@ -106,7 +83,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_init(
   rcl_action_goal_handle_t * goal_handle,
-  const rcl_action_server_t * action_server);
+  const rcl_allocator_t allocator);
 
 /// Finalize a rcl_action_goal_handle_t.
 /**
@@ -128,8 +105,7 @@ rcl_action_goal_handle_init(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] goal_handle struct to be deinitialized
- * \param[in] action_server used to create the goal handle
+ * \param[inout] goal_handle struct to be deinitialized
  * \return `RCL_RET_OK` if the goal handle was deinitialized successfully, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
