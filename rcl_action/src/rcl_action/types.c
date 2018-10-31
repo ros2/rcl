@@ -20,7 +20,6 @@ extern "C"
 
 #include "rcl/error_handling.h"
 
-
 rcl_action_goal_info_t
 rcl_action_get_zero_initialized_goal_info(void)
 {

@@ -19,7 +19,6 @@ extern "C"
 
 #include "rcl_action/goal_state_machine.h"
 
-
 typedef rcl_action_goal_state_t
 (* rcl_action_goal_event_handler)(rcl_action_goal_state_t, rcl_action_goal_event_t);
 
