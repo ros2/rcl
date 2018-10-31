@@ -25,6 +25,7 @@ extern "C"
 #include "./init_options_impl.h"
 #include "rcl/arguments.h"
 #include "rcl/error_handling.h"
+#include "rcl/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rmw/error_handling.h"
@@ -110,10 +111,13 @@ rcl_init(
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to parse global arguments");
     goto fail;
   }
-  // Update the default log level if specified in arguments.
-  if (context->global_arguments.impl->log_level >= 0) {
-    rcutils_logging_set_default_logger_level(context->global_arguments.impl->log_level);
+
+  fail_ret = rcl_logging_configure(global_args);
+  if (RCL_RET_OK != fail_ret) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to configure logging. %i", fail_ret);
+    goto fail;
   }
+  fail_ret = RCL_RET_ERROR;
 
   // Set the instance id.
   uint64_t next_instance_id = rcutils_atomic_fetch_add_uint64_t(&__rcl_next_unique_id, 1);

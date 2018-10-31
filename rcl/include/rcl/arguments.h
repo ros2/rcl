@@ -34,8 +34,12 @@ typedef struct rcl_arguments_t
   struct rcl_arguments_impl_t * impl;
 } rcl_arguments_t;
 
-#define RCL_LOG_LEVEL_ARG_RULE "__log_level:="
-#define RCL_PARAM_FILE_ARG_RULE "__params:="
+#define RCL_LOG_LEVEL_ARG_RULE              "__log_level:="
+#define RCL_EXTERNAL_LOG_CONFIG_ARG_RULE    "__log_config_file:="
+#define RCL_LOG_DISABLE_STDOUT_ARG_RULE     "__log_disable_stdout:="
+#define RCL_LOG_DISABLE_ROSOUT_ARG_RULE     "__log_disable_rosout:="
+#define RCL_LOG_DISABLE_EXT_LIB_ARG_RULE    "__log_disable_external_lib:="
+#define RCL_PARAM_FILE_ARG_RULE             "__params:="
 
 /// Return a rcl_node_t struct with members initialized to `NULL`.
 RCL_PUBLIC
