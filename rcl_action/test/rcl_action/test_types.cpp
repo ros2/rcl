@@ -48,7 +48,6 @@ TEST(TestActionTypes, test_get_zero_initialized_goal_status_array)
 {
   rcl_action_goal_status_array_t status_array =
     rcl_action_get_zero_initialized_goal_status_array();
-  // ASSERT_EQ(sizeof(status_array.status_list.data) / sizeof(rcl_action_goal_status_t), 0u);
   EXPECT_EQ(status_array.status_list.size, 0u);
   EXPECT_EQ(status_array.status_list.data, nullptr);
 }
