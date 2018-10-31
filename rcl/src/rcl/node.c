@@ -147,7 +147,11 @@ const char * rcl_get_secure_root(
     allocator->deallocate(node_fqn, allocator->state);
     allocator->deallocate(node_root_path, allocator->state);
   }
-  if (!rcutils_is_directory(node_secure_root)) {
+  // Check node_secure_root is not NULL before checking directory
+  if (NULL == node_secure_root) {
+    allocator->deallocate(node_secure_root, allocator->state);
+    return NULL;
+  } else if (!rcutils_is_directory(node_secure_root)) {
     allocator->deallocate(node_secure_root, allocator->state);
     return NULL;
   }
