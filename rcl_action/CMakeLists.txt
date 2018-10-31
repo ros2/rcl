@@ -33,6 +33,7 @@ add_executable(test_compile_headers
 
 set(rcl_action_sources
   src/${PROJECT_NAME}/goal_state_machine.c
+  src/${PROJECT_NAME}/types.c
 )
 
 set_source_files_properties(
@@ -40,16 +41,17 @@ set_source_files_properties(
   PROPERTIES language "C"
 )
 
-add_library(
-  ${PROJECT_NAME}
+add_library(${PROJECT_NAME}
   ${rcl_action_sources}
+)
+target_link_libraries(${PROJECT_NAME}
+  ${rcl_LIBRARIES}
 )
 
 ament_target_dependencies(${PROJECT_NAME}
   "rcl"
   "action_msgs"
 )
-
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_ACTION_BUILDING_DLL")
@@ -79,6 +81,18 @@ if(BUILD_TESTING)
       ${rcl_INCLUDE_DIRS}
     )
     target_link_libraries(test_goal_state_machine
+      ${PROJECT_NAME}
+    )
+  endif()
+  ament_add_gtest(test_types
+    test/rcl_action/test_types.cpp
+  )
+  if(TARGET test_types)
+    target_include_directories(test_types PUBLIC
+      include
+      ${rcl_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_types
       ${PROJECT_NAME}
     )
   endif()
