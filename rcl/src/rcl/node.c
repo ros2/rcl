@@ -46,6 +46,7 @@ extern "C"
 #include "./common.h"
 
 
+#define ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "ROS_SECURITY_NODE_DIRECTORY"
 #define ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "ROS_SECURITY_ROOT_DIRECTORY"
 #define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
 #define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
@@ -103,6 +104,10 @@ const char * rcl_create_node_logger_name(
 /**
  * E.g. for a node named "c" in namespace "/a/b", the secure root path will be
  * "a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
+ * However, this expansion can be overridden by setting the secure node directory environment
+ * variable, allowing users to explicitly specify the exact secure root directory to be utilized.
+ * Such an override is useful for case where the FQN of a node is non-determinist before runtime,
+ * or when testing and using additional tools that may not otherwise not be easily provisioned
  *
  * \param[in] node_name validated node name (a single token)
  * \param[in] node_namespace validated, absolute namespace (starting with "/")
@@ -114,25 +119,42 @@ const char * rcl_get_secure_root(
   const char * node_namespace,
   const rcl_allocator_t * allocator)
 {
+  bool ros_secure_node_override = true;
   const char * ros_secure_root_env = NULL;
   if (NULL == node_name) {
     return NULL;
   }
-  if (rcutils_get_env(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME, &ros_secure_root_env)) {
+  if (rcutils_get_env(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME, &ros_secure_root_env)) {
     return NULL;
   }
   if (!ros_secure_root_env) {
-    return NULL;  // environment variable not defined
+    return NULL;
   }
   size_t ros_secure_root_size = strlen(ros_secure_root_env);
   if (!ros_secure_root_size) {
-    return NULL;  // environment variable was empty
+    // check root directory if node directory environment variable is empty
+    if (rcutils_get_env(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME, &ros_secure_root_env)) {
+      return NULL;
+    }
+    if (!ros_secure_root_env) {
+      return NULL;
+    }
+    ros_secure_root_size = strlen(ros_secure_root_env);
+    if (!ros_secure_root_size) {
+      return NULL;  // environment variable was empty
+    } else {
+      ros_secure_node_override = false;
+    }
   }
   char * node_secure_root = NULL;
-  // TODO(ros2team): This make an assumption on the value and length of the root namespace.
-  // This should likely come from another (rcl/rmw?) function for reuse.
-  // If the namespace is the root namespace ("/"), the secure root is just the node name.
-  if (strlen(node_namespace) == 1) {
+  if (ros_secure_node_override) {
+    node_secure_root =
+        (char *)allocator->allocate(strlen(ros_secure_root_env) + 1, allocator->state);
+    strcpy(node_secure_root, ros_secure_root_env);
+    // TODO(ros2team): This make an assumption on the value and length of the root namespace.
+    // This should likely come from another (rcl/rmw?) function for reuse.
+    // If the namespace is the root namespace ("/"), the secure root is just the node name.
+  } else if (strlen(node_namespace) == 1) {
     node_secure_root = rcutils_join_path(ros_secure_root_env, node_name, *allocator);
   } else {
     char * node_fqn = NULL;
@@ -354,8 +376,10 @@ rcl_node_init(
       if (RMW_SECURITY_ENFORCEMENT_ENFORCE == node_security_options.enforce_security) {
         RCL_SET_ERROR_MSG(
           "SECURITY ERROR: unable to find a folder matching the node name in the "
+          RCUTILS_STRINGIFY(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME)
+          " or "
           RCUTILS_STRINGIFY(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME)
-          " directory while the requested security strategy requires it");
+          " directories while the requested security strategy requires it");
         ret = RCL_RET_ERROR;
         goto cleanup;
       }
