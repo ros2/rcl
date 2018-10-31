@@ -129,7 +129,7 @@ const char * rcl_get_secure_root(
     return NULL;  // environment variable was empty
   }
   char * node_secure_root = NULL;
-  // TODO(ros2team): This make assumption on the value and length of the root namespace.
+  // TODO(ros2team): This make an assumption on the value and length of the root namespace.
   // This should likely come from another (rcl/rmw?) function for reuse.
   // If the namespace is the root namespace ("/"), the secure root is just the node name.
   if (strlen(node_namespace) == 1) {
