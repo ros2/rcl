@@ -176,7 +176,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_client_init(
   rcl_action_client_t * action_client,
-  const rcl_node_t * node,
+  rcl_node_t * node,
   const rosidl_action_type_support_t * type_support,
   const char * action_name,
   const rcl_action_client_options_t * options);
@@ -355,9 +355,7 @@ rcl_action_take_goal_response(
  * Lock-Free          | Yes
  * <i>[1] only if required when filling the feedback message, avoided for fixed sizes</i>
  *
- * \param[in] action_client handle to the client that will take the goal response
- * \param[out] goal_info pointer to a struct for meta-data about the goal associated
- *   with taken feedback
+ * \param[in] action_client handle to the client that will take action feedback
  * \param[out] ros_feedback pointer to the ROS feedback message.
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -419,6 +417,7 @@ rcl_ret_t
 rcl_action_take_status(
   const rcl_action_client_t * action_client,
   void * ros_status_array);
+
 
 /// Send a request for the result of a completed goal associated with a rcl_action_client_t.
 /**
@@ -661,7 +660,7 @@ RCL_WARN_UNUSED
 const rcl_action_client_options_t *
 rcl_action_client_get_options(const rcl_action_client_t * action_client);
 
-/// Check that a rcl_action_clieint_t is valid.
+/// Check that a rcl_action_client_t is valid.
 /**
  * The bool returned is `false` if `action_client` is invalid.
  * The bool returned is `true` otherwise.
@@ -677,14 +676,12 @@ rcl_action_client_get_options(const rcl_action_client_t * action_client);
  * Lock-Free          | Yes
  *
  * \param[in] action_client pointer to the rcl action client
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `action_client` is valid, otherwise `false`
  */
 RCL_ACTION_PUBLIC
 bool
 rcl_action_client_is_valid(
-  const rcl_action_client_t * action_client,
-  rcl_allocator_t * error_msg_allocator);
+  const rcl_action_client_t * action_client);
 
 #ifdef __cplusplus
 }
