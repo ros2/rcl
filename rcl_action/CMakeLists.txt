@@ -33,6 +33,7 @@ add_executable(test_compile_headers
 
 set(rcl_action_sources
   src/${PROJECT_NAME}/goal_state_machine.c
+  src/${PROJECT_NAME}/names.c
   src/${PROJECT_NAME}/types.c
 )
 
@@ -93,6 +94,17 @@ if(BUILD_TESTING)
       ${rcl_INCLUDE_DIRS}
     )
     target_link_libraries(test_types
+      ${PROJECT_NAME}
+    )
+  endif()
+  ament_add_gtest(test_names
+    test/rcl_action/test_names.cpp
+  )
+  if(TARGET test_names)
+    target_include_directories(test_names PUBLIC
+      ${rcl_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_names
       ${PROJECT_NAME}
     )
   endif()
