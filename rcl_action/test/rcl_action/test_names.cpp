@@ -14,78 +14,117 @@
 
 #include <gtest/gtest.h>
 
+#include <iostream>
+
 #include "rcl_action/names.h"
 
 #include "rcl/allocator.h"
 #include "rcl/types.h"
 
-
-TEST(TestActionNames, test_action_goal_service_name)
+struct ActionDerivedNameTestSubject
 {
-  rcl_ret_t ret;
-  const char * const action_name = "test_it";
-  rcl_allocator_t default_allocator = rcl_get_default_allocator();
+  const char * action_name;
+  const char * expected_action_derived_name;
+  rcl_ret_t (* get_action_derived_name)(const char *, rcl_allocator_t, char **);
+  const char * subject_name;
+};
 
-  char * action_goal_service_name;
-  ret = rcl_action_get_goal_service_name(
-    action_name, default_allocator, &action_goal_service_name);
-  ASSERT_EQ(RCL_RET_OK, ret);
-  EXPECT_STREQ("test_it/_action/send_goal", action_goal_service_name);
-  default_allocator.deallocate(action_goal_service_name, default_allocator.state);
+std::ostream & operator<<(std::ostream & os, const ActionDerivedNameTestSubject & test_subject)
+{
+  return os << test_subject.subject_name;
 }
 
-TEST(TestActionNames, test_action_cancel_service_name)
+class TestActionDerivedName
+  : public ::testing::TestWithParam<ActionDerivedNameTestSubject>
+{
+protected:
+  void SetUp() override
+  {
+    test_subject = GetParam();
+  }
+
+  ActionDerivedNameTestSubject test_subject;
+};
+
+TEST_P(TestActionDerivedName, validate_action_derived_getter)
 {
   rcl_ret_t ret;
-  const char * const action_name = "test_it";
-  rcl_allocator_t default_allocator = rcl_get_default_allocator();
+  char dummy_char;
+  char * action_derived_name;
+  rcl_allocator_t default_allocator =
+    rcl_get_default_allocator();
 
-  char * action_cancel_service_name;
-  ret = rcl_action_get_cancel_service_name(
-    action_name, default_allocator, &action_cancel_service_name);
+  action_derived_name = NULL;
+  const char * const invalid_action_name = NULL;
+  ret = test_subject.get_action_derived_name(
+    invalid_action_name, default_allocator,
+    &action_derived_name);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+
+  action_derived_name = NULL;
+  rcl_allocator_t invalid_allocator =
+    (rcl_allocator_t)rcutils_get_zero_initialized_allocator();
+  ret = test_subject.get_action_derived_name(
+    test_subject.action_name, invalid_allocator,
+    &action_derived_name);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+
+  action_derived_name = NULL;
+  char ** invalid_ptr_to_action_derived_name = NULL;
+  ret = test_subject.get_action_derived_name(
+    test_subject.action_name, default_allocator,
+    invalid_ptr_to_action_derived_name);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+
+  action_derived_name = &dummy_char;
+  ret = test_subject.get_action_derived_name(
+    test_subject.action_name, default_allocator,
+    &action_derived_name);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+
+  action_derived_name = NULL;
+  ret = test_subject.get_action_derived_name(
+    test_subject.action_name, default_allocator,
+    &action_derived_name);
   ASSERT_EQ(RCL_RET_OK, ret);
-  EXPECT_STREQ("test_it/_action/cancel_goal", action_cancel_service_name);
-  default_allocator.deallocate(action_cancel_service_name, default_allocator.state);
+  EXPECT_STREQ(test_subject.expected_action_derived_name, action_derived_name);
+  default_allocator.deallocate(action_derived_name, default_allocator.state);
 }
 
-TEST(TestActionNames, test_action_result_service_name)
-{
-  rcl_ret_t ret;
-  const char * const action_name = "test_it";
-  rcl_allocator_t default_allocator = rcl_get_default_allocator();
+const ActionDerivedNameTestSubject action_service_and_topic_subjects[] = {
+  {
+    "test_it",                         // action_name
+    "test_it/_action/send_goal",       // expected_action_derived_name
+    rcl_action_get_goal_service_name,  // get_action_derived_name
+    "goal_service_name_test"           // subject_name
+  },
+  {
+    "test_it",                           // action_name
+    "test_it/_action/cancel_goal",       // expected_action_derived_name
+    rcl_action_get_cancel_service_name,  // get_action_derived_name
+    "cancel_service_name_test"           // subject_name
+  },
+  {
+    "test_it",                           // action_name
+    "test_it/_action/get_result",        // expected_action_derived_name
+    rcl_action_get_result_service_name,  // get_action_derived_name
+    "result_service_name_test"           // subject_name
+  },
+  {
+    "test_it",                           // action_name
+    "test_it/_action/feedback",          // expected_action_derived_name
+    rcl_action_get_feedback_topic_name,  // get_action_derived_name
+    "feedback_topic_name_test"           // subject_name
+  },
+  {
+    "test_it",                         // action_name
+    "test_it/_action/status",          // expected_action_derived_name
+    rcl_action_get_status_topic_name,  // get_action_derived_name
+    "status_topic_name_test"           // subject_name
+  }
+};
 
-  char * action_result_service_name;
-  ret = rcl_action_get_result_service_name(
-    action_name, default_allocator, &action_result_service_name);
-  ASSERT_EQ(RCL_RET_OK, ret);
-  EXPECT_STREQ("test_it/_action/get_result", action_result_service_name);
-  default_allocator.deallocate(action_result_service_name, default_allocator.state);
-}
-
-TEST(TestActionNames, test_action_feedback_topic_name)
-{
-  rcl_ret_t ret;
-  const char * const action_name = "test_it";
-  rcl_allocator_t default_allocator = rcl_get_default_allocator();
-
-  char * action_feedback_topic_name;
-  ret = rcl_action_get_feedback_topic_name(
-    action_name, default_allocator, &action_feedback_topic_name);
-  ASSERT_EQ(RCL_RET_OK, ret);
-  EXPECT_STREQ("test_it/_action/feedback", action_feedback_topic_name);
-  default_allocator.deallocate(action_feedback_topic_name, default_allocator.state);
-}
-
-TEST(TestActionNames, test_action_status_topic_name)
-{
-  rcl_ret_t ret;
-  const char * const action_name = "test_it";
-  rcl_allocator_t default_allocator = rcl_get_default_allocator();
-
-  char * action_status_topic_name;
-  ret = rcl_action_get_status_topic_name(
-    action_name, default_allocator, &action_status_topic_name);
-  ASSERT_EQ(RCL_RET_OK, ret);
-  EXPECT_STREQ("test_it/_action/status", action_status_topic_name);
-  default_allocator.deallocate(action_status_topic_name, default_allocator.state);
-}
+INSTANTIATE_TEST_CASE_P(
+  TestActionServiceAndTopicNames, TestActionDerivedName,
+  ::testing::ValuesIn(action_service_and_topic_subjects),
+  ::testing::PrintToStringParamName());

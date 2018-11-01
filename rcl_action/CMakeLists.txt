@@ -96,6 +96,7 @@ if(BUILD_TESTING)
     target_link_libraries(test_types
       ${PROJECT_NAME}
     )
+  endif()
   ament_add_gtest(test_names
     test/rcl_action/test_names.cpp
   )

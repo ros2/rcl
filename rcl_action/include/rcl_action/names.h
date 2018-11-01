@@ -46,7 +46,7 @@ extern "C"
  * \param[in] allocator A valid allocator to be used.
  * \param[out] goal_service_name Either an allocated string with the action
  *   goal service name, or `NULL` if the function failed to allocate memory
- *   for it.
+ *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action goal service name was returned, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
@@ -78,7 +78,7 @@ rcl_action_get_goal_service_name(
  * \param[in] allocator A valid allocator to be used.
  * \param[out] cancel_service_name Either an allocated string with the action
  *   cancel service name, or `NULL` if the function failed to allocate memory
- *   for it.
+ *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action cancel service name was returned, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
@@ -110,7 +110,7 @@ rcl_action_get_cancel_service_name(
  * \param[in] allocator A valid allocator to be used.
  * \param[out] result_service_name Either an allocated string with the action
  *   result service name, or `NULL` if the function failed to allocate memory
- *   for it.
+ *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action result service name was returned, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
@@ -142,7 +142,7 @@ rcl_action_get_result_service_name(
  * \param[in] allocator A valid allocator to be used.
  * \param[out] result_service_name Either an allocated string with the action
  *   feedback topic name, or `NULL` if the function failed to allocate memory
- *   for it.
+ *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action feedback topic name was returned, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
@@ -174,7 +174,7 @@ rcl_action_get_feedback_topic_name(
  * \param[in] allocator A valid allocator to be used.
  * \param[out] result_service_name Either an allocated string with the action
  *   status topic name, or `NULL` if the function failed to allocate memory
- *   for it.
+ *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action status topic name was returned, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.

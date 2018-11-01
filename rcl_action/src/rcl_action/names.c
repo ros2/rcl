@@ -31,8 +31,12 @@ rcl_action_get_goal_service_name(
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_service_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  if (NULL != *goal_service_name) {
+    RCL_SET_ERROR_MSG("writing action goal service name may leak memory", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   *goal_service_name = rcutils_format_string(allocator, "%s/_action/send_goal", action_name);
-  if (*goal_service_name == NULL) {
+  if (NULL == *goal_service_name) {
     RCL_SET_ERROR_MSG("failed to allocate memory for action goal service name", allocator);
     return RCL_RET_BAD_ALLOC;
   }
@@ -48,8 +52,12 @@ rcl_action_get_cancel_service_name(
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(cancel_service_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  if (NULL != *cancel_service_name) {
+    RCL_SET_ERROR_MSG("writing action cancel service name may leak memory", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   *cancel_service_name = rcutils_format_string(allocator, "%s/_action/cancel_goal", action_name);
-  if (*cancel_service_name == NULL) {
+  if (NULL == *cancel_service_name) {
     RCL_SET_ERROR_MSG("failed to allocate memory for action cancel service name", allocator);
     return RCL_RET_BAD_ALLOC;
   }
@@ -65,8 +73,13 @@ rcl_action_get_result_service_name(
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(result_service_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  if (NULL != *result_service_name) {
+    RCL_SET_ERROR_MSG("writing action result service name may leak memory", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
   *result_service_name = rcutils_format_string(allocator, "%s/_action/get_result", action_name);
-  if (*result_service_name == NULL) {
+  if (NULL == *result_service_name) {
     RCL_SET_ERROR_MSG("failed to allocate memory for action result service name", allocator);
     return RCL_RET_BAD_ALLOC;
   }
@@ -82,8 +95,12 @@ rcl_action_get_feedback_topic_name(
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(feedback_topic_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  if (NULL != *feedback_topic_name) {
+    RCL_SET_ERROR_MSG("writing action feedback topic name may leak memory", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   *feedback_topic_name = rcutils_format_string(allocator, "%s/_action/feedback", action_name);
-  if (*feedback_topic_name == NULL) {
+  if (NULL == *feedback_topic_name) {
     RCL_SET_ERROR_MSG("failed to allocate memory for action feedback topic name", allocator);
     return RCL_RET_BAD_ALLOC;
   }
@@ -99,8 +116,12 @@ rcl_action_get_status_topic_name(
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT, allocator);
   RCL_CHECK_ARGUMENT_FOR_NULL(status_topic_name, RCL_RET_INVALID_ARGUMENT, allocator);
+  if (NULL != *status_topic_name) {
+    RCL_SET_ERROR_MSG("writing action status topic name may leak memory", allocator);
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   *status_topic_name = rcutils_format_string(allocator, "%s/_action/status", action_name);
-  if (*status_topic_name == NULL) {
+  if (NULL == *status_topic_name) {
     RCL_SET_ERROR_MSG("failed to allocate memory for action status topic name", allocator);
     return RCL_RET_BAD_ALLOC;
   }
