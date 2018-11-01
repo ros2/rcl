@@ -58,9 +58,19 @@ typedef struct rcl_action_server_t rcl_action_server_t;
 // Typedef generated messages for convenience
 typedef action_msgs__msg__GoalInfo rcl_action_goal_info_t;
 typedef action_msgs__msg__GoalStatus rcl_action_goal_status_t;
-typedef action_msgs__msg__GoalStatusArray rcl_action_goal_status_array_t;
+typedef struct rcl_action_goal_status_array_t
+{
+  action_msgs__msg__GoalStatusArray msg;
+  /// Allocator used to initialize this struct.
+  rcl_allocator_t allocator;
+} rcl_action_goal_status_array_t;
 typedef action_msgs__srv__CancelGoal_Request rcl_action_cancel_request_t;
-typedef action_msgs__srv__CancelGoal_Response rcl_action_cancel_response_t;
+typedef struct rcl_action_cancel_response_t
+{
+  action_msgs__srv__CancelGoal_Response msg;
+  /// Allocator used to initialize this struct.
+  rcl_allocator_t allocator;
+} rcl_action_cancel_response_t;
 
 /// Goal states
 // TODO(jacobperron): Let states be defined by action_msgs/msg/goal_status.h
@@ -192,7 +202,6 @@ rcl_action_goal_status_array_init(
  * Lock-Free          | Yes
  *
  * \param[inout] status_array the goal status array message to be deinitialized
- * \param[in] allocator handle to the allocator used to create the goal status array
  * \return `RCL_RET_OK` if the goal status array was deinitialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -200,9 +209,7 @@ rcl_action_goal_status_array_init(
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_action_goal_status_array_fini(
-  rcl_action_goal_status_array_t * status_array,
-  const rcl_allocator_t allocator);
+rcl_action_goal_status_array_fini(rcl_action_goal_status_array_t * status_array);
 
 /// Initialize a rcl_action_cancel_response_t.
 /**
@@ -238,7 +245,7 @@ rcl_action_goal_status_array_fini(
  *
  * \param[out] cancel_response a preallocated, zero-initialized, cancel response message
  *   to be initialized.
- * \param[in] num_goals_canceling the number of goals that are canceling to add to the response.
+ * \param[in] num_goals_canceling the number of goals that are canceling to add to the response
  *   Must be greater than zero
  * \param[in] allocator a valid allocator
  * \return `RCL_RET_OK` if cancel response was initialized successfully, or
@@ -268,7 +275,6 @@ rcl_action_cancel_response_init(
  * Lock-Free          | Yes
  *
  * \param[inout] cancel_response the cancel response message to be deinitialized
- * \param[in] allocator handle to the allocator used to create the cancel response
  * \return `RCL_RET_OK` if the cancel response was deinitialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -276,9 +282,7 @@ rcl_action_cancel_response_init(
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_action_cancel_response_fini(
-  rcl_action_cancel_response_t * cancel_response,
-  const rcl_allocator_t allocator);
+rcl_action_cancel_response_fini(rcl_action_cancel_response_t * cancel_response);
 
 #ifdef __cplusplus
 }
