@@ -56,6 +56,11 @@ rcl_action_goal_status_array_init(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(status_array, RCL_RET_INVALID_ARGUMENT);
+  // Size of array to allocate must be greater than 0
+  if (0 == num_status) {
+    RCL_SET_ERROR_MSG("num_status must be greater than zero");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   // Ensure status array is zero initialized
   if (status_array->status_list.size > 0) {
     RCL_SET_ERROR_MSG("status_array already inititalized");
@@ -93,6 +98,11 @@ rcl_action_cancel_response_init(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(cancel_response, RCL_RET_INVALID_ARGUMENT);
+  // Size of array to allocate must be greater than 0
+  if (0 == num_goals_canceling) {
+    RCL_SET_ERROR_MSG("num_goals_canceling must be greater than zero");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   // Ensure cancel response is zero initialized
   if (cancel_response->goals_canceling.size > 0) {
     RCL_SET_ERROR_MSG("cancel_response already inititalized");
