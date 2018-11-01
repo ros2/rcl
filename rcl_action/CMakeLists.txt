@@ -45,9 +45,6 @@ set_source_files_properties(
 add_library(${PROJECT_NAME}
   ${rcl_action_sources}
 )
-target_link_libraries(${PROJECT_NAME}
-  ${rcl_LIBRARIES}
-)
 
 ament_target_dependencies(${PROJECT_NAME}
   "rcl"
