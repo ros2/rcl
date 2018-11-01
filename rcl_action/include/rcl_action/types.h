@@ -162,7 +162,8 @@ rcl_action_get_zero_initialized_cancel_response(void);
  *
  * \param[out] status_array a preallocated, zero-initialized, goal status array message
  *   to be initialized.
- * \param[in] num_status the number of status messages to allocate space for
+ * \param[in] num_status the number of status messages to allocate space for.
+ *   Must be greater than zero
  * \param[in] allocator a valid allocator
  * \return `RCL_RET_OK` if cancel response was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -217,10 +218,10 @@ rcl_action_goal_status_array_fini(
  *
  * rcl_action_cancel_response_t cancel_response =
  *   rcl_action_get_zero_initialized_cancel_response();
- * size_t num_goals = 10;
+ * size_t num_goals_canceling = 10;
  * ret = rcl_action_cancel_response_init(
  *   &cancel_response,
- *   num_goals,
+ *   num_goals_canceling,
  *   rcl_get_default_allocator());
  * // ... error handling, and when done processing response, finalize
  * ret = rcl_action_cancel_response_fini(&cancel_response, rcl_get_default_allocator());
@@ -237,7 +238,8 @@ rcl_action_goal_status_array_fini(
  *
  * \param[out] cancel_response a preallocated, zero-initialized, cancel response message
  *   to be initialized.
- * \param[in] num_goals the number of goals that are canceling to add to the response
+ * \param[in] num_goals_canceling the number of goals that are canceling to add to the response.
+ *   Must be greater than zero
  * \param[in] allocator a valid allocator
  * \return `RCL_RET_OK` if cancel response was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -250,7 +252,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_cancel_response_init(
   rcl_action_cancel_response_t * cancel_response,
-  const size_t num_goals,
+  const size_t num_goals_canceling,
   const rcl_allocator_t allocator);
 
 /// Finalize a rcl_action_cancel_response_t.
