@@ -37,8 +37,7 @@ rcl_lifecycle_com_interface_init(
   const rosidl_service_type_support_t * ts_srv_get_state,
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
-  const rosidl_service_type_support_t * ts_srv_get_transition_graph,
-  const rcl_allocator_t * allocator);
+  const rosidl_service_type_support_t * ts_srv_get_transition_graph);
 
 rcl_ret_t
 RCL_WARN_UNUSED

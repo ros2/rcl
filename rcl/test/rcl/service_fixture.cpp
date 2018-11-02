@@ -37,13 +37,13 @@ wait_for_service_to_be_ready(
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, rcl_get_default_allocator());
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string_safe());
+      ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string().str);
     return false;
   }
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string_safe());
+        ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string().str);
       throw std::runtime_error("error waiting for service to be ready");
     }
   });
@@ -52,12 +52,12 @@ wait_for_service_to_be_ready(
     ++iteration;
     if (rcl_wait_set_clear(&wait_set) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait_set_clear: %s", rcl_get_error_string_safe());
+        ROS_PACKAGE_NAME, "Error in wait_set_clear: %s", rcl_get_error_string().str);
       return false;
     }
     if (rcl_wait_set_add_service(&wait_set, service) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait_set_add_service: %s", rcl_get_error_string_safe());
+        ROS_PACKAGE_NAME, "Error in wait_set_add_service: %s", rcl_get_error_string().str);
       return false;
     }
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
@@ -65,7 +65,7 @@ wait_for_service_to_be_ready(
       continue;
     }
     if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error in wait: %s", rcl_get_error_string_safe());
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error in wait: %s", rcl_get_error_string().str);
       return false;
     }
     for (size_t i = 0; i < wait_set.size_of_services; ++i) {
@@ -83,7 +83,7 @@ int main(int argc, char ** argv)
   {
     if (rcl_init(argc, argv, rcl_get_default_allocator()) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in rcl init: %s", rcl_get_error_string_safe());
+        ROS_PACKAGE_NAME, "Error in rcl init: %s", rcl_get_error_string().str);
       return -1;
     }
     rcl_node_t node = rcl_get_zero_initialized_node();
@@ -91,13 +91,13 @@ int main(int argc, char ** argv)
     rcl_node_options_t node_options = rcl_node_get_default_options();
     if (rcl_node_init(&node, name, "", &node_options) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in node init: %s", rcl_get_error_string_safe());
+        ROS_PACKAGE_NAME, "Error in node init: %s", rcl_get_error_string().str);
       return -1;
     }
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
       if (rcl_node_fini(&node) != RCL_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string_safe());
+          ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string().str);
         main_ret = -1;
       }
     });
@@ -111,14 +111,14 @@ int main(int argc, char ** argv)
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, service_name, &service_options);
     if (ret != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in service init: %s", rcl_get_error_string_safe());
+        ROS_PACKAGE_NAME, "Error in service init: %s", rcl_get_error_string().str);
       return -1;
     }
 
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
       if (rcl_service_fini(&service, &node)) {
         RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME, "Error in service fini: %s", rcl_get_error_string_safe());
+          ROS_PACKAGE_NAME, "Error in service fini: %s", rcl_get_error_string().str);
         main_ret = -1;
       }
     });
@@ -153,7 +153,7 @@ int main(int argc, char ** argv)
     // TODO(jacquelinekay) May have to check for timeout error codes
     if (rcl_take_request(&service, &header, &service_request) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in take_request: %s", rcl_get_error_string_safe());
+        ROS_PACKAGE_NAME, "Error in take_request: %s", rcl_get_error_string().str);
       return -1;
     }
 
@@ -161,7 +161,7 @@ int main(int argc, char ** argv)
     service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
     if (rcl_send_response(&service, &header, &service_response) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in send_response: %s", rcl_get_error_string_safe());
+        ROS_PACKAGE_NAME, "Error in send_response: %s", rcl_get_error_string().str);
       return -1;
     }
     // Our scope exits should take care of fini for everything

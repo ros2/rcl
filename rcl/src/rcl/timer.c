@@ -128,16 +128,16 @@ rcl_timer_init(
   rcl_allocator_t allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   if (period < 0) {
-    RCL_SET_ERROR_MSG("timer period must be non-negative", allocator);
+    RCL_SET_ERROR_MSG("timer period must be non-negative");
     return RCL_RET_INVALID_ARGUMENT;
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Initializing timer with period: %" PRIu64 "ns", period);
   if (timer->impl) {
-    RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized", allocator);
+    RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
   }
   rcl_time_point_value_t now;
@@ -186,7 +186,7 @@ rcl_timer_init(
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to remove callback after bad alloc");
     }
 
-    RCL_SET_ERROR_MSG("allocating memory failed", allocator);
+    RCL_SET_ERROR_MSG("allocating memory failed");
     return RCL_RET_BAD_ALLOC;
   }
   *timer->impl = impl;
@@ -204,7 +204,7 @@ rcl_timer_fini(rcl_timer_t * timer)
   rcl_allocator_t allocator = timer->impl->allocator;
   rcl_ret_t fail_ret = rcl_guard_condition_fini(&(timer->impl->guard_condition));
   if (RCL_RET_OK != fail_ret) {
-    RCL_SET_ERROR_MSG("Failure to fini guard condition", allocator);
+    RCL_SET_ERROR_MSG("Failure to fini guard condition");
   }
   if (RCL_ROS_TIME == timer->impl->clock->type) {
     fail_ret = rcl_clock_remove_jump_callback(timer->impl->clock, _rcl_timer_time_jump, timer);
@@ -222,9 +222,9 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_clock(rcl_timer_t * timer, rcl_clock_t ** clock)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer->impl, RCL_RET_TIMER_INVALID, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer->impl, RCL_RET_TIMER_INVALID);
   *clock = timer->impl->clock;
   return RCL_RET_OK;
 }
@@ -233,13 +233,9 @@ rcl_ret_t
 rcl_timer_call(rcl_timer_t * timer)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Calling timer");
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
-  if (!allocator) {
-    return RCL_RET_TIMER_INVALID;
-  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   if (rcl_atomic_load_bool(&timer->impl->canceled)) {
-    RCL_SET_ERROR_MSG("timer is canceled", *allocator);
+    RCL_SET_ERROR_MSG("timer is canceled");
     return RCL_RET_TIMER_CANCELED;
   }
   rcl_time_point_value_t now;
@@ -248,7 +244,7 @@ rcl_timer_call(rcl_timer_t * timer)
     return now_ret;  // rcl error state should already be set.
   }
   if (now < 0) {
-    RCL_SET_ERROR_MSG("clock now returned negative time point value", *allocator);
+    RCL_SET_ERROR_MSG("clock now returned negative time point value");
     return RCL_RET_ERROR;
   }
   rcl_time_point_value_t previous_ns =
@@ -287,12 +283,8 @@ rcl_timer_call(rcl_timer_t * timer)
 rcl_ret_t
 rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
-  if (!allocator) {
-    return RCL_RET_TIMER_INVALID;
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(is_ready, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_ready, RCL_RET_INVALID_ARGUMENT);
   int64_t time_until_next_call;
   rcl_ret_t ret = rcl_timer_get_time_until_next_call(timer, &time_until_next_call);
   if (ret != RCL_RET_OK) {
@@ -305,12 +297,8 @@ rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready)
 rcl_ret_t
 rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_until_next_call)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
-  if (!allocator) {
-    return RCL_RET_TIMER_INVALID;
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_until_next_call, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_until_next_call, RCL_RET_INVALID_ARGUMENT);
   rcl_time_point_value_t now;
   rcl_ret_t ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (ret != RCL_RET_OK) {
@@ -326,12 +314,8 @@ rcl_timer_get_time_since_last_call(
   const rcl_timer_t * timer,
   rcl_time_point_value_t * time_since_last_call)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
-  if (!allocator) {
-    return RCL_RET_TIMER_INVALID;
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(time_since_last_call, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(time_since_last_call, RCL_RET_INVALID_ARGUMENT);
   rcl_time_point_value_t now;
   rcl_ret_t ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (ret != RCL_RET_OK) {
@@ -345,12 +329,8 @@ rcl_timer_get_time_since_last_call(
 rcl_ret_t
 rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
-  if (!allocator) {
-    return RCL_RET_TIMER_INVALID;
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(period, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(period, RCL_RET_INVALID_ARGUMENT);
   *period = rcl_atomic_load_uint64_t(&timer->impl->period);
   return RCL_RET_OK;
 }
@@ -358,12 +338,8 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period)
 rcl_ret_t
 rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t * old_period)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
-  if (!allocator) {
-    return RCL_RET_TIMER_INVALID;
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT);
   *old_period = rcl_atomic_exchange_uint64_t(&timer->impl->period, new_period);
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Updated timer period from '%" PRIu64 "ns' to '%" PRIu64 "ns'",
@@ -374,9 +350,8 @@ rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t
 rcl_timer_callback_t
 rcl_timer_get_callback(const rcl_timer_t * timer)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    timer->impl, "timer is invalid", return NULL, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
   return (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
 }
 
@@ -384,9 +359,8 @@ rcl_timer_callback_t
 rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_callback)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Updating timer callback");
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    timer->impl, "timer is invalid", return NULL, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
   return (rcl_timer_callback_t)rcl_atomic_exchange_uintptr_t(
     &timer->impl->callback, (uintptr_t)new_callback);
 }
@@ -394,9 +368,8 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
 rcl_ret_t
 rcl_timer_cancel(rcl_timer_t * timer)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
   rcl_atomic_store(&timer->impl->canceled, true);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer canceled");
   return RCL_RET_OK;
@@ -405,12 +378,8 @@ rcl_timer_cancel(rcl_timer_t * timer)
 rcl_ret_t
 rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  const rcl_allocator_t * allocator = rcl_timer_get_allocator(timer);
-  if (!allocator) {
-    return RCL_RET_TIMER_INVALID;
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(is_canceled, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_canceled, RCL_RET_INVALID_ARGUMENT);
   *is_canceled = rcl_atomic_load_bool(&timer->impl->canceled);
   return RCL_RET_OK;
 }
@@ -418,9 +387,8 @@ rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled)
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
   rcl_time_point_value_t now;
   rcl_ret_t now_ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (now_ret != RCL_RET_OK) {
@@ -436,9 +404,8 @@ rcl_timer_reset(rcl_timer_t * timer)
 const rcl_allocator_t *
 rcl_timer_get_allocator(const rcl_timer_t * timer)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL, rcl_get_default_allocator());
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    timer->impl, "timer is invalid", return NULL, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
   return &timer->impl->allocator;
 }
 

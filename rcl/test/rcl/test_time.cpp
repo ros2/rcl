@@ -60,40 +60,40 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   rcl_clock_t ros_clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t retval = rcl_ros_clock_init(&ros_clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string().str;
   });
 
   rcl_ret_t ret;
   // Check for invalid argument error condition (allowed to alloc).
   ret = rcl_set_ros_time_override(nullptr, 0);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
   bool result;
   ret = rcl_is_enabled_ros_time_override(nullptr, &result);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_is_enabled_ros_time_override(&ros_clock, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_is_enabled_ros_time_override(nullptr, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
   rcl_time_point_value_t query_now;
   bool is_enabled;
   ret = rcl_is_enabled_ros_time_override(&ros_clock, &is_enabled);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(is_enabled, false);
   EXPECT_NO_MEMORY_OPERATIONS({
     // Check for normal operation (not allowed to alloc).
     ret = rcl_clock_get_now(&ros_clock, &query_now);
   });
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_NE(query_now, 0u);
   // Compare to std::chrono::system_clock time (within a second).
   ret = rcl_clock_get_now(&ros_clock, &query_now);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   {
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
@@ -106,18 +106,18 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   rcl_time_point_value_t set_point = 1000000000ull;
   // Check initialized state
   ret = rcl_is_enabled_ros_time_override(&ros_clock, &is_enabled);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(is_enabled, false);
   // set the time point
   ret = rcl_set_ros_time_override(&ros_clock, set_point);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   // check still disabled
   ret = rcl_is_enabled_ros_time_override(&ros_clock, &is_enabled);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(is_enabled, false);
   // get real
   ret = rcl_clock_get_now(&ros_clock, &query_now);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   {
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
@@ -128,25 +128,25 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   }
   // enable
   ret = rcl_enable_ros_time_override(&ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   // check enabled
   ret = rcl_is_enabled_ros_time_override(&ros_clock, &is_enabled);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(is_enabled, true);
   // get sim
   ret = rcl_clock_get_now(&ros_clock, &query_now);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(query_now, set_point);
   // disable
   ret = rcl_disable_ros_time_override(&ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   // check disabled
   ret = rcl_is_enabled_ros_time_override(&ros_clock, &is_enabled);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(is_enabled, false);
   // get real
   ret = rcl_clock_get_now(&ros_clock, &query_now);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   {
     std::chrono::system_clock::time_point now_sc = std::chrono::system_clock::now();
     auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now_sc.time_since_epoch());
@@ -162,39 +162,39 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_init_for_clock_a
   rcl_allocator_t allocator = rcl_get_default_allocator();
   // Check for invalid argument error condition (allowed to alloc).
   ret = rcl_ros_clock_init(nullptr, &allocator);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check for invalid argument error condition (allowed to alloc).
   rcl_clock_t uninitialized_clock;
   ret = rcl_ros_clock_init(&uninitialized_clock, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check for normal operation (not allowed to alloc).
   rcl_clock_t source;
   ret = rcl_ros_clock_init(&source, &allocator);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&source)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&source)) << rcl_get_error_string().str;
   });
 
   rcl_clock_t ros_clock;
   rcl_ret_t retval = rcl_ros_clock_init(&ros_clock, &allocator);
-  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string().str;
   });
 }
 
 TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_ros_clock_initially_zero) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_clock_t ros_clock;
-  ASSERT_EQ(RCL_RET_OK, rcl_ros_clock_init(&ros_clock, &allocator)) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_ros_clock_init(&ros_clock, &allocator)) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&ros_clock)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&ros_clock)) << rcl_get_error_string().str;
   });
-  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&ros_clock)) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&ros_clock)) << rcl_get_error_string().str;
   rcl_time_point_value_t query_now = 5;
-  ASSERT_EQ(RCL_RET_OK, rcl_clock_get_now(&ros_clock, &query_now)) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_get_now(&ros_clock, &query_now)) << rcl_get_error_string().str;
   EXPECT_EQ(0, query_now);
 }
 
@@ -206,9 +206,9 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), clock_validation) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret;
   ret = rcl_ros_clock_init(&uninitialized, &allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&uninitialized)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&uninitialized)) << rcl_get_error_string().str;
   });
 }
 
@@ -216,9 +216,9 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), default_clock_instanciation) {
   rcl_clock_t ros_clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t retval = rcl_ros_clock_init(&ros_clock, &allocator);
-  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(rcl_clock_valid(&ros_clock));
 
@@ -229,9 +229,9 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), default_clock_instanciation) {
   });
 
   retval = rcl_steady_clock_init(steady_clock, &allocator);
-  EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_steady_clock_fini(steady_clock)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_steady_clock_fini(steady_clock)) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(rcl_clock_valid(steady_clock));
 
@@ -241,9 +241,9 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), default_clock_instanciation) {
     allocator.deallocate(system_clock, allocator.state);
   });
   retval = rcl_system_clock_init(system_clock, &allocator);
-  EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_system_clock_fini(system_clock)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_system_clock_fini(system_clock)) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(rcl_clock_valid(system_clock));
 }
@@ -254,36 +254,36 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), specific_clock_instantiation) {
     rcl_clock_t uninitialized_clock;
     rcl_ret_t ret = rcl_clock_init(
       RCL_CLOCK_UNINITIALIZED, &uninitialized_clock, &allocator);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(uninitialized_clock.type, RCL_CLOCK_UNINITIALIZED) <<
       "Expected time source of type RCL_CLOCK_UNINITIALIZED";
   }
   {
     rcl_clock_t ros_clock;
     rcl_ret_t ret = rcl_clock_init(RCL_ROS_TIME, &ros_clock, &allocator);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(ros_clock.type, RCL_ROS_TIME) <<
       "Expected time source of type RCL_ROS_TIME";
     ret = rcl_clock_fini(&ros_clock);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
   {
     rcl_clock_t system_clock;
     rcl_ret_t ret = rcl_clock_init(RCL_SYSTEM_TIME, &system_clock, &allocator);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(system_clock.type, RCL_SYSTEM_TIME) <<
       "Expected time source of type RCL_SYSTEM_TIME";
     ret = rcl_clock_fini(&system_clock);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
   {
     rcl_clock_t steady_clock;
     rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &steady_clock, &allocator);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(steady_clock.type, RCL_STEADY_TIME) <<
       "Expected time source of type RCL_STEADY_TIME";
     ret = rcl_clock_fini(&steady_clock);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 }
 
@@ -295,9 +295,9 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
-  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(ros_clock)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(ros_clock)) << rcl_get_error_string().str;
   });
   EXPECT_TRUE(ros_clock != nullptr);
   EXPECT_TRUE(ros_clock->data != nullptr);
@@ -313,12 +313,12 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
 
   rcl_duration_t d;
   ret = rcl_difference_times(&a, &b, &d);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   EXPECT_EQ(d.nanoseconds, 1000);
 
   ret = rcl_difference_times(&b, &a, &d);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(d.nanoseconds, -1000);
 }
 
@@ -330,9 +330,9 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference_signed) {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
-  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(ros_clock)) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(ros_clock)) << rcl_get_error_string().str;
   });
 
   rcl_time_point_t a, b;
@@ -345,7 +345,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference_signed) {
     rcl_duration_t d;
     rcl_ret_t ret;
     ret = rcl_difference_times(&a, &b, &d);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(d.nanoseconds, RCL_S_TO_NS(10LL));
   }
 
@@ -353,7 +353,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference_signed) {
     rcl_duration_t d;
     rcl_ret_t ret;
     ret = rcl_difference_times(&b, &a, &d);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(d.nanoseconds, RCL_S_TO_NS(-10LL));
   }
 
@@ -365,7 +365,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference_signed) {
     rcl_duration_t d;
     rcl_ret_t ret;
     ret = rcl_difference_times(&a, &b, &d);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(d.nanoseconds, 2147483647LL);
   }
 
@@ -373,7 +373,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference_signed) {
     rcl_duration_t d;
     rcl_ret_t ret;
     ret = rcl_difference_times(&b, &a, &d);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     // The erroneous value was -2147483648 (https://github.com/ros2/rcl/issues/204)
     EXPECT_EQ(d.nanoseconds, -2147483647LL);
   }
@@ -411,7 +411,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
-  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
   });
@@ -426,18 +426,18 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
   threshold.min_backward.nanoseconds = 0;
   ASSERT_EQ(RCL_RET_OK,
     rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   reset_callback_triggers();
 
   // Query time, no changes expected.
   ret = rcl_clock_get_now(ros_clock, &query_now);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // Clock change callback called when ROS time is enabled
   ret = rcl_enable_ros_time_override(ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(pre_callback_called);
   EXPECT_TRUE(post_callback_called);
   EXPECT_EQ(RCL_ROS_TIME_ACTIVATED, time_jump.clock_change);
@@ -445,14 +445,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
 
   // Clock change callback not called because ROS time is already enabled.
   ret = rcl_enable_ros_time_override(ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
   reset_callback_triggers();
 
   // Clock change callback called when ROS time is disabled
   ret = rcl_disable_ros_time_override(ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(pre_callback_called);
   EXPECT_TRUE(post_callback_called);
   EXPECT_EQ(RCL_ROS_TIME_DEACTIVATED, time_jump.clock_change);
@@ -460,7 +460,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
 
   // Clock change callback not called because ROS time is already disabled.
   ret = rcl_disable_ros_time_override(ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
   reset_callback_triggers();
@@ -474,7 +474,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_forward_jump_callbacks) {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
-  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
   });
@@ -490,24 +490,24 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_forward_jump_callbacks) {
   threshold.min_backward.nanoseconds = 0;
   ASSERT_EQ(RCL_RET_OK,
     rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   reset_callback_triggers();
 
   // Set the time before it's enabled. Should be no callbacks
   ret = rcl_set_ros_time_override(ros_clock, set_point1);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // enable no callbacks
   ret = rcl_enable_ros_time_override(ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // Set the time now that it's enabled, now get callbacks
   ret = rcl_set_ros_time_override(ros_clock, set_point2);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(pre_callback_called);
   EXPECT_TRUE(post_callback_called);
   EXPECT_EQ(set_point2 - set_point1, time_jump.delta.nanoseconds);
@@ -516,13 +516,13 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_forward_jump_callbacks) {
 
   // Setting same value as previous time, not a jump
   ret = rcl_set_ros_time_override(ros_clock, set_point2);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // disable no callbacks
   ret = rcl_disable_ros_time_override(ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 }
@@ -535,7 +535,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_backward_jump_callbacks) 
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
-  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string_safe();
+  ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
   });
@@ -550,24 +550,24 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_backward_jump_callbacks) 
   threshold.min_backward.nanoseconds = -1;
   ASSERT_EQ(RCL_RET_OK,
     rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   reset_callback_triggers();
 
   // Set the time before it's enabled. Should be no callbacks
   ret = rcl_set_ros_time_override(ros_clock, set_point2);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // enable no callbacks
   ret = rcl_enable_ros_time_override(ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // Set the time now that it's enabled, now get callbacks
   ret = rcl_set_ros_time_override(ros_clock, set_point1);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(pre_callback_called);
   EXPECT_TRUE(post_callback_called);
   EXPECT_EQ(set_point1 - set_point2, time_jump.delta.nanoseconds);
@@ -576,13 +576,13 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_backward_jump_callbacks) 
 
   // Setting same value as previous time, not a jump
   ret = rcl_set_ros_time_override(ros_clock, set_point1);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
   // disable no callbacks
   ret = rcl_disable_ros_time_override(ros_clock);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 }
@@ -595,7 +595,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_add_jump_callback) {
     allocator.deallocate(clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
   });
@@ -611,12 +611,12 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_add_jump_callback) {
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, NULL)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   EXPECT_EQ(RCL_RET_ERROR, rcl_clock_add_jump_callback(clock, threshold, cb, NULL));
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   EXPECT_EQ(RCL_RET_ERROR, rcl_clock_add_jump_callback(clock, threshold, cb, user_data));
   rcl_reset_error();
 
@@ -631,7 +631,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_remove_jump_callback) {
     allocator.deallocate(clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
   });
@@ -652,13 +652,13 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_remove_jump_callback) {
   rcl_reset_error();
 
   ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data1)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data2)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data3)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data4)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   EXPECT_EQ(4u, clock->num_jump_callbacks);
 
   EXPECT_EQ(RCL_RET_OK, rcl_clock_remove_jump_callback(clock, cb, user_data3));
@@ -679,7 +679,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), add_remove_add_jump_callback) {
     allocator.deallocate(clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
   });
@@ -692,11 +692,11 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), add_remove_add_jump_callback) {
   void * user_data = reinterpret_cast<void *>(0xCAFE);
 
   ASSERT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   EXPECT_EQ(1u, clock->num_jump_callbacks);
   EXPECT_EQ(RCL_RET_OK, rcl_clock_remove_jump_callback(clock, cb, user_data));
   EXPECT_EQ(0u, clock->num_jump_callbacks);
   EXPECT_EQ(RCL_RET_OK, rcl_clock_add_jump_callback(clock, threshold, cb, user_data)) <<
-    rcl_get_error_string_safe();
+    rcl_get_error_string().str;
   EXPECT_EQ(1u, clock->num_jump_callbacks);
 }

@@ -391,8 +391,7 @@ rcl_service_get_rmw_handle(const rcl_service_t * service);
 /**
  * The bool returned is `false` if `service` is invalid.
  * The bool returned is `true` otherwise.
- * In the case where `false` is to be returned, an
- * error message is set.
+ * In the case where `false` is to be returned, an error message is set.
  * This function cannot fail.
  *
  * <hr>
@@ -404,12 +403,11 @@ rcl_service_get_rmw_handle(const rcl_service_t * service);
  * Lock-Free          | Yes
  *
  * \param[in] service pointer to the rcl service
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `service` is valid, otherwise `false`
  */
 RCL_PUBLIC
 bool
-rcl_service_is_valid(const rcl_service_t * service, rcl_allocator_t * error_msg_allocator);
+rcl_service_is_valid(const rcl_service_t * service);
 
 #ifdef __cplusplus
 }

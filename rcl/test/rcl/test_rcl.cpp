@@ -19,6 +19,7 @@
 #include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "rcl/error_handling.h"
+#include "rcutils/format_string.h"
 #include "rcutils/snprintf.h"
 
 #ifdef RMW_IMPLEMENTATION

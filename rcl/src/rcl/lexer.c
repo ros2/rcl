@@ -578,14 +578,12 @@ static const rcl_lexeme_t g_terminals[LAST_TERMINAL + 1] = {
 rcl_ret_t
 rcl_lexer_analyze(
   const char * text,
-  rcl_allocator_t alloc,
   rcl_lexeme_t * lexeme,
   size_t * length)
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT, alloc);
-  RCL_CHECK_ARGUMENT_FOR_NULL(lexeme, RCL_RET_INVALID_ARGUMENT, alloc);
-  RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT, alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(lexeme, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(length, RCL_RET_INVALID_ARGUMENT);
 
   *length = 0u;
 
@@ -604,7 +602,7 @@ rcl_lexer_analyze(
   do {
     if (next_state > LAST_STATE) {
       // Should never happen
-      RCL_SET_ERROR_MSG("Internal lexer bug: next state does not exist", alloc);
+      RCL_SET_ERROR_MSG("Internal lexer bug: next state does not exist");
       return RCL_RET_ERROR;
     }
     state = &(g_states[next_state]);
@@ -638,7 +636,7 @@ rcl_lexer_analyze(
       // Go backwards N chars
       if (movement - 1u > *length) {
         // Should never happen
-        RCL_SET_ERROR_MSG("Internal lexer bug: movement would read before start of string", alloc);
+        RCL_SET_ERROR_MSG("Internal lexer bug: movement would read before start of string");
         return RCL_RET_ERROR;
       }
       *length -= movement - 1u;
@@ -647,7 +645,7 @@ rcl_lexer_analyze(
 
   if (FIRST_TERMINAL > next_state || next_state - FIRST_TERMINAL > LAST_TERMINAL) {
     // Should never happen
-    RCL_SET_ERROR_MSG("Internal lexer bug: terminal state does not exist", alloc);
+    RCL_SET_ERROR_MSG("Internal lexer bug: terminal state does not exist");
     return RCL_RET_ERROR;
   }
   *lexeme = g_terminals[next_state - FIRST_TERMINAL];

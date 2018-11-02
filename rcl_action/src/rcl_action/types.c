@@ -20,7 +20,6 @@ extern "C"
 
 #include "rcl/error_handling.h"
 
-
 rcl_action_goal_info_t
 rcl_action_get_zero_initialized_goal_info(void)
 {
@@ -56,10 +55,10 @@ rcl_action_goal_status_array_init(
   const rcl_allocator_t allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(status_array, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(status_array, RCL_RET_INVALID_ARGUMENT);
   // Ensure status array is zero initialized
   if (status_array->status_list.size > 0) {
-    RCL_SET_ERROR_MSG("status_array already inititalized", allocator);
+    RCL_SET_ERROR_MSG("status_array already inititalized");
     return RCL_RET_ALREADY_INIT;
   }
   // Allocate space for status array
@@ -78,7 +77,7 @@ rcl_action_goal_status_array_fini(
   const rcl_allocator_t allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(status_array, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(status_array, RCL_RET_INVALID_ARGUMENT);
   if (!status_array->status_list.data) {
     return RCL_RET_INVALID_ARGUMENT;
   }
@@ -93,10 +92,10 @@ rcl_action_cancel_response_init(
   const rcl_allocator_t allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(cancel_response, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(cancel_response, RCL_RET_INVALID_ARGUMENT);
   // Ensure cancel response is zero initialized
   if (cancel_response->goals_canceling.size > 0) {
-    RCL_SET_ERROR_MSG("cancel_response already inititalized", allocator);
+    RCL_SET_ERROR_MSG("cancel_response already inititalized");
     return RCL_RET_ALREADY_INIT;
   }
   // Allocate space for cancel response
@@ -115,7 +114,7 @@ rcl_action_cancel_response_fini(
   const rcl_allocator_t allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(cancel_response, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(cancel_response, RCL_RET_INVALID_ARGUMENT);
   if (!cancel_response->goals_canceling.data) {
     return RCL_RET_INVALID_ARGUMENT;
   }

@@ -242,8 +242,6 @@ rcl_remove_ros_arguments(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] error_alloc an alocator to use if an error occurs.
- *  This allocator is not used to allocate args_out.
  * \param[in] args The structure to be copied.
  *  Its allocator is used to copy memory into the new structure.
  * \param[out] args_out A zero-initialized arguments structure to be copied into.
@@ -256,7 +254,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_arguments_copy(
-  rcl_allocator_t error_alloc,
   const rcl_arguments_t * args,
   rcl_arguments_t * args_out);
 

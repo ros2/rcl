@@ -378,8 +378,7 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 /**
  * The bool returned is `false` if `publisher` is invalid.
  * The bool returned is `true` otherwise.
- * In the case where `false` is to be returned, an
- * error message is set.
+ * In the case where `false` is to be returned, an error message is set.
  * This function cannot fail.
  *
  * <hr>
@@ -391,14 +390,11 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
  * Lock-Free          | Yes
  *
  * \param[in] publisher pointer to the rcl publisher
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `publisher` is valid, otherwise `false`
  */
 RCL_PUBLIC
 bool
-rcl_publisher_is_valid(
-  const rcl_publisher_t * publisher,
-  rcl_allocator_t * error_msg_allocator);
+rcl_publisher_is_valid(const rcl_publisher_t * publisher);
 
 #ifdef __cplusplus
 }

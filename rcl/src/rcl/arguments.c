@@ -81,9 +81,9 @@ rcl_arguments_get_param_files(
   char *** parameter_files)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_files, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_files, RCL_RET_INVALID_ARGUMENT);
   *(parameter_files) = allocator.allocate(
     sizeof(char *) * arguments->impl->num_param_files_args, allocator.state);
   if (NULL == *parameter_files) {
@@ -143,15 +143,15 @@ rcl_parse_arguments(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   if (argc < 0) {
-    RCL_SET_ERROR_MSG("Argument count cannot be negative", allocator);
+    RCL_SET_ERROR_MSG("Argument count cannot be negative");
     return RCL_RET_INVALID_ARGUMENT;
   } else if (argc > 0) {
-    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
+    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(args_output, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args_output, RCL_RET_INVALID_ARGUMENT);
 
   if (args_output->impl != NULL) {
-    RCL_SET_ERROR_MSG("Parse output is not zero-initialized", allocator);
+    RCL_SET_ERROR_MSG("Parse output is not zero-initialized");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
@@ -307,10 +307,10 @@ rcl_arguments_get_unparsed(
   rcl_allocator_t allocator,
   int ** output_unparsed_indices)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(output_unparsed_indices, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_unparsed_indices, RCL_RET_INVALID_ARGUMENT);
 
   *output_unparsed_indices = NULL;
   if (args->impl->num_unparsed_args) {
@@ -343,10 +343,10 @@ rcl_remove_ros_arguments(
   int * nonros_argc,
   const char ** nonros_argv[])
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argc, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argc, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, allocator);
 
   *nonros_argc = rcl_arguments_get_count_unparsed(args);
   *nonros_argv = NULL;
@@ -379,16 +379,14 @@ rcl_remove_ros_arguments(
 
 rcl_ret_t
 rcl_arguments_copy(
-  rcl_allocator_t error_alloc,
   const rcl_arguments_t * args,
   rcl_arguments_t * args_out)
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&error_alloc, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, error_alloc);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT, error_alloc);
-  RCL_CHECK_ARGUMENT_FOR_NULL(args_out, RCL_RET_INVALID_ARGUMENT, error_alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args_out, RCL_RET_INVALID_ARGUMENT);
   if (NULL != args_out->impl) {
-    RCL_SET_ERROR_MSG("args_out must be zero initialized", error_alloc);
+    RCL_SET_ERROR_MSG("args_out must be zero initialized");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
@@ -411,7 +409,7 @@ rcl_arguments_copy(
     sizeof(int) * args->impl->num_unparsed_args, allocator.state);
   if (NULL == args_out->impl->unparsed_args) {
     if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
-      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
     }
     return RCL_RET_BAD_ALLOC;
   }
@@ -425,7 +423,7 @@ rcl_arguments_copy(
     sizeof(rcl_remap_t) * args->impl->num_remap_rules, allocator.state);
   if (NULL == args_out->impl->remap_rules) {
     if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
-      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
     }
     return RCL_RET_BAD_ALLOC;
   }
@@ -433,10 +431,10 @@ rcl_arguments_copy(
   for (int i = 0; i < args->impl->num_remap_rules; ++i) {
     args_out->impl->remap_rules[i] = rcl_remap_get_zero_initialized();
     rcl_ret_t ret = rcl_remap_copy(
-      error_alloc, &(args->impl->remap_rules[i]), &(args_out->impl->remap_rules[i]));
+      &(args->impl->remap_rules[i]), &(args_out->impl->remap_rules[i]));
     if (RCL_RET_OK != ret) {
       if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
-        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
       }
       return ret;
     }
@@ -447,7 +445,7 @@ rcl_arguments_copy(
       sizeof(char *) * args->impl->num_param_files_args, allocator.state);
     if (NULL == args_out->impl->parameter_files) {
       if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
-        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
       }
       return RCL_RET_BAD_ALLOC;
     }
@@ -457,7 +455,7 @@ rcl_arguments_copy(
         rcutils_strdup(args->impl->parameter_files[i], allocator);
       if (NULL == args_out->impl->parameter_files[i]) {
         if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
-          RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error", error_alloc);
+          RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
         }
         return RCL_RET_BAD_ALLOC;
       }
@@ -472,11 +470,9 @@ rcl_ret_t
 rcl_arguments_fini(
   rcl_arguments_t * args)
 {
-  rcl_allocator_t alloc = rcl_get_default_allocator();
-  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT, alloc);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
   if (args->impl) {
     rcl_ret_t ret = RCL_RET_OK;
-    alloc = args->impl->allocator;
     if (args->impl->remap_rules) {
       for (int i = 0; i < args->impl->num_remap_rules; ++i) {
         rcl_ret_t remap_ret = rcl_remap_fini(&(args->impl->remap_rules[i]));
@@ -510,7 +506,7 @@ rcl_arguments_fini(
     args->impl = NULL;
     return ret;
   }
-  RCL_SET_ERROR_MSG("rcl_arguments_t finalized twice", alloc);
+  RCL_SET_ERROR_MSG("rcl_arguments_t finalized twice");
   return RCL_RET_ERROR;
 }
 
@@ -561,9 +557,7 @@ _rcl_parse_remap_fully_qualified_namespace(
  */
 RCL_LOCAL
 rcl_ret_t
-_rcl_parse_remap_replacement_token(
-  rcl_lexer_lookahead2_t * lex_lookahead,
-  rcl_remap_t * rule)
+_rcl_parse_remap_replacement_token(rcl_lexer_lookahead2_t * lex_lookahead)
 {
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
@@ -578,7 +572,7 @@ _rcl_parse_remap_replacement_token(
     RCL_LEXEME_BR4 == lexeme || RCL_LEXEME_BR5 == lexeme || RCL_LEXEME_BR6 == lexeme ||
     RCL_LEXEME_BR7 == lexeme || RCL_LEXEME_BR8 == lexeme || RCL_LEXEME_BR9 == lexeme)
   {
-    RCL_SET_ERROR_MSG("Backreferences are not implemented", rule->allocator);
+    RCL_SET_ERROR_MSG("Backreferences are not implemented");
     return RCL_RET_ERROR;
   } else if (RCL_LEXEME_TOKEN == lexeme) {
     ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
@@ -604,7 +598,7 @@ _rcl_parse_remap_replacement_name(
 
   const char * replacement_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
   if (NULL == replacement_start) {
-    RCL_SET_ERROR_MSG("failed to get start of replacement", rule->allocator);
+    RCL_SET_ERROR_MSG("failed to get start of replacement");
     return RCL_RET_ERROR;
   }
 
@@ -621,7 +615,7 @@ _rcl_parse_remap_replacement_name(
   }
 
   // token ( '/' token )*
-  ret = _rcl_parse_remap_replacement_token(lex_lookahead, rule);
+  ret = _rcl_parse_remap_replacement_token(lex_lookahead);
   if (RCL_RET_OK != ret) {
     return ret;
   }
@@ -634,7 +628,7 @@ _rcl_parse_remap_replacement_name(
     if (RCL_RET_WRONG_LEXEME == ret) {
       return RCL_RET_INVALID_REMAP_RULE;
     }
-    ret = _rcl_parse_remap_replacement_token(lex_lookahead, rule);
+    ret = _rcl_parse_remap_replacement_token(lex_lookahead);
     if (RCL_RET_OK != ret) {
       return ret;
     }
@@ -649,7 +643,7 @@ _rcl_parse_remap_replacement_name(
   size_t length = (size_t)(replacement_end - replacement_start);
   rule->replacement = rcutils_strndup(replacement_start, length, rule->allocator);
   if (NULL == rule->replacement) {
-    RCL_SET_ERROR_MSG("failed to copy replacement", rule->allocator);
+    RCL_SET_ERROR_MSG("failed to copy replacement");
     return RCL_RET_BAD_ALLOC;
   }
 
@@ -662,9 +656,7 @@ _rcl_parse_remap_replacement_name(
  */
 RCL_LOCAL
 rcl_ret_t
-_rcl_parse_remap_match_token(
-  rcl_lexer_lookahead2_t * lex_lookahead,
-  rcl_remap_t * rule)
+_rcl_parse_remap_match_token(rcl_lexer_lookahead2_t * lex_lookahead)
 {
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
@@ -677,13 +669,13 @@ _rcl_parse_remap_match_token(
   if (RCL_LEXEME_TOKEN == lexeme) {
     ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
   } else if (RCL_LEXEME_WILD_ONE == lexeme) {
-    RCL_SET_ERROR_MSG("Wildcard '*' is not implemented", rule->allocator);
+    RCL_SET_ERROR_MSG("Wildcard '*' is not implemented");
     return RCL_RET_ERROR;
   } else if (RCL_LEXEME_WILD_MULTI == lexeme) {
-    RCL_SET_ERROR_MSG("Wildcard '**' is not implemented", rule->allocator);
+    RCL_SET_ERROR_MSG("Wildcard '**' is not implemented");
     return RCL_RET_ERROR;
   } else {
-    RCL_SET_ERROR_MSG("Expecting token or wildcard", rule->allocator);
+    RCL_SET_ERROR_MSG("Expecting token or wildcard");
     ret = RCL_RET_INVALID_REMAP_RULE;
   }
 
@@ -722,7 +714,7 @@ _rcl_parse_remap_match_name(
 
   const char * match_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
   if (NULL == match_start) {
-    RCL_SET_ERROR_MSG("failed to get start of match", rule->allocator);
+    RCL_SET_ERROR_MSG("failed to get start of match");
     return RCL_RET_ERROR;
   }
 
@@ -739,7 +731,7 @@ _rcl_parse_remap_match_name(
   }
 
   // token ( '/' token )*
-  ret = _rcl_parse_remap_match_token(lex_lookahead, rule);
+  ret = _rcl_parse_remap_match_token(lex_lookahead);
   if (RCL_RET_OK != ret) {
     return ret;
   }
@@ -752,7 +744,7 @@ _rcl_parse_remap_match_name(
     if (RCL_RET_WRONG_LEXEME == ret) {
       return RCL_RET_INVALID_REMAP_RULE;
     }
-    ret = _rcl_parse_remap_match_token(lex_lookahead, rule);
+    ret = _rcl_parse_remap_match_token(lex_lookahead);
     if (RCL_RET_OK != ret) {
       return ret;
     }
@@ -767,7 +759,7 @@ _rcl_parse_remap_match_name(
   size_t length = (size_t)(match_end - match_start);
   rule->match = rcutils_strndup(match_start, length, rule->allocator);
   if (NULL == rule->match) {
-    RCL_SET_ERROR_MSG("failed to copy match", rule->allocator);
+    RCL_SET_ERROR_MSG("failed to copy match");
     return RCL_RET_BAD_ALLOC;
   }
 
@@ -828,7 +820,7 @@ _rcl_parse_remap_namespace_replacement(
   // /foo/bar
   const char * ns_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
   if (NULL == ns_start) {
-    RCL_SET_ERROR_MSG("failed to get start of namespace", rule->allocator);
+    RCL_SET_ERROR_MSG("failed to get start of namespace");
     return RCL_RET_ERROR;
   }
   ret = _rcl_parse_remap_fully_qualified_namespace(lex_lookahead);
@@ -854,7 +846,7 @@ _rcl_parse_remap_namespace_replacement(
   size_t length = (size_t)(ns_end - ns_start);
   rule->replacement = rcutils_strndup(ns_start, length, rule->allocator);
   if (NULL == rule->replacement) {
-    RCL_SET_ERROR_MSG("failed to copy namespace", rule->allocator);
+    RCL_SET_ERROR_MSG("failed to copy namespace");
     return RCL_RET_BAD_ALLOC;
   }
 
@@ -897,7 +889,7 @@ _rcl_parse_remap_nodename_replacement(
   // copy the node name into the replacement side of the rule
   rule->replacement = rcutils_strndup(node_name, length, rule->allocator);
   if (NULL == rule->replacement) {
-    RCL_SET_ERROR_MSG("failed to allocate node name", rule->allocator);
+    RCL_SET_ERROR_MSG("failed to allocate node name");
     return RCL_RET_BAD_ALLOC;
   }
 
@@ -932,7 +924,7 @@ _rcl_parse_remap_nodename_prefix(
   // copy the node name into the rule
   rule->node_name = rcutils_strndup(node_name, length, rule->allocator);
   if (NULL == rule->node_name) {
-    RCL_SET_ERROR_MSG("failed to allocate node name", rule->allocator);
+    RCL_SET_ERROR_MSG("failed to allocate node name");
     return RCL_RET_BAD_ALLOC;
   }
 
@@ -1007,11 +999,11 @@ _rcl_parse_log_level_rule(
   rcl_allocator_t allocator,
   int * log_level)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT);
 
   if (strncmp(RCL_LOG_LEVEL_ARG_RULE, arg, strlen(RCL_LOG_LEVEL_ARG_RULE)) != 0) {
-    RCL_SET_ERROR_MSG("Argument does not start with '" RCL_LOG_LEVEL_ARG_RULE "'", allocator);
+    RCL_SET_ERROR_MSG("Argument does not start with '" RCL_LOG_LEVEL_ARG_RULE "'");
     return RCL_RET_INVALID_LOG_LEVEL_RULE;
   }
   rcutils_ret_t ret = rcutils_logging_severity_level_from_string(
@@ -1019,7 +1011,7 @@ _rcl_parse_log_level_rule(
   if (RCUTILS_RET_OK == ret) {
     return RCL_RET_OK;
   }
-  RCL_SET_ERROR_MSG("Argument does not use a valid severity level", allocator);
+  RCL_SET_ERROR_MSG("Argument does not use a valid severity level");
   return RCL_RET_INVALID_LOG_LEVEL_RULE;
 }
 
@@ -1030,8 +1022,8 @@ _rcl_parse_remap_rule(
   rcl_allocator_t allocator,
   rcl_remap_t * output_rule)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(output_rule, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_rule, RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t ret;
 
@@ -1065,20 +1057,20 @@ _rcl_parse_param_file_rule(
   rcl_allocator_t allocator,
   char ** param_file)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
 
   const size_t param_prefix_len = strlen(RCL_PARAM_FILE_ARG_RULE);
   if (strncmp(RCL_PARAM_FILE_ARG_RULE, arg, param_prefix_len) == 0) {
     size_t outlen = strlen(arg) - param_prefix_len;
     *param_file = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
-    if (NULL == param_file) {
+    if (NULL == *param_file) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to allocate memory for parameters file path\n");
       return RCL_RET_BAD_ALLOC;
     }
     snprintf(*param_file, outlen + 1, "%s", arg + param_prefix_len);
     return RCL_RET_OK;
   }
-  RCL_SET_ERROR_MSG("Argument does not start with '" RCL_PARAM_FILE_ARG_RULE "'", allocator);
+  RCL_SET_ERROR_MSG("Argument does not start with '" RCL_PARAM_FILE_ARG_RULE "'");
   return RCL_RET_INVALID_PARAM_RULE;
 }
 

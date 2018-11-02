@@ -25,7 +25,6 @@ extern "C"
 #include "rcl_action/visibility_control.h"
 #include "rcl/wait.h"
 
-
 /// Add a rcl_action_client_t to a wait set.
 /**
  * This function will add the underlying service clients and subscriber to the wait set.

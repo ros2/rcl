@@ -18,43 +18,31 @@
 #include "rcutils/error_handling.h"
 
 /// The error handling in RCL is just an alias to the error handling in rcutils.
-/**
- * Allocators given to functions in rcl are passed along to the error handling
- * on a "best effort" basis.
- * In some situations, like when NULL is passed for the allocator or something
- * else that contains it, the allocator is not available to be passed to the
- * RCL_SET_ERROR_MSG macro.
- * In these cases, the default allocator rcl_get_default_allocator() is used.
- * Since these are considered fatal errors, as opposed to errors that might
- * occur during normal runtime, is should be okay to use the default allocator.
- */
 
 typedef rcutils_error_state_t rcl_error_state_t;
+typedef rcutils_error_string_t rcl_error_string_t;
 
-#define rcl_error_state_copy rcutils_error_state_copy
-
-#define rcl_error_state_fini rcutils_error_state_fini
+#define rcl_initialize_error_handling_thread_local_storage \
+  rcutils_initialize_error_handling_thread_local_storage
 
 #define rcl_set_error_state rcutils_set_error_state
 
-#define RCL_CHECK_ARGUMENT_FOR_NULL(argument, error_return_type, allocator) \
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(argument, error_return_type, allocator)
+#define RCL_CHECK_ARGUMENT_FOR_NULL(argument, error_return_type) \
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(argument, error_return_type)
 
-#define RCL_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement, allocator) \
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement, allocator)
+#define RCL_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement) \
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(value, msg, error_statement)
 
-#define RCL_SET_ERROR_MSG(msg, allocator) RCUTILS_SET_ERROR_MSG(msg, allocator)
+#define RCL_SET_ERROR_MSG(msg) RCUTILS_SET_ERROR_MSG(msg)
 
-#define RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, fmt_str, ...) \
-  RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(allocator, fmt_str, __VA_ARGS__)
+#define RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(fmt_str, ...) \
+  RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(fmt_str, __VA_ARGS__)
 
 #define rcl_error_is_set rcutils_error_is_set
 
 #define rcl_get_error_state rcutils_get_error_state
 
 #define rcl_get_error_string rcutils_get_error_string
-
-#define rcl_get_error_string_safe rcutils_get_error_string_safe
 
 #define rcl_reset_error rcutils_reset_error
 

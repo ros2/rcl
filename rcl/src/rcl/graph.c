@@ -36,12 +36,12 @@ rcl_get_topic_names_and_types(
   bool no_demangle,
   rcl_names_and_types_t * topic_names_and_types)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator())
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
-  if (!rcl_node_is_valid(node, allocator)) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT, *allocator)
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret;
   rmw_ret = rmw_names_and_types_check_zero(topic_names_and_types);
   if (rmw_ret != RMW_RET_OK) {
@@ -63,11 +63,11 @@ rcl_get_service_names_and_types(
   rcl_allocator_t * allocator,
   rcl_names_and_types_t * service_names_and_types)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, *allocator);
-  if (!rcl_node_is_valid(node, allocator)) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(service_names_and_types, RCL_RET_INVALID_ARGUMENT, *allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service_names_and_types, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret;
   rmw_ret = rmw_names_and_types_check_zero(service_names_and_types);
   if (rmw_ret != RMW_RET_OK) {
@@ -85,8 +85,7 @@ rcl_get_service_names_and_types(
 rcl_ret_t
 rcl_names_and_types_fini(rcl_names_and_types_t * topic_names_and_types)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(
-    topic_names_and_types, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_names_and_types_fini(topic_names_and_types);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
@@ -98,29 +97,29 @@ rcl_get_node_names(
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, allocator);
-  if (!rcl_node_is_valid(node, &allocator)) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(node_names, RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_names, RCL_RET_INVALID_ARGUMENT);
   if (node_names->size != 0) {
-    RCL_SET_ERROR_MSG("node_names size is not zero", allocator);
+    RCL_SET_ERROR_MSG("node_names size is not zero");
     return RCL_RET_INVALID_ARGUMENT;
   }
   if (node_names->data) {
-    RCL_SET_ERROR_MSG("node_names is not null", allocator);
+    RCL_SET_ERROR_MSG("node_names is not null");
     return RCL_RET_INVALID_ARGUMENT;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(node_namespaces,
-    RCL_RET_INVALID_ARGUMENT, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_namespaces, RCL_RET_INVALID_ARGUMENT);
   if (node_namespaces->size != 0) {
-    RCL_SET_ERROR_MSG("node_namespaces size is not zero", allocator);
+    RCL_SET_ERROR_MSG("node_namespaces size is not zero");
     return RCL_RET_INVALID_ARGUMENT;
   }
   if (node_namespaces->data) {
-    RCL_SET_ERROR_MSG("node_namespaces is not null", allocator);
+    RCL_SET_ERROR_MSG("node_namespaces is not null");
     return RCL_RET_INVALID_ARGUMENT;
   }
+  (void)allocator;  // to be used in rmw_get_node_names in the future
   rmw_ret_t rmw_ret = rmw_get_node_names(
     rcl_node_get_rmw_handle(node),
     node_names,
@@ -134,16 +133,16 @@ rcl_count_publishers(
   const char * topic_name,
   size_t * count)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  if (!rcl_node_is_valid(node, NULL)) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (!node_options) {
     return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_count_publishers(rcl_node_get_rmw_handle(node), topic_name, count);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
@@ -154,16 +153,16 @@ rcl_count_subscribers(
   const char * topic_name,
   size_t * count)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  if (!rcl_node_is_valid(node, NULL)) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (!node_options) {
     return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_count_subscribers(rcl_node_get_rmw_handle(node), topic_name, count);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
@@ -174,16 +173,16 @@ rcl_service_server_is_available(
   const rcl_client_t * client,
   bool * is_available)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  if (!rcl_node_is_valid(node, NULL)) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (!node_options) {
     return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
-  RCL_CHECK_ARGUMENT_FOR_NULL(is_available, RCL_RET_INVALID_ARGUMENT, node_options->allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_available, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_service_server_is_available(
     rcl_node_get_rmw_handle(node),
     rcl_client_get_rmw_handle(client),

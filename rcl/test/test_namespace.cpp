@@ -38,22 +38,22 @@ public:
   {
     rcl_ret_t ret;
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "rcl_test_namespace_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void TearDown()
   {
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown();
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };
 
@@ -70,20 +70,20 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
   ret = rcl_service_init(&service, this->node_ptr, ts, service_name, &service_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
   rcl_client_t unmatched_client = rcl_get_zero_initialized_client();
   rcl_client_options_t unmatched_client_options = rcl_client_get_default_options();
   ret = rcl_client_init(
     &unmatched_client, this->node_ptr, ts, unmatched_client_name, &unmatched_client_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_client_fini(&unmatched_client, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
   bool is_available = false;
@@ -101,10 +101,10 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   rcl_client_options_t matched_client_options = rcl_client_get_default_options();
   ret = rcl_client_init(
     &matched_client, this->node_ptr, ts, matched_client_name, &matched_client_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_client_fini(&matched_client, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
   is_available = false;

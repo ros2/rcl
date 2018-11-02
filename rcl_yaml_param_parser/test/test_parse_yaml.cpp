@@ -35,7 +35,7 @@ TEST(test_file_parser, correct_syntax) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_TRUE(res);
   rcl_yaml_node_struct_print(params_hdl);
   rcl_yaml_node_struct_fini(params_hdl);
@@ -54,7 +54,7 @@ TEST(test_file_parser, multi_ns_correct_syntax) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_TRUE(res);
   rcl_yaml_node_struct_print(params_hdl);
   rcl_yaml_node_struct_fini(params_hdl);
@@ -73,7 +73,7 @@ TEST(test_file_parser, root_ns) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_TRUE(res);
   rcl_yaml_node_struct_print(params_hdl);
 
@@ -98,7 +98,7 @@ TEST(test_file_parser, seq_map1) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   allocator.deallocate(test_path, allocator.state);
   allocator.deallocate(path, allocator.state);
@@ -115,7 +115,7 @@ TEST(test_file_parser, seq_map2) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   allocator.deallocate(test_path, allocator.state);
   allocator.deallocate(path, allocator.state);
@@ -132,7 +132,7 @@ TEST(test_file_parser, params_with_no_node) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   allocator.deallocate(test_path, allocator.state);
   allocator.deallocate(path, allocator.state);
@@ -149,7 +149,7 @@ TEST(test_file_parser, no_alias_support) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   allocator.deallocate(test_path, allocator.state);
   allocator.deallocate(path, allocator.state);
@@ -166,7 +166,7 @@ TEST(test_file_parser, max_string_sz) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   allocator.deallocate(test_path, allocator.state);
   allocator.deallocate(path, allocator.state);
@@ -183,7 +183,7 @@ TEST(test_file_parser, no_value1) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   allocator.deallocate(test_path, allocator.state);
   allocator.deallocate(path, allocator.state);
@@ -200,7 +200,7 @@ TEST(test_file_parser, indented_ns) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string_safe());
+  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   allocator.deallocate(test_path, allocator.state);
   allocator.deallocate(path, allocator.state);

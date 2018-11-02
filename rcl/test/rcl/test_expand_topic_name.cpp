@@ -42,7 +42,7 @@ TEST(test_expand_topic_name, normal) {
     std::string expected = std::string(ns) + "/" + node + "/chatter";
     char * expanded_topic;
     ret = rcl_expand_topic_name(topic, node, ns, &subs, allocator, &expanded_topic);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ(expected.c_str(), expanded_topic);
   }
 }
@@ -172,7 +172,7 @@ TEST(test_expand_topic_name, various_valid_topics) {
       "' and namespace '" << ns << "'";
     EXPECT_EQ(RCL_RET_OK, ret) <<
       ss.str() <<
-      ", it failed with '" << ret << "': " << rcl_get_error_string_safe();
+      ", it failed with '" << ret << "': " << rcl_get_error_string().str;
     EXPECT_STREQ(expected.c_str(), expanded_topic) << ss.str() << " strings did not match.\n";
   }
 }
@@ -216,7 +216,7 @@ TEST(test_expand_topic_name, custom_substitution) {
     const char * node = "my_node";
     char * expanded_topic;
     ret = rcl_expand_topic_name(topic, node, ns, &subs, allocator, &expanded_topic);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/my_ns/pong", expanded_topic);
   }
 }

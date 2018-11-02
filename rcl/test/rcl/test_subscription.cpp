@@ -42,22 +42,22 @@ public:
   {
     rcl_ret_t ret;
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "test_subscription_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void TearDown()
   {
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown();
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };
 
@@ -70,23 +70,23 @@ wait_for_subscription_to_be_ready(
 {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   size_t iteration = 0;
   do {
     ++iteration;
     ret = rcl_wait_set_clear(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_wait_set_add_subscription(&wait_set, subscription);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
     if (ret == RCL_RET_TIMEOUT) {
       continue;
     }
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
       if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
         success = true;
@@ -108,35 +108,35 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   const char * expected_topic = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   EXPECT_EQ(strcmp(rcl_subscription_get_topic_name(&subscription), expected_topic), 0);
 
   // Test is_valid for subscription with nullptr
-  EXPECT_FALSE(rcl_subscription_is_valid(nullptr, nullptr));
+  EXPECT_FALSE(rcl_subscription_is_valid(nullptr));
   rcl_reset_error();
 
   // Test is_valid for zero initialized subscription
   subscription = rcl_get_zero_initialized_subscription();
-  EXPECT_FALSE(rcl_subscription_is_valid(&subscription, nullptr));
+  EXPECT_FALSE(rcl_subscription_is_valid(&subscription));
   rcl_reset_error();
 
   // Check that valid subscriber is valid
   subscription = rcl_get_zero_initialized_subscription();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription, nullptr));
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
   rcl_reset_error();
 
   // TODO(wjwwood): add logic to wait for the connection to be established
@@ -149,7 +149,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     msg.int64_value = 42;
     ret = rcl_publish(&publisher, &msg);
     test_msgs__msg__Primitives__fini(&msg);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
   bool success;
   wait_for_subscription_to_be_ready(&subscription, 10, 100, success);
@@ -161,7 +161,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       test_msgs__msg__Primitives__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(42, msg.int64_value);
   }
 }
@@ -176,18 +176,18 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   const char * topic = "rcl_test_subscription_nominal_string_chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   // TODO(wjwwood): add logic to wait for the connection to be established
   //                probably using the count_subscriptions busy wait mechanism
@@ -200,7 +200,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg);
     test_msgs__msg__Primitives__fini(&msg);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
   bool success;
   wait_for_subscription_to_be_ready(&subscription, 10, 100, success);
@@ -212,7 +212,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       test_msgs__msg__Primitives__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(std::string(test_string), std::string(msg.string_value.data, msg.string_value.size));
   }
 }

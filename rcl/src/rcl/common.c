@@ -32,8 +32,8 @@ static char __env_buffer[WINDOWS_ENV_BUFFER_SIZE];
 rcl_ret_t
 rcl_impl_getenv(const char * env_name, const char ** env_value)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(env_name, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
-  RCL_CHECK_ARGUMENT_FOR_NULL(env_value, RCL_RET_INVALID_ARGUMENT, rcl_get_default_allocator());
+  RCL_CHECK_ARGUMENT_FOR_NULL(env_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(env_value, RCL_RET_INVALID_ARGUMENT);
   *env_value = NULL;
 #if !defined(_WIN32)
   *env_value = getenv(env_name);
@@ -44,7 +44,7 @@ rcl_impl_getenv(const char * env_name, const char ** env_value)
   size_t required_size;
   errno_t ret = getenv_s(&required_size, __env_buffer, sizeof(__env_buffer), env_name);
   if (ret != 0) {
-    RCL_SET_ERROR_MSG("value in env variable too large to read in", rcl_get_default_allocator());
+    RCL_SET_ERROR_MSG("value in env variable too large to read in");
     return RCL_RET_ERROR;
   }
   __env_buffer[WINDOWS_ENV_BUFFER_SIZE - 1] = '\0';

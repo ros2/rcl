@@ -388,8 +388,7 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
 /**
  * The bool returned is `false` if `subscription` is invalid.
  * The bool returned is `true` otherwise.
- * In the case where `false` is to be returned, an
- * error message is set.
+ * In the case where `false` is to be returned, an error message is set.
  * This function cannot fail.
  *
  * <hr>
@@ -401,14 +400,11 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription);
  * Lock-Free          | Yes
  *
  * \param[in] subscription pointer to the rcl subscription
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `subscription` is valid, otherwise `false`
  */
 RCL_PUBLIC
 bool
-rcl_subscription_is_valid(
-  const rcl_subscription_t * subscription,
-  rcl_allocator_t * error_msg_allocator);
+rcl_subscription_is_valid(const rcl_subscription_t * subscription);
 
 #ifdef __cplusplus
 }

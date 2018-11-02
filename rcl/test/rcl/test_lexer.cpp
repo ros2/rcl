@@ -42,8 +42,7 @@ public:
   do { \
     rcl_lexeme_t actual_lexeme; \
     size_t length; \
-    rcl_allocator_t allocator = rcl_get_default_allocator(); \
-    rcl_ret_t ret = rcl_lexer_analyze(text, allocator, &actual_lexeme, &length); \
+    rcl_ret_t ret = rcl_lexer_analyze(text, &actual_lexeme, &length); \
     ASSERT_EQ(RCL_RET_OK, ret); \
     EXPECT_EQ(expected_lexeme, actual_lexeme); \
     std::string actual_text(text, length); \

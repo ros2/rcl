@@ -44,22 +44,22 @@ public:
   { \
     name = rcl_get_zero_initialized_lexer_lookahead2(); \
     rcl_ret_t ret = rcl_lexer_lookahead2_init(&name, text, rcl_get_default_allocator()); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
   } \
   auto __scope_lookahead2_ ## name = osrf_testing_tools_cpp::make_scope_exit( \
     [&name]() { \
       rcl_ret_t ret = rcl_lexer_lookahead2_fini(&buffer); \
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
     })
 
 TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_init_fini_twice)
 {
   rcl_lexer_lookahead2_t buffer = rcl_get_zero_initialized_lexer_lookahead2();
   rcl_ret_t ret = rcl_lexer_lookahead2_init(&buffer, "foobar", rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_lexer_lookahead2_fini(&buffer);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_lexer_lookahead2_fini(&buffer);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
@@ -105,7 +105,7 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_peek2)
   rcl_lexeme_t lexeme2 = RCL_LEXEME_NONE;
 
   ret = rcl_lexer_lookahead2_peek2(&buffer, &lexeme1, &lexeme2);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_LEXEME_TOKEN, lexeme1);
   EXPECT_EQ(RCL_LEXEME_FORWARD_SLASH, lexeme2);
 
@@ -113,7 +113,7 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_peek2)
   lexeme1 = RCL_LEXEME_NONE;
   lexeme2 = RCL_LEXEME_NONE;
   ret = rcl_lexer_lookahead2_peek2(&buffer, &lexeme1, &lexeme2);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_LEXEME_TOKEN, lexeme1);
   EXPECT_EQ(RCL_LEXEME_FORWARD_SLASH, lexeme2);
 }
@@ -134,7 +134,7 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_eof)
     rcl_lexeme_t lexeme1 = RCL_LEXEME_NONE;
     rcl_lexeme_t lexeme2 = RCL_LEXEME_NONE;
     ret = rcl_lexer_lookahead2_peek2(&buffer, &lexeme1, &lexeme2);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_LEXEME_EOF, lexeme1);
     EXPECT_EQ(RCL_LEXEME_EOF, lexeme2);
   }
@@ -161,37 +161,37 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_accept)
 
   // Peek token
   ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_LEXEME_TOKEN, lexeme);
 
   // accept token
   ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_STREQ("foobar", std::string(lexeme_text, lexeme_text_length).c_str());
 
   // peek forward slash
   ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_LEXEME_FORWARD_SLASH, lexeme);
 
   // accept forward slash
   ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_STREQ("/", std::string(lexeme_text, lexeme_text_length).c_str());
 
   // peek eof
   ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_LEXEME_EOF, lexeme);
 
   // accept eof
   ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_STREQ("", std::string(lexeme_text, lexeme_text_length).c_str());
 
   // peek eof again
   ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_LEXEME_EOF, lexeme);
 }
 
@@ -204,12 +204,12 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_expect)
   size_t lexeme_text_length;
 
   ret = rcl_lexer_lookahead2_expect(&buffer, RCL_LEXEME_TOKEN, &lexeme_text, &lexeme_text_length);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_STREQ("node_name", std::string(lexeme_text, lexeme_text_length).c_str());
 
   ret = rcl_lexer_lookahead2_expect(
     &buffer, RCL_LEXEME_FORWARD_SLASH, &lexeme_text, &lexeme_text_length);
-  EXPECT_EQ(RCL_RET_WRONG_LEXEME, ret) << rcl_get_error_string_safe();
+  EXPECT_EQ(RCL_RET_WRONG_LEXEME, ret) << rcl_get_error_string().str;
 }
 
 #define EXPECT_LOOKAHEAD(expected_lexeme, expected_text, buffer) \
@@ -219,9 +219,9 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_expect)
     rcl_lexeme_t lexeme; \
     ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme); \
     EXPECT_EQ(expected_lexeme, lexeme); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
     ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe(); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
     EXPECT_STREQ(expected_text, std::string(lexeme_text, lexeme_text_length).c_str()); \
   } while (false)
 
