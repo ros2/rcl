@@ -42,7 +42,7 @@ rcl_action_goal_handle_init(
   rcl_action_goal_info_t * goal_info,
   const rcl_allocator_t allocator)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_ACTION_GOAL_HANDLE_INVALID);
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_info, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
@@ -68,19 +68,20 @@ rcl_action_goal_handle_init(
   // Copy goal info and allocator into goal handle
   *goal_handle->impl->info = *goal_info;
   goal_handle->impl->allocator = allocator;
+  // Initialize state to ACCEPTED
+  goal_handle->impl->state = GOAL_STATE_ACCEPTED;
   return RCL_RET_OK;
 }
 
 rcl_ret_t
 rcl_action_goal_handle_fini(rcl_action_goal_handle_t * goal_handle)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_ACTION_GOAL_HANDLE_INVALID);
-
-  // TODO(jacobperron): Replace with `rcl_action_goal_handle_is_valid()`
-  if (!goal_handle->impl) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
     return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
   }
-  // TODO(jacobperron): Deallocate goal info pointer
+  goal_handle->impl->allocator.deallocate(
+    goal_handle->impl->info, goal_handle->impl->allocator.state);
   goal_handle->impl->allocator.deallocate(goal_handle->impl, goal_handle->impl->allocator.state);
   return RCL_RET_OK;
 }
@@ -90,9 +91,12 @@ rcl_action_update_goal_state(
   rcl_action_goal_handle_t * goal_handle,
   const rcl_action_goal_event_t goal_event)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_ACTION_GOAL_HANDLE_INVALID);
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
+    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
+  }
   rcl_action_goal_state_t new_state = rcl_action_transition_goal_state(
-      goal_handle->impl->state, goal_event);
+    goal_handle->impl->state, goal_event);
   if (GOAL_STATE_UNKNOWN == new_state) {
     return RCL_RET_ACTION_GOAL_EVENT_INVALID;
   }
@@ -105,7 +109,12 @@ rcl_action_goal_handle_get_info(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_action_goal_info_t * goal_info)
 {
-  // TODO(jacobperron): impl
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
+    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_info, RCL_RET_INVALID_ARGUMENT);
+  *goal_info = *goal_handle->impl->info;
   return RCL_RET_OK;
 }
 
@@ -114,25 +123,37 @@ rcl_action_goal_handle_get_status(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_action_goal_state_t * status)
 {
-  // TODO(jacobperron): impl
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
+    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(status, RCL_RET_INVALID_ARGUMENT);
+  *status = goal_handle->impl->state;
   return RCL_RET_OK;
 }
 
 bool
-rcl_action_goal_handle_is_active(
-  const rcl_action_goal_handle_t * goal_handle,
-  rcl_allocator_t * error_msg_allocator)
+rcl_action_goal_handle_is_active(const rcl_action_goal_handle_t * goal_handle)
 {
-  // TODO(jacobperron): impl
-  return true;
+  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
+    return false;
+  }
+  switch (goal_handle->impl->state) {
+    case GOAL_STATE_ACCEPTED:
+    case GOAL_STATE_EXECUTING:
+    case GOAL_STATE_CANCELING:
+      return true;
+    default:
+      return false;
+  }
 }
 
 bool
-rcl_action_goal_handle_is_valid(
-  const rcl_action_goal_handle_t * goal_handle,
-  rcl_allocator_t * error_msg_allocator)
+rcl_action_goal_handle_is_valid(const rcl_action_goal_handle_t * goal_handle)
 {
-  // TODO(jacobperron): impl
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_handle->impl, "goal handle implementation is invalid", return false);
   return true;
 }
 

@@ -98,6 +98,9 @@ rcl_action_transition_goal_state(
   const rcl_action_goal_state_t state,
   const rcl_action_goal_event_t event)
 {
+  if (state >= GOAL_STATE_NUM_STATES || event >= GOAL_EVENT_NUM_EVENTS) {
+    return GOAL_STATE_UNKNOWN;
+  }
   rcl_action_goal_event_handler handler = _goal_state_transition_map[state][event];
   if (NULL == handler) {
     return GOAL_STATE_UNKNOWN;

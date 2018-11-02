@@ -108,7 +108,6 @@ rcl_action_goal_handle_init(
  * \param[inout] goal_handle struct to be deinitialized
  * \return `RCL_RET_OK` if the goal handle was deinitialized successfully, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
@@ -156,7 +155,7 @@ rcl_action_update_goal_state(
  * \param[out] goal_info a preallocated struct where the goal info is copied
  * \return `RCL_RET_OK` if the goal ID was accessed successfully, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ * \return `RCL_RET_INVALID_ARGUMENT` if the goal_info argument is invalid
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
@@ -181,7 +180,7 @@ rcl_action_goal_handle_get_info(
  * \param[out] status a preallocated struct where the goal status is copied
  * \return `RCL_RET_OK` if the goal ID was accessed successfully, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ * \return `RCL_RET_INVALID_ARGUMENT` if the status argument is invalid
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
@@ -194,10 +193,6 @@ rcl_action_goal_handle_get_status(
 /**
  * This is a non-blocking call.
  *
- * The allocator needs to either be a valid allocator or `NULL`, in which case
- * the default allocator will be used.
- * The allocator is used when allocation is needed for an error message.
- *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -207,25 +202,18 @@ rcl_action_goal_handle_get_status(
  * Lock-Free          | Yes
  *
  * \param[in] goal_handle struct containing the goal and metadata
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if a goal is in one of the following states: ACCEPTED, EXECUTING, or CANCELING, or
  * \return `false` otherwise, also
- * \return `false` if the goal handle pointer is invalid or the allocator is invalid
+ * \return `false` if the goal handle pointer is invalid
 */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 bool
-rcl_action_goal_handle_is_active(
-  const rcl_action_goal_handle_t * goal_handle,
-  rcl_allocator_t * error_msg_allocator);
+rcl_action_goal_handle_is_active(const rcl_action_goal_handle_t * goal_handle);
 
 /// Check if a rcl_action_goal_handle_t is valid.
 /**
  * This is a non-blocking call.
- *
- * The allocator needs to either be a valid allocator or `NULL`, in which case
- * the default allocator will be used.
- * The allocator is used when allocation is needed for an error message.
  *
  * A goal handle is invalid if:
  *   - the implementation is `NULL` (rcl_action_goal_handle_init() not called or failed)
@@ -241,16 +229,13 @@ rcl_action_goal_handle_is_active(
  * Lock-Free          | Yes
  *
  * \param[in] goal_handle struct to evaluate as valid or not
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if the goal handle is valid, `false` otherwise, also
- * \return `false` if the allocator is invalid
+ * \return `false` if the goal handle pointer is null
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 bool
-rcl_action_goal_handle_is_valid(
-  const rcl_action_goal_handle_t * goal_handle,
-  rcl_allocator_t * error_msg_allocator);
+rcl_action_goal_handle_is_valid(const rcl_action_goal_handle_t * goal_handle);
 
 #ifdef __cplusplus
 }
