@@ -81,9 +81,13 @@ TEST(TestGoalHandle, test_goal_handle_is_valid)
   rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
   rcl_ret_t ret = rcl_action_goal_handle_init(
     &goal_handle, &goal_info, rcl_get_default_allocator());
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   is_valid = rcl_action_goal_handle_is_valid(&goal_handle);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
+
+  // Finalize
+  ret = rcl_action_goal_handle_fini(&goal_handle);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 }
 
 TEST(TestGoalHandle, test_goal_handle_get_info)
@@ -110,6 +114,7 @@ TEST(TestGoalHandle, test_goal_handle_get_info)
 
   // Check with null goal info
   ret = rcl_action_goal_handle_init(&goal_handle, &goal_info_input, rcl_get_default_allocator());
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   ret = rcl_action_goal_handle_get_info(&goal_handle, nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -122,6 +127,10 @@ TEST(TestGoalHandle, test_goal_handle_get_info)
   }
   EXPECT_EQ(goal_info_input.stamp.sec, goal_info_output.stamp.sec);
   EXPECT_EQ(goal_info_input.stamp.nanosec, goal_info_output.stamp.nanosec);
+
+  // Finalize
+  ret = rcl_action_goal_handle_fini(&goal_handle);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 }
 
 TEST(TestGoalHandle, test_goal_handle_update_state_invalid)

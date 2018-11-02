@@ -24,7 +24,7 @@ extern "C"
 
 typedef struct rcl_action_goal_handle_impl_t
 {
-  rcl_action_goal_info_t * info;
+  rcl_action_goal_info_t info;
   rcl_action_goal_state_t state;
   rcl_allocator_t allocator;
 } rcl_action_goal_handle_impl_t;
@@ -58,18 +58,12 @@ rcl_action_goal_handle_init(
     RCL_SET_ERROR_MSG("goal_handle memory allocation failed");
     return RCL_RET_BAD_ALLOC;
   }
-  // Allocate space for the goal info pointer
-  goal_handle->impl->info = (rcl_action_goal_info_t *)allocator.allocate(
-    sizeof(rcl_action_goal_info_t), allocator.state);
-  if (!goal_handle->impl->info) {
-    RCL_SET_ERROR_MSG("goal_handle info memory allocation failed");
-    return RCL_RET_BAD_ALLOC;
-  }
-  // Copy goal info and allocator into goal handle
-  *goal_handle->impl->info = *goal_info;
-  goal_handle->impl->allocator = allocator;
+  // Copy goal info (assuming it is trivially copyable)
+  goal_handle->impl->info = *goal_info;
   // Initialize state to ACCEPTED
   goal_handle->impl->state = GOAL_STATE_ACCEPTED;
+  // Copy the allocator
+  goal_handle->impl->allocator = allocator;
   return RCL_RET_OK;
 }
 
@@ -80,8 +74,6 @@ rcl_action_goal_handle_fini(rcl_action_goal_handle_t * goal_handle)
   if (!rcl_action_goal_handle_is_valid(goal_handle)) {
     return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
   }
-  goal_handle->impl->allocator.deallocate(
-    goal_handle->impl->info, goal_handle->impl->allocator.state);
   goal_handle->impl->allocator.deallocate(goal_handle->impl, goal_handle->impl->allocator.state);
   return RCL_RET_OK;
 }
@@ -114,7 +106,8 @@ rcl_action_goal_handle_get_info(
     return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_info, RCL_RET_INVALID_ARGUMENT);
-  *goal_info = *goal_handle->impl->info;
+  // Assumption: goal info is trivially copyable
+  *goal_info = goal_handle->impl->info;
   return RCL_RET_OK;
 }
 
