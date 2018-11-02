@@ -39,10 +39,12 @@ rcl_action_get_zero_initialized_goal_handle(void)
 rcl_ret_t
 rcl_action_goal_handle_init(
   rcl_action_goal_handle_t * goal_handle,
+  rcl_action_goal_info_t * goal_info,
   const rcl_allocator_t allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_ACTION_GOAL_HANDLE_INVALID, allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_info, RCL_RET_INVALID_ARGUMENT, allocator);
 
   // Ensure the goal handle is zero initialized
   if (goal_handle->impl) {
@@ -57,7 +59,15 @@ rcl_action_goal_handle_init(
     RCL_SET_ERROR_MSG("goal_handle memory allocation failed", allocator);
     return RCL_RET_BAD_ALLOC;
   }
-  // TODO(jacobperron): Allocate space for the goal info pointer
+  // Allocate space for the goal info pointer
+  goal_handle->impl->info = (rcl_action_goal_info_t *)allocator.allocate(
+    sizeof(rcl_action_goal_info_t), allocator.state);
+  if (!goal_handle->impl->info) {
+    RCL_SET_ERROR_MSG("goal_handle info memory allocation failed", allocator);
+    return RCL_RET_BAD_ALLOC;
+  }
+  // Copy goal info and allocator into goal handle
+  *goal_handle->impl->info = *goal_info;
   goal_handle->impl->allocator = allocator;
   return RCL_RET_OK;
 }
@@ -66,9 +76,7 @@ rcl_ret_t
 rcl_action_goal_handle_fini(rcl_action_goal_handle_t * goal_handle)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(
-    goal_handle,
-    RCL_RET_ACTION_GOAL_HANDLE_INVALID,
-    rcl_get_default_allocator());
+    goal_handle, RCL_RET_ACTION_GOAL_HANDLE_INVALID, rcl_get_default_allocator());
 
   // TODO(jacobperron): Replace with `rcl_action_goal_handle_is_valid()`
   if (!goal_handle->impl) {
@@ -84,7 +92,14 @@ rcl_action_update_goal_state(
   rcl_action_goal_handle_t * goal_handle,
   const rcl_action_goal_event_t goal_event)
 {
-  // TODO(jacobperron): impl
+  RCL_CHECK_ARGUMENT_FOR_NULL(
+    goal_handle, RCL_RET_ACTION_GOAL_HANDLE_INVALID, rcl_get_default_allocator());
+  rcl_action_goal_state_t new_state = rcl_action_transition_goal_state(
+      goal_handle->impl->state, goal_event);
+  if (GOAL_STATE_UNKNOWN == new_state) {
+    return RCL_RET_ACTION_GOAL_EVENT_INVALID;
+  }
+  goal_handle->impl->state = new_state;
   return RCL_RET_OK;
 }
 

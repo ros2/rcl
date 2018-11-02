@@ -69,20 +69,20 @@ rcl_action_get_zero_initialized_goal_handle(void);
  *
  * \param[out] goal_handle preallocated, zero-initialized, goal handle structure
  *   to be initialized
- * \param[in] action_server valid rcl action server
- * \param[in] type_support type support object for the action's type
+ * \param[in] goal_info information about the goal to be copied to the goal handle
+ * \param[in] allocator a valid allocator used to initialized the goal handle
  * \return `RCL_RET_OK` if goal_handle was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if the allocator is invalid, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_ALREADY_INIT` if the goal handle has already been initialized, or
- * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_init(
   rcl_action_goal_handle_t * goal_handle,
+  rcl_action_goal_info_t * goal_info,
   const rcl_allocator_t allocator);
 
 /// Finalize a rcl_action_goal_handle_t.
@@ -132,7 +132,6 @@ rcl_action_goal_handle_fini(rcl_action_goal_handle_t * goal_handle);
  * \return `RCL_RET_OK` if the goal state was updated successfully, or
  * \return `RCL_RET_ACTION_GOAL_EVENT_INVALID` if the goal event is invalid, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
