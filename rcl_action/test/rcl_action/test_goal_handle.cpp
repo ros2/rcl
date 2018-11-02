@@ -64,12 +64,12 @@ TEST(TestGoalHandle, test_goal_handle_is_valid)
 {
   // Check null goal handle
   bool is_valid = rcl_action_goal_handle_is_valid(nullptr, NULL);
-  EXPECT_FALSE(is_valid) << rcl_get_error_string_safe();
+  EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
 
   // Check uninitialized goal handle
   rcl_action_goal_handle_t goal_handle = rcl_action_get_zero_initialized_goal_handle();
   is_valid = rcl_action_goal_handle_is_valid(&goal_handle, NULL);
-  EXPECT_FALSE(is_valid) << rcl_get_error_string_safe();
+  EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
 
   // Check valid goal handle
   rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
@@ -78,7 +78,7 @@ TEST(TestGoalHandle, test_goal_handle_is_valid)
   ret = rcl_action_goal_handle_init(&goal_handle, &goal_info, rcl_get_default_allocator());
   EXPECT_EQ(ret, RCL_RET_OK);
   is_valid = rcl_action_goal_handle_is_valid(&goal_handle, NULL);
-  EXPECT_TRUE(is_valid) << rcl_get_error_string_safe();
+  EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
 }
 
 TEST(TestGoalHandle, test_goal_handle_get_info)
@@ -159,7 +159,7 @@ protected:
   {
     rcl_action_goal_state_t state;
     rcl_ret_t ret = rcl_action_goal_handle_get_status(this->goal_handle_ptr, &state);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string_safe();
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(state, expected_state);
   }
 
@@ -173,7 +173,7 @@ protected:
     *this->goal_handle_ptr = rcl_action_get_zero_initialized_goal_handle();
     rcl_ret_t ret = rcl_action_goal_handle_init(
       this->goal_handle_ptr, &goal_info, rcl_get_default_allocator());
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     // Get test sequence
     this->test_sequence = GetParam();
@@ -182,7 +182,7 @@ protected:
   void TearDown()
   {
     rcl_ret_t ret = rcl_action_goal_handle_fini(this->goal_handle_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string_safe();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     delete this->goal_handle_ptr;
   }
 };
