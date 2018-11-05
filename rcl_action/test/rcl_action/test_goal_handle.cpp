@@ -13,6 +13,7 @@
 // limitations under the License.
 #include <gtest/gtest.h>
 
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -155,8 +156,8 @@ TEST(TestGoalHandle, test_goal_handle_update_state_invalid)
   rcl_reset_error();
 }
 
-typedef std::vector<std::pair<rcl_action_goal_event_t, rcl_action_goal_state_t>>
-  StateTransitionSequence;
+using EventStatePair = std::pair<rcl_action_goal_event_t, rcl_action_goal_state_t>;
+using StateTransitionSequence = std::vector<EventStatePair>;
 const std::vector<std::string> event_strs = {
   "EXECUTE", "CANCEL", "SET_SUCCEEDED", "SET_ABORTED", "SET_CANCELED"};
 
@@ -167,21 +168,21 @@ public:
   static std::string print_sequence_param_name(
     const testing::TestParamInfo<StateTransitionSequence> & info)
   {
-    std::string result = "";
-    for (auto event_state : info.param) {
-      result = result + "_" + event_strs[event_state.first];
+    std::stringstream result;
+    for (const EventStatePair & event_state : info.param) {
+      result << "_" << event_strs[event_state.first];
     }
-    return result;
+    return result.str();
   }
 
 protected:
-  rcl_action_goal_handle_t * goal_handle_ptr;
+  rcl_action_goal_handle_t goal_handle;
   StateTransitionSequence test_sequence;
 
   void expect_state_eq(const rcl_action_goal_state_t expected_state)
   {
     rcl_action_goal_state_t state;
-    rcl_ret_t ret = rcl_action_goal_handle_get_status(this->goal_handle_ptr, &state);
+    rcl_ret_t ret = rcl_action_goal_handle_get_status(&this->goal_handle, &state);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(state, expected_state);
   }
@@ -192,10 +193,9 @@ protected:
     rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
 
     // Initialize goal handle
-    this->goal_handle_ptr = new rcl_action_goal_handle_t;
-    *this->goal_handle_ptr = rcl_action_get_zero_initialized_goal_handle();
+    this->goal_handle = rcl_action_get_zero_initialized_goal_handle();
     rcl_ret_t ret = rcl_action_goal_handle_init(
-      this->goal_handle_ptr, &goal_info, rcl_get_default_allocator());
+      &this->goal_handle, &goal_info, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     // Get test sequence
@@ -204,9 +204,8 @@ protected:
 
   void TearDown()
   {
-    rcl_ret_t ret = rcl_action_goal_handle_fini(this->goal_handle_ptr);
+    rcl_ret_t ret = rcl_action_goal_handle_fini(&this->goal_handle);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    delete this->goal_handle_ptr;
   }
 };
 
@@ -217,9 +216,9 @@ TEST_P(TestGoalHandleStateTransitionSequence, test_goal_handle_state_transitions
 
   // Walk through state transitions
   rcl_ret_t ret;
-  for (auto transition : this->test_sequence) {
-    ret = rcl_action_update_goal_state(this->goal_handle_ptr, transition.first);
-    rcl_action_goal_state_t & expected_state = transition.second;
+  for (const EventStatePair & event_state : this->test_sequence) {
+    ret = rcl_action_update_goal_state(&this->goal_handle, event_state.first);
+    const rcl_action_goal_state_t & expected_state = event_state.second;
     if (GOAL_STATE_UNKNOWN == expected_state) {
       EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_EVENT_INVALID);
       continue;
