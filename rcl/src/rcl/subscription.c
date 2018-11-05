@@ -74,7 +74,7 @@ rcl_subscription_init(
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-    if (rcutils_ret == RCUTILS_RET_BAD_ALLOC) {
+    if (RCUTILS_RET_BAD_ALLOC == rcutils_ret) {
       return RCL_RET_BAD_ALLOC;
     }
     return RCL_RET_ERROR;
@@ -89,7 +89,7 @@ rcl_subscription_init(
         rcutils_ret,
         rcutils_get_error_string().str);
     }
-    if (ret == RCL_RET_BAD_ALLOC) {
+    if (RCL_RET_BAD_ALLOC == ret) {
       return ret;
     }
     return RCL_RET_ERROR;
@@ -251,6 +251,9 @@ rcl_take(
     rmw_take_with_info(subscription->impl->rmw_handle, ros_message, &taken, message_info_local);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    if (RMW_RET_BAD_ALLOC == ret) {
+      return RCL_RET_BAD_ALLOC;
+    }
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
@@ -281,7 +284,7 @@ rcl_take_serialized_message(
     subscription->impl->rmw_handle, serialized_message, &taken, message_info_local);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    if (ret == RMW_RET_BAD_ALLOC) {
+    if (RMW_RET_BAD_ALLOC == ret) {
       return RCL_RET_BAD_ALLOC;
     }
     return RCL_RET_ERROR;
