@@ -76,7 +76,7 @@ rcl_service_init(
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-    if (rcutils_ret == RCUTILS_RET_BAD_ALLOC) {
+    if (RCUTILS_RET_BAD_ALLOC == rcutils_ret) {
       return RCL_RET_BAD_ALLOC;
     }
     return RCL_RET_ERROR;
@@ -91,7 +91,7 @@ rcl_service_init(
         rcutils_ret,
         rcutils_get_error_string().str);
     }
-    if (ret == RCL_RET_BAD_ALLOC) {
+    if (RCL_RET_BAD_ALLOC == ret) {
       return ret;
     }
     return RCL_RET_ERROR;
@@ -284,10 +284,13 @@ rcl_take_request(
   RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
   bool taken = false;
-  if (rmw_take_request(
-      service->impl->rmw_handle, request_header, ros_request, &taken) != RMW_RET_OK)
-  {
+  rmw_ret_t ret = rmw_take_request(
+    service->impl->rmw_handle, request_header, ros_request, &taken);
+  if (RMW_RET_OK != ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    if (RMW_RET_BAD_ALLOC == ret) {
+      return RCL_RET_BAD_ALLOC;
+    }
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
