@@ -52,6 +52,7 @@ rcl_action_get_zero_initialized_client(void)
   return null_action_client;
 }
 
+// \internal Initialize client for the given action's goal service.
 static rcl_ret_t rcl_action_goal_service_client_init(
   rcl_client_t * goal_client,
   const rcl_node_t * node,
@@ -69,8 +70,7 @@ static rcl_ret_t rcl_action_goal_service_client_init(
   rcl_allocator_t allocator = goal_client_options->allocator;
 
   char * goal_service_name = NULL;
-  ret = rcl_action_get_goal_service_name(
-    action_name, allocator, &goal_service_name);
+  ret = rcl_action_get_goal_service_name(action_name, allocator, &goal_service_name);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC != ret) {
       ret = RCL_RET_ERROR;
@@ -98,6 +98,7 @@ static rcl_ret_t rcl_action_goal_service_client_init(
   return ret;
 }
 
+// \internal Initialize client for the given action's goal cancel service.
 static rcl_ret_t rcl_action_cancel_service_client_init(
   rcl_client_t * cancel_client,
   const rcl_node_t * node,
@@ -115,8 +116,7 @@ static rcl_ret_t rcl_action_cancel_service_client_init(
   rcl_allocator_t allocator = cancel_client_options->allocator;
 
   char * cancel_service_name = NULL;
-  ret = rcl_action_get_cancel_service_name(
-    action_name, allocator, &cancel_service_name);
+  ret = rcl_action_get_cancel_service_name(action_name, allocator, &cancel_service_name);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC != ret) {
       ret = RCL_RET_ERROR;
@@ -144,6 +144,7 @@ static rcl_ret_t rcl_action_cancel_service_client_init(
   return ret;
 }
 
+// \internal Initialize client for the given action's goal result service.
 static rcl_ret_t rcl_action_result_client_init(
   rcl_client_t * result_client,
   const rcl_node_t * node,
@@ -161,8 +162,7 @@ static rcl_ret_t rcl_action_result_client_init(
   rcl_allocator_t allocator = result_client_options->allocator;
 
   char * result_service_name = NULL;
-  ret = rcl_action_get_result_service_name(
-    action_name, allocator, &result_service_name);
+  ret = rcl_action_get_result_service_name(action_name, allocator, &result_service_name);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC != ret) {
       ret = RCL_RET_ERROR;
@@ -190,6 +190,7 @@ static rcl_ret_t rcl_action_result_client_init(
   return ret;
 }
 
+// \internal Initialize subscription to the given action's feedback topic.
 static rcl_ret_t rcl_action_feedback_subscription_init(
   rcl_subscription_t * feedback_subscription,
   const rcl_node_t * node,
@@ -207,9 +208,7 @@ static rcl_ret_t rcl_action_feedback_subscription_init(
   rcl_allocator_t allocator = feedback_subscription_options->allocator;
 
   char * feedback_topic_name = NULL;
-  ret = rcl_action_get_feedback_topic_name(
-    action_name, allocator,
-    &feedback_topic_name);
+  ret = rcl_action_get_feedback_topic_name(action_name, allocator, &feedback_topic_name);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC != ret) {
       ret = RCL_RET_ERROR;
@@ -228,7 +227,7 @@ static rcl_ret_t rcl_action_feedback_subscription_init(
   allocator.deallocate(feedback_topic_name, allocator.state);
 
   if (RCL_RET_OK != ret) {
-    if (RCL_RET_SERVICE_NAME_INVALID == ret) {
+    if (RCL_RET_TOPIC_NAME_INVALID == ret) {
       ret = RCL_RET_ACTION_NAME_INVALID;
     } else if (RCL_RET_BAD_ALLOC != ret) {
       ret = RCL_RET_ERROR;
@@ -237,6 +236,7 @@ static rcl_ret_t rcl_action_feedback_subscription_init(
   return ret;
 }
 
+// \internal Initialize subscription to the given action's status topic.
 static rcl_ret_t rcl_action_status_subscription_init(
   rcl_subscription_t * status_subscription, const rcl_node_t * node,
   const rosidl_message_type_support_t * status_message_type_support,
@@ -253,8 +253,7 @@ static rcl_ret_t rcl_action_status_subscription_init(
   rcl_allocator_t allocator = status_subscription_options->allocator;
 
   char * status_topic_name = NULL;
-  ret = rcl_action_get_status_topic_name(
-    action_name, allocator, &status_topic_name);
+  ret = rcl_action_get_status_topic_name(action_name, allocator, &status_topic_name);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC != ret) {
       ret = RCL_RET_ERROR;
@@ -273,7 +272,7 @@ static rcl_ret_t rcl_action_status_subscription_init(
   allocator.deallocate(status_topic_name, allocator.state);
 
   if (RCL_RET_OK != ret) {
-    if (RCL_RET_SERVICE_NAME_INVALID == ret) {
+    if (RCL_RET_TOPIC_NAME_INVALID == ret) {
       ret = RCL_RET_ACTION_NAME_INVALID;
     } else if (RCL_RET_BAD_ALLOC != ret) {
       ret = RCL_RET_ERROR;
@@ -290,11 +289,6 @@ rcl_action_client_init(
   const char * action_name,
   const rcl_action_client_options_t * options)
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Initializing action client");
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  rcl_allocator_t * allocator = (rcl_allocator_t *)&options->allocator;
-  RCL_CHECK_ALLOCATOR_WITH_MSG(
-    allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
@@ -302,131 +296,107 @@ rcl_action_client_init(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  rcl_allocator_t * allocator = (rcl_allocator_t *)&options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret = RCL_RET_OK;
+  rcl_ret_t fini_ret = RCL_RET_OK;
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Initializing client for action name '%s'", action_name);
+  if (NULL != action_client->impl) {
+    RCL_SET_ERROR_MSG("action client already initialized, or memory was uninitialized");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   // Allocate space for the implementation struct.
-  rcl_action_client_impl_t *impl = allocator->allocate(
+  rcl_action_client_impl_t *impl = action_client->impl = allocator->allocate(
     sizeof(rcl_action_client_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
-
+  // Copy action client name and options.
+  impl->options = *options;
   impl->action_name = rcutils_strdup(action_name, *((rcutils_allocator_t *)allocator));
   if (NULL == impl->action_name) {
-    allocator->deallocate(impl, allocator->state);
-    return RCL_RET_BAD_ALLOC;
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
   }
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Initializing action goal client");
+  // Initialize action goal service client.
   rcl_client_options_t goal_client_options = {
     .qos = options->goal_service_qos, .allocator = *allocator
   };
-  rcl_ret_t ret, critical_ret;
   ret = rcl_action_goal_service_client_init(
-    &impl->goal_client, node, 
+    &impl->goal_client, node,
     &type_support->goal_service_type_support,
     impl->action_name, &goal_client_options);
-  if (RCL_RET_OK == ret) {
+  if (RCL_RET_OK != ret) {
     RCUTILS_LOG_DEBUG_NAMED(
-      ROS_PACKAGE_NAME, "Initializing action cancel client");
-    rcl_client_options_t cancel_client_options = {
-      .qos = options->cancel_service_qos, .allocator = *allocator
-    };
-    ret = rcl_action_cancel_service_client_init(
-      &impl->cancel_client, node,
-      &type_support->cancel_service_type_support,
-      impl->action_name, &cancel_client_options);
-    if (RCL_RET_OK == ret) {
-      RCUTILS_LOG_DEBUG_NAMED(
-        ROS_PACKAGE_NAME, "Action cancel client initialized");
-      rcl_client_options_t result_client_options = {
-        .qos = options->result_service_qos, .allocator = *allocator
-      };
-      RCUTILS_LOG_DEBUG_NAMED(
-        ROS_PACKAGE_NAME, "Initializing action result client");
-      ret = rcl_action_result_client_init(
-        &impl->result_client, node,
-        &type_support->result_service_type_support,
-        impl->action_name, &result_client_options);
-      if (RCL_RET_OK == ret) {
-        RCUTILS_LOG_DEBUG_NAMED(
-          ROS_PACKAGE_NAME, "Action cancel result initialized");
-        rcl_subscription_options_t feedback_subscription_options = {
-          .qos = options->feedback_topic_qos,
-          .ignore_local_publications = false,
-          .allocator = *allocator
-        };
-        RCUTILS_LOG_DEBUG_NAMED(
-          ROS_PACKAGE_NAME, "Initializing action feedback subscription");
-        ret = rcl_action_feedback_subscription_init(
-          &impl->feedback_subscription, node, 
-          &type_support->feedback_topic_type_support,
-          impl->action_name, &feedback_subscription_options);
-        if (RCL_RET_OK == ret) {
-          RCUTILS_LOG_DEBUG_NAMED(
-            ROS_PACKAGE_NAME, "Action feedback subscription initialized");
-          rcl_subscription_options_t status_subscription_options = {
-            .qos = options->status_topic_qos,
-            .ignore_local_publications = false,
-            .allocator = *allocator
-          };
-          RCUTILS_LOG_DEBUG_NAMED(
-            ROS_PACKAGE_NAME, "Initializing action status subscription");
-          ret = rcl_action_status_subscription_init(
-            &impl->status_subscription, node,
-            &type_support->status_topic_type_support,
-            impl->action_name, &status_subscription_options);
-          if (RCL_RET_OK == ret) {
-            RCUTILS_LOG_DEBUG_NAMED(
-              ROS_PACKAGE_NAME, "Action status subscription initialized");
-            action_client->impl->options = *options;
-            action_client->impl = impl;
-            RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client initialized");
-            return RCL_RET_OK;
-          }
-          RCUTILS_LOG_DEBUG_NAMED(
-            ROS_PACKAGE_NAME, "Finalizing action feedback subscription");
-          critical_ret = rcl_subscription_fini(&impl->feedback_subscription, node);
-          if (RCL_RET_OK != critical_ret) {
-            RCL_SET_ERROR_MSG("cleanup after error failed, "
-                              "system left inconsistent\n");
-          }
-          RCUTILS_LOG_DEBUG_NAMED(
-            ROS_PACKAGE_NAME, "Action feedback subscription finalized");
-        }
-        RCUTILS_LOG_DEBUG_NAMED(
-          ROS_PACKAGE_NAME, "Finalizing action result client");
-        critical_ret = rcl_client_fini(&impl->result_client, node);
-        if (RCL_RET_OK != critical_ret) {
-          RCL_SET_ERROR_MSG("cleanup after error failed, "
-                            "system left inconsistent\n");
-
-        }
-        RCUTILS_LOG_DEBUG_NAMED(
-          ROS_PACKAGE_NAME, "Action result client finalized");
-      }
-      RCUTILS_LOG_DEBUG_NAMED(
-        ROS_PACKAGE_NAME, "Finalizing action cancel client");
-      critical_ret = rcl_client_fini(&impl->cancel_client, node);
-      if (RCL_RET_OK != critical_ret) {
-        RCL_SET_ERROR_MSG("cleanup after error failed, "
-                          "system left inconsistent\n");
-      }
-      RCUTILS_LOG_DEBUG_NAMED(
-        ROS_PACKAGE_NAME, "Action cancel client finalized");
-    }
-    RCUTILS_LOG_DEBUG_NAMED(
-      ROS_PACKAGE_NAME, "Finalizing action goal client");
-    critical_ret = rcl_client_fini(&impl->goal_client, node);
-    if (RCL_RET_OK != critical_ret) {
-      RCL_SET_ERROR_MSG("cleanup after error failed, "
-                        "system left inconsistent\n");
-    }
-    RCUTILS_LOG_DEBUG_NAMED(
-      ROS_PACKAGE_NAME, "Action goal client finalized");
+      ROS_PACKAGE_NAME, "Failed to initialize action goal client");
+    goto fail;
   }
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Failed to initialize action client");
-  allocator->deallocate(impl->action_name, allocator->state);
-  allocator->deallocate(impl, allocator->state);
+  // Initialize action cancel service client.
+  rcl_client_options_t cancel_client_options = {
+    .qos = options->cancel_service_qos, .allocator = *allocator
+  };
+  ret = rcl_action_cancel_service_client_init(
+    &impl->cancel_client, node,
+    &type_support->cancel_service_type_support,
+    impl->action_name, &cancel_client_options);
+  if (RCL_RET_OK != ret) {
+    RCUTILS_LOG_DEBUG_NAMED(
+      ROS_PACKAGE_NAME, "Failed to initialize action cancel client");
+    goto fail;
+  }
+  // Initialize action result service client.
+  rcl_client_options_t result_client_options = {
+    .qos = options->result_service_qos, .allocator = *allocator
+  };
+  ret = rcl_action_result_client_init(
+    &impl->result_client, node,
+    &type_support->result_service_type_support,
+    impl->action_name, &result_client_options);
+  if (RCL_RET_OK != ret) {
+    RCUTILS_LOG_DEBUG_NAMED(
+      ROS_PACKAGE_NAME, "Failed to initialize action result client");
+    goto fail;
+  }
+  // Initialize action feedback subscription client.
+  rcl_subscription_options_t feedback_subscription_options = {
+    .qos = options->feedback_topic_qos,
+    .ignore_local_publications = false,
+    .allocator = *allocator
+  };
+  ret = rcl_action_feedback_subscription_init(
+    &impl->feedback_subscription, node,
+    &type_support->feedback_topic_type_support,
+    impl->action_name, &feedback_subscription_options);
+  if (RCL_RET_OK != ret) {
+    RCUTILS_LOG_DEBUG_NAMED(
+      ROS_PACKAGE_NAME, "Failed to initialize feedback subscription");
+    goto fail;
+  }
+  // Initialize action status subscription client.
+  rcl_subscription_options_t status_subscription_options = {
+    .qos = options->status_topic_qos,
+    .ignore_local_publications = false,
+    .allocator = *allocator
+  };
+  ret = rcl_action_status_subscription_init(
+    &impl->status_subscription, node,
+    &type_support->status_topic_type_support,
+    impl->action_name, &status_subscription_options);
+  if (RCL_RET_OK != ret) {
+    RCUTILS_LOG_DEBUG_NAMED(
+      ROS_PACKAGE_NAME, "Failed to initialize status subscription");
+    goto fail;
+  }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client initialized");
+  return ret;
+fail:
+  fini_ret = rcl_action_client_fini(action_client, node);
+  if (RCL_RET_OK != fini_ret) {
+    RCL_SET_ERROR_MSG("failed to cleanup action client");
+    ret = RCL_RET_ERROR;
+  }
   return ret;
 }
 
@@ -434,54 +404,58 @@ rcl_ret_t
 rcl_action_client_fini(rcl_action_client_t * action_client, rcl_node_t * node)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing action client");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
+  // TODO(hidmic): ideally we should rollback to a valid state if any
+  //               finalization failed, but it seems that's currently
+  //               not possible.
   rcl_ret_t ret = RCL_RET_OK;
-  if (action_client->impl) {
-    // TODO(hidmic): ideally we should rollback to a valid state if any
-    //               finalization failed, but it seems that's currently
-    //               not possible.
-    rcl_action_client_impl_t * impl = action_client->impl;
-    if (rcl_client_is_valid(&impl->goal_client)) {
-      ret = rcl_client_fini(&impl->goal_client, node);
-      if (RCL_RET_OK != ret) {
-        return RCL_RET_ERROR;
-      }
+  rcl_ret_t fini_ret = RCL_RET_OK;
+  rcl_action_client_impl_t * impl = action_client->impl;
+  if (rcl_client_is_valid(&impl->goal_client)) {
+    fini_ret = rcl_client_fini(&impl->goal_client, node);
+    if (RCL_RET_OK != fini_ret) {
+      ret = RCL_RET_ERROR;
     }
-    if (rcl_client_is_valid(&impl->cancel_client)) {
-      ret = rcl_client_fini(&impl->cancel_client, node);
-      if (RCL_RET_OK != ret) {
-        return RCL_RET_ERROR;
-      }
+  }
+  if (rcl_client_is_valid(&impl->cancel_client)) {
+    fini_ret = rcl_client_fini(&impl->cancel_client, node);
+    if (RCL_RET_OK != fini_ret) {
+      ret = RCL_RET_ERROR;
     }
-    if (rcl_client_is_valid(&impl->result_client)) {
-      ret = rcl_client_fini(&impl->result_client, node);
-      if (ret != RCL_RET_OK) {
-        return RCL_RET_ERROR;
-      }
+  }
+  if (rcl_client_is_valid(&impl->result_client)) {
+    fini_ret = rcl_client_fini(&impl->result_client, node);
+    if (RCL_RET_OK != fini_ret) {
+      ret = RCL_RET_ERROR;
     }
-    if (rcl_subscription_is_valid(&impl->feedback_subscription)) {
-      ret = rcl_subscription_fini(&impl->feedback_subscription, node);
-      if (ret != RCL_RET_OK) {
-        return RCL_RET_ERROR;
-      }
+  }
+  if (rcl_subscription_is_valid(&impl->feedback_subscription)) {
+    fini_ret = rcl_subscription_fini(&impl->feedback_subscription, node);
+    if (RCL_RET_OK != fini_ret) {
+      ret = RCL_RET_ERROR;
     }
-    if (rcl_subscription_is_valid(&impl->status_subscription)) {
-      ret = rcl_subscription_fini(&impl->status_subscription, node);
-      if (ret != RCL_RET_OK) {
-        return RCL_RET_ERROR;
-      }
+  }
+  if (rcl_subscription_is_valid(&impl->status_subscription)) {
+    fini_ret = rcl_subscription_fini(&impl->status_subscription, node);
+    if (RCL_RET_OK != fini_ret) {
+      ret = RCL_RET_ERROR;
     }
+  }
+  if (RCL_RET_OK != ret) {
     rcl_allocator_t * allocator = &impl->options.allocator;
+    allocator->deallocate(impl->action_name, allocator->state);
     allocator->deallocate(action_client->impl, allocator->state);
     action_client->impl = NULL;
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client finalized");
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client finalized");
-  return RCL_RET_OK;
+  return ret;
 }
 
 rcl_action_client_options_t
@@ -503,10 +477,11 @@ rcl_action_send_goal_request(
   const void * ros_goal_request)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending action goal request");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_goal_request, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_goal_request, RCL_RET_INVALID_ARGUMENT);
   int64_t ignored_sequence_number;
   rcl_ret_t ret = rcl_send_request(
     &action_client->impl->goal_client,
@@ -524,10 +499,11 @@ rcl_action_take_goal_response(
   void * ros_goal_response)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action goal response");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_goal_response, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_goal_response, RCL_RET_INVALID_ARGUMENT);
   rmw_request_id_t ignored_request_header;
   rcl_ret_t ret = rcl_take_response(
     &action_client->impl->goal_client,
@@ -550,10 +526,11 @@ rcl_action_take_feedback(
   void * ros_feedback)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action feedback");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_feedback, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_feedback, RCL_RET_INVALID_ARGUMENT);
   rmw_message_info_t ignored_message_info;
   rcl_ret_t ret = rcl_take(
     &action_client->impl->feedback_subscription,
@@ -576,10 +553,11 @@ rcl_action_take_status(
   void * ros_status_array)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action status");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_status_array, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_status_array, RCL_RET_INVALID_ARGUMENT);
   rmw_message_info_t ignored_message_info;
   rcl_ret_t ret = rcl_take(
     &action_client->impl->status_subscription,
@@ -602,10 +580,12 @@ rcl_action_send_result_request(
   const void * ros_result_request)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending action result request");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_result_request, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_result_request, RCL_RET_INVALID_ARGUMENT);
+
   int64_t ignored_sequence_number;
   rcl_ret_t ret = rcl_send_request(
     &action_client->impl->result_client,
@@ -613,7 +593,7 @@ rcl_action_send_result_request(
   if (RCL_RET_OK != ret) {
     return RCL_RET_ERROR;
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action result request sent");  
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action result request sent");
   return RCL_RET_OK;
 }
 
@@ -623,10 +603,11 @@ rcl_action_take_result_response(
   void * ros_result)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action result response");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_result, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_result, RCL_RET_INVALID_ARGUMENT);
   rmw_request_id_t ignored_response_header;
   rcl_ret_t ret = rcl_take_response(
     &action_client->impl->result_client,
@@ -649,10 +630,11 @@ rcl_action_send_cancel_request(
   const void * ros_cancel_request)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending action cancel request");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_cancel_request, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_cancel_request, RCL_RET_INVALID_ARGUMENT);
   int64_t ignored_sequence_number;
   rcl_ret_t ret = rcl_send_request(
     &action_client->impl->cancel_client,
@@ -660,7 +642,7 @@ rcl_action_send_cancel_request(
   if (RCL_RET_OK != ret) {
     return RCL_RET_ERROR;
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action cancel request sent");  
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action cancel request sent");
   return RCL_RET_OK;
 }
 
@@ -670,10 +652,11 @@ rcl_action_take_cancel_response(
   void * ros_cancel_response)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action cancel response");
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_cancel_response, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_cancel_response, RCL_RET_INVALID_ARGUMENT);
   rmw_request_id_t ignored_response_header;
   rcl_ret_t ret = rcl_take_response(
     &action_client->impl->cancel_client,
@@ -686,7 +669,7 @@ rcl_action_take_cancel_response(
     }
     return ret;
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action cancel response taken");  
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action cancel response taken");
   return RCL_RET_OK;
 }
 
