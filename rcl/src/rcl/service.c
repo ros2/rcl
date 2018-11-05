@@ -59,9 +59,8 @@ rcl_service_init(
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT);
@@ -204,12 +203,12 @@ rcl_ret_t
 rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing service");
-  rcl_ret_t result = RCL_RET_OK;
-  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_SERVICE_INVALID);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;  // error already set
   }
+
+  rcl_ret_t result = RCL_RET_OK;
   if (service->impl) {
     rcl_allocator_t allocator = service->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);
@@ -255,7 +254,7 @@ const rcl_service_options_t *
 rcl_service_get_options(const rcl_service_t * service)
 {
   if (!rcl_service_is_valid(service)) {
-    return NULL;
+    return NULL;  // error already set
   }
   return _service_get_options(service);
 }
@@ -264,7 +263,7 @@ rmw_service_t *
 rcl_service_get_rmw_handle(const rcl_service_t * service)
 {
   if (!rcl_service_is_valid(service)) {
-    return NULL;
+    return NULL;  // error already set
   }
   return service->impl->rmw_handle;
 }
@@ -276,11 +275,13 @@ rcl_take_request(
   void * ros_request)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service server taking service request");
-  const rcl_service_options_t * options = rcl_service_get_options(service);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    options, "Failed to get service options", return RCL_RET_ERROR);
+  if (!rcl_service_is_valid(service)) {
+    return RCL_RET_SERVICE_INVALID;  // error already set
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_request, RCL_RET_INVALID_ARGUMENT);
+  const rcl_service_options_t * options = rcl_service_get_options(service);
+  RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
   bool taken = false;
   if (rmw_take_request(
@@ -304,11 +305,13 @@ rcl_send_response(
   void * ros_response)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response");
-  const rcl_service_options_t * options = rcl_service_get_options(service);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    options, "Failed to get service options", return RCL_RET_ERROR);
+  if (!rcl_service_is_valid(service)) {
+    return RCL_RET_SERVICE_INVALID;  // error already set
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_response, RCL_RET_INVALID_ARGUMENT);
+  const rcl_service_options_t * options = rcl_service_get_options(service);
+  RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
   if (rmw_send_response(
       service->impl->rmw_handle, request_header, ros_response) != RMW_RET_OK)
@@ -322,13 +325,9 @@ rcl_send_response(
 bool
 rcl_service_is_valid(const rcl_service_t * service)
 {
-  const rcl_service_options_t * options;
-  RCL_CHECK_ARGUMENT_FOR_NULL(service, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(service, "service pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service->impl, "service's implementation is invalid", return false);
-  options = _service_get_options(service);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    options, "service's options pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service->impl->rmw_handle, "service's rmw handle is invalid", return false);
   return true;

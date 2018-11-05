@@ -191,7 +191,7 @@ rcl_node_init(
  *
  * \param[in] node rcl_node_t to be finalized
  * \return `RCL_RET_OK` if node was finalized successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID` if the node pointer is null, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC

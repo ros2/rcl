@@ -221,7 +221,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   // Test rcl_node_get_domain_id().
   size_t actual_domain_id;
   ret = rcl_node_get_domain_id(nullptr, &actual_domain_id);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   ret = rcl_node_get_domain_id(&zero_node, &actual_domain_id);
@@ -347,7 +347,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
 
   // Try fini with invalid arguments.
   ret = rcl_node_fini(nullptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << "Expected RCL_RET_NODE_INVALID";
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   // Try fini with an uninitialized node.

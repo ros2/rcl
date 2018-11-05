@@ -64,9 +64,8 @@ rcl_publisher_init(
     RCL_SET_ERROR_MSG("publisher already initialized, or memory was unintialized");
     return RCL_RET_ALREADY_INIT;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
@@ -194,11 +193,11 @@ rcl_ret_t
 rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
 {
   rcl_ret_t result = RCL_RET_OK;
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_PUBLISHER_INVALID);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;  // error already set
   }
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing publisher");
   if (publisher->impl) {
     rcl_allocator_t allocator = publisher->impl->options.allocator;
@@ -234,8 +233,9 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher publishing message");
   if (!rcl_publisher_is_valid(publisher)) {
-    return RCL_RET_PUBLISHER_INVALID;
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
   if (rmw_publish(publisher->impl->rmw_handle, ros_message) != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
@@ -248,8 +248,9 @@ rcl_publish_serialized_message(
   const rcl_publisher_t * publisher, const rcl_serialized_message_t * serialized_message)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-    return RCL_RET_PUBLISHER_INVALID;
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
+  RCL_CHECK_ARGUMENT_FOR_NULL(serialized_message, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t ret = rmw_publish_serialized_message(publisher->impl->rmw_handle, serialized_message);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
@@ -265,7 +266,7 @@ const char *
 rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-    return NULL;
+    return NULL;  // error already set
   }
   return publisher->impl->rmw_handle->topic_name;
 }
@@ -276,7 +277,7 @@ const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-    return NULL;
+    return NULL;  // error already set
   }
   return _publisher_get_options(publisher);
 }
@@ -285,7 +286,7 @@ rmw_publisher_t *
 rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-    return NULL;
+    return NULL;  // error already set
   }
   return publisher->impl->rmw_handle;
 }
@@ -293,13 +294,9 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher)
 bool
 rcl_publisher_is_valid(const rcl_publisher_t * publisher)
 {
-  const rcl_publisher_options_t * options;
-  RCL_CHECK_ARGUMENT_FOR_NULL(publisher, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     publisher->impl, "publisher implementation is invalid", return false);
-  options = _publisher_get_options(publisher);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    options, "publisher's options pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     publisher->impl->rmw_handle, "publisher's rmw handle is invalid", return false);
   return true;

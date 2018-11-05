@@ -110,7 +110,7 @@ TEST_F(TestClientFixture, test_client_init_fini) {
   // Try passing null for a node pointer in init.
   client = rcl_get_zero_initialized_client();
   ret = rcl_client_init(&client, nullptr, ts, topic_name, &default_client_options);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Check if null publisher is valid

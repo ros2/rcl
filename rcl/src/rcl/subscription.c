@@ -57,11 +57,9 @@ rcl_subscription_init(
   rcl_allocator_t * allocator = (rcl_allocator_t *)&options->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;  // error already set
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOG_DEBUG_NAMED(
@@ -197,10 +195,9 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing subscription");
   rcl_ret_t result = RCL_RET_OK;
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_SUBSCRIPTION_INVALID);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;  // error already set
   }
   if (subscription->impl) {
     rcl_allocator_t allocator = subscription->impl->options.allocator;
@@ -243,8 +240,8 @@ rcl_take(
   if (!rcl_subscription_is_valid(subscription)) {
     return RCL_RET_SUBSCRIPTION_INVALID;  // error message already set
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(
-    ros_message, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
+
   // If message_info is NULL, use a place holder which can be discarded.
   rmw_message_info_t dummy_message_info;
   rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
@@ -272,7 +269,7 @@ rcl_take_serialized_message(
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking serialized message");
   if (!rcl_subscription_is_valid(subscription)) {
-    return RCL_RET_SUBSCRIPTION_INVALID;  // error message already set
+    return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(serialized_message, RCL_RET_INVALID_ARGUMENT);
   // If message_info is NULL, use a place holder which can be discarded.
@@ -301,7 +298,7 @@ const char *
 rcl_subscription_get_topic_name(const rcl_subscription_t * subscription)
 {
   if (!rcl_subscription_is_valid(subscription)) {
-    return NULL;
+    return NULL;  // error already set
   }
   return subscription->impl->rmw_handle->topic_name;
 }
@@ -312,7 +309,7 @@ const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription)
 {
   if (!rcl_subscription_is_valid(subscription)) {
-    return NULL;
+    return NULL;  // error already set
   }
   return _subscription_get_options(subscription);
 }
@@ -321,7 +318,7 @@ rmw_subscription_t *
 rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription)
 {
   if (!rcl_subscription_is_valid(subscription)) {
-    return NULL;
+    return NULL;  // error already  set
   }
   return subscription->impl->rmw_handle;
 }
@@ -329,19 +326,11 @@ rcl_subscription_get_rmw_handle(const rcl_subscription_t * subscription)
 bool
 rcl_subscription_is_valid(const rcl_subscription_t * subscription)
 {
-  const rcl_subscription_options_t * options;
-  RCL_CHECK_ARGUMENT_FOR_NULL(subscription, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(subscription, "subscription pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl,
-    "subscription's implementation is invalid",
-    return false);
-  options = _subscription_get_options(subscription);
+    subscription->impl, "subscription's implementation is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    options, "subscription's option pointer is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl->rmw_handle,
-    "subscription's rmw handle is invalid",
-    return false);
+    subscription->impl->rmw_handle, "subscription's rmw handle is invalid", return false);
   return true;
 }
 
