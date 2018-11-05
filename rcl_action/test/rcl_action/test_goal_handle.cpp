@@ -57,7 +57,7 @@ TEST(TestGoalHandle, test_goal_handle_init_fini)
 
   // Finalize with null goal handle
   ret = rcl_action_goal_handle_fini(nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_HANDLE_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Finalize with valid goal handle
@@ -104,7 +104,7 @@ TEST(TestGoalHandle, test_goal_handle_get_info)
   // Check with null goal handle
   rcl_action_goal_info_t goal_info_output = rcl_action_get_zero_initialized_goal_info();
   rcl_ret_t ret = rcl_action_goal_handle_get_info(nullptr, &goal_info_output);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_HANDLE_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Check with invalid goal handle
@@ -138,7 +138,7 @@ TEST(TestGoalHandle, test_goal_handle_update_state_invalid)
 {
   // Check with null argument
   rcl_ret_t ret = rcl_action_update_goal_state(nullptr, GOAL_EVENT_EXECUTE);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_HANDLE_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Check with invalid goal handle

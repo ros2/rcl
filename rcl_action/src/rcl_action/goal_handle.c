@@ -70,11 +70,10 @@ rcl_action_goal_handle_init(
 rcl_ret_t
 rcl_action_goal_handle_fini(rcl_action_goal_handle_t * goal_handle)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
-  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
-    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_ACTION_GOAL_HANDLE_INVALID);
+  if (goal_handle->impl) {
+    goal_handle->impl->allocator.deallocate(goal_handle->impl, goal_handle->impl->allocator.state);
   }
-  goal_handle->impl->allocator.deallocate(goal_handle->impl, goal_handle->impl->allocator.state);
   return RCL_RET_OK;
 }
 
@@ -83,9 +82,8 @@ rcl_action_update_goal_state(
   rcl_action_goal_handle_t * goal_handle,
   const rcl_action_goal_event_t goal_event)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_goal_handle_is_valid(goal_handle)) {
-    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
+    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
   }
   rcl_action_goal_state_t new_state = rcl_action_transition_goal_state(
     goal_handle->impl->state, goal_event);
@@ -101,9 +99,8 @@ rcl_action_goal_handle_get_info(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_action_goal_info_t * goal_info)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_goal_handle_is_valid(goal_handle)) {
-    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
+    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_info, RCL_RET_INVALID_ARGUMENT);
   // Assumption: goal info is trivially copyable
@@ -116,9 +113,8 @@ rcl_action_goal_handle_get_status(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_action_goal_state_t * status)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_action_goal_handle_is_valid(goal_handle)) {
-    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;
+    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(status, RCL_RET_INVALID_ARGUMENT);
   *status = goal_handle->impl->state;
@@ -129,7 +125,7 @@ bool
 rcl_action_goal_handle_is_active(const rcl_action_goal_handle_t * goal_handle)
 {
   if (!rcl_action_goal_handle_is_valid(goal_handle)) {
-    return false;
+    return false;  // error message is set
   }
   switch (goal_handle->impl->state) {
     case GOAL_STATE_ACCEPTED:
@@ -144,7 +140,7 @@ rcl_action_goal_handle_is_active(const rcl_action_goal_handle_t * goal_handle)
 bool
 rcl_action_goal_handle_is_valid(const rcl_action_goal_handle_t * goal_handle)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(goal_handle, "goal handle pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     goal_handle->impl, "goal handle implementation is invalid", return false);
   return true;
