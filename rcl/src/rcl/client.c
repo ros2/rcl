@@ -62,9 +62,8 @@ rcl_client_init(
   rcl_allocator_t * allocator = (rcl_allocator_t *)&options->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT);
@@ -198,13 +197,11 @@ cleanup:
 rcl_ret_t
 rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
 {
-  (void)node;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing client");
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID;  // error already set
   }
   if (client->impl) {
     rcl_allocator_t allocator = client->impl->options.allocator;
@@ -268,11 +265,10 @@ rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t 
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client sending service request");
   if (!rcl_client_is_valid(client)) {
-    return RCL_RET_CLIENT_INVALID;
+    return RCL_RET_CLIENT_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_request, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(
-    sequence_number, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(sequence_number, RCL_RET_INVALID_ARGUMENT);
   *sequence_number = rcl_atomic_load_int64_t(&client->impl->sequence_number);
   if (rmw_send_request(
       client->impl->rmw_handle, ros_request, sequence_number) != RMW_RET_OK)
@@ -292,7 +288,7 @@ rcl_take_response(
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client taking service response");
   if (!rcl_client_is_valid(client)) {
-    return RCL_RET_CLIENT_INVALID;
+    return RCL_RET_CLIENT_INVALID;  // error already set
   }
 
   RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT);
@@ -316,13 +312,9 @@ rcl_take_response(
 bool
 rcl_client_is_valid(const rcl_client_t * client)
 {
-  const rcl_client_options_t * options;
-  RCL_CHECK_ARGUMENT_FOR_NULL(client, false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(client, "client pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     client->impl, "client's rmw implementation is invalid", return false);
-  options = _client_get_options(client);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    options, "client's options pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     client->impl->rmw_handle, "client's rmw handle is invalid", return false);
   return true;

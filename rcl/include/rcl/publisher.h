@@ -172,6 +172,7 @@ rcl_publisher_init(
  * \param[in] node handle to the node used to create the publisher
  * \return `RCL_RET_OK` if publisher was finalized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */

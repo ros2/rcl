@@ -115,7 +115,7 @@ TEST_F(
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // invalid node
   ret = rcl_get_topic_names_and_types(nullptr, &allocator, false, &tnat);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_topic_names_and_types(&zero_node, &allocator, false, &tnat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
@@ -156,7 +156,7 @@ TEST_F(
   size_t count;
   // invalid node
   ret = rcl_count_publishers(nullptr, topic_name, &count);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_count_publishers(&zero_node, topic_name, &count);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
@@ -193,7 +193,7 @@ TEST_F(
   size_t count;
   // invalid node
   ret = rcl_count_subscribers(nullptr, topic_name, &count);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_count_subscribers(&zero_node, topic_name, &count);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;

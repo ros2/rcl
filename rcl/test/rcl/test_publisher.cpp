@@ -191,7 +191,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   // Try passing null for a node pointer in init.
   publisher = rcl_get_zero_initialized_publisher();
   ret = rcl_publisher_init(&publisher, nullptr, ts, topic_name, &default_publisher_options);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing an invalid (uninitialized) node in init.
