@@ -98,9 +98,9 @@ rcl_action_transition_goal_state(
   const rcl_action_goal_state_t state,
   const rcl_action_goal_event_t event)
 {
+  // event < 0 is always false since it is an unsigned enum
   if (state < 0 ||
     state >= GOAL_STATE_NUM_STATES ||
-    event < 0 ||
     event >= GOAL_EVENT_NUM_EVENTS)
   {
     return GOAL_STATE_UNKNOWN;
