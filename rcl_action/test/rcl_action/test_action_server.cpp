@@ -16,16 +16,16 @@
 #include "rcl_action/action_server.h"
 
 #include "rcl/error_handling.h"
+#include "rcl/rcl.h"
 
 TEST(TestActionServer, test_action_server_init_fini)
 {
-  // TODO(jacobperron) Do we need this?
-  // rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-  // ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_options = rcl_node_get_default_options();
-  rcl_ret_t ret = rcl_node_init(&node, "test_action_server_node", "", &node_options);
+  ret = rcl_node_init(&node, "test_action_server_node", "", &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   // TODO(jacobperron): Replace when ready
   // const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
@@ -99,14 +99,25 @@ TEST(TestActionServer, test_action_server_init_fini)
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  // TODO(jacobperron): Do we need this?
-  // ret = rcl_shutdown();
-  // EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_shutdown();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 TEST(TestActionServer, test_action_server_is_valid)
 {
-  /*
+  rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node, "test_action_server_node", "", &node_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // TODO(jacobperron): Replace when ready
+  // const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
+  //   test_msgs, Fibonacci);
+  const rosidl_action_type_support_t ts;
+  const rcl_action_server_options_t options = rcl_action_server_get_default_options();
+  const char * action_name = "test_action_server_name";
+
   // Check with null pointer
   bool is_valid = rcl_action_server_is_valid(nullptr);
   EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
@@ -119,13 +130,14 @@ TEST(TestActionServer, test_action_server_is_valid)
   rcl_reset_error();
 
   // Check valid action server
-  rcl_ret_t ret = rcl_action_server_init(&action_server, &node, &ts, &action_name, &options);
+  ret = rcl_action_server_init(&action_server, &node, &ts, action_name, &options);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   is_valid = rcl_action_server_is_valid(&action_server);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
 
   // Finalize
-  ret = rcl_action_server_fini(&action_server);
+  ret = rcl_action_server_fini(&action_server, &node);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  */
+  ret = rcl_shutdown();
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }

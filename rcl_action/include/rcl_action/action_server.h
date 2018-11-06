@@ -362,7 +362,6 @@ rcl_action_send_goal_response(
  *
  * \param[in] action_server the action server that is accepting the goal
  * \param[in] goal_info a message containing info about the goal being accepted
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return a pointer to a new goal handle representing the accepted goal, or
  * \return `NULL` if a failure occured.
  */
@@ -371,8 +370,7 @@ RCL_WARN_UNUSED
 rcl_action_goal_handle_t *
 rcl_action_accept_new_goal(
   const rcl_action_server_t * action_server,
-  const rcl_action_goal_info_t * goal_info,
-  rcl_allocator_t * error_msg_allocator);
+  const rcl_action_goal_info_t * goal_info);
 
 /// Publish a ROS feedback message for an active goal using a rcl_action_server_t.
 /**
@@ -801,14 +799,11 @@ rcl_action_server_get_goal_handles(
  * Lock-Free          | Yes
  *
  * \param[in] action_server pointer to the rcl action server
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `action_server` is valid, otherwise `false`
  */
 RCL_ACTION_PUBLIC
 bool
-rcl_action_server_is_valid(
-  const rcl_action_server_t * action_server,
-  rcl_allocator_t * error_msg_allocator);
+rcl_action_server_is_valid(const rcl_action_server_t * action_server);
 
 #ifdef __cplusplus
 }

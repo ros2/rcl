@@ -29,11 +29,15 @@ extern "C"
 /// Internal rcl_action implementation struct.
 typedef struct rcl_action_server_impl_t
 {
-  char * action_name;
+  rcl_service_t goal_service;
+  rcl_service_t cancel_service
+  rcl_service_t result_service
+  rcl_publisher_t feedback_publisher;
+  rcl_publisher_t status_publisher;
   rcl_action_server_options_t options;
-  /// Array of goal handles
+  char * action_name;
+  // Array of goal handles
   rcl_action_goal_handle_t * goal_handles;
-  rcl_allocator_t allocator;
 } rcl_action_server_impl_t;
 
 rcl_action_server_t
@@ -51,7 +55,70 @@ rcl_action_server_init(
   const char * action_name,
   const rcl_action_server_options_t * options)
 {
-  // TODO(jacobperron): impl
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_server, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Initializing action server for action name '%s'", action_name);
+  if (action_server->impl) {
+    RCL_SET_ERROR_MSG("action server already initialized, or memory was unintialized");
+    return RCL_RET_ALREADY_INIT;
+  }
+  // Allocate for action server
+  action_server->impl = (rcl_action_server_impl_t *)allocator->allocate(
+    sizeof(rcl_action_server_impl_t), allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    action_server->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+
+  // TODO(jacobperron): Expand the given action name?
+  // Test if name is valid
+
+  // TODO(jacobperron): Consider using a macro to initialize services/publishers
+  // Initialize goal service
+  char * goal_service_name = NULL;
+  rcl_ret_t ret = rcl_action_get_goal_service_name(action_name, allocator, &goal_service_name);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("failed to get goal service name");
+    if (RCL_RET_BAD_ALLOC == ret) {
+      // TODO: goto fail/cleanup
+      return RCL_RET_BAD_ALLOC;
+    }
+    // TODO: goto fail/cleanup
+    return RCL_RET_ERROR;
+  }
+  rcl_client_options_t goal_service_options = {
+    .qos = options->goal_service_qos, .allocator = *allocator
+  };
+  action_server->impl->goal_service = rcl_get_zero_initialized_service();
+  ret = rcl_service_init(
+    &action_server->impl->goal_service,
+    node,
+    &type_support->goal_service_type_support,
+    goal_service_name,
+    &goal_service_options);
+  allocator.deallocate(goal_service_name, allocator.state);
+  if (RCL_RET_OK != ret) {
+    if (RCL_RET_BAD_ALLOC == ret) {
+      // TODO: goto fail/cleanup
+      return RCL_RET_BAD_ALLOC;
+    }
+    // TODO: goto fail/cleanup
+    return RCL_RET_ERROR;
+  }
+
+  // TODO(jacobperron): Initialize cancel service
+  // TODO(jacobperron): Initialize result service
+
+  // TODO(jacobperron): Initialize feedback publisher
+  // TODO(jacobperron): Initialize status publisher
+
   return RCL_RET_OK;
 }
 
@@ -92,8 +159,7 @@ rcl_action_send_goal_response(
 rcl_action_goal_handle_t *
 rcl_action_accept_new_goal(
   const rcl_action_server_t * action_server,
-  const rcl_action_goal_info_t * goal_info,
-  rcl_allocator_t * error_msg_allocator)
+  const rcl_action_goal_info_t * goal_info)
 {
   // TODO(jacobperron): impl
   return NULL;
@@ -205,9 +271,7 @@ rcl_action_server_get_goal_handles(
 }
 
 bool
-rcl_action_server_is_valid(
-  const rcl_action_server_t * action_server,
-  rcl_allocator_t * error_msg_allocator)
+rcl_action_server_is_valid(const rcl_action_server_t * action_server)
 {
   // TODO(jacobperron): impl
   return true;
