@@ -33,6 +33,7 @@ add_executable(test_compile_headers
 
 set(rcl_action_sources
   src/${PROJECT_NAME}/action_client.c
+  src/${PROJECT_NAME}/action_server.c
   src/${PROJECT_NAME}/goal_handle.c
   src/${PROJECT_NAME}/goal_state_machine.c
   src/${PROJECT_NAME}/names.c
@@ -85,6 +86,18 @@ if(BUILD_TESTING)
       ${PROJECT_NAME}
     )
     ament_target_dependencies(test_action_client "rcl" "test_msgs")
+  endif()
+  ament_add_gtest(test_action_server
+    test/rcl_action/test_action_server.cpp
+  )
+  if(TARGET test_action_server)
+    target_include_directories(test_action_server PUBLIC
+      include
+      ${rcl_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_action_server
+      ${PROJECT_NAME}
+    )
   endif()
   ament_add_gtest(test_goal_handle
     test/rcl_action/test_goal_handle.cpp
