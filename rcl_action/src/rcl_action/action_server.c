@@ -22,16 +22,17 @@ extern "C"
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/names.h"
 #include "rcl_action/types.h"
-#include "rcl/macros.h"
-#include "rcl/node.h"
-#include "rcl/time.h"
+#include "rcl/error_handling.h"
+#include "rcl/rcl.h"
+#include "rcutils/logging_macros.h"
+
 
 /// Internal rcl_action implementation struct.
 typedef struct rcl_action_server_impl_t
 {
   rcl_service_t goal_service;
-  rcl_service_t cancel_service
-  rcl_service_t result_service
+  rcl_service_t cancel_service;
+  rcl_service_t result_service;
   rcl_publisher_t feedback_publisher;
   rcl_publisher_t status_publisher;
   rcl_action_server_options_t options;
@@ -46,6 +47,70 @@ rcl_action_get_zero_initialized_server(void)
   static rcl_action_server_t null_action_server = {0};
   return null_action_server;
 }
+
+#define SERVICE_INIT(Type) \
+  char * Type ## _service_name = NULL; \
+  ret = rcl_action_get_ ## Type ##_service_name(action_name, *allocator, & Type ## _service_name); \
+  if (RCL_RET_OK != ret) { \
+    RCL_SET_ERROR_MSG("failed to get Type service name"); \
+    if (RCL_RET_BAD_ALLOC == ret) { \
+      /* TODO: goto fail/cleanup */ \
+      return RCL_RET_BAD_ALLOC; \
+    } \
+    /* TODO: goto fail/cleanup */ \
+    return RCL_RET_ERROR; \
+  } \
+  rcl_service_options_t Type ## _service_options = { \
+    .qos = options->Type ## _service_qos, .allocator = *allocator \
+  }; \
+  action_server->impl->Type ## _service = rcl_get_zero_initialized_service(); \
+  ret = rcl_service_init( \
+    &action_server->impl->Type ## _service, \
+    node, \
+    &type_support->Type ## _service_type_support, \
+    Type ## _service_name, \
+    & Type ## _service_options); \
+  allocator->deallocate(Type ## _service_name, allocator->state); \
+  if (RCL_RET_OK != ret) { \
+    if (RCL_RET_BAD_ALLOC == ret) { \
+      /* TODO: goto fail/cleanup */ \
+      return RCL_RET_BAD_ALLOC; \
+    } \
+    /* TODO: goto fail/cleanup */ \
+    return RCL_RET_ERROR; \
+  }
+
+#define PUBLISHER_INIT(Type) \
+  char * Type ## _topic_name = NULL; \
+  ret = rcl_action_get_ ## Type ## _topic_name(action_name, *allocator, & Type ## _topic_name); \
+  if (RCL_RET_OK != ret) { \
+    RCL_SET_ERROR_MSG("failed to get Type topic name"); \
+    if (RCL_RET_BAD_ALLOC == ret) { \
+      /* TODO: goto fail/cleanup */ \
+      return RCL_RET_BAD_ALLOC; \
+    } \
+    /* TODO: goto fail/cleanup */ \
+    return RCL_RET_ERROR; \
+  } \
+  rcl_publisher_options_t Type ## _publisher_options = { \
+    .qos = options->Type ## _topic_qos, .allocator = *allocator \
+  }; \
+  action_server->impl->Type ## _publisher = rcl_get_zero_initialized_publisher(); \
+  ret = rcl_publisher_init( \
+    &action_server->impl->Type ## _publisher, \
+    node, \
+    &type_support->Type ## _message_type_support, \
+    Type ## _topic_name, \
+    & Type ## _publisher_options); \
+  allocator->deallocate(Type ## _topic_name, allocator->state); \
+  if (RCL_RET_OK != ret) { \
+    if (RCL_RET_BAD_ALLOC == ret) { \
+      /* TODO: goto fail/cleanup */ \
+      return RCL_RET_BAD_ALLOC; \
+    } \
+    /* TODO: goto fail/cleanup */ \
+    return RCL_RET_ERROR; \
+  }
 
 rcl_ret_t
 rcl_action_server_init(
@@ -71,54 +136,25 @@ rcl_action_server_init(
     RCL_SET_ERROR_MSG("action server already initialized, or memory was unintialized");
     return RCL_RET_ALREADY_INIT;
   }
+
   // Allocate for action server
   action_server->impl = (rcl_action_server_impl_t *)allocator->allocate(
     sizeof(rcl_action_server_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    action_server->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+    action_server->impl, "allocating memory failed", RCL_RET_BAD_ALLOC);
 
   // TODO(jacobperron): Expand the given action name?
   // Test if name is valid
 
-  // TODO(jacobperron): Consider using a macro to initialize services/publishers
-  // Initialize goal service
-  char * goal_service_name = NULL;
-  rcl_ret_t ret = rcl_action_get_goal_service_name(action_name, allocator, &goal_service_name);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG("failed to get goal service name");
-    if (RCL_RET_BAD_ALLOC == ret) {
-      // TODO: goto fail/cleanup
-      return RCL_RET_BAD_ALLOC;
-    }
-    // TODO: goto fail/cleanup
-    return RCL_RET_ERROR;
-  }
-  rcl_client_options_t goal_service_options = {
-    .qos = options->goal_service_qos, .allocator = *allocator
-  };
-  action_server->impl->goal_service = rcl_get_zero_initialized_service();
-  ret = rcl_service_init(
-    &action_server->impl->goal_service,
-    node,
-    &type_support->goal_service_type_support,
-    goal_service_name,
-    &goal_service_options);
-  allocator.deallocate(goal_service_name, allocator.state);
-  if (RCL_RET_OK != ret) {
-    if (RCL_RET_BAD_ALLOC == ret) {
-      // TODO: goto fail/cleanup
-      return RCL_RET_BAD_ALLOC;
-    }
-    // TODO: goto fail/cleanup
-    return RCL_RET_ERROR;
-  }
+  // Initialize services
+  rcl_ret_t ret;
+  SERVICE_INIT(goal);
+  SERVICE_INIT(cancel);
+  SERVICE_INIT(result);
 
-  // TODO(jacobperron): Initialize cancel service
-  // TODO(jacobperron): Initialize result service
-
-  // TODO(jacobperron): Initialize feedback publisher
-  // TODO(jacobperron): Initialize status publisher
-
+  // Initialize publishers
+  PUBLISHER_INIT(feedback);
+  PUBLISHER_INIT(status);
   return RCL_RET_OK;
 }
 

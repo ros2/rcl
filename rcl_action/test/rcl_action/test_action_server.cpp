@@ -30,7 +30,7 @@ TEST(TestActionServer, test_action_server_init_fini)
   // TODO(jacobperron): Replace when ready
   // const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
   //   test_msgs, Fibonacci);
-  const rosidl_action_type_support_t ts;
+  const rosidl_action_type_support_t ts = {0};
   const rcl_action_server_options_t options = rcl_action_server_get_default_options();
   const char * action_name = "test_action_server_name";
   rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
@@ -114,7 +114,7 @@ TEST(TestActionServer, test_action_server_is_valid)
   // TODO(jacobperron): Replace when ready
   // const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
   //   test_msgs, Fibonacci);
-  const rosidl_action_type_support_t ts;
+  const rosidl_action_type_support_t ts = {0};
   const rcl_action_server_options_t options = rcl_action_server_get_default_options();
   const char * action_name = "test_action_server_name";
 
