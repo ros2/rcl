@@ -167,6 +167,7 @@ rcl_action_get_zero_initialized_client(void);
  * \return `RCL_RET_OK` if action_client was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_ALREADY_INIT` if the action client is already initialized, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ACTION_NAME_INVALID` if the given action name is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
