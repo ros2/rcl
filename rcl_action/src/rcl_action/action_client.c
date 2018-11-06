@@ -21,11 +21,13 @@ extern "C"
 #include "rcl_action/default_qos.h"
 #include "rcl_action/names.h"
 #include "rcl_action/types.h"
+#include "rcl_action/wait.h"
 
 #include "rcl/client.h"
 #include "rcl/error_handling.h"
 #include "rcl/subscription.h"
 #include "rcl/types.h"
+#include "rcl/wait.h"
 
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
@@ -702,6 +704,105 @@ rcl_action_client_is_valid(const rcl_action_client_t * action_client)
     action_client->impl, "action client implementation is invalid", return false);
   return true;
 }
+
+rcl_ret_t
+rcl_action_wait_set_add_action_client(
+  rcl_wait_set_t * wait_set,
+  const rcl_action_client_t * action_client) {
+  rcl_ret_t ret;
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;  // error already set
+  }
+  // Wait on action goal service response messages.
+  ret = rcl_wait_set_add_client(
+    wait_set, &action_client->impl->goal_client);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Wait on action cancel service response messages.
+  ret = rcl_wait_set_add_client(
+    wait_set, &action_client->impl->cancel_client);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Wait on action result service response messages.
+  ret = rcl_wait_set_add_client(
+    wait_set, &action_client->impl->result_client);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Wait on action feedback messages.
+  ret = rcl_wait_set_add_subscription(
+    wait_set, &action_client->impl->feedback_subscription);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  return RCL_RET_OK;
+  // Wait on action status messages.
+  ret = rcl_wait_set_add_subscription(
+    wait_set, &action_client->impl->status_subscription);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_action_client_wait_set_get_num_entities(
+  const rcl_action_client_t * action_client,
+  size_t * num_subscriptions,
+  size_t * num_guard_conditions,
+  size_t * num_timers,
+  size_t * num_clients,
+  size_t * num_services)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_subscriptions, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_guard_conditions, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_timers, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_clients, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_services, RCL_RET_INVALID_ARGUMENT);
+  *num_subscriptions = 2;
+  *num_guard_conditions = 0;
+  *num_timers = 0;
+  *num_clients = 3;
+  *num_services = 0;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_action_client_wait_set_get_entities_ready(
+  const rcl_wait_set_t * wait_set,
+  const rcl_action_client_t * action_client,
+  bool * is_feedback_ready,
+  bool * is_status_ready,
+  bool * is_goal_response_ready,
+  bool * is_cancel_response_ready,
+  bool * is_result_response_ready)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_feedback_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_status_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_goal_response_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_cancel_response_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_result_response_ready, RCL_RET_INVALID_ARGUMENT);
+  if (2 != wait_set->size_of_subscriptions || 3 != wait_set->size_of_clients) {
+    RCL_SET_ERROR_MSG("wait set not initialized or not used by the action client alone");
+    return RCL_RET_WAIT_SET_INVALID;
+  }
+  *is_feedback_ready = !!wait_set->subscriptions[0];
+  *is_status_ready = !!wait_set->subscriptions[1];
+  *is_goal_response_ready = !!wait_set->clients[0];
+  *is_cancel_response_ready = !!wait_set->clients[1];
+  *is_result_response_ready = !!wait_set->clients[2];
+  return RCL_RET_OK;
+}
+
 
 #ifdef __cplusplus
 }
