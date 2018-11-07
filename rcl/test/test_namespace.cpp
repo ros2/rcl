@@ -61,7 +61,7 @@ public:
  */
 TEST_F(TestNamespaceFixture, test_client_server) {
   rcl_ret_t ret;
-  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, Primitives);
+  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, Primitives);
   const char * service_name = "/my/namespace/test_namespace_client_server";
   const char * unmatched_client_name = "/your/namespace/test_namespace_client_server";
   const char * matched_client_name = "/my/namespace/test_namespace_client_server";
