@@ -338,7 +338,7 @@ rcl_action_client_init(
   };
   ret = rcl_action_goal_service_client_init(
     &impl->goal_client, node,
-    &type_support->goal_service_type_support,
+    type_support->goal_service_type_support,
     impl->action_name, &goal_client_options);
   if (RCL_RET_OK != ret) {
     RCUTILS_LOG_DEBUG_NAMED(
@@ -351,7 +351,7 @@ rcl_action_client_init(
   };
   ret = rcl_action_cancel_service_client_init(
     &impl->cancel_client, node,
-    &type_support->cancel_service_type_support,
+    type_support->cancel_service_type_support,
     impl->action_name, &cancel_client_options);
   if (RCL_RET_OK != ret) {
     RCUTILS_LOG_DEBUG_NAMED(
@@ -364,7 +364,7 @@ rcl_action_client_init(
   };
   ret = rcl_action_result_client_init(
     &impl->result_client, node,
-    &type_support->result_service_type_support,
+    type_support->result_service_type_support,
     impl->action_name, &result_client_options);
   if (RCL_RET_OK != ret) {
     RCUTILS_LOG_DEBUG_NAMED(
@@ -379,7 +379,7 @@ rcl_action_client_init(
   };
   ret = rcl_action_feedback_subscription_init(
     &impl->feedback_subscription, node,
-    &type_support->feedback_topic_type_support,
+    type_support->feedback_message_type_support,
     impl->action_name, &feedback_subscription_options);
   if (RCL_RET_OK != ret) {
     RCUTILS_LOG_DEBUG_NAMED(
@@ -394,7 +394,7 @@ rcl_action_client_init(
   };
   ret = rcl_action_status_subscription_init(
     &impl->status_subscription, node,
-    &type_support->status_topic_type_support,
+    type_support->status_message_type_support,
     impl->action_name, &status_subscription_options);
   if (RCL_RET_OK != ret) {
     RCUTILS_LOG_DEBUG_NAMED(

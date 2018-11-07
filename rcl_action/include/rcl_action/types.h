@@ -31,6 +31,8 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 
+#include "rosidl_generator_c/action_type_support_struct.h"
+typedef struct rosidl_action_type_support_t rosidl_action_type_support_t;
 
 // rcl action specific ret codes in 2XXX
 /// Action name does not pass validation return code.
