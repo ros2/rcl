@@ -73,6 +73,7 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
+  find_package(test_msgs REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   find_package(test_msgs REQUIRED)
@@ -98,11 +99,13 @@ if(BUILD_TESTING)
     target_include_directories(test_action_server PUBLIC
       include
       ${rcl_INCLUDE_DIRS}
+      ${test_msgs_INCLUDE_DIRS}
     )
     target_link_libraries(test_action_server
       ${PROJECT_NAME}
       ${rcl_LIBRARIES}
       ${rcutils_LIBRARIES}
+      ${test_msgs_LIBRARIES}
     )
   endif()
   ament_add_gtest(test_goal_handle

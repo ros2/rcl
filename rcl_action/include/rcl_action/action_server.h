@@ -20,25 +20,14 @@ extern "C"
 {
 #endif
 
-// TODO(jacobperron): replace type support typedef with one defined in rosdl_generator_c
-// #include "rosidl_generator_c/action_type_support_struct.h"
-#include "rosidl_generator_c/service_type_support_struct.h"
-#include "rosidl_generator_c/message_type_support_struct.h"
-typedef struct rosidl_action_type_support_t
-{
-  rosidl_service_type_support_t * goal_service_type_support;
-  rosidl_service_type_support_t * cancel_service_type_support;
-  rosidl_service_type_support_t * result_service_type_support;
-  rosidl_message_type_support_t * feedback_message_type_support;
-  rosidl_message_type_support_t * status_message_type_support;
-} rosidl_action_type_support_t;
-
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/types.h"
 #include "rcl_action/visibility_control.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/time.h"
+
+#include "rosidl_generator_c/action_type_support_struct.h"
 
 /// Internal rcl_action implementation struct.
 struct rcl_action_server_impl_t;
