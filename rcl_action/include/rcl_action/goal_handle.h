@@ -82,7 +82,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_goal_handle_init(
   rcl_action_goal_handle_t * goal_handle,
-  rcl_action_goal_info_t * goal_info,
+  const rcl_action_goal_info_t * goal_info,
   rcl_allocator_t allocator);
 
 /// Finalize a rcl_action_goal_handle_t.

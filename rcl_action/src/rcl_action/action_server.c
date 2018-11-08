@@ -23,10 +23,12 @@ extern "C"
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/names.h"
 #include "rcl_action/types.h"
+
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
-#include "rcutils/logging_macros.h"
 
+#include "rcutils/logging_macros.h"
+#include "rcutils/strdup.h"
 
 /// Internal rcl_action implementation struct.
 typedef struct rcl_action_server_impl_t
@@ -52,7 +54,7 @@ rcl_action_get_zero_initialized_server(void)
 
 #define SERVICE_INIT(Type) \
   char * Type ## _service_name = NULL; \
-  ret = rcl_action_get_ ## Type ## _service_name(action_name, *allocator, &Type ## _service_name); \
+  ret = rcl_action_get_ ## Type ## _service_name(action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
     RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
@@ -63,7 +65,7 @@ rcl_action_get_zero_initialized_server(void)
     goto fail; \
   } \
   rcl_service_options_t Type ## _service_options = { \
-    .qos = options->Type ## _service_qos, .allocator = *allocator \
+    .qos = options->Type ## _service_qos, .allocator = allocator \
   }; \
   action_server->impl->Type ## _service = rcl_get_zero_initialized_service(); \
   ret = rcl_service_init( \
@@ -72,7 +74,7 @@ rcl_action_get_zero_initialized_server(void)
     type_support->Type ## _service_type_support, \
     Type ## _service_name, \
     &Type ## _service_options); \
-  allocator->deallocate(Type ## _service_name, allocator->state); \
+  allocator.deallocate(Type ## _service_name, allocator.state); \
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
@@ -84,7 +86,7 @@ rcl_action_get_zero_initialized_server(void)
 
 #define PUBLISHER_INIT(Type) \
   char * Type ## _topic_name = NULL; \
-  ret = rcl_action_get_ ## Type ## _topic_name(action_name, *allocator, &Type ## _topic_name); \
+  ret = rcl_action_get_ ## Type ## _topic_name(action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
     RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
@@ -95,7 +97,7 @@ rcl_action_get_zero_initialized_server(void)
     goto fail; \
   } \
   rcl_publisher_options_t Type ## _publisher_options = { \
-    .qos = options->Type ## _topic_qos, .allocator = *allocator \
+    .qos = options->Type ## _topic_qos, .allocator = allocator \
   }; \
   action_server->impl->Type ## _publisher = rcl_get_zero_initialized_publisher(); \
   ret = rcl_publisher_init( \
@@ -104,7 +106,7 @@ rcl_action_get_zero_initialized_server(void)
     type_support->Type ## _message_type_support, \
     Type ## _topic_name, \
     &Type ## _publisher_options); \
-  allocator->deallocate(Type ## _topic_name, allocator->state); \
+  allocator.deallocate(Type ## _topic_name, allocator.state); \
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
@@ -117,7 +119,7 @@ rcl_action_get_zero_initialized_server(void)
 rcl_ret_t
 rcl_action_server_init(
   rcl_action_server_t * action_server,
-  const rcl_node_t * node,
+  rcl_node_t * node,
   const rosidl_action_type_support_t * type_support,
   const char * action_name,
   const rcl_action_server_options_t * options)
@@ -129,8 +131,8 @@ rcl_action_server_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  rcl_allocator_t * allocator = &options->allocator;
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  rcl_allocator_t allocator = options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Initializing action server for action name '%s'", action_name);
@@ -140,8 +142,8 @@ rcl_action_server_init(
   }
 
   // Allocate for action server
-  action_server->impl = (rcl_action_server_impl_t *)allocator->allocate(
-    sizeof(rcl_action_server_impl_t), allocator->state);
+  action_server->impl = (rcl_action_server_impl_t *)allocator.allocate(
+    sizeof(rcl_action_server_impl_t), allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     action_server->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
@@ -159,8 +161,7 @@ rcl_action_server_init(
   PUBLISHER_INIT(status);
 
   // Copy action name
-  action_server->impl->action_name = rcutils_strdup(
-    action_name, *((rcutils_allocator_t *)allocator));
+  action_server->impl->action_name = rcutils_strdup(action_name, allocator);
   if (NULL == action_server->impl->action_name) {
     ret = RCL_RET_BAD_ALLOC;
     goto fail;

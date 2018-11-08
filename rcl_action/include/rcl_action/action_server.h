@@ -166,7 +166,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_init(
   rcl_action_server_t * action_server,
-  const rcl_node_t * node,
+  rcl_node_t * node,
   const rosidl_action_type_support_t * type_support,
   const char * action_name,
   const rcl_action_server_options_t * options);
