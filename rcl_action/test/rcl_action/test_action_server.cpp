@@ -223,6 +223,25 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   EXPECT_NE(goal_handle_array, nullptr);
 }
 
+TEST_F(TestActionServer, test_action_server_get_action_name)
+{
+  // Get action_name for a null action server
+  const char * action_name = rcl_action_server_get_action_name(nullptr);
+  EXPECT_EQ(action_name, nullptr);
+  rcl_reset_error();
+
+  // Get action_name for an invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  action_name = rcl_action_server_get_action_name(&invalid_action_server);
+  EXPECT_EQ(action_name, nullptr);
+  rcl_reset_error();
+
+  // Get action_name for a valid action server
+  action_name = rcl_action_server_get_action_name(&this->action_server);
+  ASSERT_NE(action_name, nullptr);
+  EXPECT_STREQ(action_name, "test_action_server_name");
+}
+
 TEST_F(TestActionServer, test_action_server_get_options)
 {
   // Get options for a null action server

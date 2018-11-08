@@ -385,7 +385,9 @@ rcl_action_send_cancel_response(
 const char *
 rcl_action_server_get_action_name(const rcl_action_server_t * action_server)
 {
-  // TODO(jacobperron): impl
+  if (!rcl_action_server_is_valid(action_server)) {
+    return NULL;  // error already set
+  }
   return action_server->impl->action_name;
 }
 
