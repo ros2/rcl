@@ -155,7 +155,6 @@ rcl_action_server_init(
   SERVICE_INIT(result);
 
   // Initialize publishers
-  printf("Initializing publishers\n");
   PUBLISHER_INIT(feedback);
   PUBLISHER_INIT(status);
 
@@ -176,14 +175,13 @@ rcl_action_server_init(
   ret = RCL_RET_OK;
   goto cleanup;
 fail:
-  printf("Fail\n");
   if (action_server->impl) {
     // Finalize any services/publishers that were initialized and deallocate action_server->impl
-    rcl_action_server_fini(action_server, node);
+    rcl_ret_t ret_throwaway = rcl_action_server_fini(action_server, node);
+    (void)ret_throwaway;  // already failing; likely finalize will error on one or more members
   }
 cleanup:
   // TODO(jacobperron) Cleanup from expanded action name
-  printf("cleanup\n");
   return ret;
 }
 
