@@ -457,7 +457,7 @@ rcl_action_server_goal_exists(
 
   rcl_action_goal_info_t gh_goal_info = rcl_action_get_zero_initialized_goal_info();
   rcl_ret_t ret;
-  for (int i = 0; i < action_server->impl->num_goal_handles; ++i) {
+  for (size_t i = 0; i < action_server->impl->num_goal_handles; ++i) {
     ret = rcl_action_goal_handle_get_info(&action_server->impl->goal_handles[i], &gh_goal_info);
     if (RCL_RET_OK != ret) {
       RCL_SET_ERROR_MSG("failed to get info for goal handle");
