@@ -21,9 +21,9 @@ extern "C"
 
 #include <inttypes.h>
 
-#include "./stdatomic_helper.h"
 #include "rcl/error_handling.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/stdatomic_helper.h"
 #include "rcutils/time.h"
 
 typedef struct rcl_timer_impl_t
@@ -77,8 +77,8 @@ void _rcl_timer_time_jump(
         // No time credit if clock is uninitialized
         return;
       }
-      const int64_t next_call_time = rcl_atomic_load_int64_t(&timer->impl->next_call_time);
-      rcl_atomic_store(&timer->impl->time_credit, next_call_time - now);
+      const int64_t next_call_time = rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
+      rcutils_atomic_store(&timer->impl->time_credit, next_call_time - now);
     }
   } else {
     rcl_time_point_value_t now;
@@ -86,9 +86,9 @@ void _rcl_timer_time_jump(
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to get current time in jump callback");
       return;
     }
-    const int64_t last_call_time = rcl_atomic_load_int64_t(&timer->impl->last_call_time);
-    const int64_t next_call_time = rcl_atomic_load_int64_t(&timer->impl->next_call_time);
-    const int64_t period = rcl_atomic_load_uint64_t(&timer->impl->period);
+    const int64_t last_call_time = rcutils_atomic_load_int64_t(&timer->impl->last_call_time);
+    const int64_t next_call_time = rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
+    const int64_t period = rcutils_atomic_load_uint64_t(&timer->impl->period);
     if (RCL_ROS_TIME_ACTIVATED == time_jump->clock_change ||
       RCL_ROS_TIME_DEACTIVATED == time_jump->clock_change)
     {
@@ -97,11 +97,11 @@ void _rcl_timer_time_jump(
         // Can't apply time credit if clock is uninitialized
         return;
       }
-      int64_t time_credit = rcl_atomic_exchange_int64_t(&timer->impl->time_credit, 0);
+      int64_t time_credit = rcutils_atomic_exchange_int64_t(&timer->impl->time_credit, 0);
       if (time_credit) {
         // set times in new epoch so timer only waits the remainder of the period
-        rcl_atomic_store(&timer->impl->next_call_time, now - time_credit + period);
-        rcl_atomic_store(&timer->impl->last_call_time, now - time_credit);
+        rcutils_atomic_store(&timer->impl->next_call_time, now - time_credit + period);
+        rcutils_atomic_store(&timer->impl->last_call_time, now - time_credit);
       }
     } else if (next_call_time <= now) {
       // Post Forward jump and timer is ready
@@ -112,8 +112,8 @@ void _rcl_timer_time_jump(
     } else if (now < last_call_time) {
       // Post backwards time jump that went further back than 1 period
       // next callback should happen after 1 period
-      rcl_atomic_store(&timer->impl->next_call_time, now + period);
-      rcl_atomic_store(&timer->impl->last_call_time, now);
+      rcutils_atomic_store(&timer->impl->next_call_time, now + period);
+      rcutils_atomic_store(&timer->impl->last_call_time, now);
       return;
     }
   }
@@ -234,7 +234,7 @@ rcl_timer_call(rcl_timer_t * timer)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Calling timer");
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
-  if (rcl_atomic_load_bool(&timer->impl->canceled)) {
+  if (rcutils_atomic_load_bool(&timer->impl->canceled)) {
     RCL_SET_ERROR_MSG("timer is canceled");
     return RCL_RET_TIMER_CANCELED;
   }
@@ -248,12 +248,12 @@ rcl_timer_call(rcl_timer_t * timer)
     return RCL_RET_ERROR;
   }
   rcl_time_point_value_t previous_ns =
-    rcl_atomic_exchange_int64_t(&timer->impl->last_call_time, now);
+    rcutils_atomic_exchange_int64_t(&timer->impl->last_call_time, now);
   rcl_timer_callback_t typed_callback =
-    (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
+    (rcl_timer_callback_t)rcutils_atomic_load_uintptr_t(&timer->impl->callback);
 
-  int64_t next_call_time = rcl_atomic_load_int64_t(&timer->impl->next_call_time);
-  int64_t period = rcl_atomic_load_uint64_t(&timer->impl->period);
+  int64_t next_call_time = rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
+  int64_t period = rcutils_atomic_load_uint64_t(&timer->impl->period);
   // always move the next call time by exactly period forward
   // don't use now as the base to avoid extending each cycle by the time
   // between the timer being ready and the callback being triggered
@@ -271,7 +271,7 @@ rcl_timer_call(rcl_timer_t * timer)
       next_call_time += periods_ahead * period;
     }
   }
-  rcl_atomic_store(&timer->impl->next_call_time, next_call_time);
+  rcutils_atomic_store(&timer->impl->next_call_time, next_call_time);
 
   if (typed_callback != NULL) {
     int64_t since_last_call = now - previous_ns;
@@ -290,7 +290,7 @@ rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready)
   if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
-  *is_ready = (time_until_next_call <= 0) && !rcl_atomic_load_bool(&timer->impl->canceled);
+  *is_ready = (time_until_next_call <= 0) && !rcutils_atomic_load_bool(&timer->impl->canceled);
   return RCL_RET_OK;
 }
 
@@ -305,7 +305,7 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
     return ret;  // rcl error state should already be set.
   }
   *time_until_next_call =
-    rcl_atomic_load_int64_t(&timer->impl->next_call_time) - now;
+    rcutils_atomic_load_int64_t(&timer->impl->next_call_time) - now;
   return RCL_RET_OK;
 }
 
@@ -322,7 +322,7 @@ rcl_timer_get_time_since_last_call(
     return ret;  // rcl error state should already be set.
   }
   *time_since_last_call =
-    now - rcl_atomic_load_int64_t(&timer->impl->last_call_time);
+    now - rcutils_atomic_load_int64_t(&timer->impl->last_call_time);
   return RCL_RET_OK;
 }
 
@@ -331,7 +331,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(period, RCL_RET_INVALID_ARGUMENT);
-  *period = rcl_atomic_load_uint64_t(&timer->impl->period);
+  *period = rcutils_atomic_load_uint64_t(&timer->impl->period);
   return RCL_RET_OK;
 }
 
@@ -340,7 +340,7 @@ rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT);
-  *old_period = rcl_atomic_exchange_uint64_t(&timer->impl->period, new_period);
+  *old_period = rcutils_atomic_exchange_uint64_t(&timer->impl->period, new_period);
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Updated timer period from '%" PRIu64 "ns' to '%" PRIu64 "ns'",
     *old_period, new_period);
@@ -352,7 +352,7 @@ rcl_timer_get_callback(const rcl_timer_t * timer)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
-  return (rcl_timer_callback_t)rcl_atomic_load_uintptr_t(&timer->impl->callback);
+  return (rcl_timer_callback_t)rcutils_atomic_load_uintptr_t(&timer->impl->callback);
 }
 
 rcl_timer_callback_t
@@ -361,7 +361,7 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Updating timer callback");
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
-  return (rcl_timer_callback_t)rcl_atomic_exchange_uintptr_t(
+  return (rcl_timer_callback_t)rcutils_atomic_exchange_uintptr_t(
     &timer->impl->callback, (uintptr_t)new_callback);
 }
 
@@ -370,7 +370,7 @@ rcl_timer_cancel(rcl_timer_t * timer)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  rcl_atomic_store(&timer->impl->canceled, true);
+  rcutils_atomic_store(&timer->impl->canceled, true);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer canceled");
   return RCL_RET_OK;
 }
@@ -380,7 +380,7 @@ rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_canceled, RCL_RET_INVALID_ARGUMENT);
-  *is_canceled = rcl_atomic_load_bool(&timer->impl->canceled);
+  *is_canceled = rcutils_atomic_load_bool(&timer->impl->canceled);
   return RCL_RET_OK;
 }
 
@@ -394,9 +394,9 @@ rcl_timer_reset(rcl_timer_t * timer)
   if (now_ret != RCL_RET_OK) {
     return now_ret;  // rcl error state should already be set.
   }
-  int64_t period = rcl_atomic_load_uint64_t(&timer->impl->period);
-  rcl_atomic_store(&timer->impl->next_call_time, now + period);
-  rcl_atomic_store(&timer->impl->canceled, false);
+  int64_t period = rcutils_atomic_load_uint64_t(&timer->impl->period);
+  rcutils_atomic_store(&timer->impl->next_call_time, now + period);
+  rcutils_atomic_store(&timer->impl->canceled, false);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset");
   return RCL_RET_OK;
 }

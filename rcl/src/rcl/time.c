@@ -18,11 +18,10 @@
 #include <stdlib.h>
 
 #include "./common.h"
-#include "./stdatomic_helper.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcutils/stdatomic_helper.h"
 #include "rcutils/time.h"
-
 
 // Internal storage for RCL_ROS_TIME implementation
 typedef struct rcl_ros_clock_storage_t
@@ -67,7 +66,7 @@ rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
   if (!t->active) {
     return rcl_get_system_time(data, current_time);
   }
-  *current_time = rcl_atomic_load_uint64_t(&(t->current_time));
+  *current_time = rcutils_atomic_load_uint64_t(&(t->current_time));
   return RCL_RET_OK;
 }
 
@@ -371,7 +370,7 @@ rcl_set_ros_time_override(
     time_jump.delta.nanoseconds = time_value - current_time;
     _rcl_clock_call_callbacks(clock, &time_jump, true);
   }
-  rcl_atomic_store(&(storage->current_time), time_value);
+  rcutils_atomic_store(&(storage->current_time), time_value);
   if (storage->active) {
     _rcl_clock_call_callbacks(clock, &time_jump, false);
   }

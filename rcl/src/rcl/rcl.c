@@ -22,10 +22,10 @@ extern "C"
 #include <string.h>
 
 #include "./arguments_impl.h"
-#include "./stdatomic_helper.h"
 #include "rcl/arguments.h"
 #include "rcl/error_handling.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/stdatomic_helper.h"
 #include "rmw/error_handling.h"
 
 static atomic_bool __rcl_is_initialized = ATOMIC_VAR_INIT(false);
@@ -56,8 +56,8 @@ __clean_up_init()
   if (NULL != global_args->impl && RCL_RET_OK != rcl_arguments_fini(global_args)) {
     rcl_reset_error();
   }
-  rcl_atomic_store(&__rcl_instance_id, 0);
-  rcl_atomic_store(&__rcl_is_initialized, false);
+  rcutils_atomic_store(&__rcl_instance_id, 0);
+  rcutils_atomic_store(&__rcl_is_initialized, false);
 }
 
 rcl_ret_t
@@ -71,7 +71,7 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
   if (argc > 0) {
     RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
   }
-  if (rcl_atomic_exchange_bool(&__rcl_is_initialized, true)) {
+  if (rcutils_atomic_exchange_bool(&__rcl_is_initialized, true)) {
     RCL_SET_ERROR_MSG("rcl_init called while already initialized");
     return RCL_RET_ALREADY_INIT;
   }
@@ -123,8 +123,8 @@ rcl_init(int argc, char const * const * argv, rcl_allocator_t allocator)
     rcutils_logging_set_default_logger_level(global_args->impl->log_level);
   }
 
-  rcl_atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
-  if (rcl_atomic_load_uint64_t(&__rcl_instance_id) == 0) {
+  rcutils_atomic_store(&__rcl_instance_id, ++__rcl_next_unique_id);
+  if (rcutils_atomic_load_uint64_t(&__rcl_instance_id) == 0) {
     // Roll over occurred.
     __rcl_next_unique_id--;  // roll back to avoid the next call succeeding.
     RCL_SET_ERROR_MSG("unique rcl instance ids exhausted");
@@ -152,13 +152,13 @@ rcl_shutdown()
 uint64_t
 rcl_get_instance_id()
 {
-  return rcl_atomic_load_uint64_t(&__rcl_instance_id);
+  return rcutils_atomic_load_uint64_t(&__rcl_instance_id);
 }
 
 bool
 rcl_ok()
 {
-  return rcl_atomic_load_bool(&__rcl_is_initialized);
+  return rcutils_atomic_load_bool(&__rcl_is_initialized);
 }
 
 #ifdef __cplusplus
