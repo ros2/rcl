@@ -407,6 +407,13 @@ RCL_PUBLIC
 bool
 rcl_subscription_is_valid(const rcl_subscription_t * subscription);
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rmw_ret_t
+rcl_subscription_get_publisher_count(
+  const rcl_subscription_t * subscription,
+  size_t * publisher_count);
+
 #ifdef __cplusplus
 }
 #endif

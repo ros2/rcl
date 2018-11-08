@@ -337,6 +337,28 @@ rcl_subscription_is_valid(const rcl_subscription_t * subscription)
   return true;
 }
 
+rmw_ret_t
+rcl_subscription_get_publisher_count(
+  const rcl_subscription_t * subscription,
+  size_t * publisher_count)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(subscription, "subscription pointer is invalid",
+    return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher_count, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    subscription->impl, "subscription's implementation is invalid", return RCL_RET_ERROR);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    subscription->impl->rmw_handle, "subscription's rmw handle is invalid", return RCL_RET_ERROR);
+
+  rmw_ret_t ret = rmw_count_matched_publishers(subscription->impl->rmw_handle, publisher_count);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+  return RCL_RET_OK;
+}
+
 #ifdef __cplusplus
 }
 #endif
