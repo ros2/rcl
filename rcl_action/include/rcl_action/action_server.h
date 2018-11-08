@@ -194,7 +194,7 @@ rcl_action_server_init(
  * \param[inout] action_server handle to the action_server to be deinitialized
  * \param[in] node handle to the node used to create the action server
  * \return `RCL_RET_OK` if the action server was deinitialized successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server pointer is null, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */

@@ -18,12 +18,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 
-#include "action_msgs/msg/goal_status_array.h"
-#include "action_msgs/srv/cancel_goal.h"
-// #include "test_msgs/action/fibonacci.h"
-#include "test_msgs/action/fibonacci_feedback.h"
-#include "test_msgs/action/fibonacci_goal_request.h"
-#include "test_msgs/action/fibonacci_goal_result.h"
+#include "test_msgs/action/fibonacci.h"
 
 TEST(TestActionServer, test_action_server_init_fini)
 {
@@ -34,33 +29,25 @@ TEST(TestActionServer, test_action_server_init_fini)
   rcl_node_options_t node_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node, "test_action_server_node", "", &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  // TODO(jacobperron): Replace when type support is ready
-  // const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
-  //   test_msgs, Fibonacci);
-  const rosidl_action_type_support_t ts = {
-    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, action, FibonacciGoalRequest),
-    ROSIDL_GET_SRV_TYPE_SUPPORT(action_msgs, srv, CancelGoal),
-    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, action, FibonacciGoalResult),
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, action, FibonacciFeedback),
-    ROSIDL_GET_MSG_TYPE_SUPPORT(action_msgs, msg, GoalStatusArray),
-  };
+  const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
+    test_msgs, action, Fibonacci);
   const rcl_action_server_options_t options = rcl_action_server_get_default_options();
   const char * action_name = "test_action_server_name";
   rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
 
   // Initialize with a null action server
-  ret = rcl_action_server_init(nullptr, &node, &ts, action_name, &options);
+  ret = rcl_action_server_init(nullptr, &node, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with a null node
-  ret = rcl_action_server_init(&action_server, nullptr, &ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, nullptr, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_NODE_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with an invalid node
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
-  ret = rcl_action_server_init(&action_server, &invalid_node, &ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, &invalid_node, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_NODE_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -70,21 +57,21 @@ TEST(TestActionServer, test_action_server_init_fini)
   rcl_reset_error();
 
   // Initialize with a null name
-  ret = rcl_action_server_init(&action_server, &node, &ts, nullptr, &options);
+  ret = rcl_action_server_init(&action_server, &node, ts, nullptr, &options);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with a null options
-  ret = rcl_action_server_init(&action_server, &node, &ts, action_name, nullptr);
+  ret = rcl_action_server_init(&action_server, &node, ts, action_name, nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with valid arguments
-  ret = rcl_action_server_init(&action_server, &node, &ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, &node, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Try to initialize again
-  ret = rcl_action_server_init(&action_server, &node, &ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, &node, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_ALREADY_INIT) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -96,8 +83,8 @@ TEST(TestActionServer, test_action_server_init_fini)
   // Finalize with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
   ret = rcl_action_server_fini(&invalid_action_server, &node);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
-  rcl_reset_error();
+  // Nothing happens
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Finalize with null node
   ret = rcl_action_server_fini(&action_server, nullptr);
@@ -124,10 +111,8 @@ TEST(TestActionServer, test_action_server_is_valid)
   rcl_node_options_t node_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node, "test_action_server_node", "", &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  // TODO(jacobperron): Replace when ready
-  // const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
-  //   test_msgs, Fibonacci);
-  const rosidl_action_type_support_t ts = {0};
+  const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
+    test_msgs, action, Fibonacci);
   const rcl_action_server_options_t options = rcl_action_server_get_default_options();
   const char * action_name = "test_action_server_name";
 
@@ -143,7 +128,7 @@ TEST(TestActionServer, test_action_server_is_valid)
   rcl_reset_error();
 
   // Check valid action server
-  ret = rcl_action_server_init(&action_server, &node, &ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, &node, ts, action_name, &options);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   is_valid = rcl_action_server_is_valid(&action_server);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;

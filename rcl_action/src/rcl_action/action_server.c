@@ -35,8 +35,8 @@ typedef struct rcl_action_server_impl_t
   rcl_service_t result_service;
   rcl_publisher_t feedback_publisher;
   rcl_publisher_t status_publisher;
-  rcl_action_server_options_t options;
   char * action_name;
+  rcl_action_server_options_t options;
   // Array of goal handles
   rcl_action_goal_handle_t * goal_handles;
 } rcl_action_server_impl_t;
@@ -50,15 +50,15 @@ rcl_action_get_zero_initialized_server(void)
 
 #define SERVICE_INIT(Type) \
   char * Type ## _service_name = NULL; \
-  ret = rcl_action_get_ ## Type ##_service_name(action_name, *allocator, & Type ## _service_name); \
+  ret = rcl_action_get_ ## Type ## _service_name(action_name, *allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
-    RCL_SET_ERROR_MSG("failed to get Type service name"); \
+    RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
-      /* TODO: goto fail/cleanup */ \
-      return RCL_RET_BAD_ALLOC; \
+      ret = RCL_RET_BAD_ALLOC; \
+    } else { \
+      ret = RCL_RET_ERROR; \
     } \
-    /* TODO: goto fail/cleanup */ \
-    return RCL_RET_ERROR; \
+    goto fail; \
   } \
   rcl_service_options_t Type ## _service_options = { \
     .qos = options->Type ## _service_qos, .allocator = *allocator \
@@ -67,30 +67,30 @@ rcl_action_get_zero_initialized_server(void)
   ret = rcl_service_init( \
     &action_server->impl->Type ## _service, \
     node, \
-    &type_support->Type ## _service_type_support, \
+    type_support->Type ## _service_type_support, \
     Type ## _service_name, \
-    & Type ## _service_options); \
+    &Type ## _service_options); \
   allocator->deallocate(Type ## _service_name, allocator->state); \
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_BAD_ALLOC == ret) { \
-      /* TODO: goto fail/cleanup */ \
-      return RCL_RET_BAD_ALLOC; \
+      ret = RCL_RET_BAD_ALLOC; \
+    } else { \
+      ret = RCL_RET_ERROR; \
     } \
-    /* TODO: goto fail/cleanup */ \
-    return RCL_RET_ERROR; \
+    goto fail; \
   }
 
 #define PUBLISHER_INIT(Type) \
   char * Type ## _topic_name = NULL; \
-  ret = rcl_action_get_ ## Type ## _topic_name(action_name, *allocator, & Type ## _topic_name); \
+  ret = rcl_action_get_ ## Type ## _topic_name(action_name, *allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
-    RCL_SET_ERROR_MSG("failed to get Type topic name"); \
+    RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
-      /* TODO: goto fail/cleanup */ \
-      return RCL_RET_BAD_ALLOC; \
+      ret = RCL_RET_BAD_ALLOC; \
+    } else { \
+      ret = RCL_RET_ERROR; \
     } \
-    /* TODO: goto fail/cleanup */ \
-    return RCL_RET_ERROR; \
+    goto fail; \
   } \
   rcl_publisher_options_t Type ## _publisher_options = { \
     .qos = options->Type ## _topic_qos, .allocator = *allocator \
@@ -99,17 +99,17 @@ rcl_action_get_zero_initialized_server(void)
   ret = rcl_publisher_init( \
     &action_server->impl->Type ## _publisher, \
     node, \
-    &type_support->Type ## _message_type_support, \
+    type_support->Type ## _message_type_support, \
     Type ## _topic_name, \
-    & Type ## _publisher_options); \
+    &Type ## _publisher_options); \
   allocator->deallocate(Type ## _topic_name, allocator->state); \
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_BAD_ALLOC == ret) { \
-      /* TODO: goto fail/cleanup */ \
-      return RCL_RET_BAD_ALLOC; \
+      ret = RCL_RET_BAD_ALLOC; \
+    } else { \
+      ret = RCL_RET_ERROR; \
     } \
-    /* TODO: goto fail/cleanup */ \
-    return RCL_RET_ERROR; \
+    goto fail; \
   }
 
 rcl_ret_t
@@ -141,9 +141,9 @@ rcl_action_server_init(
   action_server->impl = (rcl_action_server_impl_t *)allocator->allocate(
     sizeof(rcl_action_server_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    action_server->impl, "allocating memory failed", RCL_RET_BAD_ALLOC);
+    action_server->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
-  // TODO(jacobperron): Expand the given action name?
+  // TODO(jacobperron): Expand the given action name
   // Test if name is valid
 
   // Initialize services
@@ -153,16 +153,68 @@ rcl_action_server_init(
   SERVICE_INIT(result);
 
   // Initialize publishers
+  printf("Initializing publishers\n");
   PUBLISHER_INIT(feedback);
   PUBLISHER_INIT(status);
-  return RCL_RET_OK;
+
+  // Copy action name
+  action_server->impl->action_name = rcutils_strdup(
+    action_name, *((rcutils_allocator_t *)allocator));
+  if (NULL == action_server->impl->action_name) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
+
+  // Copy options
+  action_server->impl->options = *options;
+
+  ret = RCL_RET_OK;
+  goto cleanup;
+fail:
+  printf("Fail\n");
+  if (action_server->impl) {
+    // Finalize any services/publishers that were initialized and deallocate action_server->impl
+    rcl_action_server_fini(action_server, node);
+  }
+cleanup:
+  // TODO(jacobperron) Cleanup from expanded action name
+  printf("cleanup\n");
+  return ret;
 }
 
 rcl_ret_t
 rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_server, RCL_RET_ACTION_SERVER_INVALID);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;  // error message already set
+  }
+
+  rcl_ret_t ret = RCL_RET_OK;
+  if (action_server->impl) {
+    // Finalize services
+    if (rcl_service_fini(&action_server->impl->goal_service, node) != RCL_RET_OK) {
+      ret = RCL_RET_ERROR;
+    }
+    if (rcl_service_fini(&action_server->impl->cancel_service, node) != RCL_RET_OK) {
+      ret = RCL_RET_ERROR;
+    }
+    if (rcl_service_fini(&action_server->impl->result_service, node) != RCL_RET_OK) {
+      ret = RCL_RET_ERROR;
+    }
+    // Finalize publishers
+    if (rcl_publisher_fini(&action_server->impl->feedback_publisher, node) != RCL_RET_OK) {
+      ret = RCL_RET_ERROR;
+    }
+    if (rcl_publisher_fini(&action_server->impl->status_publisher, node) != RCL_RET_OK) {
+      ret = RCL_RET_ERROR;
+    }
+    // Deallocate struct
+    rcl_allocator_t allocator = action_server->impl->options.allocator;
+    allocator.deallocate(action_server->impl, allocator.state);
+    action_server->impl = NULL;
+  }
+  return ret;
 }
 
 rcl_action_server_options_t
@@ -170,7 +222,7 @@ rcl_action_server_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_action_server_options_t default_options;
-  // TODO(jacobperron): impl
+  default_options.allocator = rcl_get_default_allocator();
   return default_options;
 }
 
@@ -309,7 +361,29 @@ rcl_action_server_get_goal_handles(
 bool
 rcl_action_server_is_valid(const rcl_action_server_t * action_server)
 {
-  // TODO(jacobperron): impl
+  RCL_CHECK_FOR_NULL_WITH_MSG(action_server, "action server pointer is invalid", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    action_server->impl, "action server implementation is invalid", return false);
+  if (!rcl_service_is_valid(&action_server->impl->goal_service)) {
+    RCL_SET_ERROR_MSG("goal service is invalid");
+    return false;
+  }
+  if (!rcl_service_is_valid(&action_server->impl->cancel_service)) {
+    RCL_SET_ERROR_MSG("cancel service is invalid");
+    return false;
+  }
+  if (!rcl_service_is_valid(&action_server->impl->result_service)) {
+    RCL_SET_ERROR_MSG("result service is invalid");
+    return false;
+  }
+  if (!rcl_publisher_is_valid(&action_server->impl->feedback_publisher)) {
+    RCL_SET_ERROR_MSG("feedback publisher is invalid");
+    return false;
+  }
+  if (!rcl_publisher_is_valid(&action_server->impl->status_publisher)) {
+    RCL_SET_ERROR_MSG("status publisher is invalid");
+    return false;
+  }
   return true;
 }
 

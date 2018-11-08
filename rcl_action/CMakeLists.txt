@@ -103,10 +103,8 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test_action_server
       ${PROJECT_NAME}
-      ${rcl_LIBRARIES}
-      ${rcutils_LIBRARIES}
-      ${test_msgs_LIBRARIES}
     )
+    ament_target_dependencies(test_action_server "test_msgs")
   endif()
   ament_add_gtest(test_goal_handle
     test/rcl_action/test_goal_handle.cpp
@@ -162,4 +160,5 @@ ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl)
 ament_export_dependencies(action_msgs)
+ament_export_dependencies(rosidl_generator_c)
 ament_package()
