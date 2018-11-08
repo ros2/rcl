@@ -76,7 +76,7 @@ rcl_get_zero_initialized_service(void);
  * #include <rosidl_generator_c/service_type_support_struct.h>
  * #include <example_interfaces/srv/add_two_ints.h>
  * const rosidl_service_type_support_t * ts =
- *   ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
+ *   ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
  * ```
  *
  * For C++, a template function is used:
@@ -113,7 +113,7 @@ rcl_get_zero_initialized_service(void);
  * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/my_namespace", &node_ops);
  * // ... error handling
  * const rosidl_service_type_support_t * ts =
- *   ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, AddTwoInts);
+ *   ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
  * rcl_service_t service = rcl_get_zero_initialized_service();
  * rcl_service_options_t service_ops = rcl_service_get_default_options();
  * ret = rcl_service_init(&service, &node, ts, "add_two_ints", &service_ops);

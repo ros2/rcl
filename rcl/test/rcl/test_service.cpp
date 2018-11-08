@@ -102,7 +102,7 @@ wait_for_service_to_be_ready(
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) {
   rcl_ret_t ret;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-    test_msgs, Primitives);
+    test_msgs, srv, Primitives);
   const char * topic = "primitives";
   const char * expected_topic = "/primitives";
 

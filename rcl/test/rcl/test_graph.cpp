@@ -469,7 +469,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   rcl_ret_t ret;
   // First create a client which will be used to call the function.
   rcl_client_t client = rcl_get_zero_initialized_client();
-  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, Primitives);
+  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, Primitives);
   const char * service_name = "/service_test_rcl_service_server_is_available";
   rcl_client_options_t client_options = rcl_client_get_default_options();
   ret = rcl_client_init(&client, this->node_ptr, ts, service_name, &client_options);
