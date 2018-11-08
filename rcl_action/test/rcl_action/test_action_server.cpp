@@ -248,6 +248,8 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(status_array.msg.status_list.data, nullptr);
   EXPECT_EQ(status_array.msg.status_list.size, 0u);
+  ret = rcl_action_goal_status_array_fini(&status_array);
+  ASSERT_EQ(ret, RCL_RET_OK);
 
   // Add a goal before getting the status array
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
@@ -265,9 +267,10 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   for (int i = 0; i < 16; ++i) {
     EXPECT_EQ(goal_info_out->uuid[i], goal_info_in.uuid[i]);
   }
+  ret = rcl_action_goal_status_array_fini(&status_array);
+  ASSERT_EQ(ret, RCL_RET_OK);
 
   // Add nine more goals
-  /*
   for (int i = 1; i < 10; ++i) {
     for (int j = 0; j < 16; ++j) {
       goal_info_in.uuid[j] = static_cast<uint8_t>(i + j);
@@ -278,14 +281,15 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_NE(status_array.msg.status_list.data, nullptr);
-  EXPECT_EQ(status_array.msg.status_list.size, 10u);
+  ASSERT_EQ(status_array.msg.status_list.size, 10u);
   for (int i = 0; i < 10; ++i) {
-    goal_info_out = &status_array.msg.status_list.data[0].goal_info;
+    goal_info_out = &status_array.msg.status_list.data[i].goal_info;
     for (int j = 0; j < 16; ++j) {
       EXPECT_EQ(goal_info_out->uuid[j], i + j);
     }
   }
-  */
+  ret = rcl_action_goal_status_array_fini(&status_array);
+  ASSERT_EQ(ret, RCL_RET_OK);
 }
 
 TEST_F(TestActionServer, test_action_server_get_action_name)
