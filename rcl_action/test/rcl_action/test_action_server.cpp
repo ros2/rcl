@@ -185,17 +185,17 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
   rcl_action_goal_info_t goal_info_out = rcl_action_get_zero_initialized_goal_info();
   rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
-  ASSERT_EQ(ret, RCL_RET_OK);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   for (int i = 0; i < 16; ++i) {
     EXPECT_EQ(goal_info_out.uuid[i], goal_info_in.uuid[i]);
   }
   EXPECT_EQ(goal_info_out.stamp.sec, goal_info_in.stamp.sec);
   EXPECT_EQ(goal_info_out.stamp.nanosec, goal_info_in.stamp.nanosec);
-  uint32_t num_goals;
+  size_t num_goals;
   const rcl_action_goal_handle_t * goal_handle_array = rcl_action_server_get_goal_handles(
     &this->action_server, &num_goals);
   EXPECT_EQ(num_goals, 1u);
-  EXPECT_NE(goal_handle_array, nullptr);
+  EXPECT_NE(goal_handle_array, nullptr) << rcl_get_error_string().str;
 
   // Accept with the same goal ID
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
@@ -210,9 +210,9 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   goal_info_in.stamp.sec = 4321;
   goal_info_in.stamp.nanosec = 7654u;
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
-  EXPECT_NE(goal_handle, nullptr);
+  EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
   ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
-  ASSERT_EQ(ret, RCL_RET_OK);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   for (int i = 0; i < 16; ++i) {
     EXPECT_EQ(goal_info_out.uuid[i], goal_info_in.uuid[i]);
   }
@@ -220,7 +220,72 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   EXPECT_EQ(goal_info_out.stamp.nanosec, goal_info_in.stamp.nanosec);
   goal_handle_array = rcl_action_server_get_goal_handles(&this->action_server, &num_goals);
   EXPECT_EQ(num_goals, 2u);
-  EXPECT_NE(goal_handle_array, nullptr);
+  EXPECT_NE(goal_handle_array, nullptr) << rcl_get_error_string().str;
+}
+
+TEST_F(TestActionServer, test_action_server_get_goal_status_array)
+{
+  rcl_action_goal_status_array_t status_array =
+    rcl_action_get_zero_initialized_goal_status_array();
+  // Get with null action server
+  rcl_ret_t ret = rcl_action_get_goal_status_array(nullptr, &status_array);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Get with null status array
+  ret = rcl_action_get_goal_status_array(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Get with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_get_goal_status_array(&invalid_action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Get with valid arguments (but not goals being tracked)
+  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_EQ(status_array.msg.status_list.data, nullptr);
+  EXPECT_EQ(status_array.msg.status_list.size, 0u);
+
+  // Add a goal before getting the status array
+  rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
+  for (int i = 0; i < 16; ++i) {
+    goal_info_in.uuid[i] = static_cast<uint8_t>(i);
+  }
+  rcl_action_goal_handle_t * goal_handle;
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_NE(status_array.msg.status_list.data, nullptr);
+  EXPECT_EQ(status_array.msg.status_list.size, 1u);
+  rcl_action_goal_info_t * goal_info_out = &status_array.msg.status_list.data[0].goal_info;
+  for (int i = 0; i < 16; ++i) {
+    EXPECT_EQ(goal_info_out->uuid[i], goal_info_in.uuid[i]);
+  }
+
+  // Add nine more goals
+  /*
+  for (int i = 1; i < 10; ++i) {
+    for (int j = 0; j < 16; ++j) {
+      goal_info_in.uuid[j] = static_cast<uint8_t>(i + j);
+    }
+    goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+    ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  }
+  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_NE(status_array.msg.status_list.data, nullptr);
+  EXPECT_EQ(status_array.msg.status_list.size, 10u);
+  for (int i = 0; i < 10; ++i) {
+    goal_info_out = &status_array.msg.status_list.data[0].goal_info;
+    for (int j = 0; j < 16; ++j) {
+      EXPECT_EQ(goal_info_out->uuid[j], i + j);
+    }
+  }
+  */
 }
 
 TEST_F(TestActionServer, test_action_server_get_action_name)
@@ -238,7 +303,7 @@ TEST_F(TestActionServer, test_action_server_get_action_name)
 
   // Get action_name for a valid action server
   action_name = rcl_action_server_get_action_name(&this->action_server);
-  ASSERT_NE(action_name, nullptr);
+  ASSERT_NE(action_name, nullptr) << rcl_get_error_string().str;
   EXPECT_STREQ(action_name, "test_action_server_name");
 }
 
@@ -257,5 +322,5 @@ TEST_F(TestActionServer, test_action_server_get_options)
 
   // Get options for a valid action server
   options = rcl_action_server_get_options(&this->action_server);
-  EXPECT_NE(options, nullptr);
+  EXPECT_NE(options, nullptr) << rcl_get_error_string().str;
 }

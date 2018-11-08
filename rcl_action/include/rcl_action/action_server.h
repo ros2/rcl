@@ -571,7 +571,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_clear_expired_goals(
   const rcl_action_server_t * action_server,
-  uint32_t * num_expired);
+  size_t * num_expired);
 
 /// Take a pending cancel request using a rcl_action_server_t.
 /**
@@ -775,7 +775,7 @@ RCL_WARN_UNUSED
 const rcl_action_goal_handle_t *
 rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
-  uint32_t * num_goals);
+  size_t * num_goals);
 
 /// Check if a goal is already being tracked by an action server
 /**

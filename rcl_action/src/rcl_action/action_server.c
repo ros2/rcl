@@ -40,7 +40,7 @@ typedef struct rcl_action_server_impl_t
   rcl_action_server_options_t options;
   // Array of goal handles
   rcl_action_goal_handle_t * goal_handles;
-  uint32_t num_goal_handles;
+  size_t num_goal_handles;
 } rcl_action_server_impl_t;
 
 rcl_action_server_t
@@ -314,7 +314,41 @@ rcl_action_get_goal_status_array(
   const rcl_action_server_t * action_server,
   rcl_action_goal_status_array_t * status_message)
 {
-  // TODO(jacobperron): impl
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(status_message, RCL_RET_INVALID_ARGUMENT);
+
+  // If number of goals is zero, then we don't need to do any allocation
+  size_t num_goals = action_server->impl->num_goal_handles;
+  if (0 == num_goals) {
+    status_message->msg.status_list.size = 0u;
+    return RCL_RET_OK;
+  }
+
+  // Allocate status array
+  rcl_allocator_t allocator = action_server->impl->options.allocator;
+  rcl_ret_t ret = rcl_action_goal_status_array_init(status_message, num_goals, allocator);
+  if (RCL_RET_OK != ret) {
+    if (RCL_RET_BAD_ALLOC == ret) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    return RCL_RET_ERROR;
+  }
+
+  // Populate status array
+  for (size_t i = 0; i < num_goals; ++i) {
+    ret = rcl_action_goal_handle_get_info(
+      &action_server->impl->goal_handles[i], &status_message->msg.status_list.data[i].goal_info);
+    if (RCL_RET_OK != ret) {
+      return RCL_RET_ERROR;
+    }
+    ret = rcl_action_goal_handle_get_status(
+      &action_server->impl->goal_handles[i], &status_message->msg.status_list.data[i].status);
+    if (RCL_RET_OK != ret) {
+      return RCL_RET_ERROR;
+    }
+  }
   return RCL_RET_OK;
 }
 
@@ -348,7 +382,7 @@ rcl_action_send_result_response(
 rcl_ret_t
 rcl_action_clear_expired_goals(
   const rcl_action_server_t * action_server,
-  uint32_t * num_expired)
+  size_t * num_expired)
 {
   // TODO(jacobperron): impl
   return RCL_RET_OK;
@@ -403,7 +437,7 @@ rcl_action_server_get_options(const rcl_action_server_t * action_server)
 const rcl_action_goal_handle_t *
 rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
-  uint32_t * num_goals)
+  size_t * num_goals)
 {
   if (!rcl_action_server_is_valid(action_server)) {
     return NULL;  // error already set
