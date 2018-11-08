@@ -43,8 +43,8 @@ typedef struct rcl_action_server_options_t
 {
   /// Middleware quality of service settings for the action server.
   rmw_qos_profile_t goal_service_qos;
-  rmw_qos_profile_t result_service_qos;
   rmw_qos_profile_t cancel_service_qos;
+  rmw_qos_profile_t result_service_qos;
   rmw_qos_profile_t feedback_topic_qos;
   rmw_qos_profile_t status_topic_qos;
   /// Custom allocator for the action server, used for incidental allocations.
@@ -208,8 +208,8 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node);
  * The defaults are:
  *
  * - goal_service_qos = rmw_qos_profile_services_default;
- * - result_service_qos = rmw_qos_profile_services_default;
  * - cancel_service_qos = rmw_qos_profile_services_default;
+ * - result_service_qos = rmw_qos_profile_services_default;
  * - feedback_topic_qos = rmw_qos_profile_default;
  * - status_topic_qos = rcl_action_qos_profile_status_default;
  * - allocator = rcl_get_default_allocator()

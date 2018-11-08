@@ -19,6 +19,7 @@ extern "C"
 
 #include "rcl_action/action_server.h"
 
+#include "rcl_action/default_qos.h"
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/names.h"
 #include "rcl_action/types.h"
@@ -222,7 +223,13 @@ rcl_action_server_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_action_server_options_t default_options;
+  default_options.goal_service_qos = rmw_qos_profile_services_default;
+  default_options.cancel_service_qos = rmw_qos_profile_services_default;
+  default_options.result_service_qos = rmw_qos_profile_services_default;
+  default_options.feedback_topic_qos = rmw_qos_profile_default;
+  default_options.status_topic_qos = rcl_action_qos_profile_status_default;
   default_options.allocator = rcl_get_default_allocator();
+  default_options.result_timeout.nanoseconds = 9e+11;  // 15 minutes
   return default_options;
 }
 
