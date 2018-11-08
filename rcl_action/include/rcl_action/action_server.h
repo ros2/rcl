@@ -444,7 +444,7 @@ rcl_action_get_goal_status_array(
 
 /// Publish a status array message for accepted goals associated with a rcl_action_server_t.
 /**
- * This function acts like a ROS publisher and is potntially a blocking call.
+ * This function acts like a ROS publisher and is potentially a blocking call.
  * \see rcl_publish()
  *
  * A status array message associated with the action server can be created with
