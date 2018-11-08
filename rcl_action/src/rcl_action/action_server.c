@@ -392,7 +392,9 @@ rcl_action_server_get_action_name(const rcl_action_server_t * action_server)
 const rcl_action_server_options_t *
 rcl_action_server_get_options(const rcl_action_server_t * action_server)
 {
-  // TODO(jacobperron): impl
+  if (!rcl_action_server_is_valid(action_server)) {
+    return NULL;  // error already set
+  }
   return &action_server->impl->options;
 }
 

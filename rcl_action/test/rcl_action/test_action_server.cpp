@@ -222,3 +222,21 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   EXPECT_EQ(num_goals, 2u);
   EXPECT_NE(goal_handle_array, nullptr);
 }
+
+TEST_F(TestActionServer, test_action_server_get_options)
+{
+  // Get options for a null action server
+  const rcl_action_server_options_t * options = rcl_action_server_get_options(nullptr);
+  EXPECT_EQ(options, nullptr);
+  rcl_reset_error();
+
+  // Get options for an invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  options = rcl_action_server_get_options(&invalid_action_server);
+  EXPECT_EQ(options, nullptr);
+  rcl_reset_error();
+
+  // Get options for a valid action server
+  options = rcl_action_server_get_options(&this->action_server);
+  EXPECT_NE(options, nullptr);
+}
