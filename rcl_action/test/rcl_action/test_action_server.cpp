@@ -20,7 +20,7 @@
 
 #include "test_msgs/action/fibonacci.h"
 
-TEST(TestActionServer, test_action_server_init_fini)
+TEST(TestActionServerInitFini, test_action_server_init_fini)
 {
   rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -103,39 +103,122 @@ TEST(TestActionServer, test_action_server_init_fini)
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-TEST(TestActionServer, test_action_server_is_valid)
+class TestActionServer : public ::testing::Test
 {
-  rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_node_t node = rcl_get_zero_initialized_node();
-  rcl_node_options_t node_options = rcl_node_get_default_options();
-  ret = rcl_node_init(&node, "test_action_server_node", "", &node_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
-    test_msgs, action, Fibonacci);
-  const rcl_action_server_options_t options = rcl_action_server_get_default_options();
-  const char * action_name = "test_action_server_name";
+protected:
+  void SetUp()
+  {
+    rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    this->node = rcl_get_zero_initialized_node();
+    rcl_node_options_t node_options = rcl_node_get_default_options();
+    ret = rcl_node_init(&this->node, "test_action_server_node", "", &node_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
+      test_msgs, action, Fibonacci);
+    const rcl_action_server_options_t options = rcl_action_server_get_default_options();
+    const char * action_name = "test_action_server_name";
+    this->action_server = rcl_action_get_zero_initialized_server();
+    ret = rcl_action_server_init(&this->action_server, &this->node, ts, action_name, &options);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  }
 
+  void TearDown()
+  {
+    // Finalize
+    rcl_ret_t ret = rcl_action_server_fini(&this->action_server, &this->node);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_shutdown();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  rcl_action_server_t action_server;
+  rcl_node_t node;
+};  // class TestActionServer
+
+TEST_F(TestActionServer, test_action_server_is_valid)
+{
   // Check with null pointer
   bool is_valid = rcl_action_server_is_valid(nullptr);
   EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Check with uninitialized action server
-  rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
-  is_valid = rcl_action_server_is_valid(&action_server);
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  is_valid = rcl_action_server_is_valid(&invalid_action_server);
   EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Check valid action server
-  ret = rcl_action_server_init(&action_server, &node, ts, action_name, &options);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  is_valid = rcl_action_server_is_valid(&action_server);
+  is_valid = rcl_action_server_is_valid(&this->action_server);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
+}
 
-  // Finalize
-  ret = rcl_action_server_fini(&action_server, &node);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  ret = rcl_shutdown();
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+TEST_F(TestActionServer, test_action_server_accept_new_goal)
+{
+  // Initialize a goal info
+  rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
+  for (int i = 0; i < 16; ++i) {
+    goal_info_in.uuid[i] = static_cast<uint8_t>(i);
+  }
+  goal_info_in.stamp.sec = 1234;
+  goal_info_in.stamp.nanosec = 4567u;
+
+  // Accept goal with a null action server
+  rcl_action_goal_handle_t * goal_handle = rcl_action_accept_new_goal(nullptr, &goal_info_in);
+  EXPECT_EQ(goal_handle, nullptr);
+  rcl_reset_error();
+
+  // Accept goal with null goal info
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, nullptr);
+  EXPECT_EQ(goal_handle, nullptr);
+  rcl_reset_error();
+
+  // Accept goal with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  goal_handle = rcl_action_accept_new_goal(&invalid_action_server, &goal_info_in);
+  EXPECT_EQ(goal_handle, nullptr);
+  rcl_reset_error();
+
+  // Accept with valid arguments
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  rcl_action_goal_info_t goal_info_out = rcl_action_get_zero_initialized_goal_info();
+  rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
+  ASSERT_EQ(ret, RCL_RET_OK);
+  for (int i = 0; i < 16; ++i) {
+    EXPECT_EQ(goal_info_out.uuid[i], goal_info_in.uuid[i]);
+  }
+  EXPECT_EQ(goal_info_out.stamp.sec, goal_info_in.stamp.sec);
+  EXPECT_EQ(goal_info_out.stamp.nanosec, goal_info_in.stamp.nanosec);
+  uint32_t num_goals;
+  const rcl_action_goal_handle_t * goal_handle_array = rcl_action_server_get_goal_handles(
+    &this->action_server, &num_goals);
+  EXPECT_EQ(num_goals, 1u);
+  EXPECT_NE(goal_handle_array, nullptr);
+
+  // Accept with the same goal ID
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  EXPECT_EQ(goal_handle, nullptr);
+  rcl_reset_error();
+
+  // Accept a different goal
+  goal_info_in = rcl_action_get_zero_initialized_goal_info();
+  for (int i = 0; i < 16; ++i) {
+    goal_info_in.uuid[i] = static_cast<uint8_t>(15 - i);
+  }
+  goal_info_in.stamp.sec = 4321;
+  goal_info_in.stamp.nanosec = 7654u;
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  EXPECT_NE(goal_handle, nullptr);
+  ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
+  ASSERT_EQ(ret, RCL_RET_OK);
+  for (int i = 0; i < 16; ++i) {
+    EXPECT_EQ(goal_info_out.uuid[i], goal_info_in.uuid[i]);
+  }
+  EXPECT_EQ(goal_info_out.stamp.sec, goal_info_in.stamp.sec);
+  EXPECT_EQ(goal_info_out.stamp.nanosec, goal_info_in.stamp.nanosec);
+  goal_handle_array = rcl_action_server_get_goal_handles(&this->action_server, &num_goals);
+  EXPECT_EQ(num_goals, 2u);
+  EXPECT_NE(goal_handle_array, nullptr);
 }

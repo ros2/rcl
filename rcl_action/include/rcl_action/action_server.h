@@ -777,6 +777,17 @@ rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
   uint32_t * num_goals);
 
+/// Check if a goal is already being tracked by an action server
+/**
+ * TODO(jacobperron): Document
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+bool
+rcl_action_server_goal_exists(
+  const rcl_action_server_t * action_server,
+  const rcl_action_goal_info_t * goal_info);
+
 /// Check that the action server is valid.
 /**
  * The bool returned is `false` if `action_server` is invalid.
@@ -797,6 +808,7 @@ rcl_action_server_get_goal_handles(
  * \return `true` if `action_server` is valid, otherwise `false`
  */
 RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
 bool
 rcl_action_server_is_valid(const rcl_action_server_t * action_server);
 

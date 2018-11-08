@@ -40,6 +40,7 @@ typedef struct rcl_action_server_impl_t
   rcl_action_server_options_t options;
   // Array of goal handles
   rcl_action_goal_handle_t * goal_handles;
+  uint32_t num_goal_handles;
 } rcl_action_server_impl_t;
 
 rcl_action_server_t
@@ -169,6 +170,9 @@ rcl_action_server_init(
   // Copy options
   action_server->impl->options = *options;
 
+  action_server->impl->goal_handles = NULL;
+  action_server->impl->num_goal_handles = 0;
+
   ret = RCL_RET_OK;
   goto cleanup;
 fail:
@@ -188,7 +192,7 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(action_server, RCL_RET_ACTION_SERVER_INVALID);
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;  // error message already set
+    return RCL_RET_NODE_INVALID;  // error already set
   }
 
   rcl_ret_t ret = RCL_RET_OK;
@@ -256,8 +260,44 @@ rcl_action_accept_new_goal(
   const rcl_action_server_t * action_server,
   const rcl_action_goal_info_t * goal_info)
 {
-  // TODO(jacobperron): impl
-  return NULL;
+  if (!rcl_action_server_is_valid(action_server)) {
+    return NULL;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_info, NULL);
+
+  // Check if goal with same ID already exists
+  if (rcl_action_server_goal_exists(action_server, goal_info)) {
+    RCL_SET_ERROR_MSG("goal ID already exists");
+    return NULL;
+  }
+
+  // Allocate space for a new goal handle
+  rcl_allocator_t allocator = action_server->impl->options.allocator;
+  rcl_action_goal_handle_t * goal_handles = action_server->impl->goal_handles;
+  const size_t num_goal_handles = action_server->impl->num_goal_handles;
+  // TODO(jacobperron): Don't allocate for every accepted goal handle,
+  //                    instead double the memory allocated if needed.
+  const size_t new_num_goal_handles = num_goal_handles + 1;
+  void * tmp_ptr = allocator.reallocate(
+    goal_handles, new_num_goal_handles * sizeof(rcl_action_goal_handle_t), allocator.state);
+  if (!tmp_ptr) {
+    RCL_SET_ERROR_MSG("memory allocation failed for new goal handle");
+    return NULL;
+  }
+  goal_handles = (rcl_action_goal_handle_t *)tmp_ptr;
+
+  // Create a new goal handle
+  goal_handles[num_goal_handles] = rcl_action_get_zero_initialized_goal_handle();
+  rcl_ret_t ret = rcl_action_goal_handle_init(
+    &goal_handles[num_goal_handles], goal_info, allocator);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("failed to initialize goal handle");
+    return NULL;
+  }
+
+  action_server->impl->goal_handles = goal_handles;
+  action_server->impl->num_goal_handles = new_num_goal_handles;
+  return &goal_handles[num_goal_handles];
 }
 
 rcl_ret_t
@@ -361,8 +401,43 @@ rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
   uint32_t * num_goals)
 {
-  // TODO(jacobperron): impl
+  if (!rcl_action_server_is_valid(action_server)) {
+    return NULL;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_goals, NULL);
+  *num_goals = action_server->impl->num_goal_handles;
   return action_server->impl->goal_handles;
+}
+
+bool
+rcl_action_server_goal_exists(
+  const rcl_action_server_t * action_server,
+  const rcl_action_goal_info_t * goal_info)
+{
+  if (!rcl_action_server_is_valid(action_server)) {
+    return false;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_info, false);
+
+  rcl_action_goal_info_t gh_goal_info = rcl_action_get_zero_initialized_goal_info();
+  rcl_ret_t ret;
+  for (int i = 0; i < action_server->impl->num_goal_handles; ++i) {
+    ret = rcl_action_goal_handle_get_info(&action_server->impl->goal_handles[i], &gh_goal_info);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("failed to get info for goal handle");
+      return false;
+    }
+    // Compare UUIDs
+    // TODO(jacobperron): Move to new function a common place (e.g. goal_handle.h)
+    bool uuid_match = true;
+    for (int i = 0; (i < 16) && uuid_match; ++i) {
+      uuid_match = (gh_goal_info.uuid[i] == goal_info->uuid[i]);
+    }
+    if (uuid_match) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool
