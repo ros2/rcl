@@ -441,14 +441,108 @@ rcl_action_take_cancel_request(
   TAKE_SERVICE_REQUEST(cancel);
 }
 
+uint64_t
+_goal_info_stamp_to_nanosec(const rcl_action_goal_info_t * goal_info)
+{
+  assert(goal_info);
+  return (uint64_t)(goal_info->stamp.sec * 1e9) + goal_info->stamp.nanosec;
+}
+
 rcl_ret_t
 rcl_action_process_cancel_request(
   const rcl_action_server_t * action_server,
   const rcl_action_cancel_request_t * cancel_request,
   rcl_action_cancel_response_t * cancel_response)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(cancel_request, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(cancel_response, RCL_RET_INVALID_ARGUMENT);
+
+  const size_t total_num_goals = action_server->impl->num_goal_handles;
+
+  // Storage for pointers to active goals handles that will be transitioned to canceling
+  rcl_action_goal_handle_t * goal_handles_to_cancel[total_num_goals];
+  size_t num_goals_to_cancel = 0u;
+
+  // Request data
+  const rcl_action_goal_info_t * request_goal_info = &cancel_request->goal_info;
+  const uint8_t * request_uuid = request_goal_info->uuid;
+  uint64_t request_nanosec = _goal_info_stamp_to_nanosec(request_goal_info);
+
+  // Determine how many goals should transition to canceling
+  if (!uuidcmpzero(request_uuid) && (0u == request_nanosec)) {
+    // UUID is not zero and timestamp is zero; cancel exactly one goal (if it exists)
+    rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
+    rcl_action_goal_handle_t * goal_handle;
+    for (size_t i = 0; i < total_num_goals; ++i) {
+      goal_handle = &action_server->impl->goal_handles[i];
+      rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
+      assert(RCL_RET_OK == ret);
+
+      if (uuidcmp(request_goal_info->uuid, goal_info.uuid)) {
+        if (rcl_action_goal_handle_is_cancelable(goal_handle)) {
+          goal_handles_to_cancel[num_goals_to_cancel++] = goal_handle;
+        }
+        break;
+      }
+    }
+  } else {
+    if (uuidcmpzero(request_goal_info->uuid) && (0u == request_nanosec)) {
+      // UUID and timestamp are both zero; cancel all goals
+      // Set timestamp to max to cancel all active goals in the following for-loop
+      request_nanosec = UINT64_MAX;
+    }
+
+    // Cancel all active goals at or before the timestamp
+    // Also cancel any goal matching the UUID in the cancel request
+    rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
+    rcl_action_goal_handle_t * goal_handle;
+    for (size_t i = 0; i < total_num_goals; ++i) {
+      goal_handle = &action_server->impl->goal_handles[i];
+      rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
+      assert(RCL_RET_OK == ret);
+      const uint64_t goal_nanosec = _goal_info_stamp_to_nanosec(&goal_info);
+      if (rcl_action_goal_handle_is_cancelable(goal_handle) &&
+        ((goal_nanosec <= request_nanosec) || uuidcmp(request_uuid, goal_info.uuid)))
+      {
+        goal_handles_to_cancel[num_goals_to_cancel++] = goal_handle;
+      }
+    }
+  }
+
+  if (0u == num_goals_to_cancel) {
+    cancel_response->msg.goals_canceling.data = NULL;
+    cancel_response->msg.goals_canceling.size = 0u;
+    return RCL_RET_OK;
+  }
+
+  // Allocate space in response
+  rcl_ret_t ret = rcl_action_cancel_response_init(
+    cancel_response, num_goals_to_cancel, action_server->impl->options.allocator);
+  if (RCL_RET_OK != ret) {
+    if (RCL_RET_BAD_ALLOC == ret) {
+      return RCL_RET_BAD_ALLOC;  // error already set
+    }
+    return RCL_RET_ERROR;  // error already set
+  }
+
+  // Transition goals to canceling and add to response
+  rcl_ret_t ret_final = RCL_RET_OK;
+  rcl_action_goal_handle_t * goal_handle;
+  for (size_t i = 0; i < num_goals_to_cancel; ++i) {
+    goal_handle = goal_handles_to_cancel[i];
+    ret = rcl_action_update_goal_state(goal_handle, GOAL_EVENT_CANCEL);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_action_goal_handle_get_info(
+        goal_handle, &cancel_response->msg.goals_canceling.data[i]);
+    }
+    if (RCL_RET_OK != ret) {
+      ret_final = RCL_RET_ERROR;  // error already set
+    }
+  }
+  return ret_final;
 }
 
 rcl_ret_t
@@ -509,12 +603,7 @@ rcl_action_server_goal_exists(
       return false;
     }
     // Compare UUIDs
-    // TODO(jacobperron): Move to new function a common place (e.g. goal_handle.h)
-    bool uuid_match = true;
-    for (int i = 0; (i < 16) && uuid_match; ++i) {
-      uuid_match = (gh_goal_info.uuid[i] == goal_info->uuid[i]);
-    }
-    if (uuid_match) {
+    if (uuidcmp(gh_goal_info.uuid, goal_info->uuid)) {
       return true;
     }
   }

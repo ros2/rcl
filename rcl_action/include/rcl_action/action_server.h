@@ -640,7 +640,7 @@ rcl_action_take_cancel_request(
  *
  * \param[in] action_server handle to the action server that will process the cancel request
  * \param[in] cancel_request a C-typed ROS cancel request to process
- * \param[out] cancel_reponse a preallocated, zero-initialized, C-typed ROS cancel response
+ * \param[out] cancel_reponse a zero-initialized cancel response struct
  *   where the response is copied
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or

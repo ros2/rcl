@@ -53,6 +53,11 @@ extern "C"
 /// Action invalid event return code.
 #define RCL_RET_ACTION_GOAL_EVENT_INVALID 2301
 
+// TODO(jacobperron): Move these to a common place for UUIDs
+#define uuidcmp(uuid0, uuid1) (0 == memcmp(uuid0, uuid1, 16))
+#define zerouuid (uint8_t[16]) {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define uuidcmpzero(uuid) uuidcmp(uuid, zerouuid)
+
 // Forward declare
 typedef struct rcl_action_server_t rcl_action_server_t;
 
