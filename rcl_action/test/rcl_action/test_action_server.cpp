@@ -515,10 +515,75 @@ TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_send_result_res
 
 TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_publish_feedback)
 {
-  // TODO(jacobperron): write test
+  test_msgs__action__Fibonacci_Feedback feedback;
+  test_msgs__action__Fibonacci_Feedback__init(&feedback);
+
+  // Publish feedback with null action server
+  rcl_ret_t ret = rcl_action_publish_feedback(nullptr, &feedback);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Publish feedback with null message
+  ret = rcl_action_publish_feedback(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Publish feedback with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_publish_feedback(&invalid_action_server, &feedback);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Publish feedback with valid arguments
+  // TODO(jacobperron): Check with client on receiving end
+  ret = rcl_action_publish_feedback(&this->action_server, &feedback);
+  EXPECT_EQ(ret, RCL_RET_OK);
+
+  test_msgs__action__Fibonacci_Feedback__fini(&feedback);
 }
 
 TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_publish_status)
 {
-  // TODO(jacobperron): write test
+  rcl_action_goal_status_array_t status_array =
+    rcl_action_get_zero_initialized_goal_status_array();
+  rcl_ret_t ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Publish status with null action server
+  ret = rcl_action_publish_status(nullptr, &status_array);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Publish status with null message
+  ret = rcl_action_publish_status(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Publish status with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_publish_status(&invalid_action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Publish status with valid arguments (but empty array)
+  // TODO(jacobperron): Check with client on receiving end
+  ret = rcl_action_publish_status(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Add a goal before publishing the status array
+  ret = rcl_action_goal_status_array_fini(&status_array);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
+  rcl_action_goal_handle_t * goal_handle;
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info);
+  ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  // Publish status with valid arguments (one goal in array)
+  // TODO(jacobperron): Check with client on receiving end
+  ret = rcl_action_publish_status(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_goal_status_array_fini(&status_array);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 }

@@ -336,7 +336,15 @@ rcl_action_publish_feedback(
   const rcl_action_server_t * action_server,
   void * ros_feedback)
 {
-  // TODO(jacobperron): impl
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_feedback, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret = rcl_publish(&action_server->impl->feedback_publisher, ros_feedback);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;  // error already set
+  }
   return RCL_RET_OK;
 }
 
@@ -388,7 +396,15 @@ rcl_action_publish_status(
   const rcl_action_server_t * action_server,
   const rcl_action_goal_status_array_t * status_message)
 {
-  // TODO(jacobperron): impl
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(status_message, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret = rcl_publish(&action_server->impl->status_publisher, &status_message->msg);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;  // error already set
+  }
   return RCL_RET_OK;
 }
 
