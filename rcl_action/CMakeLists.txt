@@ -8,6 +8,7 @@ find_package(rosidl_generator_c REQUIRED)
 find_package(action_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
+find_package(rmw REQUIRED)
 
 include_directories(
   include
@@ -54,6 +55,7 @@ add_library(${PROJECT_NAME}
 ament_target_dependencies(${PROJECT_NAME}
   "rosidl_generator_c"
   "action_msgs"
+  "rmw"
   "rcutils"
   "rcl"
 )
@@ -159,6 +161,8 @@ ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl)
+ament_export_dependencies(rcutils)
+ament_export_dependencies(rmw)
 ament_export_dependencies(action_msgs)
 ament_export_dependencies(rosidl_generator_c)
 ament_package()

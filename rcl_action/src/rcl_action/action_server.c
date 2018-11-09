@@ -30,6 +30,8 @@ extern "C"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
+#include "rmw/rmw.h"
+
 /// Internal rcl_action implementation struct.
 typedef struct rcl_action_server_impl_t
 {
@@ -236,22 +238,52 @@ rcl_action_server_get_default_options(void)
   return default_options;
 }
 
+#define TAKE_SERVICE_REQUEST(Type) \
+  if (!rcl_action_server_is_valid(action_server)) { \
+    return RCL_RET_ACTION_SERVER_INVALID;  /* error already set */ \
+  } \
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type ## _request, RCL_RET_INVALID_ARGUMENT); \
+  rmw_request_id_t request_header;  /* ignored */ \
+  rcl_ret_t ret = rcl_take_request( \
+    &action_server->impl->Type ## _service, &request_header, ros_ ## Type ## _request); \
+  if (RCL_RET_OK != ret) { \
+    if (RCL_RET_BAD_ALLOC == ret) { \
+      return RCL_RET_BAD_ALLOC;  /* error already set */ \
+    } \
+    if (RCL_RET_SERVICE_TAKE_FAILED == ret) { \
+      return RCL_RET_ACTION_SERVER_TAKE_FAILED; \
+    } \
+    return RCL_RET_ERROR;  /* error already set */ \
+  } \
+  return RCL_RET_OK; \
+
+#define SEND_SERVICE_RESPONSE(Type) \
+  if (!rcl_action_server_is_valid(action_server)) { \
+    return RCL_RET_ACTION_SERVER_INVALID;  /* error already set */ \
+  } \
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type ## _response, RCL_RET_INVALID_ARGUMENT); \
+  rmw_request_id_t request_header;  /* ignored */ \
+  rcl_ret_t ret = rcl_send_response( \
+    &action_server->impl->Type ## _service, &request_header, ros_ ## Type ## _response); \
+  if (RCL_RET_OK != ret) { \
+    return RCL_RET_ERROR;  /* error already set */ \
+  } \
+  return RCL_RET_OK; \
+
 rcl_ret_t
 rcl_action_take_goal_request(
   const rcl_action_server_t * action_server,
   void * ros_goal_request)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  TAKE_SERVICE_REQUEST(goal);
 }
 
 rcl_ret_t
 rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
-  const void * ros_goal_response)
+  void * ros_goal_response)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  SEND_SERVICE_RESPONSE(goal);
 }
 
 rcl_action_goal_handle_t *
@@ -365,17 +397,15 @@ rcl_action_take_result_request(
   const rcl_action_server_t * action_server,
   void * ros_result_request)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  TAKE_SERVICE_REQUEST(result);
 }
 
 rcl_ret_t
 rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
-  const void * ros_result_response)
+  void * ros_result_response)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  SEND_SERVICE_RESPONSE(result);
 }
 
 rcl_ret_t
@@ -392,8 +422,7 @@ rcl_action_take_cancel_request(
   const rcl_action_server_t * action_server,
   void * ros_cancel_request)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  TAKE_SERVICE_REQUEST(cancel);
 }
 
 rcl_ret_t
@@ -409,10 +438,9 @@ rcl_action_process_cancel_request(
 rcl_ret_t
 rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
-  const void * ros_cancel_response)
+  void * ros_cancel_response)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  SEND_SERVICE_RESPONSE(cancel);
 }
 
 const char *

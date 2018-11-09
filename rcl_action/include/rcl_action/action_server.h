@@ -312,7 +312,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
-  const void * ros_goal_response);
+  void * ros_goal_response);
 
 /// Accept a new goal using a rcl_action_server_t.
 /**
@@ -542,7 +542,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
-  const void * ros_result_response);
+  void * ros_result_response);
 
 /// Clear all expired goals associated with a rcl_action_server_t.
 /**
@@ -682,7 +682,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
-  const void * ros_cancel_response);
+  void * ros_cancel_response);
 
 /// Get the name of the action for a rcl_action_server_t.
 /**

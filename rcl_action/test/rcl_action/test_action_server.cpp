@@ -327,3 +327,198 @@ TEST_F(TestActionServer, test_action_server_get_options)
   options = rcl_action_server_get_options(&this->action_server);
   EXPECT_NE(options, nullptr) << rcl_get_error_string().str;
 }
+
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME (TestActionServerComm, RMW_IMPLEMENTATION) : public TestActionServer
+{
+};
+
+TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_take_goal_request)
+{
+  test_msgs__action__Fibonacci_Goal_Request goal_request;
+  test_msgs__action__Fibonacci_Goal_Request__init(&goal_request);
+
+  // Take request with null action server
+  rcl_ret_t ret = rcl_action_take_goal_request(nullptr, &goal_request);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Take request with null message
+  ret = rcl_action_take_goal_request(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Take request with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_take_goal_request(&invalid_action_server, &goal_request);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Take with valid arguments
+  // TODO(jacobperron): Send a request from a client
+  // ret = rcl_action_take_goal_request(&this->action_server, &goal_request);
+  // EXPECT_EQ(ret, RCL_RET_OK);
+
+  test_msgs__action__Fibonacci_Goal_Request__fini(&goal_request);
+}
+
+TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_send_goal_response)
+{
+  test_msgs__action__Fibonacci_Goal_Response goal_response;
+  test_msgs__action__Fibonacci_Goal_Response__init(&goal_response);
+
+  // Send response with null action server
+  rcl_ret_t ret = rcl_action_send_goal_response(nullptr, &goal_response);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Send response with null message
+  ret = rcl_action_send_goal_response(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Send response with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_send_goal_response(&invalid_action_server, &goal_response);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Send with valid arguments
+  // TODO(jacobperron): Check with client on receiving end
+  ret = rcl_action_send_goal_response(&this->action_server, &goal_response);
+  EXPECT_EQ(ret, RCL_RET_OK);
+
+  test_msgs__action__Fibonacci_Goal_Response__fini(&goal_response);
+}
+
+TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_take_cancel_request)
+{
+  action_msgs__srv__CancelGoal_Request cancel_request;
+  action_msgs__srv__CancelGoal_Request__init(&cancel_request);
+
+  // Take request with null action server
+  rcl_ret_t ret = rcl_action_take_cancel_request(nullptr, &cancel_request);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Take request with null message
+  ret = rcl_action_take_cancel_request(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Take request with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_take_cancel_request(&invalid_action_server, &cancel_request);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Take with valid arguments
+  // TODO(jacobperron): Send a request from a client
+  // ret = rcl_action_take_cancel_request(&this->action_server, &cancel_request);
+  // EXPECT_EQ(ret, RCL_RET_OK);
+
+  action_msgs__srv__CancelGoal_Request__fini(&cancel_request);
+}
+
+TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_send_cancel_response)
+{
+  action_msgs__srv__CancelGoal_Response cancel_response;
+  action_msgs__srv__CancelGoal_Response__init(&cancel_response);
+
+  // Send response with null action server
+  rcl_ret_t ret = rcl_action_send_cancel_response(nullptr, &cancel_response);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Send response with null message
+  ret = rcl_action_send_cancel_response(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Send response with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_send_cancel_response(&invalid_action_server, &cancel_response);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Send with valid arguments
+  // TODO(jacobperron): Check with client on receiving end
+  ret = rcl_action_send_cancel_response(&this->action_server, &cancel_response);
+  EXPECT_EQ(ret, RCL_RET_OK);
+
+  action_msgs__srv__CancelGoal_Response__fini(&cancel_response);
+}
+
+TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_take_result_request)
+{
+  test_msgs__action__Fibonacci_Result_Request result_request;
+  test_msgs__action__Fibonacci_Result_Request__init(&result_request);
+
+  // Take request with null action server
+  rcl_ret_t ret = rcl_action_take_result_request(nullptr, &result_request);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Take request with null message
+  ret = rcl_action_take_result_request(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Take request with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_take_result_request(&invalid_action_server, &result_request);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Take with valid arguments
+  // TODO(jacobperron): Send a request from a client
+  // ret = rcl_action_take_result_request(&this->action_server, &result_request);
+  // EXPECT_EQ(ret, RCL_RET_OK);
+
+  test_msgs__action__Fibonacci_Result_Request__fini(&result_request);
+}
+
+TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_send_result_response)
+{
+  test_msgs__action__Fibonacci_Result_Response result_response;
+  test_msgs__action__Fibonacci_Result_Response__init(&result_response);
+
+  // Send response with null action server
+  rcl_ret_t ret = rcl_action_send_result_response(nullptr, &result_response);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Send response with null message
+  ret = rcl_action_send_result_response(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Send response with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_send_result_response(&invalid_action_server, &result_response);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
+  // Send with valid arguments
+  // TODO(jacobperron): Check with client on receiving end
+  ret = rcl_action_send_result_response(&this->action_server, &result_response);
+  EXPECT_EQ(ret, RCL_RET_OK);
+
+  test_msgs__action__Fibonacci_Result_Response__fini(&result_response);
+}
+
+TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_publish_feedback)
+{
+  // TODO(jacobperron): write test
+}
+
+TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_publish_status)
+{
+  // TODO(jacobperron): write test
+}
