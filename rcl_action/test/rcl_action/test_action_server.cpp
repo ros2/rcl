@@ -29,8 +29,7 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   rcl_node_options_t node_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node, "test_action_server_node", "", &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
-    test_msgs, action, Fibonacci);
+  const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
   const rcl_action_server_options_t options = rcl_action_server_get_default_options();
   const char * action_name = "test_action_server_name";
   rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
@@ -115,7 +114,7 @@ protected:
     ret = rcl_node_init(&this->node, "test_action_server_node", "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
-      test_msgs, action, Fibonacci);
+      test_msgs, Fibonacci);
     const rcl_action_server_options_t options = rcl_action_server_get_default_options();
     const char * action_name = "test_action_server_name";
     this->action_server = rcl_action_get_zero_initialized_server();
