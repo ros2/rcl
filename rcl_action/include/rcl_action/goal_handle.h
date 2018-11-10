@@ -202,7 +202,7 @@ rcl_action_goal_handle_get_status(
  * Lock-Free          | Yes
  *
  * \param[in] goal_handle struct containing the goal and metadata
- * \return `true` if a goal is in one of the following states: ACCEPTED, EXECUTING, or CANCELING, or
+ * \return `true` if the goal is in one of the following states: ACCEPTED, EXECUTING, or CANCELING, or
  * \return `false` otherwise, also
  * \return `false` if the goal handle pointer is invalid
 */
@@ -210,6 +210,28 @@ RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 bool
 rcl_action_goal_handle_is_active(const rcl_action_goal_handle_t * goal_handle);
+
+/// Check if a goal can be transitioned to CANCELING in its current state.
+/**
+ * This is a non-blocking call.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] goal_handle struct containing the goal and metadata
+ * \return `true` if the goal can be transitioned to CANCELING from its current state, or
+ * \return `false` otherwise, also
+ * \return `false` if the goal handle pointer is invalid
+*/
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+bool
+rcl_action_goal_handle_is_cancelable(const rcl_action_goal_handle_t * goal_handle);
 
 /// Check if a rcl_action_goal_handle_t is valid.
 /**
