@@ -149,8 +149,8 @@ const char * rcl_get_secure_root(
   char * node_secure_root = NULL;
   if (ros_secure_node_override) {
     node_secure_root =
-      (char *)allocator->allocate(strlen(ros_secure_root_env) + 1, allocator->state);
-    strcpy(node_secure_root, ros_secure_root_env);
+      (char *)allocator->allocate(ros_secure_root_size + 1, allocator->state);
+    memcpy(node_secure_root, ros_secure_root_env, ros_secure_root_size + 1);
     // TODO(ros2team): This make an assumption on the value and length of the root namespace.
     // This should likely come from another (rcl/rmw?) function for reuse.
     // If the namespace is the root namespace ("/"), the secure root is just the node name.
