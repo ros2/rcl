@@ -218,16 +218,21 @@ TEST_P(TestGoalHandleStateTransitionSequence, test_goal_handle_state_transitions
   // Walk through state transitions
   rcl_ret_t ret;
   for (const EventStateActiveCancelableTuple & event_state : this->test_sequence) {
-    ret = rcl_action_update_goal_state(&this->goal_handle, std::get<0>(event_state));
-    const rcl_action_goal_state_t & expected_state = std::get<1>(event_state);
-    if (GOAL_STATE_UNKNOWN == expected_state) {
+    rcl_action_goal_event_t goal_event;
+    rcl_action_goal_state_t expected_goal_state;
+    bool expected_is_active;
+    bool expected_is_cancelable;
+    std::tie(goal_event, expected_goal_state, expected_is_active, expected_is_cancelable) =
+      event_state;
+    ret = rcl_action_update_goal_state(&this->goal_handle, goal_event);
+    if (GOAL_STATE_UNKNOWN == expected_goal_state) {
       EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_EVENT_INVALID);
       continue;
     }
     EXPECT_EQ(ret, RCL_RET_OK);
-    expect_state_eq(expected_state);
-    EXPECT_EQ(std::get<2>(event_state), rcl_action_goal_handle_is_active(&this->goal_handle));
-    EXPECT_EQ(std::get<3>(event_state), rcl_action_goal_handle_is_cancelable(&this->goal_handle));
+    expect_state_eq(expected_goal_state);
+    EXPECT_EQ(expected_is_active, rcl_action_goal_handle_is_active(&this->goal_handle));
+    EXPECT_EQ(expected_is_cancelable, rcl_action_goal_handle_is_cancelable(&this->goal_handle));
   }
 }
 
