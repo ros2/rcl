@@ -70,20 +70,23 @@ install(TARGETS ${PROJECT_NAME}
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
+  find_package(test_msgs REQUIRED)
   ament_lint_auto_find_test_dependencies()
   ament_find_gtest()
   # Gtests
-  # ament_add_gtest(test_action_client
-  #   test/rcl_action/test_action_client.cpp
-  # )
-  # if(TARGET test_action_client)
-  #   target_include_directories(test_action_client PUBLIC
-  #     ${rcl_INCLUDE_DIRS}
-  #   )
-  #   target_link_libraries(test_action_client
-  #     ${PROJECT_NAME}
-  #   )
-  # endif()
+  ament_add_gtest(test_action_client
+    test/rcl_action/test_action_client.cpp
+  )
+  if(TARGET test_action_client)
+    target_include_directories(test_action_client PUBLIC
+      ${rcl_INCLUDE_DIRS}
+      ${test_msgs_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_action_client
+      ${PROJECT_NAME}
+      ${test_msgs_LIBRARIES}
+    )
+  endif()
   ament_add_gtest(test_goal_handle
     test/rcl_action/test_goal_handle.cpp
   )

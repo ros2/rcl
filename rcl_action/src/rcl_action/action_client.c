@@ -18,6 +18,7 @@ extern "C"
 #endif
 
 #include "rcl_action/action_client.h"
+
 #include "rcl_action/default_qos.h"
 #include "rcl_action/names.h"
 #include "rcl_action/types.h"
@@ -322,7 +323,7 @@ rcl_action_client_init(
     return RCL_RET_ALREADY_INIT;
   }
   // Allocate space for the implementation struct.
-  rcl_action_client_impl_t *impl = action_client->impl = allocator->allocate(
+  rcl_action_client_impl_t * impl = action_client->impl = allocator->allocate(
     sizeof(rcl_action_client_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
   // Copy action client name and options.
@@ -688,7 +689,8 @@ rcl_action_client_get_action_name(const rcl_action_client_t * action_client)
 }
 
 const rcl_action_client_options_t *
-rcl_action_client_get_options(const rcl_action_client_t * action_client) {
+rcl_action_client_get_options(const rcl_action_client_t * action_client)
+{
   if (!rcl_action_client_is_valid(action_client)) {
     return NULL;
   }
@@ -699,7 +701,7 @@ bool
 rcl_action_client_is_valid(const rcl_action_client_t * action_client)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
-      action_client,"action client pointer is invalid", return false);
+    action_client, "action client pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     action_client->impl, "action client implementation is invalid", return false);
   return true;
@@ -708,7 +710,8 @@ rcl_action_client_is_valid(const rcl_action_client_t * action_client)
 rcl_ret_t
 rcl_action_wait_set_add_action_client(
   rcl_wait_set_t * wait_set,
-  const rcl_action_client_t * action_client) {
+  const rcl_action_client_t * action_client)
+{
   rcl_ret_t ret;
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
   if (!rcl_action_client_is_valid(action_client)) {
