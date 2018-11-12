@@ -470,7 +470,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_publish_status(
   const rcl_action_server_t * action_server,
-  const rcl_action_goal_status_array_t * status_message);
+  const void * status_message);
 
 /// Take a pending result request using a rcl_action_server_t.
 /**

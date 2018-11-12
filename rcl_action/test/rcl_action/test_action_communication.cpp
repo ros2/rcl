@@ -286,7 +286,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_publish_stat
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Publish status with null action server
-  ret = rcl_action_publish_status(nullptr, &status_array);
+  ret = rcl_action_publish_status(nullptr, &status_array.msg);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
   rcl_reset_error();
 
@@ -297,13 +297,13 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_publish_stat
 
   // Publish status with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_publish_status(&invalid_action_server, &status_array);
+  ret = rcl_action_publish_status(&invalid_action_server, &status_array.msg);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
   rcl_reset_error();
 
   // Publish status with valid arguments (but empty array)
   // TODO(jacobperron): Check with client on receiving end
-  ret = rcl_action_publish_status(&this->action_server, &status_array);
+  ret = rcl_action_publish_status(&this->action_server, &status_array.msg);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Add a goal before publishing the status array
@@ -317,7 +317,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_publish_stat
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   // Publish status with valid arguments (one goal in array)
   // TODO(jacobperron): Check with client on receiving end
-  ret = rcl_action_publish_status(&this->action_server, &status_array);
+  ret = rcl_action_publish_status(&this->action_server, &status_array.msg);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_goal_status_array_fini(&status_array);
