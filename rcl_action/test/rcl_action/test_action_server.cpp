@@ -112,7 +112,7 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
 class TestActionServer : public ::testing::Test
 {
 protected:
-  void SetUp()
+  void SetUp() override
   {
     rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -129,7 +129,7 @@ protected:
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  void TearDown()
+  void TearDown() override
   {
     // Finalize
     rcl_ret_t ret = rcl_action_server_fini(&this->action_server, &this->node);
@@ -140,14 +140,14 @@ protected:
 
   void init_test_uuid0(uint8_t * uuid)
   {
-    for (uint8_t i = 0; i < 16; ++i) {
+    for (uint8_t i = 0; i < UUID_SIZE; ++i) {
       uuid[i] = i;
     }
   }
 
   void init_test_uuid1(uint8_t * uuid)
   {
-    for (uint8_t i = 0; i < 16; ++i) {
+    for (uint8_t i = 0; i < UUID_SIZE; ++i) {
       uuid[i] = 15 - i;
     }
   }
@@ -315,7 +315,7 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
 
   // Add nine more goals
   for (int i = 1; i < 10; ++i) {
-    for (int j = 0; j < 16; ++j) {
+    for (int j = 0; j < UUID_SIZE; ++j) {
       goal_info_in.uuid[j] = static_cast<uint8_t>(i + j);
     }
     goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
@@ -327,7 +327,7 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   ASSERT_EQ(status_array.msg.status_list.size, 10u);
   for (int i = 0; i < 10; ++i) {
     goal_info_out = &status_array.msg.status_list.data[i].goal_info;
-    for (int j = 0; j < 16; ++j) {
+    for (int j = 0; j < UUID_SIZE; ++j) {
       EXPECT_EQ(goal_info_out->uuid[j], i + j);
     }
   }
@@ -375,14 +375,14 @@ TEST_F(TestActionServer, test_action_server_get_options)
 class TestActionServerCancelPolicy : public TestActionServer
 {
 protected:
-  void SetUp()
+  void SetUp() override
   {
     TestActionServer::SetUp();
     // Add several goals
     rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
     rcl_action_goal_handle_t * goal_handle;
     for (int i = 0; i < num_goals; ++i) {
-      for (int j = 0; j < 16; ++j) {
+      for (int j = 0; j < UUID_SIZE; ++j) {
         goal_info.uuid[j] = static_cast<uint8_t>(i + j);
       }
       goal_info.stamp.sec = i;
@@ -391,7 +391,7 @@ protected:
     }
   }
 
-  void TearDown()
+  void TearDown() override
   {
     TestActionServer::TearDown();
   }
@@ -412,7 +412,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_all_goal
   rcl_action_goal_info_t * goal_info_out;
   for (int i = 0; i < this->num_goals; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
-    for (int j = 0; j < 16; ++j) {
+    for (int j = 0; j < UUID_SIZE; ++j) {
       EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
     }
   }
@@ -422,7 +422,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
 {
   // Request to cancel a specific goal
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  for (int i = 0; i < 16; ++i) {
+  for (int i = 0; i < UUID_SIZE; ++i) {
     cancel_request.goal_info.uuid[i] = static_cast<uint8_t>(i + 2);
   }
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
@@ -432,7 +432,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
   EXPECT_NE(cancel_response.msg.goals_canceling.data, nullptr);
   ASSERT_EQ(cancel_response.msg.goals_canceling.size, 1u);
   rcl_action_goal_info_t * goal_info = &cancel_response.msg.goals_canceling.data[0];
-  for (int i = 0; i < 16; ++i) {
+  for (int i = 0; i < UUID_SIZE; ++i) {
     EXPECT_EQ(goal_info->uuid[i], static_cast<uint8_t>(i + 2));
   }
 }
@@ -449,9 +449,9 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time)
   EXPECT_NE(cancel_response.msg.goals_canceling.data, nullptr);
   ASSERT_EQ(cancel_response.msg.goals_canceling.size, 22u);
   rcl_action_goal_info_t * goal_info_out;
-  for (int i = 0; i < 22; ++i) {
+  for (size_t i = 0; i < cancel_response.msg.goals_canceling.size; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
-    for (int j = 0; j < 16; ++j) {
+    for (size_t j = 0; j < UUID_SIZE; ++j) {
       EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
     }
   }
@@ -461,7 +461,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
 {
   // Request to cancel all goals at and before a specific time
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  for (int i = 0; i < 16; ++i) {
+  for (int i = 0; i < UUID_SIZE; ++i) {
     cancel_request.goal_info.uuid[i] = static_cast<uint8_t>(i + 40);
   }
   cancel_request.goal_info.stamp.sec = 10;
@@ -470,276 +470,17 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
     &this->action_server, &cancel_request, &cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_NE(cancel_response.msg.goals_canceling.data, nullptr);
-  ASSERT_EQ(cancel_response.msg.goals_canceling.size, 12u);
+  const size_t num_goals_canceling = cancel_response.msg.goals_canceling.size;
+  ASSERT_EQ(num_goals_canceling, 12u);
   rcl_action_goal_info_t * goal_info_out;
-  for (int i = 0; i < 11; ++i) {
+  for (size_t i = 0; i < num_goals_canceling - 1; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
-    for (int j = 0; j < 16; ++j) {
+    for (size_t j = 0; j < UUID_SIZE; ++j) {
       EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
     }
   }
-  goal_info_out = &cancel_response.msg.goals_canceling.data[11];
-  for (int i = 0; i < 16; ++i) {
+  goal_info_out = &cancel_response.msg.goals_canceling.data[num_goals_canceling - 1];
+  for (int i = 0; i < UUID_SIZE; ++i) {
     EXPECT_EQ(goal_info_out->uuid[i], static_cast<uint8_t>(i + 40));
   }
-}
-
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-class CLASSNAME (TestActionServerComm, RMW_IMPLEMENTATION) : public TestActionServer
-{
-};
-
-TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_take_goal_request)
-{
-  test_msgs__action__Fibonacci_Goal_Request goal_request;
-  test_msgs__action__Fibonacci_Goal_Request__init(&goal_request);
-
-  // Take request with null action server
-  rcl_ret_t ret = rcl_action_take_goal_request(nullptr, &goal_request);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Take request with null message
-  ret = rcl_action_take_goal_request(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  rcl_reset_error();
-
-  // Take request with invalid action server
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_take_goal_request(&invalid_action_server, &goal_request);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Take with valid arguments
-  // TODO(jacobperron): Send a request from a client
-  // ret = rcl_action_take_goal_request(&this->action_server, &goal_request);
-  // EXPECT_EQ(ret, RCL_RET_OK);
-
-  test_msgs__action__Fibonacci_Goal_Request__fini(&goal_request);
-}
-
-TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_send_goal_response)
-{
-  test_msgs__action__Fibonacci_Goal_Response goal_response;
-  test_msgs__action__Fibonacci_Goal_Response__init(&goal_response);
-
-  // Send response with null action server
-  rcl_ret_t ret = rcl_action_send_goal_response(nullptr, &goal_response);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Send response with null message
-  ret = rcl_action_send_goal_response(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  rcl_reset_error();
-
-  // Send response with invalid action server
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_send_goal_response(&invalid_action_server, &goal_response);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Send with valid arguments
-  // TODO(jacobperron): Check with client on receiving end
-  ret = rcl_action_send_goal_response(&this->action_server, &goal_response);
-  EXPECT_EQ(ret, RCL_RET_OK);
-
-  test_msgs__action__Fibonacci_Goal_Response__fini(&goal_response);
-}
-
-TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_take_cancel_request)
-{
-  action_msgs__srv__CancelGoal_Request cancel_request;
-  action_msgs__srv__CancelGoal_Request__init(&cancel_request);
-
-  // Take request with null action server
-  rcl_ret_t ret = rcl_action_take_cancel_request(nullptr, &cancel_request);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Take request with null message
-  ret = rcl_action_take_cancel_request(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  rcl_reset_error();
-
-  // Take request with invalid action server
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_take_cancel_request(&invalid_action_server, &cancel_request);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Take with valid arguments
-  // TODO(jacobperron): Send a request from a client
-  // ret = rcl_action_take_cancel_request(&this->action_server, &cancel_request);
-  // EXPECT_EQ(ret, RCL_RET_OK);
-
-  action_msgs__srv__CancelGoal_Request__fini(&cancel_request);
-}
-
-TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_send_cancel_response)
-{
-  action_msgs__srv__CancelGoal_Response cancel_response;
-  action_msgs__srv__CancelGoal_Response__init(&cancel_response);
-
-  // Send response with null action server
-  rcl_ret_t ret = rcl_action_send_cancel_response(nullptr, &cancel_response);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Send response with null message
-  ret = rcl_action_send_cancel_response(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  rcl_reset_error();
-
-  // Send response with invalid action server
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_send_cancel_response(&invalid_action_server, &cancel_response);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Send with valid arguments
-  // TODO(jacobperron): Check with client on receiving end
-  ret = rcl_action_send_cancel_response(&this->action_server, &cancel_response);
-  EXPECT_EQ(ret, RCL_RET_OK);
-
-  action_msgs__srv__CancelGoal_Response__fini(&cancel_response);
-}
-
-TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_take_result_request)
-{
-  test_msgs__action__Fibonacci_Result_Request result_request;
-  test_msgs__action__Fibonacci_Result_Request__init(&result_request);
-
-  // Take request with null action server
-  rcl_ret_t ret = rcl_action_take_result_request(nullptr, &result_request);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Take request with null message
-  ret = rcl_action_take_result_request(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  rcl_reset_error();
-
-  // Take request with invalid action server
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_take_result_request(&invalid_action_server, &result_request);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Take with valid arguments
-  // TODO(jacobperron): Send a request from a client
-  // ret = rcl_action_take_result_request(&this->action_server, &result_request);
-  // EXPECT_EQ(ret, RCL_RET_OK);
-
-  test_msgs__action__Fibonacci_Result_Request__fini(&result_request);
-}
-
-TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_send_result_response)
-{
-  test_msgs__action__Fibonacci_Result_Response result_response;
-  test_msgs__action__Fibonacci_Result_Response__init(&result_response);
-
-  // Send response with null action server
-  rcl_ret_t ret = rcl_action_send_result_response(nullptr, &result_response);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Send response with null message
-  ret = rcl_action_send_result_response(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  rcl_reset_error();
-
-  // Send response with invalid action server
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_send_result_response(&invalid_action_server, &result_response);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Send with valid arguments
-  // TODO(jacobperron): Check with client on receiving end
-  ret = rcl_action_send_result_response(&this->action_server, &result_response);
-  EXPECT_EQ(ret, RCL_RET_OK);
-
-  test_msgs__action__Fibonacci_Result_Response__fini(&result_response);
-}
-
-TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_publish_feedback)
-{
-  test_msgs__action__Fibonacci_Feedback feedback;
-  test_msgs__action__Fibonacci_Feedback__init(&feedback);
-
-  // Publish feedback with null action server
-  rcl_ret_t ret = rcl_action_publish_feedback(nullptr, &feedback);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Publish feedback with null message
-  ret = rcl_action_publish_feedback(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  rcl_reset_error();
-
-  // Publish feedback with invalid action server
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_publish_feedback(&invalid_action_server, &feedback);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Publish feedback with valid arguments
-  // TODO(jacobperron): Check with client on receiving end
-  ret = rcl_action_publish_feedback(&this->action_server, &feedback);
-  EXPECT_EQ(ret, RCL_RET_OK);
-
-  test_msgs__action__Fibonacci_Feedback__fini(&feedback);
-}
-
-TEST_F(CLASSNAME(TestActionServerComm, RMW_IMPLEMENTATION), test_publish_status)
-{
-  rcl_action_goal_status_array_t status_array =
-    rcl_action_get_zero_initialized_goal_status_array();
-  rcl_ret_t ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-  // Publish status with null action server
-  ret = rcl_action_publish_status(nullptr, &status_array);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Publish status with null message
-  ret = rcl_action_publish_status(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  rcl_reset_error();
-
-  // Publish status with invalid action server
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_publish_status(&invalid_action_server, &status_array);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
-  rcl_reset_error();
-
-  // Publish status with valid arguments (but empty array)
-  // TODO(jacobperron): Check with client on receiving end
-  ret = rcl_action_publish_status(&this->action_server, &status_array);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-  // Add a goal before publishing the status array
-  ret = rcl_action_goal_status_array_fini(&status_array);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
-  rcl_action_goal_handle_t * goal_handle;
-  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info);
-  ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
-  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  // Publish status with valid arguments (one goal in array)
-  // TODO(jacobperron): Check with client on receiving end
-  ret = rcl_action_publish_status(&this->action_server, &status_array);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-  ret = rcl_action_goal_status_array_fini(&status_array);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 }

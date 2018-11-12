@@ -94,6 +94,20 @@ if(BUILD_TESTING)
     )
     ament_target_dependencies(test_action_client "rcl" "test_msgs")
   endif()
+  ament_add_gtest(test_action_communication
+    test/rcl_action/test_action_communication.cpp
+  )
+  if(TARGET test_action_communication)
+    target_include_directories(test_action_communication PUBLIC
+      include
+      ${rcl_INCLUDE_DIRS}
+      ${test_msgs_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_action_communication
+      ${PROJECT_NAME}
+    )
+    ament_target_dependencies(test_action_communication "test_msgs")
+  endif()
   ament_add_gtest(test_action_server
     test/rcl_action/test_action_server.cpp
   )

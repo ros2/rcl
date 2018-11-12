@@ -364,7 +364,7 @@ RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_action_goal_handle_t *
 rcl_action_accept_new_goal(
-  const rcl_action_server_t * action_server,
+  rcl_action_server_t * action_server,
   const rcl_action_goal_info_t * goal_info);
 
 /// Publish a ROS feedback message for an active goal using a rcl_action_server_t.

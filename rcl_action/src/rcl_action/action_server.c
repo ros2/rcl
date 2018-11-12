@@ -290,7 +290,7 @@ rcl_action_send_goal_response(
 
 rcl_action_goal_handle_t *
 rcl_action_accept_new_goal(
-  const rcl_action_server_t * action_server,
+  rcl_action_server_t * action_server,
   const rcl_action_goal_info_t * goal_info)
 {
   if (!rcl_action_server_is_valid(action_server)) {
@@ -443,7 +443,7 @@ rcl_action_take_cancel_request(
   TAKE_SERVICE_REQUEST(cancel);
 }
 
-uint64_t
+static uint64_t
 _goal_info_stamp_to_nanosec(const rcl_action_goal_info_t * goal_info)
 {
   assert(goal_info);
