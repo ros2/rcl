@@ -178,10 +178,12 @@ rcl_action_server_init(
   ret = RCL_RET_OK;
   goto cleanup;
 fail:
-  if (action_server->impl) {
+  {
     // Finalize any services/publishers that were initialized and deallocate action_server->impl
     rcl_ret_t ret_throwaway = rcl_action_server_fini(action_server, node);
-    (void)ret_throwaway;  // already failing; likely finalize will error on one or more members
+    // Since there is already a failure, it is likely that finalize will error on one or more of
+    // the action servers members
+    (void)ret_throwaway;
   }
 cleanup:
   // TODO(jacobperron) Cleanup from expanded action name
