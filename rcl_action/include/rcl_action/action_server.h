@@ -746,16 +746,12 @@ RCL_WARN_UNUSED
 const rcl_action_server_options_t *
 rcl_action_server_get_options(const rcl_action_server_t * action_server);
 
-/// Return the goal handles for all active or terminated goals.
+/// Get the goal handles for all active or terminated goals.
 /**
- * A pointer to the internally held array of goal handle structs is returned
+ * A pointer to the internally held array of pointers to goal handle structs is returned
  * along with the number of items in the array.
  * Goals that have terminated, successfully responded to a client with a
  * result, and have expired (timed out) are not present in the array.
- *
- * This function can fail, and therefore return `NULL`, if the:
- *   - action server is `NULL`
- *   - action server is invalid (never called init, called fini, or invalid)
  *
  * The returned handle is made invalid if the action server is finalized or if
  * rcl_shutdown() is called.
@@ -774,15 +770,19 @@ rcl_action_server_get_options(const rcl_action_server_t * action_server);
  * Lock-Free          | Yes
  *
  * \param[in] action_server pointer to the rcl action server
+ * \param[out] goal_handles is set to the array of pointers to goal handles if successful.
  * \param[out] num_goals is set to the number of goals in the returned array if successful,
  *   not set otherwise.
- * \return pointer to an array goal handles if successful, otherwise `NULL`
+ * \return RCL_RET_OK if successful, or
+ * \return RCL_RET_ACTION_SERVER_INVALID if the action server is invalid, or
+ * \return RCL_RET_INVALID_ARGUMENT if any arguments are invalid
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
-const rcl_action_goal_handle_t *
+rcl_ret_t
 rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
+  rcl_action_goal_handle_t *** goal_handles,
   size_t * num_goals);
 
 /// Check if a goal is already being tracked by an action server

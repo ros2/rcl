@@ -44,7 +44,7 @@ typedef struct rcl_action_server_impl_t
   char * action_name;
   rcl_action_server_options_t options;
   // Array of goal handles
-  rcl_action_goal_handle_t * goal_handles;
+  rcl_action_goal_handle_t ** goal_handles;
   size_t num_goal_handles;
   // Clock
   rcl_clock_t clock;
@@ -83,6 +83,8 @@ rcl_action_get_zero_initialized_server(void)
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
+    } else if (RCL_RET_SERVICE_NAME_INVALID == ret) { \
+      ret = RCL_RET_ACTION_NAME_INVALID; \
     } else { \
       ret = RCL_RET_ERROR; \
     } \
@@ -115,6 +117,8 @@ rcl_action_get_zero_initialized_server(void)
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
+    } else if (RCL_RET_TOPIC_NAME_INVALID == ret) { \
+      ret = RCL_RET_ACTION_NAME_INVALID; \
     } else { \
       ret = RCL_RET_ERROR; \
     } \
@@ -158,9 +162,6 @@ rcl_action_server_init(
     return RCL_RET_ERROR;
   }
 
-  // TODO(jacobperron): Expand the given action name
-  // Test if name is valid
-
   // Initialize services
   SERVICE_INIT(goal);
   SERVICE_INIT(cancel);
@@ -180,11 +181,11 @@ rcl_action_server_init(
   // Copy options
   action_server->impl->options = *options;
 
+  // Initialize goal handle array
   action_server->impl->goal_handles = NULL;
   action_server->impl->num_goal_handles = 0;
 
-  ret = RCL_RET_OK;
-  goto cleanup;
+  return RCL_RET_OK;
 fail:
   {
     // Finalize any services/publishers that were initialized and deallocate action_server->impl
@@ -193,8 +194,6 @@ fail:
     // the action servers members
     (void)ret_throwaway;
   }
-cleanup:
-  // TODO(jacobperron) Cleanup from expanded action name
   return ret;
 }
 
@@ -335,20 +334,28 @@ rcl_action_accept_new_goal(
     return NULL;
   }
 
-  // Allocate space for a new goal handle
+  // Allocate space in the goal handle pointer array
   rcl_allocator_t allocator = action_server->impl->options.allocator;
-  rcl_action_goal_handle_t * goal_handles = action_server->impl->goal_handles;
+  rcl_action_goal_handle_t ** goal_handles = action_server->impl->goal_handles;
   const size_t num_goal_handles = action_server->impl->num_goal_handles;
   // TODO(jacobperron): Don't allocate for every accepted goal handle,
   //                    instead double the memory allocated if needed.
   const size_t new_num_goal_handles = num_goal_handles + 1;
   void * tmp_ptr = allocator.reallocate(
-    goal_handles, new_num_goal_handles * sizeof(rcl_action_goal_handle_t), allocator.state);
+    goal_handles, new_num_goal_handles * sizeof(rcl_action_goal_handle_t *), allocator.state);
+  if (!tmp_ptr) {
+    RCL_SET_ERROR_MSG("memory allocation failed for goal handle pointer");
+    return NULL;
+  }
+  goal_handles = (rcl_action_goal_handle_t **)tmp_ptr;
+
+  // Allocate space for a new goal handle
+  tmp_ptr = allocator.allocate(sizeof(rcl_action_goal_handle_t), allocator.state);
   if (!tmp_ptr) {
     RCL_SET_ERROR_MSG("memory allocation failed for new goal handle");
     return NULL;
   }
-  goal_handles = (rcl_action_goal_handle_t *)tmp_ptr;
+  goal_handles[num_goal_handles] = (rcl_action_goal_handle_t *) tmp_ptr;
 
   // Re-stamp goal info with current time
   rcl_action_goal_info_t goal_info_stamp_now = rcl_action_get_zero_initialized_goal_info();
@@ -361,9 +368,9 @@ rcl_action_accept_new_goal(
   _nanosec_to_goal_info_stamp(&now_time_point, &goal_info_stamp_now);
 
   // Create a new goal handle
-  goal_handles[num_goal_handles] = rcl_action_get_zero_initialized_goal_handle();
+  *goal_handles[num_goal_handles] = rcl_action_get_zero_initialized_goal_handle();
   ret = rcl_action_goal_handle_init(
-    &goal_handles[num_goal_handles], &goal_info_stamp_now, allocator);
+    goal_handles[num_goal_handles], &goal_info_stamp_now, allocator);
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG("failed to initialize goal handle");
     return NULL;
@@ -371,7 +378,7 @@ rcl_action_accept_new_goal(
 
   action_server->impl->goal_handles = goal_handles;
   action_server->impl->num_goal_handles = new_num_goal_handles;
-  return &goal_handles[num_goal_handles];
+  return goal_handles[num_goal_handles];
 }
 
 rcl_ret_t
@@ -421,12 +428,12 @@ rcl_action_get_goal_status_array(
   // Populate status array
   for (size_t i = 0; i < num_goals; ++i) {
     ret = rcl_action_goal_handle_get_info(
-      &action_server->impl->goal_handles[i], &status_message->msg.status_list.data[i].goal_info);
+      action_server->impl->goal_handles[i], &status_message->msg.status_list.data[i].goal_info);
     if (RCL_RET_OK != ret) {
       return RCL_RET_ERROR;
     }
     ret = rcl_action_goal_handle_get_status(
-      &action_server->impl->goal_handles[i], &status_message->msg.status_list.data[i].status);
+      action_server->impl->goal_handles[i], &status_message->msg.status_list.data[i].status);
     if (RCL_RET_OK != ret) {
       return RCL_RET_ERROR;
     }
@@ -484,14 +491,18 @@ rcl_action_clear_expired_goals(
     return RCL_RET_ERROR;
   }
 
+  // Used for shrinking goal handle array
+  rcl_allocator_t allocator = action_server->impl->options.allocator;
+
   *num_expired = 0u;
   rcl_ret_t ret_final = RCL_RET_OK;
   const int64_t timeout = (int64_t)action_server->impl->options.result_timeout.nanoseconds;
   rcl_action_goal_handle_t * goal_handle;
   rcl_action_goal_info_t goal_info;
   int64_t goal_time;
-  for (size_t i = 0; i < action_server->impl->num_goal_handles; ++i) {
-    goal_handle = &action_server->impl->goal_handles[i];
+  size_t num_goal_handles = action_server->impl->num_goal_handles;
+  for (size_t i = 0; i < num_goal_handles; ++i) {
+    goal_handle = action_server->impl->goal_handles[i];
     // Expiration only applys to terminated goals
     if (rcl_action_goal_handle_is_active(goal_handle)) {
       continue;
@@ -502,12 +513,28 @@ rcl_action_clear_expired_goals(
     assert(current_time > goal_time);
     if ((current_time - goal_time) > timeout) {
       // Stop tracking goal handle
-      // ret = rcl_action_goal_handle_fini(goal_handle);
-      // if (RCL_RET_OK != ret) {
-      //   ret_final = RCL_RET_ERROR;
-      // }
-      // action_server->impl->goal_handles[i] = NULL;
+      ret = rcl_action_goal_handle_fini(goal_handle);
+      if (RCL_RET_OK != ret) {
+        ret_final = RCL_RET_ERROR;
+      }
+      // Fill in any gaps left in the array with pointers from the end
+      action_server->impl->goal_handles[i] = action_server->impl->goal_handles[num_goal_handles];
+      action_server->impl->goal_handles[num_goal_handles--] = NULL;
+
       ++(*num_expired);
+    }
+  }
+
+  // Shrink goal handle array if some goals expired
+  if (*num_expired > 0u) {
+    void * tmp_ptr = allocator.reallocate(
+      action_server->impl->goal_handles, num_goal_handles, allocator.state);
+    if (!tmp_ptr) {
+      RCL_SET_ERROR_MSG("failed to shrink size of goal handle array");
+      ret_final = RCL_RET_ERROR;
+    } else {
+      action_server->impl->goal_handles = (rcl_action_goal_handle_t **)tmp_ptr;
+      action_server->impl->num_goal_handles = num_goal_handles;
     }
   }
   return ret_final;
@@ -550,7 +577,7 @@ rcl_action_process_cancel_request(
     rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
     rcl_action_goal_handle_t * goal_handle;
     for (size_t i = 0; i < total_num_goals; ++i) {
-      goal_handle = &action_server->impl->goal_handles[i];
+      goal_handle = action_server->impl->goal_handles[i];
       rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
       assert(RCL_RET_OK == ret);
 
@@ -573,7 +600,7 @@ rcl_action_process_cancel_request(
     rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
     rcl_action_goal_handle_t * goal_handle;
     for (size_t i = 0; i < total_num_goals; ++i) {
-      goal_handle = &action_server->impl->goal_handles[i];
+      goal_handle = action_server->impl->goal_handles[i];
       rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
       assert(RCL_RET_OK == ret);
 
@@ -645,17 +672,20 @@ rcl_action_server_get_options(const rcl_action_server_t * action_server)
   return &action_server->impl->options;
 }
 
-const rcl_action_goal_handle_t *
+rcl_ret_t
 rcl_action_server_get_goal_handles(
   const rcl_action_server_t * action_server,
+  rcl_action_goal_handle_t *** goal_handles,
   size_t * num_goals)
 {
   if (!rcl_action_server_is_valid(action_server)) {
-    return NULL;  // error already set
+    return RCL_RET_ACTION_SERVER_INVALID;  // error already set
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(num_goals, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_handles, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_goals, RCL_RET_INVALID_ARGUMENT);
+  *goal_handles = action_server->impl->goal_handles;
   *num_goals = action_server->impl->num_goal_handles;
-  return action_server->impl->goal_handles;
+  return RCL_RET_OK;
 }
 
 bool
@@ -671,7 +701,7 @@ rcl_action_server_goal_exists(
   rcl_action_goal_info_t gh_goal_info = rcl_action_get_zero_initialized_goal_info();
   rcl_ret_t ret;
   for (size_t i = 0; i < action_server->impl->num_goal_handles; ++i) {
-    ret = rcl_action_goal_handle_get_info(&action_server->impl->goal_handles[i], &gh_goal_info);
+    ret = rcl_action_goal_handle_get_info(action_server->impl->goal_handles[i], &gh_goal_info);
     if (RCL_RET_OK != ret) {
       RCL_SET_ERROR_MSG("failed to get info for goal handle");
       return false;

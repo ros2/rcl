@@ -207,10 +207,12 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(uuidcmp(goal_info_out.uuid, goal_info_in.uuid));
   size_t num_goals;
-  const rcl_action_goal_handle_t * goal_handle_array = rcl_action_server_get_goal_handles(
-    &this->action_server, &num_goals);
+  rcl_action_goal_handle_t ** goal_handle_array;
+  ret = rcl_action_server_get_goal_handles(&this->action_server, &goal_handle_array, &num_goals);
+  ASSERT_EQ(ret, RCL_RET_OK);
   EXPECT_EQ(num_goals, 1u);
   EXPECT_NE(goal_handle_array, nullptr) << rcl_get_error_string().str;
+  EXPECT_NE(goal_handle_array[0], nullptr) << rcl_get_error_string().str;
 
   // Accept with the same goal ID
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
@@ -225,9 +227,12 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(uuidcmp(goal_info_out.uuid, goal_info_in.uuid));
-  goal_handle_array = rcl_action_server_get_goal_handles(&this->action_server, &num_goals);
+  ret = rcl_action_server_get_goal_handles(&this->action_server, &goal_handle_array, &num_goals);
+  ASSERT_EQ(ret, RCL_RET_OK);
   EXPECT_EQ(num_goals, 2u);
   EXPECT_NE(goal_handle_array, nullptr) << rcl_get_error_string().str;
+  EXPECT_NE(goal_handle_array[0], nullptr) << rcl_get_error_string().str;
+  EXPECT_NE(goal_handle_array[1], nullptr) << rcl_get_error_string().str;
 }
 
 TEST_F(TestActionServer, test_action_clear_expired_goals)
@@ -253,6 +258,8 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   ret = rcl_action_clear_expired_goals(&this->action_server, &num_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(num_expired, 0u);
+
+  // TODO(jacobperron): Test with goals that actually expire
 }
 
 TEST_F(TestActionServer, test_action_process_cancel_request)
