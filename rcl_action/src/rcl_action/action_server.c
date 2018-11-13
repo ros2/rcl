@@ -560,10 +560,18 @@ rcl_action_process_cancel_request(
   RCL_CHECK_ARGUMENT_FOR_NULL(cancel_request, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(cancel_response, RCL_RET_INVALID_ARGUMENT);
 
+  rcl_allocator_t allocator = action_server->impl->options.allocator;
   const size_t total_num_goals = action_server->impl->num_goal_handles;
 
   // Storage for pointers to active goals handles that will be transitioned to canceling
-  rcl_action_goal_handle_t * goal_handles_to_cancel[total_num_goals];
+  // Note, we need heap allocation for MSVC support
+  rcl_action_goal_handle_t ** goal_handles_to_cancel =
+    (rcl_action_goal_handle_t **)allocator.allocate(
+    sizeof(rcl_action_goal_handle_t *) * total_num_goals, allocator.state);
+  if (!goal_handles_to_cancel) {
+    RCL_SET_ERROR_MSG("allocation failed for temporary goal handle array");
+    return RCL_RET_BAD_ALLOC;
+  }
   size_t num_goals_to_cancel = 0u;
 
   // Request data
@@ -613,24 +621,25 @@ rcl_action_process_cancel_request(
     }
   }
 
+  rcl_ret_t ret_final = RCL_RET_OK;
   if (0u == num_goals_to_cancel) {
     cancel_response->msg.goals_canceling.data = NULL;
     cancel_response->msg.goals_canceling.size = 0u;
-    return RCL_RET_OK;
+    goto cleanup;
   }
 
   // Allocate space in response
   rcl_ret_t ret = rcl_action_cancel_response_init(
-    cancel_response, num_goals_to_cancel, action_server->impl->options.allocator);
+    cancel_response, num_goals_to_cancel, allocator);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC == ret) {
-      return RCL_RET_BAD_ALLOC;  // error already set
+      ret_final = RCL_RET_BAD_ALLOC;  // error already set
     }
-    return RCL_RET_ERROR;  // error already set
+    ret_final = RCL_RET_ERROR;  // error already set
+    goto cleanup;
   }
 
   // Transition goals to canceling and add to response
-  rcl_ret_t ret_final = RCL_RET_OK;
   rcl_action_goal_handle_t * goal_handle;
   for (size_t i = 0; i < num_goals_to_cancel; ++i) {
     goal_handle = goal_handles_to_cancel[i];
@@ -643,6 +652,8 @@ rcl_action_process_cancel_request(
       ret_final = RCL_RET_ERROR;  // error already set
     }
   }
+cleanup:
+  allocator.deallocate(goal_handles_to_cancel, allocator.state);
   return ret_final;
 }
 
