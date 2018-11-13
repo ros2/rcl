@@ -303,7 +303,6 @@ rcl_action_client_init(
   const rcl_action_client_options_t * options)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(action_client, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;
   }
@@ -423,9 +422,6 @@ rcl_action_client_fini(rcl_action_client_t * action_client, rcl_node_t * node)
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;  // error already set
   }
-  // TODO(hidmic): ideally we should rollback to a valid state if any
-  //               finalization failed, but it seems that's currently
-  //               not possible.
   rcl_ret_t ret = RCL_RET_OK;
   rcl_ret_t fini_ret = RCL_RET_OK;
   rcl_action_client_impl_t * impl = action_client->impl;
@@ -459,13 +455,11 @@ rcl_action_client_fini(rcl_action_client_t * action_client, rcl_node_t * node)
       ret = RCL_RET_ERROR;
     }
   }
-  if (RCL_RET_OK != ret) {
-    rcl_allocator_t * allocator = &impl->options.allocator;
-    allocator->deallocate(impl->action_name, allocator->state);
-    allocator->deallocate(action_client->impl, allocator->state);
-    action_client->impl = NULL;
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client finalized");
-  }
+  rcl_allocator_t * allocator = &impl->options.allocator;
+  allocator->deallocate(impl->action_name, allocator->state);
+  allocator->deallocate(action_client->impl, allocator->state);
+  action_client->impl = NULL;
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client finalized");
   return ret;
 }
 
@@ -718,33 +712,28 @@ rcl_action_wait_set_add_action_client(
     return RCL_RET_ACTION_CLIENT_INVALID;  // error already set
   }
   // Wait on action goal service response messages.
-  ret = rcl_wait_set_add_client(
-    wait_set, &action_client->impl->goal_client);
+  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->goal_client);
   if (RCL_RET_OK != ret) {
     return ret;
   }
   // Wait on action cancel service response messages.
-  ret = rcl_wait_set_add_client(
-    wait_set, &action_client->impl->cancel_client);
+  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->cancel_client);
   if (RCL_RET_OK != ret) {
     return ret;
   }
   // Wait on action result service response messages.
-  ret = rcl_wait_set_add_client(
-    wait_set, &action_client->impl->result_client);
+  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->result_client);
   if (RCL_RET_OK != ret) {
     return ret;
   }
   // Wait on action feedback messages.
-  ret = rcl_wait_set_add_subscription(
-    wait_set, &action_client->impl->feedback_subscription);
+  ret = rcl_wait_set_add_subscription(wait_set, &action_client->impl->feedback_subscription);
   if (RCL_RET_OK != ret) {
     return ret;
   }
   return RCL_RET_OK;
   // Wait on action status messages.
-  ret = rcl_wait_set_add_subscription(
-    wait_set, &action_client->impl->status_subscription);
+  ret = rcl_wait_set_add_subscription(wait_set, &action_client->impl->status_subscription);
   if (RCL_RET_OK != ret) {
     return ret;
   }
