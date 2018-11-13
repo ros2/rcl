@@ -72,7 +72,7 @@ TEST_F(TestActionClientBaseFixture, test_action_client_init_fini) {
   ret = rcl_action_client_init(
     &action_client, nullptr, action_typesupport,
     action_name, &action_client_options);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  EXPECT_EQ(ret, RCL_RET_NODE_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   ret = rcl_action_client_init(
