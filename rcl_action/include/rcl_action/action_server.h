@@ -50,6 +50,8 @@ typedef struct rcl_action_server_options_t
   /// Custom allocator for the action server, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
+  /// Clock type used for checking result timeouts.
+  rcl_clock_type_t clock_type;
   /// Goal handles that have results longer than this time are deallocated.
   rcl_duration_t result_timeout;
 } rcl_action_server_options_t;
@@ -212,8 +214,9 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node);
  * - result_service_qos = rmw_qos_profile_services_default;
  * - feedback_topic_qos = rmw_qos_profile_default;
  * - status_topic_qos = rcl_action_qos_profile_status_default;
- * - allocator = rcl_get_default_allocator()
-   - result_timeout = 9e+11;  // 15 minutes
+ * - allocator = rcl_get_default_allocator();
+ * - clock_type = RCL_ROS_TIME;
+ * - result_timeout = 9e+11;  // 15 minutes
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
@@ -550,6 +553,10 @@ rcl_action_send_result_response(
  * than some duration.
  * The timeout duration is set as part of the action server options.
  *
+ * If a negative timeout value if provided, then goal results never expire (kept forever).
+ * If a timeout of zero is set, then goal results are discarded immediately (ie. goal
+ * results are discarded whenever this function is called).
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -564,6 +571,7 @@ rcl_action_send_result_response(
  *   number is not set.
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if num_expired is null, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_ACTION_PUBLIC

@@ -26,6 +26,7 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
+#include "rcl/time.h"
 
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
@@ -45,6 +46,8 @@ typedef struct rcl_action_server_impl_t
   // Array of goal handles
   rcl_action_goal_handle_t * goal_handles;
   size_t num_goal_handles;
+  // Clock
+  rcl_clock_t clock;
 } rcl_action_server_impl_t;
 
 rcl_action_server_t
@@ -149,11 +152,16 @@ rcl_action_server_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     action_server->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
+  // Initialize clock
+  rcl_ret_t ret = rcl_clock_init(options->clock_type, &action_server->impl->clock, &allocator);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;
+  }
+
   // TODO(jacobperron): Expand the given action name
   // Test if name is valid
 
   // Initialize services
-  rcl_ret_t ret;
   SERVICE_INIT(goal);
   SERVICE_INIT(cancel);
   SERVICE_INIT(result);
@@ -200,6 +208,10 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
 
   rcl_ret_t ret = RCL_RET_OK;
   if (action_server->impl) {
+    // Finalize clock
+    if (rcl_clock_fini(&action_server->impl->clock) != RCL_RET_OK) {
+      ret = RCL_RET_ERROR;
+    }
     // Finalize services
     if (rcl_service_fini(&action_server->impl->goal_service, node) != RCL_RET_OK) {
       ret = RCL_RET_ERROR;
@@ -236,6 +248,7 @@ rcl_action_server_get_default_options(void)
   default_options.feedback_topic_qos = rmw_qos_profile_default;
   default_options.status_topic_qos = rcl_action_qos_profile_status_default;
   default_options.allocator = rcl_get_default_allocator();
+  default_options.clock_type = RCL_ROS_TIME;
   default_options.result_timeout.nanoseconds = (rcl_duration_value_t)9e11;  // 15 minutes
   return default_options;
 }
@@ -288,6 +301,24 @@ rcl_action_send_goal_response(
   SEND_SERVICE_RESPONSE(goal);
 }
 
+// Implementation only
+static int64_t
+_goal_info_stamp_to_nanosec(const rcl_action_goal_info_t * goal_info)
+{
+  assert(goal_info);
+  return (int64_t)(goal_info->stamp.sec * 1e9) + (int64_t)goal_info->stamp.nanosec;
+}
+
+// Implementation only
+static void
+_nanosec_to_goal_info_stamp(const int64_t * nanosec, rcl_action_goal_info_t * goal_info)
+{
+  assert(nanosec);
+  assert(goal_info);
+  goal_info->stamp.sec = (int32_t) (*nanosec / (int64_t)1e9);
+  goal_info->stamp.nanosec = (uint32_t)(*nanosec - (int64_t)(goal_info->stamp.sec * 1e9));
+}
+
 rcl_action_goal_handle_t *
 rcl_action_accept_new_goal(
   rcl_action_server_t * action_server,
@@ -319,10 +350,20 @@ rcl_action_accept_new_goal(
   }
   goal_handles = (rcl_action_goal_handle_t *)tmp_ptr;
 
+  // Re-stamp goal info with current time
+  rcl_action_goal_info_t goal_info_stamp_now = rcl_action_get_zero_initialized_goal_info();
+  goal_info_stamp_now = *goal_info;
+  rcl_time_point_value_t now_time_point;
+  rcl_ret_t ret = rcl_clock_get_now(&action_server->impl->clock, &now_time_point);
+  if (RCL_RET_OK != ret) {
+    return NULL;  // Error already set
+  }
+  _nanosec_to_goal_info_stamp(&now_time_point, &goal_info_stamp_now);
+
   // Create a new goal handle
   goal_handles[num_goal_handles] = rcl_action_get_zero_initialized_goal_handle();
-  rcl_ret_t ret = rcl_action_goal_handle_init(
-    &goal_handles[num_goal_handles], goal_info, allocator);
+  ret = rcl_action_goal_handle_init(
+    &goal_handles[num_goal_handles], &goal_info_stamp_now, allocator);
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG("failed to initialize goal handle");
     return NULL;
@@ -431,8 +472,45 @@ rcl_action_clear_expired_goals(
   const rcl_action_server_t * action_server,
   size_t * num_expired)
 {
-  // TODO(jacobperron): impl
-  return RCL_RET_OK;
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_expired, RCL_RET_INVALID_ARGUMENT);
+
+  // Get current time (nanosec)
+  int64_t current_time;
+  rcl_ret_t ret = rcl_clock_get_now(&action_server->impl->clock, &current_time);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;
+  }
+
+  *num_expired = 0u;
+  rcl_ret_t ret_final = RCL_RET_OK;
+  const int64_t timeout = (int64_t)action_server->impl->options.result_timeout.nanoseconds;
+  rcl_action_goal_handle_t * goal_handle;
+  rcl_action_goal_info_t goal_info;
+  int64_t goal_time;
+  for (size_t i = 0; i < action_server->impl->num_goal_handles; ++i) {
+    goal_handle = &action_server->impl->goal_handles[i];
+    // Expiration only applys to terminated goals
+    if (rcl_action_goal_handle_is_active(goal_handle)) {
+      continue;
+    }
+    ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
+    assert(RCL_RET_OK == ret);
+    goal_time = _goal_info_stamp_to_nanosec(&goal_info);
+    assert(current_time > goal_time);
+    if ((current_time - goal_time) > timeout) {
+      // Stop tracking goal handle
+      // ret = rcl_action_goal_handle_fini(goal_handle);
+      // if (RCL_RET_OK != ret) {
+      //   ret_final = RCL_RET_ERROR;
+      // }
+      // action_server->impl->goal_handles[i] = NULL;
+      ++(*num_expired);
+    }
+  }
+  return ret_final;
 }
 
 rcl_ret_t
@@ -441,13 +519,6 @@ rcl_action_take_cancel_request(
   void * ros_cancel_request)
 {
   TAKE_SERVICE_REQUEST(cancel);
-}
-
-static uint64_t
-_goal_info_stamp_to_nanosec(const rcl_action_goal_info_t * goal_info)
-{
-  assert(goal_info);
-  return (uint64_t)(goal_info->stamp.sec * 1e9) + goal_info->stamp.nanosec;
 }
 
 rcl_ret_t
@@ -471,7 +542,7 @@ rcl_action_process_cancel_request(
   // Request data
   const rcl_action_goal_info_t * request_goal_info = &cancel_request->goal_info;
   const uint8_t * request_uuid = request_goal_info->uuid;
-  uint64_t request_nanosec = _goal_info_stamp_to_nanosec(request_goal_info);
+  int64_t request_nanosec = _goal_info_stamp_to_nanosec(request_goal_info);
 
   // Determine how many goals should transition to canceling
   if (!uuidcmpzero(request_uuid) && (0u == request_nanosec)) {
@@ -483,7 +554,7 @@ rcl_action_process_cancel_request(
       rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
       assert(RCL_RET_OK == ret);
 
-      if (uuidcmp(request_goal_info->uuid, goal_info.uuid)) {
+      if (uuidcmp(request_uuid, goal_info.uuid)) {
         if (rcl_action_goal_handle_is_cancelable(goal_handle)) {
           goal_handles_to_cancel[num_goals_to_cancel++] = goal_handle;
         }
@@ -491,10 +562,10 @@ rcl_action_process_cancel_request(
       }
     }
   } else {
-    if (uuidcmpzero(request_goal_info->uuid) && (0u == request_nanosec)) {
+    if (uuidcmpzero(request_uuid) && (0u == request_nanosec)) {
       // UUID and timestamp are both zero; cancel all goals
       // Set timestamp to max to cancel all active goals in the following for-loop
-      request_nanosec = UINT64_MAX;
+      request_nanosec = INT64_MAX;
     }
 
     // Cancel all active goals at or before the timestamp
@@ -505,7 +576,8 @@ rcl_action_process_cancel_request(
       goal_handle = &action_server->impl->goal_handles[i];
       rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
       assert(RCL_RET_OK == ret);
-      const uint64_t goal_nanosec = _goal_info_stamp_to_nanosec(&goal_info);
+
+      const int64_t goal_nanosec = _goal_info_stamp_to_nanosec(&goal_info);
       if (rcl_action_goal_handle_is_cancelable(goal_handle) &&
         ((goal_nanosec <= request_nanosec) || uuidcmp(request_uuid, goal_info.uuid)))
       {

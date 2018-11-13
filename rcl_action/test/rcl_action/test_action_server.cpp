@@ -13,6 +13,9 @@
 // limitations under the License.
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <thread>
+
 #include "rcl_action/action_server.h"
 
 #include "rcl/error_handling.h"
@@ -179,8 +182,6 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   // Initialize a goal info
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
   init_test_uuid0(goal_info_in.uuid);
-  goal_info_in.stamp.sec = 1234;
-  goal_info_in.stamp.nanosec = 4567u;
 
   // Accept goal with a null action server
   rcl_action_goal_handle_t * goal_handle = rcl_action_accept_new_goal(nullptr, &goal_info_in);
@@ -205,8 +206,6 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(uuidcmp(goal_info_out.uuid, goal_info_in.uuid));
-  EXPECT_EQ(goal_info_out.stamp.sec, goal_info_in.stamp.sec);
-  EXPECT_EQ(goal_info_out.stamp.nanosec, goal_info_in.stamp.nanosec);
   size_t num_goals;
   const rcl_action_goal_handle_t * goal_handle_array = rcl_action_server_get_goal_handles(
     &this->action_server, &num_goals);
@@ -221,18 +220,39 @@ TEST_F(TestActionServer, test_action_server_accept_new_goal)
   // Accept a different goal
   goal_info_in = rcl_action_get_zero_initialized_goal_info();
   init_test_uuid1(goal_info_in.uuid);
-  goal_info_in.stamp.sec = 4321;
-  goal_info_in.stamp.nanosec = 7654u;
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
   ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(uuidcmp(goal_info_out.uuid, goal_info_in.uuid));
-  EXPECT_EQ(goal_info_out.stamp.sec, goal_info_in.stamp.sec);
-  EXPECT_EQ(goal_info_out.stamp.nanosec, goal_info_in.stamp.nanosec);
   goal_handle_array = rcl_action_server_get_goal_handles(&this->action_server, &num_goals);
   EXPECT_EQ(num_goals, 2u);
   EXPECT_NE(goal_handle_array, nullptr) << rcl_get_error_string().str;
+}
+
+TEST_F(TestActionServer, test_action_clear_expired_goals)
+{
+  size_t num_expired;
+  // Clear expired goals with null action server
+  rcl_ret_t ret = rcl_action_clear_expired_goals(nullptr, &num_expired);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Clear expired goals with null size argument
+  ret = rcl_action_clear_expired_goals(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Clear with invalid action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_clear_expired_goals(&invalid_action_server, &num_expired);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Clear with valid arguments
+  ret = rcl_action_clear_expired_goals(&this->action_server, &num_expired);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_EQ(num_expired, 0u);
 }
 
 TEST_F(TestActionServer, test_action_process_cancel_request)
@@ -379,15 +399,20 @@ protected:
   {
     TestActionServer::SetUp();
     // Add several goals
-    rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
+    rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
     rcl_action_goal_handle_t * goal_handle;
-    for (int i = 0; i < num_goals; ++i) {
+    rcl_ret_t ret;
+    for (int i = 0; i < NUM_GOALS; ++i) {
       for (int j = 0; j < UUID_SIZE; ++j) {
-        goal_info.uuid[j] = static_cast<uint8_t>(i + j);
+        goal_info_in.uuid[j] = static_cast<uint8_t>(i + j);
       }
-      goal_info.stamp.sec = i;
-      goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info);
+      goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
       ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+      goal_infos_out[i] = rcl_action_get_zero_initialized_goal_info();
+      ret = rcl_action_goal_handle_get_info(goal_handle, &goal_infos_out[i]);
+      ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+      // Sleep so goals have different acceptance times
+      std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
   }
 
@@ -396,21 +421,24 @@ protected:
     TestActionServer::TearDown();
   }
 
-  const int num_goals = 42;
+  static const int NUM_GOALS = 10;
+  rcl_action_goal_info_t goal_infos_out[NUM_GOALS];
 };
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_all_goals)
 {
   // Request to cancel all goals
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
+  cancel_request.goal_info.stamp.sec = 0;
+  cancel_request.goal_info.stamp.nanosec = 0u;
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
   rcl_ret_t ret = rcl_action_process_cancel_request(
     &this->action_server, &cancel_request, &cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_NE(cancel_response.msg.goals_canceling.data, nullptr);
-  ASSERT_EQ(cancel_response.msg.goals_canceling.size, (size_t)this->num_goals);
+  ASSERT_EQ(cancel_response.msg.goals_canceling.size, (size_t)NUM_GOALS);
   rcl_action_goal_info_t * goal_info_out;
-  for (int i = 0; i < this->num_goals; ++i) {
+  for (int i = 0; i < NUM_GOALS; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
     for (int j = 0; j < UUID_SIZE; ++j) {
       EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
@@ -440,14 +468,15 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time)
 {
   // Request to cancel all goals at and before a specific time
+  const size_t time_index = 7;
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  cancel_request.goal_info.stamp.sec = 21;
+  cancel_request.goal_info = this->goal_infos_out[time_index];
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
   rcl_ret_t ret = rcl_action_process_cancel_request(
     &this->action_server, &cancel_request, &cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_NE(cancel_response.msg.goals_canceling.data, nullptr);
-  ASSERT_EQ(cancel_response.msg.goals_canceling.size, 22u);
+  ASSERT_EQ(cancel_response.msg.goals_canceling.size, time_index + 1);  // goals at indices [0, 7]
   rcl_action_goal_info_t * goal_info_out;
   for (size_t i = 0; i < cancel_response.msg.goals_canceling.size; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
@@ -459,19 +488,21 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time)
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_and_id)
 {
-  // Request to cancel all goals at and before a specific time
+  // Request to cancel a specific goal by ID and all goals at and before a specific time
+  const size_t goal_index = 9;
+  const size_t time_index = 2;
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
+  cancel_request.goal_info = this->goal_infos_out[time_index];
   for (int i = 0; i < UUID_SIZE; ++i) {
-    cancel_request.goal_info.uuid[i] = static_cast<uint8_t>(i + 40);
+    cancel_request.goal_info.uuid[i] = static_cast<uint8_t>(i + goal_index);
   }
-  cancel_request.goal_info.stamp.sec = 10;
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
   rcl_ret_t ret = rcl_action_process_cancel_request(
     &this->action_server, &cancel_request, &cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_NE(cancel_response.msg.goals_canceling.data, nullptr);
   const size_t num_goals_canceling = cancel_response.msg.goals_canceling.size;
-  ASSERT_EQ(num_goals_canceling, 12u);
+  ASSERT_EQ(num_goals_canceling, time_index + 2);  // goals at indices [0, 2] and 8
   rcl_action_goal_info_t * goal_info_out;
   for (size_t i = 0; i < num_goals_canceling - 1; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
@@ -481,6 +512,6 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
   }
   goal_info_out = &cancel_response.msg.goals_canceling.data[num_goals_canceling - 1];
   for (int i = 0; i < UUID_SIZE; ++i) {
-    EXPECT_EQ(goal_info_out->uuid[i], static_cast<uint8_t>(i + 40));
+    EXPECT_EQ(goal_info_out->uuid[i], static_cast<uint8_t>(i + goal_index));
   }
 }
