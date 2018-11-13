@@ -79,13 +79,12 @@ if(BUILD_TESTING)
   )
   if(TARGET test_action_client)
     target_include_directories(test_action_client PUBLIC
-      ${rcl_INCLUDE_DIRS}
-      ${test_msgs_INCLUDE_DIRS}
+      include
     )
     target_link_libraries(test_action_client
       ${PROJECT_NAME}
-      ${test_msgs_LIBRARIES}
     )
+    ament_target_dependencies(test_action_client "rcl" "test_msgs")
   endif()
   ament_add_gtest(test_goal_handle
     test/rcl_action/test_goal_handle.cpp
