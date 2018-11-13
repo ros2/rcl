@@ -137,6 +137,8 @@ protected:
     // Finalize
     rcl_ret_t ret = rcl_action_server_fini(&this->action_server, &this->node);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_node_fini(&this->node);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_shutdown();
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
@@ -177,7 +179,7 @@ TEST_F(TestActionServer, test_action_server_is_valid)
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
 }
 
-TEST_F(TestActionServer, test_action_server_accept_new_goal)
+TEST_F(TestActionServer, test_action_accept_new_goal)
 {
   // Initialize a goal info
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();

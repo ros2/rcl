@@ -53,6 +53,8 @@ protected:
     // Finalize
     rcl_ret_t ret = rcl_action_server_fini(&this->action_server, &this->node);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_node_fini(&this->node);
+    EXPECT_EQ(ret, RCL_RET_OK);
     ret = rcl_shutdown();
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
