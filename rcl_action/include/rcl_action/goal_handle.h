@@ -252,7 +252,7 @@ rcl_action_goal_handle_is_cancelable(const rcl_action_goal_handle_t * goal_handl
  *
  * \param[in] goal_handle struct to evaluate as valid or not
  * \return `true` if the goal handle is valid, or
- * \return `false` if the goal handle pointer is null,
+ * \return `false` if the goal handle pointer is null, or
  * \return `false` otherwise
  */
 RCL_ACTION_PUBLIC
