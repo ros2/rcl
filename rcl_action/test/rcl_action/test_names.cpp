@@ -62,7 +62,7 @@ TEST_P(TestActionDerivedName, validate_action_derived_getter)
   ret = test_subject.get_action_derived_name(
     invalid_action_name, default_allocator,
     &action_derived_name);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_EQ(RCL_RET_ACTION_NAME_INVALID, ret);
 
   action_derived_name = NULL;
   rcl_allocator_t invalid_allocator =
