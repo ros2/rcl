@@ -415,7 +415,6 @@ rcl_action_take_status(
   const rcl_action_client_t * action_client,
   void * ros_status_array);
 
-
 /// Send a request for the result of a completed goal associated with a rcl_action_client_t.
 /**
  * This is a non-blocking call.
