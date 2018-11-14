@@ -41,8 +41,8 @@ extern "C"
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose goal service name is
- *   being returned.
+ * \param[in] action_name The non-empty name of the action whose goal
+ *   service name is being returned.
  * \param[in] allocator A valid allocator to be used.
  * \param[out] goal_service_name Either an allocated string with the action
  *   goal service name, or `NULL` if the function failed to allocate memory
@@ -73,8 +73,8 @@ rcl_action_get_goal_service_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose cancel service name is
- *   being returned.
+ * \param[in] action_name The non-empty name of the action whose cancel
+ *   service name is being returned.
  * \param[in] allocator A valid allocator to be used.
  * \param[out] cancel_service_name Either an allocated string with the action
  *   cancel service name, or `NULL` if the function failed to allocate memory
@@ -105,8 +105,8 @@ rcl_action_get_cancel_service_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose result service name is
- *   being returned.
+ * \param[in] action_name The non-empty name of the action whose result service
+ *   name is being returned.
  * \param[in] allocator A valid allocator to be used.
  * \param[out] result_service_name Either an allocated string with the action
  *   result service name, or `NULL` if the function failed to allocate memory
@@ -137,8 +137,8 @@ rcl_action_get_result_service_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose feedback topic name is
- *   being returned.
+ * \param[in] action_name The non-empty name of the action whose feedback
+ *   topic name is being returned.
  * \param[in] allocator A valid allocator to be used.
  * \param[out] result_service_name Either an allocated string with the action
  *   feedback topic name, or `NULL` if the function failed to allocate memory
@@ -169,8 +169,8 @@ rcl_action_get_feedback_topic_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose status topic name is
- *   being returned.
+ * \param[in] action_name The non-empty name of the action whose status topic
+ *   name is being returned.
  * \param[in] allocator A valid allocator to be used.
  * \param[out] result_service_name Either an allocated string with the action
  *   status topic name, or `NULL` if the function failed to allocate memory

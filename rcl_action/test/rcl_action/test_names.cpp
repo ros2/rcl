@@ -48,14 +48,17 @@ protected:
 
 TEST_P(TestActionDerivedName, validate_action_derived_getter)
 {
-  rcl_ret_t ret;
-  char dummy_char;
-  char * action_derived_name;
-  rcl_allocator_t default_allocator =
-    rcl_get_default_allocator();
+  rcl_allocator_t default_allocator = rcl_get_default_allocator();
+
+  char * action_derived_name = NULL;
+  const char * const null_action_name = NULL;
+  rcl_ret_t ret = test_subject.get_action_derived_name(
+    null_action_name, default_allocator,
+    &action_derived_name);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 
   action_derived_name = NULL;
-  const char * const invalid_action_name = NULL;
+  const char * const invalid_action_name = "";
   ret = test_subject.get_action_derived_name(
     invalid_action_name, default_allocator,
     &action_derived_name);
@@ -76,6 +79,7 @@ TEST_P(TestActionDerivedName, validate_action_derived_getter)
     invalid_ptr_to_action_derived_name);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 
+  char dummy_char = '\0';
   action_derived_name = &dummy_char;
   ret = test_subject.get_action_derived_name(
     test_subject.action_name, default_allocator,
