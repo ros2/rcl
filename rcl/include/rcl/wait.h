@@ -479,7 +479,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[inout] wait_sets pointer to an array of wait sets to be waited on and to be pruned
+ * \param[inout] wait_sets an array of wait sets to be waited on and to be pruned
  *   if not ready
  * \param[in] num_wait_sets the number of wait sets in the input array
  * \param[in] timeout the duration to wait for the wait set to be ready, in nanoseconds
@@ -493,7 +493,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64_t timeout);
+rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_t timeout);
 
 #ifdef __cplusplus
 }

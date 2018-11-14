@@ -190,7 +190,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_triggered
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
-// Time spent during wait should be negligible.
+  // Time spent during wait should be negligible.
   int64_t timeout = 0;
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
   ret = rcl_wait(&wait_set, timeout);
@@ -434,4 +434,29 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   trigger_thread.join();
   EXPECT_EQ(RCL_RET_OK, f.get());
   EXPECT_LE(std::abs(diff - trigger_diff.count()), TOLERANCE);
+}
+
+// Test rcl_wait_multiple with a positive finite timeout value (1ms)
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout_multiple) {
+  rcl_wait_set_t wait_sets[2];
+  wait_sets[0] = rcl_get_zero_initialized_wait_set();
+  wait_sets[1] = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_sets[0], 0, 0, 1, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_init(&wait_sets[1], 0, 0, 1, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  int64_t timeout = RCL_MS_TO_NS(10);  // nanoseconds
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+  ret = rcl_wait_multiple(wait_sets, 2, timeout);
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
+  // Check time
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_LE(diff, timeout + TOLERANCE);
+
+  ret = rcl_wait_set_fini(&wait_sets[0]);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_fini(&wait_sets[1]);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }

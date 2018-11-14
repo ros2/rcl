@@ -615,7 +615,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
 }
 
 rcl_ret_t
-rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64_t timeout)
+rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_t timeout)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_sets, RCL_RET_INVALID_ARGUMENT);
   size_t i;
@@ -628,7 +628,7 @@ rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64
   size_t number_of_clients = 0u;
   size_t number_of_services = 0u;
   for (i = 0u; i < num_wait_sets; ++i) {
-    wait_set = wait_sets[i];
+    wait_set = &wait_sets[i];
     if (!__wait_set_is_valid(wait_set)) {
       RCL_SET_ERROR_MSG("wait set is invalid");
       return RCL_RET_WAIT_SET_INVALID;
@@ -659,7 +659,7 @@ rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64
     number_of_timers,
     number_of_clients,
     number_of_services,
-    wait_sets[0]->impl->allocator);
+    wait_sets[0].impl->allocator);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC == ret) {
       return RCL_RET_BAD_ALLOC;  // error already set
@@ -669,7 +669,7 @@ rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64
 
   // Collate all wait sets into a single wait set
   for (i = 0u; i < num_wait_sets; ++i) {
-    wait_set = wait_sets[i];
+    wait_set = &wait_sets[i];
     for (j = 0u; j < wait_set->size_of_timers; ++j) {
       const size_t current_index = collated_wait_set.impl->timer_index++;
       collated_wait_set.timers[current_index] = wait_set->timers[j];
@@ -714,8 +714,8 @@ rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64
   collated_wait_set.impl->rmw_services.service_count = number_of_services;
 
   // Wait on the collated wait set
-  ret = rcl_wait(&collated_wait_set, timeout);
-  if (RCL_RET_OK != ret && RCL_RET_TIMEOUT != ret) {
+  rcl_ret_t wait_ret = rcl_wait(&collated_wait_set, timeout);
+  if (RCL_RET_OK != wait_ret && RCL_RET_TIMEOUT != wait_ret) {
     // Finalize collated wait set
     ret = rcl_wait_set_fini(&collated_wait_set);
     (void)ret;
@@ -729,7 +729,7 @@ rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64
   size_t collated_client_index = 0u;
   size_t collated_service_index = 0u;
   for (i = 0u; i < num_wait_sets; ++i) {
-    wait_set = wait_sets[i];
+    wait_set = &wait_sets[i];
     for (j = 0u; j < wait_set->size_of_timers; ++j) {
       wait_set->timers[j] = collated_wait_set.timers[collated_timer_index + j];
     }
@@ -759,7 +759,7 @@ rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64
     return RCL_RET_ERROR;  // error already set
   }
 
-  return RCL_RET_OK;
+  return wait_ret;
 }
 
 #ifdef __cplusplus
