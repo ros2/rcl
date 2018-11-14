@@ -378,7 +378,7 @@ rcl_wait_set_add_service(
  *   }
  *   for (int i = 0; i < wait_set.size_of_guard_conditions; ++i) {
  *     if (wait_set.guard_conditions[i]) {
- *       // The subscription is ready...
+ *       // The guard condition is ready...
  *     }
  *   }
  * } while(check_some_condition());
@@ -443,7 +443,52 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
  *
  * Expected usage:
  *
- * TODO(jacobperron): Usage example
+ * ```c
+ * #include <rcl/rcl.h>
+ *
+ * // rcl_init() called successfully before here...
+ * rcl_node_t node;  // initialize this, see rcl_node_init()
+ * rcl_subscription_t sub1;  // initialize this, see rcl_subscription_init()
+ * rcl_subscription_t sub2;  // initialize this, see rcl_subscription_init()
+ * rcl_guard_condition_t gc1;  // initialize this, see rcl_guard_condition_init()
+ * rcl_wait_set_t wait_sets[2];  // two wait sets in this example
+ * wait_sets[0] = rcl_get_zero_initialized_wait_set();
+ * wait_sets[1] = rcl_get_zero_initialized_wait_set();
+ * rcl_ret_t ret = rcl_wait_set_init(&wait_sets[0] 1, 0, 0, 0, 0, rcl_get_default_allocator());
+ * // ... error handling
+ * ret = rcl_wait_set_init(&wait_sets[1] 1, 1, 0, 0, 0, rcl_get_default_allocator());
+ * // ... error handling
+ * do {
+ *   ret = rcl_wait_set_clear(&wait_sets[0]);
+ *   // ... error handling
+ *   ret = rcl_wait_set_add_subscription(&wait_sets[0], &sub1);
+ *   // ... error handling
+ *   ret = rcl_wait_set_clear(&wait_sets[1]);
+ *   // ... error handling
+ *   ret = rcl_wait_set_add_subscription(&wait_sets[1], &sub2);
+ *   // ... error handling
+ *   ret = rcl_wait_set_add_guard_condition(&wait_sets[1], &gc1);
+ *   // ... error handling
+ *   ret = rcl_wait_multiple(wait_sets, RCL_MS_TO_NS(1000));  // 1000ms == 1s, passed as ns
+ *   if (ret == RCL_RET_TIMEOUT) {
+ *     continue;
+ *   }
+ *   if (wait_sets[0].subscriptions[0]) {
+ *     // The subscription in the first wait set is ready...
+ *   }
+ *   if (wait_sets[1].subscriptions[0]) {
+ *     // The subscription in the second wait set is ready...
+ *   }
+ *   if (wait_sets[1].guard_conditions[0]) {
+ *     // The guard condition in the first wait set is ready...
+ *   }
+ * } while(check_some_condition());
+ * // ... fini node, and subscriptions and guard conditions...
+ * ret = rcl_wait_set_fini(&wait_sets[0]);
+ * // ... error handling
+ * ret = rcl_wait_set_fini(&wait_sets[1]);
+ * // ... error handling
+ * ```
  *
  * The wait sets must be allocated, initialized, and should have been
  * cleared and then filled with items, e.g. subscriptions and guard conditions.
