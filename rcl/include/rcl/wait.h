@@ -406,7 +406,6 @@ rcl_wait_set_add_service(
  * If the timeout is greater than 0 then this function will return after
  * that period of time has elapsed or the wait set becomes ready, which ever
  * comes first.
- * Passing a timeout struct with uninitialized memory is undefined behavior.
  *
  * This function is thread-safe for unique wait sets with unique contents.
  * This function cannot operate on the same wait set in multiple threads, and
@@ -427,6 +426,74 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
+
+/// Block until multiple wait sets are ready or until the timeout has been exceeded.
+/**
+ * This function has similar behavior as rcl_wait(), but acts on multiple wait sets.
+ *
+ * This function will collect the items from the array of rcl_wait_set_t's and pass them
+ * to the underlying rmw_wait function.
+ *
+ * The items in the wait sets will be either left untouched or set to `NULL` after
+ * this function returns.
+ * Items that are not `NULL` are ready, where ready means different things based
+ * on the type of the item.
+ * For subscriptions this means there are messages that can be taken.
+ * For guard conditions this means the guard condition was triggered.
+ *
+ * Expected usage:
+ *
+ * TODO(jacobperron): Usage example
+ *
+ * The wait sets must be allocated, initialized, and should have been
+ * cleared and then filled with items, e.g. subscriptions and guard conditions.
+ * If there are no wait-able items in all wait sets passed, this function will fail.
+ * `NULL` items in the sets are ignored, e.g. it is valid to have as input:
+ *  - `subscriptions[0]` = valid pointer
+ *  - `subscriptions[1]` = `NULL`
+ *  - `subscriptions[2]` = valid pointer
+ *  - `size_of_subscriptions` = 3
+ * Passing an uninitialized (zero initialized) wait set struct will fail.
+ * Passing a wait set struct with uninitialized memory is undefined behavior.
+ *
+ * The unit of timeout is nanoseconds.
+ * If the timeout is negative then this function will block indefinitely until
+ * something in the wait set is valid or it is interrupted.
+ * If the timeout is 0 then this function will be non-blocking; checking what's
+ * ready now, but not waiting if nothing is ready yet.
+ * If the timeout is greater than 0 then this function will return after
+ * that period of time has elapsed or the wait set becomes ready, which ever
+ * comes first.
+ *
+ * This function is thread-safe for unique wait sets with unique contents.
+ * This function cannot operate on the same wait set in multiple threads, and
+ * the wait sets may not share content.
+ * For example, calling rcl_wait_multiple() in two threads on two different wait sets
+ * that both contain a single, shared guard condition is undefined behavior.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] wait_sets pointer to an array of wait sets to be waited on and to be pruned
+ *   if not ready
+ * \param[in] num_wait_sets the number of wait sets in the input array
+ * \param[in] timeout the duration to wait for the wait set to be ready, in nanoseconds
+ * \return `RCL_RET_OK` if cleared successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_WAIT_SET_INVALID` if any wait sets are zero initialized, or
+ * \return `RCL_RET_WAIT_SET_EMPTY` if all wait sets are empty, or
+ * \return `RCL_RET_TIMEOUT` if the timeout expired before something was ready, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64_t timeout);
 
 #ifdef __cplusplus
 }

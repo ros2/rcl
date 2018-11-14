@@ -614,6 +614,154 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_wait_multiple(rcl_wait_set_t ** wait_sets, const size_t num_wait_sets, int64_t timeout)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_sets, RCL_RET_INVALID_ARGUMENT);
+  size_t i;
+  size_t j;
+  rcl_wait_set_t * wait_set;
+  // Count number of entities in wait sets while checking for invalid wait sets
+  size_t number_of_subscriptions = 0u;
+  size_t number_of_guard_conditions = 0u;
+  size_t number_of_timers = 0u;
+  size_t number_of_clients = 0u;
+  size_t number_of_services = 0u;
+  for (i = 0u; i < num_wait_sets; ++i) {
+    wait_set = wait_sets[i];
+    if (!__wait_set_is_valid(wait_set)) {
+      RCL_SET_ERROR_MSG("wait set is invalid");
+      return RCL_RET_WAIT_SET_INVALID;
+    }
+    number_of_subscriptions += wait_set->size_of_subscriptions;
+    number_of_guard_conditions += wait_set->size_of_guard_conditions;
+    number_of_timers += wait_set->size_of_timers;
+    number_of_clients += wait_set->size_of_clients;
+    number_of_services += wait_set->size_of_services;
+  }
+  if (
+    number_of_subscriptions == 0u &&
+    number_of_guard_conditions == 0u &&
+    number_of_timers == 0u &&
+    number_of_clients == 0u &&
+    number_of_services == 0u)
+  {
+    RCL_SET_ERROR_MSG("wait set is empty");
+    return RCL_RET_WAIT_SET_EMPTY;
+  }
+
+  // Create a single wait set where all wait set entities can be collated
+  rcl_wait_set_t collated_wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(
+    &collated_wait_set,
+    number_of_subscriptions,
+    number_of_guard_conditions,
+    number_of_timers,
+    number_of_clients,
+    number_of_services,
+    wait_sets[0]->impl->allocator);
+  if (RCL_RET_OK != ret) {
+    if (RCL_RET_BAD_ALLOC == ret) {
+      return RCL_RET_BAD_ALLOC;  // error already set
+    }
+    return RCL_RET_ERROR;  // error already set
+  }
+
+  // Collate all wait sets into a single wait set
+  for (i = 0u; i < num_wait_sets; ++i) {
+    wait_set = wait_sets[i];
+    for (j = 0u; j < wait_set->size_of_timers; ++j) {
+      const size_t current_index = collated_wait_set.impl->timer_index++;
+      collated_wait_set.timers[current_index] = wait_set->timers[j];
+      rcl_guard_condition_t * guard_condition = rcl_timer_get_guard_condition(wait_set->timers[j]);
+      if (NULL != guard_condition) {
+        // rcl_wait() will take care of moving these backwards and setting guard_condition_count.
+        const size_t index = wait_set->size_of_guard_conditions + (wait_set->impl->timer_index - 1);
+        rmw_guard_condition_t * rmw_handle = rcl_guard_condition_get_rmw_handle(guard_condition);
+        collated_wait_set.impl->rmw_guard_conditions.guard_conditions[index] = rmw_handle->data;
+      }
+    }
+    for (j = 0u; j < wait_set->size_of_subscriptions; ++j) {
+      const size_t current_index = collated_wait_set.impl->subscription_index++;
+      collated_wait_set.subscriptions[current_index] = wait_set->subscriptions[j];
+      rmw_subscription_t * rmw_handle = rcl_subscription_get_rmw_handle(wait_set->subscriptions[j]);
+      collated_wait_set.impl->rmw_subscriptions.subscribers[current_index] = rmw_handle->data;
+    }
+    for (j = 0u; j < wait_set->size_of_guard_conditions; ++j) {
+      const size_t current_index = collated_wait_set.impl->guard_condition_index++;
+      collated_wait_set.guard_conditions[current_index] = wait_set->guard_conditions[j];
+      rmw_guard_condition_t * rmw_handle = rcl_guard_condition_get_rmw_handle(
+        wait_set->guard_conditions[j]);
+      collated_wait_set.impl->rmw_guard_conditions.guard_conditions[current_index] =
+        rmw_handle->data;
+    }
+    for (j = 0u; j < wait_set->size_of_clients; ++j) {
+      const size_t current_index = collated_wait_set.impl->client_index++;
+      collated_wait_set.clients[current_index] = wait_set->clients[j];
+      rmw_client_t * rmw_handle = rcl_client_get_rmw_handle(wait_set->clients[j]);
+      collated_wait_set.impl->rmw_clients.clients[current_index] = rmw_handle->data;
+    }
+    for (j = 0u; j < wait_set->size_of_services; ++j) {
+      const size_t current_index = collated_wait_set.impl->service_index++;
+      collated_wait_set.services[current_index] = wait_set->services[j];
+      rmw_service_t * rmw_handle = rcl_service_get_rmw_handle(wait_set->services[j]);
+      collated_wait_set.impl->rmw_services.services[current_index] = rmw_handle->data;
+    }
+  }
+  collated_wait_set.impl->rmw_subscriptions.subscriber_count = number_of_subscriptions;
+  collated_wait_set.impl->rmw_guard_conditions.guard_condition_count = number_of_guard_conditions;
+  collated_wait_set.impl->rmw_clients.client_count = number_of_clients;
+  collated_wait_set.impl->rmw_services.service_count = number_of_services;
+
+  // Wait on the collated wait set
+  ret = rcl_wait(&collated_wait_set, timeout);
+  if (RCL_RET_OK != ret && RCL_RET_TIMEOUT != ret) {
+    // Finalize collated wait set
+    ret = rcl_wait_set_fini(&collated_wait_set);
+    (void)ret;
+    return RCL_RET_ERROR;  // error already set
+  }
+
+  // Update individual wait sets
+  size_t collated_subscription_index = 0u;
+  size_t collated_guard_condition_index = 0u;
+  size_t collated_timer_index = 0u;
+  size_t collated_client_index = 0u;
+  size_t collated_service_index = 0u;
+  for (i = 0u; i < num_wait_sets; ++i) {
+    wait_set = wait_sets[i];
+    for (j = 0u; j < wait_set->size_of_timers; ++j) {
+      wait_set->timers[j] = collated_wait_set.timers[collated_timer_index + j];
+    }
+    collated_timer_index += wait_set->size_of_timers;
+    for (j = 0u; j < wait_set->size_of_subscriptions; ++j) {
+      wait_set->subscriptions[j] = collated_wait_set.subscriptions[collated_subscription_index + j];
+    }
+    collated_subscription_index += wait_set->size_of_subscriptions;
+    for (j = 0u; j < wait_set->size_of_guard_conditions; ++j) {
+      wait_set->guard_conditions[j] =
+        collated_wait_set.guard_conditions[collated_guard_condition_index + j];
+    }
+    collated_guard_condition_index += wait_set->size_of_guard_conditions;
+    for (j = 0u; j < wait_set->size_of_clients; ++j) {
+      wait_set->clients[j] = collated_wait_set.clients[collated_client_index + j];
+    }
+    collated_client_index += wait_set->size_of_clients;
+    for (j = 0u; j < wait_set->size_of_services; ++j) {
+      wait_set->services[j] = collated_wait_set.services[collated_service_index + j];
+    }
+    collated_service_index += wait_set->size_of_services;
+  }
+
+  // Finalize collated wait set
+  ret = rcl_wait_set_fini(&collated_wait_set);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;  // error already set
+  }
+
+  return RCL_RET_OK;
+}
+
 #ifdef __cplusplus
 }
 #endif
