@@ -629,3 +629,62 @@ TEST_F(
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
   EXPECT_LE(diff, TOLERANCE);
 }
+
+// Check that multiple wait sets are updated properly with timers
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_multiple_timers) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  const size_t kNumWaitSets = 3u;
+  rcl_wait_set_t wait_sets[kNumWaitSets];
+  rcl_guard_condition_t guard_conds[kNumWaitSets];
+  rcl_timer_t timers[kNumWaitSets];
+  for (size_t i = 0u; i < kNumWaitSets; ++i) {
+    wait_sets[i] = rcl_get_zero_initialized_wait_set();
+    ret = rcl_wait_set_init(&wait_sets[i], 0, 1, 1, 0, 0, rcl_get_default_allocator());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    // Add a dummy guard condition to avoid an error
+    guard_conds[i] = rcl_get_zero_initialized_guard_condition();
+    ret = rcl_guard_condition_init(&guard_conds[i], rcl_guard_condition_get_default_options());
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_sets[i], &guard_conds[i]);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    timers[i] = rcl_get_zero_initialized_timer();
+    // Offset timers across wait sets by 20ms each
+    ret = rcl_timer_init(
+      &timers[i], &clock, RCL_MS_TO_NS(20 + (i * 20)), nullptr, rcl_get_default_allocator());
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_timer(&wait_sets[i], &timers[i]);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    for (size_t i = 0u; i < kNumWaitSets; ++i) {
+      ret = rcl_guard_condition_fini(&guard_conds[i]);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      ret = rcl_wait_set_fini(&wait_sets[i]);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      ret = rcl_timer_fini(&timers[i]);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
+  });
+
+  int64_t timeout = -1;
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+  ret = rcl_wait_multiple(wait_sets, kNumWaitSets, timeout);
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  // Expect the first timer to be ready
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_NE(nullptr, wait_sets[0].timers[0]);
+  // Check time
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_LE(diff, RCL_MS_TO_NS(20) + TOLERANCE);
+  // All other timers should not be ready
+  for (size_t i = 1u; i < kNumWaitSets; ++i) {
+    EXPECT_EQ(nullptr, wait_sets[i].timers[0]);
+  }
+}
