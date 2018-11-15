@@ -66,7 +66,7 @@ RCL_WARN_UNUSED
 rcl_action_server_t
 rcl_action_get_zero_initialized_server(void);
 
-/// Initialize a rcl_action_server_t.
+/// Initialize an action server.
 /**
  * After calling this function on a rcl_action_server_t, it can be used to take
  * goals of the given type for the given action name using rcl_action_take_goal_request()
@@ -150,9 +150,9 @@ rcl_action_get_zero_initialized_server(void);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[out] action_server a preallocated, zero-initialized action server structure
+ * \param[out] action_server handle to a preallocated, zero-initialized action server structure
  *   to be initialized.
- * \param[in] node valid rcl node handle
+ * \param[in] node valid node handle
  * \param[in] type_support type support object for the action's type
  * \param[in] action_name the name of the action
  * \param[in] options action_server options, including quality of service settings
@@ -173,9 +173,9 @@ rcl_action_server_init(
   const char * action_name,
   const rcl_action_server_options_t * options);
 
-/// Finalize a rcl_action_server_t.
+/// Finalize an action server.
 /**
- * After calling, the node will no longer listen for goals for this action server.
+ * After calling, the node will no longer listen to services and topics for this action server.
  * (assuming this is the only action server of this type in this node).
  *
  * After calling, calls to rcl_wait(), rcl_action_take_goal_request(),
@@ -223,7 +223,7 @@ RCL_WARN_UNUSED
 rcl_action_server_options_t
 rcl_action_server_get_default_options(void);
 
-/// Take a pending ROS goal using a rcl_action_server_t.
+/// Take a pending ROS goal using an action server.
 /**
  * \todo TODO(jacobperron) blocking of take?
  *
@@ -253,7 +253,7 @@ rcl_action_server_get_default_options(void);
  * Lock-Free          | Yes
  * <i>[1] only if required when filling the request, avoided for fixed sizes</i>
  *
- * \param[in] action_server the action server that will take the request
+ * \param[in] action_server handle to the action server that will take the request
  * \param[out] ros_goal_request a preallocated, zero-initialized, ROS goal request message
  *   where the request is copied
  * \return `RCL_RET_OK` if the request was taken, or
@@ -271,7 +271,7 @@ rcl_action_take_goal_request(
   const rcl_action_server_t * action_server,
   void * ros_goal_request);
 
-/// Send a response for a goal request to an action client using a rcl_action_server_t.
+/// Send a response for a goal request to an action client using an action server.
 /**
  * This is a non-blocking call.
  *
@@ -317,16 +317,24 @@ rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
   void * ros_goal_response);
 
-/// Accept a new goal using a rcl_action_server_t.
+/// Accept a new goal using an action server.
 /**
  * This is a non-blocking call.
  *
- * Creates and returns a pointer to a goal handle for a newly accepted goal.
+ * Creates and returns a new goal handle.
+ * The action server starts tracking it internally.
  * If a failure occurs, `NULL` is returned and an error message is set.
+ * Possible reasons for failure:
+ *   - action server is invalid
+ *   - goal info is invalid
+ *   - goal ID is already being tracked by the action server
+ *   - memory allocation failure
  *
  * This function should be called after receiving a new goal request with
  * rcl_action_take_goal_request() and before sending a response with
  * rcl_action_send_goal_response().
+ *
+ * After calling this function, the action server will start tracking the goal.
  *
  * Example usage:
  *
@@ -358,7 +366,7 @@ rcl_action_send_goal_response(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_server the action server that is accepting the goal
+ * \param[in] action_server handle to the action server that is accepting the goal
  * \param[in] goal_info a message containing info about the goal being accepted
  * \return a pointer to a new goal handle representing the accepted goal, or
  * \return `NULL` if a failure occured.
@@ -370,7 +378,7 @@ rcl_action_accept_new_goal(
   rcl_action_server_t * action_server,
   const rcl_action_goal_info_t * goal_info);
 
-/// Publish a ROS feedback message for an active goal using a rcl_action_server_t.
+/// Publish a ROS feedback message for an active goal using an action server.
 /**
  * The caller is responsible for ensuring that the type of `ros_feedback`
  * and the type associate with the client (via the type support) match.
@@ -418,7 +426,7 @@ rcl_action_publish_feedback(
   const rcl_action_server_t * action_server,
   void * ros_feedback);
 
-/// Get a status array message for accepted goals associated with a rcl_action_server_t.
+/// Get a status array message for accepted goals associated with an action server.
 /**
  * The provided `status_message` should be zero-initialized with
  * rcl_action_get_zero_initialized_goal_status_array() before calling this function.
@@ -445,7 +453,7 @@ rcl_action_get_goal_status_array(
   const rcl_action_server_t * action_server,
   rcl_action_goal_status_array_t * status_message);
 
-/// Publish a status array message for accepted goals associated with a rcl_action_server_t.
+/// Publish a status array message for accepted goals associated with an action server.
 /**
  * This function acts like a ROS publisher and is potentially a blocking call.
  * \see rcl_publish()
@@ -475,7 +483,7 @@ rcl_action_publish_status(
   const rcl_action_server_t * action_server,
   const void * status_message);
 
-/// Take a pending result request using a rcl_action_server_t.
+/// Take a pending result request using an action server.
 /**
  * \todo TODO(jacobperron) blocking of take?
  *
@@ -513,7 +521,7 @@ rcl_action_take_result_request(
   const rcl_action_server_t * action_server,
   void * ros_result_request);
 
-/// Send a result response using a rcl_action_server_t.
+/// Send a result response using an action server.
 /**
  * This is a non-blocking call.
  *
@@ -547,7 +555,7 @@ rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
   void * ros_result_response);
 
-/// Clear all expired goals associated with a rcl_action_server_t.
+/// Clear all expired goals associated with an action server.
 /**
  * A goal is 'expired' if it has been in a terminal state (has a result) for more
  * than some duration.
@@ -581,7 +589,7 @@ rcl_action_clear_expired_goals(
   const rcl_action_server_t * action_server,
   size_t * num_expired);
 
-/// Take a pending cancel request using a rcl_action_server_t.
+/// Take a pending cancel request using an action server.
 /**
  * \todo TODO(jacobperron) blocking of take?
  *
@@ -622,7 +630,7 @@ rcl_action_take_cancel_request(
   const rcl_action_server_t * action_server,
   void * ros_cancel_request);
 
-/// Process a cancel request using a rcl_action_server_t.
+/// Process a cancel request using an action server.
 /**
  * This is a non-blocking call.
  *
@@ -666,7 +674,7 @@ rcl_action_process_cancel_request(
   const rcl_action_cancel_request_t * cancel_request,
   rcl_action_cancel_response_t * cancel_response);
 
-/// Send a cancel response using a rcl action server.
+/// Send a cancel response using an action server.
 /**
  * This is a non-blocking call.
  *
@@ -678,7 +686,7 @@ rcl_action_process_cancel_request(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_server the handle to the action server that will send the cancel response
+ * \param[in] action_server handle to the action server that will send the cancel response
  * \param[in] ros_cancel_response a ROS cancel response to send
  * \return `RCL_RET_OK` if the request was taken, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -692,12 +700,12 @@ rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
   void * ros_cancel_response);
 
-/// Get the name of the action for a rcl_action_server_t.
+/// Get the action name for an action server.
 /**
  * This function returns the action server's internal topic name string.
  * This function can fail, and therefore return `NULL`, if the:
  *   - action server is `NULL`
- *   - action server is invalid (never called init, called fini, or invalid)
+ *   - action server is invalid (e.g. never called init or called fini)
  *
  * The returned string is only valid as long as the action server is valid.
  * The value of the string may change if the topic name changes, and therefore
@@ -711,20 +719,21 @@ rcl_action_send_cancel_response(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_server the pointer to the action server
- * \return name string if successful, otherwise `NULL`
+ * \param[in] action_server pointer to the action server
+ * \return name string if successful, or
+ * \return `NULL` otherwise.
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 const char *
 rcl_action_server_get_action_name(const rcl_action_server_t * action_server);
 
-/// Return the rcl_action_server_options_t for a rcl_action_server_t.
+/// Return the rcl_action_server_options_t for an action server.
 /**
  * This function returns the action server's internal options struct.
  * This function can fail, and therefore return `NULL`, if the:
  *   - action server is `NULL`
- *   - action server is invalid (never called init, called fini, or invalid)
+ *   - action server is invalid (e.g. never called init or called fini)
  *
  * The returned struct is only valid as long as the action server is valid.
  * The values in the struct may change if the action server's options change,
@@ -738,15 +747,16 @@ rcl_action_server_get_action_name(const rcl_action_server_t * action_server);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_server pointer to the action server
- * \return options struct if successful, otherwise `NULL`
+ * \param[in] action_server handle to the action server
+ * \return options struct if successful, or
+ * \return `NULL` otherwise.
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 const rcl_action_server_options_t *
 rcl_action_server_get_options(const rcl_action_server_t * action_server);
 
-/// Get the goal handles for all active or terminated goals.
+/// Get the goal handles for all goals an action server is tracking.
 /**
  * A pointer to the internally held array of pointers to goal handle structs is returned
  * along with the number of items in the array.
@@ -769,13 +779,14 @@ rcl_action_server_get_options(const rcl_action_server_t * action_server);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_server pointer to the rcl action server
+ * \param[in] action_server handle to the action server
  * \param[out] goal_handles is set to the array of pointers to goal handles if successful.
  * \param[out] num_goals is set to the number of goals in the returned array if successful,
  *   not set otherwise.
- * \return RCL_RET_OK if successful, or
- * \return RCL_RET_ACTION_SERVER_INVALID if the action server is invalid, or
- * \return RCL_RET_INVALID_ARGUMENT if any arguments are invalid
+ * \return `RCL_RET_OK` if successful, or
+ * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
@@ -785,9 +796,23 @@ rcl_action_server_get_goal_handles(
   rcl_action_goal_handle_t *** goal_handles,
   size_t * num_goals);
 
-/// Check if a goal is already being tracked by an action server
+/// Check if a goal is already being tracked by an action server.
 /**
- * TODO(jacobperron): Document
+ * Checks whether or not a goal is being tracked in the internal goal array.
+ * The goal state has no effect on the return value.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] action_server handle to the action server
+ * \param[in] goal_info handle to a struct containing the goal ID to check for
+ * \return `true` if `action_server` is currently tracking a goal with the provided goal ID, or
+ * \return `false` otherwise.
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
@@ -796,12 +821,11 @@ rcl_action_server_goal_exists(
   const rcl_action_server_t * action_server,
   const rcl_action_goal_info_t * goal_info);
 
-/// Check that the action server is valid.
+/// Check if an action server is valid.
 /**
- * The bool returned is `false` if `action_server` is invalid.
- * The bool returned is `true` otherwise.
- * In the case where `false` is to be returned, an
- * error message is set.
+ * In the case where `false` is returned (ie. the action server is invalid),
+ * an error message is set.
+ *
  * This function cannot fail.
  *
  * <hr>
@@ -812,8 +836,9 @@ rcl_action_server_goal_exists(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_server pointer to the rcl action server
- * \return `true` if `action_server` is valid, otherwise `false`
+ * \param[in] action_server handle to the action server
+ * \return `true` if `action_server` is valid, or
+ * \return `false` otherwise.
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
