@@ -159,7 +159,8 @@ rcl_action_server_init(
   // Initialize clock
   rcl_ret_t ret = rcl_clock_init(options->clock_type, &action_server->impl->clock, &allocator);
   if (RCL_RET_OK != ret) {
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
+    goto fail;
   }
 
   // Initialize services
@@ -228,8 +229,12 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
     if (rcl_publisher_fini(&action_server->impl->status_publisher, node) != RCL_RET_OK) {
       ret = RCL_RET_ERROR;
     }
-    // Deallocate struct
+    // Deallocate action name
     rcl_allocator_t allocator = action_server->impl->options.allocator;
+    if (action_server->impl->action_name) {
+      allocator.deallocate(action_server->impl->action_name, allocator.state);
+    }
+    // Deallocate struct
     allocator.deallocate(action_server->impl, allocator.state);
     action_server->impl = NULL;
   }
@@ -248,7 +253,7 @@ rcl_action_server_get_default_options(void)
   default_options.status_topic_qos = rcl_action_qos_profile_status_default;
   default_options.allocator = rcl_get_default_allocator();
   default_options.clock_type = RCL_ROS_TIME;
-  default_options.result_timeout.nanoseconds = (rcl_duration_value_t)9e11;  // 15 minutes
+  default_options.result_timeout.nanoseconds = RCUTILS_S_TO_NS(15 * 60);  // 15 minutes
   return default_options;
 }
 
@@ -305,7 +310,7 @@ static int64_t
 _goal_info_stamp_to_nanosec(const rcl_action_goal_info_t * goal_info)
 {
   assert(goal_info);
-  return (int64_t)(goal_info->stamp.sec * 1e9) + (int64_t)goal_info->stamp.nanosec;
+  return RCUTILS_S_TO_NS(goal_info->stamp.sec) + (int64_t)goal_info->stamp.nanosec;
 }
 
 // Implementation only
@@ -314,8 +319,8 @@ _nanosec_to_goal_info_stamp(const int64_t * nanosec, rcl_action_goal_info_t * go
 {
   assert(nanosec);
   assert(goal_info);
-  goal_info->stamp.sec = (int32_t) (*nanosec / (int64_t)1e9);
-  goal_info->stamp.nanosec = (uint32_t)(*nanosec - (int64_t)(goal_info->stamp.sec * 1e9));
+  goal_info->stamp.sec = (int32_t)RCUTILS_NS_TO_S(*nanosec);
+  goal_info->stamp.nanosec = *nanosec % RCUTILS_S_TO_NS(1);
 }
 
 rcl_action_goal_handle_t *
@@ -430,15 +435,23 @@ rcl_action_get_goal_status_array(
     ret = rcl_action_goal_handle_get_info(
       action_server->impl->goal_handles[i], &status_message->msg.status_list.data[i].goal_info);
     if (RCL_RET_OK != ret) {
-      return RCL_RET_ERROR;
+      ret = RCL_RET_ERROR;
+      goto fail;
     }
     ret = rcl_action_goal_handle_get_status(
       action_server->impl->goal_handles[i], &status_message->msg.status_list.data[i].status);
     if (RCL_RET_OK != ret) {
-      return RCL_RET_ERROR;
+      ret = RCL_RET_ERROR;
+      goto fail;
     }
   }
   return RCL_RET_OK;
+fail:
+  {
+    rcl_ret_t ret_throwaway = rcl_action_goal_status_array_fini(status_message);
+    (void)ret_throwaway;
+    return ret;
+  }
 }
 
 rcl_ret_t
@@ -527,14 +540,18 @@ rcl_action_clear_expired_goals(
 
   // Shrink goal handle array if some goals expired
   if (*num_expired > 0u) {
-    void * tmp_ptr = allocator.reallocate(
-      action_server->impl->goal_handles, num_goal_handles, allocator.state);
-    if (!tmp_ptr) {
-      RCL_SET_ERROR_MSG("failed to shrink size of goal handle array");
-      ret_final = RCL_RET_ERROR;
+    if (0 == num_goal_handles) {
+      allocator.deallocate(action_server->impl->goal_handles, allocator.state);
     } else {
-      action_server->impl->goal_handles = (rcl_action_goal_handle_t **)tmp_ptr;
-      action_server->impl->num_goal_handles = num_goal_handles;
+      void * tmp_ptr = allocator.reallocate(
+        action_server->impl->goal_handles, num_goal_handles, allocator.state);
+      if (!tmp_ptr) {
+        RCL_SET_ERROR_MSG("failed to shrink size of goal handle array");
+        ret_final = RCL_RET_ERROR;
+      } else {
+        action_server->impl->goal_handles = (rcl_action_goal_handle_t **)tmp_ptr;
+        action_server->impl->num_goal_handles = num_goal_handles;
+      }
     }
   }
   return ret_final;
