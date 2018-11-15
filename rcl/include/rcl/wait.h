@@ -470,7 +470,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
  *   // ... error handling
  *   ret = rcl_wait_set_add_guard_condition(&wait_sets[1], &gc1);
  *   // ... error handling
- *   ret = rcl_wait_multiple(wait_sets, RCL_MS_TO_NS(1000));  // 1000ms == 1s, passed as ns
+ *   ret = rcl_wait_multiple(wait_sets, 2, RCL_MS_TO_NS(1000));  // 1000ms == 1s, passed as ns
  *   if (ret == RCL_RET_TIMEOUT) {
  *     continue;
  *   }
