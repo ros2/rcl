@@ -20,10 +20,6 @@ extern "C"
 {
 #endif
 
-// TODO(jacobperron): replace type support typedef with one defined in rosdl_generator_c
-// #include "rosidl_generator_c/action_type_support_struct.h"
-typedef struct rosidl_action_type_support_t rosidl_action_type_support_t;
-
 #include "rcl_action/types.h"
 #include "rcl_action/visibility_control.h"
 #include "rcl/macros.h"
@@ -167,6 +163,7 @@ rcl_action_get_zero_initialized_client(void);
  * \return `RCL_RET_OK` if action_client was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_ALREADY_INIT` if the action client is already initialized, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ACTION_NAME_INVALID` if the given action name is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -176,7 +173,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_client_init(
   rcl_action_client_t * action_client,
-  const rcl_node_t * node,
+  rcl_node_t * node,
   const rosidl_action_type_support_t * type_support,
   const char * action_name,
   const rcl_action_client_options_t * options);
@@ -355,9 +352,7 @@ rcl_action_take_goal_response(
  * Lock-Free          | Yes
  * <i>[1] only if required when filling the feedback message, avoided for fixed sizes</i>
  *
- * \param[in] action_client handle to the client that will take the goal response
- * \param[out] goal_info pointer to a struct for meta-data about the goal associated
- *   with taken feedback
+ * \param[in] action_client handle to the client that will take action feedback
  * \param[out] ros_feedback pointer to the ROS feedback message.
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -661,7 +656,7 @@ RCL_WARN_UNUSED
 const rcl_action_client_options_t *
 rcl_action_client_get_options(const rcl_action_client_t * action_client);
 
-/// Check that a rcl_action_clieint_t is valid.
+/// Check that a rcl_action_client_t is valid.
 /**
  * The bool returned is `false` if `action_client` is invalid.
  * The bool returned is `true` otherwise.
@@ -677,14 +672,12 @@ rcl_action_client_get_options(const rcl_action_client_t * action_client);
  * Lock-Free          | Yes
  *
  * \param[in] action_client pointer to the rcl action client
- * \param[in] error_msg_allocator a valid allocator or `NULL`
  * \return `true` if `action_client` is valid, otherwise `false`
  */
 RCL_ACTION_PUBLIC
 bool
 rcl_action_client_is_valid(
-  const rcl_action_client_t * action_client,
-  rcl_allocator_t * error_msg_allocator);
+  const rcl_action_client_t * action_client);
 
 #ifdef __cplusplus
 }

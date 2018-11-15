@@ -27,13 +27,13 @@ extern "C"
 
 /// Add a rcl_action_client_t to a wait set.
 /**
- * This function will add the underlying service clients and subscriber to the wait set.
+ * This function will add the underlying service clients and subscribers to the wait set.
  *
  * This function behaves similar to adding subscriptions to the wait set, but will add
- * four elements:
+ * five elements:
  *
  * - Three service clients
- * - One subscriber
+ * - Two subscribers
  *
  * \see rcl_wait_set_add_subscription
  *
@@ -199,6 +199,8 @@ rcl_action_server_wait_set_get_num_entities(
  * \param[out] is_result_response_ready `true` if there is a result response message ready
  *   to take, `false` otherwise
  * \return `RCL_RET_OK` if call is successful, or
+ * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is zero initialized or not used
+ *   for the action client alone, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
