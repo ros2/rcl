@@ -429,10 +429,11 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
 
 /// Block until multiple wait sets are ready or until the timeout has been exceeded.
 /**
- * This function has similar behavior as rcl_wait(), but acts on multiple wait sets.
+ * This function has similar behavior to rcl_wait(), but acts on multiple wait sets.
  *
  * This function will collect the items from the array of rcl_wait_set_t's and pass them
  * to the underlying rmw_wait function.
+ * The size of the input array must be greater than zero.
  *
  * The items in the wait sets will be either left untouched or set to `NULL` after
  * this function returns.

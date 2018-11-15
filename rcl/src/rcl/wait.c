@@ -476,41 +476,38 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   int64_t min_timeout = timeout > 0 ? timeout : INT64_MAX;
   // calculate the number of valid (non-NULL and non-canceled) timers
   size_t number_of_valid_timers = wait_set->size_of_timers;
-  {  // scope to prevent i from colliding below
-    uint64_t i = 0;
-    for (i = 0; i < wait_set->impl->timer_index; ++i) {
-      if (!wait_set->timers[i]) {
-        number_of_valid_timers--;
-        continue;  // Skip NULL timers.
-      }
-      bool is_canceled = false;
-      rcl_ret_t ret = rcl_timer_is_canceled(wait_set->timers[i], &is_canceled);
+  for (uint64_t i = 0; i < wait_set->impl->timer_index; ++i) {
+    if (!wait_set->timers[i]) {
+      number_of_valid_timers--;
+      continue;  // Skip NULL timers.
+    }
+    bool is_canceled = false;
+    rcl_ret_t ret = rcl_timer_is_canceled(wait_set->timers[i], &is_canceled);
+    if (ret != RCL_RET_OK) {
+      return ret;  // The rcl error state should already be set.
+    }
+    if (is_canceled) {
+      number_of_valid_timers--;
+      wait_set->timers[i] = NULL;
+      continue;
+    }
+    rmw_guard_conditions_t * rmw_gcs = &(wait_set->impl->rmw_guard_conditions);
+    size_t gc_idx = wait_set->size_of_guard_conditions + i;
+    if (NULL != rmw_gcs->guard_conditions[gc_idx]) {
+      // This timer has a guard condition, so move it to make a legal wait set.
+      rmw_gcs->guard_conditions[rmw_gcs->guard_condition_count] =
+        rmw_gcs->guard_conditions[gc_idx];
+      ++(rmw_gcs->guard_condition_count);
+    } else {
+      // No guard condition, instead use to set the rmw_wait timeout
+      int64_t timer_timeout = INT64_MAX;
+      rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
       if (ret != RCL_RET_OK) {
         return ret;  // The rcl error state should already be set.
       }
-      if (is_canceled) {
-        number_of_valid_timers--;
-        wait_set->timers[i] = NULL;
-        continue;
-      }
-      rmw_guard_conditions_t * rmw_gcs = &(wait_set->impl->rmw_guard_conditions);
-      size_t gc_idx = wait_set->size_of_guard_conditions + i;
-      if (NULL != rmw_gcs->guard_conditions[gc_idx]) {
-        // This timer has a guard condition, so move it to make a legal wait set.
-        rmw_gcs->guard_conditions[rmw_gcs->guard_condition_count] =
-          rmw_gcs->guard_conditions[gc_idx];
-        ++(rmw_gcs->guard_condition_count);
-      } else {
-        // No guard condition, instead use to set the rmw_wait timeout
-        int64_t timer_timeout = INT64_MAX;
-        rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
-        if (ret != RCL_RET_OK) {
-          return ret;  // The rcl error state should already be set.
-        }
-        if (timer_timeout < min_timeout) {
-          is_timer_timeout = true;
-          min_timeout = timer_timeout;
-        }
+      if (timer_timeout < min_timeout) {
+        is_timer_timeout = true;
+        min_timeout = timer_timeout;
       }
     }
   }
@@ -553,8 +550,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
 
   // Check for ready timers
   // and set not ready timers (which includes canceled timers) to NULL.
-  size_t i;
-  for (i = 0; i < wait_set->impl->timer_index; ++i) {
+  for (size_t i = 0; i < wait_set->impl->timer_index; ++i) {
     if (!wait_set->timers[i]) {
       continue;
     }
@@ -574,7 +570,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     return RCL_RET_ERROR;
   }
   // Set corresponding rcl subscription handles NULL.
-  for (i = 0; i < wait_set->size_of_subscriptions; ++i) {
+  for (size_t i = 0; i < wait_set->size_of_subscriptions; ++i) {
     bool is_ready = wait_set->impl->rmw_subscriptions.subscribers[i] != NULL;
     RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
       is_ready, ROS_PACKAGE_NAME, "Subscription in wait set is ready");
@@ -583,7 +579,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     }
   }
   // Set corresponding rcl guard_condition handles NULL.
-  for (i = 0; i < wait_set->size_of_guard_conditions; ++i) {
+  for (size_t i = 0; i < wait_set->size_of_guard_conditions; ++i) {
     bool is_ready = wait_set->impl->rmw_guard_conditions.guard_conditions[i] != NULL;
     RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
       is_ready, ROS_PACKAGE_NAME, "Guard condition in wait set is ready");
@@ -592,7 +588,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     }
   }
   // Set corresponding rcl client handles NULL.
-  for (i = 0; i < wait_set->size_of_clients; ++i) {
+  for (size_t i = 0; i < wait_set->size_of_clients; ++i) {
     bool is_ready = wait_set->impl->rmw_clients.clients[i] != NULL;
     RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Client in wait set is ready");
     if (!is_ready) {
@@ -600,7 +596,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     }
   }
   // Set corresponding rcl service handles NULL.
-  for (i = 0; i < wait_set->size_of_services; ++i) {
+  for (size_t i = 0; i < wait_set->size_of_services; ++i) {
     bool is_ready = wait_set->impl->rmw_services.services[i] != NULL;
     RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Service in wait set is ready");
     if (!is_ready) {
@@ -618,17 +614,19 @@ rcl_ret_t
 rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_t timeout)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_sets, RCL_RET_INVALID_ARGUMENT);
-  size_t i;
-  size_t j;
-  rcl_wait_set_t * wait_set;
+  if (0u == num_wait_sets) {
+    RCL_SET_ERROR_MSG("number of wait sets must be greater than zero");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
   // Count number of entities in wait sets while checking for invalid wait sets
   size_t number_of_subscriptions = 0u;
   size_t number_of_guard_conditions = 0u;
   size_t number_of_timers = 0u;
   size_t number_of_clients = 0u;
   size_t number_of_services = 0u;
-  for (i = 0u; i < num_wait_sets; ++i) {
-    wait_set = &wait_sets[i];
+  for (size_t i = 0u; i < num_wait_sets; ++i) {
+    rcl_wait_set_t * wait_set = &wait_sets[i];
     if (!__wait_set_is_valid(wait_set)) {
       RCL_SET_ERROR_MSG("wait set is invalid");
       return RCL_RET_WAIT_SET_INVALID;
@@ -646,7 +644,7 @@ rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_
     number_of_clients == 0u &&
     number_of_services == 0u)
   {
-    RCL_SET_ERROR_MSG("wait set is empty");
+    RCL_SET_ERROR_MSG("wait sets are empty");
     return RCL_RET_WAIT_SET_EMPTY;
   }
 
@@ -668,26 +666,27 @@ rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_
   }
 
   // Collate all wait sets into a single wait set
-  for (i = 0u; i < num_wait_sets; ++i) {
-    wait_set = &wait_sets[i];
-    for (j = 0u; j < wait_set->size_of_timers; ++j) {
+  for (size_t i = 0u; i < num_wait_sets; ++i) {
+    rcl_wait_set_t * wait_set = &wait_sets[i];
+    for (size_t j = 0u; j < wait_set->size_of_timers; ++j) {
       const size_t current_index = collated_wait_set.impl->timer_index++;
       collated_wait_set.timers[current_index] = wait_set->timers[j];
       rcl_guard_condition_t * guard_condition = rcl_timer_get_guard_condition(wait_set->timers[j]);
       if (NULL != guard_condition) {
         // rcl_wait() will take care of moving these backwards and setting guard_condition_count.
-        const size_t index = wait_set->size_of_guard_conditions + (wait_set->impl->timer_index - 1);
+        const size_t offset_rmw_index = wait_set->size_of_guard_conditions + current_index;
         rmw_guard_condition_t * rmw_handle = rcl_guard_condition_get_rmw_handle(guard_condition);
-        collated_wait_set.impl->rmw_guard_conditions.guard_conditions[index] = rmw_handle->data;
+        collated_wait_set.impl->rmw_guard_conditions.guard_conditions[offset_rmw_index] =
+          rmw_handle->data;
       }
     }
-    for (j = 0u; j < wait_set->size_of_subscriptions; ++j) {
+    for (size_t j = 0u; j < wait_set->size_of_subscriptions; ++j) {
       const size_t current_index = collated_wait_set.impl->subscription_index++;
       collated_wait_set.subscriptions[current_index] = wait_set->subscriptions[j];
       rmw_subscription_t * rmw_handle = rcl_subscription_get_rmw_handle(wait_set->subscriptions[j]);
       collated_wait_set.impl->rmw_subscriptions.subscribers[current_index] = rmw_handle->data;
     }
-    for (j = 0u; j < wait_set->size_of_guard_conditions; ++j) {
+    for (size_t j = 0u; j < wait_set->size_of_guard_conditions; ++j) {
       const size_t current_index = collated_wait_set.impl->guard_condition_index++;
       collated_wait_set.guard_conditions[current_index] = wait_set->guard_conditions[j];
       rmw_guard_condition_t * rmw_handle = rcl_guard_condition_get_rmw_handle(
@@ -695,13 +694,13 @@ rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_
       collated_wait_set.impl->rmw_guard_conditions.guard_conditions[current_index] =
         rmw_handle->data;
     }
-    for (j = 0u; j < wait_set->size_of_clients; ++j) {
+    for (size_t j = 0u; j < wait_set->size_of_clients; ++j) {
       const size_t current_index = collated_wait_set.impl->client_index++;
       collated_wait_set.clients[current_index] = wait_set->clients[j];
       rmw_client_t * rmw_handle = rcl_client_get_rmw_handle(wait_set->clients[j]);
       collated_wait_set.impl->rmw_clients.clients[current_index] = rmw_handle->data;
     }
-    for (j = 0u; j < wait_set->size_of_services; ++j) {
+    for (size_t j = 0u; j < wait_set->size_of_services; ++j) {
       const size_t current_index = collated_wait_set.impl->service_index++;
       collated_wait_set.services[current_index] = wait_set->services[j];
       rmw_service_t * rmw_handle = rcl_service_get_rmw_handle(wait_set->services[j]);
@@ -728,26 +727,26 @@ rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_
   size_t collated_timer_index = 0u;
   size_t collated_client_index = 0u;
   size_t collated_service_index = 0u;
-  for (i = 0u; i < num_wait_sets; ++i) {
-    wait_set = &wait_sets[i];
-    for (j = 0u; j < wait_set->size_of_timers; ++j) {
+  for (size_t i = 0u; i < num_wait_sets; ++i) {
+    rcl_wait_set_t * wait_set = &wait_sets[i];
+    for (size_t j = 0u; j < wait_set->size_of_timers; ++j) {
       wait_set->timers[j] = collated_wait_set.timers[collated_timer_index + j];
     }
     collated_timer_index += wait_set->size_of_timers;
-    for (j = 0u; j < wait_set->size_of_subscriptions; ++j) {
+    for (size_t j = 0u; j < wait_set->size_of_subscriptions; ++j) {
       wait_set->subscriptions[j] = collated_wait_set.subscriptions[collated_subscription_index + j];
     }
     collated_subscription_index += wait_set->size_of_subscriptions;
-    for (j = 0u; j < wait_set->size_of_guard_conditions; ++j) {
+    for (size_t j = 0u; j < wait_set->size_of_guard_conditions; ++j) {
       wait_set->guard_conditions[j] =
         collated_wait_set.guard_conditions[collated_guard_condition_index + j];
     }
     collated_guard_condition_index += wait_set->size_of_guard_conditions;
-    for (j = 0u; j < wait_set->size_of_clients; ++j) {
+    for (size_t j = 0u; j < wait_set->size_of_clients; ++j) {
       wait_set->clients[j] = collated_wait_set.clients[collated_client_index + j];
     }
     collated_client_index += wait_set->size_of_clients;
-    for (j = 0u; j < wait_set->size_of_services; ++j) {
+    for (size_t j = 0u; j < wait_set->size_of_services; ++j) {
       wait_set->services[j] = collated_wait_set.services[collated_service_index + j];
     }
     collated_service_index += wait_set->size_of_services;
