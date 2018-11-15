@@ -436,6 +436,37 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   EXPECT_LE(std::abs(diff - trigger_diff.count()), TOLERANCE);
 }
 
+// Test invalid calls to rcl_wait_multiple
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), invalid_wait_multiple) {
+  const int64_t timeout = RCL_MS_TO_NS(10);  // nanoseconds
+  // Test with null array
+  rcl_ret_t ret = rcl_wait_multiple(nullptr, 2, timeout);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Test with invalid wait sets
+  rcl_wait_set_t wait_sets[2];
+  wait_sets[0] = rcl_get_zero_initialized_wait_set();
+  wait_sets[1] = rcl_get_zero_initialized_wait_set();
+  ret = rcl_wait_multiple(wait_sets, 2, timeout);
+  EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Test with one invalid wait set
+  ret = rcl_wait_set_init(&wait_sets[0], 0, 0, 1, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret);
+  ret = rcl_wait_multiple(wait_sets, 2, timeout);
+  EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Test with invalid size argument
+  ret = rcl_wait_set_init(&wait_sets[1], 0, 0, 1, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret);
+  ret = rcl_wait_multiple(wait_sets, 0, timeout);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
 // Test rcl_wait_multiple with a positive finite timeout value (1ms)
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout_multiple) {
   rcl_wait_set_t wait_sets[2];
@@ -459,4 +490,142 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout_multipl
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rcl_wait_set_fini(&wait_sets[1]);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
+// Check that a timer overrides a negative timeout value (blocking forever) with rcl_wait_multiple
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout_multiple) {
+  rcl_wait_set_t wait_sets[2];
+  wait_sets[0] = rcl_get_zero_initialized_wait_set();
+  wait_sets[1] = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_sets[0], 0, 1, 1, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_init(&wait_sets[1], 0, 0, 1, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Add a dummy guard condition to avoid an error
+  rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
+  ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_sets[0], &guard_cond);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init(&timer, &clock, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_timer(&wait_sets[0], &timer);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_fini(&wait_sets[0]);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_fini(&wait_sets[1]);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  int64_t timeout = -1;
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+  ret = rcl_wait_multiple(wait_sets, 2, timeout);
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  // We expect a timeout here (timer value reached)
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // Check time
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_LE(diff, RCL_MS_TO_NS(10) + TOLERANCE);
+}
+
+// Test rcl_wait_multiple with a timeout value of 0 (non-blocking)
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_mulitple) {
+  rcl_wait_set_t wait_sets[2];
+  wait_sets[0] = rcl_get_zero_initialized_wait_set();
+  wait_sets[1] = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_sets[0], 0, 0, 1, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_init(&wait_sets[1], 0, 1, 1, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Add a dummy guard condition to avoid an error
+  rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
+  ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_sets[1], &guard_cond);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_fini(&wait_sets[0]);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_fini(&wait_sets[1]);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // Time spent during wait should be negligible.
+  int64_t timeout = 0;
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+  ret = rcl_wait_multiple(wait_sets, 2, timeout);
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  // We expect a timeout here (timer value reached)
+  ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_LE(diff, TOLERANCE);
+}
+
+// Test rcl_wait_multiple with a timeout value of 0 (non-blocking) and already triggered
+// guard conditions
+TEST_F(
+  CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION),
+  zero_timeout_triggered_guard_condition_multiple)
+{
+  rcl_wait_set_t wait_sets[2];
+  wait_sets[0] = rcl_get_zero_initialized_wait_set();
+  wait_sets[1] = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_sets[0], 0, 1, 0, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_init(&wait_sets[1], 0, 1, 0, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_guard_condition_t guard_cond_0 = rcl_get_zero_initialized_guard_condition();
+  ret = rcl_guard_condition_init(&guard_cond_0, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_sets[0], &guard_cond_0);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_trigger_guard_condition(&guard_cond_0);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_guard_condition_t guard_cond_1 = rcl_get_zero_initialized_guard_condition();
+  ret = rcl_guard_condition_init(&guard_cond_1, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_sets[1], &guard_cond_1);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_trigger_guard_condition(&guard_cond_1);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_guard_condition_fini(&guard_cond_0);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_guard_condition_fini(&guard_cond_1);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_fini(&wait_sets[0]);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_fini(&wait_sets[1]);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // Time spent during wait should be negligible.
+  int64_t timeout = 0;
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+  ret = rcl_wait_multiple(wait_sets, 2, timeout);
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  // We don't expect a timeout here (since the guard condition had already been triggered)
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_LE(diff, TOLERANCE);
 }
