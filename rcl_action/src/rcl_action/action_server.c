@@ -485,14 +485,13 @@ rcl_action_send_result_response(
 }
 
 rcl_ret_t
-rcl_action_clear_expired_goals(
+rcl_action_expire_goals(
   const rcl_action_server_t * action_server,
   size_t * num_expired)
 {
   if (!rcl_action_server_is_valid(action_server)) {
     return RCL_RET_ACTION_SERVER_INVALID;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(num_expired, RCL_RET_INVALID_ARGUMENT);
 
   // Get current time (nanosec)
   int64_t current_time;
@@ -504,7 +503,7 @@ rcl_action_clear_expired_goals(
   // Used for shrinking goal handle array
   rcl_allocator_t allocator = action_server->impl->options.allocator;
 
-  *num_expired = 0u;
+  size_t num_goals_expired = 0u;
   rcl_ret_t ret_final = RCL_RET_OK;
   const int64_t timeout = (int64_t)action_server->impl->options.result_timeout.nanoseconds;
   rcl_action_goal_handle_t * goal_handle;
@@ -526,20 +525,15 @@ rcl_action_clear_expired_goals(
     assert(current_time > goal_time);
     if ((current_time - goal_time) > timeout) {
       // Stop tracking goal handle
-      ret = rcl_action_goal_handle_fini(goal_handle);
-      if (RCL_RET_OK != ret) {
-        ret_final = RCL_RET_ERROR;
-      }
       // Fill in any gaps left in the array with pointers from the end
       action_server->impl->goal_handles[i] = action_server->impl->goal_handles[num_goal_handles];
       action_server->impl->goal_handles[num_goal_handles--] = NULL;
-
-      ++(*num_expired);
+      ++num_goals_expired;
     }
   }
 
   // Shrink goal handle array if some goals expired
-  if (*num_expired > 0u) {
+  if (num_goals_expired > 0u) {
     if (0 == num_goal_handles) {
       allocator.deallocate(action_server->impl->goal_handles, allocator.state);
     } else {
@@ -553,6 +547,11 @@ rcl_action_clear_expired_goals(
         action_server->impl->num_goal_handles = num_goal_handles;
       }
     }
+  }
+
+  // If argument is not null, then set it
+  if (NULL != num_expired) {
+    (*num_expired) = num_goals_expired;
   }
   return ret_final;
 }

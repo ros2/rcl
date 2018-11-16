@@ -261,25 +261,24 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
 {
   size_t num_expired = 1u;
   // Clear expired goals with null action server
-  rcl_ret_t ret = rcl_action_clear_expired_goals(nullptr, &num_expired);
+  rcl_ret_t ret = rcl_action_expire_goals(nullptr, &num_expired);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Clear expired goals with null size argument
-  ret = rcl_action_clear_expired_goals(&this->action_server, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Clear with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_clear_expired_goals(&invalid_action_server, &num_expired);
+  ret = rcl_action_expire_goals(&invalid_action_server, &num_expired);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Clear with valid arguments
-  ret = rcl_action_clear_expired_goals(&this->action_server, &num_expired);
+  ret = rcl_action_expire_goals(&this->action_server, &num_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(num_expired, 0u);
+
+  // Clear with valid arguments (optional num_expired)
+  ret = rcl_action_expire_goals(&this->action_server, nullptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // TODO(jacobperron): Test with goals that actually expire
 }

@@ -559,9 +559,9 @@ rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
   void * ros_result_response);
 
-/// Clear all expired goals associated with an action server.
+/// Expires goals associated with an action server.
 /**
- * A goal is 'expired' if it has been in a terminal state (has a result) for more
+ * A goal is 'expired' if it has been in a terminal state (has a result) for longer
  * than some duration.
  * The timeout duration is set as part of the action server options.
  *
@@ -569,27 +569,38 @@ rcl_action_send_result_response(
  * If a timeout of zero is set, then goal results are discarded immediately (ie. goal
  * results are discarded whenever this function is called).
  *
+ * Expired goals are removed from the internal array of goal handles.
+ * rcl_action_server_goal_exists() will return false for any goals that have expired.
+ *
+ * \attention If one or more goals are expired then a previously returned goal handle
+ * array from rcl_action_server_get_goal_handles() becomes invalid.
+ *
+ * `num_expired` is an optional argument. If it is not `NULL`, then it is set to the
+ * number of goals that were expired.
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | No
+ * Allocates Memory   | Maybe[1]
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ * <i>[1] if one or more goals expires, then the internal goal handle array may be
+ * resized or deallocated</i>
  *
  * \param[in] action_server handle to the action server from which expired goals
  *   will be cleared.
- * \param[out] num_expired the number of expired goals cleared. If `NULL` then the
- *   number is not set.
+ * \param[out] num_expired the number of expired goals, or set to `NULL` if unused
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
- * \return `RCL_RET_INVALID_ARGUMENT` if num_expired is null, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_action_clear_expired_goals(
+rcl_action_expire_goals(
   const rcl_action_server_t * action_server,
   size_t * num_expired);
 
@@ -764,11 +775,10 @@ rcl_action_server_get_options(const rcl_action_server_t * action_server);
 /**
  * A pointer to the internally held array of pointers to goal handle structs is returned
  * along with the number of items in the array.
- * Goals that have terminated, successfully responded to a client with a
- * result, and have expired (timed out) are not present in the array.
  *
- * The returned handle is made invalid if the action server is finalized or if
- * rcl_shutdown() is called.
+ * The returned handle is made invalid if the action server is finalized, if
+ * rcl_shutdown() is called, or if rcl_action_expire_goals() is called and one or more
+ * goals are expired.
  * The returned handle is not guaranteed to be valid for the life time of the
  * action server as it may be finalized and recreated itself.
  * Therefore, it is recommended to get the handle from the action server using
