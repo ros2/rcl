@@ -19,6 +19,8 @@ extern "C"
 
 #include "rcl_action/names.h"
 
+#include <string.h>
+
 #include "rcl/error_handling.h"
 #include "rcutils/format_string.h"
 
@@ -30,6 +32,10 @@ rcl_action_get_goal_service_name(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
+  if (0 == strlen(action_name)) {
+    RCL_SET_ERROR_MSG("invalid empty action name");
+    return RCL_RET_ACTION_NAME_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_service_name, RCL_RET_INVALID_ARGUMENT);
   if (NULL != *goal_service_name) {
     RCL_SET_ERROR_MSG("writing action goal service name may leak memory");
@@ -51,6 +57,10 @@ rcl_action_get_cancel_service_name(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
+  if (0 == strlen(action_name)) {
+    RCL_SET_ERROR_MSG("invalid empty action name");
+    return RCL_RET_ACTION_NAME_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(cancel_service_name, RCL_RET_INVALID_ARGUMENT);
   if (NULL != *cancel_service_name) {
     RCL_SET_ERROR_MSG("writing action cancel service name may leak memory");
@@ -72,12 +82,15 @@ rcl_action_get_result_service_name(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
+  if (0 == strlen(action_name)) {
+    RCL_SET_ERROR_MSG("invalid empty action name");
+    return RCL_RET_ACTION_NAME_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(result_service_name, RCL_RET_INVALID_ARGUMENT);
   if (NULL != *result_service_name) {
     RCL_SET_ERROR_MSG("writing action result service name may leak memory");
     return RCL_RET_INVALID_ARGUMENT;
   }
-
   *result_service_name = rcutils_format_string(allocator, "%s/_action/get_result", action_name);
   if (NULL == *result_service_name) {
     RCL_SET_ERROR_MSG("failed to allocate memory for action result service name");
@@ -94,6 +107,10 @@ rcl_action_get_feedback_topic_name(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
+  if (0 == strlen(action_name)) {
+    RCL_SET_ERROR_MSG("invalid empty action name");
+    return RCL_RET_ACTION_NAME_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(feedback_topic_name, RCL_RET_INVALID_ARGUMENT);
   if (NULL != *feedback_topic_name) {
     RCL_SET_ERROR_MSG("writing action feedback topic name may leak memory");
@@ -115,6 +132,10 @@ rcl_action_get_status_topic_name(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
+  if (0 == strlen(action_name)) {
+    RCL_SET_ERROR_MSG("invalid empty action name");
+    return RCL_RET_ACTION_NAME_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(status_topic_name, RCL_RET_INVALID_ARGUMENT);
   if (NULL != *status_topic_name) {
     RCL_SET_ERROR_MSG("writing action status topic name may leak memory");

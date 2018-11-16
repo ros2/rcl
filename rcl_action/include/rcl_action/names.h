@@ -21,6 +21,7 @@ extern "C"
 #endif
 
 #include "rcl_action/visibility_control.h"
+#include "rcl_action/types.h"
 
 #include "rcl/allocator.h"
 #include "rcl/macros.h"
@@ -48,7 +49,12 @@ extern "C"
  *   goal service name, or `NULL` if the function failed to allocate memory
  *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action goal service name was returned, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_NAME_INVALID` if the action name is not valid
+ *   (i.e. empty), or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the action name is `NULL`, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the allocator is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the goal service name pointer is
+ *   `NULL` or points to a non-`NULL` pointer, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
  */
 RCL_ACTION_PUBLIC
@@ -73,14 +79,19 @@ rcl_action_get_goal_service_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose cancel service name is
- *   being returned.
+ * \param[in] action_name The name of the action whose cancel service name
+ *   is being returned.
  * \param[in] allocator A valid allocator to be used.
  * \param[out] cancel_service_name Either an allocated string with the action
  *   cancel service name, or `NULL` if the function failed to allocate memory
  *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action cancel service name was returned, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_NAME_INVALID` if the action name is not valid
+ *   (i.e. empty), or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the action name is `NULL`, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the allocator is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the cancel service name is `NULL` or
+ *   points to a non-`NULL` pointer, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
  */
 RCL_ACTION_PUBLIC
@@ -105,14 +116,19 @@ rcl_action_get_cancel_service_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose result service name is
- *   being returned.
+ * \param[in] action_name The name of the action whose result service name
+ *   is being returned.
  * \param[in] allocator A valid allocator to be used.
  * \param[out] result_service_name Either an allocated string with the action
  *   result service name, or `NULL` if the function failed to allocate memory
  *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action result service name was returned, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_NAME_INVALID` if the action name is not valid
+ *   (i.e. empty), or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the action name is `NULL`, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the allocator is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the result service name pointer is
+ *   `NULL` or points to a non-`NULL` pointer, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
  */
 RCL_ACTION_PUBLIC
@@ -137,14 +153,19 @@ rcl_action_get_result_service_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose feedback topic name is
- *   being returned.
+ * \param[in] action_name The name of the action whose feedback topic name
+ *   is being returned.
  * \param[in] allocator A valid allocator to be used.
- * \param[out] result_service_name Either an allocated string with the action
+ * \param[out] feedback_topic_name Either an allocated string with the action
  *   feedback topic name, or `NULL` if the function failed to allocate memory
  *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action feedback topic name was returned, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_NAME_INVALID` if the action name is not valid
+ *   (i.e. empty), or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the action name is `NULL`, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the allocator is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the feedback topic name pointer is
+ *   `NULL` or points to a non-`NULL` pointer, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
  */
 RCL_ACTION_PUBLIC
@@ -169,14 +190,19 @@ rcl_action_get_feedback_topic_name(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] action_name The name of the action whose status topic name is
- *   being returned.
+ * \param[in] action_name The name of the action whose status topic
+ *   name is being returned.
  * \param[in] allocator A valid allocator to be used.
- * \param[out] result_service_name Either an allocated string with the action
+ * \param[out] status_topic_name Either an allocated string with the action
  *   status topic name, or `NULL` if the function failed to allocate memory
  *   for it. Must refer to a `NULL` pointer upon call.
  * \return `RCL_RET_OK` if the action status topic name was returned, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_NAME_INVALID` if the action name is not valid
+ *   (i.e. empty), or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the action name is `NULL`, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the allocator is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the status topic name pointer is
+ *   `NULL` or points to a non-`NULL` pointer, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
  */
 RCL_ACTION_PUBLIC
