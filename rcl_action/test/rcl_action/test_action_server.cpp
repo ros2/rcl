@@ -478,9 +478,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
 {
   // Request to cancel a specific goal
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  for (int i = 0; i < UUID_SIZE; ++i) {
-    cancel_request.goal_info.uuid[i] = static_cast<uint8_t>(i + 2);
-  }
+  init_test_uuid0(cancel_request.goal_info.uuid);
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
   rcl_ret_t ret = rcl_action_process_cancel_request(
     &this->action_server, &cancel_request, &cancel_response);
@@ -488,9 +486,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
   EXPECT_NE(cancel_response.msg.goals_canceling.data, nullptr);
   ASSERT_EQ(cancel_response.msg.goals_canceling.size, 1u);
   rcl_action_goal_info_t * goal_info = &cancel_response.msg.goals_canceling.data[0];
-  for (int i = 0; i < UUID_SIZE; ++i) {
-    EXPECT_EQ(goal_info->uuid[i], static_cast<uint8_t>(i + 2));
-  }
+  EXPECT_TRUE(uuidcmp(goal_info->uuid, cancel_request.goal_info.uuid));
 }
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time)
@@ -539,7 +535,5 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
     }
   }
   goal_info_out = &cancel_response.msg.goals_canceling.data[num_goals_canceling - 1];
-  for (int i = 0; i < UUID_SIZE; ++i) {
-    EXPECT_EQ(goal_info_out->uuid[i], static_cast<uint8_t>(i + goal_index));
-  }
+  EXPECT_TRUE(uuidcmp(goal_info_out->uuid, cancel_request.goal_info.uuid));
 }
