@@ -220,8 +220,7 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node);
  * - feedback_topic_qos = rmw_qos_profile_default;
  * - status_topic_qos = rcl_action_qos_profile_status_default;
  * - allocator = rcl_get_default_allocator();
- * - clock_type = RCL_ROS_TIME;
- * - result_timeout = 9e+11;  // 15 minutes
+ * - result_timeout = RCUTILS_S_TO_NS(15 * 60);  // 15 minutes
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
