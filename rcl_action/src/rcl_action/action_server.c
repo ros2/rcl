@@ -518,7 +518,10 @@ rcl_action_clear_expired_goals(
       continue;
     }
     ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
-    assert(RCL_RET_OK == ret);
+    if (RCL_RET_OK != ret) {
+      ret_final = RCL_RET_ERROR;
+      continue;
+    }
     goal_time = _goal_info_stamp_to_nanosec(&goal_info);
     assert(current_time > goal_time);
     if ((current_time - goal_time) > timeout) {
@@ -593,6 +596,7 @@ rcl_action_process_cancel_request(
   const uint8_t * request_uuid = request_goal_info->uuid;
   int64_t request_nanosec = _goal_info_stamp_to_nanosec(request_goal_info);
 
+  rcl_ret_t ret_final = RCL_RET_OK;
   // Determine how many goals should transition to canceling
   if (!uuidcmpzero(request_uuid) && (0u == request_nanosec)) {
     // UUID is not zero and timestamp is zero; cancel exactly one goal (if it exists)
@@ -601,7 +605,10 @@ rcl_action_process_cancel_request(
     for (size_t i = 0; i < total_num_goals; ++i) {
       goal_handle = action_server->impl->goal_handles[i];
       rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
-      assert(RCL_RET_OK == ret);
+      if (RCL_RET_OK != ret) {
+        ret_final = RCL_RET_ERROR;
+        continue;
+      }
 
       if (uuidcmp(request_uuid, goal_info.uuid)) {
         if (rcl_action_goal_handle_is_cancelable(goal_handle)) {
@@ -624,7 +631,10 @@ rcl_action_process_cancel_request(
     for (size_t i = 0; i < total_num_goals; ++i) {
       goal_handle = action_server->impl->goal_handles[i];
       rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
-      assert(RCL_RET_OK == ret);
+      if (RCL_RET_OK != ret) {
+        ret_final = RCL_RET_ERROR;
+        continue;
+      }
 
       const int64_t goal_nanosec = _goal_info_stamp_to_nanosec(&goal_info);
       if (rcl_action_goal_handle_is_cancelable(goal_handle) &&
@@ -635,7 +645,6 @@ rcl_action_process_cancel_request(
     }
   }
 
-  rcl_ret_t ret_final = RCL_RET_OK;
   if (0u == num_goals_to_cancel) {
     cancel_response->msg.goals_canceling.data = NULL;
     cancel_response->msg.goals_canceling.size = 0u;
