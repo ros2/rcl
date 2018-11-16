@@ -93,13 +93,6 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   EXPECT_EQ(ret, RCL_RET_ALREADY_INIT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Try to initialize another action server with the same name
-  // FIXME(jacobperron): test failing
-  // rcl_action_server_t same_name_action_server = rcl_action_get_zero_initialized_server();
-  // ret = rcl_action_server_init(&same_name_action_server, &node, ts, action_name, &options);
-  // EXPECT_EQ(ret, RCL_RET_ACTION_NAME_INVALID) << rcl_get_error_string().str;
-  // rcl_reset_error();
-
   // Finalize with null action server
   ret = rcl_action_server_fini(nullptr, &node);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
