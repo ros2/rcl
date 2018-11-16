@@ -618,6 +618,10 @@ rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_
     RCL_SET_ERROR_MSG("number of wait sets must be greater than zero");
     return RCL_RET_INVALID_ARGUMENT;
   }
+  // Short cut; if number of wait sets happens to be one
+  if (1u == num_wait_sets) {
+    return rcl_wait(&wait_sets[0], timeout);
+  }
 
   // Count number of entities in wait sets while checking for invalid wait sets
   size_t number_of_subscriptions = 0u;
@@ -674,7 +678,7 @@ rcl_wait_multiple(rcl_wait_set_t wait_sets[], const size_t num_wait_sets, int64_
       rcl_guard_condition_t * guard_condition = rcl_timer_get_guard_condition(wait_set->timers[j]);
       if (NULL != guard_condition) {
         // rcl_wait() will take care of moving these backwards and setting guard_condition_count.
-        const size_t offset_rmw_index = wait_set->size_of_guard_conditions + current_index;
+        const size_t offset_rmw_index = collated_wait_set.size_of_guard_conditions + current_index;
         rmw_guard_condition_t * rmw_handle = rcl_guard_condition_get_rmw_handle(guard_condition);
         collated_wait_set.impl->rmw_guard_conditions.guard_conditions[offset_rmw_index] =
           rmw_handle->data;
