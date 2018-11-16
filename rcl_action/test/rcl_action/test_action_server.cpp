@@ -25,12 +25,16 @@
 
 TEST(TestActionServerInitFini, test_action_server_init_fini)
 {
-  rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_init(0, nullptr, allocator);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node, "test_action_server_node", "", &node_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_clock_t clock;
+  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
   const rcl_action_server_options_t options = rcl_action_server_get_default_options();
@@ -38,42 +42,54 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
 
   // Initialize with a null action server
-  ret = rcl_action_server_init(nullptr, &node, ts, action_name, &options);
+  ret = rcl_action_server_init(nullptr, &node, &clock, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with a null node
-  ret = rcl_action_server_init(&action_server, nullptr, ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, nullptr, &clock, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_NODE_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with an invalid node
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
-  ret = rcl_action_server_init(&action_server, &invalid_node, ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, &invalid_node, &clock, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_NODE_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  // Initialize with a null clock
+  ret = rcl_action_server_init(&action_server, &node, nullptr, ts, action_name, &options);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Initialize with an invalid clock
+  rcl_clock_t invalid_clock;
+  invalid_clock.get_now = nullptr;
+  ret = rcl_action_server_init(&action_server, &node, &invalid_clock, ts, action_name, &options);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  rcl_reset_error();
+
   // Initialize with a null typesupport
-  ret = rcl_action_server_init(&action_server, &node, nullptr, action_name, &options);
+  ret = rcl_action_server_init(&action_server, &node, &clock, nullptr, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with a null name
-  ret = rcl_action_server_init(&action_server, &node, ts, nullptr, &options);
+  ret = rcl_action_server_init(&action_server, &node, &clock, ts, nullptr, &options);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with a null options
-  ret = rcl_action_server_init(&action_server, &node, ts, action_name, nullptr);
+  ret = rcl_action_server_init(&action_server, &node, &clock, ts, action_name, nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Initialize with valid arguments
-  ret = rcl_action_server_init(&action_server, &node, ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, &node, &clock, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Try to initialize again
-  ret = rcl_action_server_init(&action_server, &node, ts, action_name, &options);
+  ret = rcl_action_server_init(&action_server, &node, &clock, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_ALREADY_INIT) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -104,6 +120,10 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   ret = rcl_action_server_fini(&action_server, &node);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
+  // Finalize clock
+  ret = rcl_clock_fini(&clock);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
   // Finalize node
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -117,18 +137,22 @@ class TestActionServer : public ::testing::Test
 protected:
   void SetUp() override
   {
-    rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    rcl_ret_t ret = rcl_init(0, nullptr, allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->node = rcl_get_zero_initialized_node();
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(&this->node, "test_action_server_node", "", &node_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_clock_init(RCL_STEADY_TIME, &this->clock, &allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
       test_msgs, Fibonacci);
     const rcl_action_server_options_t options = rcl_action_server_get_default_options();
     const char * action_name = "test_action_server_name";
     this->action_server = rcl_action_get_zero_initialized_server();
-    ret = rcl_action_server_init(&this->action_server, &this->node, ts, action_name, &options);
+    ret = rcl_action_server_init(
+      &this->action_server, &this->node, &this->clock, ts, action_name, &options);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -136,6 +160,8 @@ protected:
   {
     // Finalize
     rcl_ret_t ret = rcl_action_server_fini(&this->action_server, &this->node);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_clock_fini(&this->clock);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_node_fini(&this->node);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -159,6 +185,7 @@ protected:
 
   rcl_action_server_t action_server;
   rcl_node_t node;
+  rcl_clock_t clock;
 };  // class TestActionServer
 
 TEST_F(TestActionServer, test_action_server_is_valid)

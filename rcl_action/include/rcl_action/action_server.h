@@ -81,6 +81,9 @@ rcl_action_get_zero_initialized_server(void);
  * The given rcl_node_t must be valid and the resulting rcl_action_server_t is
  * only valid as long as the given rcl_node_t remains valid.
  *
+ * The give rcl_clock_t must be valid and the resulting rcl_ction_server_t is
+ * only valid as long ast he given rcl_clock_t remains valid.
+ *
  * The rosidl_action_type_support_t is obtained on a per .action type basis.
  * When the user defines a ROS action, code is generated which provides the
  * required rosidl_action_type_support_t object.
@@ -153,6 +156,7 @@ rcl_action_get_zero_initialized_server(void);
  * \param[out] action_server handle to a preallocated, zero-initialized action server structure
  *   to be initialized.
  * \param[in] node valid node handle
+ * \param[in] clock valid clock handle
  * \param[in] type_support type support object for the action's type
  * \param[in] action_name the name of the action
  * \param[in] options action_server options, including quality of service settings
@@ -169,6 +173,7 @@ rcl_ret_t
 rcl_action_server_init(
   rcl_action_server_t * action_server,
   rcl_node_t * node,
+  rcl_clock_t * clock,
   const rosidl_action_type_support_t * type_support,
   const char * action_name,
   const rcl_action_server_options_t * options);

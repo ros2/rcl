@@ -129,6 +129,7 @@ rcl_ret_t
 rcl_action_server_init(
   rcl_action_server_t * action_server,
   rcl_node_t * node,
+  rcl_clock_t * clock,
   const rosidl_action_type_support_t * type_support,
   const char * action_name,
   const rcl_action_server_options_t * options)
@@ -136,6 +137,10 @@ rcl_action_server_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(action_server, RCL_RET_INVALID_ARGUMENT);
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;  // error already set
+  }
+  if (!rcl_clock_valid(clock)) {
+    RCL_SET_ERROR_MSG("invalid clock");
+    return RCL_RET_INVALID_ARGUMENT;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
@@ -156,13 +161,7 @@ rcl_action_server_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     action_server->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
-  // Initialize clock
-  rcl_ret_t ret = rcl_clock_init(options->clock_type, &action_server->impl->clock, &allocator);
-  if (RCL_RET_OK != ret) {
-    ret = RCL_RET_ERROR;
-    goto fail;
-  }
-
+  rcl_ret_t ret = RCL_RET_OK;
   // Initialize services
   SERVICE_INIT(goal);
   SERVICE_INIT(cancel);
@@ -171,6 +170,9 @@ rcl_action_server_init(
   // Initialize publishers
   PUBLISHER_INIT(feedback);
   PUBLISHER_INIT(status);
+
+  // Copy clock
+  action_server->impl->clock = *clock;
 
   // Copy action name
   action_server->impl->action_name = rcutils_strdup(action_name, allocator);
@@ -186,7 +188,7 @@ rcl_action_server_init(
   action_server->impl->goal_handles = NULL;
   action_server->impl->num_goal_handles = 0;
 
-  return RCL_RET_OK;
+  return ret;
 fail:
   {
     // Finalize any services/publishers that were initialized and deallocate action_server->impl
@@ -208,10 +210,6 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
 
   rcl_ret_t ret = RCL_RET_OK;
   if (action_server->impl) {
-    // Finalize clock
-    if (rcl_clock_fini(&action_server->impl->clock) != RCL_RET_OK) {
-      ret = RCL_RET_ERROR;
-    }
     // Finalize services
     if (rcl_service_fini(&action_server->impl->goal_service, node) != RCL_RET_OK) {
       ret = RCL_RET_ERROR;

@@ -33,18 +33,21 @@ class CLASSNAME (TestActionCommunication, RMW_IMPLEMENTATION) : public ::testing
 protected:
   void SetUp() override
   {
-    rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    rcl_ret_t ret = rcl_init(0, nullptr, allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->node = rcl_get_zero_initialized_node();
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(&this->node, "test_action_communication_node", "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_clock_init(RCL_STEADY_TIME, &this->clock, &allocator);
     const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
       test_msgs, Fibonacci);
     const rcl_action_server_options_t options = rcl_action_server_get_default_options();
     const char * action_name = "test_action_commmunication_name";
     this->action_server = rcl_action_get_zero_initialized_server();
-    ret = rcl_action_server_init(&this->action_server, &this->node, ts, action_name, &options);
+    ret = rcl_action_server_init(
+      &this->action_server, &this->node, &this->clock, ts, action_name, &options);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -53,6 +56,8 @@ protected:
     // Finalize
     rcl_ret_t ret = rcl_action_server_fini(&this->action_server, &this->node);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_clock_fini(&this->clock);
+    EXPECT_EQ(ret, RCL_RET_OK);
     ret = rcl_node_fini(&this->node);
     EXPECT_EQ(ret, RCL_RET_OK);
     ret = rcl_shutdown();
@@ -75,6 +80,7 @@ protected:
 
   rcl_action_server_t action_server;
   rcl_node_t node;
+  rcl_clock_t clock;
 };  // class TestActionCommunication
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_take_goal_request)
