@@ -61,9 +61,10 @@ rcl_action_get_zero_initialized_server(void)
   char * Type ## _service_name = NULL; \
   ret = rcl_action_get_ ## Type ## _service_name(action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
-    RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
+    } else if (RCL_RET_ACTION_NAME_INVALID == ret) { \
+      ret = RCL_RET_ACTION_NAME_INVALID; \
     } else { \
       ret = RCL_RET_ERROR; \
     } \
@@ -72,7 +73,6 @@ rcl_action_get_zero_initialized_server(void)
   rcl_service_options_t Type ## _service_options = { \
     .qos = options->Type ## _service_qos, .allocator = allocator \
   }; \
-  action_server->impl->Type ## _service = rcl_get_zero_initialized_service(); \
   ret = rcl_service_init( \
     &action_server->impl->Type ## _service, \
     node, \
@@ -95,9 +95,10 @@ rcl_action_get_zero_initialized_server(void)
   char * Type ## _topic_name = NULL; \
   ret = rcl_action_get_ ## Type ## _topic_name(action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
-    RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
+    } else if (RCL_RET_ACTION_NAME_INVALID == ret) { \
+      ret = RCL_RET_ACTION_NAME_INVALID; \
     } else { \
       ret = RCL_RET_ERROR; \
     } \
@@ -106,7 +107,6 @@ rcl_action_get_zero_initialized_server(void)
   rcl_publisher_options_t Type ## _publisher_options = { \
     .qos = options->Type ## _topic_qos, .allocator = allocator \
   }; \
-  action_server->impl->Type ## _publisher = rcl_get_zero_initialized_publisher(); \
   ret = rcl_publisher_init( \
     &action_server->impl->Type ## _publisher, \
     node, \
@@ -161,6 +161,18 @@ rcl_action_server_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     action_server->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
+  // Zero initialization
+  action_server->impl->goal_service = rcl_get_zero_initialized_service();
+  action_server->impl->cancel_service = rcl_get_zero_initialized_service();
+  action_server->impl->result_service = rcl_get_zero_initialized_service();
+  action_server->impl->feedback_publisher = rcl_get_zero_initialized_publisher();
+  action_server->impl->status_publisher = rcl_get_zero_initialized_publisher();
+  action_server->impl->action_name = NULL;
+  action_server->impl->options = *options;  // copy options
+  action_server->impl->goal_handles = NULL;
+  action_server->impl->num_goal_handles = 0u;
+  action_server->impl->clock.type = RCL_CLOCK_UNINITIALIZED;
+
   rcl_ret_t ret = RCL_RET_OK;
   // Initialize services
   SERVICE_INIT(goal);
@@ -180,14 +192,6 @@ rcl_action_server_init(
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
-
-  // Copy options
-  action_server->impl->options = *options;
-
-  // Initialize goal handle array
-  action_server->impl->goal_handles = NULL;
-  action_server->impl->num_goal_handles = 0u;
-
   return ret;
 fail:
   {
@@ -231,6 +235,7 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
     rcl_allocator_t allocator = action_server->impl->options.allocator;
     if (action_server->impl->action_name) {
       allocator.deallocate(action_server->impl->action_name, allocator.state);
+      action_server->impl->action_name = NULL;
     }
     // Deallocate struct
     allocator.deallocate(action_server->impl, allocator.state);

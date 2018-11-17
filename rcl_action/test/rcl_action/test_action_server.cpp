@@ -79,6 +79,18 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  // Initialize with an empty name
+  const char * empty_action_name = "";
+  ret = rcl_action_server_init(&action_server, &node, &clock, ts, empty_action_name, &options);
+  EXPECT_EQ(ret, RCL_RET_ACTION_NAME_INVALID) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Initialize with an invalid name
+  const char * invalid_action_name = "42";
+  ret = rcl_action_server_init(&action_server, &node, &clock, ts, invalid_action_name, &options);
+  EXPECT_EQ(ret, RCL_RET_ACTION_NAME_INVALID) << rcl_get_error_string().str;
+  rcl_reset_error();
+
   // Initialize with a null options
   ret = rcl_action_server_init(&action_server, &node, &clock, ts, action_name, nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
