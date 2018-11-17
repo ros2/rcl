@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>rcl_yaml_param_parser</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>Package containing various utility types and functions for C</description>
   <maintainer email="anup.pemmaiah@apex.ai">Anup Pemmaiah</maintainer>
   <license>Apache License 2.0</license>

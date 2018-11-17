@@ -2,6 +2,48 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.0 (2018-11-16)
+------------------
+* Updated to expand node_secure_root using local_namespace (`#300 <https://github.com/ros2/rcl/issues/300>`_)
+* Moved stdatomic helper to rcutils (`#324 <https://github.com/ros2/rcl/issues/324>`_)
+* Added subfolder argument to the ROSIDL_GET_SRV_TYPE_SUPPORT macro (`#322 <https://github.com/ros2/rcl/issues/322>`_)
+* Updated to use new error handling API from rcutils (`#314 <https://github.com/ros2/rcl/issues/314>`_)
+* Fixed minor documentation issues (`#305 <https://github.com/ros2/rcl/issues/305>`_)
+* Added macro semicolons (`#303 <https://github.com/ros2/rcl/issues/303>`_)
+* Added Rcl timer with ros time (`#286 <https://github.com/ros2/rcl/issues/286>`_)
+* Updated to ensure that timer period is non-negative (`#295 <https://github.com/ros2/rcl/issues/295>`_)
+* Fixed calculation of next timer call (`#291 <https://github.com/ros2/rcl/issues/291>`_)
+* Updated to null deallocated jump callbacks (`#294 <https://github.com/ros2/rcl/issues/294>`_)
+* Included namespaces in get_node_names. (`#287 <https://github.com/ros2/rcl/issues/287>`_)
+* Fixed documentation issues (`#288 <https://github.com/ros2/rcl/issues/288>`_)
+* Updated to check if pointers are null before calling memset (`#290 <https://github.com/ros2/rcl/issues/290>`_)
+* Added multiple time jump callbacks to clock (`#284 <https://github.com/ros2/rcl/issues/284>`_)
+* Consolidated wait set functions (`#285 <https://github.com/ros2/rcl/issues/285>`_)
+  * Consolidate functions to clear wait set
+  Added rcl_wait_set_clear()
+  Added rcl_wait_set_resize()
+  Removed
+  rcl_wait_set_clear_subscriptions()
+  rcl_wait_set_clear_guard_conditions()
+  rcl_wait_set_clear_clients()
+  rcl_wait_set_clear_services()
+  rcl_wait_set_clear_timers()
+  rcl_wait_set_resize_subscriptions()
+  rcl_wait_set_resize_guard_conditions()
+  rcl_wait_set_resize_timers()
+  rcl_wait_set_resize_clients()
+  rcl_wait_set_resize_services()
+* ROS clock storage initially set to zero (`#283 <https://github.com/ros2/rcl/issues/283>`_)
+* Fixed issue with deallocation of parameter_files (`#279 <https://github.com/ros2/rcl/issues/279>`_)
+* Update to initialize memory before sending a message (`#277 <https://github.com/ros2/rcl/issues/277>`_)
+* Set error message when clock type is not ROS_TIME (`#275 <https://github.com/ros2/rcl/issues/275>`_)
+* Copy allocator passed in to clock init (`#274 <https://github.com/ros2/rcl/issues/274>`_)
+* Update to initialize timer with clock (`#272 <https://github.com/ros2/rcl/issues/272>`_)
+* Updated to use test_msgs instead of std_msgs in tests (`#270 <https://github.com/ros2/rcl/issues/270>`_)
+* Added regression test for node:__ns remapping (`#263 <https://github.com/ros2/rcl/issues/263>`_)
+* Updated to support Uncrustify 0.67 (`#266 <https://github.com/ros2/rcl/issues/266>`_)
+* Contributors: Chris Lalancette, Chris Ye, Dirk Thomas, Jacob Perron, Michael Carroll, Mikael Arguedas, Ruffin, Shane Loretz, William Woodall, dhood
+
 0.5.0 (2018-06-25)
 ------------------
 * Updated code to only use ``rcutils_allocator_t`` and not use system memory functions directly. (`#261 <https://github.com/ros2/rcl/issues/261>`_)
