@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>rcl</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>The ROS client library common implementation.
     This package contains an API which builds on the ROS middleware API and is optionally built upon by the other ROS client libraries.
   </description>
