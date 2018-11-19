@@ -30,7 +30,8 @@ extern "C"
 struct rcl_init_options_impl_t;
 
 /// Encapsulation of init options and implementation defined init options.
-typedef struct rcl_init_options_t {
+typedef struct rcl_init_options_t
+{
   /// Implementation specific pointer.
   struct rcl_init_options_impl_t * impl;
 } rcl_init_options_t;

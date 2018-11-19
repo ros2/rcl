@@ -28,8 +28,8 @@ rcl_init_options_t
 rcl_get_zero_initialized_init_options(void)
 {
   return (const rcl_init_options_t) {
-    .impl = 0,
-  };
+           .impl = 0,
+  };  // NOLINT(readability/braces): false positive
 }
 
 rcl_ret_t
