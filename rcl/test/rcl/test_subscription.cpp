@@ -80,7 +80,7 @@ wait_for_subscription_to_be_ready(
     ++iteration;
     ret = rcl_wait_set_clear(&wait_set);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_subscription(&wait_set, subscription);
+    ret = rcl_wait_set_add_subscription(&wait_set, subscription, NULL);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
     if (ret == RCL_RET_TIMEOUT) {
