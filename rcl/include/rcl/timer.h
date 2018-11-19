@@ -23,6 +23,7 @@ extern "C"
 #include <stdbool.h>
 
 #include "rcl/allocator.h"
+#include "rcl/context.h"
 #include "rcl/guard_condition.h"
 #include "rcl/macros.h"
 #include "rcl/time.h"
@@ -107,6 +108,7 @@ rcl_get_zero_initialized_timer(void);
  *   // Optionally reconfigure, cancel, or reset the timer...
  * }
  *
+ * rcl_context_t * context;  // initialized previously by rcl_init()...
  * rcl_clock_t clock;
  * rcl_allocator_t allocator = rcl_get_default_allocator();
  * rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
@@ -114,7 +116,7 @@ rcl_get_zero_initialized_timer(void);
  *
  * rcl_timer_t timer = rcl_get_zero_initialized_timer();
  * ret = rcl_timer_init(
- *   &timer, &clock, RCL_MS_TO_NS(100), my_timer_callback, allocator);
+ *   &timer, &clock, context, RCL_MS_TO_NS(100), my_timer_callback, allocator);
  * // ... error handling, use the timer with a wait set, or poll it manually, then cleanup
  * ret = rcl_timer_fini(&timer);
  * // ... error handling
@@ -135,6 +137,7 @@ rcl_get_zero_initialized_timer(void);
  *
  * \param[inout] timer the timer handle to be initialized
  * \param[in] clock the clock providing the current time
+ * \param[in] context the context that this timer is to be associated with
  * \param[in] period the duration between calls to the callback in nanoseconds
  * \param[in] callback the user defined function to be called every period
  * \param[in] allocator the allocator to use for allocations
@@ -150,6 +153,7 @@ rcl_ret_t
 rcl_timer_init(
   rcl_timer_t * timer,
   rcl_clock_t * clock,
+  rcl_context_t * context,
   int64_t period,
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator);

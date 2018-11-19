@@ -16,7 +16,22 @@
 
 int main(int, char **)
 {
-  rcl_ret_t ret = rcl_init(0, nullptr, rcl_get_default_allocator());
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  if (ret != RCL_RET_OK) {
+    return ret;
+  }
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  if (ret != RCL_RET_OK) {
+    return ret;
+  }
+  ret = rcl_init_options_fini(&init_options);
+  ret = rcl_shutdown(&context);
+  if (ret != RCL_RET_OK) {
+    return ret;
+  }
+  ret = rcl_context_fini(&context);
   if (ret != RCL_RET_OK) {
     return ret;
   }

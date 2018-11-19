@@ -1,0 +1,114 @@
+// Copyright 2015 Open Source Robotics Foundation, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#include "rcl/init_options.h"
+
+#include "./common.h"
+#include "./init_options_impl.h"
+#include "rcl/error_handling.h"
+#include "rmw/error_handling.h"
+
+rcl_init_options_t
+rcl_get_zero_initialized_init_options(void)
+{
+  return (const rcl_init_options_t) {
+    .impl = 0,
+  };
+}
+
+rcl_ret_t
+rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocator)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options, RCL_RET_INVALID_ARGUMENT);
+  if (NULL != init_options->impl) {
+    RCL_SET_ERROR_MSG("given init_options (rcl_init_options_t) is already initialized");
+    return RCL_RET_ALREADY_INIT;
+  }
+  RCL_CHECK_ALLOCATOR(&allocator, return RCL_RET_INVALID_ARGUMENT);
+  init_options->impl = allocator.allocate(sizeof(rcl_init_options_impl_t), allocator.state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    init_options->impl,
+    "failed to allocator memory for init options impl",
+    return RCL_RET_BAD_ALLOC);
+  init_options->impl->allocator = allocator;
+  init_options->impl->rmw_init_options = rmw_get_zero_initialized_init_options();
+  rmw_ret_t rmw_ret = rmw_init_options_init(&(init_options->impl->rmw_init_options), allocator);
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_init_options_copy(const rcl_init_options_t * src, rcl_init_options_t * dst)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(src->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
+  if (NULL != dst->impl) {
+    RCL_SET_ERROR_MSG("given dst (rcl_init_options_t) is already initialized");
+    return RCL_RET_ALREADY_INIT;
+  }
+
+  // initialize dst (since we know it's in a zero initialized state)
+  rcl_ret_t ret = rcl_init_options_init(dst, src->impl->allocator);
+  if (RCL_RET_OK != ret) {
+    return ret;  // error already set
+  }
+
+  // copy src information into dst
+  dst->impl->allocator = src->impl->allocator;
+  rmw_ret_t rmw_ret =
+    rmw_init_options_copy(&(src->impl->rmw_init_options), &(dst->impl->rmw_init_options));
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_init_options_fini(rcl_init_options_t * init_options)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options->impl, RCL_RET_INVALID_ARGUMENT);
+  rcl_allocator_t allocator = init_options->impl->allocator;
+  RCL_CHECK_ALLOCATOR(&allocator, return RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t rmw_ret = rmw_init_options_fini(&(init_options->impl->rmw_init_options));
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  allocator.deallocate(init_options->impl, allocator.state);
+  return RCL_RET_OK;
+}
+
+rmw_init_options_t *
+rcl_init_options_get_rmw_init_options(rcl_init_options_t * init_options)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options->impl, NULL);
+  return &(init_options->impl->rmw_init_options);
+}
+
+#ifdef __cplusplus
+}
+#endif

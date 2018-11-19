@@ -24,6 +24,7 @@ extern "C"
 
 #include "rcl/allocator.h"
 #include "rcl/arguments.h"
+#include "rcl/context.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
@@ -37,6 +38,9 @@ struct rcl_node_impl_t;
 /// Structure which encapsulates a ROS Node.
 typedef struct rcl_node_t
 {
+  /// Context associated with this node.
+  rcl_context_t * context;
+
   /// Private implementation pointer.
   struct rcl_node_impl_t * impl;
 } rcl_node_t;
@@ -73,6 +77,19 @@ typedef struct rcl_node_options_t
   /// Command line arguments that apply only to this node.
   rcl_arguments_t arguments;
 } rcl_node_options_t;
+
+/// Return the default node options in a rcl_node_options_t.
+/**
+ * The default values are:
+ *
+ * - domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID
+ * - allocator = rcl_get_default_allocator()
+ * - use_global_arguments = true
+ * - arguments = rcl_get_zero_initialized_arguments()
+ */
+RCL_PUBLIC
+rcl_node_options_t
+rcl_node_get_default_options(void);
 
 /// Return a rcl_node_t struct with members initialized to `NULL`.
 RCL_PUBLIC
@@ -152,9 +169,12 @@ rcl_get_zero_initialized_node(void);
  * \param[inout] node a preallocated rcl_node_t
  * \param[in] name the name of the node, must be a valid c-string
  * \param[in] namespace_ the namespace of the node, must be a valid c-string
+ * \param[in] context the context instance with which the node should be
+ *   associated
  * \param[in] options the node options.
- *  The options are deep copied into the node.
- *  The caller is always responsible for freeing memory used options they pass in.
+ *   The options are deep copied into the node.
+ *   The caller is always responsible for freeing memory used options they
+ *   pass in.
  * \return `RCL_RET_OK` if the node was initialized successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the node has already be initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -170,6 +190,7 @@ rcl_node_init(
   rcl_node_t * node,
   const char * name,
   const char * namespace_,
+  rcl_context_t * context,
   const rcl_node_options_t * options);
 
 /// Finalize a rcl_node_t.
@@ -190,6 +211,7 @@ rcl_node_init(
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] node rcl_node_t to be finalized
+ * \param[in] context the context originally used to init the node
  * \return `RCL_RET_OK` if node was finalized successfully, or
  * \return `RCL_RET_NODE_INVALID` if the node pointer is null, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -198,17 +220,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_node_fini(rcl_node_t * node);
-
-/// Return the default node options in a rcl_node_options_t.
-/**
- * The default values are:
- *
- * - domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID
- * - allocator = rcl_get_default_allocator()
- */
-RCL_PUBLIC
-rcl_node_options_t
-rcl_node_get_default_options(void);
 
 /// Copy one options structure into another.
 /**
@@ -221,7 +232,7 @@ rcl_node_get_default_options(void);
  * Lock-Free          | Yes
  *
  * \param[in] options The structure to be copied.
- *  Its allocator is used to copy memory into the new structure.
+ *   Its allocator is used to copy memory into the new structure.
  * \param[out] options_out An options structure containing default values.
  * \return `RCL_RET_OK` if the structure was copied successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or

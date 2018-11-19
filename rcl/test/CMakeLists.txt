@@ -61,6 +61,7 @@ function(test_target_function)
 
   rcl_add_custom_gtest(test_get_node_names${target_suffix}
     SRCS rcl/test_get_node_names.cpp
+    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
@@ -111,8 +112,8 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
   )
 
-  rcl_add_custom_gtest(test_rcl${target_suffix}
-    SRCS rcl/test_rcl.cpp
+  rcl_add_custom_gtest(test_init${target_suffix}
+    SRCS rcl/test_init.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools

@@ -30,6 +30,8 @@ typedef struct rcl_timer_impl_t
 {
   // The clock providing time.
   rcl_clock_t * clock;
+  // The associated context.
+  rcl_context_t * context;
   // A guard condition used to wake a wait set if using ROSTime, else zero initialized.
   rcl_guard_condition_t guard_condition;
   // The user supplied callback.
@@ -123,6 +125,7 @@ rcl_ret_t
 rcl_timer_init(
   rcl_timer_t * timer,
   rcl_clock_t * clock,
+  rcl_context_t * context,
   int64_t period,
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator)
@@ -147,10 +150,11 @@ rcl_timer_init(
   }
   rcl_timer_impl_t impl;
   impl.clock = clock;
+  impl.context = context;
   impl.guard_condition = rcl_get_zero_initialized_guard_condition();
   if (RCL_ROS_TIME == impl.clock->type) {
     rcl_guard_condition_options_t options = rcl_guard_condition_get_default_options();
-    rcl_ret_t ret = rcl_guard_condition_init(&(impl.guard_condition), options);
+    rcl_ret_t ret = rcl_guard_condition_init(&(impl.guard_condition), context, options);
     if (RCL_RET_OK != ret) {
       return ret;
     }

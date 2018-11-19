@@ -44,7 +44,7 @@ extern "C"
 #include "rmw/validate_node_name.h"
 
 #include "./common.h"
-
+#include "./context_impl.h"
 
 #define ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "ROS_SECURITY_NODE_DIRECTORY"
 #define ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "ROS_SECURITY_ROOT_DIRECTORY"
@@ -56,7 +56,6 @@ typedef struct rcl_node_impl_t
   rcl_node_options_t options;
   size_t actual_domain_id;
   rmw_node_t * rmw_node_handle;
-  uint64_t rcl_instance_id;
   rcl_guard_condition_t * graph_guard_condition;
   const char * logger_name;
 } rcl_node_impl_t;
@@ -192,6 +191,7 @@ rcl_node_init(
   rcl_node_t * node,
   const char * name,
   const char * namespace_,
+  rcl_context_t * context,
   const rcl_node_options_t * options)
 {
   size_t domain_id = 0;
@@ -218,8 +218,12 @@ rcl_node_init(
     return RCL_RET_ALREADY_INIT;
   }
   // Make sure rcl has been initialized.
-  if (!rcl_ok()) {
-    RCL_SET_ERROR_MSG("rcl_init() has not been called");
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    context, "given context in options is NULL", return RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_context_is_valid(context)) {
+    RCL_SET_ERROR_MSG(
+      "the given context is not valid, "
+      "either rcl_init() was not called or rcl_shutdown() was called.");
     return RCL_RET_NOT_INIT;
   }
   // Make sure the node name is valid before allocating memory.
@@ -277,6 +281,7 @@ rcl_node_init(
   node->impl->graph_guard_condition = NULL;
   node->impl->logger_name = NULL;
   node->impl->options = rcl_node_get_default_options();
+  node->context = context;
   // Initialize node impl.
   ret = rcl_node_options_copy(options, &(node->impl->options));
   if (RCL_RET_OK != ret) {
@@ -286,7 +291,7 @@ rcl_node_init(
   // Remap the node name and namespace if remap rules are given
   rcl_arguments_t * global_args = NULL;
   if (node->impl->options.use_global_arguments) {
-    global_args = rcl_get_global_arguments();
+    global_args = &(node->context->global_arguments);
   }
   ret = rcl_remap_node_name(
     &(node->impl->options.arguments), global_args, name, *allocator,
@@ -386,12 +391,11 @@ rcl_node_init(
     }
   }
   node->impl->rmw_node_handle = rmw_create_node(
+    &(node->context->impl->rmw_context),
     name, local_namespace_, domain_id, &node_security_options);
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
-  // instance id
-  node->impl->rcl_instance_id = rcl_get_instance_id();
   // graph guard condition
   rmw_graph_guard_condition = rmw_node_get_graph_guard_condition(node->impl->rmw_node_handle);
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -408,6 +412,7 @@ rcl_node_init(
   ret = rcl_guard_condition_init_from_rmw(
     node->impl->graph_guard_condition,
     rmw_graph_guard_condition,
+    context,
     graph_guard_condition_options);
   if (ret != RCL_RET_OK) {
     // error message already set
@@ -507,8 +512,8 @@ rcl_node_is_valid(const rcl_node_t * node)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(node, "rcl node pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "rcl node implementation is invalid", return false);
-  if (node->impl->rcl_instance_id != rcl_get_instance_id()) {
-    RCL_SET_ERROR_MSG("rcl node is invalid, rcl instance id does not match");
+  if (!rcl_context_is_valid(node->context)) {
+    RCL_SET_ERROR_MSG("rcl node's context is invalid");
     return false;
   }
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -572,9 +577,10 @@ rcl_node_get_namespace(const rcl_node_t * node)
 const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
-    return NULL;  // error already set
-  }
+  // Not using rcl_node_is_valid() since we can still get the
+  // options from an initialized node, even if it is invalid
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, 0);
+  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return 0);
   return &node->impl->options;
 }
 
@@ -606,7 +612,7 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node)
   // instance ID from an initialized node, even if it is invalid
   RCL_CHECK_ARGUMENT_FOR_NULL(node, 0);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return 0);
-  return node->impl->rcl_instance_id;
+  return rcl_context_get_instance_id(node->context);
 }
 
 const struct rcl_guard_condition_t *

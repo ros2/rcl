@@ -36,9 +36,6 @@ extern "C"
 {
 #endif
 
-// Instance of global arguments.
-static rcl_arguments_t __rcl_global_arguments;
-
 /// Parse an argument that may or may not be a remap rule.
 /**
  * \param[in] arg the argument to parse
@@ -508,14 +505,6 @@ rcl_arguments_fini(
   }
   RCL_SET_ERROR_MSG("rcl_arguments_t finalized twice");
   return RCL_RET_ERROR;
-}
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_arguments_t *
-rcl_get_global_arguments()
-{
-  return &__rcl_global_arguments;
 }
 
 /// Parses a fully qualified namespace for a namespace replacement rule (ex: `/foo/bar`)

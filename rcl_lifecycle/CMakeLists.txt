@@ -61,6 +61,7 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   find_package(rcl REQUIRED)
+  find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
   # Gtests
@@ -70,6 +71,7 @@ if(BUILD_TESTING)
   if(TARGET test_default_state_machine)
     target_include_directories(test_default_state_machine PUBLIC
       ${rcl_INCLUDE_DIRS}
+      ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     )
     target_link_libraries(test_default_state_machine ${PROJECT_NAME})
   endif()
@@ -79,6 +81,7 @@ if(BUILD_TESTING)
   if(TARGET test_multiple_instances)
     target_include_directories(test_multiple_instances PUBLIC
       ${rcl_INCLUDE_DIRS}
+      ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     )
     target_link_libraries(test_multiple_instances ${PROJECT_NAME})
   endif()

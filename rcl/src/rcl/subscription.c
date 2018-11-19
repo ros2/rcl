@@ -127,7 +127,7 @@ rcl_subscription_init(
   }
   rcl_arguments_t * global_args = NULL;
   if (node_options->use_global_arguments) {
-    global_args = rcl_get_global_arguments();
+    global_args = &(node->context->global_arguments);
   }
   ret = rcl_remap_topic_name(
     &(node_options->arguments), global_args, expanded_topic_name,

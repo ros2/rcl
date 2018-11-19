@@ -24,6 +24,8 @@ extern "C"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
+#include "./context_impl.h"
+
 typedef struct rcl_guard_condition_impl_t
 {
   rmw_guard_condition_t * rmw_handle;
@@ -42,6 +44,7 @@ rcl_ret_t
 __rcl_guard_condition_init_from_rmw_impl(
   rcl_guard_condition_t * guard_condition,
   const rmw_guard_condition_t * rmw_guard_condition,
+  rcl_context_t * context,
   const rcl_guard_condition_options_t options)
 {
   // This function will create an rmw_guard_condition if the parameter is null.
@@ -56,8 +59,11 @@ __rcl_guard_condition_init_from_rmw_impl(
     return RCL_RET_ALREADY_INIT;
   }
   // Make sure rcl has been initialized.
-  if (!rcl_ok()) {
-    RCL_SET_ERROR_MSG("rcl_init() has not been called");
+  RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_context_is_valid(context)) {
+    RCL_SET_ERROR_MSG(
+      "the given context is not valid, "
+      "either rcl_init() was not called or rcl_shutdown() was called.");
     return RCL_RET_NOT_INIT;
   }
   // Allocate space for the guard condition impl.
@@ -74,7 +80,7 @@ __rcl_guard_condition_init_from_rmw_impl(
     guard_condition->impl->allocated_rmw_guard_condition = false;
   } else {
     // Otherwise create one.
-    guard_condition->impl->rmw_handle = rmw_create_guard_condition();
+    guard_condition->impl->rmw_handle = rmw_create_guard_condition(&(context->impl->rmw_context));
     if (!guard_condition->impl->rmw_handle) {
       // Deallocate impl and exit.
       allocator->deallocate(guard_condition->impl, allocator->state);
@@ -91,19 +97,22 @@ __rcl_guard_condition_init_from_rmw_impl(
 rcl_ret_t
 rcl_guard_condition_init(
   rcl_guard_condition_t * guard_condition,
+  rcl_context_t * context,
   const rcl_guard_condition_options_t options)
 {
   // NULL indicates "create a new rmw guard condition".
-  return __rcl_guard_condition_init_from_rmw_impl(guard_condition, NULL, options);
+  return __rcl_guard_condition_init_from_rmw_impl(guard_condition, NULL, context, options);
 }
 
 rcl_ret_t
 rcl_guard_condition_init_from_rmw(
   rcl_guard_condition_t * guard_condition,
   const rmw_guard_condition_t * rmw_guard_condition,
+  rcl_context_t * context,
   const rcl_guard_condition_options_t options)
 {
-  return __rcl_guard_condition_init_from_rmw_impl(guard_condition, rmw_guard_condition, options);
+  return __rcl_guard_condition_init_from_rmw_impl(
+    guard_condition, rmw_guard_condition, context, options);
 }
 
 rcl_ret_t

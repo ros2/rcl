@@ -81,15 +81,36 @@ int main(int argc, char ** argv)
 {
   int main_ret = 0;
   {
-    if (rcl_init(argc, argv, rcl_get_default_allocator()) != RCL_RET_OK) {
+    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+    rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+    if (RCL_RET_OK != ret) {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in rcl init options init: %s", rcl_get_error_string().str);
+      return -1;
+    }
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    if (rcl_init(argc, argv, &init_options, &context) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in rcl init: %s", rcl_get_error_string().str);
       return -1;
     }
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      if (rcl_shutdown(&context) != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error shutting down rcl: %s", rcl_get_error_string().str);
+        main_ret = -1;
+      }
+      if (rcl_context_fini(&context) != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error finalizing rcl context: %s", rcl_get_error_string().str);
+        main_ret = -1;
+      }
+    });
+    ret = rcl_init_options_fini(&init_options);
     rcl_node_t node = rcl_get_zero_initialized_node();
     const char * name = "service_fixture_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    if (rcl_node_init(&node, name, "", &node_options) != RCL_RET_OK) {
+    if (rcl_node_init(&node, name, "", &context, &node_options) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in node init: %s", rcl_get_error_string().str);
       return -1;
@@ -108,7 +129,7 @@ int main(int argc, char ** argv)
 
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(&service, &node, ts, service_name, &service_options);
+    ret = rcl_service_init(&service, &node, ts, service_name, &service_options);
     if (ret != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in service init: %s", rcl_get_error_string().str);

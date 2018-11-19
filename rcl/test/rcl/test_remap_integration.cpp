@@ -50,7 +50,9 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t default_options = rcl_node_get_default_options();
-  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/original_ns", &default_options));
+  ASSERT_EQ(
+    RCL_RET_OK,
+    rcl_node_init(&node, "original_name", "/original_ns", &context, &default_options));
 
   {  // Node name gets remapped
     EXPECT_STREQ("new_name", rcl_node_get_name(&node));
@@ -118,7 +120,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
   rcl_node_options_t options = rcl_node_get_default_options();
   options.use_global_arguments = false;
   options.arguments = local_arguments;
-  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/original_ns", &options));
+  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/original_ns", &context, &options));
 
   {  // Node name does not get remapped
     EXPECT_STREQ("original_name", rcl_node_get_name(&node));
@@ -187,7 +189,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t options = rcl_node_get_default_options();
   options.arguments = local_arguments;
-  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/original_ns", &options));
+  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/original_ns", &context, &options));
 
   {  // Node name
     EXPECT_STREQ("local_name", rcl_node_get_name(&node));
@@ -250,7 +252,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t default_options = rcl_node_get_default_options();
-  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/foo", &default_options));
+  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "/foo", &context, &default_options));
 
   {  // Publisher topic
     const rosidl_message_type_support_t * ts =
@@ -305,7 +307,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_n
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t default_options = rcl_node_get_default_options();
-  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "", &default_options));
+  ASSERT_EQ(RCL_RET_OK, rcl_node_init(&node, "original_name", "", &context, &default_options));
 
   {  // Node namespace gets remapped
     EXPECT_STREQ("/new_ns", rcl_node_get_namespace(&node));
