@@ -30,12 +30,16 @@ extern "C"
  * This function will add the underlying service clients and subscribers to the wait set.
  *
  * This function behaves similar to adding subscriptions to the wait set, but will add
- * five elements:
+ * five entities:
  *
  * - Three service clients
- * - Two subscribers
+ * - Two subscriptions
  *
  * \see rcl_wait_set_add_subscription
+ *
+ * If this function fails for any reason, `client_index` and `subscription_index` are not set.
+ * It is also possible the provided wait set is left in an inconsistent state (e.g. some
+ * of the clients and subscriptions were added to the wait set, but not all).
  *
  * <hr>
  * Attribute          | Adherence
@@ -48,6 +52,12 @@ extern "C"
  * \param[inout] wait_set struct where action client service client and subscription
  *   are to be stored
  * \param[in] action_client the action client to be added to the wait set
+ * \param[out] client_index the starting index in the wait set's client container where
+ *   the action clients underlying service clients were added. Optionally, set to `NULL`
+ *   if ignored.
+ * \param[out] subscription_index the starting index in the wait set's subscription container
+ *   where the action clients underlying subscriptions were added. Optionally, set to `NULL`
+ *   if ignored.
  * \return `RCL_RET_OK` if added successfully, or
  * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is zero initialized, or
  * \return `RCL_RET_WAIT_SET_FULL` if the subscription set is full, or
@@ -59,7 +69,9 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_wait_set_add_action_client(
   rcl_wait_set_t * wait_set,
-  const rcl_action_client_t * action_client);
+  const rcl_action_client_t * action_client,
+  size_t * client_index,
+  size_t * subscription_index);
 
 /// Add a rcl_action_server_t to a wait set.
 /**
@@ -70,6 +82,10 @@ rcl_action_wait_set_add_action_client(
  *
  * \see rcl_wait_set_add_service
  *
+ * * If this function fails for any reason, `service_index` is not set.
+ * It is also possible the provided wait set is left in an inconsistent state (e.g. some
+ * of the clients and subscribers were added to the wait set, but not all).
+
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -80,6 +96,9 @@ rcl_action_wait_set_add_action_client(
  *
  * \param[inout] wait_set struct where action server services are to be stored
  * \param[in] action_server the action server to be added to the wait set
+ * \param[out] service_index the starting index in the wait set's service container where
+ *   the action servers underlying services were added. Optionally, set to `NULL`
+ *   if ignored.
  * \return `RCL_RET_OK` if added successfully, or
  * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is zero initialized, or
  * \return `RCL_RET_WAIT_SET_FULL` if the subscription set is full, or
@@ -91,7 +110,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_wait_set_add_action_server(
   rcl_wait_set_t * wait_set,
-  const rcl_action_server_t * action_server);
+  const rcl_action_server_t * action_server,
+  size_t * service_index);
 
 /// Get the number of wait set entities associated with a rcl_action_client_t.
 /**
@@ -179,6 +199,7 @@ rcl_action_server_wait_set_get_num_entities(
  * to call: rcl_action_take_feedback(), rcl_action_take_status(),
  * rcl_action_take_goal_response(), rcl_action_take_cancel_response(), or
  * rcl_action_take_result_response().
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -199,8 +220,7 @@ rcl_action_server_wait_set_get_num_entities(
  * \param[out] is_result_response_ready `true` if there is a result response message ready
  *   to take, `false` otherwise
  * \return `RCL_RET_OK` if call is successful, or
- * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is zero initialized or not used
- *   for the action client alone, or
+ * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -222,6 +242,7 @@ rcl_action_client_wait_set_get_entities_ready(
  * The caller can use this function to determine the relevant action server functions
  * to call: rcl_action_take_goal_request(), rcl_action_take_cancel_request(), or
  * rcl_action_take_result_request().
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -238,6 +259,7 @@ rcl_action_client_wait_set_get_entities_ready(
  * \param[out] is_result_request_ready `true` if there is a result request message ready
  *   to take, `false` otherwise
  * \return `RCL_RET_OK` if call is successful, or
+ * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action server is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
