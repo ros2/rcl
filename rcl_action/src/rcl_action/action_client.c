@@ -46,6 +46,12 @@ typedef struct rcl_action_client_impl_t
   rcl_subscription_t status_subscription;
   rcl_action_client_options_t options;
   char * action_name;
+  // Wait set records
+  size_t wait_set_goal_client_index;
+  size_t wait_set_cancel_client_index;
+  size_t wait_set_result_client_index;
+  size_t wait_set_feedback_subscription_index;
+  size_t wait_set_status_subscription_index;
 } rcl_action_client_impl_t;
 
 rcl_action_client_t
@@ -409,38 +415,64 @@ rcl_action_client_is_valid(const rcl_action_client_t * action_client)
 rcl_ret_t
 rcl_action_wait_set_add_action_client(
   rcl_wait_set_t * wait_set,
-  const rcl_action_client_t * action_client)
+  const rcl_action_client_t * action_client,
+  size_t * client_index,
+  size_t * subscription_index)
 {
   rcl_ret_t ret;
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;  // error already set
   }
+
   // Wait on action goal service response messages.
-  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->goal_client);
+  ret = rcl_wait_set_add_client(
+    wait_set,
+    &action_client->impl->goal_client,
+    &action_client->impl->wait_set_goal_client_index);
   if (RCL_RET_OK != ret) {
     return ret;
   }
   // Wait on action cancel service response messages.
-  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->cancel_client);
+  ret = rcl_wait_set_add_client(
+    wait_set,
+    &action_client->impl->cancel_client,
+    &action_client->impl->wait_set_cancel_client_index);
   if (RCL_RET_OK != ret) {
     return ret;
   }
   // Wait on action result service response messages.
-  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->result_client);
+  ret = rcl_wait_set_add_client(
+    wait_set,
+    &action_client->impl->result_client,
+    &action_client->impl->wait_set_result_client_index);
   if (RCL_RET_OK != ret) {
     return ret;
   }
   // Wait on action feedback messages.
-  ret = rcl_wait_set_add_subscription(wait_set, &action_client->impl->feedback_subscription);
+  ret = rcl_wait_set_add_subscription(
+    wait_set,
+    &action_client->impl->feedback_subscription,
+    &action_client->impl->wait_set_feedback_subscription_index);
   if (RCL_RET_OK != ret) {
     return ret;
   }
-  return RCL_RET_OK;
   // Wait on action status messages.
-  ret = rcl_wait_set_add_subscription(wait_set, &action_client->impl->status_subscription);
+  ret = rcl_wait_set_add_subscription(
+    wait_set,
+    &action_client->impl->status_subscription,
+    &action_client->impl->wait_set_status_subscription_index);
   if (RCL_RET_OK != ret) {
     return ret;
+  }
+
+  if (NULL != client_index) {
+    // The goal client was the first added
+    *client_index = action_client->impl->wait_set_goal_client_index;
+  }
+  if (NULL != subscription_index) {
+    // The feedback subscription was the first added
+    *subscription_index = action_client->impl->wait_set_feedback_subscription_index;
   }
   return RCL_RET_OK;
 }
@@ -480,6 +512,7 @@ rcl_action_client_wait_set_get_entities_ready(
   bool * is_cancel_response_ready,
   bool * is_result_response_ready)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;  // error already set
   }
@@ -488,18 +521,46 @@ rcl_action_client_wait_set_get_entities_ready(
   RCL_CHECK_ARGUMENT_FOR_NULL(is_goal_response_ready, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_cancel_response_ready, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_result_response_ready, RCL_RET_INVALID_ARGUMENT);
-  if (2 != wait_set->size_of_subscriptions || 3 != wait_set->size_of_clients) {
-    RCL_SET_ERROR_MSG("wait set not initialized or not used by the action client alone");
-    return RCL_RET_WAIT_SET_INVALID;
+
+  const rcl_action_client_impl_t * impl = action_client->impl;
+  const size_t feedback_index = impl->wait_set_feedback_subscription_index;
+  const size_t status_index = impl->wait_set_status_subscription_index;
+  const size_t goal_index = impl->wait_set_goal_client_index;
+  const size_t cancel_index = impl->wait_set_cancel_client_index;
+  const size_t result_index = impl->wait_set_result_client_index;
+  if (feedback_index >= wait_set->size_of_subscriptions) {
+    RCL_SET_ERROR_MSG("wait set index for feedback subscription is out of bounds");
+    return RCL_RET_ERROR;
   }
-  *is_feedback_ready = !!wait_set->subscriptions[0];
-  *is_status_ready = !!wait_set->subscriptions[1];
-  *is_goal_response_ready = !!wait_set->clients[0];
-  *is_cancel_response_ready = !!wait_set->clients[1];
-  *is_result_response_ready = !!wait_set->clients[2];
+  if (status_index >= wait_set->size_of_subscriptions) {
+    RCL_SET_ERROR_MSG("wait set index for status subscription is out of bounds");
+    return RCL_RET_ERROR;
+  }
+  if (goal_index >= wait_set->size_of_clients) {
+    RCL_SET_ERROR_MSG("wait set index for goal client is out of bounds");
+    return RCL_RET_ERROR;
+  }
+  if (cancel_index >= wait_set->size_of_clients) {
+    RCL_SET_ERROR_MSG("wait set index for cancel client is out of bounds");
+    return RCL_RET_ERROR;
+  }
+  if (result_index >= wait_set->size_of_clients) {
+    RCL_SET_ERROR_MSG("wait set index for result client is out of bounds");
+    return RCL_RET_ERROR;
+  }
+
+  const rcl_subscription_t * feedback_subscription = wait_set->subscriptions[feedback_index];
+  const rcl_subscription_t * status_subscription = wait_set->subscriptions[status_index];
+  const rcl_client_t * goal_client = wait_set->clients[goal_index];
+  const rcl_client_t * cancel_client = wait_set->clients[cancel_index];
+  const rcl_client_t * result_client = wait_set->clients[result_index];
+  *is_feedback_ready = (&impl->feedback_subscription == feedback_subscription);
+  *is_status_ready = (&impl->status_subscription == status_subscription);
+  *is_goal_response_ready = (&impl->goal_client == goal_client);
+  *is_cancel_response_ready = (&impl->cancel_client == cancel_client);
+  *is_result_response_ready = (&impl->result_client == result_client);
   return RCL_RET_OK;
 }
-
 
 #ifdef __cplusplus
 }
