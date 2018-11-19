@@ -104,7 +104,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
   ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
+  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_clock_t clock;
@@ -115,7 +115,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
   ret = rcl_timer_init(&timer, &clock, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_timer(&wait_set, &timer);
+  ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
@@ -148,7 +148,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
   rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
   ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
+  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
@@ -178,7 +178,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_triggered
   rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
   ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
+  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rcl_trigger_guard_condition(&guard_cond);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -211,7 +211,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
   ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
+  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_clock_t clock;
@@ -225,7 +225,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rcl_timer_cancel(&canceled_timer);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_timer(&wait_set, &canceled_timer);
+  ret = rcl_wait_set_add_timer(&wait_set, &canceled_timer, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
@@ -293,7 +293,8 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
               rcl_ret_t ret;
               ret = rcl_wait_set_clear(&test_set.wait_set);
               EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-              ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition);
+              ret = rcl_wait_set_add_guard_condition(
+                &test_set.wait_set, &test_set.guard_condition, NULL);
               EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
               ret = rcl_wait(&test_set.wait_set, wait_period);
               if (ret != RCL_RET_TIMEOUT) {
@@ -339,7 +340,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     test_set.wait_set = rcl_get_zero_initialized_wait_set();
     ret = rcl_wait_set_init(&test_set.wait_set, 0, 1, 0, 0, 0, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition);
+    ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition, NULL);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     test_set.thread_id = 0;
   }
@@ -399,7 +400,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
   ret = rcl_guard_condition_init(&guard_cond, rcl_guard_condition_get_default_options());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond);
+  ret = rcl_wait_set_add_guard_condition(&wait_set, &guard_cond, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
@@ -434,4 +435,29 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   trigger_thread.join();
   EXPECT_EQ(RCL_RET_OK, f.get());
   EXPECT_LE(std::abs(diff - trigger_diff.count()), TOLERANCE);
+}
+
+// Check that index arguments are properly set when adding entities
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), add_with_index) {
+  const size_t kNumEntities = 3u;
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(
+    &wait_set, 0, kNumEntities, 0, 0, 0, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Initialize to invalid value
+  size_t guard_condition_index = 42u;
+
+  rcl_guard_condition_t guard_conditions[kNumEntities];
+  for (size_t i = 0u; i < kNumEntities; ++i) {
+    guard_conditions[i] = rcl_get_zero_initialized_guard_condition();
+    ret = rcl_guard_condition_init(
+      &guard_conditions[i], rcl_guard_condition_get_default_options());
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(
+      &wait_set, &guard_conditions[i], &guard_condition_index);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_EQ(guard_condition_index, i);
+    EXPECT_EQ(&guard_conditions[i], wait_set.guard_conditions[i]);
+  }
 }

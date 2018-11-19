@@ -196,6 +196,8 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
  *
  * \param[inout] wait_set struct in which the subscription is to be stored
  * \param[in] subscription the subscription to be added to the wait set
+ * \param[out] index the index of the added subscription in the storage container.
+ *   This parameter is optional and can be set to `NULL` to be ignored.
  * \return `RCL_RET_OK` if added successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is zero initialized, or
@@ -207,7 +209,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_add_subscription(
   rcl_wait_set_t * wait_set,
-  const rcl_subscription_t * subscription);
+  const rcl_subscription_t * subscription,
+  size_t * index);
 
 /// Remove (sets to `NULL`) all entities in the wait set.
 /**
@@ -295,7 +298,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_add_guard_condition(
   rcl_wait_set_t * wait_set,
-  const rcl_guard_condition_t * guard_condition);
+  const rcl_guard_condition_t * guard_condition,
+  size_t * index);
 
 /// Store a pointer to the timer in the next empty spot in the set.
 /**
@@ -307,7 +311,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_add_timer(
   rcl_wait_set_t * wait_set,
-  const rcl_timer_t * timer);
+  const rcl_timer_t * timer,
+  size_t * index);
 
 /// Store a pointer to the client in the next empty spot in the set.
 /**
@@ -319,7 +324,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_add_client(
   rcl_wait_set_t * wait_set,
-  const rcl_client_t * client);
+  const rcl_client_t * client,
+  size_t * index);
 
 /// Store a pointer to the service in the next empty spot in the set.
 /**
@@ -331,7 +337,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait_set_add_service(
   rcl_wait_set_t * wait_set,
-  const rcl_service_t * service);
+  const rcl_service_t * service,
+  size_t * index);
 
 /// Block until the wait set is ready or until the timeout has been exceeded.
 /**

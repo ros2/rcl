@@ -287,7 +287,7 @@ check_graph_state(
     }
     ret = rcl_wait_set_clear(wait_set_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_guard_condition(wait_set_ptr, graph_guard_condition);
+    ret = rcl_wait_set_add_guard_condition(wait_set_ptr, graph_guard_condition, NULL);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
     RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME,
@@ -446,7 +446,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
     ret = rcl_wait_set_clear(this->wait_set_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
+    ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition, NULL);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
     RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME,
@@ -504,7 +504,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
         }
         rcl_ret_t ret = rcl_wait_set_clear(this->wait_set_ptr);
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-        ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition);
+        ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition, NULL);
         ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
         RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME,
           "waiting up to '%s' nanoseconds for graph changes",

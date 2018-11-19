@@ -80,7 +80,7 @@ wait_for_service_to_be_ready(
     ++iteration;
     ret = rcl_wait_set_clear(&wait_set);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_service(&wait_set, service);
+    ret = rcl_wait_set_add_service(&wait_set, service, NULL);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
     if (ret == RCL_RET_TIMEOUT) {

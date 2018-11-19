@@ -55,7 +55,7 @@ wait_for_service_to_be_ready(
         ROS_PACKAGE_NAME, "Error in wait_set_clear: %s", rcl_get_error_string().str);
       return false;
     }
-    if (rcl_wait_set_add_service(&wait_set, service) != RCL_RET_OK) {
+    if (rcl_wait_set_add_service(&wait_set, service, NULL) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in wait_set_add_service: %s", rcl_get_error_string().str);
       return false;
