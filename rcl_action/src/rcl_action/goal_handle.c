@@ -39,7 +39,7 @@ rcl_action_get_zero_initialized_goal_handle(void)
 rcl_ret_t
 rcl_action_goal_handle_init(
   rcl_action_goal_handle_t * goal_handle,
-  rcl_action_goal_info_t * goal_info,
+  const rcl_action_goal_info_t * goal_info,
   rcl_allocator_t allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
