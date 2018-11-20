@@ -22,16 +22,23 @@ extern "C"
 #include <stdbool.h>
 
 #include "./context_impl.h"
+#include "rcutils/stdatomic_helper.h"
 
 rcl_context_t
 rcl_get_zero_initialized_context(void)
 {
   static rcl_context_t context = {
     .impl = NULL,
-    .do_not_access_this_directly__instance_id_ = ATOMIC_VAR_INIT(0),
+    .instance_id_storage = {0},
   };
   // this is not constexpr so it cannot be in the struct initialization
   context.global_arguments = rcl_get_zero_initialized_arguments();
+  // ensure assumption about static storage
+  static_assert(
+    sizeof(context.instance_id_storage) >= sizeof(atomic_uint_least64_t),
+    "expected rcl_context_t's instance id storage to be >= size of atomic_uint_least64_t");
+  // initialize atomic
+  *((atomic_uint_least64_t *)(&context.instance_id_storage)) = ATOMIC_VAR_INIT(0);
   return context;
 }
 
@@ -65,7 +72,7 @@ rcl_context_instance_id_t
 rcl_context_get_instance_id(rcl_context_t * context)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(context, 0);
-  return rcutils_atomic_load_uint64_t(&(context->do_not_access_this_directly__instance_id_));
+  return rcutils_atomic_load_uint64_t((atomic_uint_least64_t *)(&context->instance_id_storage));
 }
 
 bool
@@ -84,7 +91,7 @@ __cleanup_context(rcl_context_t * context)
   }
 
   // reset the instance id to 0 to indicate "invalid" (should already be 0, but this is defensive)
-  rcutils_atomic_store(&(context->do_not_access_this_directly__instance_id_), 0);
+  rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), 0);
 
   // clean up global_arguments if initialized
   if (NULL != context->global_arguments.impl) {

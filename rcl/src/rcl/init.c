@@ -115,15 +115,15 @@ rcl_init(
   }
 
   // Set the instance id.
-  context->do_not_access_this_directly__instance_id_ =
-    rcutils_atomic_fetch_add_uint64_t(&__rcl_next_unique_id, 1);
-  if (0 == context->do_not_access_this_directly__instance_id_) {
+  uint64_t next_instance_id = rcutils_atomic_fetch_add_uint64_t(&__rcl_next_unique_id, 1);
+  if (0 == next_instance_id) {
     // Roll over occurred, this is an extremely unlikely occurrence.
     RCL_SET_ERROR_MSG("unique rcl instance ids exhausted");
     // Roll back to try to avoid the next call succeeding, but there's a data race here.
     rcutils_atomic_store(&__rcl_next_unique_id, -1);
     goto fail;
   }
+  rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), next_instance_id);
 
   // Initialize rmw_init.
   context->impl->rmw_context = rmw_get_zero_initialized_context();
@@ -157,7 +157,7 @@ rcl_shutdown(rcl_context_t * context)
   }
 
   // reset the instance id to 0 to indicate "invalid"
-  rcutils_atomic_store(&(context->do_not_access_this_directly__instance_id_), 0);
+  rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), 0);
 
   return RCL_RET_OK;
 }
