@@ -18,9 +18,9 @@
 TEST(TestActionTypes, test_get_zero_inititalized_goal_info)
 {
   rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
-  ASSERT_EQ(sizeof(goal_info.uuid) / sizeof(uint8_t), 16u);
+  ASSERT_EQ(sizeof(goal_info.goal_id.uuid) / sizeof(uint8_t), 16u);
   for (int i = 0; i < 16; ++i) {
-    EXPECT_EQ(goal_info.uuid[i], 0u);
+    EXPECT_EQ(goal_info.goal_id.uuid[i], 0u);
   }
   EXPECT_EQ(goal_info.stamp.sec, 0);
   EXPECT_EQ(goal_info.stamp.nanosec, 0u);
@@ -28,14 +28,14 @@ TEST(TestActionTypes, test_get_zero_inititalized_goal_info)
   // Modify the first and get another zero initialized goal info struct
   // to confirm they are independent objects
   for (int i = 0; i < 16; ++i) {
-    goal_info.uuid[i] = static_cast<uint8_t>(i);
+    goal_info.goal_id.uuid[i] = static_cast<uint8_t>(i);
   }
   goal_info.stamp.sec = 1234;
   goal_info.stamp.nanosec = 4567u;
   rcl_action_goal_info_t another_goal_info = rcl_action_get_zero_initialized_goal_info();
   for (int i = 0; i < 16; ++i) {
-    EXPECT_EQ(goal_info.uuid[i], i);
-    EXPECT_EQ(another_goal_info.uuid[i], 0u);
+    EXPECT_EQ(goal_info.goal_id.uuid[i], i);
+    EXPECT_EQ(another_goal_info.goal_id.uuid[i], 0u);
   }
   EXPECT_EQ(goal_info.stamp.sec, 1234);
   EXPECT_EQ(goal_info.stamp.nanosec, 4567u);
@@ -54,9 +54,9 @@ TEST(TestActionTypes, test_get_zero_initialized_goal_status_array)
 TEST(TestActionTypes, test_get_zero_inititalized_cancel_request)
 {
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  ASSERT_EQ(sizeof(cancel_request.goal_info.uuid) / sizeof(uint8_t), 16u);
+  ASSERT_EQ(sizeof(cancel_request.goal_info.goal_id.uuid) / sizeof(uint8_t), 16u);
   for (int i = 0; i < 16; ++i) {
-    EXPECT_EQ(cancel_request.goal_info.uuid[i], 0u);
+    EXPECT_EQ(cancel_request.goal_info.goal_id.uuid[i], 0u);
   }
   EXPECT_EQ(cancel_request.goal_info.stamp.sec, 0);
   EXPECT_EQ(cancel_request.goal_info.stamp.nanosec, 0u);
