@@ -23,6 +23,7 @@ extern "C"
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/names.h"
 #include "rcl_action/types.h"
+#include "rcl_action/wait.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
@@ -48,6 +49,10 @@ typedef struct rcl_action_server_impl_t
   size_t num_goal_handles;
   // Clock
   rcl_clock_t clock;
+  // Wait set records
+  size_t wait_set_goal_service_index;
+  size_t wait_set_cancel_service_index;
+  size_t wait_set_result_service_index;
 } rcl_action_server_impl_t;
 
 rcl_action_server_t
@@ -781,6 +786,97 @@ rcl_action_server_is_valid(const rcl_action_server_t * action_server)
     return false;
   }
   return true;
+}
+
+rcl_ret_t
+rcl_action_wait_set_add_action_server(
+  rcl_wait_set_t * wait_set,
+  const rcl_action_server_t * action_server,
+  size_t * service_index)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;  // error already set
+  }
+
+  rcl_ret_t ret = rcl_wait_set_add_service(
+    wait_set,
+    &action_server->impl->goal_service,
+    &action_server->impl->wait_set_goal_service_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  ret = rcl_wait_set_add_service(
+    wait_set,
+    &action_server->impl->cancel_service,
+    &action_server->impl->wait_set_cancel_service_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  ret = rcl_wait_set_add_service(
+    wait_set,
+    &action_server->impl->result_service,
+    &action_server->impl->wait_set_result_service_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  if (NULL != service_index) {
+    // The goal service was the first added
+    *service_index = action_server->impl->wait_set_goal_service_index;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_action_server_wait_set_get_num_entities(
+  const rcl_action_server_t * action_server,
+  size_t * num_subscriptions,
+  size_t * num_guard_conditions,
+  size_t * num_timers,
+  size_t * num_clients,
+  size_t * num_services)
+{
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_subscriptions, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_guard_conditions, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_timers, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_clients, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(num_services, RCL_RET_INVALID_ARGUMENT);
+  *num_subscriptions = 0u;
+  *num_guard_conditions = 0u;
+  *num_timers = 0u;
+  *num_clients = 0u;
+  *num_services = 3u;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_action_server_wait_set_get_entities_ready(
+  const rcl_wait_set_t * wait_set,
+  const rcl_action_server_t * action_server,
+  bool * is_goal_request_ready,
+  bool * is_cancel_request_ready,
+  bool * is_result_request_ready)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_goal_request_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_cancel_request_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_result_request_ready, RCL_RET_INVALID_ARGUMENT);
+
+  const rcl_action_server_impl_t * impl = action_server->impl;
+  const rcl_service_t * goal_service = wait_set->services[impl->wait_set_goal_service_index];
+  const rcl_service_t * cancel_service = wait_set->services[impl->wait_set_cancel_service_index];
+  const rcl_service_t * result_service = wait_set->services[impl->wait_set_result_service_index];
+  *is_goal_request_ready = (&impl->goal_service == goal_service);
+  *is_cancel_request_ready = (&impl->cancel_service == cancel_service);
+  *is_result_request_ready = (&impl->result_service == result_service);
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus
