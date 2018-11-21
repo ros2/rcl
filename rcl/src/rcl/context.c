@@ -38,7 +38,7 @@ rcl_get_zero_initialized_context(void)
     sizeof(context.instance_id_storage) >= sizeof(atomic_uint_least64_t),
     "expected rcl_context_t's instance id storage to be >= size of atomic_uint_least64_t");
   // initialize atomic
-  *((atomic_uint_least64_t *)(&context.instance_id_storage)) = ATOMIC_VAR_INIT(0);
+  atomic_init((atomic_uint_least64_t *)(&context.instance_id_storage), 0);
   return context;
 }
 
