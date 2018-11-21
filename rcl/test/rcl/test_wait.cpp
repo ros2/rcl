@@ -470,7 +470,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), add_with_index) {
   for (size_t i = 0u; i < kNumEntities; ++i) {
     guard_conditions[i] = rcl_get_zero_initialized_guard_condition();
     ret = rcl_guard_condition_init(
-      &guard_conditions[i], rcl_guard_condition_get_default_options());
+      &guard_conditions[i], this->context_ptr, rcl_guard_condition_get_default_options());
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_wait_set_add_guard_condition(
       &wait_set, &guard_conditions[i], &guard_condition_index);
