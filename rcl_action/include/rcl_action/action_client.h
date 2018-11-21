@@ -264,6 +264,7 @@ rcl_action_client_get_default_options(void);
  *
  * \param[in] action_client handle to the client that will make the goal request
  * \param[in] ros_goal_request pointer to the ROS goal message
+ * \param[out] sequence_number pointer to the goal request sequence number
  * \return `RCL_RET_OK` if the request was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the client is invalid, or
@@ -274,7 +275,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_request(
   const rcl_action_client_t * action_client,
-  const void * ros_goal_request);
+  const void * ros_goal_request,
+  int64_t * sequence_number);
 
 /// Take a response for a goal request from an action server using a rcl_action_client_t.
 /**
@@ -306,6 +308,7 @@ rcl_action_send_goal_request(
  * Lock-Free          | Yes
  *
  * \param[in] action_client handle to the client that will take the goal response
+ * \param[out] response_header pointer to the goal response header
  * \param[out] ros_goal_response pointer to the response of a goal request
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -319,6 +322,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_response(
   const rcl_action_client_t * action_client,
+  rmw_request_id_t * response_header,
   void * ros_goal_response);
 
 /// Take a ROS feedback message for an active goal associated with a rcl_action_client_t.
@@ -450,6 +454,7 @@ rcl_action_take_status(
 
  * \param[in] action_client handle to the client that will send the result request
  * \param[in] ros_result_request pointer to a ROS result request message
+ * \param[out] sequence_number pointer to the result request sequence number
  * \return `RCL_RET_OK` if the request was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
@@ -460,7 +465,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_result_request(
   const rcl_action_client_t * action_client,
-  const void * ros_result_request);
+  const void * ros_result_request,
+  int64_t * sequence_number);
 
 /// Take a ROS result message for a completed goal associated with a rcl_action_client_t.
 /**
@@ -497,6 +503,7 @@ rcl_action_send_result_request(
  * <i>[1] only if required when filling the result response message, avoided for fixed sizes</i>
  *
  * \param[in] action_client handle to the client that will take the result response
+ * \param[out] response_header pointer to the result response header
  * \param[out] ros_result_response preallocated, zero-initialized, struct where the ROS
  *   result message is copied.
  * \return `RCL_RET_OK` if the response was taken successfully, or
@@ -512,6 +519,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_result_response(
   const rcl_action_client_t * action_client,
+  rmw_request_id_t * response_header,
   void * ros_result);
 
 /// Send a cancel request for a goal using a rcl_action_client_t.
@@ -544,6 +552,7 @@ rcl_action_take_result_response(
  *
  * \param[in] action_client handle to the client that will make the cancel request
  * \param[in] ros_cancel_request pointer the ROS cancel request message
+ * \param[out] sequence_number pointer to the cancel request sequence number
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
@@ -554,7 +563,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_request(
   const rcl_action_client_t * action_client,
-  const void * ros_cancel_request);
+  const void * ros_cancel_request,
+  int64_t * sequence_number);
 
 /// Take a cancel response using a rcl_action_client_t.
 /**
@@ -585,6 +595,7 @@ rcl_action_send_cancel_request(
  * Lock-Free          | Yes
  *
  * \param[in] action_client handle to the client that will take the cancel response
+ * \param[out] request_header pointer to the cancel response header
  * \param[out] ros_cancel_response a zero-initialized ROS cancel response message where
  *   the cancel response is copied.
  * \return `RCL_RET_OK` if the response was taken successfully, or
@@ -600,6 +611,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_cancel_response(
   const rcl_action_client_t * action_client,
+  rmw_request_id_t * response_header,
   void * ros_cancel_response);
 
 /// Get the name of the action for a rcl_action_client_t.

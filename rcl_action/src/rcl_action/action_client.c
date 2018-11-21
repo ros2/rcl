@@ -240,15 +240,15 @@ rcl_action_client_get_default_options(void)
 }
 
 // \internal Sends an action client specific service request.
-#define SEND_SERVICE_REQUEST(Type) \
+#define SEND_SERVICE_REQUEST(Type, request, sequence_number) \
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending action " #Type " request"); \
   if (!rcl_action_client_is_valid(action_client)) { \
     return RCL_RET_ACTION_SERVER_INVALID;  /* error already set */ \
   } \
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type ## _request, RCL_RET_INVALID_ARGUMENT); \
-  int64_t sequence_number;  /* ignored */ \
+  RCL_CHECK_ARGUMENT_FOR_NULL(request, RCL_RET_INVALID_ARGUMENT); \
+  RCL_CHECK_ARGUMENT_FOR_NULL(sequence_number, RCL_RET_INVALID_ARGUMENT); \
   rcl_ret_t ret = rcl_send_request( \
-    &action_client->impl->Type ## _client, ros_ ## Type ## _request, &sequence_number); \
+    &action_client->impl->Type ## _client, request, sequence_number); \
   if (RCL_RET_OK != ret) { \
     return RCL_RET_ERROR;  /* error already set */ \
   } \
@@ -256,15 +256,15 @@ rcl_action_client_get_default_options(void)
   return RCL_RET_OK;
 
 // \internal Takes an action client specific service response.
-#define TAKE_SERVICE_RESPONSE(Type) \
+#define TAKE_SERVICE_RESPONSE(Type, response_header, response) \
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action " #Type " response"); \
   if (!rcl_action_client_is_valid(action_client)) { \
     return RCL_RET_ACTION_SERVER_INVALID;  /* error already set */ \
   } \
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type ## _response, RCL_RET_INVALID_ARGUMENT); \
-  rmw_request_id_t request_header;  /* ignored */ \
+  RCL_CHECK_ARGUMENT_FOR_NULL(response_header, RCL_RET_INVALID_ARGUMENT); \
+  RCL_CHECK_ARGUMENT_FOR_NULL(response, RCL_RET_INVALID_ARGUMENT); \
   rcl_ret_t ret = rcl_take_response( \
-    &action_client->impl->Type ## _client, &request_header, ros_ ## Type ## _response); \
+    &action_client->impl->Type ## _client, response_header, response); \
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_BAD_ALLOC == ret) { \
       return RCL_RET_BAD_ALLOC;  /* error already set */ \
@@ -281,49 +281,55 @@ rcl_action_client_get_default_options(void)
 rcl_ret_t
 rcl_action_send_goal_request(
   const rcl_action_client_t * action_client,
-  const void * ros_goal_request)
+  const void * ros_goal_request,
+  int64_t * sequence_number)
 {
-  SEND_SERVICE_REQUEST(goal)
+  SEND_SERVICE_REQUEST(goal, ros_goal_request, sequence_number);
 }
 
 rcl_ret_t
 rcl_action_take_goal_response(
   const rcl_action_client_t * action_client,
+  rmw_request_id_t * response_header,
   void * ros_goal_response)
 {
-  TAKE_SERVICE_RESPONSE(goal);
+  TAKE_SERVICE_RESPONSE(goal, response_header, ros_goal_response);
 }
 
 rcl_ret_t
 rcl_action_send_result_request(
   const rcl_action_client_t * action_client,
-  const void * ros_result_request)
+  const void * ros_result_request,
+  int64_t * sequence_number)
 {
-  SEND_SERVICE_REQUEST(result);
+  SEND_SERVICE_REQUEST(result, ros_result_request, sequence_number);
 }
 
 rcl_ret_t
 rcl_action_take_result_response(
   const rcl_action_client_t * action_client,
+  rmw_request_id_t * response_header,
   void * ros_result_response)
 {
-  TAKE_SERVICE_RESPONSE(result);
+  TAKE_SERVICE_RESPONSE(result, response_header, ros_result_response);
 }
 
 rcl_ret_t
 rcl_action_send_cancel_request(
   const rcl_action_client_t * action_client,
-  const void * ros_cancel_request)
+  const void * ros_cancel_request,
+  int64_t * sequence_number)
 {
-  SEND_SERVICE_REQUEST(cancel);
+  SEND_SERVICE_REQUEST(cancel, ros_cancel_request, sequence_number);
 }
 
 rcl_ret_t
 rcl_action_take_cancel_response(
   const rcl_action_client_t * action_client,
+  rmw_request_id_t * response_header,
   void * ros_cancel_response)
 {
-  TAKE_SERVICE_RESPONSE(cancel);
+  TAKE_SERVICE_RESPONSE(cancel, response_header, ros_cancel_response);
 }
 
 // \internal Takes an action client specific topic message.

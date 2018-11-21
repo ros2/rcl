@@ -264,14 +264,14 @@ rcl_action_server_get_default_options(void)
   return default_options;
 }
 
-#define TAKE_SERVICE_REQUEST(Type) \
+#define TAKE_SERVICE_REQUEST(Type, request_header, request) \
   if (!rcl_action_server_is_valid(action_server)) { \
     return RCL_RET_ACTION_SERVER_INVALID;  /* error already set */ \
   } \
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type ## _request, RCL_RET_INVALID_ARGUMENT); \
-  rmw_request_id_t request_header;  /* ignored */ \
+  RCL_CHECK_ARGUMENT_FOR_NULL(request_header, RCL_RET_INVALID_ARGUMENT); \
+  RCL_CHECK_ARGUMENT_FOR_NULL(request, RCL_RET_INVALID_ARGUMENT); \
   rcl_ret_t ret = rcl_take_request( \
-    &action_server->impl->Type ## _service, &request_header, ros_ ## Type ## _request); \
+    &action_server->impl->Type ## _service, request_header, request); \
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_BAD_ALLOC == ret) { \
       return RCL_RET_BAD_ALLOC;  /* error already set */ \
@@ -283,14 +283,14 @@ rcl_action_server_get_default_options(void)
   } \
   return RCL_RET_OK; \
 
-#define SEND_SERVICE_RESPONSE(Type) \
+#define SEND_SERVICE_RESPONSE(Type, response_header, response) \
   if (!rcl_action_server_is_valid(action_server)) { \
     return RCL_RET_ACTION_SERVER_INVALID;  /* error already set */ \
   } \
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type ## _response, RCL_RET_INVALID_ARGUMENT); \
-  rmw_request_id_t request_header;  /* ignored */ \
+  RCL_CHECK_ARGUMENT_FOR_NULL(response_header, RCL_RET_INVALID_ARGUMENT); \
+  RCL_CHECK_ARGUMENT_FOR_NULL(response, RCL_RET_INVALID_ARGUMENT); \
   rcl_ret_t ret = rcl_send_response( \
-    &action_server->impl->Type ## _service, &request_header, ros_ ## Type ## _response); \
+    &action_server->impl->Type ## _service, response_header, response); \
   if (RCL_RET_OK != ret) { \
     return RCL_RET_ERROR;  /* error already set */ \
   } \
@@ -299,17 +299,19 @@ rcl_action_server_get_default_options(void)
 rcl_ret_t
 rcl_action_take_goal_request(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * request_header,
   void * ros_goal_request)
 {
-  TAKE_SERVICE_REQUEST(goal);
+  TAKE_SERVICE_REQUEST(goal, request_header, ros_goal_request);
 }
 
 rcl_ret_t
 rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * response_header,
   void * ros_goal_response)
 {
-  SEND_SERVICE_RESPONSE(goal);
+  SEND_SERVICE_RESPONSE(goal, response_header, ros_goal_response);
 }
 
 // Implementation only
@@ -481,17 +483,19 @@ rcl_action_publish_status(
 rcl_ret_t
 rcl_action_take_result_request(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * request_header,
   void * ros_result_request)
 {
-  TAKE_SERVICE_REQUEST(result);
+  TAKE_SERVICE_REQUEST(result, request_header, ros_result_request);
 }
 
 rcl_ret_t
 rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * response_header,
   void * ros_result_response)
 {
-  SEND_SERVICE_RESPONSE(result);
+  SEND_SERVICE_RESPONSE(result, response_header, ros_result_response);
 }
 
 rcl_ret_t
@@ -571,9 +575,10 @@ rcl_action_expire_goals(
 rcl_ret_t
 rcl_action_take_cancel_request(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * request_header,
   void * ros_cancel_request)
 {
-  TAKE_SERVICE_REQUEST(cancel);
+  TAKE_SERVICE_REQUEST(cancel, request_header, ros_cancel_request);
 }
 
 rcl_ret_t
@@ -694,9 +699,10 @@ cleanup:
 rcl_ret_t
 rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * response_header,
   void * ros_cancel_response)
 {
-  SEND_SERVICE_RESPONSE(cancel);
+  SEND_SERVICE_RESPONSE(cancel, response_header, ros_cancel_response);
 }
 
 const char *

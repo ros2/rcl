@@ -258,6 +258,7 @@ rcl_action_server_get_default_options(void);
  * <i>[1] only if required when filling the request, avoided for fixed sizes</i>
  *
  * \param[in] action_server handle to the action server that will take the request
+ * \param[out] request_header pointer to the goal request header
  * \param[out] ros_goal_request a preallocated, zero-initialized, ROS goal request message
  *   where the request is copied
  * \return `RCL_RET_OK` if the request was taken, or
@@ -273,6 +274,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_goal_request(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * request_header,
   void * ros_goal_request);
 
 /// Send a response for a goal request to an action client using an action server.
@@ -308,6 +310,7 @@ rcl_action_take_goal_request(
  * <i>[1] for unique pairs of action servers and responses, see above for more</i>
  *
  * \param[in] action_server handle to the action server that will make the goal response
+ * \param[in] response_header pointer to the goal response header
  * \param[in] ros_goal_response a ROS goal response message to send
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -319,6 +322,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * response_header,
   void * ros_goal_response);
 
 /// Accept a new goal using an action server.
@@ -509,6 +513,7 @@ rcl_action_publish_status(
  * Lock-Free          | Yes
  *
  * \param[in] action_server handle to the action server that will take the result request
+ * \param[out] request_header pointer to the result request header
  * \param[out] ros_result_request a preallocated ROS result request message where the
  *   request is copied.
  * \return `RCL_RET_OK` if the response was sent successfully, or
@@ -523,6 +528,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_result_request(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * request_header,
   void * ros_result_request);
 
 /// Send a result response using an action server.
@@ -546,6 +552,7 @@ rcl_action_take_result_request(
  * Lock-Free          | Yes
  *
  * \param[in] action_server handle to the action server that will send the result response
+ * \param[in] response_header pointer to the result response header
  * \param[in] ros_result_response a ROS result response message to send
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -557,6 +564,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * response_header,
   void * ros_result_response);
 
 /// Expires goals associated with an action server.
@@ -629,6 +637,7 @@ rcl_action_expire_goals(
  * Lock-Free          | Yes
  *
  * \param[in] action_server handle to the action server that will take the cancel request
+ * \param[out] request_header pointer to the cancel request header
  * \param[out] ros_cancel_request a preallocated ROS cancel request where the request
  *   message is copied
  * \return `RCL_RET_OK` if the response was sent successfully, or
@@ -643,6 +652,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_take_cancel_request(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * request_header,
   void * ros_cancel_request);
 
 /// Process a cancel request using an action server.
@@ -702,6 +712,7 @@ rcl_action_process_cancel_request(
  * Lock-Free          | Yes
  *
  * \param[in] action_server handle to the action server that will send the cancel response
+ * \param[in] response_header pointer to the cancel response header
  * \param[in] ros_cancel_response a ROS cancel response to send
  * \return `RCL_RET_OK` if the request was taken, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -713,6 +724,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
+  rmw_request_id_t * response_header,
   void * ros_cancel_response);
 
 /// Get the action name for an action server.
