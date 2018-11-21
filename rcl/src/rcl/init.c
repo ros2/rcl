@@ -28,7 +28,7 @@ extern "C"
 #include "rcutils/stdatomic_helper.h"
 #include "rmw/error_handling.h"
 
-static atomic_uint_least64_t __rcl_next_unique_id = ATOMIC_VAR_INIT(0);
+static atomic_uint_least64_t __rcl_next_unique_id = ATOMIC_VAR_INIT(1);
 
 rcl_ret_t
 rcl_init(
@@ -72,6 +72,8 @@ rcl_init(
   context->impl = allocator.allocate(sizeof(rcl_context_impl_t), allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     context->impl, "failed to allocate memory for context impl", return RCL_RET_BAD_ALLOC);
+  // memset to 0 so the cleanup function will not try to clean up uninitialized parts later
+  memset(context->impl, 0x0, sizeof(rcl_context_impl_t));
 
   // Copy the options into the context for future reference.
   rcl_ret_t ret = rcl_init_options_copy(options, &(context->impl->init_options));
