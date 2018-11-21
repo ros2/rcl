@@ -75,7 +75,15 @@ rcl_init_options_copy(const rcl_init_options_t * src, rcl_init_options_t * dst)
 
   // copy src information into dst
   dst->impl->allocator = src->impl->allocator;
-  rmw_ret_t rmw_ret =
+  // first zero-initialize rmw init options
+  rmw_ret_t rmw_ret = rmw_init_options_fini(&(dst->impl->rmw_init_options));
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  // then copy
+  dst->impl->rmw_init_options = rmw_get_zero_initialized_init_options();
+  rmw_ret =
     rmw_init_options_copy(&(src->impl->rmw_init_options), &(dst->impl->rmw_init_options));
   if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
