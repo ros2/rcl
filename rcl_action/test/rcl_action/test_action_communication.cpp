@@ -15,6 +15,7 @@
 
 #include "rcl_action/action_client.h"
 #include "rcl_action/action_server.h"
+#include "rcl_action/wait.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
@@ -93,8 +94,785 @@ protected:
   rcl_clock_t clock;
 };  // class TestActionCommunication
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_goal_request_comm)
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_comm)
 {
+  test_msgs__action__Fibonacci_Goal_Request outgoing_goal_request;
+  test_msgs__action__Fibonacci_Goal_Request incoming_goal_request;
+  test_msgs__action__Fibonacci_Goal_Response outgoing_goal_response;
+  test_msgs__action__Fibonacci_Goal_Response incoming_goal_response;
+  test_msgs__action__Fibonacci_Goal_Request__init(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_Goal_Request__init(&incoming_goal_request);
+  test_msgs__action__Fibonacci_Goal_Response__init(&outgoing_goal_response);
+  test_msgs__action__Fibonacci_Goal_Response__init(&incoming_goal_response);
+
+  // Initialize goal request
+  init_test_uuid0(outgoing_goal_request.uuid);
+  outgoing_goal_request.order = 10;
+
+  // Send goal request with valid arguments
+  int64_t sequence_number;
+  rcl_ret_t ret = rcl_action_send_goal_request(
+    &this->action_client, &outgoing_goal_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+
+  size_t num_subscriptions = 0;
+  size_t num_guard_conditions = 0;
+  size_t num_timers = 0;
+  size_t num_clients = 0;
+  size_t num_services = 0;
+
+  ret = rcl_action_server_wait_set_get_num_entities(
+    &this->action_server,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, NULL);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  bool is_goal_request_ready(false);
+  bool is_cancel_request_ready(false);
+  bool is_result_request_ready(false);
+
+  ret = rcl_wait(&wait_set, 1000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &wait_set,
+    &this->action_server,
+    &is_goal_request_ready,
+    &is_cancel_request_ready,
+    &is_result_request_ready);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take goal request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_goal_request(&this->action_server, &request_header, &incoming_goal_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check that the goal request was received correctly
+  EXPECT_EQ(outgoing_goal_request.order, incoming_goal_request.order);
+  rcl_reset_error();
+  EXPECT_TRUE(uuidcmp(outgoing_goal_request.uuid, incoming_goal_request.uuid));
+  rcl_reset_error();
+
+  // Initialize goal response
+  outgoing_goal_response.accepted = true;
+  outgoing_goal_response.stamp.sec = 123;
+  outgoing_goal_response.stamp.nanosec = 456789u;
+
+  // Send goal response with valid arguments
+  ret = rcl_action_send_goal_response(
+    &this->action_server, &request_header, &outgoing_goal_response);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  wait_set = rcl_get_zero_initialized_wait_set();
+
+  num_subscriptions = 0;
+  num_guard_conditions = 0;
+  num_timers = 0;
+  num_clients = 0;
+  num_services = 0;
+
+  ret = rcl_action_client_wait_set_get_num_entities(
+    &this->action_client,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_client(
+    &wait_set, &this->action_client, NULL, NULL);
+
+  ret = rcl_wait(&wait_set, 100000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  bool is_feedback_ready(false);
+  bool is_status_ready(false);
+  bool is_goal_response_ready(false);
+  bool is_cancel_response_ready(false);
+  bool is_result_response_ready(false);
+
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &wait_set,
+    &this->action_client,
+    &is_feedback_ready,
+    &is_status_ready,
+    &is_goal_response_ready,
+    &is_cancel_response_ready,
+    &is_result_response_ready);
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take goal response with valid arguments
+
+  ret = rcl_action_take_goal_response(
+    &this->action_client, &request_header, &incoming_goal_response);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check that the goal response was received correctly
+  EXPECT_EQ(outgoing_goal_response.accepted, incoming_goal_response.accepted);
+  rcl_reset_error();
+  EXPECT_EQ(outgoing_goal_response.stamp.sec, incoming_goal_response.stamp.sec);
+  rcl_reset_error();
+  EXPECT_EQ(outgoing_goal_response.stamp.nanosec, incoming_goal_response.stamp.nanosec);
+  rcl_reset_error();
+
+  test_msgs__action__Fibonacci_Goal_Request__fini(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_Goal_Request__fini(&incoming_goal_request);
+  test_msgs__action__Fibonacci_Goal_Response__fini(&incoming_goal_response);
+  test_msgs__action__Fibonacci_Goal_Response__fini(&outgoing_goal_response);
+}
+
+
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel_comm)
+{
+  action_msgs__srv__CancelGoal_Request outgoing_cancel_request;
+  action_msgs__srv__CancelGoal_Request incoming_cancel_request;
+  action_msgs__srv__CancelGoal_Response outgoing_cancel_response;
+  action_msgs__srv__CancelGoal_Response incoming_cancel_response;
+  action_msgs__srv__CancelGoal_Request__init(&outgoing_cancel_request);
+  action_msgs__srv__CancelGoal_Request__init(&incoming_cancel_request);
+  action_msgs__srv__CancelGoal_Response__init(&outgoing_cancel_response);
+  action_msgs__srv__CancelGoal_Response__init(&incoming_cancel_response);
+
+  // Initialize cancel request
+  init_test_uuid0(outgoing_cancel_request.goal_info.uuid);
+  outgoing_cancel_request.goal_info.stamp.sec = 321;
+  outgoing_cancel_request.goal_info.stamp.nanosec = 987654u;
+
+  // Send cancel request with valid arguments
+  int64_t sequence_number = 1324;
+  rcl_ret_t ret = rcl_action_send_cancel_request(
+    &this->action_client, &outgoing_cancel_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+
+  size_t num_subscriptions = 0;
+  size_t num_guard_conditions = 0;
+  size_t num_timers = 0;
+  size_t num_clients = 0;
+  size_t num_services = 0;
+
+  ret = rcl_action_server_wait_set_get_num_entities(
+    &this->action_server,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, NULL);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  bool is_goal_request_ready(false);
+  bool is_cancel_request_ready(false);
+  bool is_result_request_ready(false);
+
+  ret = rcl_wait(&wait_set, 1000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &wait_set,
+    &this->action_server,
+    &is_goal_request_ready,
+    &is_cancel_request_ready,
+    &is_result_request_ready);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take cancel request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_cancel_request(
+    &this->action_server, &request_header, &incoming_cancel_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check that the cancel request was received correctly
+  EXPECT_TRUE(uuidcmp(
+      outgoing_cancel_request.goal_info.uuid,
+      incoming_cancel_request.goal_info.uuid));
+  EXPECT_EQ(
+    outgoing_cancel_request.goal_info.stamp.sec,
+    incoming_cancel_request.goal_info.stamp.sec);
+  EXPECT_EQ(
+    outgoing_cancel_request.goal_info.stamp.nanosec,
+    incoming_cancel_request.goal_info.stamp.nanosec);
+
+  // Initialize cancel request
+  ASSERT_TRUE(action_msgs__msg__GoalInfo__Sequence__init(
+      &outgoing_cancel_response.goals_canceling, 2));
+  init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].uuid);
+  outgoing_cancel_response.goals_canceling.data[0].stamp.sec = 102;
+  outgoing_cancel_response.goals_canceling.data[0].stamp.nanosec = 9468u;
+  init_test_uuid1(outgoing_cancel_response.goals_canceling.data[1].uuid);
+  outgoing_cancel_response.goals_canceling.data[1].stamp.sec = 867;
+  outgoing_cancel_response.goals_canceling.data[1].stamp.nanosec = 6845u;
+
+  // Send cancel response with valid arguments
+  // rmw_request_id_t response_header;
+  ret = rcl_action_send_cancel_response(
+    &this->action_server, &request_header, &outgoing_cancel_response);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  wait_set = rcl_get_zero_initialized_wait_set();
+
+  num_subscriptions = 0;
+  num_guard_conditions = 0;
+  num_timers = 0;
+  num_clients = 0;
+  num_services = 0;
+
+  ret = rcl_action_client_wait_set_get_num_entities(
+    &this->action_client,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_client(
+    &wait_set, &this->action_client, NULL, NULL);
+
+  ret = rcl_wait(&wait_set, 100000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  bool is_feedback_ready(false);
+  bool is_status_ready(false);
+  bool is_goal_response_ready(false);
+  bool is_cancel_response_ready(false);
+  bool is_result_response_ready(false);
+
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &wait_set,
+    &this->action_client,
+    &is_feedback_ready,
+    &is_status_ready,
+    &is_goal_response_ready,
+    &is_cancel_response_ready,
+    &is_result_response_ready);
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take cancel response with valid arguments
+  ret = rcl_action_take_cancel_response(
+    &this->action_client, &request_header, &incoming_cancel_response);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check that the cancel response was received correctly
+  ASSERT_EQ(
+    outgoing_cancel_response.goals_canceling.size,
+    incoming_cancel_response.goals_canceling.size);
+  for (size_t i = 0; i < outgoing_cancel_response.goals_canceling.size; ++i) {
+    const action_msgs__msg__GoalInfo * outgoing_goal_info =
+      &outgoing_cancel_response.goals_canceling.data[i];
+    const action_msgs__msg__GoalInfo * incoming_goal_info =
+      &incoming_cancel_response.goals_canceling.data[i];
+    EXPECT_TRUE(uuidcmp(outgoing_goal_info->uuid, incoming_goal_info->uuid));
+    EXPECT_EQ(outgoing_goal_info->stamp.sec, incoming_goal_info->stamp.sec);
+    EXPECT_EQ(outgoing_goal_info->stamp.nanosec, incoming_goal_info->stamp.nanosec);
+  }
+
+  action_msgs__srv__CancelGoal_Request__fini(&incoming_cancel_request);
+  action_msgs__srv__CancelGoal_Request__fini(&outgoing_cancel_request);
+  action_msgs__srv__CancelGoal_Response__fini(&incoming_cancel_response);
+  action_msgs__srv__CancelGoal_Response__fini(&outgoing_cancel_response);
+}
+
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result_comm)
+{
+  test_msgs__action__Fibonacci_Result_Request outgoing_result_request;
+  test_msgs__action__Fibonacci_Result_Request incoming_result_request;
+  test_msgs__action__Fibonacci_Result_Response outgoing_result_response;
+  test_msgs__action__Fibonacci_Result_Response incoming_result_response;
+  test_msgs__action__Fibonacci_Result_Request__init(&outgoing_result_request);
+  test_msgs__action__Fibonacci_Result_Request__init(&incoming_result_request);
+  test_msgs__action__Fibonacci_Result_Response__init(&outgoing_result_response);
+  test_msgs__action__Fibonacci_Result_Response__init(&incoming_result_response);
+
+  // Initialize result request
+  init_test_uuid0(outgoing_result_request.uuid);
+
+  // Send result request with valid arguments
+  int64_t sequence_number;
+  rcl_ret_t ret = rcl_action_send_result_request(
+    &this->action_client, &outgoing_result_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+
+  size_t num_subscriptions = 0;
+  size_t num_guard_conditions = 0;
+  size_t num_timers = 0;
+  size_t num_clients = 0;
+  size_t num_services = 0;
+
+  ret = rcl_action_server_wait_set_get_num_entities(
+    &this->action_server,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, NULL);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  bool is_goal_request_ready(false);
+  bool is_cancel_request_ready(false);
+  bool is_result_request_ready(false);
+
+  ret = rcl_wait(&wait_set, 1000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &wait_set,
+    &this->action_server,
+    &is_goal_request_ready,
+    &is_cancel_request_ready,
+    &is_result_request_ready);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take result request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_result_request(
+    &this->action_server, &request_header, &incoming_result_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check that the result request was received correctly
+  EXPECT_TRUE(uuidcmp(
+      outgoing_result_request.uuid,
+      incoming_result_request.uuid));
+
+  // Initialize result response
+  ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
+      &outgoing_result_response.sequence, 4));
+  outgoing_result_response.sequence.data[0] = 0;
+  outgoing_result_response.sequence.data[1] = 1;
+  outgoing_result_response.sequence.data[2] = 2;
+  outgoing_result_response.sequence.data[3] = 6;
+  outgoing_result_response.status =
+    action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
+
+  // Send result response with valid arguments
+  ret = rcl_action_send_result_response(
+    &this->action_server, &request_header, &outgoing_result_response);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  wait_set = rcl_get_zero_initialized_wait_set();
+
+  num_subscriptions = 0;
+  num_guard_conditions = 0;
+  num_timers = 0;
+  num_clients = 0;
+  num_services = 0;
+
+  ret = rcl_action_client_wait_set_get_num_entities(
+    &this->action_client,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_client(
+    &wait_set, &this->action_client, NULL, NULL);
+
+  ret = rcl_wait(&wait_set, 100000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Send result response with invalid action client
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_send_result_response(
+    &invalid_action_server, &request_header, &outgoing_result_response);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Send result response with null header
+  ret = rcl_action_send_result_response(&this->action_server, nullptr, &outgoing_result_response);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Send result response with null message
+  ret = rcl_action_send_result_response(&this->action_server, &request_header, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Send result response with valid arguments
+  ret = rcl_action_send_result_response(
+    &this->action_server, &request_header, &outgoing_result_response);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take result response with valid arguments
+  ret = rcl_action_take_result_response(
+    &this->action_client, &request_header, &incoming_result_response);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check that the result response was received correctly
+  EXPECT_EQ(outgoing_result_response.status, incoming_result_response.status);
+  ASSERT_EQ(outgoing_result_response.sequence.size, incoming_result_response.sequence.size);
+  EXPECT_TRUE(!memcmp(
+      outgoing_result_response.sequence.data,
+      incoming_result_response.sequence.data,
+      outgoing_result_response.sequence.size));
+
+  test_msgs__action__Fibonacci_Result_Request__fini(&incoming_result_request);
+  test_msgs__action__Fibonacci_Result_Request__fini(&outgoing_result_request);
+  test_msgs__action__Fibonacci_Result_Response__fini(&incoming_result_response);
+  test_msgs__action__Fibonacci_Result_Response__fini(&outgoing_result_response);
+}
+
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status_comm)
+{
+  action_msgs__msg__GoalStatusArray incoming_status_array;
+  action_msgs__msg__GoalStatusArray__init(&incoming_status_array);
+
+  // Using rcl_action_goal_status_array_t in lieu of a message instance works
+  // because these tests make use of C type support
+  rcl_action_goal_status_array_t status_array =
+    rcl_action_get_zero_initialized_goal_status_array();
+  rcl_ret_t ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Publish status with valid arguments (but empty array)
+  ret = rcl_action_publish_status(&this->action_server, &status_array.msg);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+
+  size_t num_subscriptions = 0;
+  size_t num_guard_conditions = 0;
+  size_t num_timers = 0;
+  size_t num_clients = 0;
+  size_t num_services = 0;
+
+  ret = rcl_action_client_wait_set_get_num_entities(
+    &this->action_client,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_client(
+    &wait_set, &this->action_client, NULL, NULL);
+
+  ret = rcl_wait(&wait_set, 100000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take status with valid arguments (empty array)
+  ret = rcl_action_take_status(&this->action_client, &incoming_status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_goal_status_array_fini(&status_array);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Add a goal before publishing the status array
+  rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
+  rcl_action_goal_handle_t * goal_handle;
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info);
+  ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+
+  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Publish status with valid arguments (one goal in array)
+  ret = rcl_action_publish_status(&this->action_server, &status_array.msg);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  wait_set = rcl_get_zero_initialized_wait_set();
+
+  num_subscriptions = 0;
+  num_guard_conditions = 0;
+  num_timers = 0;
+  num_clients = 0;
+  num_services = 0;
+
+  ret = rcl_action_client_wait_set_get_num_entities(
+    &this->action_client,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_client(
+    &wait_set, &this->action_client, NULL, NULL);
+
+  ret = rcl_wait(&wait_set, 100000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take status with valid arguments (one goal in array)
+  ret = rcl_action_take_status(&this->action_client, &incoming_status_array);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check that status was received correctly
+  ASSERT_EQ(status_array.msg.status_list.size, incoming_status_array.status_list.size);
+  for (size_t i = 0; i < status_array.msg.status_list.size; ++i) {
+    const action_msgs__msg__GoalStatus * outgoing_status =
+      &status_array.msg.status_list.data[i];
+    const action_msgs__msg__GoalStatus * incoming_status =
+      &incoming_status_array.status_list.data[i];
+    EXPECT_TRUE(uuidcmp(outgoing_status->goal_info.uuid, incoming_status->goal_info.uuid));
+    EXPECT_EQ(outgoing_status->goal_info.stamp.sec, incoming_status->goal_info.stamp.sec);
+    EXPECT_EQ(outgoing_status->goal_info.stamp.nanosec, incoming_status->goal_info.stamp.nanosec);
+    EXPECT_EQ(outgoing_status->status, incoming_status->status);
+  }
+
+  ret = rcl_action_goal_status_array_fini(&status_array);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  action_msgs__msg__GoalStatusArray__fini(&incoming_status_array);
+}
+
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedback_comm)
+{
+  test_msgs__action__Fibonacci_Feedback outgoing_feedback;
+  test_msgs__action__Fibonacci_Feedback incoming_feedback;
+  test_msgs__action__Fibonacci_Feedback__init(&outgoing_feedback);
+  test_msgs__action__Fibonacci_Feedback__init(&incoming_feedback);
+
+  // Initialize feedback
+  ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
+      &outgoing_feedback.sequence, 3));
+  outgoing_feedback.sequence.data[0] = 0;
+  outgoing_feedback.sequence.data[1] = 1;
+  outgoing_feedback.sequence.data[2] = 2;
+  init_test_uuid0(outgoing_feedback.uuid);
+
+  // Publish feedback with valid arguments
+  rcl_ret_t ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+
+  size_t num_subscriptions = 0;
+  size_t num_guard_conditions = 0;
+  size_t num_timers = 0;
+  size_t num_clients = 0;
+  size_t num_services = 0;
+
+  ret = rcl_action_client_wait_set_get_num_entities(
+    &this->action_client,
+    &num_subscriptions,
+    &num_guard_conditions,
+    &num_timers,
+    &num_clients,
+    &num_services);
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions,     // number_of_subscriptions
+    num_guard_conditions,  // number_of_guard_conditions
+    num_timers,            // number_of_timers
+    num_clients,           // number_of_clients
+    num_services,          // number_of_services
+    rcl_get_default_allocator());
+
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_wait_set_add_action_client(
+    &wait_set, &this->action_client, NULL, NULL);
+
+  ret = rcl_wait(&wait_set, 100000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Take feedback with valid arguments
+  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check that feedback was received correctly
+  EXPECT_TRUE(uuidcmp(outgoing_feedback.uuid, incoming_feedback.uuid));
+  ASSERT_EQ(outgoing_feedback.sequence.size, incoming_feedback.sequence.size);
+  EXPECT_TRUE(!memcmp(
+      outgoing_feedback.sequence.data,
+      incoming_feedback.sequence.data,
+      outgoing_feedback.sequence.size));
+
+  test_msgs__action__Fibonacci_Feedback__fini(&incoming_feedback);
+  test_msgs__action__Fibonacci_Feedback__fini(&outgoing_feedback);
+}
+
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal_request_opts) {
   test_msgs__action__Fibonacci_Goal_Request outgoing_goal_request;
   test_msgs__action__Fibonacci_Goal_Request incoming_goal_request;
   test_msgs__action__Fibonacci_Goal_Request__init(&outgoing_goal_request);
@@ -103,26 +881,24 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_goal_request
   // Initialize goal request
   init_test_uuid0(outgoing_goal_request.uuid);
   outgoing_goal_request.order = 10;
+  int64_t sequence_number = 1234;
+  rcl_ret_t ret = 0;
 
   // Send goal request with null action client
-  rcl_ret_t ret = rcl_action_send_goal_request(nullptr, &outgoing_goal_request);
+  ret = rcl_action_send_goal_request(nullptr, &outgoing_goal_request, &sequence_number);
   ASSERT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID);
   rcl_reset_error();
 
   // Send goal request with invalid action client
   rcl_action_client_t invalid_action_client = rcl_action_get_zero_initialized_client();
-  ret = rcl_action_send_goal_request(&invalid_action_client, &outgoing_goal_request);
+  ret = rcl_action_send_goal_request(
+    &invalid_action_client, &outgoing_goal_request, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID);
   rcl_reset_error();
 
   // Send goal request with null message
-  ret = rcl_action_send_goal_request(&this->action_client, nullptr);
+  ret = rcl_action_send_goal_request(&this->action_client, nullptr, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Send goal request with valid arguments
-  ret = rcl_action_send_goal_request(&this->action_client, &outgoing_goal_request);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take goal request with null action server
@@ -143,26 +919,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_goal_request
 
   // Take goal request with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_take_goal_request(&invalid_action_server, &incoming_goal_request);
-  ret = rcl_action_take_goal_request(&invalid_action_server, &request_header, &incoming_goal_request);
+  ret = rcl_action_take_goal_request(
+    &invalid_action_server, &request_header, &incoming_goal_request);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  // Take goal request with valid arguments
-  ret = rcl_action_take_goal_request(&this->action_server, &request_header, &incoming_goal_request);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Check that the goal request was received correctly
-  EXPECT_EQ(outgoing_goal_request.order, incoming_goal_request.order);
-  EXPECT_TRUE(uuidcmp(outgoing_goal_request.uuid, incoming_goal_request.uuid));
 
   test_msgs__action__Fibonacci_Goal_Request__fini(&outgoing_goal_request);
   test_msgs__action__Fibonacci_Goal_Request__init(&incoming_goal_request);
 }
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_goal_response_comm)
-{
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal_response_opts) {
   test_msgs__action__Fibonacci_Goal_Response outgoing_goal_response;
   test_msgs__action__Fibonacci_Goal_Response incoming_goal_response;
   test_msgs__action__Fibonacci_Goal_Response__init(&outgoing_goal_response);
@@ -191,13 +957,9 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_goal_respons
 
   // Send goal response with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_send_goal_response(&invalid_action_server, &outgoing_goal_response);
+  ret = rcl_action_send_goal_response(
+    &invalid_action_server, &response_header, &outgoing_goal_response);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Send goal response with valid arguments
-  ret = rcl_action_send_goal_response(&this->action_server, &response_header, &outgoing_goal_response);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take goal response with null action client
@@ -217,26 +979,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_goal_respons
 
   // Take goal response with invalid action client
   rcl_action_client_t invalid_action_client = rcl_action_get_zero_initialized_client();
-  ret = rcl_action_take_goal_response(&invalid_action_client, &incoming_goal_response);
+  ret = rcl_action_take_goal_response(
+    &invalid_action_client, &response_header, &incoming_goal_response);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  // Take goal response with valid arguments
-  ret = rcl_action_take_goal_response(&this->action_client, &response_header, &incoming_goal_response);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Check that the goal response was received correctly
-  EXPECT_EQ(outgoing_goal_response.accepted, incoming_goal_response.accepted);
-  EXPECT_EQ(outgoing_goal_response.stamp.sec, incoming_goal_response.stamp.sec);
-  EXPECT_EQ(outgoing_goal_response.stamp.nanosec, incoming_goal_response.stamp.nanosec);
 
   test_msgs__action__Fibonacci_Goal_Response__fini(&incoming_goal_response);
   test_msgs__action__Fibonacci_Goal_Response__fini(&outgoing_goal_response);
 }
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_cancel_request_comm)
-{
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_cancel_request_opts) {
   action_msgs__srv__CancelGoal_Request outgoing_cancel_request;
   action_msgs__srv__CancelGoal_Request incoming_cancel_request;
   action_msgs__srv__CancelGoal_Request__init(&outgoing_cancel_request);
@@ -248,24 +1000,22 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_cancel_reque
   outgoing_cancel_request.goal_info.stamp.nanosec = 987654u;
 
   // Send cancel request with null action client
-  rcl_ret_t ret = rcl_action_send_cancel_request(nullptr, &outgoing_cancel_request);
+  int64_t sequence_number = 1324;
+  rcl_ret_t ret = rcl_action_send_cancel_request(
+    nullptr, &outgoing_cancel_request, &sequence_number);
   ASSERT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Send cancel request with invalid action client
   rcl_action_client_t invalid_action_client = rcl_action_get_zero_initialized_client();
-  ret = rcl_action_send_cancel_request(&invalid_action_client, &outgoing_cancel_request);
+  ret = rcl_action_send_cancel_request(
+    &invalid_action_client, &outgoing_cancel_request, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Send cancel request with null message
-  ret = rcl_action_send_cancel_request(&this->action_client, nullptr);
+  ret = rcl_action_send_cancel_request(&this->action_client, nullptr, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Send cancel request with valid arguments
-  ret = rcl_action_send_cancel_request(&this->action_client, &outgoing_cancel_request);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take cancel request with null action server
@@ -286,32 +1036,17 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_cancel_reque
 
   // Take cancel request with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_take_cancel_request(&invalid_action_server, &request_header, &incoming_cancel_request);
+  ret = rcl_action_take_cancel_request(
+    &invalid_action_server, &request_header, &incoming_cancel_request);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  // Take cancel request with valid arguments
-  ret = rcl_action_take_cancel_request(&this->action_server, &request_header, &incoming_cancel_request);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Check that the cancel request was received correctly
-  EXPECT_TRUE(uuidcmp(
-      outgoing_cancel_request.goal_info.uuid,
-      incoming_cancel_request.goal_info.uuid));
-  EXPECT_EQ(
-    outgoing_cancel_request.goal_info.stamp.sec,
-    incoming_cancel_request.goal_info.stamp.sec);
-  EXPECT_EQ(
-    outgoing_cancel_request.goal_info.stamp.nanosec,
-    incoming_cancel_request.goal_info.stamp.nanosec);
 
   action_msgs__srv__CancelGoal_Request__fini(&incoming_cancel_request);
   action_msgs__srv__CancelGoal_Request__fini(&outgoing_cancel_request);
 }
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_cancel_response_comm)
-{
+
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_cancel_response_opts) {
   action_msgs__srv__CancelGoal_Response outgoing_cancel_response;
   action_msgs__srv__CancelGoal_Response incoming_cancel_response;
   action_msgs__srv__CancelGoal_Response__init(&outgoing_cancel_response);
@@ -329,13 +1064,15 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_cancel_respo
 
   // Send cancel response with null action server
   rmw_request_id_t response_header;
-  rcl_ret_t ret = rcl_action_send_cancel_response(nullptr, &response_header, &outgoing_cancel_response);
+  rcl_ret_t ret = rcl_action_send_cancel_response(
+    nullptr, &response_header, &outgoing_cancel_response);
   ASSERT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Send cancel response with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_send_cancel_response(&invalid_action_server, &response_header, &outgoing_cancel_response);
+  ret = rcl_action_send_cancel_response(
+    &invalid_action_server, &response_header, &outgoing_cancel_response);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -349,52 +1086,28 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_cancel_respo
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Send cancel response with valid arguments
-  ret = rcl_action_send_cancel_response(&this->action_server, &response_header, &outgoing_cancel_response);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
   // Take cancel response with null action client
-  ret = rcl_action_take_cancel_response(nullptr, &incoming_cancel_response);
+  ret = rcl_action_take_cancel_response(nullptr, &response_header, &incoming_cancel_response);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take cancel response with invalid action client
   rcl_action_client_t invalid_action_client = rcl_action_get_zero_initialized_client();
-  ret = rcl_action_take_cancel_response(&invalid_action_client, &incoming_cancel_response);
+  ret = rcl_action_take_cancel_response(
+    &invalid_action_client, &response_header, &incoming_cancel_response);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take cancel response with null message
-  ret = rcl_action_take_cancel_response(&this->action_client, nullptr);
+  ret = rcl_action_take_cancel_response(&this->action_client, &response_header, nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  // Take cancel response with valid arguments
-  ret = rcl_action_take_cancel_response(&this->action_client, &incoming_cancel_response);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Check that the cancel response was received correctly
-  ASSERT_EQ(
-    outgoing_cancel_response.goals_canceling.size,
-    incoming_cancel_response.goals_canceling.size);
-  for (size_t i = 0; i < outgoing_cancel_response.goals_canceling.size; ++i) {
-    const action_msgs__msg__GoalInfo * outgoing_goal_info =
-      &outgoing_cancel_response.goals_canceling.data[i];
-    const action_msgs__msg__GoalInfo * incoming_goal_info =
-      &incoming_cancel_response.goals_canceling.data[i];
-    EXPECT_TRUE(uuidcmp(outgoing_goal_info->uuid, incoming_goal_info->uuid));
-    EXPECT_EQ(outgoing_goal_info->stamp.sec, incoming_goal_info->stamp.sec);
-    EXPECT_EQ(outgoing_goal_info->stamp.nanosec, incoming_goal_info->stamp.nanosec);
-  }
 
   action_msgs__srv__CancelGoal_Response__fini(&incoming_cancel_response);
   action_msgs__srv__CancelGoal_Response__fini(&outgoing_cancel_response);
 }
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_result_request_comm)
-{
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_result_request_opts) {
   test_msgs__action__Fibonacci_Result_Request outgoing_result_request;
   test_msgs__action__Fibonacci_Result_Request incoming_result_request;
   test_msgs__action__Fibonacci_Result_Request__init(&outgoing_result_request);
@@ -404,24 +1117,22 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_result_reque
   init_test_uuid0(outgoing_result_request.uuid);
 
   // Send result request with null action client
-  rcl_ret_t ret = rcl_action_send_result_request(nullptr, &outgoing_result_request);
+  int64_t sequence_number = 1324;
+  rcl_ret_t ret = rcl_action_send_result_request(
+    nullptr, &outgoing_result_request, &sequence_number);
   ASSERT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Send result request with invalid action client
   rcl_action_client_t invalid_action_client = rcl_action_get_zero_initialized_client();
-  ret = rcl_action_send_result_request(&invalid_action_client, &outgoing_result_request);
+  ret = rcl_action_send_result_request(
+    &invalid_action_client, &outgoing_result_request, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Send result request with null message
-  ret = rcl_action_send_result_request(&this->action_client, nullptr);
+  ret = rcl_action_send_result_request(&this->action_client, nullptr, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Send result request with valid arguments
-  ret = rcl_action_send_result_request(&this->action_client, &outgoing_result_request);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take result request with null action server
@@ -432,7 +1143,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_result_reque
 
   // Take result request with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_take_result_request(&invalid_action_server, &request_header, &incoming_result_request);
+  ret = rcl_action_take_result_request(
+    &invalid_action_server, &request_header, &incoming_result_request);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -446,22 +1158,11 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_result_reque
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Take result request with valid arguments
-  ret = rcl_action_take_result_request(&this->action_server, &request_header, &incoming_result_request);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Check that the result request was received correctly
-  EXPECT_TRUE(uuidcmp(
-      outgoing_result_request.uuid,
-      incoming_result_request.uuid));
-
   test_msgs__action__Fibonacci_Result_Request__fini(&incoming_result_request);
   test_msgs__action__Fibonacci_Result_Request__fini(&outgoing_result_request);
 }
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_result_response_comm)
-{
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_result_response_opts) {
   test_msgs__action__Fibonacci_Result_Response outgoing_result_response;
   test_msgs__action__Fibonacci_Result_Response incoming_result_response;
   test_msgs__action__Fibonacci_Result_Response__init(&outgoing_result_response);
@@ -479,13 +1180,15 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_result_respo
 
   // Send result response with null action client
   rmw_request_id_t response_header;
-  rcl_ret_t ret = rcl_action_send_result_response(nullptr, &response_header, &outgoing_result_response);
+  rcl_ret_t ret = rcl_action_send_result_response(
+    nullptr, &response_header, &outgoing_result_response);
   ASSERT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Send result response with invalid action client
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_send_result_response(&invalid_action_server, &response_header, &outgoing_result_response);
+  ret = rcl_action_send_result_response(
+    &invalid_action_server, &response_header, &outgoing_result_response);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -499,46 +1202,28 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_result_respo
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Send result response with valid arguments
-  ret = rcl_action_send_result_response(&this->action_server, &response_header, &outgoing_result_response);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
   // Take result response with null action client
-  ret = rcl_action_take_result_response(nullptr, &incoming_result_response);
+  ret = rcl_action_take_result_response(nullptr, &response_header, &incoming_result_response);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take result response with null message
-  ret = rcl_action_take_result_response(&this->action_client, nullptr);
+  ret = rcl_action_take_result_response(&this->action_client, &response_header, nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take result response with invalid action client
   rcl_action_client_t invalid_action_client = rcl_action_get_zero_initialized_client();
-  ret = rcl_action_take_result_response(&invalid_action_client, &incoming_result_response);
+  ret = rcl_action_take_result_response(
+    &invalid_action_client, &response_header, &incoming_result_response);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  // Take result response with valid arguments
-  ret = rcl_action_take_result_response(&this->action_client, &incoming_result_response);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Check that the result response was received correctly
-  EXPECT_EQ(outgoing_result_response.status, incoming_result_response.status);
-  ASSERT_EQ(outgoing_result_response.sequence.size, incoming_result_response.sequence.size);
-  EXPECT_TRUE(!memcmp(
-      outgoing_result_response.sequence.data,
-      incoming_result_response.sequence.data,
-      outgoing_result_response.sequence.size));
 
   test_msgs__action__Fibonacci_Result_Response__fini(&incoming_result_response);
   test_msgs__action__Fibonacci_Result_Response__fini(&outgoing_result_response);
 }
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_feedback_comm)
-{
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feedback_opts) {
   test_msgs__action__Fibonacci_Feedback outgoing_feedback;
   test_msgs__action__Fibonacci_Feedback incoming_feedback;
   test_msgs__action__Fibonacci_Feedback__init(&outgoing_feedback);
@@ -568,11 +1253,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_feedback_com
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Publish feedback with valid arguments
-  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
   // Take feedback with null action client
   ret = rcl_action_take_feedback(nullptr, &incoming_feedback);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
@@ -589,25 +1269,11 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_feedback_com
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Take feedback with valid arguments
-  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Check that feedback was received correctly
-  EXPECT_TRUE(uuidcmp(outgoing_feedback.uuid, incoming_feedback.uuid));
-  ASSERT_EQ(outgoing_feedback.sequence.size, incoming_feedback.sequence.size);
-  EXPECT_TRUE(!memcmp(
-      outgoing_feedback.sequence.data,
-      incoming_feedback.sequence.data,
-      outgoing_feedback.sequence.size));
-
   test_msgs__action__Fibonacci_Feedback__fini(&incoming_feedback);
   test_msgs__action__Fibonacci_Feedback__fini(&outgoing_feedback);
 }
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_status_comm)
-{
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_status_opts) {
   action_msgs__msg__GoalStatusArray incoming_status_array;
   action_msgs__msg__GoalStatusArray__init(&incoming_status_array);
 
@@ -634,11 +1300,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_status_comm)
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Publish status with valid arguments (but empty array)
-  ret = rcl_action_publish_status(&this->action_server, &status_array.msg);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
   // Take status with null action client
   ret = rcl_action_take_status(nullptr, &incoming_status_array);
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
@@ -654,46 +1315,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_status_comm)
   ret = rcl_action_take_status(&this->action_client, nullptr);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  // Take status with valid arguments (empty array)
-  ret = rcl_action_take_status(&this->action_client, &incoming_status_array);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_goal_status_array_fini(&status_array);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-  // Add a goal before publishing the status array
-  rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
-  rcl_action_goal_handle_t * goal_handle;
-  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info);
-  ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
-  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Publish status with valid arguments (one goal in array)
-  ret = rcl_action_publish_status(&this->action_server, &status_array.msg);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Take status with valid arguments (one goal in array)
-  ret = rcl_action_take_status(&this->action_client, &incoming_status_array);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Check that status was received correctly
-  ASSERT_EQ(status_array.msg.status_list.size, incoming_status_array.status_list.size);
-  for (size_t i = 0; i < status_array.msg.status_list.size; ++i) {
-    const action_msgs__msg__GoalStatus * outgoing_status =
-      &status_array.msg.status_list.data[i];
-    const action_msgs__msg__GoalStatus * incoming_status =
-      &incoming_status_array.status_list.data[i];
-    EXPECT_TRUE(uuidcmp(outgoing_status->goal_info.uuid, incoming_status->goal_info.uuid));
-    EXPECT_EQ(outgoing_status->goal_info.stamp.sec, incoming_status->goal_info.stamp.sec);
-    EXPECT_EQ(outgoing_status->goal_info.stamp.nanosec, incoming_status->goal_info.stamp.nanosec);
-    EXPECT_EQ(outgoing_status->status, incoming_status->status);
-  }
 
   ret = rcl_action_goal_status_array_fini(&status_array);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
