@@ -678,15 +678,12 @@ rcl_action_process_cancel_request(
     goto cleanup;
   }
 
-  // Transition goals to canceling and add to response
+  // Add goal info to output struct
   rcl_action_goal_handle_t * goal_handle;
   for (size_t i = 0u; i < num_goals_to_cancel; ++i) {
     goal_handle = goal_handles_to_cancel[i];
-    ret = rcl_action_update_goal_state(goal_handle, GOAL_EVENT_CANCEL);
-    if (RCL_RET_OK == ret) {
-      ret = rcl_action_goal_handle_get_info(
-        goal_handle, &cancel_response->msg.goals_canceling.data[i]);
-    }
+    ret = rcl_action_goal_handle_get_info(
+      goal_handle, &cancel_response->msg.goals_canceling.data[i]);
     if (RCL_RET_OK != ret) {
       ret_final = RCL_RET_ERROR;  // error already set
     }

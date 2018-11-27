@@ -659,7 +659,8 @@ rcl_action_take_cancel_request(
 /**
  * This is a non-blocking call.
  *
- * This function will transition one or more active goals to the state CANCELING.
+ * This function will compute a list of goals that a cancelation request is attempting to cancel.
+ * It does not change the state of any goal.
  * The following cancel policy applies based on the goal ID and the timestamp
  * contained in the cancel request:
  *
@@ -682,7 +683,7 @@ rcl_action_take_cancel_request(
  * \param[in] action_server handle to the action server that will process the cancel request
  * \param[in] cancel_request a C-typed ROS cancel request to process
  * \param[out] cancel_reponse a zero-initialized cancel response struct
- *   where the response is copied
+ *   where the goal info of goals which should be cancelled are copied
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
