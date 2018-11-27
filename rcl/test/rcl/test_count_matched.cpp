@@ -38,47 +38,25 @@
 class CLASSNAME (TestCountFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
-  rcl_node_t * old_node_ptr;
   rcl_node_t * node_ptr;
   rcl_wait_set_t * wait_set_ptr;
   void SetUp()
   {
     rcl_ret_t ret;
-    ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    this->old_node_ptr = new rcl_node_t;
-    *this->old_node_ptr = rcl_get_zero_initialized_node();
-    const char * old_name = "old_node_name";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(this->old_node_ptr, old_name, "", &node_options);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_shutdown();  // after this, the old_node_ptr should be invalid
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     ret = rcl_init(0, nullptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
-    const char * name = "test_graph_node";
+    const char * name = "test_count_node";
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    this->wait_set_ptr = new rcl_wait_set_t;
-    *this->wait_set_ptr = rcl_get_zero_initialized_wait_set();
-    ret = rcl_wait_set_init(this->wait_set_ptr, 0, 1, 0, 0, 0, rcl_get_default_allocator());
   }
 
   void TearDown()
   {
     rcl_ret_t ret;
-    ret = rcl_node_fini(this->old_node_ptr);
-    delete this->old_node_ptr;
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    ret = rcl_wait_set_fini(this->wait_set_ptr);
-    delete this->wait_set_ptr;
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
     ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -87,7 +65,6 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };
-
 
 TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_functions) {
   std::string topic_name("/test_count_matched_functions__");

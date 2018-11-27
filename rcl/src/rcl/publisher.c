@@ -22,6 +22,7 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
+#include "common.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
@@ -317,7 +318,7 @@ rcl_publisher_get_subscription_count(
 
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return RCL_RET_ERROR;
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
   return RCL_RET_OK;
 }
