@@ -301,6 +301,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  EXPECT_TRUE(this->is_cancel_request_ready);
+  EXPECT_FALSE(this->is_goal_request_ready);
+  EXPECT_FALSE(this->is_result_request_ready);
+
   // Take cancel request with valid arguments
   rmw_request_id_t request_header;
   ret = rcl_action_take_cancel_request(
@@ -350,6 +354,12 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
     &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  EXPECT_TRUE(this->is_cancel_response_ready);
+  EXPECT_FALSE(this->is_feedback_ready);
+  EXPECT_FALSE(this->is_status_ready);
+  EXPECT_FALSE(this->is_goal_response_ready);
+  EXPECT_FALSE(this->is_result_response_ready);
 
   // Take cancel response with valid arguments
   ret = rcl_action_take_cancel_response(
@@ -411,6 +421,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  EXPECT_TRUE(this->is_result_request_ready);
+  EXPECT_FALSE(this->is_cancel_request_ready);
+  EXPECT_FALSE(this->is_goal_request_ready);
+
   // Take result request with valid arguments
   rmw_request_id_t request_header;
   ret = rcl_action_take_result_request(
@@ -454,28 +468,11 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Send result response with invalid action client
-  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_send_result_response(
-    &invalid_action_server, &request_header, &outgoing_result_response);
-  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Send result response with null header
-  ret = rcl_action_send_result_response(&this->action_server, nullptr, &outgoing_result_response);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Send result response with null message
-  ret = rcl_action_send_result_response(&this->action_server, &request_header, nullptr);
-  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Send result response with valid arguments
-  ret = rcl_action_send_result_response(
-    &this->action_server, &request_header, &outgoing_result_response);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
+  EXPECT_TRUE(this->is_result_response_ready);
+  EXPECT_FALSE(this->is_cancel_response_ready);
+  EXPECT_FALSE(this->is_feedback_ready);
+  EXPECT_FALSE(this->is_status_ready);
+  EXPECT_FALSE(this->is_goal_response_ready);
 
   // Take result response with valid arguments
   ret = rcl_action_take_result_response(
@@ -539,6 +536,12 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  EXPECT_TRUE(this->is_status_ready);
+  EXPECT_FALSE(this->is_result_response_ready);
+  EXPECT_FALSE(this->is_cancel_response_ready);
+  EXPECT_FALSE(this->is_feedback_ready);
+  EXPECT_FALSE(this->is_goal_response_ready);
+
   // Take status with valid arguments (one goal in array)
   ret = rcl_action_take_status(&this->action_client, &incoming_status_array);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -597,6 +600,12 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
     &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  EXPECT_TRUE(this->is_feedback_ready);
+  EXPECT_FALSE(this->is_status_ready);
+  EXPECT_FALSE(this->is_result_response_ready);
+  EXPECT_FALSE(this->is_cancel_response_ready);
+  EXPECT_FALSE(this->is_goal_response_ready);
 
   // Take feedback with valid arguments
   ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback);
