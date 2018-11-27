@@ -422,7 +422,7 @@ rcl_subscription_is_valid(const rcl_subscription_t * subscription);
  *
  * \param[in] subscription pointer to the rcl subscription
  * \param[out] publisher_count number of matched publishers
- * \return `RCL_RET_OK` if the message was published, or
+ * \return `RCL_RET_OK` if the count was retrieved, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
