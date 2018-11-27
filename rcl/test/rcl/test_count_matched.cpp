@@ -13,7 +13,9 @@
 // limitations under the License.
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <string>
+#include <thread>
 
 #include "rcl/rcl.h"
 #include "rcl/publisher.h"
@@ -112,6 +114,10 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  // This sleep is currently needed to allow opensplice and connext to correctly fire
+  // the on_publication_matched/on_subscription_matched functions.
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
   {
     size_t subscription_count;
     ret = rcl_publisher_get_subscription_count(&pub, &subscription_count);
@@ -133,6 +139,10 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
   ret = rcl_subscription_init(&sub2, this->node_ptr, ts, topic_name.c_str(), &sub2_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  // This sleep is currently needed to allow opensplice and connext to correctly fire
+  // the on_publication_matched/on_subscription_matched functions.
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   {
     size_t subscription_count;
@@ -161,6 +171,10 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
   ret = rcl_publisher_fini(&pub, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  // This sleep is currently needed to allow opensplice and connext to correctly fire
+  // the on_publication_matched/on_subscription_matched functions.
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   {
     size_t publisher_count;
