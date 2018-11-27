@@ -307,16 +307,13 @@ rcl_publisher_get_subscription_count(
   const rcl_publisher_t * publisher,
   size_t * subscription_count)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is invalid",
-    return RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription_count, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl, "publisher's implementation is invalid",
-    return RCL_RET_ERROR);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl->rmw_handle, "publisher's rmw handle is invalid",
-    return RCL_RET_ERROR);
 
-  rmw_ret_t ret = rmw_count_matched_subscriptions(publisher->impl->rmw_handle, subscription_count);
+  rmw_ret_t ret = rmw_publisher_count_matched_subscriptions(publisher->impl->rmw_handle,
+      subscription_count);
 
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
