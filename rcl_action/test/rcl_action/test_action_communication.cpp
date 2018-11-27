@@ -57,6 +57,51 @@ protected:
     ret = rcl_action_client_init(
       &this->action_client, &this->node, ts, action_name, &client_options);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+    this->wait_set_server = rcl_get_zero_initialized_wait_set();
+    ret = rcl_action_server_wait_set_get_num_entities(
+      &this->action_server,
+      &this->num_subscriptions_server,
+      &this->num_guard_conditions_server,
+      &this->num_timers_server,
+      &this->num_clients_server,
+      &this->num_services_server);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_wait_set_init(
+      &this->wait_set_server,
+      this->num_subscriptions_server,
+      this->num_guard_conditions_server,
+      this->num_timers_server,
+      this->num_clients_server,
+      this->num_services_server,
+      rcl_get_default_allocator());
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_action_wait_set_add_action_server(&this->wait_set_server, &this->action_server, NULL);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    rcl_reset_error();
+
+    this->wait_set_client = rcl_get_zero_initialized_wait_set();
+    ret = rcl_action_client_wait_set_get_num_entities(
+      &this->action_client,
+      &this->num_subscriptions_client,
+      &this->num_guard_conditions_client,
+      &this->num_timers_client,
+      &this->num_clients_client,
+      &this->num_services_client);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_wait_set_init(
+      &this->wait_set_client,
+      this->num_subscriptions_client,
+      this->num_guard_conditions_client,
+      this->num_timers_client,
+      this->num_clients_client,
+      this->num_services_client,
+      rcl_get_default_allocator());
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_action_wait_set_add_action_client(
+      &this->wait_set_client, &this->action_client, NULL, NULL);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    rcl_reset_error();
   }
 
   void TearDown() override
@@ -72,6 +117,12 @@ protected:
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_shutdown();
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_fini(&this->wait_set_server);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    rcl_reset_error();
+    ret = rcl_wait_set_fini(&this->wait_set_client);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    rcl_reset_error();
   }
 
   void init_test_uuid0(uint8_t * uuid)
@@ -92,6 +143,30 @@ protected:
   rcl_action_server_t action_server;
   rcl_node_t node;
   rcl_clock_t clock;
+
+  rcl_wait_set_t wait_set_server;
+  size_t num_subscriptions_server;
+  size_t num_guard_conditions_server;
+  size_t num_timers_server;
+  size_t num_clients_server;
+  size_t num_services_server;
+
+  rcl_wait_set_t wait_set_client;
+  size_t num_subscriptions_client;
+  size_t num_guard_conditions_client;
+  size_t num_timers_client;
+  size_t num_clients_client;
+  size_t num_services_client;
+
+  bool is_goal_request_ready;
+  bool is_cancel_request_ready;
+  bool is_result_request_ready;
+
+  bool is_feedback_ready;
+  bool is_status_ready;
+  bool is_goal_response_ready;
+  bool is_cancel_response_ready;
+  bool is_result_response_ready;
 };  // class TestActionCommunication
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_comm)
@@ -116,59 +191,20 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-
-  size_t num_subscriptions = 0;
-  size_t num_guard_conditions = 0;
-  size_t num_timers = 0;
-  size_t num_clients = 0;
-  size_t num_services = 0;
-
-  ret = rcl_action_server_wait_set_get_num_entities(
-    &this->action_server,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, NULL);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  bool is_goal_request_ready(false);
-  bool is_cancel_request_ready(false);
-  bool is_result_request_ready(false);
-
-  ret = rcl_wait(&wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set_server, 1000000);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   ret = rcl_action_server_wait_set_get_entities_ready(
-    &wait_set,
+    &this->wait_set_server,
     &this->action_server,
-    &is_goal_request_ready,
-    &is_cancel_request_ready,
-    &is_result_request_ready);
+    &this->is_goal_request_ready,
+    &this->is_cancel_request_ready,
+    &this->is_result_request_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait_set_fini(&wait_set);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
+  EXPECT_EQ(this->is_goal_request_ready, true) << rcl_get_error_string().str;
 
   // Take goal request with valid arguments
   rmw_request_id_t request_header;
@@ -193,68 +229,23 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  wait_set = rcl_get_zero_initialized_wait_set();
-
-  num_subscriptions = 0;
-  num_guard_conditions = 0;
-  num_timers = 0;
-  num_clients = 0;
-  num_services = 0;
-
-  ret = rcl_action_client_wait_set_get_num_entities(
-    &this->action_client,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-
+  ret = rcl_wait(&this->wait_set_client, 1000000);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_client(
-    &wait_set, &this->action_client, NULL, NULL);
-
-  ret = rcl_wait(&wait_set, 100000000);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  bool is_feedback_ready(false);
-  bool is_status_ready(false);
-  bool is_goal_response_ready(false);
-  bool is_cancel_response_ready(false);
-  bool is_result_response_ready(false);
 
   ret = rcl_action_client_wait_set_get_entities_ready(
-    &wait_set,
+    &this->wait_set_client,
     &this->action_client,
-    &is_feedback_ready,
-    &is_status_ready,
-    &is_goal_response_ready,
-    &is_cancel_response_ready,
-    &is_result_response_ready);
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
 
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_fini(&wait_set);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Take goal response with valid arguments
-
   ret = rcl_action_take_goal_response(
     &this->action_client, &request_header, &incoming_goal_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -275,8 +266,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
 }
 
 
-TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel_comm)
-{
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel_comm) {
   action_msgs__srv__CancelGoal_Request outgoing_cancel_request;
   action_msgs__srv__CancelGoal_Request incoming_cancel_request;
   action_msgs__srv__CancelGoal_Response outgoing_cancel_response;
@@ -298,57 +288,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-
-  size_t num_subscriptions = 0;
-  size_t num_guard_conditions = 0;
-  size_t num_timers = 0;
-  size_t num_clients = 0;
-  size_t num_services = 0;
-
-  ret = rcl_action_server_wait_set_get_num_entities(
-    &this->action_server,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, NULL);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  bool is_goal_request_ready(false);
-  bool is_cancel_request_ready(false);
-  bool is_result_request_ready(false);
-
-  ret = rcl_wait(&wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set_server, 1000000);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   ret = rcl_action_server_wait_set_get_entities_ready(
-    &wait_set,
+    &this->wait_set_server,
     &this->action_server,
-    &is_goal_request_ready,
-    &is_cancel_request_ready,
-    &is_result_request_ready);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_fini(&wait_set);
+    &this->is_goal_request_ready,
+    &this->is_cancel_request_ready,
+    &this->is_result_request_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -387,63 +336,18 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  wait_set = rcl_get_zero_initialized_wait_set();
-
-  num_subscriptions = 0;
-  num_guard_conditions = 0;
-  num_timers = 0;
-  num_clients = 0;
-  num_services = 0;
-
-  ret = rcl_action_client_wait_set_get_num_entities(
-    &this->action_client,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-
+  ret = rcl_wait(&this->wait_set_client, 1000000);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_client(
-    &wait_set, &this->action_client, NULL, NULL);
-
-  ret = rcl_wait(&wait_set, 100000000);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  bool is_feedback_ready(false);
-  bool is_status_ready(false);
-  bool is_goal_response_ready(false);
-  bool is_cancel_response_ready(false);
-  bool is_result_response_ready(false);
 
   ret = rcl_action_client_wait_set_get_entities_ready(
-    &wait_set,
+    &this->wait_set_client,
     &this->action_client,
-    &is_feedback_ready,
-    &is_status_ready,
-    &is_goal_response_ready,
-    &is_cancel_response_ready,
-    &is_result_response_ready);
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_fini(&wait_set);
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -494,57 +398,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-
-  size_t num_subscriptions = 0;
-  size_t num_guard_conditions = 0;
-  size_t num_timers = 0;
-  size_t num_clients = 0;
-  size_t num_services = 0;
-
-  ret = rcl_action_server_wait_set_get_num_entities(
-    &this->action_server,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, NULL);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  bool is_goal_request_ready(false);
-  bool is_cancel_request_ready(false);
-  bool is_result_request_ready(false);
-
-  ret = rcl_wait(&wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set_server, 1000000);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   ret = rcl_action_server_wait_set_get_entities_ready(
-    &wait_set,
+    &this->wait_set_server,
     &this->action_server,
     &is_goal_request_ready,
     &is_cancel_request_ready,
     &is_result_request_ready);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_fini(&wait_set);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -576,41 +439,18 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  wait_set = rcl_get_zero_initialized_wait_set();
+  ret = rcl_wait(&this->wait_set_client, 1000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
 
-  num_subscriptions = 0;
-  num_guard_conditions = 0;
-  num_timers = 0;
-  num_clients = 0;
-  num_services = 0;
-
-  ret = rcl_action_client_wait_set_get_num_entities(
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &this->wait_set_client,
     &this->action_client,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_client(
-    &wait_set, &this->action_client, NULL, NULL);
-
-  ret = rcl_wait(&wait_set, 100000000);
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -669,57 +509,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
   rcl_ret_t ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  // Publish status with valid arguments (but empty array)
-  ret = rcl_action_publish_status(&this->action_server, &status_array.msg);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-
-  size_t num_subscriptions = 0;
-  size_t num_guard_conditions = 0;
-  size_t num_timers = 0;
-  size_t num_clients = 0;
-  size_t num_services = 0;
-
-  ret = rcl_action_client_wait_set_get_num_entities(
-    &this->action_client,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_client(
-    &wait_set, &this->action_client, NULL, NULL);
-
-  ret = rcl_wait(&wait_set, 100000000);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  // Take status with valid arguments (empty array)
-  ret = rcl_action_take_status(&this->action_client, &incoming_status_array);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_goal_status_array_fini(&status_array);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
   // Add a goal before publishing the status array
   rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
   rcl_action_goal_handle_t * goal_handle;
@@ -735,41 +524,18 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  wait_set = rcl_get_zero_initialized_wait_set();
+  ret = rcl_wait(&this->wait_set_client, 1000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
 
-  num_subscriptions = 0;
-  num_guard_conditions = 0;
-  num_timers = 0;
-  num_clients = 0;
-  num_services = 0;
-
-  ret = rcl_action_client_wait_set_get_num_entities(
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &this->wait_set_client,
     &this->action_client,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_client(
-    &wait_set, &this->action_client, NULL, NULL);
-
-  ret = rcl_wait(&wait_set, 100000000);
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -817,41 +583,18 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  ret = rcl_wait(&this->wait_set_client, 1000000);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
 
-  size_t num_subscriptions = 0;
-  size_t num_guard_conditions = 0;
-  size_t num_timers = 0;
-  size_t num_clients = 0;
-  size_t num_services = 0;
-
-  ret = rcl_action_client_wait_set_get_num_entities(
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &this->wait_set_client,
     &this->action_client,
-    &num_subscriptions,
-    &num_guard_conditions,
-    &num_timers,
-    &num_clients,
-    &num_services);
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_wait_set_init(
-    &wait_set,
-    num_subscriptions,     // number_of_subscriptions
-    num_guard_conditions,  // number_of_guard_conditions
-    num_timers,            // number_of_timers
-    num_clients,           // number_of_clients
-    num_services,          // number_of_services
-    rcl_get_default_allocator());
-
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_action_wait_set_add_action_client(
-    &wait_set, &this->action_client, NULL, NULL);
-
-  ret = rcl_wait(&wait_set, 100000000);
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
