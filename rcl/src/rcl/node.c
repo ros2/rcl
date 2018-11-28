@@ -508,16 +508,26 @@ rcl_node_fini(rcl_node_t * node)
 }
 
 bool
-rcl_node_is_valid(const rcl_node_t * node)
+rcl_node_is_valid_except_context(const rcl_node_t * node)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(node, "rcl node pointer is invalid", return false);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "rcl node implementation is invalid", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl->rmw_node_handle, "rcl node's rmw handle is invalid", return false);
+  return true;
+}
+
+bool
+rcl_node_is_valid(const rcl_node_t * node)
+{
+  bool result = rcl_node_is_valid_except_context(node);
+  if (!result) {
+    return result;
+  }
   if (!rcl_context_is_valid(node->context)) {
     RCL_SET_ERROR_MSG("rcl node's context is invalid");
     return false;
   }
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->rmw_node_handle, "rcl node's rmw handle is invalid", return false);
   return true;
 }
 
@@ -559,7 +569,7 @@ rcl_node_options_copy(
 const char *
 rcl_node_get_name(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return NULL;  // error already set
   }
   return node->impl->rmw_node_handle->name;
@@ -568,7 +578,7 @@ rcl_node_get_name(const rcl_node_t * node)
 const char *
 rcl_node_get_namespace(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return NULL;  // error already set
   }
   return node->impl->rmw_node_handle->namespace_;
@@ -577,10 +587,9 @@ rcl_node_get_namespace(const rcl_node_t * node)
 const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node)
 {
-  // Not using rcl_node_is_valid() since we can still get the
-  // options from an initialized node, even if it is invalid
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, 0);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return 0);
+  if (!rcl_node_is_valid_except_context(node)) {
+    return NULL;  // error already set
+  }
   return &node->impl->options;
 }
 
@@ -599,7 +608,7 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
 rmw_node_t *
 rcl_node_get_rmw_handle(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return NULL;  // error already set
   }
   return node->impl->rmw_node_handle;
@@ -608,17 +617,16 @@ rcl_node_get_rmw_handle(const rcl_node_t * node)
 uint64_t
 rcl_node_get_rcl_instance_id(const rcl_node_t * node)
 {
-  // Not using rcl_node_is_valid() since we can still get the
-  // instance ID from an initialized node, even if it is invalid
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, 0);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "node implementation is invalid", return 0);
+  if (!rcl_node_is_valid_except_context(node)) {
+    return 0;  // error already set
+  }
   return rcl_context_get_instance_id(node->context);
 }
 
 const struct rcl_guard_condition_t *
 rcl_node_get_graph_guard_condition(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return NULL;  // error already set
   }
   return node->impl->graph_guard_condition;
@@ -627,7 +635,7 @@ rcl_node_get_graph_guard_condition(const rcl_node_t * node)
 const char *
 rcl_node_get_logger_name(const rcl_node_t * node)
 {
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return NULL;  // error already set
   }
   return node->impl->logger_name;

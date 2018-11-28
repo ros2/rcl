@@ -375,7 +375,35 @@ RCL_WARN_UNUSED
 rmw_publisher_t *
 rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 
-/// Check that the publisher is valid
+/// Return the context associated with this publisher.
+/**
+ * This function can fail, and therefore return `NULL`, if the:
+ *   - publisher is `NULL`
+ *   - publisher is invalid (never called init, called fini, etc.)
+ *
+ * The returned context is made invalid if the publisher is finalized or if
+ * rcl_shutdown() is called.
+ * Therefore it is recommended to get the handle from the publisher using
+ * this function each time it is needed and avoid use of the handle
+ * concurrently with functions that might change it.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] publisher pointer to the rcl publisher
+ * \return context if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_context_t *
+rcl_publisher_get_context(const rcl_publisher_t * publisher);
+
+/// Return true if the publisher is valid, otherwise false.
 /**
  * The bool returned is `false` if `publisher` is invalid.
  * The bool returned is `true` otherwise.
@@ -396,6 +424,19 @@ rcl_publisher_get_rmw_handle(const rcl_publisher_t * publisher);
 RCL_PUBLIC
 bool
 rcl_publisher_is_valid(const rcl_publisher_t * publisher);
+
+/// Return true if the publisher is valid except the context, otherwise false.
+/**
+ * This is used in clean up functions that need to access the publisher, but do
+ * not need use any functions with the context.
+ *
+ * It is identical to rcl_publisher_is_valid except it ignores the state of the
+ * context associated with the publisher.
+ * \sa rcl_publisher_is_valid()
+ */
+RCL_PUBLIC
+bool
+rcl_publisher_is_valid_except_context(const rcl_publisher_t * publisher);
 
 /// Get the number of subscriptions matched to a publisher.
 /**

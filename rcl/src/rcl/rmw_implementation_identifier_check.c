@@ -129,10 +129,12 @@ INITIALIZER(initialize) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME,
         "Error getting RMW implementation identifier / RMW implementation not installed "
-        "(expected identifier of '%s'), exiting with %d.",
+        "(expected identifier of '%s'), with error message '%s', exiting with %d.",
         expected_rmw_impl,
+        rcl_get_error_string().str,
         RCL_RET_ERROR
       );
+      rcl_reset_error();
       exit(RCL_RET_ERROR);
     }
     if (strcmp(actual_rmw_impl_id, expected_rmw_impl) != 0) {

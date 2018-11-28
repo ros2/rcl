@@ -54,6 +54,8 @@ rcl_context_fini(rcl_context_t * context)
     RCL_SET_ERROR_MSG("rcl_shutdown() not called on the given context");
     return RCL_RET_INVALID_ARGUMENT;
   }
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    &(context->impl->allocator), "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   __cleanup_context(context);
   return RCL_RET_OK;
 }

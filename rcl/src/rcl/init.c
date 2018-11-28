@@ -138,6 +138,9 @@ rcl_init(
     goto fail;
   }
 
+  // Store the allocator.
+  context->impl->allocator = allocator;
+
   return RCL_RET_OK;
 fail:
   __cleanup_context(context);

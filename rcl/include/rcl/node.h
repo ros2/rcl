@@ -285,6 +285,19 @@ RCL_PUBLIC
 bool
 rcl_node_is_valid(const rcl_node_t * node);
 
+/// Return true if node is valid, except for the context being valid.
+/**
+ * This is used in clean up functions that need to access the node, but do not
+ * need use any functions with the context.
+ *
+ * It is identical to rcl_node_is_valid except it ignores the state of the
+ * context associated with the node.
+ * \sa rcl_node_is_valid()
+ */
+RCL_PUBLIC
+bool
+rcl_node_is_valid_except_context(const rcl_node_t * node);
+
 /// Return the name of the node.
 /**
  * This function returns the node's internal name string.
