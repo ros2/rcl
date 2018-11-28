@@ -172,8 +172,6 @@ protected:
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_shutdown();
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_disable_ros_time_override(&this->clock);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void init_test_uuid0(uint8_t * uuid)
