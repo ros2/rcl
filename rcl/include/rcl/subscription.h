@@ -407,6 +407,33 @@ RCL_PUBLIC
 bool
 rcl_subscription_is_valid(const rcl_subscription_t * subscription);
 
+/// Get the number of publishers matched to a subscription.
+/**
+ * Used to get the internal count of publishers matched to a subscription.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] only if the underlying rmw doesn't make use of this feature </i>
+ *
+ * \param[in] subscription pointer to the rcl subscription
+ * \param[out] publisher_count number of matched publishers
+ * \return `RCL_RET_OK` if the count was retrieved, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rmw_ret_t
+rcl_subscription_get_publisher_count(
+  const rcl_subscription_t * subscription,
+  size_t * publisher_count);
+
 #ifdef __cplusplus
 }
 #endif

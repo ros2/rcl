@@ -21,6 +21,7 @@ extern "C"
 
 #include <stdio.h>
 
+#include "./common.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
@@ -335,6 +336,25 @@ rcl_subscription_is_valid(const rcl_subscription_t * subscription)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl->rmw_handle, "subscription's rmw handle is invalid", return false);
   return true;
+}
+
+rmw_ret_t
+rcl_subscription_get_publisher_count(
+  const rcl_subscription_t * subscription,
+  size_t * publisher_count)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(publisher_count, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t ret = rmw_subscription_count_matched_publishers(subscription->impl->rmw_handle,
+      publisher_count);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus

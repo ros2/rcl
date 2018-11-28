@@ -22,6 +22,7 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
+#include "./common.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
@@ -300,6 +301,26 @@ rcl_publisher_is_valid(const rcl_publisher_t * publisher)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     publisher->impl->rmw_handle, "publisher's rmw handle is invalid", return false);
   return true;
+}
+
+rmw_ret_t
+rcl_publisher_get_subscription_count(
+  const rcl_publisher_t * publisher,
+  size_t * subscription_count)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(subscription_count, RCL_RET_INVALID_ARGUMENT);
+
+  rmw_ret_t ret = rmw_publisher_count_matched_subscriptions(publisher->impl->rmw_handle,
+      subscription_count);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus
