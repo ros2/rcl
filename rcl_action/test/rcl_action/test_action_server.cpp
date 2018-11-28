@@ -274,7 +274,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
 TEST_F(TestActionServer, test_action_clear_expired_goals)
 {
   const size_t capacity = 1u;
-  rcl_action_goal_info_t expired_goals[capacity];
+  rcl_action_goal_info_t expired_goals[1u];
   size_t num_expired = 1u;
   // Clear expired goals with null action server
   rcl_ret_t ret = rcl_action_expire_goals(nullptr, expired_goals, capacity, &num_expired);

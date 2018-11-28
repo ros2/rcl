@@ -510,9 +510,9 @@ rcl_action_expire_goals(
   }
   const bool output_expired =
     NULL != expired_goals && NULL != num_expired && expired_goals_capacity > 0u;
-  if (!output_expired
-    && (NULL != expired_goals || NULL != num_expired || expired_goals_capacity != 0u)
-  ) {
+  if (!output_expired &&
+    (NULL != expired_goals || NULL != num_expired || expired_goals_capacity != 0u))
+  {
     RCL_SET_ERROR_MSG("expired_goals, expired_goals_capacity, and num_expired inconsistent");
     return RCL_RET_INVALID_ARGUMENT;
   }
