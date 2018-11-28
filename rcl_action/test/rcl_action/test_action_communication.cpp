@@ -986,10 +986,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_resu
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feedback_opts)
 {
-  test_msgs__action__Fibonacci_Feedback outgoing_feedback;
-  test_msgs__action__Fibonacci_Feedback incoming_feedback;
-  test_msgs__action__Fibonacci_Feedback__init(&outgoing_feedback);
-  test_msgs__action__Fibonacci_Feedback__init(&incoming_feedback);
+  test_msgs__action__Fibonacci_Action_Feedback outgoing_feedback;
+  test_msgs__action__Fibonacci_Action_Feedback incoming_feedback;
+  test_msgs__action__Fibonacci_Action_Feedback__init(&outgoing_feedback);
+  test_msgs__action__Fibonacci_Action_Feedback__init(&incoming_feedback);
 
   // Initialize feedback
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
@@ -1031,8 +1031,12 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feed
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  test_msgs__action__Fibonacci_Feedback__fini(&incoming_feedback);
-  test_msgs__action__Fibonacci_Feedback__fini(&outgoing_feedback);
+<<<<<<< HEAD
+  test_msgs__action__Fibonacci_Action_Feedback__fini(&incoming_feedback);
+  test_msgs__action__Fibonacci_Action_Feedback__fini(&outgoing_feedback);
+=======
+  test_msgs__action__Fibonacci_Action_Feedback__fini(&feedback);
+>>>>>>> update test to IDL-based action generation
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_status_opts)
