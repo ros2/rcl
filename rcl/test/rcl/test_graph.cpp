@@ -51,6 +51,7 @@ bool is_connext =
 class CLASSNAME (TestGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
+  rcl_context_t * old_context_ptr;
   rcl_context_t * context_ptr;
   rcl_node_t * old_node_ptr;
   rcl_node_t * node_ptr;
@@ -64,20 +65,20 @@ public:
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
       EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
     });
-    this->context_ptr = new rcl_context_t;
-    *this->context_ptr = rcl_get_zero_initialized_context();
-    ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
+    this->old_context_ptr = new rcl_context_t;
+    *this->old_context_ptr = rcl_get_zero_initialized_context();
+    ret = rcl_init(0, nullptr, &init_options, this->old_context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->old_node_ptr = new rcl_node_t;
     *this->old_node_ptr = rcl_get_zero_initialized_node();
     const char * old_name = "old_node_name";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(this->old_node_ptr, old_name, "", this->context_ptr, &node_options);
+    ret = rcl_node_init(this->old_node_ptr, old_name, "", this->old_context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_shutdown(this->context_ptr);  // after this, the old_node_ptr should be invalid
+    ret = rcl_shutdown(this->old_context_ptr);  // after this, the old_node_ptr should be invalid
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_context_fini(this->context_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    this->context_ptr = new rcl_context_t;
     *this->context_ptr = rcl_get_zero_initialized_context();
 
     ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
@@ -112,6 +113,10 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_context_fini(this->context_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    delete this->context_ptr;
+    ret = rcl_context_fini(this->old_context_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    delete this->old_context_ptr;
   }
 };
 

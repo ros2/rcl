@@ -178,10 +178,8 @@ TEST_F(
   options_with_failing_allocator.allocator.zero_allocate = failing_calloc;
   ret = rcl_guard_condition_init(&guard_condition, &context, options_with_failing_allocator);
   ASSERT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
-  // The error will not be set because the allocator will not work.
-  // It should, however, print a message to the screen and get the bad alloc ret code.
-  // ASSERT_TRUE(rcl_error_is_set());
-  // rcl_reset_error();
+  ASSERT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 
   // Try fini with invalid arguments.
   ret = rcl_guard_condition_fini(nullptr);

@@ -130,6 +130,9 @@ rcl_count_publishers(
   const char * topic_name,
   size_t * count)
 {
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;  // error already set
+  }
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (!node_options) {
     return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so
@@ -146,6 +149,9 @@ rcl_count_subscribers(
   const char * topic_name,
   size_t * count)
 {
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;  // error already set
+  }
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (!node_options) {
     return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so
@@ -162,6 +168,9 @@ rcl_service_server_is_available(
   const rcl_client_t * client,
   bool * is_available)
 {
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;  // error already set
+  }
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (!node_options) {
     return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so

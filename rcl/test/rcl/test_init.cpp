@@ -108,7 +108,7 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_ok_and_s
   rcl_context_t context = rcl_get_zero_initialized_context();
   // A shutdown before any init has been called should fail.
   ret = rcl_shutdown(&context);
-  EXPECT_EQ(RCL_RET_NOT_INIT, ret);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
   ASSERT_FALSE(rcl_context_is_valid(&context));
   // If argc is not 0, but argv is, it should be an invalid argument.
@@ -164,12 +164,17 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_ok_and_s
   ret = rcl_shutdown(&context);
   EXPECT_EQ(ret, RCL_RET_OK);
   ASSERT_FALSE(rcl_context_is_valid(&context));
+  // Then a repeated shutdown should fail.
+  ret = rcl_shutdown(&context);
+  EXPECT_EQ(ret, RCL_RET_ALREADY_SHUTDOWN);
+  ASSERT_FALSE(rcl_context_is_valid(&context));
+  rcl_reset_error();
   ret = rcl_context_fini(&context);
   EXPECT_EQ(ret, RCL_RET_OK);
   context = rcl_get_zero_initialized_context();
   // A repeat call to shutdown should not work.
   ret = rcl_shutdown(&context);
-  EXPECT_EQ(RCL_RET_NOT_INIT, ret);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
   ASSERT_FALSE(rcl_context_is_valid(&context));
   // Repeat, but valid, calls to rcl_init() should fail.
@@ -205,6 +210,7 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_get_instance_id_a
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   EXPECT_EQ(0u, rcl_context_get_instance_id(&context));
   ASSERT_FALSE(rcl_context_is_valid(&context));
+  rcl_reset_error();
   // A non-zero instance id should be returned after a valid init.
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
