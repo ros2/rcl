@@ -35,6 +35,66 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+void check_state(
+  rcl_wait_set_t * wait_set_ptr,
+  rcl_publisher_t * publisher,
+  rcl_subscription_t * subscriber,
+  const rcl_guard_condition_t * graph_guard_condition,
+  size_t expected_subscriber_count,
+  size_t expected_publisher_count,
+  size_t number_of_tries)
+{
+  size_t subscriber_count = -1;
+  size_t publisher_count = -1;
+
+  rcl_ret_t ret;
+
+  for (size_t i = 0; i < number_of_tries; ++i) {
+    if (publisher) {
+      ret = rcl_publisher_get_subscription_count(publisher, &subscriber_count);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      rcl_reset_error();
+    }
+
+    if (subscriber) {
+      ret = rcl_subscription_get_publisher_count(subscriber, &publisher_count);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      rcl_reset_error();
+    }
+
+    if (
+      expected_publisher_count == publisher_count &&
+      expected_subscriber_count == subscriber_count)
+    {
+      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "  state correct!");
+      break;
+    }
+
+    if ((i + 1) == number_of_tries) {
+      // Don't wait for the graph to change on the last loop because we won't check again.
+      continue;
+    }
+
+    ret = rcl_wait_set_clear(wait_set_ptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(wait_set_ptr, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
+    RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME,
+      "  state wrong, waiting up to '%s' nanoseconds for graph changes... ",
+      std::to_string(time_to_sleep.count()).c_str());
+    ret = rcl_wait(wait_set_ptr, time_to_sleep.count());
+    if (ret == RCL_RET_TIMEOUT) {
+      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "timeout");
+      continue;
+    }
+    RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "change occurred");
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+  EXPECT_EQ(expected_publisher_count, publisher_count);
+  EXPECT_EQ(expected_subscriber_count, subscriber_count);
+}
+
 class CLASSNAME (TestCountFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
@@ -52,11 +112,20 @@ public:
     const char * name = "test_count_node";
     ret = rcl_node_init(this->node_ptr, name, "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    this->wait_set_ptr = new rcl_wait_set_t;
+    *this->wait_set_ptr = rcl_get_zero_initialized_wait_set();
+    ret = rcl_wait_set_init(this->wait_set_ptr, 0, 1, 0, 0, 0, rcl_get_default_allocator());
   }
 
   void TearDown()
   {
     rcl_ret_t ret;
+
+    ret = rcl_wait_set_fini(this->wait_set_ptr);
+    delete this->wait_set_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -77,13 +146,10 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  {
-    size_t subscription_count;
-    ret = rcl_publisher_get_subscription_count(&pub, &subscription_count);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(0u, subscription_count);
-  }
+  const rcl_guard_condition_t * graph_guard_condition =
+    rcl_node_get_graph_guard_condition(this->node_ptr);
+
+  check_state(wait_set_ptr, &pub, nullptr, graph_guard_condition, 0, -1, 9);
 
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
@@ -91,25 +157,7 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // This sleep is currently needed to allow opensplice and connext to correctly fire
-  // the on_publication_matched/on_subscription_matched functions.
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-  {
-    size_t subscription_count;
-    ret = rcl_publisher_get_subscription_count(&pub, &subscription_count);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(1u, subscription_count);
-  }
-
-  {
-    size_t publisher_count;
-    ret = rcl_subscription_get_publisher_count(&sub, &publisher_count);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(1u, publisher_count);
-  }
+  check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 1, 1, 9);
 
   rcl_subscription_t sub2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub2_ops = rcl_subscription_get_default_options();
@@ -117,55 +165,13 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // This sleep is currently needed to allow opensplice and connext to correctly fire
-  // the on_publication_matched/on_subscription_matched functions.
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-  {
-    size_t subscription_count;
-    ret = rcl_publisher_get_subscription_count(&pub, &subscription_count);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(2u, subscription_count);
-  }
-
-  {
-    size_t publisher_count;
-    ret = rcl_subscription_get_publisher_count(&sub, &publisher_count);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(1u, publisher_count);
-  }
-
-  {
-    size_t publisher_count;
-    ret = rcl_subscription_get_publisher_count(&sub2, &publisher_count);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(1u, publisher_count);
-  }
+  check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 2, 1, 9);
+  check_state(wait_set_ptr, &pub, &sub2, graph_guard_condition, 2, 1, 9);
 
   ret = rcl_publisher_fini(&pub, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // This sleep is currently needed to allow opensplice and connext to correctly fire
-  // the on_publication_matched/on_subscription_matched functions.
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-  {
-    size_t publisher_count;
-    ret = rcl_subscription_get_publisher_count(&sub, &publisher_count);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(0u, publisher_count);
-  }
-
-  {
-    size_t publisher_count;
-    ret = rcl_subscription_get_publisher_count(&sub2, &publisher_count);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(0u, publisher_count);
-  }
+  check_state(wait_set_ptr, nullptr, &sub, graph_guard_condition, -1, 0, 9);
+  check_state(wait_set_ptr, nullptr, &sub2, graph_guard_condition, -1, 0, 9);
 }
