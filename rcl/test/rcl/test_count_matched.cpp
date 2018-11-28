@@ -184,18 +184,16 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION),
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
 
   rcl_publisher_options_t pub_ops;
-  pub_ops.qos = {
-    RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-    10,
-    RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-    RMW_QOS_POLICY_DURABILITY_VOLATILE,
-    false
-  };
+  pub_ops.qos.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  pub_ops.qos.depth = 10;
+  pub_ops.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  pub_ops.qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  pub_ops.qos.avoid_ros_namespace_conventions = false;
   pub_ops.allocator = rcl_get_default_allocator();
 
   auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
   ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   const rcl_guard_condition_t * graph_guard_condition =
@@ -206,20 +204,19 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION),
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
 
   rcl_subscription_options_t sub_ops;
-  sub_ops.qos = {
-    RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-    10,
-    RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-    RMW_QOS_POLICY_DURABILITY_VOLATILE,
-    false
-  };
+  sub_ops.qos.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  sub_ops.qos.depth = 10;
+  sub_ops.qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  sub_ops.qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  sub_ops.qos.avoid_ros_namespace_conventions = false;
   sub_ops.allocator = rcl_get_default_allocator();
 
   ret = rcl_subscription_init(&sub, this->node_ptr, ts, topic_name.c_str(), &sub_ops);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 1, 1, 9);
+  // Expect that no publishers or subscribers should be matched due to qos.
+  check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 0, 0, 9);
 
   rcl_subscription_t sub2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub2_ops = rcl_subscription_get_default_options();
@@ -227,13 +224,11 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION),
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 2, 1, 9);
-  check_state(wait_set_ptr, &pub, &sub2, graph_guard_condition, 2, 1, 9);
+  // Even multiple subscribers should not match
+  check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 0, 0, 9);
+  check_state(wait_set_ptr, &pub, &sub2, graph_guard_condition, 0, 0, 9);
 
   ret = rcl_publisher_fini(&pub, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-
-  check_state(wait_set_ptr, nullptr, &sub, graph_guard_condition, -1, 0, 9);
-  check_state(wait_set_ptr, nullptr, &sub2, graph_guard_condition, -1, 0, 9);
 }

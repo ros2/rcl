@@ -22,7 +22,7 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
-#include "common.h"
+#include "./common.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"

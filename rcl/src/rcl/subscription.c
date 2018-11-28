@@ -21,7 +21,7 @@ extern "C"
 
 #include <stdio.h>
 
-#include "common.h"
+#include "./common.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
