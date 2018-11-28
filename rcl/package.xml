@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
-<package format="2">
+<package format="3">
   <name>rcl</name>
   <version>0.6.0</version>
   <description>The ROS client library common implementation.
@@ -26,6 +26,8 @@
   <exec_depend>rosidl_default_runtime</exec_depend>
 
   <depend>rmw_implementation</depend>
+
+  <group_depend>rc_logging_packages</group_depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_cmake_pytest</test_depend>

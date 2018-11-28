@@ -12,6 +12,9 @@ find_package(rosidl_generator_c REQUIRED)
 
 include_directories(include)
 
+include(cmake/get_default_rc_logging_implementation.cmake)
+get_default_rc_logging_implementation(RC_LOGGING_IMPL)
+
 # Default to C11
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 11)
@@ -38,6 +41,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/init_options.c
   src/rcl/lexer.c
   src/rcl/lexer_lookahead.c
+  src/rcl/logging.c
   src/rcl/node.c
   src/rcl/publisher.c
   src/rcl/remap.c
@@ -58,6 +62,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rmw"
   "rcutils"
   "rosidl_generator_c"
+  ${RC_LOGGING_IMPL}
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -86,6 +91,7 @@ ament_export_dependencies(rmw_implementation)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rosidl_generator_c)
+ament_export_dependencies(${RC_LOGGING_IMPL})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
