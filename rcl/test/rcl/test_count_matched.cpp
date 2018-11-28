@@ -175,3 +175,65 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
   check_state(wait_set_ptr, nullptr, &sub, graph_guard_condition, -1, 0, 9);
   check_state(wait_set_ptr, nullptr, &sub2, graph_guard_condition, -1, 0, 9);
 }
+
+TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION),
+  test_count_matched_functions_mismatched_qos) {
+  std::string topic_name("/test_count_matched_functions_mismatched_qos__");
+  rcl_ret_t ret;
+
+  rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
+
+  rcl_publisher_options_t pub_ops;
+  pub_ops.qos = {
+    RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+    10,
+    RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+    RMW_QOS_POLICY_DURABILITY_VOLATILE,
+    false
+  };
+  pub_ops.allocator = rcl_get_default_allocator();
+
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  const rcl_guard_condition_t * graph_guard_condition =
+    rcl_node_get_graph_guard_condition(this->node_ptr);
+
+  check_state(wait_set_ptr, &pub, nullptr, graph_guard_condition, 0, -1, 9);
+
+  rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
+
+  rcl_subscription_options_t sub_ops;
+  sub_ops.qos = {
+    RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+    10,
+    RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+    RMW_QOS_POLICY_DURABILITY_VOLATILE,
+    false
+  };
+  sub_ops.allocator = rcl_get_default_allocator();
+
+  ret = rcl_subscription_init(&sub, this->node_ptr, ts, topic_name.c_str(), &sub_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 1, 1, 9);
+
+  rcl_subscription_t sub2 = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t sub2_ops = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(&sub2, this->node_ptr, ts, topic_name.c_str(), &sub2_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 2, 1, 9);
+  check_state(wait_set_ptr, &pub, &sub2, graph_guard_condition, 2, 1, 9);
+
+  ret = rcl_publisher_fini(&pub, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  check_state(wait_set_ptr, nullptr, &sub, graph_guard_condition, -1, 0, 9);
+  check_state(wait_set_ptr, nullptr, &sub2, graph_guard_condition, -1, 0, 9);
+}
