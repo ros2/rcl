@@ -149,7 +149,7 @@ protected:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(&this->node, "test_action_server_node", "", &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_clock_init(RCL_STEADY_TIME, &this->clock, &allocator);
+    ret = rcl_clock_init(RCL_ROS_TIME, &this->clock, &allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
       test_msgs, Fibonacci);
@@ -171,6 +171,8 @@ protected:
     ret = rcl_node_fini(&this->node);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_shutdown();
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_disable_ros_time_override(&this->clock);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
@@ -271,28 +273,49 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
 
 TEST_F(TestActionServer, test_action_clear_expired_goals)
 {
+  const size_t capacity = 1u;
+  rcl_action_goal_info_t expired_goals[capacity];
   size_t num_expired = 1u;
   // Clear expired goals with null action server
-  rcl_ret_t ret = rcl_action_expire_goals(nullptr, &num_expired);
+  rcl_ret_t ret = rcl_action_expire_goals(nullptr, expired_goals, capacity, &num_expired);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Clear with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_expire_goals(&invalid_action_server, &num_expired);
+  ret = rcl_action_expire_goals(&invalid_action_server, expired_goals, capacity, &num_expired);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Clear with valid arguments
-  ret = rcl_action_expire_goals(&this->action_server, &num_expired);
+  ret = rcl_action_expire_goals(&this->action_server, expired_goals, capacity, &num_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(num_expired, 0u);
 
   // Clear with valid arguments (optional num_expired)
-  ret = rcl_action_expire_goals(&this->action_server, nullptr);
+  ret = rcl_action_expire_goals(&this->action_server, nullptr, 0u, nullptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  // TODO(jacobperron): Test with goals that actually expire
+  // Test with goals that actually expire
+  // Set ROS time
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&this->clock));
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&this->clock, RCUTILS_S_TO_NS(1)));
+  // Accept a goal to create a new handle
+  rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
+  init_test_uuid1(goal_info_in.uuid);
+  rcl_action_goal_handle_t * goal_handle =
+    rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  // Transition executing to aborted
+  ASSERT_EQ(RCL_RET_OK, rcl_action_update_goal_state(goal_handle, GOAL_EVENT_EXECUTE));
+  ASSERT_EQ(RCL_RET_OK, rcl_action_update_goal_state(goal_handle, GOAL_EVENT_SET_ABORTED));
+  // Set time to something far in the future
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&this->clock, RCUTILS_S_TO_NS(99999)));
+  // Clear with valid arguments
+  ret = rcl_action_expire_goals(&this->action_server, expired_goals, capacity, &num_expired);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_EQ(num_expired, 1u);
+  EXPECT_TRUE(uuidcmp(expired_goals[0].uuid, goal_info_in.uuid));
 }
 
 TEST_F(TestActionServer, test_action_process_cancel_request)

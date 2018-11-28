@@ -583,8 +583,12 @@ rcl_action_send_result_response(
  * \attention If one or more goals are expired then a previously returned goal handle
  * array from rcl_action_server_get_goal_handles() becomes invalid.
  *
- * `num_expired` is an optional argument. If it is not `NULL`, then it is set to the
- * number of goals that were expired.
+ * `expired_goals`, `expired_goals_capacity` and `num_expired` are optional arguments.
+ * If set to (`NULL`, 0u, `NULL`) then they are not used.
+ * To use them allocate an array with size equal to the maximum number of goals that you want to
+ * expire.
+ * Pass the number of goals the array can hold in as `expired_goals_capacity`.
+ * This function will set `num_expired` to the number of goals that were expired.
  *
  * <hr>
  * Attribute          | Adherence
@@ -598,6 +602,9 @@ rcl_action_send_result_response(
  *
  * \param[in] action_server handle to the action server from which expired goals
  *   will be cleared.
+ * \param[in] expired_goals_allocator allocator to use to allocate expired_goals output
+ * \param[inout] expired_goals the identifiers of goals that expired, or set to `NULL` if unused
+ * \param[inout] expired_goals_capacity the allocated size of `expired_goals`, or 0 if unused
  * \param[out] num_expired the number of expired goals, or set to `NULL` if unused
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
@@ -610,6 +617,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_expire_goals(
   const rcl_action_server_t * action_server,
+  rcl_action_goal_info_t * expired_goals,
+  size_t expired_goals_capacity,
   size_t * num_expired);
 
 /// Take a pending cancel request using an action server.
