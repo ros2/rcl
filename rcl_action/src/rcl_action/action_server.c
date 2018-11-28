@@ -534,7 +534,6 @@ rcl_action_expire_goals(
   rcl_action_goal_info_t goal_info;
   int64_t goal_time;
   size_t num_goal_handles = action_server->impl->num_goal_handles;
-
   for (size_t i = 0u; i < num_goal_handles; ++i) {
     if (output_expired && i >= expired_goals_capacity) {
       // no more space to output expired goals, so stop expiring them
@@ -565,7 +564,7 @@ rcl_action_expire_goals(
     }
   }
 
-  // Shrink arrays if some goals expired
+  // Shrink goal handle array if some goals expired
   if (num_goals_expired > 0u) {
     if (0u == num_goal_handles) {
       allocator.deallocate(action_server->impl->goal_handles, allocator.state);
