@@ -660,14 +660,13 @@ rcl_action_expire_goals(
         action_server->impl->num_goal_handles = num_goal_handles;
       }
     }
-    ret_final = _recalculate_expire_timer(
-      &action_server->impl->expire_timer,
-      action_server->impl->options.result_timeout.nanoseconds,
-      action_server->impl->goal_handles,
-      action_server->impl->num_goal_handles,
-      &action_server->impl->clock);
   }
-
+  ret_final = _recalculate_expire_timer(
+    &action_server->impl->expire_timer,
+    action_server->impl->options.result_timeout.nanoseconds,
+    action_server->impl->goal_handles,
+    action_server->impl->num_goal_handles,
+    &action_server->impl->clock);
 
   // If argument is not null, then set it
   if (NULL != num_expired) {
