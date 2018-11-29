@@ -59,11 +59,9 @@ public:
 
   void TearDown()
   {
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      delete this->context_ptr;
-    });
-    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(this->context_ptr)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(this->context_ptr)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(this->context_ptr)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(this->context_ptr)) << rcl_get_error_string().str;
+    delete this->context_ptr;
   }
 };
 

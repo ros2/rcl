@@ -64,6 +64,8 @@ public:
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(this->context_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_context_fini(this->context_ptr);
     delete this->context_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }

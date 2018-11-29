@@ -20,6 +20,7 @@ extern "C"
 #include "rcl/init.h"
 
 #include "./arguments_impl.h"
+#include "./common.h"
 #include "./context_impl.h"
 #include "./init_options_impl.h"
 #include "rcl/arguments.h"
@@ -69,11 +70,10 @@ rcl_init(
   context->global_arguments = rcl_get_zero_initialized_arguments();
 
   // Setup impl for context.
-  context->impl = allocator.allocate(sizeof(rcl_context_impl_t), allocator.state);
+  // use zero_allocate so the cleanup function will not try to clean up uninitialized parts later
+  context->impl = allocator.zero_allocate(1, sizeof(rcl_context_impl_t), allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     context->impl, "failed to allocate memory for context impl", return RCL_RET_BAD_ALLOC);
-  // memset to 0 so the cleanup function will not try to clean up uninitialized parts later
-  memset(context->impl, 0x0, sizeof(rcl_context_impl_t));
 
   // Copy the options into the context for future reference.
   rcl_ret_t ret = rcl_init_options_copy(options, &(context->impl->init_options));
@@ -86,12 +86,11 @@ rcl_init(
   context->impl->argc = argc;
   context->impl->argv = NULL;
   if (0 != argc && argv != NULL) {
-    context->impl->argv = (char **)allocator.allocate(sizeof(char *) * argc, allocator.state);
+    context->impl->argv = (char **)allocator.zero_allocate(argc, sizeof(char *), allocator.state);
     RCL_CHECK_FOR_NULL_WITH_MSG(
       context->impl->argv,
       "failed to allocate memory for argv",
       fail_ret = RCL_RET_BAD_ALLOC; goto fail);
-    memset(context->impl->argv, 0, sizeof(char *) * argc);
     int64_t i;
     for (i = 0; i < argc; ++i) {
       size_t argv_i_length = strlen(argv[i]);
@@ -126,6 +125,7 @@ rcl_init(
     goto fail;
   }
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), next_instance_id);
+  context->impl->init_options.impl->rmw_init_options.instance_id = next_instance_id;
 
   // Initialize rmw_init.
   context->impl->rmw_context = rmw_get_zero_initialized_context();
@@ -134,7 +134,7 @@ rcl_init(
     &(context->impl->rmw_context));
   if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    fail_ret = RCL_RET_ERROR;
+    fail_ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
     goto fail;
   }
 
@@ -163,6 +163,12 @@ rcl_shutdown(rcl_context_t * context)
 
   // reset the instance id to 0 to indicate "invalid"
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), 0);
+
+  rmw_ret_t rmw_ret = rmw_shutdown(&(context->impl->rmw_context));
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
 
   return RCL_RET_OK;
 }
