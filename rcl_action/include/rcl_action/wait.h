@@ -258,6 +258,7 @@ rcl_action_client_wait_set_get_entities_ready(
  *   to take, `false` otherwise
  * \param[out] is_result_request_ready `true` if there is a result request message ready
  *   to take, `false` otherwise
+ * \param[out] is_goal_expired `true` if there is a goal that expired, `false` otherwise
  * \return `RCL_RET_OK` if call is successful, or
  * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -272,7 +273,8 @@ rcl_action_server_wait_set_get_entities_ready(
   const rcl_action_server_t * action_server,
   bool * is_goal_request_ready,
   bool * is_cancel_request_ready,
-  bool * is_result_request_ready);
+  bool * is_result_request_ready,
+  bool * is_goal_expired);
 
 #ifdef __cplusplus
 }

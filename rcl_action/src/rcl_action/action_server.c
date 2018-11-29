@@ -42,6 +42,7 @@ typedef struct rcl_action_server_impl_t
   rcl_service_t result_service;
   rcl_publisher_t feedback_publisher;
   rcl_publisher_t status_publisher;
+  rcl_timer_t expire_timer;
   char * action_name;
   rcl_action_server_options_t options;
   // Array of goal handles
@@ -53,6 +54,7 @@ typedef struct rcl_action_server_impl_t
   size_t wait_set_goal_service_index;
   size_t wait_set_cancel_service_index;
   size_t wait_set_result_service_index;
+  size_t wait_set_expire_timer_index;
 } rcl_action_server_impl_t;
 
 rcl_action_server_t
@@ -170,6 +172,7 @@ rcl_action_server_init(
   action_server->impl->goal_service = rcl_get_zero_initialized_service();
   action_server->impl->cancel_service = rcl_get_zero_initialized_service();
   action_server->impl->result_service = rcl_get_zero_initialized_service();
+  action_server->impl->expire_timer = rcl_get_zero_initialized_timer();
   action_server->impl->feedback_publisher = rcl_get_zero_initialized_publisher();
   action_server->impl->status_publisher = rcl_get_zero_initialized_publisher();
   action_server->impl->action_name = NULL;
@@ -187,6 +190,19 @@ rcl_action_server_init(
   // Initialize publishers
   PUBLISHER_INIT(feedback);
   PUBLISHER_INIT(status);
+
+  // Initialize Timer
+  ret = rcl_timer_init(
+    &action_server->impl->expire_timer, clock, options->result_timeout.nanoseconds, NULL,
+    allocator);
+  if (RCL_RET_OK != ret) {
+    goto fail;
+  }
+  // Cancel timer so it doesn't start firing
+  ret = rcl_timer_cancel(&action_server->impl->expire_timer);
+  if (RCL_RET_OK != ret) {
+    goto fail;
+  }
 
   // Copy clock
   action_server->impl->clock = *clock;
@@ -234,6 +250,10 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
       ret = RCL_RET_ERROR;
     }
     if (rcl_publisher_fini(&action_server->impl->status_publisher, node) != RCL_RET_OK) {
+      ret = RCL_RET_ERROR;
+    }
+    // Finalize timer
+    if (rcl_timer_fini(&action_server->impl->expire_timer) != RCL_RET_OK) {
       ret = RCL_RET_ERROR;
     }
     // Deallocate action name
@@ -395,6 +415,66 @@ rcl_action_accept_new_goal(
   return goal_handles[num_goal_handles];
 }
 
+// Implementation only
+static rcl_ret_t
+_recalculate_expire_timer(
+  rcl_timer_t * expire_timer,
+  const int64_t timeout,
+  rcl_action_goal_handle_t ** goal_handles,
+  size_t num_goal_handles,
+  rcl_clock_t * clock)
+{
+  size_t num_inactive_goals = 0u;
+  int64_t minimum_period = 0;
+
+  // Get current time (nanosec)
+  int64_t current_time;
+  rcl_ret_t ret = rcl_clock_get_now(clock, &current_time);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;
+  }
+
+  for (size_t i = 0; i < num_goal_handles; ++i) {
+    rcl_action_goal_handle_t * goal_handle = goal_handles[i];
+    if (!rcl_action_goal_handle_is_active(goal_handle)) {
+      ++num_inactive_goals;
+
+      rcl_action_goal_info_t goal_info;
+      ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
+      if (RCL_RET_OK != ret) {
+        return RCL_RET_ERROR;
+      }
+
+      int64_t delta = timeout - current_time - _goal_info_stamp_to_nanosec(&goal_info);
+      if (delta < minimum_period) {
+        minimum_period = delta;
+      }
+    }
+  }
+
+  if (0u == num_goal_handles || 0u == num_inactive_goals) {
+    // No idea when the next goal will expire, so cancel timer
+    return rcl_timer_cancel(expire_timer);
+  } else {
+    if (minimum_period < 0) {
+      // Time jumped backwards
+      minimum_period = 0;
+    }
+    // Un-cancel timer
+    ret = rcl_timer_reset(expire_timer);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+    // Make timer fire when next goal expires
+    int64_t old_period;
+    ret = rcl_timer_exchange_period(expire_timer, minimum_period, &old_period);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+  return RCL_RET_OK;
+}
+
 rcl_ret_t
 rcl_action_publish_feedback(
   const rcl_action_server_t * action_server,
@@ -554,7 +634,6 @@ rcl_action_expire_goals(
       continue;
     }
     goal_time = _goal_info_stamp_to_nanosec(info_ptr);
-    assert(current_time > goal_time);
     if ((current_time - goal_time) > timeout) {
       // Stop tracking goal handle
       // Fill in any gaps left in the array with pointers from the end
@@ -564,8 +643,8 @@ rcl_action_expire_goals(
     }
   }
 
-  // Shrink goal handle array if some goals expired
   if (num_goals_expired > 0u) {
+    // Shrink goal handle array if some goals expired
     if (0u == num_goal_handles) {
       allocator.deallocate(action_server->impl->goal_handles, allocator.state);
     } else {
@@ -581,13 +660,34 @@ rcl_action_expire_goals(
         action_server->impl->num_goal_handles = num_goal_handles;
       }
     }
+    ret_final = _recalculate_expire_timer(
+      &action_server->impl->expire_timer,
+      action_server->impl->options.result_timeout.nanoseconds,
+      action_server->impl->goal_handles,
+      action_server->impl->num_goal_handles,
+      &action_server->impl->clock);
   }
+
 
   // If argument is not null, then set it
   if (NULL != num_expired) {
     (*num_expired) = num_goals_expired;
   }
   return ret_final;
+}
+
+rcl_ret_t
+rcl_action_notify_goal_done(
+  const rcl_action_server_t * action_server,
+  rcl_action_goal_handle_t * goal_handle)
+{
+  (void)goal_handle;
+  return _recalculate_expire_timer(
+    &action_server->impl->expire_timer,
+    action_server->impl->options.result_timeout.nanoseconds,
+    action_server->impl->goal_handles,
+    action_server->impl->num_goal_handles,
+    &action_server->impl->clock);
 }
 
 rcl_ret_t
@@ -841,6 +941,13 @@ rcl_action_wait_set_add_action_server(
   if (RCL_RET_OK != ret) {
     return ret;
   }
+  ret = rcl_wait_set_add_timer(
+    wait_set,
+    &action_server->impl->expire_timer,
+    &action_server->impl->wait_set_expire_timer_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
 
   if (NULL != service_index) {
     // The goal service was the first added
@@ -868,7 +975,7 @@ rcl_action_server_wait_set_get_num_entities(
   RCL_CHECK_ARGUMENT_FOR_NULL(num_services, RCL_RET_INVALID_ARGUMENT);
   *num_subscriptions = 0u;
   *num_guard_conditions = 0u;
-  *num_timers = 0u;
+  *num_timers = 1u;
   *num_clients = 0u;
   *num_services = 3u;
   return RCL_RET_OK;
@@ -880,7 +987,8 @@ rcl_action_server_wait_set_get_entities_ready(
   const rcl_action_server_t * action_server,
   bool * is_goal_request_ready,
   bool * is_cancel_request_ready,
-  bool * is_result_request_ready)
+  bool * is_result_request_ready,
+  bool * is_goal_expired)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
   if (!rcl_action_server_is_valid(action_server)) {
@@ -889,14 +997,17 @@ rcl_action_server_wait_set_get_entities_ready(
   RCL_CHECK_ARGUMENT_FOR_NULL(is_goal_request_ready, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_cancel_request_ready, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(is_result_request_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_goal_expired, RCL_RET_INVALID_ARGUMENT);
 
   const rcl_action_server_impl_t * impl = action_server->impl;
   const rcl_service_t * goal_service = wait_set->services[impl->wait_set_goal_service_index];
   const rcl_service_t * cancel_service = wait_set->services[impl->wait_set_cancel_service_index];
   const rcl_service_t * result_service = wait_set->services[impl->wait_set_result_service_index];
+  const rcl_timer_t * expire_timer = wait_set->timers[impl->wait_set_expire_timer_index];
   *is_goal_request_ready = (&impl->goal_service == goal_service);
   *is_cancel_request_ready = (&impl->cancel_service == cancel_service);
   *is_result_request_ready = (&impl->result_service == result_service);
+  *is_goal_expired = (&impl->expire_timer == expire_timer);
   return RCL_RET_OK;
 }
 
