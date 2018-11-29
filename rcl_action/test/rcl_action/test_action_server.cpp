@@ -15,6 +15,7 @@
 
 #include <chrono>
 #include <thread>
+#include <vector>
 
 #include "rcl_action/action_server.h"
 
