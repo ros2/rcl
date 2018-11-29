@@ -262,6 +262,11 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
       allocator.deallocate(action_server->impl->action_name, allocator.state);
       action_server->impl->action_name = NULL;
     }
+    // Deallocate goal handles storage, but don't fini them.
+    for (size_t i = 0; i < action_server->impl->num_goal_handles; ++i) {
+      allocator.deallocate(action_server->impl->goal_handles[i], allocator.state);
+    }
+    allocator.deallocate(action_server->impl->goal_handles, allocator.state);
     // Deallocate struct
     allocator.deallocate(action_server->impl, allocator.state);
     action_server->impl = NULL;

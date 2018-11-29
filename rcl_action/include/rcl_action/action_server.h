@@ -343,6 +343,8 @@ rcl_action_send_goal_response(
  * rcl_action_send_goal_response().
  *
  * After calling this function, the action server will start tracking the goal.
+ * The pointer to the goal handle becomes invalid after `rcl_action_server_fini()` is called.
+ * The caller becomes responsible for finalizing the goal handle later.
  *
  * Example usage:
  *
