@@ -480,6 +480,7 @@ protected:
       }
       goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
       ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+      handles.push_back(*goal_handle);
       goal_infos_out[i] = rcl_action_get_zero_initialized_goal_info();
       ret = rcl_action_goal_handle_get_info(goal_handle, &goal_infos_out[i]);
       ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -490,11 +491,15 @@ protected:
 
   void TearDown() override
   {
+    for (auto & handle : handles) {
+      EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
+    }
     TestActionServer::TearDown();
   }
 
   static const int NUM_GOALS = 10;
   rcl_action_goal_info_t goal_infos_out[NUM_GOALS];
+  std::vector<rcl_action_goal_handle_t> handles;
 };
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_all_goals)

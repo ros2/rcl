@@ -267,6 +267,7 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
       allocator.deallocate(action_server->impl->goal_handles[i], allocator.state);
     }
     allocator.deallocate(action_server->impl->goal_handles, allocator.state);
+    action_server->impl->goal_handles = NULL;
     // Deallocate struct
     allocator.deallocate(action_server->impl, allocator.state);
     action_server->impl = NULL;
@@ -642,8 +643,9 @@ rcl_action_expire_goals(
     if ((current_time - goal_time) > timeout) {
       // Stop tracking goal handle
       // Fill in any gaps left in the array with pointers from the end
+      --num_goal_handles;
       action_server->impl->goal_handles[i] = action_server->impl->goal_handles[num_goal_handles];
-      action_server->impl->goal_handles[num_goal_handles--] = NULL;
+      action_server->impl->goal_handles[num_goal_handles] = NULL;
       ++num_goals_expired;
     }
   }
@@ -652,6 +654,8 @@ rcl_action_expire_goals(
     // Shrink goal handle array if some goals expired
     if (0u == num_goal_handles) {
       allocator.deallocate(action_server->impl->goal_handles, allocator.state);
+      action_server->impl->goal_handles = NULL;
+      action_server->impl->num_goal_handles = num_goal_handles;
     } else {
       void * tmp_ptr = allocator.reallocate(
         action_server->impl->goal_handles,
