@@ -501,10 +501,20 @@ rcl_action_send_result_response(
 rcl_ret_t
 rcl_action_expire_goals(
   const rcl_action_server_t * action_server,
+  rcl_action_goal_info_t * expired_goals,
+  size_t expired_goals_capacity,
   size_t * num_expired)
 {
   if (!rcl_action_server_is_valid(action_server)) {
     return RCL_RET_ACTION_SERVER_INVALID;
+  }
+  const bool output_expired =
+    NULL != expired_goals && NULL != num_expired && expired_goals_capacity > 0u;
+  if (!output_expired &&
+    (NULL != expired_goals || NULL != num_expired || expired_goals_capacity != 0u))
+  {
+    RCL_SET_ERROR_MSG("expired_goals, expired_goals_capacity, and num_expired inconsistent");
+    return RCL_RET_INVALID_ARGUMENT;
   }
 
   // Get current time (nanosec)
@@ -525,17 +535,25 @@ rcl_action_expire_goals(
   int64_t goal_time;
   size_t num_goal_handles = action_server->impl->num_goal_handles;
   for (size_t i = 0u; i < num_goal_handles; ++i) {
+    if (output_expired && i >= expired_goals_capacity) {
+      // no more space to output expired goals, so stop expiring them
+      break;
+    }
     goal_handle = action_server->impl->goal_handles[i];
     // Expiration only applys to terminated goals
     if (rcl_action_goal_handle_is_active(goal_handle)) {
       continue;
     }
-    ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
+    rcl_action_goal_info_t * info_ptr = &goal_info;
+    if (output_expired) {
+      info_ptr = &(expired_goals[num_goals_expired]);
+    }
+    ret = rcl_action_goal_handle_get_info(goal_handle, info_ptr);
     if (RCL_RET_OK != ret) {
       ret_final = RCL_RET_ERROR;
       continue;
     }
-    goal_time = _goal_info_stamp_to_nanosec(&goal_info);
+    goal_time = _goal_info_stamp_to_nanosec(info_ptr);
     assert(current_time > goal_time);
     if ((current_time - goal_time) > timeout) {
       // Stop tracking goal handle
