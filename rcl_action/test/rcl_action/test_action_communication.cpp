@@ -1116,6 +1116,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_stat
 
   ret = rcl_action_goal_status_array_fini(&status_array);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
   action_msgs__msg__GoalStatusArray__fini(&incoming_status_array);
+  EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(goal_handle));
 }
