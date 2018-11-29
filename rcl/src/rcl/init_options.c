@@ -44,7 +44,7 @@ rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocat
   init_options->impl = allocator.allocate(sizeof(rcl_init_options_impl_t), allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     init_options->impl,
-    "failed to allocator memory for init options impl",
+    "failed to allocate memory for init options impl",
     return RCL_RET_BAD_ALLOC);
   init_options->impl->allocator = allocator;
   init_options->impl->rmw_init_options = rmw_get_zero_initialized_init_options();
