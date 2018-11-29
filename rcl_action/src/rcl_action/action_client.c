@@ -243,7 +243,7 @@ rcl_action_client_get_default_options(void)
 #define SEND_SERVICE_REQUEST(Type, request, sequence_number) \
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending action " #Type " request"); \
   if (!rcl_action_client_is_valid(action_client)) { \
-    return RCL_RET_ACTION_SERVER_INVALID;  /* error already set */ \
+    return RCL_RET_ACTION_CLIENT_INVALID;  /* error already set */ \
   } \
   RCL_CHECK_ARGUMENT_FOR_NULL(request, RCL_RET_INVALID_ARGUMENT); \
   RCL_CHECK_ARGUMENT_FOR_NULL(sequence_number, RCL_RET_INVALID_ARGUMENT); \
@@ -259,7 +259,7 @@ rcl_action_client_get_default_options(void)
 #define TAKE_SERVICE_RESPONSE(Type, response_header, response) \
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action " #Type " response"); \
   if (!rcl_action_client_is_valid(action_client)) { \
-    return RCL_RET_ACTION_SERVER_INVALID;  /* error already set */ \
+    return RCL_RET_ACTION_CLIENT_INVALID;  /* error already set */ \
   } \
   RCL_CHECK_ARGUMENT_FOR_NULL(response_header, RCL_RET_INVALID_ARGUMENT); \
   RCL_CHECK_ARGUMENT_FOR_NULL(response, RCL_RET_INVALID_ARGUMENT); \
