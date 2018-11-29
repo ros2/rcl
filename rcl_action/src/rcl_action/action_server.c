@@ -645,6 +645,7 @@ rcl_action_expire_goals(
       // Fill in any gaps left in the array with pointers from the end
       --num_goal_handles;
       action_server->impl->goal_handles[i] = action_server->impl->goal_handles[num_goal_handles];
+      allocator.deallocate(action_server->impl->goal_handles[num_goal_handles], allocator.state);
       action_server->impl->goal_handles[num_goal_handles] = NULL;
       ++num_goals_expired;
     }
