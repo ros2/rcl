@@ -36,7 +36,10 @@ typedef struct rcl_guard_condition_impl_t
 rcl_guard_condition_t
 rcl_get_zero_initialized_guard_condition()
 {
-  static rcl_guard_condition_t null_guard_condition = {0};
+  static rcl_guard_condition_t null_guard_condition = {
+    .context = 0,
+    .impl = 0
+  };
   return null_guard_condition;
 }
 
