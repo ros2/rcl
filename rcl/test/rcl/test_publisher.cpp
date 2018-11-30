@@ -34,17 +34,28 @@
 class CLASSNAME (TestPublisherFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
+  rcl_context_t * context_ptr;
   rcl_node_t * node_ptr;
   void SetUp()
   {
     rcl_ret_t ret;
-    ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    {
+      rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+      ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+        EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+      });
+      this->context_ptr = new rcl_context_t;
+      *this->context_ptr = rcl_get_zero_initialized_context();
+      ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "test_publisher_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(this->node_ptr, name, "", &node_options);
+    ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
@@ -53,7 +64,10 @@ public:
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_shutdown();
+    ret = rcl_shutdown(this->context_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_context_fini(this->context_ptr);
+    delete this->context_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };

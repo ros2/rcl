@@ -21,6 +21,7 @@ extern "C"
 #endif
 
 #include "rcl/allocator.h"
+#include "rcl/context.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
@@ -31,6 +32,9 @@ struct rcl_guard_condition_impl_t;
 /// Handle for a rcl guard condition.
 typedef struct rcl_guard_condition_t
 {
+  /// Context associated with this guard condition.
+  rcl_context_t * context;
+
   struct rcl_guard_condition_impl_t * impl;
 } rcl_guard_condition_t;
 
@@ -61,7 +65,7 @@ rcl_get_zero_initialized_guard_condition(void);
  * rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
  * // ... customize guard condition options
  * rcl_ret_t ret = rcl_guard_condition_init(
- *   &guard_condition, rcl_guard_condition_get_default_options());
+ *   &guard_condition, context, rcl_guard_condition_get_default_options());
  * // ... error handling, and on shutdown do deinitialization:
  * ret = rcl_guard_condition_fini(&guard_condition);
  * // ... error handling for rcl_guard_condition_fini()
@@ -76,9 +80,12 @@ rcl_get_zero_initialized_guard_condition(void);
  * Lock-Free          | Yes
  *
  * \param[inout] guard_condition preallocated guard_condition structure
+ * \param[in] context the context instance with which the guard condition
+ *   should be associated
  * \param[in] options the guard_condition's options
  * \return `RCL_RET_OK` if guard_condition was initialized successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the guard condition is already initialized, or
+ * \return `RCL_RET_NOT_INIT` if the given context is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -88,6 +95,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_guard_condition_init(
   rcl_guard_condition_t * guard_condition,
+  rcl_context_t * context,
   const rcl_guard_condition_options_t options);
 
 /// Same as rcl_guard_condition_init(), but reusing an existing rmw handle.
@@ -114,6 +122,9 @@ rcl_guard_condition_init(
  *
  * \param[inout] guard_condition preallocated guard_condition structure
  * \param[in] rmw_guard_condition existing rmw guard condition to reuse
+ * \param[in] context the context instance with which the rmw guard condition
+ *   was initialized with, i.e. the rmw context inside rcl context needs to
+ *   match rmw context in rmw guard condition
  * \param[in] options the guard_condition's options
  * \return `RCL_RET_OK` if guard_condition was initialized successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the guard condition is already initialized, or
@@ -125,6 +136,7 @@ rcl_ret_t
 rcl_guard_condition_init_from_rmw(
   rcl_guard_condition_t * guard_condition,
   const rmw_guard_condition_t * rmw_guard_condition,
+  rcl_context_t * context,
   const rcl_guard_condition_options_t options);
 
 /// Finalize a rcl_guard_condition_t.
@@ -142,6 +154,7 @@ rcl_guard_condition_init_from_rmw(
  * <i>[1] specifically not thread-safe with rcl_trigger_guard_condition()</i>
  *
  * \param[inout] guard_condition handle to the guard_condition to be finalized
+ * \param[in] context the context originally used to init the guard condition
  * \return `RCL_RET_OK` if guard_condition was finalized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.

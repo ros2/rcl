@@ -127,7 +127,7 @@ rcl_subscription_init(
   }
   rcl_arguments_t * global_args = NULL;
   if (node_options->use_global_arguments) {
-    global_args = rcl_get_global_arguments();
+    global_args = &(node->context->global_arguments);
   }
   ret = rcl_remap_topic_name(
     &(node_options->arguments), global_args, expanded_topic_name,
@@ -197,7 +197,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing subscription");
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_SUBSCRIPTION_INVALID);
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return RCL_RET_NODE_INVALID;  // error already set
   }
   if (subscription->impl) {

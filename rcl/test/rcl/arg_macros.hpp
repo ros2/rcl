@@ -15,11 +15,11 @@
 #ifndef RCL__ARG_MACROS_HPP_
 #define RCL__ARG_MACROS_HPP_
 
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcutils/strdup.h"
-
-#include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 /// Helper to get around non-const args passed to rcl_init().
 char **
@@ -45,17 +45,22 @@ destroy_args(int argc, char ** args)
 }
 
 #define SCOPE_GLOBAL_ARGS(argc, argv, ...) \
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options(); \
+  ASSERT_EQ(RCL_RET_OK, rcl_init_options_init(&init_options, rcl_get_default_allocator())) \
+    << rcl_get_error_string().str; \
+  rcl_context_t context = rcl_get_zero_initialized_context(); \
   { \
     const char * const_argv[] = {__VA_ARGS__}; \
     argc = (sizeof(const_argv) / sizeof(const char *)); \
     argv = copy_args(argc, const_argv); \
-    rcl_ret_t ret = rcl_init(argc, argv, rcl_get_default_allocator()); \
+    rcl_ret_t ret = rcl_init(argc, argv, &init_options, &context); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
   } \
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({ \
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str; \
     destroy_args(argc, argv); \
-    rcl_ret_t ret = rcl_shutdown(); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
+    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str; \
+    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str; \
   })
 
 #define SCOPE_ARGS(local_arguments, ...) \

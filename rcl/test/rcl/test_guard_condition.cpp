@@ -63,13 +63,21 @@ TEST_F(
   rcl_ret_t ret;
 
   // Initialize rcl with rcl_init().
-  ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret);
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    ASSERT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   // Setup automatic rcl_shutdown()
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
-    rcl_ret_t ret = rcl_shutdown();
-    ASSERT_EQ(RCL_RET_OK, ret);
+    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
 
   // Create a zero initialized guard_condition (but not initialized).
@@ -78,7 +86,7 @@ TEST_F(
   // Create a normal guard_condition.
   rcl_guard_condition_options_t default_options = rcl_guard_condition_get_default_options();
   rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
-  ret = rcl_guard_condition_init(&guard_condition, default_options);
+  ret = rcl_guard_condition_init(&guard_condition, &context, default_options);
   ASSERT_EQ(RCL_RET_OK, ret);
   // Setup automatic finalization of guard condition.
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
@@ -121,22 +129,34 @@ TEST_F(
 TEST_F(
   CLASSNAME(TestGuardConditionFixture, RMW_IMPLEMENTATION), test_rcl_guard_condition_life_cycle) {
   rcl_ret_t ret;
+  rcl_context_t context = rcl_get_zero_initialized_context();
   rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
   rcl_guard_condition_options_t default_options = rcl_guard_condition_get_default_options();
   // Trying to init before rcl_init() should fail.
-  ret = rcl_guard_condition_init(&guard_condition, default_options);
+  ret = rcl_guard_condition_init(&guard_condition, &context, default_options);
   ASSERT_EQ(RCL_RET_NOT_INIT, ret) << "Expected RCL_RET_NOT_INIT";
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   // Initialize rcl with rcl_init().
-  ret = rcl_init(0, nullptr, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret);
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    rcl_ret_t ret = rcl_shutdown();
-    ASSERT_EQ(RCL_RET_OK, ret);
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    ASSERT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
+  });
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
   });
   // Try invalid arguments.
-  ret = rcl_guard_condition_init(nullptr, default_options);
+  ret = rcl_guard_condition_init(nullptr, &context, default_options);
+  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
+  ASSERT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  // Now with nullptr for context.
+  ret = rcl_guard_condition_init(&guard_condition, nullptr, default_options);
   ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
@@ -146,7 +166,7 @@ TEST_F(
   options_with_invalid_allocator.allocator.allocate = nullptr;
   options_with_invalid_allocator.allocator.deallocate = nullptr;
   options_with_invalid_allocator.allocator.reallocate = nullptr;
-  ret = rcl_guard_condition_init(&guard_condition, options_with_invalid_allocator);
+  ret = rcl_guard_condition_init(&guard_condition, &context, options_with_invalid_allocator);
   ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
@@ -156,12 +176,10 @@ TEST_F(
   options_with_failing_allocator.allocator.allocate = failing_malloc;
   options_with_failing_allocator.allocator.reallocate = failing_realloc;
   options_with_failing_allocator.allocator.zero_allocate = failing_calloc;
-  ret = rcl_guard_condition_init(&guard_condition, options_with_failing_allocator);
+  ret = rcl_guard_condition_init(&guard_condition, &context, options_with_failing_allocator);
   ASSERT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
-  // The error will not be set because the allocator will not work.
-  // It should, however, print a message to the screen and get the bad alloc ret code.
-  // ASSERT_TRUE(rcl_error_is_set());
-  // rcl_reset_error();
+  ASSERT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 
   // Try fini with invalid arguments.
   ret = rcl_guard_condition_fini(nullptr);
@@ -172,14 +190,14 @@ TEST_F(
   ret = rcl_guard_condition_fini(&guard_condition);
   EXPECT_EQ(RCL_RET_OK, ret);
   // Try a normal init and fini.
-  ret = rcl_guard_condition_init(&guard_condition, default_options);
+  ret = rcl_guard_condition_init(&guard_condition, &context, default_options);
   EXPECT_EQ(RCL_RET_OK, ret);
   ret = rcl_guard_condition_fini(&guard_condition);
   EXPECT_EQ(RCL_RET_OK, ret);
   // Try repeated init and fini calls.
-  ret = rcl_guard_condition_init(&guard_condition, default_options);
+  ret = rcl_guard_condition_init(&guard_condition, &context, default_options);
   EXPECT_EQ(RCL_RET_OK, ret);
-  ret = rcl_guard_condition_init(&guard_condition, default_options);
+  ret = rcl_guard_condition_init(&guard_condition, &context, default_options);
   EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << "Expected RCL_RET_ALREADY_INIT";
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();

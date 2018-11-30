@@ -37,11 +37,16 @@ protected:
   void SetUp() override
   {
     rcl_allocator_t allocator = rcl_get_default_allocator();
-    rcl_ret_t ret = rcl_init(0, nullptr, allocator);
+    rcl_ret_t ret;
+    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+    ret = rcl_init_options_init(&init_options, allocator);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    context = rcl_get_zero_initialized_context();
+    ret = rcl_init(0, nullptr, &init_options, &context);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->node = rcl_get_zero_initialized_node();
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(&this->node, "test_action_communication_node", "", &node_options);
+    ret = rcl_node_init(&this->node, "test_action_communication_node", "", &context, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_clock_init(RCL_STEADY_TIME, &this->clock, &allocator);
     const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
@@ -107,10 +112,10 @@ protected:
     ret = rcl_action_client_fini(&this->action_client, &this->node);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_node_fini(&this->node);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    ret = rcl_shutdown();
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_wait_set_fini(&this->wait_set);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_shutdown(&context);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     rcl_reset_error();
   }
@@ -131,6 +136,7 @@ protected:
 
   rcl_action_client_t action_client;
   rcl_action_server_t action_server;
+  rcl_context_t context;
   rcl_node_t node;
   rcl_clock_t clock;
 

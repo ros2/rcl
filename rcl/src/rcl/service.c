@@ -129,7 +129,7 @@ rcl_service_init(
   }
   rcl_arguments_t * global_args = NULL;
   if (node_options->use_global_arguments) {
-    global_args = rcl_get_global_arguments();
+    global_args = &(node->context->global_arguments);
   }
   ret = rcl_remap_service_name(
     &(node_options->arguments), global_args, expanded_service_name,
@@ -204,7 +204,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing service");
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_SERVICE_INVALID);
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return RCL_RET_NODE_INVALID;  // error already set
   }
 
