@@ -182,7 +182,10 @@ const char * rcl_get_secure_root(
 rcl_node_t
 rcl_get_zero_initialized_node()
 {
-  static rcl_node_t null_node = {0};
+  static rcl_node_t null_node = {
+    .context = 0,
+    .impl = 0
+  };
   return null_node;
 }
 
