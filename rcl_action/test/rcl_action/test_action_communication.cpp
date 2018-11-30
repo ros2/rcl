@@ -179,7 +179,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait(&this->wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
+
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -226,7 +227,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait(&this->wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -296,7 +297,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait(&this->wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -355,7 +356,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait(&this->wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -427,7 +428,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait(&this->wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -479,7 +480,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait(&this->wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -554,7 +555,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait(&this->wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -624,7 +625,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = rcl_wait(&this->wait_set, 1000000);
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -716,7 +717,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal
   rcl_reset_error();
 
   test_msgs__action__Fibonacci_Goal_Request__fini(&outgoing_goal_request);
-  test_msgs__action__Fibonacci_Goal_Request__init(&incoming_goal_request);
+  test_msgs__action__Fibonacci_Goal_Request__fini(&incoming_goal_request);
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal_response_opts)
