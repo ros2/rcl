@@ -1031,12 +1031,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feed
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-<<<<<<< HEAD
   test_msgs__action__Fibonacci_Action_Feedback__fini(&incoming_feedback);
   test_msgs__action__Fibonacci_Action_Feedback__fini(&outgoing_feedback);
-=======
-  test_msgs__action__Fibonacci_Action_Feedback__fini(&feedback);
->>>>>>> update test to IDL-based action generation
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_status_opts)
