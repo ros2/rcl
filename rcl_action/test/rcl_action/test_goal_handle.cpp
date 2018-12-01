@@ -154,6 +154,7 @@ TEST(TestGoalHandle, test_goal_handle_update_state_invalid)
   ret = rcl_action_update_goal_state(&goal_handle, GOAL_EVENT_NUM_EVENTS);
   EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_EVENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
+  EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&goal_handle));
 }
 
 using EventStateActiveCancelableTuple =

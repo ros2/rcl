@@ -145,6 +145,7 @@ protected:
   bool is_goal_request_ready;
   bool is_cancel_request_ready;
   bool is_result_request_ready;
+  bool is_goal_expired;
 
   bool is_feedback_ready;
   bool is_status_ready;
@@ -189,7 +190,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
     &this->action_server,
     &this->is_goal_request_ready,
     &this->is_cancel_request_ready,
-    &this->is_result_request_ready);
+    &this->is_result_request_ready,
+    &this->is_goal_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -306,7 +308,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
     &this->action_server,
     &this->is_goal_request_ready,
     &this->is_cancel_request_ready,
-    &this->is_result_request_ready);
+    &this->is_result_request_ready,
+    &this->is_goal_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -437,7 +440,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
     &this->action_server,
     &this->is_goal_request_ready,
     &this->is_cancel_request_ready,
-    &this->is_result_request_ready);
+    &this->is_result_request_ready,
+    &this->is_goal_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -598,6 +602,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   action_msgs__msg__GoalStatusArray__fini(&incoming_status_array);
+  EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(goal_handle));
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedback_comm)
@@ -1117,6 +1122,5 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_stat
 
   ret = rcl_action_goal_status_array_fini(&status_array);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
   action_msgs__msg__GoalStatusArray__fini(&incoming_status_array);
 }

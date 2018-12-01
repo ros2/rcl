@@ -15,6 +15,7 @@
 
 #include <chrono>
 #include <thread>
+#include <vector>
 
 #include "rcl_action/action_server.h"
 
@@ -244,9 +245,12 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   EXPECT_EQ(goal_handle, nullptr);
   rcl_reset_error();
 
+  std::vector<rcl_action_goal_handle_t> handles;
+
   // Accept with valid arguments
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  handles.push_back(*goal_handle);
   rcl_action_goal_info_t goal_info_out = rcl_action_get_zero_initialized_goal_info();
   rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -269,6 +273,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   init_test_uuid1(goal_info_in.uuid);
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  handles.push_back(*goal_handle);
   ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(uuidcmp(goal_info_out.uuid, goal_info_in.uuid));
@@ -278,6 +283,10 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   EXPECT_NE(goal_handle_array, nullptr) << rcl_get_error_string().str;
   EXPECT_NE(goal_handle_array[0], nullptr) << rcl_get_error_string().str;
   EXPECT_NE(goal_handle_array[1], nullptr) << rcl_get_error_string().str;
+
+  for (auto & handle : handles) {
+    EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
+  }
 }
 
 TEST_F(TestActionServer, test_action_clear_expired_goals)
@@ -305,6 +314,8 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   ret = rcl_action_expire_goals(&this->action_server, nullptr, 0u, nullptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
+  std::vector<rcl_action_goal_handle_t> handles;
+
   // Test with goals that actually expire
   // Set ROS time
   ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&this->clock));
@@ -315,6 +326,7 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   rcl_action_goal_handle_t * goal_handle =
     rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  handles.push_back(*goal_handle);
   // Transition executing to aborted
   ASSERT_EQ(RCL_RET_OK, rcl_action_update_goal_state(goal_handle, GOAL_EVENT_EXECUTE));
   ASSERT_EQ(RCL_RET_OK, rcl_action_update_goal_state(goal_handle, GOAL_EVENT_SET_ABORTED));
@@ -325,6 +337,10 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(num_expired, 1u);
   EXPECT_TRUE(uuidcmp(expired_goals[0].uuid, goal_info_in.uuid));
+
+  for (auto & handle : handles) {
+    EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
+  }
 }
 
 TEST_F(TestActionServer, test_action_process_cancel_request)
@@ -390,12 +406,15 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   ret = rcl_action_goal_status_array_fini(&status_array);
   ASSERT_EQ(ret, RCL_RET_OK);
 
+  std::vector<rcl_action_goal_handle_t> handles;
+
   // Add a goal before getting the status array
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
   init_test_uuid0(goal_info_in.uuid);
   rcl_action_goal_handle_t * goal_handle;
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+  handles.push_back(*goal_handle);
   ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_NE(status_array.msg.status_list.data, nullptr);
@@ -412,6 +431,7 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
     }
     goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
     ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+    handles.push_back(*goal_handle);
   }
   ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -425,6 +445,9 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   }
   ret = rcl_action_goal_status_array_fini(&status_array);
   ASSERT_EQ(ret, RCL_RET_OK);
+  for (auto & handle : handles) {
+    EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
+  }
 }
 
 TEST_F(TestActionServer, test_action_server_get_action_name)
@@ -480,6 +503,7 @@ protected:
       }
       goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
       ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+      handles.push_back(*goal_handle);
       goal_infos_out[i] = rcl_action_get_zero_initialized_goal_info();
       ret = rcl_action_goal_handle_get_info(goal_handle, &goal_infos_out[i]);
       ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -490,11 +514,15 @@ protected:
 
   void TearDown() override
   {
+    for (auto & handle : handles) {
+      EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
+    }
     TestActionServer::TearDown();
   }
 
   static const int NUM_GOALS = 10;
   rcl_action_goal_info_t goal_infos_out[NUM_GOALS];
+  std::vector<rcl_action_goal_handle_t> handles;
 };
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_all_goals)
@@ -516,6 +544,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_all_goal
       EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
     }
   }
+  EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
 }
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_goal)
@@ -531,6 +560,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
   ASSERT_EQ(cancel_response.msg.goals_canceling.size, 1u);
   rcl_action_goal_info_t * goal_info = &cancel_response.msg.goals_canceling.data[0];
   EXPECT_TRUE(uuidcmp(goal_info->uuid, cancel_request.goal_info.uuid));
+  EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
 }
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time)
@@ -552,6 +582,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time)
       EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
     }
   }
+  EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
 }
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_and_id)
@@ -580,4 +611,5 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
   }
   goal_info_out = &cancel_response.msg.goals_canceling.data[num_goals_canceling - 1];
   EXPECT_TRUE(uuidcmp(goal_info_out->uuid, cancel_request.goal_info.uuid));
+  EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
 }
