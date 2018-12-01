@@ -199,7 +199,7 @@ rcl_action_client_fini(rcl_action_client_t * action_client, rcl_node_t * node)
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;  // error already set
   }
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return RCL_RET_NODE_INVALID;  // error already set
   }
   rcl_ret_t ret = RCL_RET_OK;
@@ -396,22 +396,27 @@ rcl_action_client_is_valid(const rcl_action_client_t * action_client)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     action_client->impl, "action client implementation is invalid", return false);
   if (!rcl_client_is_valid(&action_client->impl->goal_client)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("goal client is invalid");
     return false;
   }
   if (!rcl_client_is_valid(&action_client->impl->cancel_client)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("cancel client is invalid");
     return false;
   }
   if (!rcl_client_is_valid(&action_client->impl->result_client)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("result client is invalid");
     return false;
   }
   if (!rcl_subscription_is_valid(&action_client->impl->feedback_subscription)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("feedback subscription is invalid");
     return false;
   }
   if (!rcl_subscription_is_valid(&action_client->impl->status_subscription)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("status subscription is invalid");
     return false;
   }
