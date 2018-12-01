@@ -634,7 +634,6 @@ rcl_action_expire_goals(
  * Lock-Free          | Yes
  *
  * \param[in] action_server handle to the action server
- * \param[in] goal_handle a goal handle that reached a terminal state.
  * \return `RCL_RET_OK` if everything is ok, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -644,8 +643,7 @@ RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_notify_goal_done(
-  const rcl_action_server_t * action_server,
-  rcl_action_goal_handle_t * goal_handle);
+  const rcl_action_server_t * action_server);
 
 /// Take a pending cancel request using an action server.
 /**

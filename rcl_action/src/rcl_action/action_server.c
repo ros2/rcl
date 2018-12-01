@@ -687,10 +687,8 @@ rcl_action_expire_goals(
 
 rcl_ret_t
 rcl_action_notify_goal_done(
-  const rcl_action_server_t * action_server,
-  rcl_action_goal_handle_t * goal_handle)
+  const rcl_action_server_t * action_server)
 {
-  (void)goal_handle;
   return _recalculate_expire_timer(
     &action_server->impl->expire_timer,
     action_server->impl->options.result_timeout.nanoseconds,
