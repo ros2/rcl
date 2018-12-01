@@ -905,6 +905,30 @@ RCL_WARN_UNUSED
 bool
 rcl_action_server_is_valid(const rcl_action_server_t * action_server);
 
+/// Check if an action server is valid without erroring if the library is shutting down.
+/**
+ * In the case where `false` is returned (ie. the action server is invalid),
+ * an error message is set.
+ *
+ * This function cannot fail.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] action_server handle to the action server
+ * \return `true` if `action_server` is valid, or
+ * \return `false` otherwise.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+bool
+rcl_action_server_is_valid_except_context(const rcl_action_server_t * action_server);
+
 #ifdef __cplusplus
 }
 #endif

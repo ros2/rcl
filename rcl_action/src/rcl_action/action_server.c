@@ -921,6 +921,35 @@ rcl_action_server_is_valid(const rcl_action_server_t * action_server)
   return true;
 }
 
+bool
+rcl_action_server_is_valid_except_context(const rcl_action_server_t * action_server)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(action_server, "action server pointer is invalid", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    action_server->impl, "action server implementation is invalid", return false);
+  if (!rcl_service_is_valid(&action_server->impl->goal_service)) {
+    RCL_SET_ERROR_MSG("goal service is invalid");
+    return false;
+  }
+  if (!rcl_service_is_valid(&action_server->impl->cancel_service)) {
+    RCL_SET_ERROR_MSG("cancel service is invalid");
+    return false;
+  }
+  if (!rcl_service_is_valid(&action_server->impl->result_service)) {
+    RCL_SET_ERROR_MSG("result service is invalid");
+    return false;
+  }
+  if (!rcl_publisher_is_valid_except_context(&action_server->impl->feedback_publisher)) {
+    RCL_SET_ERROR_MSG("feedback publisher is invalid");
+    return false;
+  }
+  if (!rcl_publisher_is_valid_except_context(&action_server->impl->status_publisher)) {
+    RCL_SET_ERROR_MSG("status publisher is invalid");
+    return false;
+  }
+  return true;
+}
+
 rcl_ret_t
 rcl_action_wait_set_add_action_server(
   rcl_wait_set_t * wait_set,
@@ -928,7 +957,7 @@ rcl_action_wait_set_add_action_server(
   size_t * service_index)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
-  if (!rcl_action_server_is_valid(action_server)) {
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
     return RCL_RET_ACTION_SERVER_INVALID;  // error already set
   }
 
@@ -977,7 +1006,7 @@ rcl_action_server_wait_set_get_num_entities(
   size_t * num_clients,
   size_t * num_services)
 {
-  if (!rcl_action_server_is_valid(action_server)) {
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
     return RCL_RET_ACTION_SERVER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(num_subscriptions, RCL_RET_INVALID_ARGUMENT);
@@ -1003,7 +1032,7 @@ rcl_action_server_wait_set_get_entities_ready(
   bool * is_goal_expired)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
-  if (!rcl_action_server_is_valid(action_server)) {
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
     return RCL_RET_ACTION_SERVER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(is_goal_request_ready, RCL_RET_INVALID_ARGUMENT);
