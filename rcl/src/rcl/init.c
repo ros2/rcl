@@ -112,7 +112,7 @@ rcl_init(
     goto fail;
   }
 
-  fail_ret = rcl_logging_configure(global_args);
+  fail_ret = rcl_logging_configure(&context->global_arguments);
   if (RCL_RET_OK != fail_ret) {
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to configure logging. %i", fail_ret);
     goto fail;
