@@ -9,7 +9,6 @@ find_package(action_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
-find_package(unique_identifier_msgs REQUIRED)
 
 include_directories(
   include
@@ -59,7 +58,6 @@ ament_target_dependencies(${PROJECT_NAME}
   "rcutils"
   "rmw"
   "rosidl_generator_c"
-  "unique_identifier_msgs"
 )
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
