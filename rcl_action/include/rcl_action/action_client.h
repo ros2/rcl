@@ -229,6 +229,50 @@ RCL_WARN_UNUSED
 rcl_action_client_options_t
 rcl_action_client_get_default_options(void);
 
+/// Check if an action server is available for the given action client.
+/**
+ * This function will return true for is_available if there is an action server
+ * available for the given action client.
+ *
+ * The node parameter must not be `NULL`, and must point to a valid node.
+ *
+ * The client parameter must not be `NULL`, and must point to a valid client.
+ *
+ * The given client and node must match, i.e. the client must have been created
+ * using the given node.
+ *
+ * The is_available parameter must not be `NULL`, and must point a bool variable.
+ * The result of the check will be stored in the is_available parameter.
+ *
+ * In the event that error handling needs to allocate memory, this function
+ * will try to use the node's allocator.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] client the handle to the action client being queried
+ * \param[out] is_available set to true if there is an action server available, else false
+ * \return `RCL_RET_OK` if successful (regardless of the action server availability), or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_server_is_available(
+  const rcl_node_t * node,
+  const rcl_action_client_t * client,
+  bool * is_available);
+
 /// Send a ROS goal using a rcl_action_client_t.
 /**
  * This is a non-blocking call.
