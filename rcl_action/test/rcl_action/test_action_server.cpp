@@ -322,7 +322,7 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&this->clock, RCUTILS_S_TO_NS(1)));
   // Accept a goal to create a new handle
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
-  init_test_uuid1(goal_info_in.uuid);
+  init_test_uuid1(goal_info_in.goal_id.uuid);
   rcl_action_goal_handle_t * goal_handle =
     rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
@@ -336,7 +336,7 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   ret = rcl_action_expire_goals(&this->action_server, expired_goals, capacity, &num_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(num_expired, 1u);
-  EXPECT_TRUE(uuidcmp(expired_goals[0].uuid, goal_info_in.uuid));
+  EXPECT_TRUE(uuidcmp(expired_goals[0].goal_id.uuid, goal_info_in.goal_id.uuid));
 
   for (auto & handle : handles) {
     EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
