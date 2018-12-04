@@ -284,7 +284,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   action_msgs__srv__CancelGoal_Response__init(&incoming_cancel_response);
 
   // Initialize cancel request
-  init_test_uuid0(outgoing_cancel_request.goal_info.uuid);
+  init_test_uuid0(outgoing_cancel_request.goal_info.goal_id.uuid);
   outgoing_cancel_request.goal_info.stamp.sec = 321;
   outgoing_cancel_request.goal_info.stamp.nanosec = 987654u;
 
@@ -326,8 +326,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
 
   // Check that the cancel request was received correctly
   EXPECT_TRUE(uuidcmp(
-      outgoing_cancel_request.goal_info.uuid,
-      incoming_cancel_request.goal_info.uuid));
+      outgoing_cancel_request.goal_info.goal_id.uuid,
+      incoming_cancel_request.goal_info.goal_id.uuid));
   EXPECT_EQ(
     outgoing_cancel_request.goal_info.stamp.sec,
     incoming_cancel_request.goal_info.stamp.sec);
@@ -338,10 +338,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   // Initialize cancel request
   ASSERT_TRUE(action_msgs__msg__GoalInfo__Sequence__init(
       &outgoing_cancel_response.goals_canceling, 2));
-  init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].uuid);
+  init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].goal_id.uuid);
   outgoing_cancel_response.goals_canceling.data[0].stamp.sec = 102;
   outgoing_cancel_response.goals_canceling.data[0].stamp.nanosec = 9468u;
-  init_test_uuid1(outgoing_cancel_response.goals_canceling.data[1].uuid);
+  init_test_uuid1(outgoing_cancel_response.goals_canceling.data[1].goal_id.uuid);
   outgoing_cancel_response.goals_canceling.data[1].stamp.sec = 867;
   outgoing_cancel_response.goals_canceling.data[1].stamp.nanosec = 6845u;
 
@@ -395,7 +395,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
       &outgoing_cancel_response.goals_canceling.data[i];
     const action_msgs__msg__GoalInfo * incoming_goal_info =
       &incoming_cancel_response.goals_canceling.data[i];
-    EXPECT_TRUE(uuidcmp(outgoing_goal_info->uuid, incoming_goal_info->uuid));
+    EXPECT_TRUE(uuidcmp(outgoing_goal_info->goal_id.uuid, incoming_goal_info->goal_id.uuid));
     EXPECT_EQ(outgoing_goal_info->stamp.sec, incoming_goal_info->stamp.sec);
     EXPECT_EQ(outgoing_goal_info->stamp.nanosec, incoming_goal_info->stamp.nanosec);
   }
@@ -592,7 +592,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
       &status_array.msg.status_list.data[i];
     const action_msgs__msg__GoalStatus * incoming_status =
       &incoming_status_array.status_list.data[i];
-    EXPECT_TRUE(uuidcmp(outgoing_status->goal_info.uuid, incoming_status->goal_info.uuid));
+    EXPECT_TRUE(
+      uuidcmp(outgoing_status->goal_info.goal_id.uuid, incoming_status->goal_info.goal_id.uuid));
     EXPECT_EQ(outgoing_status->goal_info.stamp.sec, incoming_status->goal_info.stamp.sec);
     EXPECT_EQ(outgoing_status->goal_info.stamp.nanosec, incoming_status->goal_info.stamp.nanosec);
     EXPECT_EQ(outgoing_status->status, incoming_status->status);
@@ -794,7 +795,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_canc
   action_msgs__srv__CancelGoal_Request__init(&incoming_cancel_request);
 
   // Initialize cancel request
-  init_test_uuid0(outgoing_cancel_request.goal_info.uuid);
+  init_test_uuid0(outgoing_cancel_request.goal_info.goal_id.uuid);
   outgoing_cancel_request.goal_info.stamp.sec = 321;
   outgoing_cancel_request.goal_info.stamp.nanosec = 987654u;
 
@@ -855,10 +856,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_canc
   // Initialize cancel request
   ASSERT_TRUE(action_msgs__msg__GoalInfo__Sequence__init(
       &outgoing_cancel_response.goals_canceling, 2));
-  init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].uuid);
+  init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].goal_id.uuid);
   outgoing_cancel_response.goals_canceling.data[0].stamp.sec = 102;
   outgoing_cancel_response.goals_canceling.data[0].stamp.nanosec = 9468u;
-  init_test_uuid1(outgoing_cancel_response.goals_canceling.data[1].uuid);
+  init_test_uuid1(outgoing_cancel_response.goals_canceling.data[1].goal_id.uuid);
   outgoing_cancel_response.goals_canceling.data[1].stamp.sec = 867;
   outgoing_cancel_response.goals_canceling.data[1].stamp.nanosec = 6845u;
 

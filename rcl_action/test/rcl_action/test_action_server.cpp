@@ -227,7 +227,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
 {
   // Initialize a goal info
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
-  init_test_uuid0(goal_info_in.uuid);
+  init_test_uuid0(goal_info_in.goal_id.uuid);
 
   // Accept goal with a null action server
   rcl_action_goal_handle_t * goal_handle = rcl_action_accept_new_goal(nullptr, &goal_info_in);
@@ -254,7 +254,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   rcl_action_goal_info_t goal_info_out = rcl_action_get_zero_initialized_goal_info();
   rcl_ret_t ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  EXPECT_TRUE(uuidcmp(goal_info_out.uuid, goal_info_in.uuid));
+  EXPECT_TRUE(uuidcmp(goal_info_out.goal_id.uuid, goal_info_in.goal_id.uuid));
   size_t num_goals = 0u;
   rcl_action_goal_handle_t ** goal_handle_array = {nullptr};
   ret = rcl_action_server_get_goal_handles(&this->action_server, &goal_handle_array, &num_goals);
@@ -270,13 +270,13 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
 
   // Accept a different goal
   goal_info_in = rcl_action_get_zero_initialized_goal_info();
-  init_test_uuid1(goal_info_in.uuid);
+  init_test_uuid1(goal_info_in.goal_id.uuid);
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
   handles.push_back(*goal_handle);
   ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info_out);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  EXPECT_TRUE(uuidcmp(goal_info_out.uuid, goal_info_in.uuid));
+  EXPECT_TRUE(uuidcmp(goal_info_out.goal_id.uuid, goal_info_in.goal_id.uuid));
   ret = rcl_action_server_get_goal_handles(&this->action_server, &goal_handle_array, &num_goals);
   ASSERT_EQ(ret, RCL_RET_OK);
   EXPECT_EQ(num_goals, 2u);
@@ -322,7 +322,7 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&this->clock, RCUTILS_S_TO_NS(1)));
   // Accept a goal to create a new handle
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
-  init_test_uuid1(goal_info_in.uuid);
+  init_test_uuid1(goal_info_in.goal_id.uuid);
   rcl_action_goal_handle_t * goal_handle =
     rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
@@ -336,7 +336,7 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   ret = rcl_action_expire_goals(&this->action_server, expired_goals, capacity, &num_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(num_expired, 1u);
-  EXPECT_TRUE(uuidcmp(expired_goals[0].uuid, goal_info_in.uuid));
+  EXPECT_TRUE(uuidcmp(expired_goals[0].goal_id.uuid, goal_info_in.goal_id.uuid));
 
   for (auto & handle : handles) {
     EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
@@ -410,7 +410,7 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
 
   // Add a goal before getting the status array
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
-  init_test_uuid0(goal_info_in.uuid);
+  init_test_uuid0(goal_info_in.goal_id.uuid);
   rcl_action_goal_handle_t * goal_handle;
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
@@ -420,14 +420,14 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   EXPECT_NE(status_array.msg.status_list.data, nullptr);
   EXPECT_EQ(status_array.msg.status_list.size, 1u);
   rcl_action_goal_info_t * goal_info_out = &status_array.msg.status_list.data[0].goal_info;
-  EXPECT_TRUE(uuidcmp(goal_info_out->uuid, goal_info_in.uuid));
+  EXPECT_TRUE(uuidcmp(goal_info_out->goal_id.uuid, goal_info_in.goal_id.uuid));
   ret = rcl_action_goal_status_array_fini(&status_array);
   ASSERT_EQ(ret, RCL_RET_OK);
 
   // Add nine more goals
   for (int i = 1; i < 10; ++i) {
     for (int j = 0; j < UUID_SIZE; ++j) {
-      goal_info_in.uuid[j] = static_cast<uint8_t>(i + j);
+      goal_info_in.goal_id.uuid[j] = static_cast<uint8_t>(i + j);
     }
     goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
     ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
@@ -440,7 +440,7 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   for (int i = 0; i < 10; ++i) {
     goal_info_out = &status_array.msg.status_list.data[i].goal_info;
     for (int j = 0; j < UUID_SIZE; ++j) {
-      EXPECT_EQ(goal_info_out->uuid[j], i + j);
+      EXPECT_EQ(goal_info_out->goal_id.uuid[j], i + j);
     }
   }
   ret = rcl_action_goal_status_array_fini(&status_array);
@@ -499,7 +499,7 @@ protected:
     rcl_ret_t ret;
     for (int i = 0; i < NUM_GOALS; ++i) {
       for (int j = 0; j < UUID_SIZE; ++j) {
-        goal_info_in.uuid[j] = static_cast<uint8_t>(i + j);
+        goal_info_in.goal_id.uuid[j] = static_cast<uint8_t>(i + j);
       }
       goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
       ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
@@ -541,7 +541,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_all_goal
   for (int i = 0; i < NUM_GOALS; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
     for (int j = 0; j < UUID_SIZE; ++j) {
-      EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
+      EXPECT_EQ(goal_info_out->goal_id.uuid[j], static_cast<uint8_t>(i + j));
     }
   }
   EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
@@ -551,7 +551,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
 {
   // Request to cancel a specific goal
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  init_test_uuid0(cancel_request.goal_info.uuid);
+  init_test_uuid0(cancel_request.goal_info.goal_id.uuid);
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
   rcl_ret_t ret = rcl_action_process_cancel_request(
     &this->action_server, &cancel_request, &cancel_response);
@@ -559,7 +559,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
   EXPECT_NE(cancel_response.msg.goals_canceling.data, nullptr);
   ASSERT_EQ(cancel_response.msg.goals_canceling.size, 1u);
   rcl_action_goal_info_t * goal_info = &cancel_response.msg.goals_canceling.data[0];
-  EXPECT_TRUE(uuidcmp(goal_info->uuid, cancel_request.goal_info.uuid));
+  EXPECT_TRUE(uuidcmp(goal_info->goal_id.uuid, cancel_request.goal_info.goal_id.uuid));
   EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
 }
 
@@ -579,7 +579,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time)
   for (size_t i = 0; i < cancel_response.msg.goals_canceling.size; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
     for (size_t j = 0; j < UUID_SIZE; ++j) {
-      EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
+      EXPECT_EQ(goal_info_out->goal_id.uuid[j], static_cast<uint8_t>(i + j));
     }
   }
   EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
@@ -593,7 +593,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
   cancel_request.goal_info = this->goal_infos_out[time_index];
   for (int i = 0; i < UUID_SIZE; ++i) {
-    cancel_request.goal_info.uuid[i] = static_cast<uint8_t>(i + goal_index);
+    cancel_request.goal_info.goal_id.uuid[i] = static_cast<uint8_t>(i + goal_index);
   }
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
   rcl_ret_t ret = rcl_action_process_cancel_request(
@@ -606,10 +606,10 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
   for (size_t i = 0; i < num_goals_canceling - 1; ++i) {
     goal_info_out = &cancel_response.msg.goals_canceling.data[i];
     for (size_t j = 0; j < UUID_SIZE; ++j) {
-      EXPECT_EQ(goal_info_out->uuid[j], static_cast<uint8_t>(i + j));
+      EXPECT_EQ(goal_info_out->goal_id.uuid[j], static_cast<uint8_t>(i + j));
     }
   }
   goal_info_out = &cancel_response.msg.goals_canceling.data[num_goals_canceling - 1];
-  EXPECT_TRUE(uuidcmp(goal_info_out->uuid, cancel_request.goal_info.uuid));
+  EXPECT_TRUE(uuidcmp(goal_info_out->goal_id.uuid, cancel_request.goal_info.goal_id.uuid));
   EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
 }

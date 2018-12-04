@@ -734,7 +734,7 @@ rcl_action_process_cancel_request(
 
   // Request data
   const rcl_action_goal_info_t * request_goal_info = &cancel_request->goal_info;
-  const uint8_t * request_uuid = request_goal_info->uuid;
+  const uint8_t * request_uuid = request_goal_info->goal_id.uuid;
   int64_t request_nanosec = _goal_info_stamp_to_nanosec(request_goal_info);
 
   rcl_ret_t ret_final = RCL_RET_OK;
@@ -751,7 +751,7 @@ rcl_action_process_cancel_request(
         continue;
       }
 
-      if (uuidcmp(request_uuid, goal_info.uuid)) {
+      if (uuidcmp(request_uuid, goal_info.goal_id.uuid)) {
         if (rcl_action_goal_handle_is_cancelable(goal_handle)) {
           goal_handles_to_cancel[num_goals_to_cancel++] = goal_handle;
         }
@@ -779,7 +779,7 @@ rcl_action_process_cancel_request(
 
       const int64_t goal_nanosec = _goal_info_stamp_to_nanosec(&goal_info);
       if (rcl_action_goal_handle_is_cancelable(goal_handle) &&
-        ((goal_nanosec <= request_nanosec) || uuidcmp(request_uuid, goal_info.uuid)))
+        ((goal_nanosec <= request_nanosec) || uuidcmp(request_uuid, goal_info.goal_id.uuid)))
       {
         goal_handles_to_cancel[num_goals_to_cancel++] = goal_handle;
       }
@@ -880,7 +880,7 @@ rcl_action_server_goal_exists(
       return false;
     }
     // Compare UUIDs
-    if (uuidcmp(gh_goal_info.uuid, goal_info->uuid)) {
+    if (uuidcmp(gh_goal_info.goal_id.uuid, goal_info->goal_id.uuid)) {
       return true;
     }
   }

@@ -23,7 +23,7 @@ extern "C"
 rcl_action_goal_info_t
 rcl_action_get_zero_initialized_goal_info(void)
 {
-  static rcl_action_goal_info_t goal_info = {{0}, {0, 0}};
+  static rcl_action_goal_info_t goal_info = {{{0}}, {0, 0}};
   return goal_info;
 }
 
@@ -37,7 +37,7 @@ rcl_action_get_zero_initialized_goal_status_array(void)
 rcl_action_cancel_request_t
 rcl_action_get_zero_initialized_cancel_request(void)
 {
-  static rcl_action_cancel_request_t request = {{{0}, {0, 0}}};
+  static rcl_action_cancel_request_t request = {{{{0}}, {0, 0}}};
   return request;
 }
 
