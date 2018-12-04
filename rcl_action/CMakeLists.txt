@@ -9,6 +9,7 @@ find_package(action_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
+find_package(rmw_implementation_cmake REQUIRED)
 
 include_directories(
   include
@@ -95,19 +96,70 @@ if(BUILD_TESTING)
     )
     ament_target_dependencies(test_action_client "rcl" "test_msgs")
   endif()
-  ament_add_gtest(test_action_communication
-    test/rcl_action/test_action_communication.cpp
-  )
-  if(TARGET test_action_communication)
-    target_include_directories(test_action_communication PUBLIC
-      include
-      ${rcl_INCLUDE_DIRS}
+
+  # get the rmw implementations ahead of time
+  find_package(rmw_implementation_cmake REQUIRED)
+  get_available_rmw_implementations(rmw_implementations)
+  foreach(rmw_implementation ${rmw_implementations})
+    find_package("${rmw_implementation}" REQUIRED)
+  endforeach()
+
+  function(custom_test_c target)
+    ament_add_gtest(
+      "test_action_communication_${target_suffix}" ${ARGN}
+      TIMEOUT 10
+      APPEND_LIBRARY_DIRS "${append_library_dirs}"
+      ENV
+      RCL_ASSERT_RMW_ID_MATCHES=${rmw_implementation}
+      RMW_IMPLEMENTATION=${rmw_implementation}
+      ROS_SECURITY_ROOT_DIRECTORY="${VALID_ROS_SECURITY_ROOT_DIRECTORY}"
+      PATH="${TEST_PATH}"
     )
-    target_link_libraries(test_action_communication
-      ${PROJECT_NAME}
+    if(TARGET test_action_communication_${target_suffix})
+      target_compile_definitions(test_action_communication_${target_suffix}
+        PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
+      target_include_directories(test_action_communication_${target_suffix} PUBLIC
+        include
+        ${rcl_INCLUDE_DIRS}
+      )
+      target_link_libraries(test_action_communication_${target_suffix}
+        ${PROJECT_NAME}
+      )
+      ament_target_dependencies(test_action_communication_${target_suffix}
+        "test_msgs")
+    endif()
+  endfunction()
+
+  macro(targets)
+    set(VALID_ROS_SECURITY_ROOT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test/test_security_files")
+
+    set(ENV_PATH "$ENV{PATH}")
+    file(TO_CMAKE_PATH "${ENV_PATH}" ENV_PATH)
+    set(TEST_PATH "${ENV_PATH}")
+    if(rmw_implementation STREQUAL "rmw_connext_cpp")
+      if(UNIX AND NOT APPLE)
+        set(RTI_BIN_PATH "$ENV{RTI_OPENSSL_BIN}")
+        file(TO_CMAKE_PATH "${RTI_BIN_PATH}" RTI_BIN_PATH)
+        set(TEST_PATH "${RTI_BIN_PATH};${ENV_PATH}")
+        if(NOT WIN32)
+          string(REPLACE ";" ":" TEST_PATH "${TEST_PATH}")
+        endif()
+      endif()
+    endif()
+
+    if(
+      rmw_implementation STREQUAL "rmw_connext_cpp" OR
+      rmw_implementation STREQUAL "rmw_connext_dynamic_cpp" OR
+      rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR
+      rmw_implementation STREQUAL "rmw_fastrtps_dynamic_cpp"
     )
-    ament_target_dependencies(test_action_communication "test_msgs")
-  endif()
+      custom_test_c(rcl_action
+        "test/rcl_action/test_action_communication.cpp")
+    endif()
+  endmacro()
+
+  call_for_each_rmw_implementation(targets)
+
   ament_add_gtest(test_action_server
     test/rcl_action/test_action_server.cpp
   )
