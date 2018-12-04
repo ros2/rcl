@@ -96,6 +96,19 @@ if(BUILD_TESTING)
     )
     ament_target_dependencies(test_action_client "rcl" "test_msgs")
   endif()
+  ament_add_gtest(test_action_interaction
+    test/rcl_action/test_action_interaction.cpp
+  )
+  if(TARGET test_action_interaction)
+    target_include_directories(test_action_interaction PUBLIC
+      include
+      ${rcl_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_action_interaction
+      ${PROJECT_NAME}
+    )
+    ament_target_dependencies(test_action_interaction "test_msgs")
+  endif()
 
   # get the rmw implementations ahead of time
   find_package(rmw_implementation_cmake REQUIRED)
