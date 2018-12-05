@@ -698,7 +698,8 @@ TEST_F(
     action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
 
   // Initialize cancel request
-  init_test_uuid0(outgoing_cancel_request.goal_info.uuid);
+  rmw_request_id_t cancel_request_header;
+  init_test_uuid0(outgoing_cancel_request.goal_info.goal_id.uuid);
   outgoing_cancel_request.goal_info.stamp.sec = 321;
   outgoing_cancel_request.goal_info.stamp.nanosec = 987654u;
 
@@ -734,14 +735,14 @@ TEST_F(
 
   // Take cancel request with valid arguments
   ret = rcl_action_take_cancel_request(
-    &this->action_server, &request_header, &incoming_cancel_request);
+    &this->action_server, &cancel_request_header, &incoming_cancel_request);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Check that the cancel request was received correctly
   EXPECT_TRUE(uuidcmp(
-      outgoing_cancel_request.goal_info.uuid,
-      incoming_cancel_request.goal_info.uuid));
+      outgoing_cancel_request.goal_info.goal_id.uuid,
+      incoming_cancel_request.goal_info.goal_id.uuid));
   EXPECT_EQ(
     outgoing_cancel_request.goal_info.stamp.sec,
     incoming_cancel_request.goal_info.stamp.sec);
@@ -751,7 +752,7 @@ TEST_F(
 
   rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
   for (size_t i = 0; i < 16; ++i) {
-    cancel_request.goal_info.uuid[i] = incoming_cancel_request.goal_info.uuid[i];
+    cancel_request.goal_info.goal_id.uuid[i] = incoming_cancel_request.goal_info.goal_id.uuid[i];
   }
   cancel_request.goal_info.stamp.sec = incoming_cancel_request.goal_info.stamp.sec;
   cancel_request.goal_info.stamp.nanosec = incoming_cancel_request.goal_info.stamp.nanosec;
@@ -766,17 +767,17 @@ TEST_F(
   // Initialize cancel response
   ASSERT_TRUE(action_msgs__msg__GoalInfo__Sequence__init(
       &outgoing_cancel_response.goals_canceling, 2));
-  init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].uuid);
+  init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].goal_id.uuid);
   outgoing_cancel_response.goals_canceling.data[0].stamp.sec = 102;
   outgoing_cancel_response.goals_canceling.data[0].stamp.nanosec = 9468u;
-  init_test_uuid1(outgoing_cancel_response.goals_canceling.data[1].uuid);
+  init_test_uuid1(outgoing_cancel_response.goals_canceling.data[1].goal_id.uuid);
   outgoing_cancel_response.goals_canceling.data[1].stamp.sec = 867;
   outgoing_cancel_response.goals_canceling.data[1].stamp.nanosec = 6845u;
 
   // Send cancel response with valid arguments
   // rmw_request_id_t response_header;
   ret = rcl_action_send_cancel_response(
-    &this->action_server, &request_header, &outgoing_cancel_response);
+    &this->action_server, &cancel_request_header, &outgoing_cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -810,7 +811,7 @@ TEST_F(
 
   // Take cancel response with valid arguments
   ret = rcl_action_take_cancel_response(
-    &this->action_client, &request_header, &incoming_cancel_response);
+    &this->action_client, &cancel_request_header, &incoming_cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -823,7 +824,7 @@ TEST_F(
       &outgoing_cancel_response.goals_canceling.data[i];
     const action_msgs__msg__GoalInfo * incoming_goal_info =
       &incoming_cancel_response.goals_canceling.data[i];
-    EXPECT_TRUE(uuidcmp(outgoing_goal_info->uuid, incoming_goal_info->uuid));
+    EXPECT_TRUE(uuidcmp(outgoing_goal_info->goal_id.uuid, incoming_goal_info->goal_id.uuid));
     EXPECT_EQ(outgoing_goal_info->stamp.sec, incoming_goal_info->stamp.sec);
     EXPECT_EQ(outgoing_goal_info->stamp.nanosec, incoming_goal_info->stamp.nanosec);
   }
