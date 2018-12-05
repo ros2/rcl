@@ -24,13 +24,13 @@
 macro(get_default_rc_logging_implementation var)
 
   # if logging implementation already specified or RC_LOGGING_IMPLEMENTATION environment variable
-  # is set then use that, otherwise default to using rc_logging_log4cxx
+  # is set then use that, otherwise default to using rc_logging_noop
   if(NOT "${RC_LOGGING_IMPLEMENTATION}" STREQUAL "")
     set(_logging_implementation "${RC_LOGGING_IMPLEMENTATION}")
   elseif(NOT "$ENV{RC_LOGGING_IMPLEMENTATION}" STREQUAL "")
     set(_logging_implementation "$ENV{RC_LOGGING_IMPLEMENTATION}")
   else()
-    set(_logging_implementation rc_logging_log4cxx)
+    set(_logging_implementation rc_logging_noop)
   endif()
 
   # persist implementation decision in cache
