@@ -154,6 +154,14 @@ protected:
   bool is_result_response_ready;
 };  // class TestActionClientServerInteraction
 
+// Exercises the "Example 1" sequence diagram found in the actions_proposal document.
+// In this example, the action client request a goal and gets a response from
+// the server accepting the goal (synchronous). Upon accepting the goal, the
+// action server starts a user defined execution method for completing the goal.
+// Following the goal request, the client makes an asynchronous request for the
+// result. The user defined method publishes feedback to the action client as it
+// executes the goal. Ultimately, the user defined method populates a result
+// message that is used as part of the result response.
 TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction)
 {
   test_msgs__action__Fibonacci_Goal_Request outgoing_goal_request;
@@ -451,6 +459,11 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 }
 
 
+// Exercises the "Example 2" sequence diagram found in the actions_proposal document.
+// This example is almost identical to the first, but this time the action client requests
+// for the goal to be canceled mid-execution. Note that the user defined method is allowed
+// to perform any shutdown operations after the cancel request before returning with the
+// cancellation result.
 TEST_F(
   CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction_with_cancel)
 {
