@@ -146,16 +146,8 @@ if(BUILD_TESTING)
         endif()
       endif()
     endif()
-
-    if(
-      rmw_implementation STREQUAL "rmw_connext_cpp" OR
-      rmw_implementation STREQUAL "rmw_connext_dynamic_cpp" OR
-      rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR
-      rmw_implementation STREQUAL "rmw_fastrtps_dynamic_cpp"
-    )
-      custom_test_c(rcl_action
-        "test/rcl_action/test_action_communication.cpp")
-    endif()
+    custom_test_c(rcl_action
+      "test/rcl_action/test_action_communication.cpp")
   endmacro()
 
   call_for_each_rmw_implementation(targets)
