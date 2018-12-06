@@ -37,7 +37,7 @@
   <test_depend>osrf_testing_tools_cpp</test_depend>
   <test_depend>test_msgs</test_depend>
 
-  <group_depend>rc_logging_packages</group_depend>
+  <group_depend>rcl_logging_packages</group_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

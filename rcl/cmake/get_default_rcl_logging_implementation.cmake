@@ -15,29 +15,29 @@
 #
 # Get the package name of the default logging implementation.
 #
-# Either selecting it using the variable RC_LOGGING_IMPLEMENTATION or
+# Either selecting it using the variable RCL_LOGGING_IMPLEMENTATION or
 # choosing a default from the available implementations.
 #
 # :param var: the output variable name containing the package name
 # :type var: string
 #
-macro(get_default_rc_logging_implementation var)
+macro(get_default_rcl_logging_implementation var)
 
-  # if logging implementation already specified or RC_LOGGING_IMPLEMENTATION environment variable
-  # is set then use that, otherwise default to using rc_logging_noop
-  if(NOT "${RC_LOGGING_IMPLEMENTATION}" STREQUAL "")
-    set(_logging_implementation "${RC_LOGGING_IMPLEMENTATION}")
-  elseif(NOT "$ENV{RC_LOGGING_IMPLEMENTATION}" STREQUAL "")
-    set(_logging_implementation "$ENV{RC_LOGGING_IMPLEMENTATION}")
+  # if logging implementation already specified or RCL_LOGGING_IMPLEMENTATION environment variable
+  # is set then use that, otherwise default to using rcl_logging_noop
+  if(NOT "${RCL_LOGGING_IMPLEMENTATION}" STREQUAL "")
+    set(_logging_implementation "${RCL_LOGGING_IMPLEMENTATION}")
+  elseif(NOT "$ENV{RCL_LOGGING_IMPLEMENTATION}" STREQUAL "")
+    set(_logging_implementation "$ENV{RCL_LOGGING_IMPLEMENTATION}")
   else()
-    set(_logging_implementation rc_logging_noop)
+    set(_logging_implementation rcl_logging_noop)
   endif()
 
   # persist implementation decision in cache
   # if it was not determined dynamically
   set(
-    RC_LOGGING_IMPLEMENTATION "${_logging_implementation}"
-    CACHE STRING "Select ROS middleware implementation to link against" FORCE
+    RCL_LOGGING_IMPLEMENTATION "${_logging_implementation}"
+    CACHE STRING "select rcl logging implementation to use" FORCE
   )
 
   find_package("${_logging_implementation}" REQUIRED)
