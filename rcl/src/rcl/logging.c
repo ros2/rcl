@@ -72,7 +72,6 @@ rcl_logging_rosout_output_handler(
 rcl_ret_t
 rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t * allocator)
 {
-  // TODO(wjwwood): to be used in a future pull request
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOGGING_AUTOINIT
@@ -130,7 +129,7 @@ rcl_logging_ext_lib_output_handler(
   int severity, const char * name, rcutils_time_point_value_t timestamp,
   const char * format, va_list * args)
 {
-  rcl_ret_t status = RCL_RET_OK;
+  rcl_ret_t status;
   char msg_buf[1024] = "";
   rcutils_char_array_t msg_array = {
     .buffer = msg_buf,
@@ -157,12 +156,33 @@ rcl_logging_ext_lib_output_handler(
   if (RCL_RET_OK == status) {
     status = rcutils_logging_format_message(
       location, severity, name, timestamp, msg_array.buffer, &output_array);
+    if (RCL_RET_OK != status) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("failed to format log message: ");
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+      rcl_reset_error();
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+    }
+  } else {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("failed to format user log message: ");
+    RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+    rcl_reset_error();
+    RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
   }
   rcl_logging_external_log(severity, name, output_array.buffer);
   status = rcutils_char_array_fini(&msg_array);
-  RCL_UNUSED(status);
+  if (RCL_RET_OK != status) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("failed to finalize char array: ");
+    RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+    rcl_reset_error();
+    RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+  }
   status = rcutils_char_array_fini(&output_array);
-  RCL_UNUSED(status);
+  if (RCL_RET_OK != status) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("failed to finalize char array: ");
+    RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+    rcl_reset_error();
+    RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+  }
 }
 
 static
