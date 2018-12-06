@@ -107,7 +107,7 @@ if(BUILD_TESTING)
   function(custom_test_c target)
     ament_add_gtest(
       "test_action_communication_${target_suffix}" ${ARGN}
-      TIMEOUT 10
+      TIMEOUT 60
       APPEND_LIBRARY_DIRS "${append_library_dirs}"
       ENV
       RCL_ASSERT_RMW_ID_MATCHES=${rmw_implementation}
