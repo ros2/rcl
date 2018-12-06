@@ -1,4 +1,4 @@
-// Copyright 2017 Open Source Robotics Foundation, Inc.
+// Copyright 2018 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,8 @@
 #ifndef RCL__LOGGING_H_
 #define RCL__LOGGING_H_
 
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdio.h>
-
-#include "rcl/allocator.h"
 #include "rcl/arguments.h"
-#include "rcl/error_handling.h"
+#include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
@@ -31,10 +26,10 @@ extern "C"
 #endif
 
 
-/// Configures the logging system.
+/// Configure the logging system.
 /**
- * This function should be called during the ROS initialization process. It will
- * add the enabled log output appenders to the root logger.
+ * This function should be called during the ROS initialization process.
+ * It will add the enabled log output appenders to the root logger.
  *
  * <hr>
  * Attribute          | Adherence
@@ -49,7 +44,9 @@ extern "C"
  * \return `RCL_RET_ERR` if a general error occurs
  */
 RCL_PUBLIC
-rcl_ret_t rcl_logging_configure(const rcl_arguments_t * global_args);
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_logging_configure(const rcl_arguments_t * global_args);
 
 #ifdef __cplusplus
 }

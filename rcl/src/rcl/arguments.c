@@ -25,6 +25,8 @@
 #include "rcl/validate_topic_name.h"
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
+#include "rcutils/format_string.h"
+#include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rmw/validate_namespace.h"
@@ -150,9 +152,8 @@ _rcl_parse_external_log_config_file(
 /**
  * \param[in] arg the argument to parse
  * \param[in] key the key for the argument to parse. Should be a null terminated string
- * \param[in] allocator an allocator to use
  * \param[in,out] value parsed boolean value
- * \return RCL_RET_OK if a valid log level was parsed, or
+ * \return RCL_RET_OK if the bool argument was parsed successfully, or
  * \return RLC_RET_ERROR if an unspecified error occurred.
  */
 RCL_LOCAL
@@ -162,15 +163,18 @@ _rcl_parse_bool_arg(
   const char * key,
   bool * value);
 
-/// Parse a null terminated string to a boolean value
+/// Parse a null terminated string to a boolean value.
 /**
- *  The case sensitive values "T", "t", "True", "true", "Y", "y", "Yes", "yes", and "1" will all map to true
- *  The case sensitive values "F", "f", "False", "false", "N", "n", "No", "no", and "0" will all map to false
- *  \param[in] str a null terminated string to be parsed into a boolean
- *  \param[in,out] val the boolean value parsed from the string. Left unchanged if string cannot be parsed to a valid bool
- *  \param[in] allocator an allocator to use
- *  \return RCL_RET_OK if a valid boolean parsed, or
- *  \return RLC_RET_ERROR if an unspecified error occurred.
+ * The case sensitive values: "T", "t", "True", "true", "Y", "y", "Yes", "yes",
+ * and "1" will all map to true.
+ * The case sensitive values: "F", "f", "False", "false", "N", "n", "No", "no",
+ * and "0" will all map to false.
+ *
+ * \param[in] str a null terminated string to be parsed into a boolean
+ * \param[in,out] val the boolean value parsed from the string.
+ *   Left unchanged if string cannot be parsed to a valid bool.
+ * \return RCL_RET_OK if a valid boolean parsed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
  */
 RCL_LOCAL
 rcl_ret_t
@@ -285,8 +289,8 @@ rcl_parse_arguments(
     rcl_reset_error();
 
     // Attempt to parse argument as log configuration file
-    rcl_ret_t ret = _rcl_parse_external_log_config_file(argv[i], allocator,
-        &args_impl->external_log_config_file);
+    rcl_ret_t ret = _rcl_parse_external_log_config_file(
+      argv[i], allocator, &args_impl->external_log_config_file);
     if (RCL_RET_OK == ret) {
       continue;
     }
@@ -296,10 +300,9 @@ rcl_parse_arguments(
     rcl_reset_error();
 
     // Attempt to parse argument as log_stdout_disabled
-    if (RCL_RET_OK ==
-      _rcl_parse_bool_arg(argv[i], RCL_LOG_DISABLE_STDOUT_ARG_RULE,
-      &args_impl->log_stdout_disabled))
-    {
+    ret = _rcl_parse_bool_arg(
+      argv[i], RCL_LOG_DISABLE_STDOUT_ARG_RULE, &args_impl->log_stdout_disabled);
+    if (RCL_RET_OK == ret) {
       continue;
     }
     RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
@@ -308,10 +311,9 @@ rcl_parse_arguments(
     rcl_reset_error();
 
     // Attempt to parse argument as log_rosout_disabled
-    if (RCL_RET_OK ==
-      _rcl_parse_bool_arg(argv[i], RCL_LOG_DISABLE_ROSOUT_ARG_RULE,
-      &args_impl->log_rosout_disabled))
-    {
+    ret = _rcl_parse_bool_arg(
+      argv[i], RCL_LOG_DISABLE_ROSOUT_ARG_RULE, &args_impl->log_rosout_disabled);
+    if (RCL_RET_OK == ret) {
       continue;
     }
     RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
@@ -320,10 +322,9 @@ rcl_parse_arguments(
     rcl_reset_error();
 
     // Attempt to parse argument as log_ext_lib_disabled
-    if (RCL_RET_OK ==
-      _rcl_parse_bool_arg(argv[i], RCL_LOG_DISABLE_EXT_LIB_ARG_RULE,
-      &args_impl->log_ext_lib_disabled))
-    {
+    ret = _rcl_parse_bool_arg(
+      argv[i], RCL_LOG_DISABLE_EXT_LIB_ARG_RULE, &args_impl->log_ext_lib_disabled);
+    if (RCL_RET_OK == ret) {
       continue;
     }
     RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
@@ -1153,7 +1154,7 @@ _rcl_parse_param_file_rule(
     size_t outlen = strlen(arg) - param_prefix_len;
     *param_file = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
     if (NULL == *param_file) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to allocate memory for parameters file path\n");
+      RCL_SET_ERROR_MSG("Failed to allocate memory for parameters file path");
       return RCL_RET_BAD_ALLOC;
     }
     snprintf(*param_file, outlen + 1, "%s", arg + param_prefix_len);
@@ -1170,16 +1171,16 @@ _rcl_parse_external_log_config_file(
   char ** log_config_file)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_config_file, RCL_RET_INVALID_ARGUMENT);
 
   const size_t param_prefix_len = sizeof(RCL_EXTERNAL_LOG_CONFIG_ARG_RULE) - 1;
   if (strncmp(RCL_EXTERNAL_LOG_CONFIG_ARG_RULE, arg, param_prefix_len) == 0) {
     size_t outlen = strlen(arg) - param_prefix_len;
-    *log_config_file = allocator.allocate(sizeof(char) * (outlen + 1), allocator.state);
-    if (NULL == log_config_file) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to allocate memory for parameters file path\n");
+    *log_config_file = rcutils_format_string_limit(allocator, outlen, "%s", arg + param_prefix_len);
+    if (NULL == *log_config_file) {
+      RCL_SET_ERROR_MSG("Failed to allocate memory for external log config file");
       return RCL_RET_BAD_ALLOC;
     }
-    snprintf(*log_config_file, outlen + 1, "%s", arg + param_prefix_len);
     return RCL_RET_OK;
   }
 

@@ -112,12 +112,12 @@ rcl_init(
     goto fail;
   }
 
-  fail_ret = rcl_logging_configure(&context->global_arguments);
-  if (RCL_RET_OK != fail_ret) {
+  ret = rcl_logging_configure(&context->global_arguments);
+  if (RCL_RET_OK != ret) {
+    fail_ret = ret;
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to configure logging. %i", fail_ret);
     goto fail;
   }
-  fail_ret = RCL_RET_ERROR;
 
   // Set the instance id.
   uint64_t next_instance_id = rcutils_atomic_fetch_add_uint64_t(&__rcl_next_unique_id, 1);

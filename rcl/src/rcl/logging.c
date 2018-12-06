@@ -1,4 +1,4 @@
-// Copyright 2017 Open Source Robotics Foundation, Inc.
+// Copyright 2018 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,37 +31,45 @@ extern "C"
 #include "rcutils/logging.h"
 #include "rcutils/time.h"
 
-#define RCL_LOGGING_MAX_OUTPUT_FUNCS        (4)
+#define RCL_LOGGING_MAX_OUTPUT_FUNCS (4)
 
-static rcutils_logging_output_handler_t g_rcl_logging_out_handlers[
-  RCL_LOGGING_MAX_OUTPUT_FUNCS] = {0};
+static rcutils_logging_output_handler_t
+  g_rcl_logging_out_handlers[RCL_LOGGING_MAX_OUTPUT_FUNCS] = {0};
+
 static uint8_t g_rcl_logging_num_out_handlers = 0;
 
 /**
- *  An output function that sends to multiple output appenders
+ * An output function that sends to multiple output appenders.
  */
-static void rcl_logging_multiple_output_handler(
+static
+void
+rcl_logging_multiple_output_handler(
   const rcutils_log_location_t * location,
   int severity, const char * name, rcutils_time_point_value_t timestamp,
   const char * log_str);
 
 /**
- *  An output function that sends to the external logger library
+ * An output function that sends to the external logger library.
  */
-static void rcl_logging_ext_lib_output_handler(
+static
+void
+rcl_logging_ext_lib_output_handler(
   const rcutils_log_location_t * location,
   int severity, const char * name, rcutils_time_point_value_t timestamp,
   const char * log_str);
 
 /**
- *  An output function that sends to the rosout topic
+ * An output function that sends to the rosout topic.
  */
-static void rcl_logging_rosout_output_handler(
+static
+void
+rcl_logging_rosout_output_handler(
   const rcutils_log_location_t * location,
   int severity, const char * name, rcutils_time_point_value_t timestamp,
   const char * log_str);
 
-rcl_ret_t rcl_logging_configure(const rcl_arguments_t * global_args)
+rcl_ret_t
+rcl_logging_configure(const rcl_arguments_t * global_args)
 {
   RCUTILS_LOGGING_AUTOINIT
   int default_level = global_args->impl->log_level;
@@ -96,7 +104,9 @@ rcl_ret_t rcl_logging_configure(const rcl_arguments_t * global_args)
 }
 
 
-static void rcl_logging_multiple_output_handler(
+static
+void
+rcl_logging_multiple_output_handler(
   const rcutils_log_location_t * location,
   int severity, const char * name, rcutils_time_point_value_t timestamp,
   const char * log_str)
@@ -108,19 +118,21 @@ static void rcl_logging_multiple_output_handler(
   }
 }
 
-static void rcl_logging_ext_lib_output_handler(
+static
+void
+rcl_logging_ext_lib_output_handler(
   const rcutils_log_location_t * location,
   int severity, const char * name, rcutils_time_point_value_t timestamp,
   const char * log_str)
 {
   RCL_UNUSED(location);
-  RCL_UNUSED(severity);
-  RCL_UNUSED(name);
   RCL_UNUSED(timestamp);
   rcl_logging_external_log(severity, name, log_str);
 }
 
-static void rcl_logging_rosout_output_handler(
+static
+void
+rcl_logging_rosout_output_handler(
   const rcutils_log_location_t * location,
   int severity, const char * name, rcutils_time_point_value_t timestamp,
   const char * log_str)
@@ -132,7 +144,6 @@ static void rcl_logging_rosout_output_handler(
   RCL_UNUSED(timestamp);
   RCL_UNUSED(log_str);
 }
-
 
 #ifdef __cplusplus
 }
