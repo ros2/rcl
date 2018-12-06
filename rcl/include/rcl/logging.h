@@ -41,7 +41,7 @@ extern "C"
  * Lock-Free          | Yes
  *
  * \param global_args The global arguments for the system
- * \return `RCL_RET_OK` if successful, or 
+ * \return `RCL_RET_OK` if successful, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERR` if a general error occurs
  */
@@ -49,7 +49,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_logging_configure(
-  const rcl_arguments_t * global_args, 
+  const rcl_arguments_t * global_args,
   const rcl_allocator_t * allocator);
 
 /**
@@ -69,7 +69,7 @@ rcl_logging_configure(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_logging_fini();
-  
+
 #ifdef __cplusplus
 }
 #endif
