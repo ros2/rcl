@@ -106,7 +106,7 @@ if(BUILD_TESTING)
 
   function(custom_test_c target)
     ament_add_gtest(
-      "test_action_communication_${target_suffix}" ${ARGN}
+      "${target}${target_suffix}" ${ARGN}
       TIMEOUT 60
       APPEND_LIBRARY_DIRS "${append_library_dirs}"
       ENV
@@ -115,24 +115,22 @@ if(BUILD_TESTING)
       ROS_SECURITY_ROOT_DIRECTORY="${VALID_ROS_SECURITY_ROOT_DIRECTORY}"
       PATH="${TEST_PATH}"
     )
-    if(TARGET test_action_communication_${target_suffix})
-      target_compile_definitions(test_action_communication_${target_suffix}
+    if(TARGET ${target}${target_suffix})
+      target_compile_definitions(${target}${target_suffix}
         PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
-      target_include_directories(test_action_communication_${target_suffix} PUBLIC
+      target_include_directories(${target}${target_suffix} PUBLIC
         include
         ${rcl_INCLUDE_DIRS}
       )
-      target_link_libraries(test_action_communication_${target_suffix}
+      target_link_libraries(${target}${target_suffix}
         ${PROJECT_NAME}
       )
-      ament_target_dependencies(test_action_communication_${target_suffix}
+      ament_target_dependencies(${target}${target_suffix}
         "test_msgs")
     endif()
   endfunction()
 
   macro(targets)
-    set(VALID_ROS_SECURITY_ROOT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test/test_security_files")
-
     set(ENV_PATH "$ENV{PATH}")
     file(TO_CMAKE_PATH "${ENV_PATH}" ENV_PATH)
     set(TEST_PATH "${ENV_PATH}")
@@ -146,8 +144,10 @@ if(BUILD_TESTING)
         endif()
       endif()
     endif()
-    custom_test_c(rcl_action
+    custom_test_c(test_action_communication
       "test/rcl_action/test_action_communication.cpp")
+    custom_test_c(test_action_interaction
+      "test/rcl_action/test_action_interaction.cpp")
   endmacro()
 
   call_for_each_rmw_implementation(targets)

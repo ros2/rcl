@@ -117,7 +117,6 @@ protected:
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_shutdown(&context);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    rcl_reset_error();
   }
 
   void init_test_uuid0(uint8_t * uuid)
@@ -174,16 +173,13 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   rcl_ret_t ret = rcl_action_send_goal_request(
     &this->action_client, &outgoing_goal_request, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
 
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_server_wait_set_get_entities_ready(
     &this->wait_set,
@@ -193,7 +189,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
     &this->is_result_request_ready,
     &this->is_goal_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   EXPECT_TRUE(this->is_goal_request_ready) << rcl_get_error_string().str;
   EXPECT_FALSE(this->is_cancel_request_ready) << rcl_get_error_string().str;
@@ -203,13 +198,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   rmw_request_id_t request_header;
   ret = rcl_action_take_goal_request(&this->action_server, &request_header, &incoming_goal_request);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Check that the goal request was received correctly
   EXPECT_EQ(outgoing_goal_request.order, incoming_goal_request.order);
-  rcl_reset_error();
   EXPECT_TRUE(uuidcmp(outgoing_goal_request.uuid, incoming_goal_request.uuid));
-  rcl_reset_error();
 
   // Initialize goal response
   outgoing_goal_response.accepted = true;
@@ -220,18 +212,15 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   ret = rcl_action_send_goal_response(
     &this->action_server, &request_header, &outgoing_goal_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait_set_clear(&this->wait_set);
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_client_wait_set_get_entities_ready(
     &this->wait_set,
@@ -243,7 +232,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
     &this->is_result_response_ready);
 
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   EXPECT_TRUE(this->is_goal_response_ready);
   EXPECT_FALSE(this->is_cancel_response_ready);
@@ -255,15 +243,11 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   ret = rcl_action_take_goal_response(
     &this->action_client, &request_header, &incoming_goal_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Check that the goal response was received correctly
   EXPECT_EQ(outgoing_goal_response.accepted, incoming_goal_response.accepted);
-  rcl_reset_error();
   EXPECT_EQ(outgoing_goal_response.stamp.sec, incoming_goal_response.stamp.sec);
-  rcl_reset_error();
   EXPECT_EQ(outgoing_goal_response.stamp.nanosec, incoming_goal_response.stamp.nanosec);
-  rcl_reset_error();
 
   test_msgs__action__Fibonacci_Goal_Request__fini(&outgoing_goal_request);
   test_msgs__action__Fibonacci_Goal_Request__fini(&incoming_goal_request);
@@ -293,15 +277,12 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   rcl_ret_t ret = rcl_action_send_cancel_request(
     &this->action_client, &outgoing_cancel_request, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_server_wait_set_get_entities_ready(
     &this->wait_set,
@@ -311,7 +292,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
     &this->is_result_request_ready,
     &this->is_goal_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   EXPECT_TRUE(this->is_cancel_request_ready);
   EXPECT_FALSE(this->is_goal_request_ready);
@@ -322,7 +302,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   ret = rcl_action_take_cancel_request(
     &this->action_server, &request_header, &incoming_cancel_request);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Check that the cancel request was received correctly
   EXPECT_TRUE(uuidcmp(
@@ -350,18 +329,15 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   ret = rcl_action_send_cancel_response(
     &this->action_server, &request_header, &outgoing_cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait_set_clear(&this->wait_set);
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_client_wait_set_get_entities_ready(
     &this->wait_set,
@@ -372,7 +348,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
     &this->is_cancel_response_ready,
     &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   EXPECT_TRUE(this->is_cancel_response_ready);
   EXPECT_FALSE(this->is_feedback_ready);
@@ -384,7 +359,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   ret = rcl_action_take_cancel_response(
     &this->action_client, &request_header, &incoming_cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Check that the cancel response was received correctly
   ASSERT_EQ(
@@ -425,15 +399,12 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   rcl_ret_t ret = rcl_action_send_result_request(
     &this->action_client, &outgoing_result_request, &sequence_number);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_server_wait_set_get_entities_ready(
     &this->wait_set,
@@ -443,7 +414,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
     &this->is_result_request_ready,
     &this->is_goal_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   EXPECT_TRUE(this->is_result_request_ready);
   EXPECT_FALSE(this->is_cancel_request_ready);
@@ -454,7 +424,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   ret = rcl_action_take_result_request(
     &this->action_server, &request_header, &incoming_result_request);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
@@ -475,18 +444,15 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   ret = rcl_action_send_result_response(
     &this->action_server, &request_header, &outgoing_result_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait_set_clear(&this->wait_set);
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_client_wait_set_get_entities_ready(
     &this->wait_set,
@@ -497,7 +463,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
     &this->is_cancel_response_ready,
     &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   EXPECT_TRUE(this->is_result_response_ready);
   EXPECT_FALSE(this->is_cancel_response_ready);
@@ -509,7 +474,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   ret = rcl_action_take_result_response(
     &this->action_client, &request_header, &incoming_result_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Check that the result response was received correctly
   EXPECT_EQ(outgoing_result_response.status, incoming_result_response.status);
@@ -545,23 +509,19 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
 
   ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Publish status with valid arguments (one goal in array)
   ret = rcl_action_publish_status(&this->action_server, &status_array.msg);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait_set_clear(&this->wait_set);
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_client_wait_set_get_entities_ready(
     &this->wait_set,
@@ -572,7 +532,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
     &this->is_cancel_response_ready,
     &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   EXPECT_TRUE(this->is_status_ready);
   EXPECT_FALSE(this->is_result_response_ready);
@@ -583,7 +542,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
   // Take status with valid arguments (one goal in array)
   ret = rcl_action_take_status(&this->action_client, &incoming_status_array);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Check that status was received correctly
   ASSERT_EQ(status_array.msg.status_list.size, incoming_status_array.status_list.size);
@@ -624,16 +582,13 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
   // Publish feedback with valid arguments
   rcl_ret_t ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_action_client_wait_set_get_entities_ready(
     &this->wait_set,
@@ -644,7 +599,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
     &this->is_cancel_response_ready,
     &this->is_result_response_ready);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   EXPECT_TRUE(this->is_feedback_ready);
   EXPECT_FALSE(this->is_status_ready);
@@ -655,7 +609,6 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
   // Take feedback with valid arguments
   ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Check that feedback was received correctly
   EXPECT_TRUE(uuidcmp(outgoing_feedback.uuid, incoming_feedback.uuid));
