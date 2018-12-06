@@ -69,8 +69,12 @@ rcl_logging_rosout_output_handler(
   const char * log_str);
 
 rcl_ret_t
-rcl_logging_configure(const rcl_arguments_t * global_args)
+rcl_logging_configure(const rcl_arguments_t * global_args, rcl_allocator_t * allocator)
 {
+  // TODO(wjwwood): to be used in a future pull request
+  RCL_UNUSED(allocator);
+  RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOGGING_AUTOINIT
   int default_level = global_args->impl->log_level;
   const char * config_file = global_args->impl->external_log_config_file;
