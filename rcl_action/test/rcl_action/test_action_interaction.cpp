@@ -189,11 +189,10 @@ protected:
 // Exercises the "Example 1" sequence diagram found in the actions_proposal document.
 // In this example, the action client request a goal and gets a response from
 // the server accepting the goal (synchronous). Upon accepting the goal, the
-// action server starts a user defined execution method for completing the goal.
+// action server starts the required tasks for completing the goal.
 // Following the goal request, the client makes an asynchronous request for the
-// result. The user defined method publishes feedback to the action client as it
-// executes the goal. Ultimately, the user defined method populates a result
-// message that is used as part of the result response.
+// result. The feedback is published to the action client as it executes the goal.
+// Ultimately, a result message is populated which is then used as part of the result response.
 TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction)
 {
   // Initialize goal request
@@ -434,9 +433,8 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
 // Exercises the "Example 2" sequence diagram found in the actions_proposal document.
 // This example is almost identical to the first, but this time the action client requests
-// for the goal to be canceled mid-execution. Note that the user defined method is allowed
-// to perform any shutdown operations after the cancel request before returning with the
-// cancellation result.
+// for the goal to be canceled mid-execution. Note that it is allowed to perform any shutdown
+// operations after the cancel request before returning with the cancellation result.
 TEST_F(
   CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction_with_cancel)
 {
@@ -687,29 +685,11 @@ TEST_F(
     outgoing_cancel_request.goal_info.stamp.nanosec,
     incoming_cancel_request.goal_info.stamp.nanosec);
 
-  rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
-  for (size_t i = 0; i < 16; ++i) {
-    cancel_request.goal_info.goal_id.uuid[i] = incoming_cancel_request.goal_info.goal_id.uuid[i];
-  }
-  cancel_request.goal_info.stamp.sec = incoming_cancel_request.goal_info.stamp.sec;
-  cancel_request.goal_info.stamp.nanosec = incoming_cancel_request.goal_info.stamp.nanosec;
-
-
   // Get a list of goal info that should be attempted to be cancelled
   rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
   ret = rcl_action_process_cancel_request(
-    &this->action_server, &cancel_request, &cancel_response);
+    &this->action_server, &incoming_cancel_request, &cancel_response);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-  // Initialize cancel response
-  ASSERT_TRUE(action_msgs__msg__GoalInfo__Sequence__init(
-      &outgoing_cancel_response.goals_canceling, 2));
-  init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].goal_id.uuid);
-  outgoing_cancel_response.goals_canceling.data[0].stamp.sec = 102;
-  outgoing_cancel_response.goals_canceling.data[0].stamp.nanosec = 9468u;
-  init_test_uuid1(outgoing_cancel_response.goals_canceling.data[1].goal_id.uuid);
-  outgoing_cancel_response.goals_canceling.data[1].stamp.sec = 867;
-  outgoing_cancel_response.goals_canceling.data[1].stamp.nanosec = 6845u;
 
   // Send cancel response with valid arguments
   // rmw_request_id_t response_header;
