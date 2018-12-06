@@ -196,7 +196,7 @@ protected:
 TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction)
 {
   // Initialize goal request
-  init_test_uuid0(this->outgoing_goal_request.uuid);
+  init_test_uuid0(this->outgoing_goal_request.action_goal_id.uuid);
   this->outgoing_goal_request.order = 10;
 
   // Send goal request with valid arguments
@@ -235,7 +235,9 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Check that the goal request was received correctly
   EXPECT_EQ(this->outgoing_goal_request.order, this->incoming_goal_request.order);
-  EXPECT_TRUE(uuidcmp(this->outgoing_goal_request.uuid, this->incoming_goal_request.uuid));
+  EXPECT_TRUE(uuidcmp(
+      this->outgoing_goal_request.action_goal_id.uuid,
+      this->incoming_goal_request.action_goal_id.uuid));
 
   // Initialize goal response
   this->outgoing_goal_response.accepted = true;
@@ -285,7 +287,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(this->outgoing_goal_response.stamp.nanosec, this->incoming_goal_response.stamp.nanosec);
 
   // Initialize result request
-  init_test_uuid0(this->outgoing_result_request.uuid);
+  init_test_uuid0(this->outgoing_result_request.action_goal_id.uuid);
 
   // Send result request with valid arguments
   ret = rcl_action_send_result_request(
@@ -298,7 +300,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   this->outgoing_feedback.sequence.data[0] = 0;
   this->outgoing_feedback.sequence.data[1] = 1;
   this->outgoing_feedback.sequence.data[2] = 2;
-  init_test_uuid0(this->outgoing_feedback.uuid);
+  init_test_uuid0(this->outgoing_feedback.action_goal_id.uuid);
 
   // Publish feedback with valid arguments
   ret = rcl_action_publish_feedback(&this->action_server, &this->outgoing_feedback);
@@ -335,7 +337,9 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that feedback was received correctly
-  EXPECT_TRUE(uuidcmp(this->outgoing_feedback.uuid, this->incoming_feedback.uuid));
+  EXPECT_TRUE(uuidcmp(
+      this->outgoing_feedback.action_goal_id.uuid,
+      this->incoming_feedback.action_goal_id.uuid));
   ASSERT_EQ(this->outgoing_feedback.sequence.size, this->incoming_feedback.sequence.size);
   EXPECT_TRUE(!memcmp(
       this->outgoing_feedback.sequence.data,
@@ -372,8 +376,8 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_result_request.uuid,
-      this->incoming_result_request.uuid));
+      this->outgoing_result_request.action_goal_id.uuid,
+      this->incoming_result_request.action_goal_id.uuid));
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
@@ -382,7 +386,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   this->outgoing_result_response.sequence.data[1] = 1;
   this->outgoing_result_response.sequence.data[2] = 2;
   this->outgoing_result_response.sequence.data[3] = 6;
-  this->outgoing_result_response.status =
+  this->outgoing_result_response.action_status =
     action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
 
   // Send result response with valid arguments
@@ -422,7 +426,9 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that the result response was received correctly
-  EXPECT_EQ(this->outgoing_result_response.status, this->incoming_result_response.status);
+  EXPECT_EQ(
+    this->outgoing_result_response.action_status,
+    this->incoming_result_response.action_status);
   ASSERT_EQ(
     this->outgoing_result_response.sequence.size, this->incoming_result_response.sequence.size);
   EXPECT_TRUE(!memcmp(
@@ -448,7 +454,7 @@ TEST_F(
   action_msgs__srv__CancelGoal_Response__init(&incoming_cancel_response);
 
   // Initialize goal request
-  init_test_uuid0(this->outgoing_goal_request.uuid);
+  init_test_uuid0(this->outgoing_goal_request.action_goal_id.uuid);
   this->outgoing_goal_request.order = 10;
 
   // Send goal request with valid arguments
@@ -487,7 +493,9 @@ TEST_F(
 
   // Check that the goal request was received correctly
   EXPECT_EQ(this->outgoing_goal_request.order, this->incoming_goal_request.order);
-  EXPECT_TRUE(uuidcmp(this->outgoing_goal_request.uuid, this->incoming_goal_request.uuid));
+  EXPECT_TRUE(uuidcmp(
+      this->outgoing_goal_request.action_goal_id.uuid,
+      this->incoming_goal_request.action_goal_id.uuid));
 
   // Initialize goal response
   this->outgoing_goal_response.accepted = true;
@@ -537,7 +545,7 @@ TEST_F(
   EXPECT_EQ(this->outgoing_goal_response.stamp.nanosec, this->incoming_goal_response.stamp.nanosec);
 
   // Initialize result request
-  init_test_uuid0(this->outgoing_result_request.uuid);
+  init_test_uuid0(this->outgoing_result_request.action_goal_id.uuid);
 
   // Send result request with valid arguments
   ret = rcl_action_send_result_request(
@@ -550,7 +558,7 @@ TEST_F(
   this->outgoing_feedback.sequence.data[0] = 0;
   this->outgoing_feedback.sequence.data[1] = 1;
   this->outgoing_feedback.sequence.data[2] = 2;
-  init_test_uuid0(this->outgoing_feedback.uuid);
+  init_test_uuid0(this->outgoing_feedback.action_goal_id.uuid);
 
   // Publish feedback with valid arguments
   ret = rcl_action_publish_feedback(&this->action_server, &this->outgoing_feedback);
@@ -587,7 +595,9 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that feedback was received correctly
-  EXPECT_TRUE(uuidcmp(this->outgoing_feedback.uuid, this->incoming_feedback.uuid));
+  EXPECT_TRUE(uuidcmp(
+      this->outgoing_feedback.action_goal_id.uuid,
+      this->incoming_feedback.action_goal_id.uuid));
   ASSERT_EQ(this->outgoing_feedback.sequence.size, this->incoming_feedback.sequence.size);
   EXPECT_TRUE(!memcmp(
       this->outgoing_feedback.sequence.data,
@@ -624,8 +634,8 @@ TEST_F(
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_result_request.uuid,
-      this->incoming_result_request.uuid));
+      this->outgoing_result_request.action_goal_id.uuid,
+      this->incoming_result_request.action_goal_id.uuid));
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
@@ -634,7 +644,7 @@ TEST_F(
   this->outgoing_result_response.sequence.data[1] = 1;
   this->outgoing_result_response.sequence.data[2] = 2;
   this->outgoing_result_response.sequence.data[3] = 6;
-  this->outgoing_result_response.status =
+  this->outgoing_result_response.action_status =
     action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
 
   // Initialize cancel request
@@ -778,7 +788,9 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that the result response was received correctly
-  EXPECT_EQ(this->outgoing_result_response.status, this->incoming_result_response.status);
+  EXPECT_EQ(
+    this->outgoing_result_response.action_status,
+    this->incoming_result_response.action_status);
   ASSERT_EQ(
     this->outgoing_result_response.sequence.size, this->incoming_result_response.sequence.size);
   EXPECT_TRUE(!memcmp(
