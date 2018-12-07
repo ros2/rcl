@@ -203,6 +203,8 @@ TEST_F(
   rcl_reset_error();
   ret = rcl_guard_condition_fini(&guard_condition);
   EXPECT_EQ(RCL_RET_OK, ret);
+  rcl_reset_error();
   ret = rcl_guard_condition_fini(&guard_condition);
   EXPECT_EQ(RCL_RET_OK, ret);
+  rcl_reset_error();
 }

@@ -36,6 +36,169 @@ typedef rmw_names_and_types_t rcl_names_and_types_t;
 
 #define rcl_get_zero_initialized_names_and_types rmw_get_zero_initialized_names_and_types
 
+/// Return a list of publisher topic names and their types per node.
+/**
+ * This function returns a list of topic names in the ROS graph for param node_name and their types.
+ *
+ * The node parameter must not be `NULL`, and must point to a valid node.
+ *
+ * The topic_names_and_types parameter must be allocated and zero initialized.
+ * The topic_names_and_types is the output for this function, and contains
+ * allocated memory.
+ * Therefore, it should be passed to rcl_names_and_types_fini() when
+ * it is no longer needed.
+ * Failing to do so will result in leaked memory.
+ *
+ * There may be some demangling that occurs when listing the topics from the
+ * middleware implementation.
+ * If the no_demangle argument is true, then this will be avoided and the
+ * topics will be returned as they appear to the middleware.
+ *
+ * \see rmw_get_topic_names_and_types for more details on no_demangle
+ *
+ * The returned names are not automatically remapped by this function.
+ * Attempting to create publishers or subscribers using names returned by this function may not
+ * result in the desired topic name being used depending on the remap rules in use.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator to be used when allocating space for strings
+ * \param[in] no_demangle if true, list all topics without any demangling
+ * \param[in] node_name of the node to look up topics
+ * \param[in] node_namespace of the node to look up topics
+ * \param[out] topic_names_and_types list of topic names and their types
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_publisher_names_and_types_by_node(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  bool no_demangle,
+  const char * node_name,
+  const char * node_namespace,
+  rcl_names_and_types_t * topic_names_and_types);
+
+/// Return a list of subcriber topic names and their types per node.
+/**
+ * This function returns a list of topic names in the ROS graph for param node_name and their types.
+ *
+ * The node parameter must not be `NULL`, and must point to a valid node.
+ *
+ * The topic_names_and_types parameter must be allocated and zero initialized.
+ * The topic_names_and_types is the output for this function, and contains
+ * allocated memory.
+ * Therefore, it should be passed to rcl_names_and_types_fini() when
+ * it is no longer needed.
+ * Failing to do so will result in leaked memory.
+ *
+ * There may be some demangling that occurs when listing the topics from the
+ * middleware implementation.
+ * If the no_demangle argument is true, then this will be avoided and the
+ * topics will be returned as they appear to the middleware.
+ *
+ * \see rmw_get_topic_names_and_types for more details on no_demangle
+ *
+ * The returned names are not automatically remapped by this function.
+ * Attempting to create publishers or subscribers using names returned by this function may not
+ * result in the desired topic name being used depending on the remap rules in use.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator to be used when allocating space for strings
+ * \param[in] no_demangle if true, list all topics without any demangling
+ * \param[in] node_name of the node to look up topics
+ * \param[in] node_namespace of the node to look up topics
+ * \param[out] topic_names_and_types list of topic names and their types
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_subscriber_names_and_types_by_node(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  bool no_demangle,
+  const char * node_name,
+  const char * node_namespace,
+  rcl_names_and_types_t * topic_names_and_types);
+
+/// Return a list of service names and their types per node.
+/**
+ * This function returns a list of service names in the ROS graph for param node_name and their types.
+ *
+ * The node parameter must not be `NULL`, and must point to a valid node.
+ *
+ * The topic_names_and_types parameter must be allocated and zero initialized.
+ * The topic_names_and_types is the output for this function, and contains
+ * allocated memory.
+ * Therefore, it should be passed to rcl_names_and_types_fini() when
+ * it is no longer needed.
+ * Failing to do so will result in leaked memory.
+ *
+ * There may be some demangling that occurs when listing the topics from the
+ * middleware implementation.
+ * If the no_demangle argument is true, then this will be avoided and the
+ * topics will be returned as they appear to the middleware.
+ *
+ * \see rmw_get_topic_names_and_types for more details on no_demangle
+ *
+ * The returned names are not automatically remapped by this function.
+ * Attempting to create publishers or subscribers using names returned by this function may not
+ * result in the desired topic name being used depending on the remap rules in use.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator to be used when allocating space for strings
+ * \param[in] node_name of the node to look up topics
+ * \param[in] node_namespace of the node to look up topics
+ * \param[out] service_names_and_types list of service names and their types
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_service_names_and_types_by_node(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  const char * node_name,
+  const char * node_namespace,
+  rcl_names_and_types_t * service_names_and_types);
+
 /// Return a list of topic names and their types.
 /**
  * This function returns a list of topic names in the ROS graph and their types.

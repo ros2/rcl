@@ -49,7 +49,7 @@ set(rcl_add_custom_gtest_INCLUDED TRUE)
 macro(rcl_add_custom_gtest target)
   cmake_parse_arguments(_ARG
     "SKIP_TEST;TRACE"
-    ""
+    "TIMEOUT"
     "SRCS;ENV;APPEND_ENV;APPEND_LIBRARY_DIRS;INCLUDE_DIRS;LIBRARIES;AMENT_DEPENDENCIES"
     ${ARGN})
   if(_ARG_UNPARSED_ARGUMENTS)
@@ -69,9 +69,13 @@ macro(rcl_add_custom_gtest target)
   else()
     set(_ARG_SKIP_TEST "")
   endif()
+  if(_ARG_TIMEOUT)
+    set(_ARG_TIMEOUT "TIMEOUT" ${_ARG_TIMEOUT})
+  endif()
 
   # Pass args along to ament_add_gtest().
-  ament_add_gtest(${target} ${_ARG_SRCS} ${_ARG_ENV} ${_ARG_APPEND_ENV} ${_ARG_APPEND_LIBRARY_DIRS} ${_ARG_SKIP_TEST})
+  ament_add_gtest(${target} ${_ARG_SRCS} ${_ARG_ENV} ${_ARG_APPEND_ENV} ${_ARG_APPEND_LIBRARY_DIRS}
+                  ${_ARG_SKIP_TEST} ${_ARG_TIMEOUT})
   # Check if the target was actually created.
   if(TARGET ${target})
     if(_ARG_TRACE)

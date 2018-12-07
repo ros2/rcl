@@ -22,12 +22,125 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcutils/allocator.h"
 #include "rcutils/types.h"
+#include "rmw/get_node_info_and_types.h"
 #include "rmw/get_service_names_and_types.h"
 #include "rmw/get_topic_names_and_types.h"
 #include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
 
 #include "./common.h"
+
+rcl_ret_t
+rcl_get_publisher_names_and_types_by_node(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  bool no_demangle,
+  const char * node_name,
+  const char * node_namespace,
+  rcl_names_and_types_t * topic_names_and_types)
+{
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_namespace, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
+
+  const char * valid_namespace = "/";
+  if (strlen(node_namespace) > 0) {
+    valid_namespace = node_namespace;
+  }
+  rmw_ret_t rmw_ret;
+  rmw_ret = rmw_names_and_types_check_zero(topic_names_and_types);
+  if (rmw_ret != RMW_RET_OK) {
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  rcutils_allocator_t rcutils_allocator = *allocator;
+  rmw_ret = rmw_get_publisher_names_and_types_by_node(
+    rcl_node_get_rmw_handle(node),
+    &rcutils_allocator,
+    node_name,
+    valid_namespace,
+    no_demangle,
+    topic_names_and_types
+  );
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
+
+rcl_ret_t
+rcl_get_subscriber_names_and_types_by_node(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  bool no_demangle,
+  const char * node_name,
+  const char * node_namespace,
+  rcl_names_and_types_t * topic_names_and_types)
+{
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_namespace, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
+
+  const char * valid_namespace = "/";
+  if (strlen(node_namespace) > 0) {
+    valid_namespace = node_namespace;
+  }
+  rmw_ret_t rmw_ret;
+  rmw_ret = rmw_names_and_types_check_zero(topic_names_and_types);
+  if (rmw_ret != RMW_RET_OK) {
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  rcutils_allocator_t rcutils_allocator = *allocator;
+  rmw_ret = rmw_get_subscriber_names_and_types_by_node(
+    rcl_node_get_rmw_handle(node),
+    &rcutils_allocator,
+    node_name,
+    valid_namespace,
+    no_demangle,
+    topic_names_and_types
+  );
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
+
+rcl_ret_t
+rcl_get_service_names_and_types_by_node(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  const char * node_name,
+  const char * node_namespace,
+  rcl_names_and_types_t * service_names_and_types)
+{
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node_namespace, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service_names_and_types, RCL_RET_INVALID_ARGUMENT);
+
+  const char * valid_namespace = "/";
+  if (strlen(node_namespace) > 0) {
+    valid_namespace = node_namespace;
+  }
+  rmw_ret_t rmw_ret;
+  rmw_ret = rmw_names_and_types_check_zero(service_names_and_types);
+  if (rmw_ret != RMW_RET_OK) {
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  rcutils_allocator_t rcutils_allocator = *allocator;
+  rmw_ret = rmw_get_service_names_and_types_by_node(
+    rcl_node_get_rmw_handle(node),
+    &rcutils_allocator,
+    node_name,
+    valid_namespace,
+    service_names_and_types
+  );
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
 
 rcl_ret_t
 rcl_get_topic_names_and_types(
