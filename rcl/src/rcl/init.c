@@ -174,6 +174,10 @@ rcl_shutdown(rcl_context_t * context)
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
 
+  rcl_ret_t rcl_ret = rcl_logging_fini();
+  RCUTILS_LOG_ERROR_EXPRESSION_NAMED(RCL_RET_OK != rcl_ret, ROS_PACKAGE_NAME,
+    "Failed to fini logging. %i", rcl_ret);
+
   return RCL_RET_OK;
 }
 
