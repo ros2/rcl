@@ -26,6 +26,7 @@ extern "C"
 
 #include "rcl/client.h"
 #include "rcl/error_handling.h"
+#include "rcl/graph.h"
 #include "rcl/subscription.h"
 #include "rcl/types.h"
 #include "rcl/wait.h"
@@ -237,6 +238,54 @@ rcl_action_client_get_default_options(void)
   default_options.status_topic_qos = rcl_action_qos_profile_status_default;
   default_options.allocator = rcl_get_default_allocator();
   return default_options;
+}
+
+rcl_ret_t
+rcl_action_server_is_available(
+  const rcl_node_t * node,
+  const rcl_action_client_t * client,
+  bool * is_available)
+{
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;  // error is already set
+  }
+  if (!rcl_action_client_is_valid(client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;  // error is already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_available, RCL_RET_INVALID_ARGUMENT);
+
+  bool temp;
+  rcl_ret_t ret;
+  *is_available = true;
+
+  ret = rcl_service_server_is_available(node, &(client->impl->goal_client), &temp);
+  if (RCL_RET_OK != ret) {
+    return ret;  // error is already set
+  }
+  *is_available = (*is_available && temp);
+
+  ret = rcl_service_server_is_available(node, &(client->impl->cancel_client), &temp);
+  if (RCL_RET_OK != ret) {
+    return ret;  // error is already set
+  }
+  *is_available = (*is_available && temp);
+
+  ret = rcl_service_server_is_available(node, &(client->impl->result_client), &temp);
+  if (RCL_RET_OK != ret) {
+    return ret;  // error is already set
+  }
+  *is_available = (*is_available && temp);
+
+  size_t number_of_publishers;
+
+  ret = rcl_subscription_get_publisher_count(
+    &(client->impl->feedback_subscription), &number_of_publishers);
+  if (RCL_RET_OK != ret) {
+    return ret;  // error is already set
+  }
+  *is_available = *is_available && (number_of_publishers != 0);
+
+  return RCL_RET_OK;
 }
 
 // \internal Sends an action client specific service request.
