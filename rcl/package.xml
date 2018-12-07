@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>rcl</name>
   <version>0.6.0</version>
   <description>The ROS client library common implementation.
@@ -36,6 +36,8 @@
   <test_depend>launch</test_depend>
   <test_depend>osrf_testing_tools_cpp</test_depend>
   <test_depend>test_msgs</test_depend>
+
+  <group_depend>rcl_logging_packages</group_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

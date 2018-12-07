@@ -27,6 +27,8 @@ extern "C"
 # define RCL_WARN_UNUSED _Check_return_
 #endif
 
+#define RCL_UNUSED(x) (void)(x)
+
 #ifdef __cplusplus
 }
 #endif

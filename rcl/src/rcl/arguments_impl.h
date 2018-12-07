@@ -44,6 +44,14 @@ typedef struct rcl_arguments_impl_t
 
   /// Default log level (represented by `RCUTILS_LOG_SEVERITY` enum) or -1 if not specified.
   int log_level;
+  /// A file used to configure the external logging library
+  char * external_log_config_file;
+  /// A boolean value indicating if the standard out handler should be used for log output
+  bool log_stdout_disabled;
+  /// A boolean value indicating if the rosout topic handler should be used for log output
+  bool log_rosout_disabled;
+  /// A boolean value indicating if the external lib handler should be used for log output
+  bool log_ext_lib_disabled;
 
   /// Allocator used to allocate objects in this struct
   rcl_allocator_t allocator;
