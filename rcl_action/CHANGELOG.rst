@@ -2,6 +2,24 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2018-12-07)
+------------------
+* Added wait_for_action_server() for action clients (`#349 <https://github.com/ros2/rcl/issues/349>`_)
+* Updated to adapt to action implicit changes (`#353 <https://github.com/ros2/rcl/issues/353>`_)
+* Added action interaction tests (`#352 <https://github.com/ros2/rcl/issues/352>`_)
+* Enabled test_action_communication to compile against available rmw. (`#351 <https://github.com/ros2/rcl/issues/351>`_)
+* Changed UUID type in action msgs (`#338 <https://github.com/ros2/rcl/issues/338>`_)
+* Added rcl_action_server_is_valid_except_context (`#348 <https://github.com/ros2/rcl/issues/348>`_)
+* Updated to fini even if node context is invalid and reset error (`#346 <https://github.com/ros2/rcl/issues/346>`_)
+* Added timer to action server to check expired goals + asan fixes (`#343 <https://github.com/ros2/rcl/issues/343>`_)
+* Increased timeout for rcl_wait in action tests (`#344 <https://github.com/ros2/rcl/issues/344>`_)
+* Refactored init to not be global (`#336 <https://github.com/ros2/rcl/issues/336>`_)
+* Completes integration tests for action client/server (`#331 <https://github.com/ros2/rcl/issues/331>`_)
+* Updated rcl_action_expire_goals() to output list of expired goals. (`#342 <https://github.com/ros2/rcl/issues/342>`_)
+* Updated process_cancel_request to no longer change goal state (`#341 <https://github.com/ros2/rcl/issues/341>`_)
+* Add action server implementation (`#323 <https://github.com/ros2/rcl/issues/323>`_)
+* Contributors: Alexis Pojomovsky, Jacob Perron, Michel Hidalgo, Shane Loretz, William Woodall
+
 0.6.0 (2018-11-16)
 ------------------
 * Made rcl_action_get\_*_name() functions check for empty action names. `#329 <https://github.com/ros2/rcl/issues/329>`_

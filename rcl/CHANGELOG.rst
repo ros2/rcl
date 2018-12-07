@@ -2,6 +2,16 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2018-12-07)
+------------------
+* Added new cli parameters for configuring the logging. (`#327 <https://github.com/ros2/rcl/issues/327>`_)
+* Added node graph api to rcl. (`#333 <https://github.com/ros2/rcl/issues/333>`_)
+* Fixed compiler warning in clang (`#345 <https://github.com/ros2/rcl/issues/345>`_)
+* Refactored init to not be global (`#336 <https://github.com/ros2/rcl/issues/336>`_)
+* Methods to retrieve matched counts on pub/sub. (`#326 <https://github.com/ros2/rcl/issues/326>`_)
+* Updated to output index in container when adding an entity to a wait set. (`#335 <https://github.com/ros2/rcl/issues/335>`_)
+* Contributors: Jacob Perron, Michael Carroll, Nick Burek, Ross Desmond, William Woodall
+
 0.6.0 (2018-11-16)
 ------------------
 * Updated to expand node_secure_root using local_namespace (`#300 <https://github.com/ros2/rcl/issues/300>`_)

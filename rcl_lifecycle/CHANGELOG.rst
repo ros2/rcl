@@ -2,6 +2,11 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2018-12-07)
+------------------
+* Refactored init to not be global (`#336 <https://github.com/ros2/rcl/issues/336>`_)
+* Contributors: William Woodall
+
 0.6.0 (2018-11-16)
 -----------
 * Updated use new error handling API from rcutils (`#314 <https://github.com/ros2/rcl/issues/314>`_)

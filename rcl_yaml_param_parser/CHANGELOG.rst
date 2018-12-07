@@ -2,6 +2,10 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2018-12-07)
+------------------
+* No changes.
+
 0.6.0 (2018-11-16)
 ------------------
 * Updated to use new error handling API from rcutils (`#314 <https://github.com/ros2/rcl/issues/314>`_)
