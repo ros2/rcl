@@ -451,7 +451,7 @@ _recalculate_expire_timer(
         return RCL_RET_ERROR;
       }
 
-      int64_t delta = timeout - current_time - _goal_info_stamp_to_nanosec(&goal_info);
+      int64_t delta = timeout - (current_time - _goal_info_stamp_to_nanosec(&goal_info));
       if (delta < minimum_period) {
         minimum_period = delta;
       }
