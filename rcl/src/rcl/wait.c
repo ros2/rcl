@@ -484,13 +484,10 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
 
   bool is_timer_timeout = false;
   int64_t min_timeout = timeout > 0 ? timeout : INT64_MAX;
-  // calculate the number of valid (non-NULL and non-canceled) timers
-  size_t number_of_valid_timers = wait_set->size_of_timers;
   {  // scope to prevent i from colliding below
     uint64_t i = 0;
     for (i = 0; i < wait_set->impl->timer_index; ++i) {
       if (!wait_set->timers[i]) {
-        number_of_valid_timers--;
         continue;  // Skip NULL timers.
       }
       bool is_canceled = false;
@@ -499,7 +496,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
         return ret;  // The rcl error state should already be set.
       }
       if (is_canceled) {
-        number_of_valid_timers--;
         wait_set->timers[i] = NULL;
         continue;
       }
@@ -530,7 +526,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     temporary_timeout_storage.sec = 0;
     temporary_timeout_storage.nsec = 0;
     timeout_argument = &temporary_timeout_storage;
-  } else if (timeout > 0 || number_of_valid_timers > 0) {
+  } else if (timeout > 0 || is_timer_timeout) {
     // If min_timeout was negative, we need to wake up immediately.
     if (min_timeout < 0) {
       min_timeout = 0;
