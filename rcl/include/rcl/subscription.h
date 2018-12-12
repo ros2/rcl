@@ -217,6 +217,11 @@ rcl_subscription_get_default_options(void);
  * if one is available.
  * If taken is false after calling, then the ROS message will be unmodified.
  *
+ * The taken boolean may be false even if a wait set reports that the
+ * subscription was ready to be taken from in some cases, e.g. when the
+ * state of the subscription changes it may cause the wait set to wake up
+ * but subsequent takes to fail to take anything.
+ *
  * If allocation is required when taking the message, e.g. if space needs to
  * be allocated for a dynamically sized array in the target message, then the
  * allocator given in the subscription options is used.
