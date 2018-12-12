@@ -309,12 +309,6 @@ rcl_node_init(
       node_security_options.security_root_path = node_secure_root;
     } else {
       if (RMW_SECURITY_ENFORCEMENT_ENFORCE == node_security_options.enforce_security) {
-        RCL_SET_ERROR_MSG(
-          "SECURITY ERROR: unable to find a folder matching the node name in the "
-          RCUTILS_STRINGIFY(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME)
-          " or "
-          RCUTILS_STRINGIFY(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME)
-          " directories while the requested security strategy requires it");
         ret = RCL_RET_ERROR;
         goto cleanup;
       }

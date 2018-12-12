@@ -70,6 +70,9 @@ TEST(test_rcl_get_secure_root, successScenarios) {
      * Root: ${CMAKE_BINARY_DIR}/tests/resources
      * Namespace: /test_security_directory
      * Node: dummy_node_and_some_suffix_added */
+    ASSERT_STRNE(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", TEST_NODE_NAMESPACE, &allocator),
+                  secure_root.c_str());
+    putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_PREFIX");
     ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", TEST_NODE_NAMESPACE, &allocator),
                  secure_root.c_str());
 
@@ -86,6 +89,8 @@ TEST(test_rcl_get_secure_root, successScenarios) {
      * Namespace: /
      * Node: dummy_node */
     ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME, ROOT_NAMESPACE, &allocator), secure_root.c_str());
+    putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_EXACT");
+    ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME, ROOT_NAMESPACE, &allocator), secure_root.c_str());
 
     /* --------------------------
      * Namespace  : Root
@@ -94,6 +99,8 @@ TEST(test_rcl_get_secure_root, successScenarios) {
      * Root dir: ${CMAKE_BINARY_DIR}/tests/resources/test_security_directory
      * Namespace: /
      * Node: dummy_node_and_some_suffix_added */
+    ASSERT_STRNE(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", ROOT_NAMESPACE, &allocator), secure_root.c_str());
+    putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_PREFIX");
     ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", ROOT_NAMESPACE, &allocator), secure_root.c_str());
 }
 
