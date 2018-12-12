@@ -349,7 +349,9 @@ rcl_wait_set_add_service(
  * this function returns.
  * Items that are not `NULL` are ready, where ready means different things based
  * on the type of the item.
- * For subscriptions this means there are messages that can be taken.
+ * For subscriptions this means there may be messages that can be taken, or
+ * perhaps that the state of the subscriptions has changed, in which case
+ * rcl_take may succeed but return with taken == false.
  * For guard conditions this means the guard condition was triggered.
  *
  * Expected usage:
