@@ -89,13 +89,12 @@ static bool get_best_matching_directory(
         if (-1 == tinydir_readfile(&dir, &file)) {
             goto cleanup;
         }
-        if (!file.is_dir) {
-            continue;
-        }
-        size_t matched_name_length = strnlen(file.name, sizeof(file.name) - 1);
-        if (0 == strncmp(file.name, node_name, matched_name_length) && matched_name_length > max_match_length) {
-            max_match_length = matched_name_length;
-            strncpy(matched_name, file.name, max_match_length);
+        if (file.is_dir) {
+            size_t matched_name_length = strnlen(file.name, sizeof(file.name) - 1);
+            if (0 == strncmp(file.name, node_name, matched_name_length) && matched_name_length > max_match_length) {
+                max_match_length = matched_name_length;
+                strncpy(matched_name, file.name, max_match_length);
+            }
         }
         if (-1 == tinydir_next(&dir)) {
             goto cleanup;
