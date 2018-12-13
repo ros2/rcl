@@ -2,6 +2,9 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2018-12-13)
+------------------
+
 0.6.1 (2018-12-07)
 ------------------
 * Refactored init to not be global (`#336 <https://github.com/ros2/rcl/issues/336>`_)

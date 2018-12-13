@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2018-12-13)
+------------------
+* Updated docs about possibility of rcl_take not taking (`#356 <https://github.com/ros2/rcl/issues/356>`_)
+* Bugfix: ensure NULL timeout is passed to rmw_wait() when min_timeout is not set
+  Otherwise, there is a risk of integer overflow (e.g. in rmw_fastrtps) and rmw_wait() will wake immediately.
+* Contributors: Jacob Perron, William Woodall
+
 0.6.1 (2018-12-07)
 ------------------
 * Added new cli parameters for configuring the logging. (`#327 <https://github.com/ros2/rcl/issues/327>`_)

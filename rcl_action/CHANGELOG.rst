@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2018-12-13)
+------------------
+* [rcl_action] Bugfix: arithmetic error
+* Contributors: Jacob Perron
+
 0.6.1 (2018-12-07)
 ------------------
 * Added wait_for_action_server() for action clients (`#349 <https://github.com/ros2/rcl/issues/349>`_)
