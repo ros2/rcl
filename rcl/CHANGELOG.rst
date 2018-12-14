@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.3 (2018-12-13)
+------------------
+* Set rmw_wait timeout using ros timers too (`#357 <https://github.com/ros2/rcl/issues/357>`_)
+* Contributors: Shane Loretz
+
 0.6.2 (2018-12-13)
 ------------------
 * Updated docs about possibility of rcl_take not taking (`#356 <https://github.com/ros2/rcl/issues/356>`_)
