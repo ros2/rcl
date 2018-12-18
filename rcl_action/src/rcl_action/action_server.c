@@ -641,12 +641,16 @@ rcl_action_expire_goals(
     }
     goal_time = _goal_info_stamp_to_nanosec(info_ptr);
     if ((current_time - goal_time) > timeout) {
-      // Stop tracking goal handle
-      // Fill in any gaps left in the array with pointers from the end
+      // Deallocate space used to store pointer to goal handle
+      allocator.deallocate(action_server->impl->goal_handles[i], allocator.state);
+      action_server->impl->goal_handles[i] = NULL;
+      // Move all pointers after backwards one to fill the gap
+      for (size_t post_i = i; (post_i + 1) < num_goal_handles; ++post_i) {
+        action_server->impl->goal_handles[post_i] = action_server->impl->goal_handles[post_i + 1];
+      }
+      // decrement i to check the same index again now that it has a new goal handle
+      --i;
       --num_goal_handles;
-      action_server->impl->goal_handles[i] = action_server->impl->goal_handles[num_goal_handles];
-      allocator.deallocate(action_server->impl->goal_handles[num_goal_handles], allocator.state);
-      action_server->impl->goal_handles[num_goal_handles] = NULL;
       ++num_goals_expired;
     }
   }
