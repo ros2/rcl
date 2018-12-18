@@ -431,7 +431,7 @@ _recalculate_expire_timer(
   rcl_clock_t * clock)
 {
   size_t num_inactive_goals = 0u;
-  int64_t minimum_period = 0;
+  int64_t minimum_period = timeout;
 
   // Get current time (nanosec)
   int64_t current_time;
