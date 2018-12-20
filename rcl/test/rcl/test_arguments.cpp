@@ -202,6 +202,21 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy) {
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
 }
 
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_no_args) {
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed(&parsed_args));
+
+  rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
+  ret = rcl_arguments_copy(&parsed_args, &copied_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed(&copied_args));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
+}
+
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_namespace) {
   const char * argv[] = {"process_name", "__ns:=/foo/bar", "__ns:=/fiz/buz"};
   int argc = sizeof(argv) / sizeof(const char *);
