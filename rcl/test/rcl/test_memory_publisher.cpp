@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
+
 #include "rcl/publisher.h"
 
 #include "rcl/rcl.h"
@@ -134,7 +135,7 @@ public:
 };
 
 /*
-Memory test of publisher
+  Memory test of publisher
 */
 TEST_P_RMW(TestMemoryPublisherFixture, test_memory_publisher) {
   osrf_testing_tools_cpp::memory_tools::ScopedQuickstartGtest scoped_quickstart_gtest(true);
@@ -172,24 +173,24 @@ TEST_P_RMW(TestMemoryPublisherFixture, test_memory_publisher) {
 std::vector<TestMemoryParams> getTestMemoryParams()
 {
   return {
-           {rmw_qos_profile_sensor_data, getMessageWithInt64Value(42)}, //0
-           {rmw_qos_profile_sensor_data, getMessageWithStringLength(5)}, //1
-           {rmw_qos_profile_sensor_data, getMessageWithStringLength(100000)}, //2
-           {rmw_qos_profile_parameters, getMessageWithInt64Value(42)}, //3
-           {rmw_qos_profile_parameters, getMessageWithStringLength(5)}, //4
-           {rmw_qos_profile_parameters, getMessageWithStringLength(100000)}, //5
-           {rmw_qos_profile_default, getMessageWithInt64Value(42)}, //6
-           {rmw_qos_profile_default, getMessageWithStringLength(5)}, //7
-           {rmw_qos_profile_default, getMessageWithStringLength(100000)}, //8
-           {rmw_qos_profile_services_default, getMessageWithInt64Value(42)}, //9
-           {rmw_qos_profile_services_default, getMessageWithStringLength(5)}, //10
-           {rmw_qos_profile_services_default, getMessageWithStringLength(100000)}, //11
-           {rmw_qos_profile_parameter_events, getMessageWithInt64Value(42)}, //12
-           {rmw_qos_profile_parameter_events, getMessageWithStringLength(5)}, //13
-           {rmw_qos_profile_parameter_events, getMessageWithStringLength(100000)}, //14
-           {rmw_qos_profile_system_default, getMessageWithInt64Value(42)}, //15
-           {rmw_qos_profile_system_default, getMessageWithStringLength(5)}, //16
-           {rmw_qos_profile_system_default, getMessageWithStringLength(100000)} //17
+           {rmw_qos_profile_sensor_data, getMessageWithInt64Value(42)},   // 0
+           {rmw_qos_profile_sensor_data, getMessageWithStringLength(5)},   // 1
+           {rmw_qos_profile_sensor_data, getMessageWithStringLength(100000)},  // 2
+           {rmw_qos_profile_parameters, getMessageWithInt64Value(42)},  // 3
+           {rmw_qos_profile_parameters, getMessageWithStringLength(5)},  // 4
+           {rmw_qos_profile_parameters, getMessageWithStringLength(100000)},  // 5
+           {rmw_qos_profile_default, getMessageWithInt64Value(42)},  // 6
+           {rmw_qos_profile_default, getMessageWithStringLength(5)},  // 7
+           {rmw_qos_profile_default, getMessageWithStringLength(100000)},  // 8
+           {rmw_qos_profile_services_default, getMessageWithInt64Value(42)},  // 9
+           {rmw_qos_profile_services_default, getMessageWithStringLength(5)},  // 10
+           {rmw_qos_profile_services_default, getMessageWithStringLength(100000)},  // 11
+           {rmw_qos_profile_parameter_events, getMessageWithInt64Value(42)},  // 12
+           {rmw_qos_profile_parameter_events, getMessageWithStringLength(5)},  // 13
+           {rmw_qos_profile_parameter_events, getMessageWithStringLength(100000)},  // 14
+           {rmw_qos_profile_system_default, getMessageWithInt64Value(42)},  // 15
+           {rmw_qos_profile_system_default, getMessageWithStringLength(5)},  // 16
+           {rmw_qos_profile_system_default, getMessageWithStringLength(100000)}  // 17
   };
 }
 
