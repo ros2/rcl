@@ -16,6 +16,8 @@
 
 #include <chrono>
 #include <string>
+#include <memory>
+#include <vector>
 #include <thread>
 
 #include "rcl/subscription.h"
@@ -176,9 +178,9 @@ wait_for_subscription_to_be_ready(
  Basic nominal test of a subscription.
 
  */
- TEST_P_RMW(TestMemorySubscriptionFixture, test_memory_subscription) {
+TEST_P_RMW(TestMemorySubscriptionFixture, test_memory_subscription) {
   osrf_testing_tools_cpp::memory_tools::ScopedQuickstartGtest scoped_quickstart_gtest(true);
-  auto common = [](auto& service){service.print_backtrace();};
+  auto common = [](auto & service) {service.print_backtrace();};
   osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc(common);
   osrf_testing_tools_cpp::memory_tools::on_unexpected_free(common);
 

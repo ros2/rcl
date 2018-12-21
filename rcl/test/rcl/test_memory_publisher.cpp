@@ -13,8 +13,11 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
-#include <iostream>
 
+#include <iostream>
+#include <string>
+#include <memory>
+#include <vector>
 
 #include "rcl/publisher.h"
 
