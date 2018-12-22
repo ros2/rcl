@@ -499,44 +499,52 @@ rcl_arguments_copy(
 
   // Zero so it's safe to call rcl_arguments_fini() if an error occurrs while copying.
   args_out->impl->num_remap_rules = 0;
+  args_out->impl->remap_rules = NULL;
+  args_out->impl->unparsed_args = NULL;
   args_out->impl->num_unparsed_args = 0;
+  args_out->impl->parameter_files = NULL;
   args_out->impl->num_param_files_args = 0;
 
-  // Copy unparsed args
-  args_out->impl->unparsed_args = allocator.allocate(
-    sizeof(int) * args->impl->num_unparsed_args, allocator.state);
-  if (NULL == args_out->impl->unparsed_args) {
-    if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
-      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
-    }
-    return RCL_RET_BAD_ALLOC;
-  }
-  for (int i = 0; i < args->impl->num_unparsed_args; ++i) {
-    args_out->impl->unparsed_args[i] = args->impl->unparsed_args[i];
-  }
-  args_out->impl->num_unparsed_args = args->impl->num_unparsed_args;
-
-  // Copy remap rules
-  args_out->impl->remap_rules = allocator.allocate(
-    sizeof(rcl_remap_t) * args->impl->num_remap_rules, allocator.state);
-  if (NULL == args_out->impl->remap_rules) {
-    if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
-      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
-    }
-    return RCL_RET_BAD_ALLOC;
-  }
-  args_out->impl->num_remap_rules = args->impl->num_remap_rules;
-  for (int i = 0; i < args->impl->num_remap_rules; ++i) {
-    args_out->impl->remap_rules[i] = rcl_remap_get_zero_initialized();
-    rcl_ret_t ret = rcl_remap_copy(
-      &(args->impl->remap_rules[i]), &(args_out->impl->remap_rules[i]));
-    if (RCL_RET_OK != ret) {
+  if (args->impl->num_unparsed_args) {
+    // Copy unparsed args
+    args_out->impl->unparsed_args = allocator.allocate(
+      sizeof(int) * args->impl->num_unparsed_args, allocator.state);
+    if (NULL == args_out->impl->unparsed_args) {
       if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
         RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
       }
-      return ret;
+      return RCL_RET_BAD_ALLOC;
+    }
+    for (int i = 0; i < args->impl->num_unparsed_args; ++i) {
+      args_out->impl->unparsed_args[i] = args->impl->unparsed_args[i];
+    }
+    args_out->impl->num_unparsed_args = args->impl->num_unparsed_args;
+  }
+
+  if (args->impl->num_remap_rules) {
+    // Copy remap rules
+    args_out->impl->remap_rules = allocator.allocate(
+      sizeof(rcl_remap_t) * args->impl->num_remap_rules, allocator.state);
+    if (NULL == args_out->impl->remap_rules) {
+      if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
+      }
+      return RCL_RET_BAD_ALLOC;
+    }
+    args_out->impl->num_remap_rules = args->impl->num_remap_rules;
+    for (int i = 0; i < args->impl->num_remap_rules; ++i) {
+      args_out->impl->remap_rules[i] = rcl_remap_get_zero_initialized();
+      rcl_ret_t ret = rcl_remap_copy(
+        &(args->impl->remap_rules[i]), &(args_out->impl->remap_rules[i]));
+      if (RCL_RET_OK != ret) {
+        if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+          RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
+        }
+        return ret;
+      }
     }
   }
+
   // Copy parameter files
   if (args->impl->num_param_files_args) {
     args_out->impl->parameter_files = allocator.allocate(
@@ -558,8 +566,6 @@ rcl_arguments_copy(
         return RCL_RET_BAD_ALLOC;
       }
     }
-  } else {
-    args_out->impl->parameter_files = NULL;
   }
   return RCL_RET_OK;
 }
@@ -586,9 +592,11 @@ rcl_arguments_fini(
       args->impl->num_remap_rules = 0;
     }
 
-    args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
-    args->impl->num_unparsed_args = 0;
-    args->impl->unparsed_args = NULL;
+    if (args->impl->unparsed_args) {
+      args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
+      args->impl->num_unparsed_args = 0;
+      args->impl->unparsed_args = NULL;
+    }
 
     if (args->impl->parameter_files) {
       for (int p = 0; p < args->impl->num_param_files_args; ++p) {
