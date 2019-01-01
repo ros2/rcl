@@ -352,6 +352,29 @@ RCL_WARN_UNUSED
 const char *
 rcl_node_get_namespace(const rcl_node_t * node);
 
+/// Return the fully qualified name of the node.
+/**
+ * This function returns the node's internal namespace and name combined string.
+ * This function can fail, and therefore return `NULL`, if:
+ *   - node is `NULL`
+ *   - node has not been initialized (the implementation is invalid)
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node pointer to the node
+ * \return fully qualified name string if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const char *
+rcl_node_get_fully_qualified_name(const rcl_node_t * node);
+
 /// Return the rcl node options.
 /**
  * This function returns the node's internal options struct.
