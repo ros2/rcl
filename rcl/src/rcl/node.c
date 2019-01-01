@@ -603,6 +603,31 @@ rcl_node_get_namespace(const rcl_node_t * node)
   return node->impl->rmw_node_handle->namespace_;
 }
 
+const char *
+rcl_node_get_fully_qualified_name(const rcl_node_t * node)
+{
+  if (!rcl_node_is_valid_except_context(node)) {
+    return NULL;  // error already set
+  }
+
+  const char * name = rcl_node_get_name(node);
+  const char * ns = rcl_node_get_namespace(node);
+  char * fq_name = NULL;
+
+  if ('/' == ns[strlen(ns) - 1]) {
+    fq_name = (char *)calloc(strlen(ns) + strlen(name), sizeof(char));
+    strcpy(fq_name, ns);
+    strcat(fq_name, name);
+  }
+  else {
+    fq_name = (char *)calloc(strlen(ns) + strlen(name) + 1, sizeof(char));
+    strcpy(fq_name, ns);
+    strcat(fq_name, "/");
+    strcat(fq_name, name);
+  }
+  return fq_name;
+}
+
 const rcl_node_options_t *
 rcl_node_get_options(const rcl_node_t * node)
 {
