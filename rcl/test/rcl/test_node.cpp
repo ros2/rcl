@@ -16,6 +16,7 @@
 
 #include <regex>
 #include <string>
+#include <cstdlib>
 
 #include "rcl/rcl.h"
 #include "rcl/node.h"
@@ -99,6 +100,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
   const char * name = "test_rcl_node_accessors_node";
   const char * namespace_ = "/ns";
+  const char * fq_name = "/ns/test_rcl_node_accessors_node";
   rcl_node_options_t default_options = rcl_node_get_default_options();
   default_options.domain_id = 42;  // Set the domain id to something explicit.
   ret = rcl_node_init(&invalid_node, name, namespace_, &invalid_context, &default_options);
@@ -203,6 +205,27 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_TRUE(actual_node_namespace ? true : false);
   if (actual_node_namespace) {
     EXPECT_EQ(std::string(namespace_), std::string(actual_node_namespace));
+  }
+  // Test rcl_node_get_fully_qualified_name().
+  const char * actual_fq_node_name;
+  actual_fq_node_name = rcl_node_get_fully_qualified_name(nullptr);
+  EXPECT_EQ(nullptr, actual_fq_node_name);
+  rcl_reset_error();
+  actual_fq_node_name = rcl_node_get_fully_qualified_name(&zero_node);
+  EXPECT_EQ(nullptr, actual_fq_node_name);
+  rcl_reset_error();
+  actual_fq_node_name = rcl_node_get_fully_qualified_name(&invalid_node);
+  EXPECT_TRUE(actual_fq_node_name ? true : false);
+  if (actual_fq_node_name) {
+    EXPECT_STREQ(fq_name, actual_fq_node_name);
+    free((char *)actual_fq_node_name);
+  }
+  rcl_reset_error();
+  actual_fq_node_name = rcl_node_get_fully_qualified_name(&node);
+  EXPECT_TRUE(actual_fq_node_name ? true : false);
+  if (actual_fq_node_name) {
+    EXPECT_EQ(std::string(fq_name), std::string(actual_fq_node_name));
+    free((char *)actual_fq_node_name);
   }
   // Test rcl_node_get_logger_name().
   const char * actual_node_logger_name;
