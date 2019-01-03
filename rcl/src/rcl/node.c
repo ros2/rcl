@@ -58,6 +58,7 @@ typedef struct rcl_node_impl_t
   rmw_node_t * rmw_node_handle;
   rcl_guard_condition_t * graph_guard_condition;
   const char * logger_name;
+  const char * fq_name;
 } rcl_node_impl_t;
 
 
@@ -283,6 +284,7 @@ rcl_node_init(
   node->impl->rmw_node_handle = NULL;
   node->impl->graph_guard_condition = NULL;
   node->impl->logger_name = NULL;
+  node->impl->fq_name = NULL;
   node->impl->options = rcl_node_get_default_options();
   node->context = context;
   // Initialize node impl.
@@ -317,6 +319,9 @@ rcl_node_init(
     should_free_local_namespace_ = true;
     local_namespace_ = remapped_namespace;
   }
+
+  // compute fully qualified name of the node
+  node->impl->fq_name = rcutils_format_string(*allocator, "%s/%s", local_namespace_, name);
 
   // node logger name
   node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);
@@ -429,6 +434,9 @@ fail:
     if (node->impl->logger_name) {
       allocator->deallocate((char *)node->impl->logger_name, allocator->state);
     }
+    if (node->impl->fq_name) {
+      allocator->deallocate((char *)node->impl->fq_name, allocator->state);
+    }
     if (node->impl->rmw_node_handle) {
       ret = rmw_destroy_node(node->impl->rmw_node_handle);
       if (ret != RMW_RET_OK) {
@@ -498,6 +506,7 @@ rcl_node_fini(rcl_node_t * node)
   allocator.deallocate(node->impl->graph_guard_condition, allocator.state);
   // assuming that allocate and deallocate are ok since they are checked in init
   allocator.deallocate((char *)node->impl->logger_name, allocator.state);
+  allocator.deallocate((char *)node->impl->fq_name, allocator.state);
   if (NULL != node->impl->options.arguments.impl) {
     rcl_ret_t ret = rcl_arguments_fini(&(node->impl->options.arguments));
     if (ret != RCL_RET_OK) {
@@ -593,23 +602,7 @@ rcl_node_get_fully_qualified_name(const rcl_node_t * node)
   if (!rcl_node_is_valid_except_context(node)) {
     return NULL;  // error already set
   }
-
-  const char * name = rcl_node_get_name(node);
-  const char * ns = rcl_node_get_namespace(node);
-  char * fq_name = NULL;
-
-  if ('/' == ns[strlen(ns) - 1]) {
-    fq_name = (char *)calloc(strlen(ns) + strlen(name), sizeof(char));
-    strcpy(fq_name, ns);
-    strcat(fq_name, name);
-  }
-  else {
-    fq_name = (char *)calloc(strlen(ns) + strlen(name) + 1, sizeof(char));
-    strcpy(fq_name, ns);
-    strcat(fq_name, "/");
-    strcat(fq_name, name);
-  }
-  return fq_name;
+  return node->impl->fq_name;
 }
 
 const rcl_node_options_t *
