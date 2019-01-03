@@ -57,8 +57,14 @@ struct TestMemoryParams
 
 std::ostream & operator<<(std::ostream & os, const TestMemoryParams & pr)
 {
-  return os << "TestMemoryParams " << "(" << static_cast<void const *>(&pr) <<
-         ")" << '\n';
+  return os << "TestMemoryParams : "
+              << "[ QoS : [ history : " << pr.qos_profile.history
+              << " - QoS.depth : "  << pr.qos_profile.depth
+              << " - QoS.reliability : "  << pr.qos_profile.reliability
+              << " - QoS.durability : "  << pr.qos_profile.durability
+              << "] - [ Msg : [ int64_value : " << pr.msg->int64_value
+              << " - string.value.size : " << pr.msg->string_value.size
+            << " ] ]" << '\n';
 }
 
 std::shared_ptr<test_msgs__msg__Primitives> getMessageWithStringLength(int length)
