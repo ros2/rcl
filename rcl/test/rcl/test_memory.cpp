@@ -94,7 +94,7 @@ std::shared_ptr<test_msgs__msg__Primitives> getMessageWithInt64Value(int64_t val
   return msg;
 }
 
-class TEST_FIXTURE_P_RMW (TestMemoryPublisherFixture)
+class TEST_FIXTURE_P_RMW (TestMemoryFixture)
   : public ::testing::TestWithParam<TestMemoryParams>
 {
 public:
@@ -140,7 +140,7 @@ public:
 /*
   Memory test of publisher
 */
-TEST_P_RMW(TestMemoryPublisherFixture, test_memory_publisher) {
+TEST_P_RMW(TestMemoryFixture, test_memory_publisher) {
   osrf_testing_tools_cpp::memory_tools::ScopedQuickstartGtest scoped_quickstart_gtest(true);
 
   auto common = [](auto & service) {service.print_backtrace();};
@@ -173,6 +173,122 @@ TEST_P_RMW(TestMemoryPublisherFixture, test_memory_publisher) {
 }
 
 
+
+void
+wait_for_subscription_to_be_ready(
+  rcl_subscription_t * subscription,
+  size_t max_tries,
+  int64_t period_ms,
+  bool & success)
+{
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  size_t iteration = 0;
+  do {
+    ++iteration;
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_subscription(&wait_set, subscription, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
+    if (ret == RCL_RET_TIMEOUT) {
+      continue;
+    }
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
+      if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
+        success = true;
+        return;
+      }
+    }
+  } while (iteration < max_tries);
+  success = false;
+}
+
+
+/*
+
+ Basic nominal test of a subscription.
+
+ */
+TEST_P_RMW(TestMemoryFixture, test_memory_subscription) {
+  osrf_testing_tools_cpp::memory_tools::ScopedQuickstartGtest scoped_quickstart_gtest(true);
+  auto common = [](auto & service) {service.print_backtrace();};
+  osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc(common);
+  osrf_testing_tools_cpp::memory_tools::on_unexpected_free(common);
+
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  const char * topic = "chatter";
+  const char * expected_topic = "/chatter";
+  TestMemoryParams param = GetParam();
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  publisher_options.qos = param.qos_profile;
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  subscription_options.qos = param.qos_profile;
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  EXPECT_EQ(strcmp(rcl_subscription_get_topic_name(&subscription), expected_topic), 0);
+
+  // Test is_valid for subscription with nullptr
+  EXPECT_FALSE(rcl_subscription_is_valid(nullptr));
+  rcl_reset_error();
+
+  // Test is_valid for zero initialized subscription
+  subscription = rcl_get_zero_initialized_subscription();
+  EXPECT_FALSE(rcl_subscription_is_valid(&subscription));
+  rcl_reset_error();
+
+  // Check that valid subscriber is valid
+  subscription = rcl_get_zero_initialized_subscription();
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
+  rcl_reset_error();
+
+  // TODO(wjwwood): add logic to wait for the connection to be established
+  //                probably using the count_subscriptions busy wait mechanism
+  //                until then we will sleep for a short period of time
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  {
+    ret = rcl_publish(&publisher, param.msg.get());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+  bool success;
+  wait_for_subscription_to_be_ready(&subscription, 10, 100, success);
+  ASSERT_TRUE(success);
+  {
+    test_msgs__msg__Primitives msg;
+    test_msgs__msg__Primitives__init(&msg);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      test_msgs__msg__Primitives__fini(&msg);
+    });
+    EXPECT_NO_MEMORY_OPERATIONS({
+      ret = rcl_take(&subscription, &msg, nullptr);
+    });
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+}
+
+
 std::vector<TestMemoryParams> getTestMemoryParams()
 {
   return {
@@ -193,9 +309,16 @@ std::vector<TestMemoryParams> getTestMemoryParams()
            {rmw_qos_profile_parameter_events, getMessageWithStringLength(100000)},  // 14
            {rmw_qos_profile_system_default, getMessageWithInt64Value(42)},  // 15
            {rmw_qos_profile_system_default, getMessageWithStringLength(5)},  // 16
-           {rmw_qos_profile_system_default, getMessageWithStringLength(100000)}  // 17
+           {rmw_qos_profile_system_default, getMessageWithStringLength(100000)},  // 17
+           {{
+             RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+             1000,
+             RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+             RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+             false
+            }, getMessageWithStringLength(5) }  //  18
   };
 }
 
-INSTANTIATE_TEST_CASE_P_RMW(QOSGroup, TestMemoryPublisherFixture,
+INSTANTIATE_TEST_CASE_P_RMW(QOSGroup, TestMemoryFixture,
   ::testing::ValuesIn(getTestMemoryParams()));
