@@ -592,11 +592,9 @@ rcl_arguments_fini(
       args->impl->num_remap_rules = 0;
     }
 
-    if (args->impl->unparsed_args) {
-      args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
-      args->impl->num_unparsed_args = 0;
-      args->impl->unparsed_args = NULL;
-    }
+    args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
+    args->impl->num_unparsed_args = 0;
+    args->impl->unparsed_args = NULL;
 
     if (args->impl->parameter_files) {
       for (int p = 0; p < args->impl->num_param_files_args; ++p) {
