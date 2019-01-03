@@ -218,14 +218,14 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_TRUE(actual_fq_node_name ? true : false);
   if (actual_fq_node_name) {
     EXPECT_STREQ(fq_name, actual_fq_node_name);
-    free((char *)actual_fq_node_name);
   }
   rcl_reset_error();
-  actual_fq_node_name = rcl_node_get_fully_qualified_name(&node);
+  EXPECT_NO_MEMORY_OPERATIONS({
+    actual_fq_node_name = rcl_node_get_fully_qualified_name(&node);
+  });
   EXPECT_TRUE(actual_fq_node_name ? true : false);
   if (actual_fq_node_name) {
     EXPECT_EQ(std::string(fq_name), std::string(actual_fq_node_name));
-    free((char *)actual_fq_node_name);
   }
   // Test rcl_node_get_logger_name().
   const char * actual_node_logger_name;
