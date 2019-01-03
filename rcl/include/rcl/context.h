@@ -29,6 +29,13 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
+#ifdef _MSC_VER
+#define RCL_ALIGNAS(N) __declspec(align(N))
+#else
+#include <stdalign.h>
+#define RCL_ALIGNAS(N) alignas(N)
+#endif
+
 typedef uint64_t rcl_context_instance_id_t;
 
 struct rcl_context_impl_t;
@@ -132,7 +139,7 @@ typedef struct rcl_context_t
    * See this paper for an effort to make this possible in the future:
    *   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0943r1.html
    */
-  uint8_t instance_id_storage[RCL_CONTEXT_ATOMIC_INSTANCE_ID_STORAGE_SIZE];
+  RCL_ALIGNAS(8) uint8_t instance_id_storage[RCL_CONTEXT_ATOMIC_INSTANCE_ID_STORAGE_SIZE];
 } rcl_context_t;
 
 /// Return a zero initialization context object.
