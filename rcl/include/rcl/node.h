@@ -362,7 +362,7 @@ rcl_node_get_namespace(const rcl_node_t * node);
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | Yes
+ * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
