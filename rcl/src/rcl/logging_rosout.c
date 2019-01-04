@@ -1,4 +1,4 @@
-// Copyright 2017 Open Source Robotics Foundation, Inc.
+// Copyright 2018-2019 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__LOGGING_H_
-#define RCL__LOGGING_H_
-
-
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcl/publisher.h"
+#include "rcl/time.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 #include "rcl_interfaces/msg/log.h"
@@ -111,7 +108,7 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   rcl_ret_t status = RCL_RET_OK;
 
   // Verify input and make sure it's not already initialized
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
   logger_name = rcl_node_get_logger_name(node);
   if (NULL == logger_name) {
     RCL_SET_ERROR_MSG("Logger name was null.");
@@ -155,7 +152,7 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
   rcl_ret_t status = RCL_RET_OK;
 
   // Verify input and make sure it's initialized
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
   logger_name = rcl_node_get_logger_name(node);
   if (NULL == logger_name) {
     return RCL_RET_ERROR;
@@ -201,21 +198,32 @@ void rcl_logging_rosout_output_handler(
     va_copy(args_clone, *args);
     status = rcutils_char_array_vsprintf(&msg_array, format, args_clone);
     va_end(args_clone);
+    if (RCL_RET_OK != status) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to format log string: ");
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+      rcl_reset_error();
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+    } else {
+      rcl_interfaces__msg__Log * log_message = rcl_interfaces__msg__Log__create();
+      if (NULL != log_message) {
+        log_message->stamp.sec = RCL_NS_TO_S(timestamp);
+        log_message->stamp.nanosec = (timestamp % RCL_S_TO_NS(1));
+        log_message->level = severity;
+        log_message->line = location->line_number;
+        rosidl_generator_c__String__assign(&log_message->name, name);
+        rosidl_generator_c__String__assign(&log_message->msg, msg_array.buffer);
+        rosidl_generator_c__String__assign(&log_message->file, location->file_name);
+        rosidl_generator_c__String__assign(&log_message->function, location->function_name);
+        status = rcl_publish(&entry.publisher, log_message);
+        if (RCL_RET_OK != status) {
+          RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to publish log message to rosout: ");
+          RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+          rcl_reset_error();
+          RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+        }
 
-
-    rcl_interfaces__msg__Log * log_message = rcl_interfaces__msg__Log__create();
-    if (NULL != log_message) {
-      log_message->stamp.sec = (timestamp / 1000000000);
-      log_message->stamp.nanosec = (timestamp % 1000000000);
-      log_message->level = severity;
-      log_message->line = location->line_number;
-      rosidl_generator_c__String__assign(&log_message->name, name);
-      rosidl_generator_c__String__assign(&log_message->msg, msg_array.buffer);
-      rosidl_generator_c__String__assign(&log_message->file, location->file_name);
-      rosidl_generator_c__String__assign(&log_message->function, location->function_name);
-      status = rcl_publish(&entry.publisher, log_message);
-
-      rcl_interfaces__msg__Log__destroy(log_message);
+        rcl_interfaces__msg__Log__destroy(log_message);
+      }
     }
 
     status = rcutils_char_array_fini(&msg_array);
@@ -232,5 +240,3 @@ void rcl_logging_rosout_output_handler(
 #ifdef __cplusplus
 }
 #endif
-
-#endif  // RCL__LOGGING_H_

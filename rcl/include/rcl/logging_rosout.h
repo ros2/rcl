@@ -1,4 +1,4 @@
-// Copyright 2017 Open Source Robotics Foundation, Inc.
+// Copyright 2018-2019 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -73,14 +73,14 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_logging_rosout_fini();
 
-/// Creates a rosout publisher for a node and registers to be used by the logging system
+/// Creates a rosout publisher for a node and registers it to be used by the logging system
 /**
  * Calling this for an rcl_node_t will create a new publisher on that node that will be
  * used by the logging system to publish all log messages from that Node's logger.
  *
  * If a publisher already exists for this node then a new publisher will NOT be created.
  *
- * It is expected that after creating a rosout publisher with this function that
+ * It is expected that after creating a rosout publisher with this function
  * rcl_logging_destroy_rosout_publisher_for_node() will be called for the node to cleanup
  * the publisher while the Node is still valid.
  *
@@ -96,7 +96,7 @@ rcl_logging_rosout_fini();
  * \param[in] node a valid rcl_node_t that the publisher will be created on
  * \return `RCL_RET_OK` if the publisher was created successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the publisher has already exists, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
@@ -123,7 +123,7 @@ rcl_logging_rosout_init_publisher_for_node(
  * \param[in] node a valid rcl_node_t that the publisher will be created on
  * \return `RCL_RET_OK` if the publisher was created successfully, or
  * \return `RCL_RET_NOT_INIT` if the publisher does not exist for the provided node, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
@@ -150,17 +150,20 @@ rcl_logging_rosout_fini_publisher_for_node(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param location The pointer to the location struct or NULL
- * \param severity The severity level
- * \param name The name of the logger, must be null terminated c string
- * \param timestamp The timestamp for when the log message was made
- * \param log_str The string to be logged
+ * \param[in] location The pointer to the location struct or NULL
+ * \param[in] severity The severity level
+ * \param[in] name The name of the logger, must be null terminated c string
+ * \param[in] timestamp The timestamp for when the log message was made
+ * \param[in] log_str The string to be logged
  */
 RCL_PUBLIC
 void rcl_logging_rosout_output_handler(
   const rcutils_log_location_t * location,
-  int severity, const char * name, rcutils_time_point_value_t timestamp,
-  const char * format, va_list * args);
+  int severity,
+  const char * name,
+  rcutils_time_point_value_t timestamp,
+  const char * format,
+  va_list * args);
 
 #ifdef __cplusplus
 }
