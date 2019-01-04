@@ -41,7 +41,6 @@ extern "C"
  *
  * \param[in] allocator The allocator used for metadata related to the rcl_logging_rosout features
  * \return `RCL_RET_OK` if the rcl_logging_rosout features are successfully initialized, or
- * \return `RCL_RET_ALREADY_INIT` if the feature has already initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.

@@ -23,6 +23,7 @@
 #include "rcutils/allocator.h"
 #include "rcutils/macros.h"
 #include "rcutils/types/hash_map.h"
+#include "rcutils/types/rcutils_ret.h"
 #include "rosidl_generator_c/string_functions.h"
 
 #ifdef __cplusplus
@@ -38,6 +39,33 @@ extern "C"
 #define RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED \
   if (!__is_initialized) { \
     return RCL_RET_OK; \
+  }
+
+#define RCL_RET_FROM_RCUTIL_RET(rcl_ret_var, rcutils_expr) \
+  { \
+    rcutils_ret_t rcutils_ret = rcutils_expr; \
+    if (RCUTILS_RET_OK != rcutils_ret) { \
+      RCL_SET_ERROR_MSG(rcutils_get_error_string().str); \
+    } \
+    switch (rcutils_ret) { \
+      case RCUTILS_RET_OK: \
+        rcl_ret_var = RCL_RET_OK; \
+        break; \
+      case RCUTILS_RET_ERROR: \
+        rcl_ret_var = RCL_RET_ERROR; \
+        break; \
+      case RCUTILS_RET_BAD_ALLOC: \
+        rcl_ret_var = RCL_RET_BAD_ALLOC; \
+        break; \
+      case RCUTILS_RET_INVALID_ARGUMENT: \
+        rcl_ret_var = RCL_RET_INVALID_ARGUMENT; \
+        break; \
+      case RCUTILS_RET_NOT_INITIALIZED: \
+        rcl_ret_var = RCL_RET_NOT_INIT; \
+        break; \
+      default: \
+        rcl_ret_var = RCUTILS_RET_ERROR; \
+    } \
   }
 
 typedef struct rosout_map_entry_t
@@ -59,8 +87,9 @@ rcl_ret_t rcl_logging_rosout_init(
     return RCL_RET_OK;
   }
   __logger_map = rcutils_get_zero_initialized_hash_map();
-  status = rcutils_hash_map_init(&__logger_map, 2, sizeof(const char *), sizeof(rosout_map_entry_t),
-      rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, allocator);
+  RCL_RET_FROM_RCUTIL_RET(status,
+    rcutils_hash_map_init(&__logger_map, 2, sizeof(const char *), sizeof(rosout_map_entry_t),
+    rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, allocator));
   if (RCL_RET_OK == status) {
     __rosout_allocator = *allocator;
     __is_initialized = true;
@@ -76,21 +105,23 @@ rcl_ret_t rcl_logging_rosout_fini()
   rosout_map_entry_t entry;
 
   // fini all the outstanding publishers
-  status = rcutils_hash_map_get_next_key_and_data(&__logger_map, NULL, &key, &entry);
-  while (RCUTILS_RET_OK == status) {
+  RCL_RET_FROM_RCUTIL_RET(status,
+    rcutils_hash_map_get_next_key_and_data(&__logger_map, NULL, &key, &entry));
+  rcutils_ret_t hashmap_ret;
+  while (RCL_RET_OK == status && RCUTILS_RET_OK == hashmap_ret) {
     // Teardown publisher
     status = rcl_publisher_fini(&entry.publisher, entry.node);
 
     if (RCL_RET_OK == status) {
-      status = rcutils_hash_map_get_next_key_and_data(&__logger_map, key, &key, &entry);
+      hashmap_ret = rcutils_hash_map_get_next_key_and_data(&__logger_map, key, &key, &entry);
     }
   }
-  if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES == status) {
-    status = RCL_RET_OK;
+  if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != hashmap_ret) {
+    RCL_RET_FROM_RCUTIL_RET(status, hashmap_ret);
   }
 
   if (RCL_RET_OK == status) {
-    status = rcutils_hash_map_fini(&__logger_map);
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_fini(&__logger_map));
   }
 
   if (RCL_RET_OK == status) {
@@ -130,7 +161,7 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   // Add the new publisher to the map
   if (RCL_RET_OK == status) {
     new_entry.node = node;
-    status = rcutils_hash_map_set(&__logger_map, &logger_name, &new_entry);
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_set(&__logger_map, &logger_name, &new_entry));
     if (RCL_RET_OK != status) {
       RCL_SET_ERROR_MSG("Failed to add publisher to map.");
       // We failed to add to the map so destroy the publisher that we created
@@ -162,12 +193,12 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
   }
 
   // fini the publisher and remove the entry from the map
-  status = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
+  RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_get(&__logger_map, &logger_name, &entry));
   if (RCL_RET_OK == status) {
     status = rcl_publisher_fini(&entry.publisher, entry.node);
   }
   if (RCL_RET_OK == status) {
-    status = rcutils_hash_map_unset(&__logger_map, &logger_name);
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &logger_name));
   }
 
   return status;
@@ -183,7 +214,7 @@ void rcl_logging_rosout_output_handler(
   if (!__is_initialized) {
     return;
   }
-  status = rcutils_hash_map_get(&__logger_map, &name, &entry);
+  RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_get(&__logger_map, &name, &entry));
   if (RCL_RET_OK == status) {
     char msg_buf[1024] = "";
     rcutils_char_array_t msg_array = {
@@ -196,7 +227,7 @@ void rcl_logging_rosout_output_handler(
 
     va_list args_clone;
     va_copy(args_clone, *args);
-    status = rcutils_char_array_vsprintf(&msg_array, format, args_clone);
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_char_array_vsprintf(&msg_array, format, args_clone));
     va_end(args_clone);
     if (RCL_RET_OK != status) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to format log string: ");
@@ -226,7 +257,7 @@ void rcl_logging_rosout_output_handler(
       }
     }
 
-    status = rcutils_char_array_fini(&msg_array);
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_char_array_fini(&msg_array));
     if (RCL_RET_OK != status) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("failed to fini char_array: ");
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
