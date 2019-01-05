@@ -45,7 +45,11 @@ extern "C"
   { \
     rcutils_ret_t rcutils_ret = rcutils_expr; \
     if (RCUTILS_RET_OK != rcutils_ret) { \
-      RCL_SET_ERROR_MSG(rcutils_get_error_string().str); \
+      if (rcutils_error_is_set()) { \
+        RCL_SET_ERROR_MSG(rcutils_get_error_string().str); \
+      } else { \
+        RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("rcutils_ret_t code: %i", rcutils_ret); \
+      } \
     } \
     switch (rcutils_ret) { \
       case RCUTILS_RET_OK: \
@@ -105,15 +109,17 @@ rcl_ret_t rcl_logging_rosout_fini()
   rosout_map_entry_t entry;
 
   // fini all the outstanding publishers
-  RCL_RET_FROM_RCUTIL_RET(status,
-    rcutils_hash_map_get_next_key_and_data(&__logger_map, NULL, &key, &entry));
-  rcutils_ret_t hashmap_ret;
+  rcutils_ret_t hashmap_ret = rcutils_hash_map_get_next_key_and_data(&__logger_map, NULL, &key,
+      &entry);
   while (RCL_RET_OK == status && RCUTILS_RET_OK == hashmap_ret) {
     // Teardown publisher
     status = rcl_publisher_fini(&entry.publisher, entry.node);
 
     if (RCL_RET_OK == status) {
+      const char * prev_key = key;
       hashmap_ret = rcutils_hash_map_get_next_key_and_data(&__logger_map, key, &key, &entry);
+
+      RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &prev_key));
     }
   }
   if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != hashmap_ret) {
@@ -189,7 +195,7 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
     return RCL_RET_ERROR;
   }
   if (!rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
-    return RCL_RET_NOT_INIT;
+    return RCL_RET_OK;
   }
 
   // fini the publisher and remove the entry from the map
@@ -214,8 +220,8 @@ void rcl_logging_rosout_output_handler(
   if (!__is_initialized) {
     return;
   }
-  RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_get(&__logger_map, &name, &entry));
-  if (RCL_RET_OK == status) {
+  rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &name, &entry);
+  if (RCUTILS_RET_OK == rcutils_ret) {
     char msg_buf[1024] = "";
     rcutils_char_array_t msg_array = {
       .buffer = msg_buf,

@@ -121,7 +121,6 @@ rcl_logging_rosout_init_publisher_for_node(
  *
  * \param[in] node a valid rcl_node_t that the publisher will be created on
  * \return `RCL_RET_OK` if the publisher was created successfully, or
- * \return `RCL_RET_NOT_INIT` if the publisher does not exist for the provided node, or
  * \return `RCL_RET_NODE_INVALID` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
