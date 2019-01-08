@@ -44,7 +44,7 @@ extern "C"
  * However, this expansion can be overridden by setting the secure node directory environment
  * variable, allowing users to explicitly specify the exact secure root directory to be utilized.
  * Such an override is useful for where the FQN of a node is non-deterministic before runtime,
- * or when testing and using additional tools that may not otherwise not be easily provisioned.
+ * or when testing and using additional tools that may not otherwise be easily provisioned.
  *
  * \param[in] node_name validated node name (a single token)
  * \param[in] node_namespace validated, absolute namespace (starting with "/")
