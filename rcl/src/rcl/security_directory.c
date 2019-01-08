@@ -163,23 +163,6 @@ char * prefix_match_lookup(
   return node_secure_root;
 }
 
-/// Return the secure root directory associated with a node given its validated name and namespace.
-/**
- * E.g. for a node named "c" in namespace "/a/b", the secure root path will be
- * "a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
- * If no exact match is found for the node name, a best match would be used instead
- * (by performing longest-prefix matching).
- *
- * However, this expansion can be overridden by setting the secure node directory environment
- * variable, allowing users to explicitly specify the exact secure root directory to be utilized.
- * Such an override is useful for where the FQN of a node is non-deterministic before runtime,
- * or when testing and using additional tools that may not otherwise not be easily provisioned.
- *
- * \param[in] node_name validated node name (a single token)
- * \param[in] node_namespace validated, absolute namespace (starting with "/")
- * \param[in] allocator the allocator to use for allocation
- * \returns machine specific (absolute) node secure root path or NULL on failure
- */
 const char * rcl_get_secure_root(
   const char * node_name,
   const char * node_namespace,
