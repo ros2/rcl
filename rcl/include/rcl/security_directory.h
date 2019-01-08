@@ -39,7 +39,8 @@ extern "C"
 /**
  * E.g. for a node named "c" in namespace "/a/b", the secure root path will be
  * "a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
- * If no exact match is found for the node name, a best match would be used instead (by performing longest-prefix matching).
+ * If no exact match is found for the node name, a best match would be used instead
+ * (by performing longest-prefix matching).
  *
  * However, this expansion can be overridden by setting the secure node directory environment
  * variable, allowing users to explicitly specify the exact secure root directory to be utilized.
