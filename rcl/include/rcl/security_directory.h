@@ -15,7 +15,13 @@
 #ifndef RCL__SECURITY_DIRECTORY_H_
 #define RCL__SECURITY_DIRECTORY_H_
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include "rcl/allocator.h"
+#include "rcl/visibility_control.h"
 
 #ifndef ROS_SECURITY_NODE_DIRECTORY_VAR_NAME
   #define ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "ROS_SECURITY_NODE_DIRECTORY"
@@ -27,11 +33,6 @@
 
 #ifndef ROS_SECURITY_LOOKUP_TYPE_VAR_NAME
   #define ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "ROS_SECURITY_LOOKUP_TYPE"
-#endif
-
-#ifdef __cplusplus
-extern "C"
-{
 #endif
 
 /// Return the secure root directory associated with a node given its validated name and namespace.
@@ -50,10 +51,11 @@ extern "C"
  * \param[in] allocator the allocator to use for allocation
  * \returns machine specific (absolute) node secure root path or NULL on failure
  */
+RCL_PUBLIC
 const char * rcl_get_secure_root(
-    const char * node_name,
-    const char * node_namespace,
-    const rcl_allocator_t * allocator
+  const char * node_name,
+  const char * node_namespace,
+  const rcl_allocator_t * allocator
 );
 
 #ifdef __cplusplus

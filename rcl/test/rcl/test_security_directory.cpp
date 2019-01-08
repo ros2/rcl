@@ -15,107 +15,125 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
 #include "rcl/security_directory.h"
 #include "rcutils/filesystem.h"
-#include <stdlib.h>
 
 #define ROOT_NAMESPACE "/"
 #define TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME "test_security_directory"
 #define TEST_NODE_NAME "dummy_node"
 #define TEST_NODE_NAMESPACE ROOT_NAMESPACE TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
 
-static int putenv_wrapper(const char * env_var) {
+static int putenv_wrapper(const char * env_var)
+{
 #ifdef _WIN32
-    return _putenv(env_var);
+  return _putenv(env_var);
 #else
-    return putenv((char *) env_var);
+  return putenv(reinterpret_cast<char *>(const_cast<char *>(env_var)));
 #endif
 }
 
 TEST(test_rcl_get_secure_root, failureScenarios) {
-    rcl_allocator_t allocator = rcl_get_default_allocator();
-    /* Before setting the environment variable */
-    ASSERT_EQ(rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
-              (char *) NULL);
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  /* Before setting the environment variable */
+  ASSERT_EQ(rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
+    (char *) NULL);
 
-    putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
 
-    /* Security directory is set, but there's no matching directory */
-    /// Wrong namespace
-    ASSERT_EQ(rcl_get_secure_root(TEST_NODE_NAME, "/some_other_namespace", &allocator),
-              (char *) NULL);
-    /// Wrong node name
-    ASSERT_EQ(rcl_get_secure_root("not_" TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
-              (char *) NULL);
+  /* Security directory is set, but there's no matching directory */
+  /// Wrong namespace
+  ASSERT_EQ(rcl_get_secure_root(TEST_NODE_NAME, "/some_other_namespace", &allocator),
+    (char *) NULL);
+  /// Wrong node name
+  ASSERT_EQ(rcl_get_secure_root("not_" TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
+    (char *) NULL);
 }
 
 TEST(test_rcl_get_secure_root, successScenarios) {
-    rcl_allocator_t allocator = rcl_get_default_allocator();
-    putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
-    /* --------------------------
-     * Namespace  : Custom (local)
-     * Match type : Exact
-     * --------------------------
-     * Root: ${CMAKE_BINARY_DIR}/tests/resources
-     * Namespace: /test_security_directory
-     * Node: dummy_node
-     */
-    std::string secure_root = rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator);
-    ASSERT_STREQ(TEST_NODE_NAME, secure_root.substr(secure_root.size() - (sizeof(TEST_NODE_NAME) - 1)).c_str());
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  /* --------------------------
+   * Namespace  : Custom (local)
+   * Match type : Exact
+   * --------------------------
+   * Root: ${CMAKE_BINARY_DIR}/tests/resources
+   * Namespace: /test_security_directory
+   * Node: dummy_node
+   */
+  std::string secure_root = rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator);
+  ASSERT_STREQ(TEST_NODE_NAME,
+    secure_root.substr(secure_root.size() - (sizeof(TEST_NODE_NAME) - 1)).c_str());
 
-    /* --------------------------
-     * Namespace  : Custom (local)
-     * Match type : Prefix
-     * --------------------------
-     * Root: ${CMAKE_BINARY_DIR}/tests/resources
-     * Namespace: /test_security_directory
-     * Node: dummy_node_and_some_suffix_added */
-    ASSERT_STRNE(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", TEST_NODE_NAMESPACE, &allocator),
-                  secure_root.c_str());
-    putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_PREFIX");
-    ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", TEST_NODE_NAMESPACE, &allocator),
-                 secure_root.c_str());
+  /* --------------------------
+   * Namespace  : Custom (local)
+   * Match type : Prefix
+   * --------------------------
+   * Root: ${CMAKE_BINARY_DIR}/tests/resources
+   * Namespace: /test_security_directory
+   * Node: dummy_node_and_some_suffix_added */
+  ASSERT_STRNE(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", TEST_NODE_NAMESPACE,
+    &allocator),
+    secure_root.c_str());
+  putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_PREFIX");
+  ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", TEST_NODE_NAMESPACE,
+    &allocator),
+    secure_root.c_str());
 
-    /* Include the namespace as part of the root security directory and test root namespace */
-    char * base_lookup_dir_fqn = rcutils_join_path(TEST_RESOURCES_DIRECTORY, TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME, allocator);
-    std::string putenv_input = ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=";
-    putenv_input += base_lookup_dir_fqn;
-    putenv_wrapper(putenv_input.c_str());
-    /* --------------------------
-     * Namespace  : Root
-     * Match type : Exact
-     * --------------------------
-     * Root: ${CMAKE_BINARY_DIR}/tests/resources/test_security_directory
-     * Namespace: /
-     * Node: dummy_node */
-    ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME, ROOT_NAMESPACE, &allocator), secure_root.c_str());
-    putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_EXACT");
-    ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME, ROOT_NAMESPACE, &allocator), secure_root.c_str());
+  /* Include the namespace as part of the root security directory and test root namespace */
+  char * base_lookup_dir_fqn = rcutils_join_path(TEST_RESOURCES_DIRECTORY,
+      TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME, allocator);
+  std::string putenv_input = ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=";
+  putenv_input += base_lookup_dir_fqn;
+  putenv_wrapper(putenv_input.c_str());
+  /* --------------------------
+   * Namespace  : Root
+   * Match type : Exact
+   * --------------------------
+   * Root: ${CMAKE_BINARY_DIR}/tests/resources/test_security_directory
+   * Namespace: /
+   * Node: dummy_node */
+  ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME, ROOT_NAMESPACE,
+    &allocator),
+    secure_root.c_str());
+  putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_EXACT");
+  ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME, ROOT_NAMESPACE,
+    &allocator),
+    secure_root.c_str());
 
-    /* --------------------------
-     * Namespace  : Root
-     * Match type : Prefix
-     * --------------------------
-     * Root dir: ${CMAKE_BINARY_DIR}/tests/resources/test_security_directory
-     * Namespace: /
-     * Node: dummy_node_and_some_suffix_added */
-    ASSERT_STRNE(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", ROOT_NAMESPACE, &allocator), secure_root.c_str());
-    putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_PREFIX");
-    ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", ROOT_NAMESPACE, &allocator), secure_root.c_str());
+  /* --------------------------
+   * Namespace  : Root
+   * Match type : Prefix
+   * --------------------------
+   * Root dir: ${CMAKE_BINARY_DIR}/tests/resources/test_security_directory
+   * Namespace: /
+   * Node: dummy_node_and_some_suffix_added */
+  ASSERT_STRNE(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", ROOT_NAMESPACE,
+    &allocator),
+    secure_root.c_str());
+  putenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "=MATCH_PREFIX");
+  ASSERT_STREQ(rcl_get_secure_root(TEST_NODE_NAME "_and_some_suffix_added", ROOT_NAMESPACE,
+    &allocator),
+    secure_root.c_str());
 }
 
 TEST(test_rcl_get_secure_root, nodeSecurityDirectoryOverride) {
-    rcl_allocator_t allocator = rcl_get_default_allocator();
-    /* Specify a valid directory */
-    putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
-    ASSERT_STREQ(rcl_get_secure_root("name shouldn't matter", "namespace shouldn't matter", &allocator), TEST_RESOURCES_DIRECTORY);
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  /* Specify a valid directory */
+  putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  ASSERT_STREQ(rcl_get_secure_root("name shouldn't matter", "namespace shouldn't matter",
+    &allocator), TEST_RESOURCES_DIRECTORY);
 
-    /* Setting root dir has no effect */
-    putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
-    ASSERT_STREQ(rcl_get_secure_root("name shouldn't matter", "namespace shouldn't matter", &allocator), TEST_RESOURCES_DIRECTORY);
+  /* Setting root dir has no effect */
+  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  ASSERT_STREQ(rcl_get_secure_root("name shouldn't matter", "namespace shouldn't matter",
+    &allocator), TEST_RESOURCES_DIRECTORY);
 
-    /* The override provided should exist. Providing correct node/namespace/root dir won't help if the node override is invalid. */
-    putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
-    ASSERT_EQ(rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
-              (char *) NULL);
+  /* The override provided should exist. Providing correct node/namespace/root dir won't help
+   * if the node override is invalid. */
+  putenv_wrapper(
+    ROS_SECURITY_NODE_DIRECTORY_VAR_NAME
+    "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
+  ASSERT_EQ(rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
+    (char *) NULL);
 }
