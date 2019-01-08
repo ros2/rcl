@@ -117,7 +117,7 @@ rcl_ret_t rcl_logging_rosout_fini()
 
     if (RCL_RET_OK == status) {
       const char * prev_key = key;
-      hashmap_ret = rcutils_hash_map_get_next_key_and_data(&__logger_map, key, &key, &entry);
+      hashmap_ret = rcutils_hash_map_get_next_key_and_data(&__logger_map, NULL, &key, &entry);
 
       RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &prev_key));
     }
