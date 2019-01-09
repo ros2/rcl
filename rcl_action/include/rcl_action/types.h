@@ -57,7 +57,7 @@ extern "C"
 #define UUID_SIZE 16
 #define uuidcmp(uuid0, uuid1) (0 == memcmp(uuid0, uuid1, UUID_SIZE))
 #define zerouuid (uint8_t[UUID_SIZE]) {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define uuidcmpzero(uuid) uuidcmp(uuid, zerouuid)
+#define uuidcmpzero(uuid) uuidcmp(uuid, (zerouuid))
 
 // Forward declare
 typedef struct rcl_action_server_t rcl_action_server_t;
