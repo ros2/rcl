@@ -110,6 +110,7 @@ protected:
       num_timers_server + num_timers_client,
       num_clients_server + num_clients_client,
       num_services_server + num_services_client,
+      &context,
       rcl_get_default_allocator());
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }

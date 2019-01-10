@@ -78,12 +78,13 @@ public:
 void
 wait_for_service_to_be_ready(
   rcl_service_t * service,
+  rcl_context_t * context,
   size_t max_tries,
   int64_t period_ms,
   bool & success)
 {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, context, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
@@ -174,7 +175,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   bool success;
-  wait_for_service_to_be_ready(&service, 10, 100, success);
+  wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
   ASSERT_TRUE(success);
 
   // This scope simulates the service responding in a different context so that we can
@@ -201,7 +202,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     ret = rcl_send_response(&service, &header, &service_response);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  wait_for_service_to_be_ready(&service, 10, 100, success);
+  wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
 
   // Initialize the response owned by the client and take the response.
   test_msgs__srv__Primitives_Response client_response;

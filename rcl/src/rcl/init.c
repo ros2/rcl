@@ -76,6 +76,9 @@ rcl_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     context->impl, "failed to allocate memory for context impl", return RCL_RET_BAD_ALLOC);
 
+  // Zero initialize rmw context first so its validity can by checked in cleanup.
+  context->impl->rmw_context = rmw_get_zero_initialized_context();
+
   // Copy the options into the context for future reference.
   rcl_ret_t ret = rcl_init_options_copy(options, &(context->impl->init_options));
   if (RCL_RET_OK != ret) {
@@ -132,7 +135,6 @@ rcl_init(
   context->impl->init_options.impl->rmw_init_options.instance_id = next_instance_id;
 
   // Initialize rmw_init.
-  context->impl->rmw_context = rmw_get_zero_initialized_context();
   rmw_ret_t rmw_ret = rmw_init(
     &(context->impl->init_options.impl->rmw_init_options),
     &(context->impl->rmw_context));

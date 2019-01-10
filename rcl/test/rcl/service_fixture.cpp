@@ -30,11 +30,12 @@
 bool
 wait_for_service_to_be_ready(
   rcl_service_t * service,
+  rcl_context_t * context,
   size_t max_tries,
   int64_t period_ms)
 {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, context, rcl_get_default_allocator());
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string().str);
@@ -156,7 +157,7 @@ int main(int argc, char ** argv)
 
     // Block until a client request comes in.
 
-    if (!wait_for_service_to_be_ready(&service, 1000, 100)) {
+    if (!wait_for_service_to_be_ready(&service, &context, 1000, 100)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Service never became ready");
       return -1;
     }
