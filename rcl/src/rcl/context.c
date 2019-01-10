@@ -84,6 +84,14 @@ rcl_context_is_valid(rcl_context_t * context)
   return 0 != rcl_context_get_instance_id(context);
 }
 
+rmw_context_t *
+rcl_context_get_rmw_context(rcl_context_t * context)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(context->impl, "context is zero-initialized", return NULL);
+  return &(context->impl->rmw_context);
+}
+
 void
 __cleanup_context(rcl_context_t * context)
 {

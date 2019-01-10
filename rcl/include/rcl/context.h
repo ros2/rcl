@@ -261,6 +261,28 @@ RCL_WARN_UNUSED
 bool
 rcl_context_is_valid(rcl_context_t * context);
 
+/// Return pointer to the rmw context if the given context is currently valid, otherwise `NULL`.
+/**
+ * If context is `NULL`, then `NULL` is returned.
+ * If context is zero-initialized, then `NULL` is returned.
+ * If context is uninitialized, then it is undefined behavior.
+ *
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Yes
+ * Lock-Free          | Yes [1]
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
+ *
+ * \param[in] context object from which the rmw context should be retrieved.
+ * \return pointer to rmw context if valid, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rmw_context_t *
+rcl_context_get_rmw_context(rcl_context_t * context);
+
 #ifdef __cplusplus
 }
 #endif
