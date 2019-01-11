@@ -9,6 +9,7 @@ find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
+find_package(tinydir_vendor REQUIRED)
 
 include_directories(include)
 
@@ -66,6 +67,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rcutils"
   "rosidl_generator_c"
   ${RCL_LOGGING_IMPL}
+  "tinydir_vendor"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "rcl/security_directory.h"
-#include "./tinydir/tinydir.h"
+#include "tinydir/tinydir.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/get_env.h"
 #include "rcutils/format_string.h"
