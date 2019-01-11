@@ -2,6 +2,7 @@ find_package(ament_cmake_gtest REQUIRED)
 find_package(ament_cmake_pytest REQUIRED)
 
 find_package(test_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 find_package(rmw_implementation_cmake REQUIRED)
 
@@ -198,7 +199,8 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
+    TIMEOUT 240
   )
 
   rcl_add_custom_gtest(test_wait${target_suffix}

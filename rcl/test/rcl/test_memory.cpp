@@ -1,4 +1,4 @@
-// Copyright 2015 Open Source Robotics Foundation, Inc.
+// Copyright 2019 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,13 @@
 #include "rcl/publisher.h"
 
 #include "rcl/rcl.h"
-#include "test_msgs/msg/primitives.h"
-#include "rosidl_generator_c/string_functions.h"
+#include "std_msgs/msg/u_int32__type_support.h"
+#include "std_msgs/msg/u_int32.hpp"
+#include "std_msgs/msg/u_int32_multi_array__type_support.h"
+#include "std_msgs/msg/u_int32_multi_array.hpp"
+#include "std_msgs/msg/string__type_support.h"
+#include "std_msgs/msg/string.hpp"
+
 
 #include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -49,53 +54,52 @@
     INSTANTIATE_TEST_CASE_P, instance_name, CLASSNAME(test_case_name, \
     RMW_IMPLEMENTATION), __VA_ARGS__)
 
+
 struct TestMemoryParams
 {
   rmw_qos_profile_t qos_profile;
-  std::shared_ptr<test_msgs__msg__Primitives> msg;
+  std::shared_ptr<void> msg1;
+  std::shared_ptr<void> msg2;
+  const rosidl_message_type_support_t * ts;
+  std::string messageDescription;
 };
 
 std::ostream & operator<<(std::ostream & os, const TestMemoryParams & pr)
 {
-  return os << "TestMemoryParams : "
-              << "[ QoS : [ history : " << pr.qos_profile.history
-              << " - QoS.depth : "  << pr.qos_profile.depth
-              << " - QoS.reliability : "  << pr.qos_profile.reliability
-              << " - QoS.durability : "  << pr.qos_profile.durability
-              << "] - [ Msg : [ int64_value : " << pr.msg->int64_value
-              << " - string.value.size : " << pr.msg->string_value.size
-            << " ] ]" << '\n';
+  return os << "TestMemoryParams : " <<
+         "[ QoS : [ history : " << pr.qos_profile.history <<
+         " - QoS.depth : " << pr.qos_profile.depth <<
+         " - QoS.reliability : " << pr.qos_profile.reliability <<
+         " - QoS.durability : " << pr.qos_profile.durability <<
+         "] - [ MsgDescription : [ " << pr.messageDescription <<" ] \n";
 }
 
-std::shared_ptr<test_msgs__msg__Primitives> getMessageWithStringLength(int length)
+std::shared_ptr<std_msgs::msg::UInt32> getMsgWUInt32Value(uint32_t val)
 {
-  std::shared_ptr<test_msgs__msg__Primitives> msg(
-    new test_msgs__msg__Primitives, [](test_msgs__msg__Primitives * ptr)
+  std::shared_ptr<std_msgs::msg::UInt32> msg(
+    new std_msgs::msg::UInt32, [](std_msgs::msg::UInt32 * ptr)
     {
-      test_msgs__msg__Primitives__fini(ptr);
       delete (ptr);
     }
   );
 
-  test_msgs__msg__Primitives__init(msg.get());
-  std::string test_str(length, 'x');
-  rosidl_generator_c__String__assign(&msg->string_value, test_str.c_str());
+  msg->set__data(val);
 
   return msg;
 }
 
-std::shared_ptr<test_msgs__msg__Primitives> getMessageWithInt64Value(int64_t val)
+std::shared_ptr<std_msgs::msg::UInt32MultiArray> getMsgWUInt32ArraySize(uint32_t val)
 {
-  std::shared_ptr<test_msgs__msg__Primitives> msg(
-    new test_msgs__msg__Primitives, [](test_msgs__msg__Primitives * ptr)
+  std::vector<uint32_t> vec(val, val);
+  std::shared_ptr<std_msgs::msg::UInt32MultiArray> msg(
+    new std_msgs::msg::UInt32MultiArray(),
+    [](std_msgs::msg::UInt32MultiArray * ptr)
     {
-      test_msgs__msg__Primitives__fini(ptr);
       delete (ptr);
     }
   );
 
-  test_msgs__msg__Primitives__init(msg.get());
-  msg->int64_value = val;
+  msg->set__data(vec);
 
   return msg;
 }
@@ -149,21 +153,15 @@ public:
 TEST_P_RMW(TestMemoryFixture, test_memory_publisher) {
   osrf_testing_tools_cpp::memory_tools::ScopedQuickstartGtest scoped_quickstart_gtest(true);
 
-  auto common = [](auto & service) {service.print_backtrace();};
-
-  osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc(common);
-  osrf_testing_tools_cpp::memory_tools::on_unexpected_free(common);
-
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+
   const char * topic_name = "chatter";
   const char * expected_topic_name = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   TestMemoryParams param = GetParam();
   publisher_options.qos = param.qos_profile;
   rcl_ret_t ret =
-    rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    rcl_publisher_init(&publisher, this->node_ptr, param.ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
@@ -172,13 +170,11 @@ TEST_P_RMW(TestMemoryFixture, test_memory_publisher) {
   EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), expected_topic_name), 0);
 
   EXPECT_NO_MEMORY_OPERATIONS({
-    ret = rcl_publish(&publisher, param.msg.get());
+    ret = rcl_publish(&publisher, param.msg1.get());
   });
 
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
-
-
 
 void
 wait_for_subscription_to_be_ready(
@@ -224,20 +220,16 @@ wait_for_subscription_to_be_ready(
  */
 TEST_P_RMW(TestMemoryFixture, test_memory_subscription) {
   osrf_testing_tools_cpp::memory_tools::ScopedQuickstartGtest scoped_quickstart_gtest(true);
-  auto common = [](auto & service) {service.print_backtrace();};
-  osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc(common);
-  osrf_testing_tools_cpp::memory_tools::on_unexpected_free(common);
 
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+
   const char * topic = "chatter";
   const char * expected_topic = "/chatter";
   TestMemoryParams param = GetParam();
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   publisher_options.qos = param.qos_profile;
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
+  ret = rcl_publisher_init(&publisher, this->node_ptr, param.ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
@@ -246,7 +238,7 @@ TEST_P_RMW(TestMemoryFixture, test_memory_subscription) {
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
   subscription_options.qos = param.qos_profile;
-  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ret = rcl_subscription_init(&subscription, this->node_ptr, param.ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
@@ -265,7 +257,7 @@ TEST_P_RMW(TestMemoryFixture, test_memory_subscription) {
 
   // Check that valid subscriber is valid
   subscription = rcl_get_zero_initialized_subscription();
-  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ret = rcl_subscription_init(&subscription, this->node_ptr, param.ts, topic, &subscription_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
   rcl_reset_error();
@@ -275,20 +267,15 @@ TEST_P_RMW(TestMemoryFixture, test_memory_subscription) {
   //                until then we will sleep for a short period of time
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   {
-    ret = rcl_publish(&publisher, param.msg.get());
+    ret = rcl_publish(&publisher, param.msg1.get());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
   bool success;
   wait_for_subscription_to_be_ready(&subscription, 10, 100, success);
   ASSERT_TRUE(success);
   {
-    test_msgs__msg__Primitives msg;
-    test_msgs__msg__Primitives__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      test_msgs__msg__Primitives__fini(&msg);
-    });
     EXPECT_NO_MEMORY_OPERATIONS({
-      ret = rcl_take(&subscription, &msg, nullptr);
+      ret = rcl_take(&subscription, param.msg2.get(), nullptr);
     });
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
@@ -297,34 +284,56 @@ TEST_P_RMW(TestMemoryFixture, test_memory_subscription) {
 
 std::vector<TestMemoryParams> getTestMemoryParams()
 {
+
+  const rosidl_message_type_support_t * ts_uint32 =
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, UInt32);
+  const rosidl_message_type_support_t * ts_uint32_multi_array =
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, UInt32MultiArray);
+
   return {
-           {rmw_qos_profile_sensor_data, getMessageWithInt64Value(42)},   // 0
-           {rmw_qos_profile_sensor_data, getMessageWithStringLength(5)},   // 1
-           {rmw_qos_profile_sensor_data, getMessageWithStringLength(100000)},  // 2
-           {rmw_qos_profile_parameters, getMessageWithInt64Value(42)},  // 3
-           {rmw_qos_profile_parameters, getMessageWithStringLength(5)},  // 4
-           {rmw_qos_profile_parameters, getMessageWithStringLength(100000)},  // 5
-           {rmw_qos_profile_default, getMessageWithInt64Value(42)},  // 6
-           {rmw_qos_profile_default, getMessageWithStringLength(5)},  // 7
-           {rmw_qos_profile_default, getMessageWithStringLength(100000)},  // 8
-           {rmw_qos_profile_services_default, getMessageWithInt64Value(42)},  // 9
-           {rmw_qos_profile_services_default, getMessageWithStringLength(5)},  // 10
-           {rmw_qos_profile_services_default, getMessageWithStringLength(100000)},  // 11
-           {rmw_qos_profile_parameter_events, getMessageWithInt64Value(42)},  // 12
-           {rmw_qos_profile_parameter_events, getMessageWithStringLength(5)},  // 13
-           {rmw_qos_profile_parameter_events, getMessageWithStringLength(100000)},  // 14
-           {rmw_qos_profile_system_default, getMessageWithInt64Value(42)},  // 15
-           {rmw_qos_profile_system_default, getMessageWithStringLength(5)},  // 16
-           {rmw_qos_profile_system_default, getMessageWithStringLength(100000)},  // 17
-           {{
-             RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-             1000,
-             RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-             RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-             false
-            }, getMessageWithStringLength(5) }  //  18
+     {rmw_qos_profile_sensor_data, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 0
+     {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},   // 1
+     {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 2
+     {rmw_qos_profile_parameters, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 3
+     {rmw_qos_profile_parameters, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 4
+     {rmw_qos_profile_parameters, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 5
+     {rmw_qos_profile_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 6
+     {rmw_qos_profile_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 7
+     {rmw_qos_profile_default, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 8
+     {rmw_qos_profile_services_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 9
+     {rmw_qos_profile_services_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 10
+     {rmw_qos_profile_services_default, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 11
+     {rmw_qos_profile_parameter_events, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 12
+     {rmw_qos_profile_parameter_events, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 13
+     {rmw_qos_profile_parameter_events, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 14
+     {rmw_qos_profile_system_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 15
+     {rmw_qos_profile_system_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 16
+     {rmw_qos_profile_system_default, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 17
+     {{
+       RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+       1000,
+       RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+       false
+     }, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  //  18
+     {{
+       RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+       1000,
+       RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+       false
+     }, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  //  19
+     {{
+       RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+       1000,
+       RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+       false
+     }, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"}  //  20
   };
 }
+
+//using TestMemoryFixtureForUInt64 = TestMemoryFixture<UInt64>
 
 INSTANTIATE_TEST_CASE_P_RMW(QOSGroup, TestMemoryFixture,
   ::testing::ValuesIn(getTestMemoryParams()));
