@@ -2,6 +2,14 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.4 (2019-01-11)
+------------------
+* Added method for accessing rmw_context from rcl_context (`#372 <https://github.com/ros2/rcl/issues/372>`_)
+* Added guard against bad allocation when calling rcl_arguments_copy() (`#367 <https://github.com/ros2/rcl/issues/367>`_)
+* Updated to ensure that context instance id storage is aligned correctly (`#365 <https://github.com/ros2/rcl/issues/365>`_)
+* Fixed error from uncrustify v0.68 (`#364 <https://github.com/ros2/rcl/issues/364>`_)
+* Contributors: Jacob Perron, William Woodall, sgvandijk
+
 0.6.3 (2018-12-13)
 ------------------
 * Set rmw_wait timeout using ros timers too (`#357 <https://github.com/ros2/rcl/issues/357>`_)
