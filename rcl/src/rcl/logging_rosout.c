@@ -105,7 +105,7 @@ rcl_ret_t rcl_logging_rosout_fini()
 {
   RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
   rcl_ret_t status = RCL_RET_OK;
-  const char * key = NULL;
+  char * key = NULL;
   rosout_map_entry_t entry;
 
   // fini all the outstanding publishers
@@ -244,10 +244,10 @@ void rcl_logging_rosout_output_handler(
     } else {
       rcl_interfaces__msg__Log * log_message = rcl_interfaces__msg__Log__create();
       if (NULL != log_message) {
-        log_message->stamp.sec = RCL_NS_TO_S(timestamp);
+        log_message->stamp.sec = (int32_t) RCL_NS_TO_S(timestamp);
         log_message->stamp.nanosec = (timestamp % RCL_S_TO_NS(1));
         log_message->level = severity;
-        log_message->line = location->line_number;
+        log_message->line = (int32_t) location->line_number;
         rosidl_generator_c__String__assign(&log_message->name, name);
         rosidl_generator_c__String__assign(&log_message->msg, msg_array.buffer);
         rosidl_generator_c__String__assign(&log_message->file, location->file_name);
