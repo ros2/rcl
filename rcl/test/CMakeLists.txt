@@ -200,7 +200,7 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
-    TIMEOUT 240
+    TIMEOUT 300
   )
 
   rcl_add_custom_gtest(test_wait${target_suffix}

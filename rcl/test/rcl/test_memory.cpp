@@ -293,22 +293,22 @@ std::vector<TestMemoryParams> getTestMemoryParams()
   return {
      {rmw_qos_profile_sensor_data, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 0
      {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},   // 1
-     {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 2
+     {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 2
      {rmw_qos_profile_parameters, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 3
      {rmw_qos_profile_parameters, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 4
-     {rmw_qos_profile_parameters, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 5
+     {rmw_qos_profile_parameters, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 5
      {rmw_qos_profile_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 6
      {rmw_qos_profile_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 7
-     {rmw_qos_profile_default, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 8
+     {rmw_qos_profile_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 8
      {rmw_qos_profile_services_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 9
      {rmw_qos_profile_services_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 10
-     {rmw_qos_profile_services_default, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 11
+     {rmw_qos_profile_services_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 11
      {rmw_qos_profile_parameter_events, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 12
      {rmw_qos_profile_parameter_events, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 13
-     {rmw_qos_profile_parameter_events, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 14
+     {rmw_qos_profile_parameter_events, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 14
      {rmw_qos_profile_system_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 15
      {rmw_qos_profile_system_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 16
-     {rmw_qos_profile_system_default, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 17
+     {rmw_qos_profile_system_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 17
      {{
        RMW_QOS_POLICY_HISTORY_KEEP_LAST,
        1000,
@@ -329,7 +329,7 @@ std::vector<TestMemoryParams> getTestMemoryParams()
        RMW_QOS_POLICY_RELIABILITY_RELIABLE,
        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
        false
-     }, getMsgWUInt32ArraySize(100000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"}  //  20
+     }, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"}  //  20
   };
 }
 
