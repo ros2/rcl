@@ -246,21 +246,6 @@ TEST_P_RMW(TestMemoryFixture, test_memory_subscription) {
   });
   EXPECT_EQ(strcmp(rcl_subscription_get_topic_name(&subscription), expected_topic), 0);
 
-  // Test is_valid for subscription with nullptr
-  EXPECT_FALSE(rcl_subscription_is_valid(nullptr));
-  rcl_reset_error();
-
-  // Test is_valid for zero initialized subscription
-  subscription = rcl_get_zero_initialized_subscription();
-  EXPECT_FALSE(rcl_subscription_is_valid(&subscription));
-  rcl_reset_error();
-
-  // Check that valid subscriber is valid
-  subscription = rcl_get_zero_initialized_subscription();
-  ret = rcl_subscription_init(&subscription, this->node_ptr, param.ts, topic, &subscription_options);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
-  rcl_reset_error();
 
   // TODO(wjwwood): add logic to wait for the connection to be established
   //                probably using the count_subscriptions busy wait mechanism
@@ -292,23 +277,23 @@ std::vector<TestMemoryParams> getTestMemoryParams()
 
   return {
      {rmw_qos_profile_sensor_data, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 0
-     {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},   // 1
-     {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 2
+     {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(2), getMsgWUInt32ArraySize(2), ts_uint32_multi_array, "ts_uint32_multi_array(5)"} ,   // 1
+     {rmw_qos_profile_sensor_data, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(1000), ts_uint32_multi_array, "ts_uint32_multi_array(1000)"},  // 2
      {rmw_qos_profile_parameters, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 3
      {rmw_qos_profile_parameters, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 4
-     {rmw_qos_profile_parameters, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 5
+     {rmw_qos_profile_parameters, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(1000), ts_uint32_multi_array, "ts_uint32_multi_array(1000)"},  // 5
      {rmw_qos_profile_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 6
      {rmw_qos_profile_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 7
-     {rmw_qos_profile_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 8
+     {rmw_qos_profile_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(1000), ts_uint32_multi_array, "ts_uint32_multi_array(1000)"},  // 8
      {rmw_qos_profile_services_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 9
      {rmw_qos_profile_services_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 10
-     {rmw_qos_profile_services_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 11
+     {rmw_qos_profile_services_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(1000), ts_uint32_multi_array, "ts_uint32_multi_array(1000)"},  // 11
      {rmw_qos_profile_parameter_events, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 12
      {rmw_qos_profile_parameter_events, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 13
-     {rmw_qos_profile_parameter_events, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 14
+     {rmw_qos_profile_parameter_events, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(1000), ts_uint32_multi_array, "ts_uint32_multi_array(1000)"},  // 14
      {rmw_qos_profile_system_default, getMsgWUInt32Value(42), getMsgWUInt32Value(42), ts_uint32, "ts_uint32(32)"},  // 15
      {rmw_qos_profile_system_default, getMsgWUInt32ArraySize(5), getMsgWUInt32ArraySize(5), ts_uint32_multi_array, "ts_uint32_multi_array(5)"},  // 16
-     {rmw_qos_profile_system_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"},  // 17
+     {rmw_qos_profile_system_default, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(1000), ts_uint32_multi_array, "ts_uint32_multi_array(1000)"},  // 17
      {{
        RMW_QOS_POLICY_HISTORY_KEEP_LAST,
        1000,
@@ -329,7 +314,7 @@ std::vector<TestMemoryParams> getTestMemoryParams()
        RMW_QOS_POLICY_RELIABILITY_RELIABLE,
        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
        false
-     }, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(10000), ts_uint32_multi_array, "ts_uint32_multi_array(10000)"}  //  20
+     }, getMsgWUInt32ArraySize(1000), getMsgWUInt32ArraySize(1000), ts_uint32_multi_array, "ts_uint32_multi_array(1000)"}  //  20
   };
 }
 
