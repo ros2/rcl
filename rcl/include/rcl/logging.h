@@ -41,6 +41,7 @@ extern "C"
  * Lock-Free          | Yes
  *
  * \param global_args The global arguments for the system
+ * \param allocator Used to allocate memory used by the logging system
  * \return `RCL_RET_OK` if successful, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERR` if a general error occurs

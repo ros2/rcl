@@ -27,6 +27,7 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/logging.h"
 #include "rcl/logging_external_interface.h"
+#include "rcl/logging_rosout.h"
 #include "rcl/macros.h"
 #include "rcutils/logging.h"
 #include "rcutils/time.h"
@@ -38,6 +39,9 @@ static rcutils_logging_output_handler_t
 
 static uint8_t g_rcl_logging_num_out_handlers = 0;
 static rcl_allocator_t g_logging_allocator;
+static bool g_rcl_logging_stdout_enabled = false;
+static bool g_rcl_logging_rosout_enabled = false;
+static bool g_rcl_logging_ext_lib_enabled = false;
 
 /**
  * An output function that sends to multiple output appenders.
@@ -59,16 +63,6 @@ rcl_logging_ext_lib_output_handler(
   int severity, const char * name, rcutils_time_point_value_t timestamp,
   const char * format, va_list * args);
 
-/**
- * An output function that sends to the rosout topic.
- */
-static
-void
-rcl_logging_rosout_output_handler(
-  const rcutils_log_location_t * location,
-  int severity, const char * name, rcutils_time_point_value_t timestamp,
-  const char * format, va_list * args);
-
 rcl_ret_t
 rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t * allocator)
 {
@@ -78,24 +72,27 @@ rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t
     g_logging_allocator = *allocator;
   int default_level = global_args->impl->log_level;
   const char * config_file = global_args->impl->external_log_config_file;
-  bool enable_stdout = !global_args->impl->log_stdout_disabled;
-  bool enable_rosout = !global_args->impl->log_rosout_disabled;
-  bool enable_ext_lib = !global_args->impl->log_ext_lib_disabled;
+  g_rcl_logging_stdout_enabled = !global_args->impl->log_stdout_disabled;
+  g_rcl_logging_rosout_enabled = !global_args->impl->log_rosout_disabled;
+  g_rcl_logging_ext_lib_enabled = !global_args->impl->log_ext_lib_disabled;
   rcl_ret_t status = RCL_RET_OK;
   g_rcl_logging_num_out_handlers = 0;
 
   if (default_level >= 0) {
     rcutils_logging_set_default_logger_level(default_level);
   }
-  if (enable_stdout) {
+  if (g_rcl_logging_stdout_enabled) {
     g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =
       rcutils_logging_console_output_handler;
   }
-  if (enable_rosout) {
-    g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =
-      rcl_logging_rosout_output_handler;
+  if (g_rcl_logging_rosout_enabled) {
+    status = rcl_logging_rosout_init(allocator);
+    if (RCL_RET_OK == status) {
+      g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =
+        rcl_logging_rosout_output_handler;
+    }
   }
-  if (enable_ext_lib) {
+  if (g_rcl_logging_ext_lib_enabled) {
     status = rcl_logging_external_initialize(config_file);
     if (RCL_RET_OK == status) {
       rcl_logging_external_set_logger_level(NULL, default_level);
@@ -107,6 +104,20 @@ rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t
   return status;
 }
 
+rcl_ret_t rcl_logging_fini()
+{
+  rcl_ret_t status = RCL_RET_OK;
+  rcutils_logging_set_output_handler(rcutils_logging_console_output_handler);
+
+  if (g_rcl_logging_rosout_enabled) {
+    status = rcl_logging_rosout_fini();
+  }
+  if (RCL_RET_OK == status && g_rcl_logging_ext_lib_enabled) {
+    status = rcl_logging_external_shutdown();
+  }
+
+  return status;
+}
 
 static
 void
@@ -183,22 +194,6 @@ rcl_logging_ext_lib_output_handler(
     rcl_reset_error();
     RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
   }
-}
-
-static
-void
-rcl_logging_rosout_output_handler(
-  const rcutils_log_location_t * location,
-  int severity, const char * name, rcutils_time_point_value_t timestamp,
-  const char * format, va_list * args)
-{
-  // TODO(nburek): Placeholder for rosout topic feature
-  RCL_UNUSED(location);
-  RCL_UNUSED(severity);
-  RCL_UNUSED(name);
-  RCL_UNUSED(timestamp);
-  RCL_UNUSED(format);
-  RCL_UNUSED(args);
 }
 
 #ifdef __cplusplus
