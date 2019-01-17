@@ -199,7 +199,7 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation} "std_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
     TIMEOUT 300
   )
 
