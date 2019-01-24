@@ -23,6 +23,8 @@
 #define TEST_NODE_NAME "dummy_node"
 #define TEST_NODE_NAMESPACE ROOT_NAMESPACE TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
 
+char g_envstring[256] = {0};
+
 static int putenv_wrapper(const char * env_var)
 {
 #ifdef _WIN32
@@ -84,7 +86,8 @@ TEST(test_rcl_get_secure_root, successScenarios) {
       TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME, allocator);
   std::string putenv_input = ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=";
   putenv_input += base_lookup_dir_fqn;
-  putenv_wrapper(putenv_input.c_str());
+  strncpy(g_envstring, putenv_input.c_str(), sizeof(g_envstring) - 1);
+  putenv_wrapper(g_envstring);
   /* --------------------------
    * Namespace  : Root
    * Match type : Exact
