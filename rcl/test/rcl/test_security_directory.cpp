@@ -23,7 +23,7 @@
 #define TEST_NODE_NAME "dummy_node"
 #define TEST_NODE_NAMESPACE ROOT_NAMESPACE TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
 
-char g_envstring[256] = {0};
+char g_envstring[512] = {0};
 
 static int putenv_wrapper(const char * env_var)
 {
