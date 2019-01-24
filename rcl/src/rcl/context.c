@@ -127,7 +127,7 @@ __cleanup_context(rcl_context_t * context)
     }
 
     // clean up rmw_context
-    if (NULL != context->impl->rmw_context.impl) {
+    if (NULL != context->impl->rmw_context.implementation_identifier) {
       rmw_ret_t rmw_ret = rmw_context_fini(&(context->impl->rmw_context));
       if (RMW_RET_OK != rmw_ret) {
         RCUTILS_SAFE_FWRITE_TO_STDERR(
