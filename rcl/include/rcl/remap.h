@@ -26,6 +26,21 @@ extern "C"
 {
 #endif
 
+struct rcl_remap_impl_t;
+
+/// Hold remapping rules.
+typedef struct rcl_remap_t
+{
+  /// Private implementation pointer.
+  struct rcl_remap_impl_t * impl;
+} rcl_remap_t;
+
+/// Return a rcl_remap_t struct with members initialized to `NULL`.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_remap_t
+rcl_get_zero_initialized_remap(void);
+
 // TODO(sloretz) add documentation about rostopic:// when it is supported
 /// Remap a topic name based on given rules.
 /**
@@ -231,6 +246,27 @@ rcl_remap_node_namespace(
   const char * node_name,
   rcl_allocator_t allocator,
   char ** output_namespace);
+
+/// Reclaim resources held inside rcl_remap_t structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] args The structure to be deallocated.
+ * \return `RCL_RET_OK` if the memory was successfully freed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_remap_fini(
+  rcl_remap_t * remap);
 
 #ifdef __cplusplus
 }
