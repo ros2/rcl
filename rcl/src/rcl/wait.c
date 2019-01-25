@@ -30,6 +30,8 @@ extern "C"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 
+#include "./context_impl.h"
+
 typedef struct rcl_wait_set_impl_t
 {
   // number of subscriptions that have been added to the wait set
@@ -47,6 +49,9 @@ typedef struct rcl_wait_set_impl_t
   rmw_wait_set_t * rmw_wait_set;
   // number of timers that have been added to the wait set
   size_t timer_index;
+  // context with which the wait set is associated
+  rcl_context_t * context;
+  // allocator used in the wait set
   rcl_allocator_t allocator;
 } rcl_wait_set_impl_t;
 
@@ -97,6 +102,7 @@ rcl_wait_set_init(
   size_t number_of_timers,
   size_t number_of_clients,
   size_t number_of_services,
+  rcl_context_t * context,
   rcl_allocator_t allocator)
 {
   RCUTILS_LOG_DEBUG_NAMED(
@@ -111,6 +117,14 @@ rcl_wait_set_init(
   if (__wait_set_is_valid(wait_set)) {
     RCL_SET_ERROR_MSG("wait_set already initialized, or memory was uninitialized.");
     return RCL_RET_ALREADY_INIT;
+  }
+  // Make sure rcl has been initialized.
+  RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);
+  if (!rcl_context_is_valid(context)) {
+    RCL_SET_ERROR_MSG(
+      "the given context is not valid, "
+      "either rcl_init() was not called or rcl_shutdown() was called.");
+    return RCL_RET_NOT_INIT;
   }
   // Allocate space for the implementation struct.
   wait_set->impl = (rcl_wait_set_impl_t *)allocator.allocate(
@@ -127,13 +141,19 @@ rcl_wait_set_init(
   wait_set->impl->rmw_services.services = NULL;
   wait_set->impl->rmw_services.service_count = 0;
 
-  wait_set->impl->rmw_wait_set = rmw_create_wait_set(
-    2 * number_of_subscriptions + number_of_guard_conditions + number_of_clients +
-    number_of_services);
+  size_t num_conditions =
+    (2 * number_of_subscriptions) +
+    number_of_guard_conditions +
+    number_of_clients +
+    number_of_services;
+
+  wait_set->impl->rmw_wait_set = rmw_create_wait_set(&(context->impl->rmw_context), num_conditions);
   if (!wait_set->impl->rmw_wait_set) {
     goto fail;
   }
 
+  // Set context.
+  wait_set->impl->context = context;
   // Set allocator.
   wait_set->impl->allocator = allocator;
   // Initialize subscription space.

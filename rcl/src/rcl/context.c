@@ -134,6 +134,19 @@ __cleanup_context(rcl_context_t * context)
       }
     }
 
+    // clean up rmw_context
+    if (NULL != context->impl->rmw_context.implementation_identifier) {
+      rmw_ret_t rmw_ret = rmw_context_fini(&(context->impl->rmw_context));
+      if (RMW_RET_OK != rmw_ret) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR(
+          "[rcl|init.c:" RCUTILS_STRINGIFY(__LINE__)
+          "] failed to finalize rmw context while cleaning up context, memory may be leaked: ");
+        RCUTILS_SAFE_FWRITE_TO_STDERR(rcutils_get_error_string().str);
+        RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+        rcutils_reset_error();
+      }
+    }
+
     // clean up copy of argv if valid
     if (NULL != context->impl->argv) {
       int64_t i;
