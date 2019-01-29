@@ -267,7 +267,7 @@ rcl_parse_arguments(
 
     // Attempt to parse argument as remap rule
     rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
-    *rule = rcl_remap_get_zero_initialized();
+    *rule = rcl_get_zero_initialized_remap();
     if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
       ++(args_impl->num_remap_rules);
       continue;
@@ -533,7 +533,7 @@ rcl_arguments_copy(
     }
     args_out->impl->num_remap_rules = args->impl->num_remap_rules;
     for (int i = 0; i < args->impl->num_remap_rules; ++i) {
-      args_out->impl->remap_rules[i] = rcl_remap_get_zero_initialized();
+      args_out->impl->remap_rules[i] = rcl_get_zero_initialized_remap();
       rcl_ret_t ret = rcl_remap_copy(
         &(args->impl->remap_rules[i]), &(args_out->impl->remap_rules[i]));
       if (RCL_RET_OK != ret) {
@@ -737,8 +737,9 @@ _rcl_parse_remap_replacement_name(
   // Copy replacement into rule
   const char * replacement_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
   size_t length = (size_t)(replacement_end - replacement_start);
-  rule->replacement = rcutils_strndup(replacement_start, length, rule->allocator);
-  if (NULL == rule->replacement) {
+  rule->impl->replacement = rcutils_strndup(
+    replacement_start, length, rule->impl->allocator);
+  if (NULL == rule->impl->replacement) {
     RCL_SET_ERROR_MSG("failed to copy replacement");
     return RCL_RET_BAD_ALLOC;
   }
@@ -796,13 +797,13 @@ _rcl_parse_remap_match_name(
     return ret;
   }
   if (RCL_LEXEME_URL_SERVICE == lexeme) {
-    rule->type = RCL_SERVICE_REMAP;
+    rule->impl->type = RCL_SERVICE_REMAP;
     ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
   } else if (RCL_LEXEME_URL_TOPIC == lexeme) {
-    rule->type = RCL_TOPIC_REMAP;
+    rule->impl->type = RCL_TOPIC_REMAP;
     ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
   } else {
-    rule->type = (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP);
+    rule->impl->type = (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP);
   }
   if (RCL_RET_OK != ret) {
     return ret;
@@ -853,8 +854,8 @@ _rcl_parse_remap_match_name(
   // Copy match into rule
   const char * match_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
   size_t length = (size_t)(match_end - match_start);
-  rule->match = rcutils_strndup(match_start, length, rule->allocator);
-  if (NULL == rule->match) {
+  rule->impl->match = rcutils_strndup(match_start, length, rule->impl->allocator);
+  if (NULL == rule->impl->match) {
     RCL_SET_ERROR_MSG("failed to copy match");
     return RCL_RET_BAD_ALLOC;
   }
@@ -940,13 +941,13 @@ _rcl_parse_remap_namespace_replacement(
   // Copy namespace into rule
   const char * ns_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
   size_t length = (size_t)(ns_end - ns_start);
-  rule->replacement = rcutils_strndup(ns_start, length, rule->allocator);
-  if (NULL == rule->replacement) {
+  rule->impl->replacement = rcutils_strndup(ns_start, length, rule->impl->allocator);
+  if (NULL == rule->impl->replacement) {
     RCL_SET_ERROR_MSG("failed to copy namespace");
     return RCL_RET_BAD_ALLOC;
   }
 
-  rule->type = RCL_NAMESPACE_REMAP;
+  rule->impl->type = RCL_NAMESPACE_REMAP;
   return RCL_RET_OK;
 }
 
@@ -983,13 +984,13 @@ _rcl_parse_remap_nodename_replacement(
     return ret;
   }
   // copy the node name into the replacement side of the rule
-  rule->replacement = rcutils_strndup(node_name, length, rule->allocator);
-  if (NULL == rule->replacement) {
+  rule->impl->replacement = rcutils_strndup(node_name, length, rule->impl->allocator);
+  if (NULL == rule->impl->replacement) {
     RCL_SET_ERROR_MSG("failed to allocate node name");
     return RCL_RET_BAD_ALLOC;
   }
 
-  rule->type = RCL_NODENAME_REMAP;
+  rule->impl->type = RCL_NODENAME_REMAP;
   return RCL_RET_OK;
 }
 
@@ -1018,8 +1019,8 @@ _rcl_parse_remap_nodename_prefix(
   }
 
   // copy the node name into the rule
-  rule->node_name = rcutils_strndup(node_name, length, rule->allocator);
-  if (NULL == rule->node_name) {
+  rule->impl->node_name = rcutils_strndup(node_name, length, rule->impl->allocator);
+  if (NULL == rule->impl->node_name) {
     RCL_SET_ERROR_MSG("failed to allocate node name");
     return RCL_RET_BAD_ALLOC;
   }
@@ -1123,7 +1124,16 @@ _rcl_parse_remap_rule(
 
   rcl_ret_t ret;
 
-  output_rule->allocator = allocator;
+  output_rule->impl = allocator.allocate(sizeof(rcl_remap_impl_t), allocator.state);
+  if (NULL == output_rule->impl) {
+    return RCL_RET_BAD_ALLOC;
+  }
+  output_rule->impl->allocator = allocator;
+  output_rule->impl->type = RCL_UNKNOWN_REMAP;
+  output_rule->impl->node_name = NULL;
+  output_rule->impl->match = NULL;
+  output_rule->impl->replacement = NULL;
+
   rcl_lexer_lookahead2_t lex_lookahead = rcl_get_zero_initialized_lexer_lookahead2();
 
   ret = rcl_lexer_lookahead2_init(&lex_lookahead, arg, allocator);

@@ -28,15 +28,12 @@ extern "C"
 #endif
 
 rcl_remap_t
-rcl_remap_get_zero_initialized()
+rcl_get_zero_initialized_remap(void)
 {
-  rcl_remap_t rule;
-  rule.type = RCL_UNKNOWN_REMAP;
-  rule.node_name = NULL;
-  rule.match = NULL;
-  rule.replacement = NULL;
-  rule.allocator = rcutils_get_zero_initialized_allocator();
-  return rule;
+  static rcl_remap_t default_rule = {
+    .impl = NULL
+  };
+  return default_rule;
 }
 
 rcl_ret_t
@@ -47,24 +44,43 @@ rcl_remap_copy(
   RCL_CHECK_ARGUMENT_FOR_NULL(rule, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(rule_out, RCL_RET_INVALID_ARGUMENT);
 
-  rcl_allocator_t allocator = rule->allocator;
-  rule_out->allocator = allocator;
-  rule_out->type = rule->type;
-  if (NULL != rule->node_name) {
-    rule_out->node_name = rcutils_strdup(rule->node_name, allocator);
-    if (NULL == rule_out->node_name) {
+  if (NULL != rule_out->impl) {
+    RCL_SET_ERROR_MSG("rule_out must be zero initialized");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  rcl_allocator_t allocator = rule->impl->allocator;
+
+  rule_out->impl = allocator.allocate(sizeof(rcl_remap_impl_t), allocator.state);
+  if (NULL == rule_out->impl) {
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  rule_out->impl->allocator = allocator;
+
+  // Zero so it's safe to call rcl_remap_fini() if an error occurs while copying.
+  rule_out->impl->type = RCL_UNKNOWN_REMAP;
+  rule_out->impl->node_name = NULL;
+  rule_out->impl->match = NULL;
+  rule_out->impl->replacement = NULL;
+
+  rule_out->impl->type = rule->impl->type;
+  if (NULL != rule->impl->node_name) {
+    rule_out->impl->node_name = rcutils_strdup(rule->impl->node_name, allocator);
+    if (NULL == rule_out->impl->node_name) {
       goto fail;
     }
   }
-  if (NULL != rule->match) {
-    rule_out->match = rcutils_strdup(rule->match, allocator);
-    if (NULL == rule_out->match) {
+  if (NULL != rule->impl->match) {
+    rule_out->impl->match = rcutils_strdup(rule->impl->match, allocator);
+    if (NULL == rule_out->impl->match) {
       goto fail;
     }
   }
-  if (NULL != rule->replacement) {
-    rule_out->replacement = rcutils_strdup(rule->replacement, allocator);
-    if (NULL == rule_out->replacement) {
+  if (NULL != rule->impl->replacement) {
+    rule_out->impl->replacement = rcutils_strdup(
+      rule->impl->replacement, allocator);
+    if (NULL == rule_out->impl->replacement) {
       goto fail;
     }
   }
@@ -74,26 +90,6 @@ fail:
     RCL_SET_ERROR_MSG("Error while finalizing remap rule due to another error");
   }
   return RCL_RET_BAD_ALLOC;
-}
-
-rcl_ret_t
-rcl_remap_fini(
-  rcl_remap_t * rule)
-{
-  if (NULL != rule->node_name) {
-    rule->allocator.deallocate(rule->node_name, rule->allocator.state);
-    rule->node_name = NULL;
-  }
-  if (NULL != rule->match) {
-    rule->allocator.deallocate(rule->match, rule->allocator.state);
-    rule->match = NULL;
-  }
-  if (NULL != rule->replacement) {
-    rule->allocator.deallocate(rule->replacement, rule->allocator.state);
-    rule->replacement = NULL;
-  }
-  rule->allocator = rcutils_get_zero_initialized_allocator();
-  return RCL_RET_OK;
 }
 
 /// Get the first matching rule in a chain.
@@ -114,20 +110,21 @@ _rcl_remap_first_match(
   *output_rule = NULL;
   for (int i = 0; i < num_rules; ++i) {
     rcl_remap_t * rule = &(remap_rules[i]);
-    if (!(rule->type & type_bitmask)) {
+    if (!(rule->impl->type & type_bitmask)) {
       // Not the type of remap rule we're looking fore
       continue;
     }
-    if (rule->node_name != NULL && 0 != strcmp(rule->node_name, node_name)) {
+    if (rule->impl->node_name != NULL && 0 != strcmp(rule->impl->node_name, node_name)) {
       // Rule has a node name prefix and the supplied node name didn't match
       continue;
     }
     bool matched = false;
-    if (rule->type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
+    if (rule->impl->type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
       // topic and service rules need the match side to be expanded to a FQN
       char * expanded_match = NULL;
       rcl_ret_t ret = rcl_expand_topic_name(
-        rule->match, node_name, node_namespace, substitutions, allocator, &expanded_match);
+        rule->impl->match, node_name, node_namespace,
+        substitutions, allocator, &expanded_match);
       if (RCL_RET_OK != ret) {
         rcl_reset_error();
         if (
@@ -204,16 +201,16 @@ _rcl_remap_name(
   }
   // Do the remapping
   if (NULL != rule) {
-    if (rule->type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
+    if (rule->impl->type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
       // topic and service rules need the replacement to be expanded to a FQN
       rcl_ret_t ret = rcl_expand_topic_name(
-        rule->replacement, node_name, node_namespace, substitutions, allocator, output_name);
+        rule->impl->replacement, node_name, node_namespace, substitutions, allocator, output_name);
       if (RCL_RET_OK != ret) {
         return ret;
       }
     } else {
       // nodename and namespace rules don't need replacment expanded
-      *output_name = rcutils_strdup(rule->replacement, allocator);
+      *output_name = rcutils_strdup(rule->impl->replacement, allocator);
     }
     if (NULL == *output_name) {
       RCL_SET_ERROR_MSG("Failed to set output");
@@ -309,6 +306,36 @@ rcl_remap_node_namespace(
   return _rcl_remap_name(
     local_arguments, global_arguments, RCL_NAMESPACE_REMAP, NULL, node_name, NULL, NULL,
     allocator, output_namespace);
+}
+
+rcl_ret_t
+rcl_remap_fini(
+  rcl_remap_t * rule)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(rule, RCL_RET_INVALID_ARGUMENT);
+  if (rule->impl) {
+    rcl_ret_t ret = RCL_RET_OK;
+    if (NULL != rule->impl->node_name) {
+      rule->impl->allocator.deallocate(
+        rule->impl->node_name, rule->impl->allocator.state);
+      rule->impl->node_name = NULL;
+    }
+    if (NULL != rule->impl->match) {
+      rule->impl->allocator.deallocate(
+        rule->impl->match, rule->impl->allocator.state);
+      rule->impl->match = NULL;
+    }
+    if (NULL != rule->impl->replacement) {
+      rule->impl->allocator.deallocate(
+        rule->impl->replacement, rule->impl->allocator.state);
+      rule->impl->replacement = NULL;
+    }
+    rule->impl->allocator.deallocate(rule->impl, rule->impl->allocator.state);
+    rule->impl = NULL;
+    return ret;
+  }
+  RCL_SET_ERROR_MSG("rcl_remap_t finalized twice");
+  return RCL_RET_ERROR;
 }
 
 #ifdef __cplusplus

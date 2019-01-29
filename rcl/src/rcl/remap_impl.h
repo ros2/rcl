@@ -17,6 +17,7 @@
 
 #include "rcl/allocator.h"
 #include "rcl/macros.h"
+#include "rcl/remap.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
@@ -35,7 +36,7 @@ typedef enum rcl_remap_type_t
   RCL_NAMESPACE_REMAP = 1u << 3
 } rcl_remap_type_t;
 
-typedef struct rcl_remap_t
+typedef struct rcl_remap_impl_t
 {
   /// Bitmask indicating what type of rule this is.
   rcl_remap_type_t type;
@@ -48,7 +49,7 @@ typedef struct rcl_remap_t
 
   /// Allocator used to allocate objects in this struct
   rcl_allocator_t allocator;
-} rcl_remap_t;
+} rcl_remap_impl_t;
 
 /// Get an rcl_remap_t structure initialized with NULL.
 rcl_remap_t
