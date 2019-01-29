@@ -26,11 +26,9 @@ extern "C"
 #include "rcl/arguments.h"
 #include "rcl/context.h"
 #include "rcl/macros.h"
+#include "rcl/node_options.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
-
-/// Constant which indicates that the default domain id should be used.
-#define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID SIZE_MAX
 
 struct rcl_guard_condition_t;
 struct rcl_node_impl_t;
@@ -44,52 +42,6 @@ typedef struct rcl_node_t
   /// Private implementation pointer.
   struct rcl_node_impl_t * impl;
 } rcl_node_t;
-
-/// Structure which encapsulates the options for creating a rcl_node_t.
-typedef struct rcl_node_options_t
-{
-  // bool anonymous_name;
-
-  // rmw_qos_profile_t parameter_qos;
-
-  /// If true, no parameter infrastructure will be setup.
-  // bool no_parameters;
-
-  /// If set, then this value overrides the ROS_DOMAIN_ID environment variable.
-  /**
-   * It defaults to RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, which will cause the
-   * node to use the ROS domain ID set in the ROS_DOMAIN_ID environment
-   * variable, or on some systems 0 if the environment variable is not set.
-   *
-   * \todo TODO(wjwwood):
-   *   Should we put a limit on the ROS_DOMAIN_ID value, that way we can have
-   *   a safe value for the default RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID?
-   *   (currently max size_t)
-   */
-  size_t domain_id;
-
-  /// Custom allocator used for internal allocations.
-  rcl_allocator_t allocator;
-
-  /// If false then only use arguments in this struct, otherwise use global arguments also.
-  bool use_global_arguments;
-
-  /// Command line arguments that apply only to this node.
-  rcl_arguments_t arguments;
-} rcl_node_options_t;
-
-/// Return the default node options in a rcl_node_options_t.
-/**
- * The default values are:
- *
- * - domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID
- * - allocator = rcl_get_default_allocator()
- * - use_global_arguments = true
- * - arguments = rcl_get_zero_initialized_arguments()
- */
-RCL_PUBLIC
-rcl_node_options_t
-rcl_node_get_default_options(void);
 
 /// Return a rcl_node_t struct with members initialized to `NULL`.
 RCL_PUBLIC
@@ -220,31 +172,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_node_fini(rcl_node_t * node);
-
-/// Copy one options structure into another.
-/**
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] options The structure to be copied.
- *   Its allocator is used to copy memory into the new structure.
- * \param[out] options_out An options structure containing default values.
- * \return `RCL_RET_OK` if the structure was copied successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
- * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_node_options_copy(
-  const rcl_node_options_t * options,
-  rcl_node_options_t * options_out);
 
 /// Return `true` if the node is valid, else `false`.
 /**

@@ -44,6 +44,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/logging_rosout.c
   src/rcl/logging.c
   src/rcl/node.c
+  src/rcl/node_options.c
   src/rcl/publisher.c
   src/rcl/remap.c
   src/rcl/rmw_implementation_identifier_check.c
