@@ -41,7 +41,7 @@ typedef struct rcl_arguments_t
 #define RCL_LOG_DISABLE_EXT_LIB_ARG_RULE "__log_disable_external_lib:="
 #define RCL_PARAM_FILE_ARG_RULE "__params:="
 
-/// Return a rcl_node_t struct with members initialized to `NULL`.
+/// Return a rcl_arguments_t struct with members initialized to `NULL`.
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_arguments_t
