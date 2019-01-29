@@ -65,11 +65,15 @@ rcl_node_options_fini(
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   rcl_allocator_t allocator = options->allocator;
   RCL_CHECK_ALLOCATOR(&allocator, return RCL_RET_INVALID_ARGUMENT);
-  rcl_ret_t ret = rcl_arguments_fini(&options->arguments);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG("Failed to fini rcl arguments");
-    return ret;
+
+  if (options->arguments.impl) {
+    rcl_ret_t ret = rcl_arguments_fini(&options->arguments);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Failed to fini rcl arguments");
+      return ret;
+    }
   }
+
   return RCL_RET_OK;
 }
 
