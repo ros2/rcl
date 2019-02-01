@@ -356,11 +356,11 @@ rcl_action_send_goal_response(
  * rcl_ret_t ret = rcl_action_take_goal_request(&action_server, &goal_request);
  * // ... error handling
  * // If the goal is accepted, then tell the action server
- * // First, create and populate a goal info message (rcl type)
+ * // First, create a goal info message
  * rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
- * ret = rcl_action_goal_info_init(&goal_info, &action_server);
- * // ... error handling, and populate with goal ID and timestamp
- * ret = rcl_action_accept_new_goal(&action_server, &goal_info, NULL);
+ * // ... populate goal_info.uuid (unique_identifier_msgs/UUID)
+ * // ... populate goal_info.stamp (builtin_interfaces/Time)
+ * rcl_action_goal_handle_t * goal_handle = rcl_action_accept_new_goal(&action_server, &goal_info);
  * // ... error_handling
  * // ... Populate goal response (client library type)
  * ret = rcl_action_send_goal_response(&action_server, &goal_response);
