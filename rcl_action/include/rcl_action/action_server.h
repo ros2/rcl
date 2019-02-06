@@ -604,7 +604,6 @@ rcl_action_send_result_response(
  *
  * \param[in] action_server handle to the action server from which expired goals
  *   will be cleared.
- * \param[in] expired_goals_allocator allocator to use to allocate expired_goals output
  * \param[inout] expired_goals the identifiers of goals that expired, or set to `NULL` if unused
  * \param[inout] expired_goals_capacity the allocated size of `expired_goals`, or 0 if unused
  * \param[out] num_expired the number of expired goals, or set to `NULL` if unused
