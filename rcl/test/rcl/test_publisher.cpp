@@ -83,6 +83,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   const char * topic_name = "chatter";
   const char * expected_topic_name = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  publisher_options.preallocate = true;
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
