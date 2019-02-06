@@ -50,8 +50,6 @@ typedef struct rcl_action_server_options_t
   /// Custom allocator for the action server, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
-  /// Clock type used for checking result timeouts.
-  rcl_clock_type_t clock_type;
   /// Goal handles that have results longer than this time are deallocated.
   rcl_duration_t result_timeout;
 } rcl_action_server_options_t;
