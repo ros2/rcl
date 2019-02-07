@@ -154,7 +154,8 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
     return RCL_RET_ERROR;
   }
   if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
-    // @todo: nburek enfornce node name unique
+    // @todo: nburek Update behavior to either enforce unique names or work with non-unique 
+    // names based on the outcome here: https://github.com/ros2/design/issues/187
     RCUTILS_LOG_WARN_NAMED("log_infrastructure", "Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from going out over the rosout topic.");
     // RCL_SET_ERROR_MSG("Logger already initialized for node.");
     // return RCL_RET_ALREADY_INIT;
