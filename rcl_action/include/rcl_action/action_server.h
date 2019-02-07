@@ -372,7 +372,7 @@ rcl_action_send_goal_response(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | Yes
+ * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
