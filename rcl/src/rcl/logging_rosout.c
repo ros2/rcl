@@ -162,8 +162,6 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
       "publisher. As soon as any node with that name is destructed it will unregister the "
       "publisher, preventing any further logs for that name from being published on the rosout "
       "topic.");
-    // RCL_SET_ERROR_MSG("Logger already initialized for node.");
-    // return RCL_RET_ALREADY_INIT;
     return RCL_RET_OK;
   }
 
