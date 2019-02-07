@@ -160,6 +160,7 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
       "Publisher already registered for provided node name. If this is due to multiple nodes with the same name then all logs for that logger name will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.");
     // RCL_SET_ERROR_MSG("Logger already initialized for node.");
     // return RCL_RET_ALREADY_INIT;
+    return RCL_RET_OK;
   }
 
   // Create a new Log message publisher on the node
