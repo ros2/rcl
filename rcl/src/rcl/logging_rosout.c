@@ -21,6 +21,7 @@
 #include "rcl/visibility_control.h"
 #include "rcl_interfaces/msg/log.h"
 #include "rcutils/allocator.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rcutils/types/hash_map.h"
 #include "rcutils/types/rcutils_ret.h"
@@ -153,8 +154,10 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
     return RCL_RET_ERROR;
   }
   if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
-    RCL_SET_ERROR_MSG("Logger already initialized for node.");
-    return RCL_RET_ALREADY_INIT;
+    // @todo: nburek enfornce node name unique
+    RCUTILS_LOG_WARN_NAMED("log_infrastructure", "Logger already initialized for node");
+    // RCL_SET_ERROR_MSG("Logger already initialized for node.");
+    // return RCL_RET_ALREADY_INIT;
   }
 
   // Create a new Log message publisher on the node
