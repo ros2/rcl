@@ -21,6 +21,7 @@
 #include "rcl/visibility_control.h"
 #include "rcl_interfaces/msg/log.h"
 #include "rcutils/allocator.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rcutils/types/hash_map.h"
 #include "rcutils/types/rcutils_ret.h"
@@ -153,8 +154,15 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
     return RCL_RET_ERROR;
   }
   if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
-    RCL_SET_ERROR_MSG("Logger already initialized for node.");
-    return RCL_RET_ALREADY_INIT;
+    // @TODO(nburek) Update behavior to either enforce unique names or work with non-unique
+    // names based on the outcome here: https://github.com/ros2/design/issues/187
+    RCUTILS_LOG_WARN_NAMED("rcl.logging_rosout",
+      "Publisher already registered for provided node name. If this is due to multiple nodes "
+      "with the same name then all logs for that logger name will go out over the existing "
+      "publisher. As soon as any node with that name is destructed it will unregister the "
+      "publisher, preventing any further logs for that name from being published on the rosout "
+      "topic.");
+    return RCL_RET_OK;
   }
 
   // Create a new Log message publisher on the node
