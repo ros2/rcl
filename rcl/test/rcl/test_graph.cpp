@@ -494,12 +494,8 @@ public:
   {
     std::vector<rcl_node_t *> node_vec;
     node_vec.push_back(this->node_ptr);
-    if (!(is_opensplice || is_connext)) {
-      // TODO(ross-desmond): opensplice and connext cannot discover data about
-      // the current node due to their implementations of Simple Discovery
-      // Protocol.  Should be fixed later.
-      node_vec.push_back(this->remote_node_ptr);
-    }
+    node_vec.push_back(this->remote_node_ptr);
+
     size_t attempts = 20;
     bool is_expect = false;
     rcl_ret_t ret;
@@ -509,17 +505,16 @@ public:
       bool is_success = true;
       // verify each node contains the same node graph.
       for (auto node : node_vec) {
-        if (!(is_opensplice || is_connext)) {
-          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Checking subscribers from node");
-          expect_topics_types(node, sub_func, node_state.subscribers,
-            test_graph_node_name, is_expect, is_success);
-          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Checking services from node");
-          expect_topics_types(node, service_func, node_state.services,
-            test_graph_node_name, is_expect, is_success);
-          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Checking publishers from node");
-          expect_topics_types(node, pub_func, node_state.publishers,
-            test_graph_node_name, is_expect, is_success);
-        }
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Checking subscribers from node");
+        expect_topics_types(node, sub_func, node_state.subscribers,
+          test_graph_node_name, is_expect, is_success);
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Checking services from node");
+        expect_topics_types(node, service_func, node_state.services,
+          test_graph_node_name, is_expect, is_success);
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Checking publishers from node");
+        expect_topics_types(node, pub_func, node_state.publishers,
+          test_graph_node_name, is_expect, is_success);
+
         RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Checking subscribers from remote node");
         expect_topics_types(node, sub_func, remote_node_state.subscribers,
           this->remote_node_name, is_expect, is_success);
