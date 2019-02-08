@@ -2,6 +2,15 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.5 (2019-02-08)
+------------------
+* Changed error to warning when loggers are created for nodes non-unique names.(`#385 <https://github.com/ros2/rcl/issues/385>`_)
+  * Backported by `#384 <https://github.com/ros2/rcl/issues/384>`_ for Crystal.
+* Removed test circumvention now that a bug is fixed in rmw_opensplice. (`#386 <https://github.com/ros2/rcl/issues/386>`_)
+  * Backported by `#368 <https://github.com/ros2/rcl/issues/368>`_ for Crystal.
+* Publish logs to Rosout (`#350 <https://github.com/ros2/rcl/issues/350>`_)
+* Contributors: Nick Burek, Steven! Ragnarök
+
 0.6.4 (2019-01-11)
 ------------------
 * Added method for accessing rmw_context from rcl_context (`#372 <https://github.com/ros2/rcl/issues/372>`_)
