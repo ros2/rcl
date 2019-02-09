@@ -163,7 +163,6 @@ rcl_node_init(
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] node rcl_node_t to be finalized
- * \param[in] context the context originally used to init the node
  * \return `RCL_RET_OK` if node was finalized successfully, or
  * \return `RCL_RET_NODE_INVALID` if the node pointer is null, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.

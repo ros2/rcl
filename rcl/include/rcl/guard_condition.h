@@ -154,7 +154,6 @@ rcl_guard_condition_init_from_rmw(
  * <i>[1] specifically not thread-safe with rcl_trigger_guard_condition()</i>
  *
  * \param[inout] guard_condition handle to the guard_condition to be finalized
- * \param[in] context the context originally used to init the guard condition
  * \return `RCL_RET_OK` if guard_condition was finalized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
