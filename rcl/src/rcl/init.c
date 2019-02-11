@@ -43,6 +43,9 @@ rcl_init(
 
   if (argc > 0) {
     RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
+    for (int i = 0; i < argc; ++i) {
+      RCL_CHECK_ARGUMENT_FOR_NULL(argv[i], RCL_RET_INVALID_ARGUMENT);
+    }
   } else {
     if (NULL != argv) {
       RCL_SET_ERROR_MSG("argc is <= 0, but argv is not NULL");
