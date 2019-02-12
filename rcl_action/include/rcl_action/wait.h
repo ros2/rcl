@@ -122,7 +122,7 @@ rcl_action_wait_set_add_action_server(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | Yes
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
@@ -162,7 +162,7 @@ rcl_action_client_wait_set_get_num_entities(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | Yes
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
