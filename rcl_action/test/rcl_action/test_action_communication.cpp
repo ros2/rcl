@@ -156,18 +156,18 @@ protected:
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_comm)
 {
-  test_msgs__action__Fibonacci_Action_Goal_Request outgoing_goal_request;
-  test_msgs__action__Fibonacci_Action_Goal_Request incoming_goal_request;
-  test_msgs__action__Fibonacci_Action_Goal_Response outgoing_goal_response;
-  test_msgs__action__Fibonacci_Action_Goal_Response incoming_goal_response;
-  test_msgs__action__Fibonacci_Action_Goal_Request__init(&outgoing_goal_request);
-  test_msgs__action__Fibonacci_Action_Goal_Request__init(&incoming_goal_request);
-  test_msgs__action__Fibonacci_Action_Goal_Response__init(&outgoing_goal_response);
-  test_msgs__action__Fibonacci_Action_Goal_Response__init(&incoming_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Request outgoing_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Request incoming_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Response outgoing_goal_response;
+  test_msgs__action__Fibonacci_SendGoal_Response incoming_goal_response;
+  test_msgs__action__Fibonacci_SendGoal_Request__init(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__init(&incoming_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Response__init(&outgoing_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Response__init(&incoming_goal_response);
 
   // Initialize goal request
-  init_test_uuid0(outgoing_goal_request.uuid);
-  outgoing_goal_request.request.order = 10;
+  init_test_uuid0(outgoing_goal_request.goal_id);
+  outgoing_goal_request.goal.order = 10;
 
   // Send goal request with valid arguments
   int64_t sequence_number;
@@ -201,10 +201,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that the goal request was received correctly
-  EXPECT_EQ(outgoing_goal_request.request.order, incoming_goal_request.request.order);
+  EXPECT_EQ(outgoing_goal_request.goal.order, incoming_goal_request.goal.order);
   EXPECT_TRUE(uuidcmp(
-      outgoing_goal_request.uuid,
-      incoming_goal_request.uuid));
+      outgoing_goal_request.goal_id,
+      incoming_goal_request.goal_id));
 
   // Initialize goal response
   outgoing_goal_response.accepted = true;
@@ -252,10 +252,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   EXPECT_EQ(outgoing_goal_response.stamp.sec, incoming_goal_response.stamp.sec);
   EXPECT_EQ(outgoing_goal_response.stamp.nanosec, incoming_goal_response.stamp.nanosec);
 
-  test_msgs__action__Fibonacci_Action_Goal_Request__fini(&outgoing_goal_request);
-  test_msgs__action__Fibonacci_Action_Goal_Request__fini(&incoming_goal_request);
-  test_msgs__action__Fibonacci_Action_Goal_Response__fini(&incoming_goal_response);
-  test_msgs__action__Fibonacci_Action_Goal_Response__fini(&outgoing_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&incoming_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Response__fini(&incoming_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Response__fini(&outgoing_goal_response);
 }
 
 
@@ -385,17 +385,17 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result_comm)
 {
-  test_msgs__action__Fibonacci_Action_Result_Request outgoing_result_request;
-  test_msgs__action__Fibonacci_Action_Result_Request incoming_result_request;
-  test_msgs__action__Fibonacci_Action_Result_Response outgoing_result_response;
-  test_msgs__action__Fibonacci_Action_Result_Response incoming_result_response;
-  test_msgs__action__Fibonacci_Action_Result_Request__init(&outgoing_result_request);
-  test_msgs__action__Fibonacci_Action_Result_Request__init(&incoming_result_request);
-  test_msgs__action__Fibonacci_Action_Result_Response__init(&outgoing_result_response);
-  test_msgs__action__Fibonacci_Action_Result_Response__init(&incoming_result_response);
+  test_msgs__action__Fibonacci_GetResult_Request outgoing_result_request;
+  test_msgs__action__Fibonacci_GetResult_Request incoming_result_request;
+  test_msgs__action__Fibonacci_GetResult_Response outgoing_result_response;
+  test_msgs__action__Fibonacci_GetResult_Response incoming_result_response;
+  test_msgs__action__Fibonacci_GetResult_Request__init(&outgoing_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__init(&incoming_result_request);
+  test_msgs__action__Fibonacci_GetResult_Response__init(&outgoing_result_response);
+  test_msgs__action__Fibonacci_GetResult_Response__init(&incoming_result_response);
 
   // Initialize result request
-  init_test_uuid0(outgoing_result_request.uuid);
+  init_test_uuid0(outgoing_result_request.goal_id);
 
   // Send result request with valid arguments
   int64_t sequence_number;
@@ -430,16 +430,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
-      outgoing_result_request.uuid,
-      incoming_result_request.uuid));
+      outgoing_result_request.goal_id,
+      incoming_result_request.goal_id));
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
-      &outgoing_result_response.response.sequence, 4));
-  outgoing_result_response.response.sequence.data[0] = 0;
-  outgoing_result_response.response.sequence.data[1] = 1;
-  outgoing_result_response.response.sequence.data[2] = 2;
-  outgoing_result_response.response.sequence.data[3] = 6;
+      &outgoing_result_response.result.sequence, 4));
+  outgoing_result_response.result.sequence.data[0] = 0;
+  outgoing_result_response.result.sequence.data[1] = 1;
+  outgoing_result_response.result.sequence.data[2] = 2;
+  outgoing_result_response.result.sequence.data[3] = 6;
   outgoing_result_response.status =
     action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
 
@@ -480,16 +480,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
 
   // Check that the result response was received correctly
   EXPECT_EQ(outgoing_result_response.status, incoming_result_response.status);
-  ASSERT_EQ(outgoing_result_response.response.sequence.size, incoming_result_response.response.sequence.size);
+  ASSERT_EQ(outgoing_result_response.result.sequence.size, incoming_result_response.result.sequence.size);
   EXPECT_TRUE(!memcmp(
-      outgoing_result_response.response.sequence.data,
-      incoming_result_response.response.sequence.data,
-      outgoing_result_response.response.sequence.size));
+      outgoing_result_response.result.sequence.data,
+      incoming_result_response.result.sequence.data,
+      outgoing_result_response.result.sequence.size));
 
-  test_msgs__action__Fibonacci_Action_Result_Request__fini(&incoming_result_request);
-  test_msgs__action__Fibonacci_Action_Result_Request__fini(&outgoing_result_request);
-  test_msgs__action__Fibonacci_Action_Result_Response__fini(&incoming_result_response);
-  test_msgs__action__Fibonacci_Action_Result_Response__fini(&outgoing_result_response);
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&incoming_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&outgoing_result_request);
+  test_msgs__action__Fibonacci_GetResult_Response__fini(&incoming_result_response);
+  test_msgs__action__Fibonacci_GetResult_Response__fini(&outgoing_result_response);
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status_comm)
@@ -569,10 +569,10 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_status
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedback_comm)
 {
-  test_msgs__action__Fibonacci_Action_Feedback outgoing_feedback;
-  test_msgs__action__Fibonacci_Action_Feedback incoming_feedback;
-  test_msgs__action__Fibonacci_Action_Feedback__init(&outgoing_feedback);
-  test_msgs__action__Fibonacci_Action_Feedback__init(&incoming_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback;
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback);
 
   // Initialize feedback
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
@@ -580,7 +580,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
   outgoing_feedback.feedback.sequence.data[0] = 0;
   outgoing_feedback.feedback.sequence.data[1] = 1;
   outgoing_feedback.feedback.sequence.data[2] = 2;
-  init_test_uuid0(outgoing_feedback.uuid);
+  init_test_uuid0(outgoing_feedback.goal_id);
 
   // Publish feedback with valid arguments
   rcl_ret_t ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
@@ -615,28 +615,28 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
 
   // Check that feedback was received correctly
   EXPECT_TRUE(uuidcmp(
-      outgoing_feedback.uuid,
-      incoming_feedback.uuid));
+      outgoing_feedback.goal_id,
+      incoming_feedback.goal_id));
   ASSERT_EQ(outgoing_feedback.feedback.sequence.size, incoming_feedback.feedback.sequence.size);
   EXPECT_TRUE(!memcmp(
       outgoing_feedback.feedback.sequence.data,
       incoming_feedback.feedback.sequence.data,
       outgoing_feedback.feedback.sequence.size));
 
-  test_msgs__action__Fibonacci_Action_Feedback__fini(&incoming_feedback);
-  test_msgs__action__Fibonacci_Action_Feedback__fini(&outgoing_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback);
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal_request_opts)
 {
-  test_msgs__action__Fibonacci_Action_Goal_Request outgoing_goal_request;
-  test_msgs__action__Fibonacci_Action_Goal_Request incoming_goal_request;
-  test_msgs__action__Fibonacci_Action_Goal_Request__init(&outgoing_goal_request);
-  test_msgs__action__Fibonacci_Action_Goal_Request__init(&incoming_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request outgoing_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Request incoming_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Request__init(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__init(&incoming_goal_request);
 
   // Initialize goal request
-  init_test_uuid0(outgoing_goal_request.uuid);
-  outgoing_goal_request.request.order = 10;
+  init_test_uuid0(outgoing_goal_request.goal_id);
+  outgoing_goal_request.goal.order = 10;
   int64_t sequence_number = 1234;
   rcl_ret_t ret = 0;
 
@@ -680,16 +680,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  test_msgs__action__Fibonacci_Action_Goal_Request__fini(&outgoing_goal_request);
-  test_msgs__action__Fibonacci_Action_Goal_Request__fini(&incoming_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&incoming_goal_request);
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal_response_opts)
 {
-  test_msgs__action__Fibonacci_Action_Goal_Response outgoing_goal_response;
-  test_msgs__action__Fibonacci_Action_Goal_Response incoming_goal_response;
-  test_msgs__action__Fibonacci_Action_Goal_Response__init(&outgoing_goal_response);
-  test_msgs__action__Fibonacci_Action_Goal_Response__init(&incoming_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Response outgoing_goal_response;
+  test_msgs__action__Fibonacci_SendGoal_Response incoming_goal_response;
+  test_msgs__action__Fibonacci_SendGoal_Response__init(&outgoing_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Response__init(&incoming_goal_response);
 
   // Initialize goal response
   outgoing_goal_response.accepted = true;
@@ -741,8 +741,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  test_msgs__action__Fibonacci_Action_Goal_Response__fini(&incoming_goal_response);
-  test_msgs__action__Fibonacci_Action_Goal_Response__fini(&outgoing_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Response__fini(&incoming_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Response__fini(&outgoing_goal_response);
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_cancel_request_opts)
@@ -868,13 +868,13 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_canc
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_result_request_opts)
 {
-  test_msgs__action__Fibonacci_Action_Result_Request outgoing_result_request;
-  test_msgs__action__Fibonacci_Action_Result_Request incoming_result_request;
-  test_msgs__action__Fibonacci_Action_Result_Request__init(&outgoing_result_request);
-  test_msgs__action__Fibonacci_Action_Result_Request__init(&incoming_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request outgoing_result_request;
+  test_msgs__action__Fibonacci_GetResult_Request incoming_result_request;
+  test_msgs__action__Fibonacci_GetResult_Request__init(&outgoing_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__init(&incoming_result_request);
 
   // Initialize result request
-  init_test_uuid0(outgoing_result_request.uuid);
+  init_test_uuid0(outgoing_result_request.goal_id);
 
   // Send result request with null action client
   int64_t sequence_number = 1324;
@@ -918,24 +918,24 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_resu
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  test_msgs__action__Fibonacci_Action_Result_Request__fini(&incoming_result_request);
-  test_msgs__action__Fibonacci_Action_Result_Request__fini(&outgoing_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&incoming_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&outgoing_result_request);
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_result_response_opts)
 {
-  test_msgs__action__Fibonacci_Action_Result_Response outgoing_result_response;
-  test_msgs__action__Fibonacci_Action_Result_Response incoming_result_response;
-  test_msgs__action__Fibonacci_Action_Result_Response__init(&outgoing_result_response);
-  test_msgs__action__Fibonacci_Action_Result_Response__init(&incoming_result_response);
+  test_msgs__action__Fibonacci_GetResult_Response outgoing_result_response;
+  test_msgs__action__Fibonacci_GetResult_Response incoming_result_response;
+  test_msgs__action__Fibonacci_GetResult_Response__init(&outgoing_result_response);
+  test_msgs__action__Fibonacci_GetResult_Response__init(&incoming_result_response);
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
-      &outgoing_result_response.response.sequence, 4));
-  outgoing_result_response.response.sequence.data[0] = 0;
-  outgoing_result_response.response.sequence.data[1] = 1;
-  outgoing_result_response.response.sequence.data[2] = 2;
-  outgoing_result_response.response.sequence.data[3] = 6;
+      &outgoing_result_response.result.sequence, 4));
+  outgoing_result_response.result.sequence.data[0] = 0;
+  outgoing_result_response.result.sequence.data[1] = 1;
+  outgoing_result_response.result.sequence.data[2] = 2;
+  outgoing_result_response.result.sequence.data[3] = 6;
   outgoing_result_response.status =
     action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
 
@@ -980,16 +980,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_resu
   EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  test_msgs__action__Fibonacci_Action_Result_Response__fini(&incoming_result_response);
-  test_msgs__action__Fibonacci_Action_Result_Response__fini(&outgoing_result_response);
+  test_msgs__action__Fibonacci_GetResult_Response__fini(&incoming_result_response);
+  test_msgs__action__Fibonacci_GetResult_Response__fini(&outgoing_result_response);
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feedback_opts)
 {
-  test_msgs__action__Fibonacci_Action_Feedback outgoing_feedback;
-  test_msgs__action__Fibonacci_Action_Feedback incoming_feedback;
-  test_msgs__action__Fibonacci_Action_Feedback__init(&outgoing_feedback);
-  test_msgs__action__Fibonacci_Action_Feedback__init(&incoming_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback;
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback);
 
   // Initialize feedback
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
@@ -997,7 +997,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feed
   outgoing_feedback.feedback.sequence.data[0] = 0;
   outgoing_feedback.feedback.sequence.data[1] = 1;
   outgoing_feedback.feedback.sequence.data[2] = 2;
-  init_test_uuid0(outgoing_feedback.uuid);
+  init_test_uuid0(outgoing_feedback.goal_id);
 
   // Publish feedback with null action server
   rcl_ret_t ret = rcl_action_publish_feedback(nullptr, &outgoing_feedback);
@@ -1031,8 +1031,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feed
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  test_msgs__action__Fibonacci_Action_Feedback__fini(&incoming_feedback);
-  test_msgs__action__Fibonacci_Action_Feedback__fini(&outgoing_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback);
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_status_opts)
