@@ -116,6 +116,12 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_ok_and_s
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
   ASSERT_FALSE(rcl_context_is_valid(&context));
+  // If argc is not 0, argv is not null but contains one, it should be an invalid argument.
+  const char * invalid_args[] = {"some-arg", nullptr};
+  ret = rcl_init(2, invalid_args, &init_options, &context);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  ASSERT_FALSE(rcl_context_is_valid(&context));
   // If either the allocate or deallocate function pointers are not set, it should be invalid arg.
   init_options.impl->allocator.allocate = nullptr;
   ret = rcl_init(0, nullptr, &init_options, &context);
