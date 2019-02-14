@@ -260,7 +260,7 @@ void rcl_logging_rosout_output_handler(
         rosidl_generator_c__String__assign(&log_message->msg, msg_array.buffer);
         rosidl_generator_c__String__assign(&log_message->file, location->file_name);
         rosidl_generator_c__String__assign(&log_message->function, location->function_name);
-        status = rcl_publish(&entry.publisher, log_message);
+        status = rcl_publish(&entry.publisher, log_message, NULL);
         if (RCL_RET_OK != status) {
           RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to publish log message to rosout: ");
           RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);

@@ -153,7 +153,8 @@ rcl_subscription_init(
   const rcl_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
-  const rcl_subscription_options_t * options);
+  const rcl_subscription_options_t * options
+);
 
 /// Finalize a rcl_subscription_t.
 /**
@@ -260,7 +261,9 @@ rcl_ret_t
 rcl_take(
   const rcl_subscription_t * subscription,
   void * ros_message,
-  rmw_message_info_t * message_info);
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation
+);
 
 /// Take a serialized raw message from a topic using a rcl subscription.
 /**

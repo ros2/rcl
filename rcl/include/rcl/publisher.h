@@ -43,7 +43,6 @@ typedef struct rcl_publisher_options_t
   /// Custom allocator for the publisher, used for incidental allocations.
   /** For default behavior (malloc/free), use: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
-  bool preallocate;
 } rcl_publisher_options_t;
 
 /// Return a rcl_publisher_t struct with members set to `NULL`.
@@ -151,7 +150,8 @@ rcl_publisher_init(
   const rcl_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
-  const rcl_publisher_options_t * options);
+  const rcl_publisher_options_t * options
+);
 
 /// Finalize a rcl_publisher_t.
 /**
@@ -253,7 +253,7 @@ rcl_publisher_get_default_options(void);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_publish(const rcl_publisher_t * publisher, const void * ros_message);
+rcl_publish(const rcl_publisher_t * publisher, const void * ros_message, rmw_publisher_allocation_t * allocation);
 
 /// Publish a serialized message on a topic using a publisher.
 /**
