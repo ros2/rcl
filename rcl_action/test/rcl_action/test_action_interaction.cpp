@@ -341,7 +341,9 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_TRUE(uuidcmp(
       this->outgoing_feedback.goal_id,
       this->incoming_feedback.goal_id));
-  ASSERT_EQ(this->outgoing_feedback.feedback.sequence.size, this->incoming_feedback.feedback.sequence.size);
+  ASSERT_EQ(
+    this->outgoing_feedback.feedback.sequence.size,
+    this->incoming_feedback.feedback.sequence.size);
   EXPECT_TRUE(!memcmp(
       this->outgoing_feedback.feedback.sequence.data,
       this->incoming_feedback.feedback.sequence.data,
@@ -431,7 +433,8 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
     this->outgoing_result_response.status,
     this->incoming_result_response.status);
   ASSERT_EQ(
-    this->outgoing_result_response.result.sequence.size, this->incoming_result_response.result.sequence.size);
+    this->outgoing_result_response.result.sequence.size,
+    this->incoming_result_response.result.sequence.size);
   EXPECT_TRUE(!memcmp(
       this->outgoing_result_response.result.sequence.data,
       this->incoming_result_response.result.sequence.data,
@@ -599,7 +602,9 @@ TEST_F(
   EXPECT_TRUE(uuidcmp(
       this->outgoing_feedback.goal_id,
       this->incoming_feedback.goal_id));
-  ASSERT_EQ(this->outgoing_feedback.feedback.sequence.size, this->incoming_feedback.feedback.sequence.size);
+  ASSERT_EQ(
+    this->outgoing_feedback.feedback.sequence.size,
+    this->incoming_feedback.feedback.sequence.size);
   EXPECT_TRUE(!memcmp(
       this->outgoing_feedback.feedback.sequence.data,
       this->incoming_feedback.feedback.sequence.data,
@@ -793,7 +798,8 @@ TEST_F(
     this->outgoing_result_response.status,
     this->incoming_result_response.status);
   ASSERT_EQ(
-    this->outgoing_result_response.result.sequence.size, this->incoming_result_response.result.sequence.size);
+    this->outgoing_result_response.result.sequence.size,
+    this->incoming_result_response.result.sequence.size);
   EXPECT_TRUE(!memcmp(
       this->outgoing_result_response.result.sequence.data,
       this->incoming_result_response.result.sequence.data,

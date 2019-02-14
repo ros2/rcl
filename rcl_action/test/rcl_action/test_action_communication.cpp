@@ -480,7 +480,9 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
 
   // Check that the result response was received correctly
   EXPECT_EQ(outgoing_result_response.status, incoming_result_response.status);
-  ASSERT_EQ(outgoing_result_response.result.sequence.size, incoming_result_response.result.sequence.size);
+  ASSERT_EQ(
+    outgoing_result_response.result.sequence.size,
+    incoming_result_response.result.sequence.size);
   EXPECT_TRUE(!memcmp(
       outgoing_result_response.result.sequence.data,
       incoming_result_response.result.sequence.data,
