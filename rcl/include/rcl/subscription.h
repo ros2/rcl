@@ -153,7 +153,8 @@ rcl_subscription_init(
   const rcl_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
-  const rcl_subscription_options_t * options);
+  const rcl_subscription_options_t * options
+);
 
 /// Finalize a rcl_subscription_t.
 /**
@@ -246,6 +247,7 @@ rcl_subscription_get_default_options(void);
  * \param[in] subscription the handle to the subscription from which to take
  * \param[inout] ros_message type-erased ptr to a allocated ROS message
  * \param[out] message_info rmw struct which contains meta-data for the message
+ * \param[in] subscription allocation structure pointer used for memory preallocation
  * \return `RCL_RET_OK` if the message was published, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
@@ -260,7 +262,9 @@ rcl_ret_t
 rcl_take(
   const rcl_subscription_t * subscription,
   void * ros_message,
-  rmw_message_info_t * message_info);
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation
+);
 
 /// Take a serialized raw message from a topic using a rcl subscription.
 /**
