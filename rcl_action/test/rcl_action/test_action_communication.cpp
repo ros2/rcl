@@ -166,7 +166,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   test_msgs__action__Fibonacci_SendGoal_Response__init(&incoming_goal_response);
 
   // Initialize goal request
-  init_test_uuid0(outgoing_goal_request.goal_id);
+  init_test_uuid0(outgoing_goal_request.goal_id.uuid);
   outgoing_goal_request.goal.order = 10;
 
   // Send goal request with valid arguments
@@ -203,8 +203,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
   // Check that the goal request was received correctly
   EXPECT_EQ(outgoing_goal_request.goal.order, incoming_goal_request.goal.order);
   EXPECT_TRUE(uuidcmp(
-      outgoing_goal_request.goal_id,
-      incoming_goal_request.goal_id));
+      outgoing_goal_request.goal_id.uuid,
+      incoming_goal_request.goal_id.uuid));
 
   // Initialize goal response
   outgoing_goal_response.accepted = true;
@@ -395,7 +395,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   test_msgs__action__Fibonacci_GetResult_Response__init(&incoming_result_response);
 
   // Initialize result request
-  init_test_uuid0(outgoing_result_request.goal_id);
+  init_test_uuid0(outgoing_result_request.goal_id.uuid);
 
   // Send result request with valid arguments
   int64_t sequence_number;
@@ -430,8 +430,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
-      outgoing_result_request.goal_id,
-      incoming_result_request.goal_id));
+      outgoing_result_request.goal_id.uuid,
+      incoming_result_request.goal_id.uuid));
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
@@ -582,7 +582,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
   outgoing_feedback.feedback.sequence.data[0] = 0;
   outgoing_feedback.feedback.sequence.data[1] = 1;
   outgoing_feedback.feedback.sequence.data[2] = 2;
-  init_test_uuid0(outgoing_feedback.goal_id);
+  init_test_uuid0(outgoing_feedback.goal_id.uuid);
 
   // Publish feedback with valid arguments
   rcl_ret_t ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
@@ -617,8 +617,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
 
   // Check that feedback was received correctly
   EXPECT_TRUE(uuidcmp(
-      outgoing_feedback.goal_id,
-      incoming_feedback.goal_id));
+      outgoing_feedback.goal_id.uuid,
+      incoming_feedback.goal_id.uuid));
   ASSERT_EQ(outgoing_feedback.feedback.sequence.size, incoming_feedback.feedback.sequence.size);
   EXPECT_TRUE(!memcmp(
       outgoing_feedback.feedback.sequence.data,
@@ -637,7 +637,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal
   test_msgs__action__Fibonacci_SendGoal_Request__init(&incoming_goal_request);
 
   // Initialize goal request
-  init_test_uuid0(outgoing_goal_request.goal_id);
+  init_test_uuid0(outgoing_goal_request.goal_id.uuid);
   outgoing_goal_request.goal.order = 10;
   int64_t sequence_number = 1234;
   rcl_ret_t ret = 0;
@@ -876,7 +876,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_resu
   test_msgs__action__Fibonacci_GetResult_Request__init(&incoming_result_request);
 
   // Initialize result request
-  init_test_uuid0(outgoing_result_request.goal_id);
+  init_test_uuid0(outgoing_result_request.goal_id.uuid);
 
   // Send result request with null action client
   int64_t sequence_number = 1324;
@@ -999,7 +999,7 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feed
   outgoing_feedback.feedback.sequence.data[0] = 0;
   outgoing_feedback.feedback.sequence.data[1] = 1;
   outgoing_feedback.feedback.sequence.data[2] = 2;
-  init_test_uuid0(outgoing_feedback.goal_id);
+  init_test_uuid0(outgoing_feedback.goal_id.uuid);
 
   // Publish feedback with null action server
   rcl_ret_t ret = rcl_action_publish_feedback(nullptr, &outgoing_feedback);

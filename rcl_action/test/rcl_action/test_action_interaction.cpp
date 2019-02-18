@@ -197,7 +197,7 @@ protected:
 TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction)
 {
   // Initialize goal request
-  init_test_uuid0(this->outgoing_goal_request.goal_id);
+  init_test_uuid0(this->outgoing_goal_request.goal_id.uuid);
   this->outgoing_goal_request.goal.order = 10;
 
   // Send goal request with valid arguments
@@ -237,8 +237,8 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   // Check that the goal request was received correctly
   EXPECT_EQ(this->outgoing_goal_request.goal.order, this->incoming_goal_request.goal.order);
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_goal_request.goal_id,
-      this->incoming_goal_request.goal_id));
+      this->outgoing_goal_request.goal_id.uuid,
+      this->incoming_goal_request.goal_id.uuid));
 
   // Initialize goal response
   this->outgoing_goal_response.accepted = true;
@@ -288,7 +288,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(this->outgoing_goal_response.stamp.nanosec, this->incoming_goal_response.stamp.nanosec);
 
   // Initialize result request
-  init_test_uuid0(this->outgoing_result_request.goal_id);
+  init_test_uuid0(this->outgoing_result_request.goal_id.uuid);
 
   // Send result request with valid arguments
   ret = rcl_action_send_result_request(
@@ -301,7 +301,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   this->outgoing_feedback.feedback.sequence.data[0] = 0;
   this->outgoing_feedback.feedback.sequence.data[1] = 1;
   this->outgoing_feedback.feedback.sequence.data[2] = 2;
-  init_test_uuid0(this->outgoing_feedback.goal_id);
+  init_test_uuid0(this->outgoing_feedback.goal_id.uuid);
 
   // Publish feedback with valid arguments
   ret = rcl_action_publish_feedback(&this->action_server, &this->outgoing_feedback);
@@ -339,8 +339,8 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Check that feedback was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_feedback.goal_id,
-      this->incoming_feedback.goal_id));
+      this->outgoing_feedback.goal_id.uuid,
+      this->incoming_feedback.goal_id.uuid));
   ASSERT_EQ(
     this->outgoing_feedback.feedback.sequence.size,
     this->incoming_feedback.feedback.sequence.size);
@@ -379,8 +379,8 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_result_request.goal_id,
-      this->incoming_result_request.goal_id));
+      this->outgoing_result_request.goal_id.uuid,
+      this->incoming_result_request.goal_id.uuid));
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
@@ -458,7 +458,7 @@ TEST_F(
   action_msgs__srv__CancelGoal_Response__init(&incoming_cancel_response);
 
   // Initialize goal request
-  init_test_uuid0(this->outgoing_goal_request.goal_id);
+  init_test_uuid0(this->outgoing_goal_request.goal_id.uuid);
   this->outgoing_goal_request.goal.order = 10;
 
   // Send goal request with valid arguments
@@ -498,8 +498,8 @@ TEST_F(
   // Check that the goal request was received correctly
   EXPECT_EQ(this->outgoing_goal_request.goal.order, this->incoming_goal_request.goal.order);
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_goal_request.goal_id,
-      this->incoming_goal_request.goal_id));
+      this->outgoing_goal_request.goal_id.uuid,
+      this->incoming_goal_request.goal_id.uuid));
 
   // Initialize goal response
   this->outgoing_goal_response.accepted = true;
@@ -549,7 +549,7 @@ TEST_F(
   EXPECT_EQ(this->outgoing_goal_response.stamp.nanosec, this->incoming_goal_response.stamp.nanosec);
 
   // Initialize result request
-  init_test_uuid0(this->outgoing_result_request.goal_id);
+  init_test_uuid0(this->outgoing_result_request.goal_id.uuid);
 
   // Send result request with valid arguments
   ret = rcl_action_send_result_request(
@@ -562,7 +562,7 @@ TEST_F(
   this->outgoing_feedback.feedback.sequence.data[0] = 0;
   this->outgoing_feedback.feedback.sequence.data[1] = 1;
   this->outgoing_feedback.feedback.sequence.data[2] = 2;
-  init_test_uuid0(this->outgoing_feedback.goal_id);
+  init_test_uuid0(this->outgoing_feedback.goal_id.uuid);
 
   // Publish feedback with valid arguments
   ret = rcl_action_publish_feedback(&this->action_server, &this->outgoing_feedback);
@@ -600,8 +600,8 @@ TEST_F(
 
   // Check that feedback was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_feedback.goal_id,
-      this->incoming_feedback.goal_id));
+      this->outgoing_feedback.goal_id.uuid,
+      this->incoming_feedback.goal_id.uuid));
   ASSERT_EQ(
     this->outgoing_feedback.feedback.sequence.size,
     this->incoming_feedback.feedback.sequence.size);
@@ -640,8 +640,8 @@ TEST_F(
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_result_request.goal_id,
-      this->incoming_result_request.goal_id));
+      this->outgoing_result_request.goal_id.uuid,
+      this->incoming_result_request.goal_id.uuid));
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
