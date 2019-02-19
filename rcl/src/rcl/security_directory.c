@@ -118,8 +118,9 @@ char * exact_match_lookup(
   const char * ros_secure_root_env,
   const rcl_allocator_t * allocator)
 {
-  // Perform longest prefix match for the node's name in directory <root dir>/<namespace>.
+  // Perform an exact match for the node's name in directory <root dir>/<namespace>.
   char * node_secure_root = NULL;
+  // "/" case when root namespace is explicitly passed in
   if (1 == strlen(node_namespace)) {
     node_secure_root = rcutils_join_path(ros_secure_root_env, node_name, *allocator);
   } else {

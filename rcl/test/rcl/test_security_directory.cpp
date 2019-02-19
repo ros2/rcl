@@ -34,9 +34,32 @@ static int putenv_wrapper(const char * env_var)
 #endif
 }
 
-TEST(test_rcl_get_secure_root, failureScenarios) {
+static int unsetenv_wrapper(const char * var_name)
+{
+#ifdef _WIN32
+  // On windows, putenv("VAR=") deletes VAR from environment
+  std::string var(var_name);
+  var += "=";
+  return _putenv(var.c_str());
+#else
+  return unsetenv(var_name);
+#endif
+}
+
+class TestGetSecureRoot : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    // Always make sure the variable we set is unset at the beginning of a test
+    unsetenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME);
+    unsetenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME);
+    unsetenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME);
+  }
+};
+
+TEST_F(TestGetSecureRoot, failureScenarios) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  /* Before setting the environment variable */
   ASSERT_EQ(rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
     (char *) NULL);
 
@@ -51,7 +74,7 @@ TEST(test_rcl_get_secure_root, failureScenarios) {
     (char *) NULL);
 }
 
-TEST(test_rcl_get_secure_root, successScenarios) {
+TEST_F(TestGetSecureRoot, successScenarios) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
   /* --------------------------
@@ -86,7 +109,7 @@ TEST(test_rcl_get_secure_root, successScenarios) {
       TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME, allocator);
   std::string putenv_input = ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=";
   putenv_input += base_lookup_dir_fqn;
-  memcpy(g_envstring, putenv_input.c_str(), sizeof(g_envstring) - 1);
+  strncpy(g_envstring, putenv_input.c_str(), sizeof(g_envstring) - 1);
   putenv_wrapper(g_envstring);
   /* --------------------------
    * Namespace  : Root
@@ -119,7 +142,7 @@ TEST(test_rcl_get_secure_root, successScenarios) {
     secure_root.c_str());
 }
 
-TEST(test_rcl_get_secure_root, nodeSecurityDirectoryOverride) {
+TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   /* Specify a valid directory */
   putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
