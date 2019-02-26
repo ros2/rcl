@@ -63,11 +63,4 @@ macro(configure_rcl library_target)
   else()
     message(FATAL_ERROR "configure_rcl() called with unsupported LANGUAGE: '${_ARG_LANGUAGE}'")
   endif()
-
-  if(WIN32)
-    # Causes the visibility macros to use dllexport rather than dllimport
-    # which is appropriate when building the dll but not consuming it.
-    target_compile_definitions(${library_target}
-      PRIVATE "RCL_BUILDING_DLL")
-  endif()
 endmacro()

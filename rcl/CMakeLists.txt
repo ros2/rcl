@@ -70,6 +70,9 @@ ament_target_dependencies(${PROJECT_NAME}
   "tinydir_vendor"
 )
 
+# Causes the visibility macros to use dllexport rather than dllimport,
+# which is appropriate when building the dll but not consuming it.
+target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_BUILDING_DLL")
 configure_rcl(${PROJECT_NAME} LANGUAGE "C")
 
 install(
