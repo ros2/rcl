@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 #
 # Configures ros client library with custom settings.
 # The custom settings are all related to library symbol visibility, see:
@@ -28,17 +29,17 @@
 #
 # @public
 #
-macro(rcl_set_symbol_visibility_hidden library_target)
-  cmake_parse_arguments(_ARG "" "LANGUAGE" "" ${ARGN})
-  if(_ARG_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "rcl_set_symbol_visibility_hidden() called with unused arguments: ${_ARG_UNPARSED_ARGUMENTS}")
+function(rcl_set_symbol_visibility_hidden library_target)
+  cmake_parse_arguments(ARG "" "LANGUAGE" "" ${ARGN})
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "rcl_set_symbol_visibility_hidden() called with unused arguments: ${ARG_UNPARSED_ARGUMENTS}")
   endif()
 
-  if(NOT _ARG_LANGUAGE)
-    set(_ARG_LANGUAGE "CXX")
+  if(NOT ARG_LANGUAGE)
+    set(ARG_LANGUAGE "CXX")
   endif()
 
-  if(_ARG_LANGUAGE STREQUAL "C")
+  if(ARG_LANGUAGE STREQUAL "C")
     # Set the visibility to hidden by default if possible
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
       # Set the visibility of symbols to hidden by default for gcc and clang
@@ -49,7 +50,7 @@ macro(rcl_set_symbol_visibility_hidden library_target)
       )
     endif()
 
-  elseif(_ARG_LANGUAGE STREQUAL "CXX")
+  elseif(ARG_LANGUAGE STREQUAL "CXX")
     # Set the visibility to hidden by default if possible
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
       # Set the visibility of symbols to hidden by default for gcc and clang
@@ -61,6 +62,6 @@ macro(rcl_set_symbol_visibility_hidden library_target)
     endif()
 
   else()
-    message(FATAL_ERROR "rcl_set_symbol_visibility_hidden() called with unsupported LANGUAGE: '${_ARG_LANGUAGE}'")
+    message(FATAL_ERROR "rcl_set_symbol_visibility_hidden() called with unsupported LANGUAGE: '${ARG_LANGUAGE}'")
   endif()
-endmacro()
+endfunction()
