@@ -57,7 +57,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rosidl_generator_c"
 )
 
-configure_rcl(${PROJECT_NAME} LANGUAGE "C")
+rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_ACTION_BUILDING_DLL")

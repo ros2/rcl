@@ -28,10 +28,10 @@
 #
 # @public
 #
-macro(configure_rcl library_target)
+macro(rcl_set_symbol_visibility_hidden library_target)
   cmake_parse_arguments(_ARG "" "LANGUAGE" "" ${ARGN})
   if(_ARG_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "configure_rcl() called with unused arguments: ${_ARG_UNPARSED_ARGUMENTS}")
+    message(FATAL_ERROR "rcl_set_symbol_visibility_hidden() called with unused arguments: ${_ARG_UNPARSED_ARGUMENTS}")
   endif()
 
   if(NOT _ARG_LANGUAGE)
@@ -61,6 +61,6 @@ macro(configure_rcl library_target)
     endif()
 
   else()
-    message(FATAL_ERROR "configure_rcl() called with unsupported LANGUAGE: '${_ARG_LANGUAGE}'")
+    message(FATAL_ERROR "rcl_set_symbol_visibility_hidden() called with unsupported LANGUAGE: '${_ARG_LANGUAGE}'")
   endif()
 endmacro()

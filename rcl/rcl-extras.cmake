@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include("${rcl_DIR}/configure_rcl.cmake")
+include("${rcl_DIR}/rcl_set_symbol_visibility_hidden.cmake")
