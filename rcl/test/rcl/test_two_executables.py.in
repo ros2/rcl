@@ -1,29 +1,32 @@
 # generated from rcl/test/test_two_executables.py.in
 
-from launch.legacy import LaunchDescriptor
-from launch.legacy.exit_handler import ignore_signal_exit_handler
-from launch.legacy.exit_handler import primary_exit_handler
-from launch.legacy.launcher import DefaultLauncher
+from launch import LaunchDescription
+from launch import LaunchService
+from launch.actions import ExecuteProcess
+from launch_testing import LaunchTestService
 
 
 def @TEST_NAME@():
-    ld = LaunchDescriptor()
+    launch_test = LaunchTestService()
+    launch_description = LaunchDescription()
 
-    ld.add_process(
-        cmd=['@TEST_EXECUTABLE1@'],
-        name='@TEST_EXECUTABLE1_NAME@',
-        exit_handler=ignore_signal_exit_handler,
+    launch_test.add_fixture_action(
+        launch_description, ExecuteProcess(
+            cmd=['@TEST_EXECUTABLE1@'],
+            name='@TEST_EXECUTABLE1_NAME@',
+        ), exit_allowed=True
     )
 
-    ld.add_process(
-        cmd=['@TEST_EXECUTABLE2@', '@TEST_EXECUTABLE1_NAME@'],
-        name='@TEST_EXECUTABLE2_NAME@',
-        exit_handler=primary_exit_handler,
+    launch_test.add_test_action(
+        launch_description, ExecuteProcess(
+            cmd=['@TEST_EXECUTABLE2@', '@TEST_EXECUTABLE1_NAME@'],
+            name='@TEST_EXECUTABLE2_NAME@',
+        )
     )
 
-    launcher = DefaultLauncher()
-    launcher.add_launch_descriptor(ld)
-    rc = launcher.launch()
+    launch_service = LaunchService()
+    launch_service.include_launch_description(launch_description)
+    rc = launch_test.run(launch_service)
 
     assert rc == 0, "The launch file failed with exit code '" + str(rc) + "'. "
 
