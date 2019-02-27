@@ -49,14 +49,17 @@ public:
     EXPECT_STREQ(expected_text, actual_text.c_str()); \
   } while (false)
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_different_endings)
 {
   // Things get recognized as tokens whether input ends or non token characters come after them
   EXPECT_LEX(RCL_LEXEME_TOKEN, "foo", "foo");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "foo", "foo:");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "foo_", "foo_");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "foo_", "foo_:");
+}
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_start_char)
+{
   // Check full range for starting character
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a", "a");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "b", "b");
@@ -111,13 +114,19 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   EXPECT_LEX(RCL_LEXEME_TOKEN, "Y", "Y");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "Z", "Z");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_", "_");
+}
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_adjacent_ascii)
+{
   // Check banned characters adjacent to allowed ones in ASCII
   EXPECT_LEX(RCL_LEXEME_NONE, "@", "@");
   EXPECT_LEX(RCL_LEXEME_NONE, "[", "[");
   EXPECT_LEX(RCL_LEXEME_NONE, "`", "`");
   EXPECT_LEX(RCL_LEXEME_NONE, "{", "{");
+}
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_cannot_start_with_digits)
+{
   // Tokens cannot start with digits
   EXPECT_LEX(RCL_LEXEME_NONE, "0", "0");
   EXPECT_LEX(RCL_LEXEME_NONE, "1", "1");
@@ -129,7 +138,10 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   EXPECT_LEX(RCL_LEXEME_NONE, "7", "7");
   EXPECT_LEX(RCL_LEXEME_NONE, "8", "8");
   EXPECT_LEX(RCL_LEXEME_NONE, "9", "9");
+}
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_underscores)
+{
   // Tokens may contain underscores
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_abcd", "_abcd");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "abcd_", "abcd_");
@@ -142,7 +154,10 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   EXPECT_LEX(RCL_LEXEME_TOKEN, "A_", "A__bcd");
   EXPECT_LEX(RCL_LEXEME_NONE, "__a", "__a");
   EXPECT_LEX(RCL_LEXEME_NONE, "__A", "__A");
+}
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_contain_digits)
+{
   // Tokens may contain digits
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_0_", "_0_");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_1_", "_1_");
@@ -164,7 +179,10 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a7a", "a7a");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a8a", "a8a");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a9a", "a9a");
+}
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_end_with_digits)
+{
   // Tokens may end with digits
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_0", "_0");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_1", "_1");
@@ -186,7 +204,10 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a7", "a7");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a8", "a8");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a9", "a9");
+}
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_close_to_url_scheme)
+{
   // Things that almost look like a url scheme but are actually tokens
   EXPECT_LEX(RCL_LEXEME_TOKEN, "ro", "ro");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "ros", "ros");
@@ -210,7 +231,10 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token)
   EXPECT_LEX(RCL_LEXEME_TOKEN, "rostopic", "rostopic:=");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "rostopic", "rostopic:/");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "rostopic", "rostopic:/a");
+}
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_upper_case)
+{
   // Tokens may contain uppercase characters
   EXPECT_LEX(RCL_LEXEME_TOKEN, "ABC", "ABC");
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_DEF", "_DEF");
