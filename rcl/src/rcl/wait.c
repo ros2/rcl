@@ -46,6 +46,10 @@ typedef struct rcl_wait_set_impl_t
   // number of services that have been added to the wait set
   size_t service_index;
   rmw_services_t rmw_services;
+  // number of events that have been added to the wait set
+  size_t event_index;
+  rmw_events_t rmw_events;
+
   rmw_wait_set_t * rmw_wait_set;
   // number of timers that have been added to the wait set
   size_t timer_index;
@@ -84,7 +88,7 @@ static void
 __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 {
   if (wait_set->subscriptions) {
-    rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0);
+    rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0, 0);
     (void)ret;  // NO LINT
     assert(RCL_RET_OK == ret);  // Defensive, shouldn't fail with size 0.
   }
@@ -102,6 +106,7 @@ rcl_wait_set_init(
   size_t number_of_timers,
   size_t number_of_clients,
   size_t number_of_services,
+  size_t number_of_events,
   rcl_context_t * context,
   rcl_allocator_t allocator)
 {
@@ -145,7 +150,8 @@ rcl_wait_set_init(
     (2 * number_of_subscriptions) +
     number_of_guard_conditions +
     number_of_clients +
-    number_of_services;
+    number_of_services +
+    number_of_events;
 
   wait_set->impl->rmw_wait_set = rmw_create_wait_set(&(context->impl->rmw_context), num_conditions);
   if (!wait_set->impl->rmw_wait_set) {
@@ -159,7 +165,7 @@ rcl_wait_set_init(
   // Initialize subscription space.
   rcl_ret_t ret = rcl_wait_set_resize(
     wait_set, number_of_subscriptions, number_of_guard_conditions, number_of_timers,
-    number_of_clients, number_of_services);
+    number_of_clients, number_of_services, number_of_events);
   if (RCL_RET_OK != ret) {
     fail_ret = ret;
     goto fail;
@@ -364,7 +370,8 @@ rcl_wait_set_resize(
   size_t guard_conditions_size,
   size_t timers_size,
   size_t clients_size,
-  size_t services_size)
+  size_t services_size,
+  size_t events_size)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set->impl, RCL_RET_WAIT_SET_INVALID);
@@ -421,6 +428,13 @@ rcl_wait_set_resize(
     SET_RESIZE_RMW_REALLOC(
       service, rmw_services.services, rmw_services.service_count)
   );
+  SET_RESIZE(event,
+    SET_RESIZE_RMW_DEALLOC(
+      rmw_events.events, rmw_events.event_count),
+    SET_RESIZE_RMW_REALLOC(
+      event, rmw_events.events, rmw_events.event_count)
+  );
+
   return RCL_RET_OK;
 }
 
@@ -571,6 +585,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &wait_set->impl->rmw_guard_conditions,
     &wait_set->impl->rmw_services,
     &wait_set->impl->rmw_clients,
+    &wait_set->impl->rmw_events,
     wait_set->impl->rmw_wait_set,
     timeout_argument);
 

@@ -34,6 +34,8 @@ extern "C"
 
 struct rcl_wait_set_impl_t;
 
+typedef rmw_event_t rcl_event_t;
+
 /// Container for subscription's, guard condition's, etc to be waited on.
 typedef struct rcl_wait_set_t
 {
@@ -52,6 +54,9 @@ typedef struct rcl_wait_set_t
   /// Storage for service pointers.
   const rcl_service_t ** services;
   size_t size_of_services;
+  /// Storage for event pointers.
+  const rcl_event_t ** events;
+  size_t size_of_events;
   /// Implementation specific storage.
   struct rcl_wait_set_impl_t * impl;
 } rcl_wait_set_t;
@@ -124,6 +129,7 @@ rcl_wait_set_init(
   size_t number_of_timers,
   size_t number_of_clients,
   size_t number_of_services,
+  size_t number_of_events,
   rcl_context_t * context,
   rcl_allocator_t allocator);
 
@@ -289,7 +295,8 @@ rcl_wait_set_resize(
   size_t guard_conditions_size,
   size_t timers_size,
   size_t clients_size,
-  size_t services_size);
+  size_t services_size,
+  size_t events_size);
 
 /// Store a pointer to the guard condition in the next empty spot in the set.
 /**
