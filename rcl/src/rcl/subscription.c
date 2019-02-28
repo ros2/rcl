@@ -21,20 +21,16 @@ extern "C"
 
 #include <stdio.h>
 
-#include "./common.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
-#include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
 
-typedef struct rcl_subscription_impl_t
-{
-  rcl_subscription_options_t options;
-  rmw_subscription_t * rmw_handle;
-} rcl_subscription_impl_t;
+#include "./common.h"
+#include "./types_impl.h"
+
 
 rcl_subscription_t
 rcl_get_zero_initialized_subscription()

@@ -22,22 +22,17 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
-#include "./common.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
-#include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
 
-typedef struct rcl_publisher_impl_t
-{
-  rcl_publisher_options_t options;
-  rcl_context_t * context;
-  rmw_publisher_t * rmw_handle;
-} rcl_publisher_impl_t;
+#include "./common.h"
+#include "./types_impl.h"
+
 
 rcl_publisher_t
 rcl_get_zero_initialized_publisher()

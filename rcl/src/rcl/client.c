@@ -26,19 +26,12 @@ extern "C"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
 #include "rcutils/logging_macros.h"
-#include "rcutils/stdatomic_helper.h"
 #include "rmw/error_handling.h"
-#include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
 
 #include "./common.h"
+#include "./types_impl.h"
 
-typedef struct rcl_client_impl_t
-{
-  rcl_client_options_t options;
-  rmw_client_t * rmw_handle;
-  atomic_int_least64_t sequence_number;
-} rcl_client_impl_t;
 
 rcl_client_t
 rcl_get_zero_initialized_client()

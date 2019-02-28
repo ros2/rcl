@@ -29,12 +29,11 @@ extern "C"
 #include "rcl/service.h"
 #include "rcl/subscription.h"
 #include "rcl/timer.h"
+#include "rcl/event.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
 struct rcl_wait_set_impl_t;
-
-typedef rmw_event_t rcl_event_t;
 
 /// Container for subscription's, guard condition's, etc to be waited on.
 typedef struct rcl_wait_set_t

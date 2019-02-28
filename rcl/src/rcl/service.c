@@ -27,14 +27,10 @@ extern "C"
 #include "rcl/remap.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
-#include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
 
-typedef struct rcl_service_impl_t
-{
-  rcl_service_options_t options;
-  rmw_service_t * rmw_handle;
-} rcl_service_impl_t;
+#include "./types_impl.h"
+
 
 rcl_service_t
 rcl_get_zero_initialized_service()
