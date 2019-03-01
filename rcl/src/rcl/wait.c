@@ -494,6 +494,17 @@ rcl_wait_set_add_service(
 }
 
 rcl_ret_t
+rcl_wait_set_add_event(
+  rcl_wait_set_t * wait_set,
+  const rcl_event_t * event,
+  size_t * index)
+{
+  SET_ADD(event)
+  SET_ADD_RMW(event, rmw_events.events, rmw_events.event_count)
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);

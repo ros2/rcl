@@ -87,6 +87,37 @@ rcl_ret_t
 rcl_event_fini(rcl_event_t * event);
 
 
+/// Return the rmw event handle.
+/**
+ * The handle returned is a pointer to the internally held rmw handle.
+ * This function can fail, and therefore return `NULL`, if the:
+ *   - event is `NULL`
+ *   - event is invalid (never called init, called fini, or invalid node)
+ *
+ * The returned handle is made invalid if the event is finalized or if
+ * rcl_shutdown() is called.
+ * The returned handle is not guaranteed to be valid for the life time of the
+ * event as it may be finalized and recreated itself.
+ * Therefore it is recommended to get the handle from the event using
+ * this function each time it is needed and avoid use of the handle
+ * concurrently with functions that might change it.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] event pointer to the rcl event
+ * \return rmw event handle if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rmw_event_t *
+rcl_event_get_rmw_handle(const rcl_event_t * event);
+
 #ifdef __cplusplus
 }
 #endif

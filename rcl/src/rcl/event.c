@@ -83,6 +83,15 @@ rcl_event_fini(rcl_event_t * event)
   return rcl_convert_rmw_ret_to_rcl_ret(ret);
 }
 
+rmw_event_t *
+rcl_event_get_rmw_handle(const rcl_event_t * event)
+{
+  if (NULL == event) {
+    return NULL;  // error already set
+  } else {
+    return event->impl->rmw_handle;
+  }
+}
 
 #ifdef __cplusplus
 }

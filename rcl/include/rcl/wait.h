@@ -349,6 +349,19 @@ rcl_wait_set_add_service(
   const rcl_service_t * service,
   size_t * index);
 
+/// Store a pointer to the event in the next empty spot in the set.
+/**
+ * This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_add_subscription
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_set_add_event(
+  rcl_wait_set_t * wait_set,
+  const rcl_event_t * event,
+  size_t * index);
+
 /// Block until the wait set is ready or until the timeout has been exceeded.
 /**
  * This function will collect the items in the rcl_wait_set_t and pass them
