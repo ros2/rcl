@@ -20,12 +20,12 @@ extern "C"
 {
 #endif
 
-#include "rcl/macros.h"
-#include "rcl/visibility_control.h"
-#include "rcl/publisher.h"
-#include "rcl/subscription.h"
 #include "rcl/client.h"
+#include "rcl/macros.h"
+#include "rcl/publisher.h"
 #include "rcl/service.h"
+#include "rcl/subscription.h"
+#include "rcl/visibility_control.h"
 
 
 /// Internal rcl implementation struct.
@@ -79,6 +79,14 @@ rcl_ret_t
 rcl_service_event_init(
   rcl_event_t * event,
   const rcl_service_t * service);
+
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_take_event(
+        const rcl_event_t * event,
+        void * event_status);
 
 
 RCL_PUBLIC

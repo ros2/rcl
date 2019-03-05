@@ -76,6 +76,30 @@ rcl_service_event_init(
 }
 
 rcl_ret_t
+rcl_take_event(
+        const rcl_event_t * event,
+        void * event_status)
+{
+  bool taken;
+  RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(event_status, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t ret = rmw_take_event(event->impl->rmw_handle, event_status, &taken);
+  if (RMW_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    if (RMW_RET_BAD_ALLOC == ret) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    return RCL_RET_ERROR;
+  }
+  RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Event take request succeeded: %s", taken ? "true" : "false");
+  if (!taken) {
+    return RCL_RET_EVENT_TAKE_FAILED;
+  }
+  return rcl_convert_rmw_ret_to_rcl_ret(ret);
+}
+
+rcl_ret_t
 rcl_event_fini(rcl_event_t * event)
 {
   rmw_ret_t ret = rmw_destroy_event(event->impl->rmw_handle);

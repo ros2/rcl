@@ -99,6 +99,13 @@ typedef rmw_ret_t rcl_ret_t;
 /// Argument is not a valid log level rule
 #define RCL_RET_INVALID_LOG_LEVEL_RULE 1020
 
+// rcl event specific ret codes in 20XX
+/// Invalid rcl_event_t given return code.
+#define RCL_RET_EVENT_INVALID 2000
+/// Failed to take an event from the event handle
+#define RCL_RET_EVENT_TAKE_FAILED 2001
+
+
 /// typedef for rmw_serialized_message_t;
 typedef rmw_serialized_message_t rcl_serialized_message_t;
 
