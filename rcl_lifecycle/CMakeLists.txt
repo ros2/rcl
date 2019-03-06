@@ -48,6 +48,7 @@ ament_target_dependencies(rcl_lifecycle
   "rcutils"
 )
 
+rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(rcl_lifecycle PRIVATE "RCL_LIFECYCLE_BUILDING_DLL")
