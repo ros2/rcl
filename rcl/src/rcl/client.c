@@ -168,6 +168,7 @@ rcl_client_init(
   }
   // options
   client->impl->options = *options;
+  atomic_init(&client->impl->sequence_number, 0);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client initialized");
   ret = RCL_RET_OK;
   goto cleanup;
