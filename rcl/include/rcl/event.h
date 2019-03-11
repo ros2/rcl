@@ -28,6 +28,20 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 
+typedef enum rcl_publisher_event_type_t
+{
+  RCL_PUBLISHER_DEADLINE,
+  RCL_PUBLISHER_LIVELINESS
+} rcl_publisher_event_type_t;
+
+
+typedef enum rcl_subscription_event_type_t
+{
+  RCL_SUBSCRIPTION_DEADLINE,
+  RCL_SUBSCRIPTION_LIVELINESS
+} rcl_subscription_event_type_t;
+
+
 /// Internal rcl implementation struct.
 struct rcl_event_impl_t;
 
@@ -54,7 +68,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publisher_event_init(
   rcl_event_t * event,
-  const rcl_publisher_t * publisher);
+  const rcl_publisher_t * publisher,
+  const rcl_publisher_event_type_t event_type);
 
 
 RCL_PUBLIC
@@ -62,7 +77,8 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_event_init(
   rcl_event_t * event,
-  const rcl_subscription_t * subscription);
+  const rcl_subscription_t * subscription,
+  const rcl_subscription_event_type_t event_type);
 
 
 RCL_PUBLIC
@@ -85,8 +101,8 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_take_event(
-        const rcl_event_t * event,
-        void * event_status);
+  const rcl_event_t * event,
+  void * event_info);
 
 
 RCL_PUBLIC

@@ -42,18 +42,48 @@ rcl_get_zero_initialized_event()
 rcl_ret_t
 rcl_publisher_event_init(
   rcl_event_t * event,
-  const rcl_publisher_t * publisher)
+  const rcl_publisher_t * publisher,
+  const rcl_publisher_event_type_t event_type)
 {
-  event->impl->rmw_handle = rmw_create_publisher_event(publisher->impl->rmw_handle);
+  rmw_event_type_t rmw_event_type;
+
+  switch(event_type) {
+    case RCL_PUBLISHER_DEADLINE:
+      rmw_event_type = RMW_EVENT_OFFERED_DEADLINE_MISSED;
+      break;
+    case RCL_PUBLISHER_LIVELINESS:
+      rmw_event_type = RMW_EVENT_LIVELINESS_LOST;
+      break;
+    default:
+      return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  event->impl->rmw_handle = rmw_create_publisher_event(publisher->impl->rmw_handle, rmw_event_type);
+
   return RCL_RET_OK;
 }
 
 rcl_ret_t
 rcl_subscription_event_init(
   rcl_event_t * event,
-  const rcl_subscription_t * subscription)
+  const rcl_subscription_t * subscription,
+  const rcl_subscription_event_type_t event_type)
 {
-  event->impl->rmw_handle = rmw_create_subscription_event(subscription->impl->rmw_handle);
+  rmw_event_type_t rmw_event_type;
+
+  switch(event_type) {
+    case RCL_SUBSCRIPTION_DEADLINE:
+      rmw_event_type = RMW_EVENT_REQUESTED_DEADLINE_MISSED;
+      break;
+    case RCL_SUBSCRIPTION_LIVELINESS:
+      rmw_event_type = RMW_EVENT_LIVELINESS_CHANGED;
+      break;
+    default:
+      return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  event->impl->rmw_handle = rmw_create_subscription_event(subscription->impl->rmw_handle, rmw_event_type);
+
   return RCL_RET_OK;
 }
 
@@ -77,8 +107,8 @@ rcl_service_event_init(
 
 rcl_ret_t
 rcl_take_event(
-        const rcl_event_t * event,
-        void * event_status)
+  const rcl_event_t * event,
+  void * event_status)
 {
   bool taken;
   RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_INVALID_ARGUMENT);

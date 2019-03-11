@@ -336,6 +336,7 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set)
   SET_CLEAR(guard_condition);
   SET_CLEAR(client);
   SET_CLEAR(service);
+  SET_CLEAR(event);
   SET_CLEAR(timer);
 
   SET_CLEAR_RMW(
@@ -354,6 +355,10 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set)
     services,
     rmw_services.services,
     rmw_services.service_count);
+  SET_CLEAR_RMW(
+    events,
+    rmw_events.events,
+    rmw_events.event_count);
 
   return RCL_RET_OK;
 }
@@ -517,7 +522,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     wait_set->size_of_guard_conditions == 0 &&
     wait_set->size_of_timers == 0 &&
     wait_set->size_of_clients == 0 &&
-    wait_set->size_of_services == 0)
+    wait_set->size_of_services == 0 &&
+    wait_set->size_of_events == 0)
   {
     RCL_SET_ERROR_MSG("wait set is empty");
     return RCL_RET_WAIT_SET_EMPTY;
