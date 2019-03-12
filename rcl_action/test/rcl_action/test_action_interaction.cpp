@@ -36,16 +36,16 @@ class CLASSNAME (TestActionClientServerInteraction, RMW_IMPLEMENTATION) : public
 protected:
   void SetUp() override
   {
-    test_msgs__action__Fibonacci_Goal_Request__init(&this->outgoing_goal_request);
-    test_msgs__action__Fibonacci_Goal_Request__init(&this->incoming_goal_request);
-    test_msgs__action__Fibonacci_Goal_Response__init(&this->outgoing_goal_response);
-    test_msgs__action__Fibonacci_Goal_Response__init(&this->incoming_goal_response);
-    test_msgs__action__Fibonacci_Result_Request__init(&this->outgoing_result_request);
-    test_msgs__action__Fibonacci_Result_Request__init(&this->incoming_result_request);
-    test_msgs__action__Fibonacci_Result_Response__init(&this->outgoing_result_response);
-    test_msgs__action__Fibonacci_Result_Response__init(&this->incoming_result_response);
-    test_msgs__action__Fibonacci_Feedback__init(&this->outgoing_feedback);
-    test_msgs__action__Fibonacci_Feedback__init(&this->incoming_feedback);
+    test_msgs__action__Fibonacci_SendGoal_Request__init(&this->outgoing_goal_request);
+    test_msgs__action__Fibonacci_SendGoal_Request__init(&this->incoming_goal_request);
+    test_msgs__action__Fibonacci_SendGoal_Response__init(&this->outgoing_goal_response);
+    test_msgs__action__Fibonacci_SendGoal_Response__init(&this->incoming_goal_response);
+    test_msgs__action__Fibonacci_GetResult_Request__init(&this->outgoing_result_request);
+    test_msgs__action__Fibonacci_GetResult_Request__init(&this->incoming_result_request);
+    test_msgs__action__Fibonacci_GetResult_Response__init(&this->outgoing_result_response);
+    test_msgs__action__Fibonacci_GetResult_Response__init(&this->incoming_result_response);
+    test_msgs__action__Fibonacci_FeedbackMessage__init(&this->outgoing_feedback);
+    test_msgs__action__Fibonacci_FeedbackMessage__init(&this->incoming_feedback);
 
 
     rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -118,16 +118,16 @@ protected:
   void TearDown() override
   {
     // Finalize
-    test_msgs__action__Fibonacci_Goal_Request__fini(&this->outgoing_goal_request);
-    test_msgs__action__Fibonacci_Goal_Request__fini(&this->incoming_goal_request);
-    test_msgs__action__Fibonacci_Goal_Response__fini(&this->incoming_goal_response);
-    test_msgs__action__Fibonacci_Goal_Response__fini(&this->outgoing_goal_response);
-    test_msgs__action__Fibonacci_Result_Request__fini(&this->incoming_result_request);
-    test_msgs__action__Fibonacci_Result_Request__fini(&this->outgoing_result_request);
-    test_msgs__action__Fibonacci_Result_Response__fini(&this->incoming_result_response);
-    test_msgs__action__Fibonacci_Result_Response__fini(&this->outgoing_result_response);
-    test_msgs__action__Fibonacci_Feedback__fini(&this->outgoing_feedback);
-    test_msgs__action__Fibonacci_Feedback__fini(&this->incoming_feedback);
+    test_msgs__action__Fibonacci_SendGoal_Request__fini(&this->outgoing_goal_request);
+    test_msgs__action__Fibonacci_SendGoal_Request__fini(&this->incoming_goal_request);
+    test_msgs__action__Fibonacci_SendGoal_Response__fini(&this->incoming_goal_response);
+    test_msgs__action__Fibonacci_SendGoal_Response__fini(&this->outgoing_goal_response);
+    test_msgs__action__Fibonacci_GetResult_Request__fini(&this->incoming_result_request);
+    test_msgs__action__Fibonacci_GetResult_Request__fini(&this->outgoing_result_request);
+    test_msgs__action__Fibonacci_GetResult_Response__fini(&this->incoming_result_response);
+    test_msgs__action__Fibonacci_GetResult_Response__fini(&this->outgoing_result_response);
+    test_msgs__action__Fibonacci_FeedbackMessage__fini(&this->outgoing_feedback);
+    test_msgs__action__Fibonacci_FeedbackMessage__fini(&this->incoming_feedback);
     rcl_ret_t ret = rcl_action_server_fini(&this->action_server, &this->node);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_clock_fini(&this->clock);
@@ -156,16 +156,16 @@ protected:
     }
   }
 
-  test_msgs__action__Fibonacci_Goal_Request outgoing_goal_request;
-  test_msgs__action__Fibonacci_Goal_Request incoming_goal_request;
-  test_msgs__action__Fibonacci_Goal_Response outgoing_goal_response;
-  test_msgs__action__Fibonacci_Goal_Response incoming_goal_response;
-  test_msgs__action__Fibonacci_Result_Request outgoing_result_request;
-  test_msgs__action__Fibonacci_Result_Request incoming_result_request;
-  test_msgs__action__Fibonacci_Result_Response outgoing_result_response;
-  test_msgs__action__Fibonacci_Result_Response incoming_result_response;
-  test_msgs__action__Fibonacci_Feedback outgoing_feedback;
-  test_msgs__action__Fibonacci_Feedback incoming_feedback;
+  test_msgs__action__Fibonacci_SendGoal_Request outgoing_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Request incoming_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Response outgoing_goal_response;
+  test_msgs__action__Fibonacci_SendGoal_Response incoming_goal_response;
+  test_msgs__action__Fibonacci_GetResult_Request outgoing_result_request;
+  test_msgs__action__Fibonacci_GetResult_Request incoming_result_request;
+  test_msgs__action__Fibonacci_GetResult_Response outgoing_result_response;
+  test_msgs__action__Fibonacci_GetResult_Response incoming_result_response;
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback;
 
   rcl_action_client_t action_client;
   rcl_action_server_t action_server;
@@ -197,8 +197,8 @@ protected:
 TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction)
 {
   // Initialize goal request
-  init_test_uuid0(this->outgoing_goal_request.action_goal_id.uuid);
-  this->outgoing_goal_request.order = 10;
+  init_test_uuid0(this->outgoing_goal_request.goal_id.uuid);
+  this->outgoing_goal_request.goal.order = 10;
 
   // Send goal request with valid arguments
   int64_t sequence_number;
@@ -235,10 +235,10 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that the goal request was received correctly
-  EXPECT_EQ(this->outgoing_goal_request.order, this->incoming_goal_request.order);
+  EXPECT_EQ(this->outgoing_goal_request.goal.order, this->incoming_goal_request.goal.order);
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_goal_request.action_goal_id.uuid,
-      this->incoming_goal_request.action_goal_id.uuid));
+      this->outgoing_goal_request.goal_id.uuid,
+      this->incoming_goal_request.goal_id.uuid));
 
   // Initialize goal response
   this->outgoing_goal_response.accepted = true;
@@ -288,7 +288,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(this->outgoing_goal_response.stamp.nanosec, this->incoming_goal_response.stamp.nanosec);
 
   // Initialize result request
-  init_test_uuid0(this->outgoing_result_request.action_goal_id.uuid);
+  init_test_uuid0(this->outgoing_result_request.goal_id.uuid);
 
   // Send result request with valid arguments
   ret = rcl_action_send_result_request(
@@ -297,11 +297,11 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Initialize feedback
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
-      &this->outgoing_feedback.sequence, 3));
-  this->outgoing_feedback.sequence.data[0] = 0;
-  this->outgoing_feedback.sequence.data[1] = 1;
-  this->outgoing_feedback.sequence.data[2] = 2;
-  init_test_uuid0(this->outgoing_feedback.action_goal_id.uuid);
+      &this->outgoing_feedback.feedback.sequence, 3));
+  this->outgoing_feedback.feedback.sequence.data[0] = 0;
+  this->outgoing_feedback.feedback.sequence.data[1] = 1;
+  this->outgoing_feedback.feedback.sequence.data[2] = 2;
+  init_test_uuid0(this->outgoing_feedback.goal_id.uuid);
 
   // Publish feedback with valid arguments
   ret = rcl_action_publish_feedback(&this->action_server, &this->outgoing_feedback);
@@ -339,13 +339,15 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Check that feedback was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_feedback.action_goal_id.uuid,
-      this->incoming_feedback.action_goal_id.uuid));
-  ASSERT_EQ(this->outgoing_feedback.sequence.size, this->incoming_feedback.sequence.size);
+      this->outgoing_feedback.goal_id.uuid,
+      this->incoming_feedback.goal_id.uuid));
+  ASSERT_EQ(
+    this->outgoing_feedback.feedback.sequence.size,
+    this->incoming_feedback.feedback.sequence.size);
   EXPECT_TRUE(!memcmp(
-      this->outgoing_feedback.sequence.data,
-      this->incoming_feedback.sequence.data,
-      this->outgoing_feedback.sequence.size));
+      this->outgoing_feedback.feedback.sequence.data,
+      this->incoming_feedback.feedback.sequence.data,
+      this->outgoing_feedback.feedback.sequence.size));
 
   ret = rcl_wait_set_clear(&this->wait_set);
 
@@ -377,17 +379,17 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_result_request.action_goal_id.uuid,
-      this->incoming_result_request.action_goal_id.uuid));
+      this->outgoing_result_request.goal_id.uuid,
+      this->incoming_result_request.goal_id.uuid));
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
-      &this->outgoing_result_response.sequence, 4));
-  this->outgoing_result_response.sequence.data[0] = 0;
-  this->outgoing_result_response.sequence.data[1] = 1;
-  this->outgoing_result_response.sequence.data[2] = 2;
-  this->outgoing_result_response.sequence.data[3] = 6;
-  this->outgoing_result_response.action_status =
+      &this->outgoing_result_response.result.sequence, 4));
+  this->outgoing_result_response.result.sequence.data[0] = 0;
+  this->outgoing_result_response.result.sequence.data[1] = 1;
+  this->outgoing_result_response.result.sequence.data[2] = 2;
+  this->outgoing_result_response.result.sequence.data[3] = 6;
+  this->outgoing_result_response.status =
     action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
 
   // Send result response with valid arguments
@@ -428,14 +430,15 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Check that the result response was received correctly
   EXPECT_EQ(
-    this->outgoing_result_response.action_status,
-    this->incoming_result_response.action_status);
+    this->outgoing_result_response.status,
+    this->incoming_result_response.status);
   ASSERT_EQ(
-    this->outgoing_result_response.sequence.size, this->incoming_result_response.sequence.size);
+    this->outgoing_result_response.result.sequence.size,
+    this->incoming_result_response.result.sequence.size);
   EXPECT_TRUE(!memcmp(
-      this->outgoing_result_response.sequence.data,
-      this->incoming_result_response.sequence.data,
-      this->outgoing_result_response.sequence.size));
+      this->outgoing_result_response.result.sequence.data,
+      this->incoming_result_response.result.sequence.data,
+      this->outgoing_result_response.result.sequence.size));
 }
 
 // Exercises the "Example 2" sequence diagram found in the actions_proposal document.
@@ -455,8 +458,8 @@ TEST_F(
   action_msgs__srv__CancelGoal_Response__init(&incoming_cancel_response);
 
   // Initialize goal request
-  init_test_uuid0(this->outgoing_goal_request.action_goal_id.uuid);
-  this->outgoing_goal_request.order = 10;
+  init_test_uuid0(this->outgoing_goal_request.goal_id.uuid);
+  this->outgoing_goal_request.goal.order = 10;
 
   // Send goal request with valid arguments
   int64_t sequence_number;
@@ -493,10 +496,10 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that the goal request was received correctly
-  EXPECT_EQ(this->outgoing_goal_request.order, this->incoming_goal_request.order);
+  EXPECT_EQ(this->outgoing_goal_request.goal.order, this->incoming_goal_request.goal.order);
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_goal_request.action_goal_id.uuid,
-      this->incoming_goal_request.action_goal_id.uuid));
+      this->outgoing_goal_request.goal_id.uuid,
+      this->incoming_goal_request.goal_id.uuid));
 
   // Initialize goal response
   this->outgoing_goal_response.accepted = true;
@@ -546,7 +549,7 @@ TEST_F(
   EXPECT_EQ(this->outgoing_goal_response.stamp.nanosec, this->incoming_goal_response.stamp.nanosec);
 
   // Initialize result request
-  init_test_uuid0(this->outgoing_result_request.action_goal_id.uuid);
+  init_test_uuid0(this->outgoing_result_request.goal_id.uuid);
 
   // Send result request with valid arguments
   ret = rcl_action_send_result_request(
@@ -555,11 +558,11 @@ TEST_F(
 
   // Initialize feedback
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
-      &this->outgoing_feedback.sequence, 3));
-  this->outgoing_feedback.sequence.data[0] = 0;
-  this->outgoing_feedback.sequence.data[1] = 1;
-  this->outgoing_feedback.sequence.data[2] = 2;
-  init_test_uuid0(this->outgoing_feedback.action_goal_id.uuid);
+      &this->outgoing_feedback.feedback.sequence, 3));
+  this->outgoing_feedback.feedback.sequence.data[0] = 0;
+  this->outgoing_feedback.feedback.sequence.data[1] = 1;
+  this->outgoing_feedback.feedback.sequence.data[2] = 2;
+  init_test_uuid0(this->outgoing_feedback.goal_id.uuid);
 
   // Publish feedback with valid arguments
   ret = rcl_action_publish_feedback(&this->action_server, &this->outgoing_feedback);
@@ -597,13 +600,15 @@ TEST_F(
 
   // Check that feedback was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_feedback.action_goal_id.uuid,
-      this->incoming_feedback.action_goal_id.uuid));
-  ASSERT_EQ(this->outgoing_feedback.sequence.size, this->incoming_feedback.sequence.size);
+      this->outgoing_feedback.goal_id.uuid,
+      this->incoming_feedback.goal_id.uuid));
+  ASSERT_EQ(
+    this->outgoing_feedback.feedback.sequence.size,
+    this->incoming_feedback.feedback.sequence.size);
   EXPECT_TRUE(!memcmp(
-      this->outgoing_feedback.sequence.data,
-      this->incoming_feedback.sequence.data,
-      this->outgoing_feedback.sequence.size));
+      this->outgoing_feedback.feedback.sequence.data,
+      this->incoming_feedback.feedback.sequence.data,
+      this->outgoing_feedback.feedback.sequence.size));
 
   ret = rcl_wait_set_clear(&this->wait_set);
 
@@ -635,17 +640,17 @@ TEST_F(
 
   // Check that the result request was received correctly
   EXPECT_TRUE(uuidcmp(
-      this->outgoing_result_request.action_goal_id.uuid,
-      this->incoming_result_request.action_goal_id.uuid));
+      this->outgoing_result_request.goal_id.uuid,
+      this->incoming_result_request.goal_id.uuid));
 
   // Initialize result response
   ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
-      &this->outgoing_result_response.sequence, 4));
-  this->outgoing_result_response.sequence.data[0] = 0;
-  this->outgoing_result_response.sequence.data[1] = 1;
-  this->outgoing_result_response.sequence.data[2] = 2;
-  this->outgoing_result_response.sequence.data[3] = 6;
-  this->outgoing_result_response.action_status =
+      &this->outgoing_result_response.result.sequence, 4));
+  this->outgoing_result_response.result.sequence.data[0] = 0;
+  this->outgoing_result_response.result.sequence.data[1] = 1;
+  this->outgoing_result_response.result.sequence.data[2] = 2;
+  this->outgoing_result_response.result.sequence.data[3] = 6;
+  this->outgoing_result_response.status =
     action_msgs__msg__GoalStatus__STATUS_SUCCEEDED;
 
   // Initialize cancel request
@@ -790,23 +795,24 @@ TEST_F(
 
   // Check that the result response was received correctly
   EXPECT_EQ(
-    this->outgoing_result_response.action_status,
-    this->incoming_result_response.action_status);
+    this->outgoing_result_response.status,
+    this->incoming_result_response.status);
   ASSERT_EQ(
-    this->outgoing_result_response.sequence.size, this->incoming_result_response.sequence.size);
+    this->outgoing_result_response.result.sequence.size,
+    this->incoming_result_response.result.sequence.size);
   EXPECT_TRUE(!memcmp(
-      this->outgoing_result_response.sequence.data,
-      this->incoming_result_response.sequence.data,
-      this->outgoing_result_response.sequence.size));
+      this->outgoing_result_response.result.sequence.data,
+      this->incoming_result_response.result.sequence.data,
+      this->outgoing_result_response.result.sequence.size));
 
-  test_msgs__action__Fibonacci_Goal_Request__fini(&this->outgoing_goal_request);
-  test_msgs__action__Fibonacci_Goal_Request__fini(&this->incoming_goal_request);
-  test_msgs__action__Fibonacci_Goal_Response__fini(&this->incoming_goal_response);
-  test_msgs__action__Fibonacci_Goal_Response__fini(&this->outgoing_goal_response);
-  test_msgs__action__Fibonacci_Result_Request__fini(&this->incoming_result_request);
-  test_msgs__action__Fibonacci_Result_Request__fini(&this->outgoing_result_request);
-  test_msgs__action__Fibonacci_Result_Response__fini(&this->incoming_result_response);
-  test_msgs__action__Fibonacci_Result_Response__fini(&this->outgoing_result_response);
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&this->outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&this->incoming_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Response__fini(&this->incoming_goal_response);
+  test_msgs__action__Fibonacci_SendGoal_Response__fini(&this->outgoing_goal_response);
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&this->incoming_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&this->outgoing_result_request);
+  test_msgs__action__Fibonacci_GetResult_Response__fini(&this->incoming_result_response);
+  test_msgs__action__Fibonacci_GetResult_Response__fini(&this->outgoing_result_response);
   action_msgs__srv__CancelGoal_Request__fini(&incoming_cancel_request);
   action_msgs__srv__CancelGoal_Request__fini(&outgoing_cancel_request);
   action_msgs__srv__CancelGoal_Response__fini(&incoming_cancel_response);
