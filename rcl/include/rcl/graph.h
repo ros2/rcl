@@ -36,23 +36,20 @@ typedef rmw_names_and_types_t rcl_names_and_types_t;
 
 #define rcl_get_zero_initialized_names_and_types rmw_get_zero_initialized_names_and_types
 
-/// Return a list of publisher topic names and their types per node.
+/// Return a list of topic names and types for publishers associated with a node.
 /**
- * This function returns a list of topic names in the ROS graph for param node_name and their types.
+ * The `node` parameter must point to a valid node.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
- *
- * The topic_names_and_types parameter must be allocated and zero initialized.
- * The topic_names_and_types is the output for this function, and contains
- * allocated memory.
- * Therefore, it should be passed to rcl_names_and_types_fini() when
- * it is no longer needed.
+ * The `topic_names_and_types` parameter must be allocated and zero initialized.
+ * This function allocates memory for the returned list of names and types and so it is the
+ * callers responsibility to pass `topic_names_and_types` to rcl_names_and_types_fini()
+ * when it is no longer needed.
  * Failing to do so will result in leaked memory.
  *
- * There may be some demangling that occurs when listing the topics from the
- * middleware implementation.
- * If the no_demangle argument is true, then this will be avoided and the
- * topics will be returned as they appear to the middleware.
+ * There may be some demangling that occurs when listing the names from the middleware
+ * implementation.
+ * If the `no_demangle` argument is set to `true`, then this will be avoided and the names will be
+ * returned as they appear to the middleware.
  *
  * \see rmw_get_topic_names_and_types for more details on no_demangle
  *
@@ -72,8 +69,8 @@ typedef rmw_names_and_types_t rcl_names_and_types_t;
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] allocator allocator to be used when allocating space for strings
  * \param[in] no_demangle if true, list all topics without any demangling
- * \param[in] node_name of the node to look up topics
- * \param[in] node_namespace of the node to look up topics
+ * \param[in] node_name the node name of the topics to return
+ * \param[in] node_namespace the node namespace of the topics to return
  * \param[out] topic_names_and_types list of topic names and their types
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
@@ -91,25 +88,17 @@ rcl_get_publisher_names_and_types_by_node(
   const char * node_namespace,
   rcl_names_and_types_t * topic_names_and_types);
 
-/// Return a list of subcriber topic names and their types per node.
+/// Return a list of topic names and types for subscriptions associated with a node.
 /**
- * This function returns a list of topic names in the ROS graph for param node_name and their types.
+ * The `node` parameter must point to a valid node.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
- *
- * The topic_names_and_types parameter must be allocated and zero initialized.
- * The topic_names_and_types is the output for this function, and contains
- * allocated memory.
- * Therefore, it should be passed to rcl_names_and_types_fini() when
- * it is no longer needed.
+ * The `topic_names_and_types` parameter must be allocated and zero initialized.
+ * This function allocates memory for the returned list of names and types and so it is the
+ * callers responsibility to pass `topic_names_and_types` to rcl_names_and_types_fini()
+ * when it is no longer needed.
  * Failing to do so will result in leaked memory.
  *
- * There may be some demangling that occurs when listing the topics from the
- * middleware implementation.
- * If the no_demangle argument is true, then this will be avoided and the
- * topics will be returned as they appear to the middleware.
- *
- * \see rmw_get_topic_names_and_types for more details on no_demangle
+ * \see rcl_get_publisher_names_and_types_by_node for details on the `no_demangle` parameter.
  *
  * The returned names are not automatically remapped by this function.
  * Attempting to create publishers or subscribers using names returned by this function may not
@@ -127,8 +116,8 @@ rcl_get_publisher_names_and_types_by_node(
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] allocator allocator to be used when allocating space for strings
  * \param[in] no_demangle if true, list all topics without any demangling
- * \param[in] node_name of the node to look up topics
- * \param[in] node_namespace of the node to look up topics
+ * \param[in] node_name the node name of the topics to return
+ * \param[in] node_namespace the node namespace of the topics to return
  * \param[out] topic_names_and_types list of topic names and their types
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
@@ -146,29 +135,21 @@ rcl_get_subscriber_names_and_types_by_node(
   const char * node_namespace,
   rcl_names_and_types_t * topic_names_and_types);
 
-/// Return a list of service names and their types per node.
+/// Return a list of service names and types for associated with a node.
 /**
- * This function returns a list of service names in the ROS graph for param node_name and their types.
+ * The `node` parameter must point to a valid node.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
- *
- * The topic_names_and_types parameter must be allocated and zero initialized.
- * The topic_names_and_types is the output for this function, and contains
- * allocated memory.
- * Therefore, it should be passed to rcl_names_and_types_fini() when
- * it is no longer needed.
+ * The `service_names_and_types` parameter must be allocated and zero initialized.
+ * This function allocates memory for the returned list of names and types and so it is the
+ * callers responsibility to pass `service_names_and_types` to rcl_names_and_types_fini()
+ * when it is no longer needed.
  * Failing to do so will result in leaked memory.
  *
- * There may be some demangling that occurs when listing the topics from the
- * middleware implementation.
- * If the no_demangle argument is true, then this will be avoided and the
- * topics will be returned as they appear to the middleware.
- *
- * \see rmw_get_topic_names_and_types for more details on no_demangle
+ * \see rcl_get_publisher_names_and_types_by_node for details on the `no_demangle` parameter.
  *
  * The returned names are not automatically remapped by this function.
- * Attempting to create publishers or subscribers using names returned by this function may not
- * result in the desired topic name being used depending on the remap rules in use.
+ * Attempting to create clients or services using names returned by this function may not
+ * result in the desired service name being used depending on the remap rules in use.
  *
  * <hr>
  * Attribute          | Adherence
@@ -181,8 +162,8 @@ rcl_get_subscriber_names_and_types_by_node(
  *
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] allocator allocator to be used when allocating space for strings
- * \param[in] node_name of the node to look up topics
- * \param[in] node_namespace of the node to look up topics
+ * \param[in] node_name the node name of the services to return
+ * \param[in] node_namespace the node namespace of the services to return
  * \param[out] service_names_and_types list of service names and their types
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
@@ -201,23 +182,15 @@ rcl_get_service_names_and_types_by_node(
 
 /// Return a list of topic names and their types.
 /**
- * This function returns a list of topic names in the ROS graph and their types.
+ * The `node` parameter must point to a valid node.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
- *
- * The topic_names_and_types parameter must be allocated and zero initialized.
- * The topic_names_and_types is the output for this function, and contains
- * allocated memory.
- * Therefore, it should be passed to rcl_names_and_types_fini() when
- * it is no longer needed.
+ * The `topic_names_and_types` parameter must be allocated and zero initialized.
+ * This function allocates memory for the returned list of names and types and so it is the
+ * callers responsibility to pass `topic_names_and_types` to rcl_names_and_types_fini()
+ * when it is no longer needed.
  * Failing to do so will result in leaked memory.
  *
- * There may be some demangling that occurs when listing the topics from the
- * middleware implementation.
- * If the no_demangle argument is true, then this will be avoided and the
- * topics will be returned as they appear to the middleware.
- *
- * \see rmw_get_topic_names_and_types for more details on no_demangle
+ * \see rcl_get_publisher_names_and_types_by_node for details on the `no_demangle` parameter.
  *
  * The returned names are not automatically remapped by this function.
  * Attempting to create publishers or subscribers using names returned by this function may not
@@ -252,17 +225,14 @@ rcl_get_topic_names_and_types(
 
 /// Return a list of service names and their types.
 /**
- * This function returns a list of service names in the ROS graph and their types.
+ * The `node` parameter must point to a valid node.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
- *
- * The service_names_and_types parameter must be allocated and zero initialized.
- * The service_names_and_types is the output for this function, and contains
- * allocated memory.
- * Therefore, it should be passed to rcl_names_and_types_fini() when
- * it is no longer needed.
+ * The `service_names_and_types` parameter must be allocated and zero initialized.
+ * This function allocates memory for the returned list of names and types and so it is the
+ * callers responsibility to pass `service_names_and_types` to rcl_names_and_types_fini()
+ * when it is no longer needed.
  * Failing to do so will result in leaked memory.
- *
+
  * The returned names are not automatically remapped by this function.
  * Attempting to create clients or services using names returned by this function may not result in
  * the desired service name being used depending on the remap rules in use.
@@ -298,7 +268,7 @@ rcl_get_service_names_and_types(
  * functions.
  * This function reclaims any resources allocated during population.
  *
- * The names_and_types parameter must not be `NULL`, and must point to an
+ * The `names_and_types` parameter must not be `NULL`, and must point to an
  * already allocated rcl_names_and_types_t struct that was previously
  * passed to a successful rcl_get_*_names_and_types() function call.
  *
@@ -322,17 +292,14 @@ rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
 
 /// Return a list of available nodes in the ROS graph.
 /**
- * This function returns a list of nodes in the ROS graph.
+ * The `node` parameter must point to a valid node.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
- *
- * The node_names parameter must be allocated and zero initialized.
- * The node_names is the output for this function, and contains
- * allocated memory.
- * Note that entries in the array might contain `NULL` value.
+ * The `node_names` parameter must be allocated and zero initialized.
+ * `node_names` is the output for this function, and contains allocated memory.
+ * Note that entries in the array might contain `NULL` values.
  * Use rcutils_get_zero_initialized_string_array() for initializing an empty
  * rcutils_string_array_t struct.
- * This node_names struct should therefore be passed to rcutils_string_array_fini()
+ * This `node_names` struct should therefore be passed to rcutils_string_array_fini()
  * when it is no longer needed.
  * Failing to do so will result in leaked memory.
  *
@@ -379,16 +346,14 @@ rcl_get_node_names(
 
 /// Return the number of publishers on a given topic.
 /**
- * This function returns the number of publishers on a given topic.
+ * The `node` parameter must point to a valid node.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
- *
- * The topic_name parameter must not be `NULL`, and must not be an empty string.
+ * The `topic_name` parameter must not be `NULL`, and must not be an empty string.
  * It should also follow the topic name rules.
  * \todo TODO(wjwwood): link to the topic name rules.
  *
- * The count parameter must not be `NULL`, and must point to a valid bool.
- * The count parameter is the output for this function and will be set.
+ * The `count` parameter must point to a valid bool.
+ * The `count` parameter is the output for this function and will be set.
  *
  * In the event that error handling needs to allocate memory, this function
  * will try to use the node's allocator.
@@ -426,16 +391,14 @@ rcl_count_publishers(
 
 /// Return the number of subscriptions on a given topic.
 /**
- * This function returns the number of subscriptions on a given topic.
+ * The `node` parameter must point to a valid node.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
- *
- * The topic_name parameter must not be `NULL`, and must not be an empty string.
+ * The `topic_name` parameter must not be `NULL`, and must not be an empty string.
  * It should also follow the topic name rules.
  * \todo TODO(wjwwood): link to the topic name rules.
  *
- * The count parameter must not be `NULL`, and must point to a valid bool.
- * The count parameter is the output for this function and will be set.
+ * The `count` parameter must point to a valid bool.
+ * The `count` parameter is the output for this function and will be set.
  *
  * In the event that error handling needs to allocate memory, this function
  * will try to use the node's allocator.
@@ -473,18 +436,18 @@ rcl_count_subscribers(
 
 /// Check if a service server is available for the given service client.
 /**
- * This function will return true for is_available if there is a service server
+ * This function will return true for `is_available` if there is a service server
  * available for the given client.
  *
- * The node parameter must not be `NULL`, and must point to a valid node.
+ * The `node` parameter must point to a valid node.
  *
- * The client parameter must not be `NULL`, and must point to a valid client.
+ * The `client` parameter must point to a valid client.
  *
  * The given client and node must match, i.e. the client must have been created
  * using the given node.
  *
- * The is_available parameter must not be `NULL`, and must point a bool variable.
- * The result of the check will be stored in the is_available parameter.
+ * The `is_available` parameter must not be `NULL`, and must point a bool variable.
+ * The result of the check will be stored in the `is_available` parameter.
  *
  * In the event that error handling needs to allocate memory, this function
  * will try to use the node's allocator.
