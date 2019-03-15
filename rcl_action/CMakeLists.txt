@@ -87,12 +87,11 @@ if(BUILD_TESTING)
   if(TARGET test_action_client)
     target_include_directories(test_action_client PUBLIC
       include
-      ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     )
     target_link_libraries(test_action_client
       ${PROJECT_NAME}
     )
-    ament_target_dependencies(test_action_client "rcl" "test_msgs")
+    ament_target_dependencies(test_action_client "osrf_testing_tools_cpp" "rcl" "test_msgs")
   endif()
 
   # get the rmw implementations ahead of time
@@ -118,13 +117,14 @@ if(BUILD_TESTING)
         PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
       target_include_directories(${target}${target_suffix} PUBLIC
         include
-        ${rcl_INCLUDE_DIRS}
       )
       target_link_libraries(${target}${target_suffix}
         ${PROJECT_NAME}
       )
       ament_target_dependencies(${target}${target_suffix}
-        "test_msgs")
+        "rcl"
+        "test_msgs"
+      )
     endif()
   endfunction()
 
@@ -156,12 +156,14 @@ if(BUILD_TESTING)
   if(TARGET test_action_server)
     target_include_directories(test_action_server PUBLIC
       include
-      ${rcl_INCLUDE_DIRS}
     )
     target_link_libraries(test_action_server
       ${PROJECT_NAME}
     )
-    ament_target_dependencies(test_action_server "test_msgs")
+    ament_target_dependencies(test_action_server
+      "rcl"
+      "test_msgs"
+    )
   endif()
   ament_add_gtest(test_goal_handle
     test/rcl_action/test_goal_handle.cpp
@@ -169,22 +171,20 @@ if(BUILD_TESTING)
   if(TARGET test_goal_handle)
     target_include_directories(test_goal_handle PUBLIC
       include
-      ${rcl_INCLUDE_DIRS}
     )
     target_link_libraries(test_goal_handle
       ${PROJECT_NAME}
     )
+    ament_target_dependencies(test_action_server "rcl")
   endif()
   ament_add_gtest(test_goal_state_machine
     test/rcl_action/test_goal_state_machine.cpp
   )
   if(TARGET test_goal_state_machine)
-    target_include_directories(test_goal_state_machine PUBLIC
-      ${rcl_INCLUDE_DIRS}
-    )
     target_link_libraries(test_goal_state_machine
       ${PROJECT_NAME}
     )
+    ament_target_dependencies(test_action_server "rcl")
   endif()
   ament_add_gtest(test_types
     test/rcl_action/test_types.cpp
@@ -192,22 +192,20 @@ if(BUILD_TESTING)
   if(TARGET test_types)
     target_include_directories(test_types PUBLIC
       include
-      ${rcl_INCLUDE_DIRS}
     )
     target_link_libraries(test_types
       ${PROJECT_NAME}
     )
+    ament_target_dependencies(test_action_server "rcl")
   endif()
   ament_add_gtest(test_names
     test/rcl_action/test_names.cpp
   )
   if(TARGET test_names)
-    target_include_directories(test_names PUBLIC
-      ${rcl_INCLUDE_DIRS}
-    )
     target_link_libraries(test_names
       ${PROJECT_NAME}
     )
+    ament_target_dependencies(test_action_server "rcl")
   endif()
 endif()
 

@@ -70,9 +70,9 @@ if(BUILD_TESTING)
     test/test_default_state_machine.cpp
   )
   if(TARGET test_default_state_machine)
-    target_include_directories(test_default_state_machine PUBLIC
-      ${rcl_INCLUDE_DIRS}
-      ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ament_target_dependencies(test_default_state_machine
+      "rcl"
+      "osrf_testing_tools_cpp"
     )
     target_link_libraries(test_default_state_machine ${PROJECT_NAME})
   endif()
@@ -80,9 +80,9 @@ if(BUILD_TESTING)
     test/test_multiple_instances.cpp
   )
   if(TARGET test_multiple_instances)
-    target_include_directories(test_multiple_instances PUBLIC
-      ${rcl_INCLUDE_DIRS}
-      ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+    ament_target_dependencies(test_multiple_instances
+      "rcl"
+      "osrf_testing_tools_cpp"
     )
     target_link_libraries(test_multiple_instances ${PROJECT_NAME})
   endif()
@@ -90,8 +90,8 @@ if(BUILD_TESTING)
     test/test_transition_map.cpp
   )
   if(TARGET test_transition_map)
-    target_include_directories(test_transition_map PUBLIC
-      ${rcl_INCLUDE_DIRS}
+    ament_target_dependencies(test_transition_map
+      "rcl"
     )
     target_link_libraries(test_transition_map ${PROJECT_NAME})
   endif()
