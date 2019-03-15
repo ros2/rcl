@@ -47,7 +47,7 @@ rcl_publisher_event_init(
 {
   rmw_event_type_t rmw_event_type;
 
-  switch(event_type) {
+  switch (event_type) {
     case RCL_PUBLISHER_DEADLINE:
       rmw_event_type = RMW_EVENT_OFFERED_DEADLINE_MISSED;
       break;
@@ -71,7 +71,7 @@ rcl_subscription_event_init(
 {
   rmw_event_type_t rmw_event_type;
 
-  switch(event_type) {
+  switch (event_type) {
     case RCL_SUBSCRIPTION_DEADLINE:
       rmw_event_type = RMW_EVENT_REQUESTED_DEADLINE_MISSED;
       break;
@@ -123,7 +123,7 @@ rcl_take_event(
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-          ROS_PACKAGE_NAME, "Event take request succeeded: %s", taken ? "true" : "false");
+    ROS_PACKAGE_NAME, "Event take request succeeded: %s", taken ? "true" : "false");
   if (!taken) {
     return RCL_RET_EVENT_TAKE_FAILED;
   }
