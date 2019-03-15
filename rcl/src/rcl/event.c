@@ -82,7 +82,8 @@ rcl_subscription_event_init(
       return RCL_RET_INVALID_ARGUMENT;
   }
 
-  event->impl->rmw_handle = rmw_create_subscription_event(subscription->impl->rmw_handle, rmw_event_type);
+  event->impl->rmw_handle =
+    rmw_create_subscription_event(subscription->impl->rmw_handle, rmw_event_type);
 
   return RCL_RET_OK;
 }
