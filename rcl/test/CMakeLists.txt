@@ -107,38 +107,35 @@ function(test_target_function)
   endif()
   rcl_add_custom_gtest(test_graph${target_suffix}
     SRCS rcl/test_graph.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
     ${AMENT_GTEST_ARGS}
   )
 
   rcl_add_custom_gtest(test_count_matched${target_suffix}
     SRCS rcl/test_count_matched.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_gtest(test_init${target_suffix}
     SRCS rcl/test_init.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
+    LIBRARIES ${PROJECT_NAME}
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
   rcl_add_custom_gtest(test_node${target_suffix}
     SRCS rcl/test_node.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
+    LIBRARIES ${PROJECT_NAME}
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
   rcl_add_custom_gtest(test_arguments${target_suffix}
@@ -150,90 +147,81 @@ function(test_target_function)
 
   rcl_add_custom_gtest(test_remap${target_suffix}
     SRCS rcl/test_remap.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
+    AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
   )
 
   rcl_add_custom_gtest(test_remap_integration${target_suffix}
     SRCS rcl/test_remap_integration.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     TIMEOUT 200
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES "test_msgs"
+    AMENT_DEPENDENCIES "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_gtest(test_guard_condition${target_suffix}
     SRCS rcl/test_guard_condition.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
+    LIBRARIES ${PROJECT_NAME}
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
   rcl_add_custom_gtest(test_publisher${target_suffix}
     SRCS rcl/test_publisher.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_gtest(test_service${target_suffix}
     SRCS rcl/test_service.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_gtest(test_subscription${target_suffix}
     SRCS rcl/test_subscription.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_gtest(test_wait${target_suffix}
     SRCS rcl/test_wait.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation}
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
   rcl_add_custom_gtest(test_namespace${target_suffix}
     SRCS test_namespace.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   # Launch tests
 
   rcl_add_custom_executable(service_fixture${target_suffix}
     SRCS rcl/service_fixture.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_executable(client_fixture${target_suffix}
     SRCS rcl/client_fixture.cpp
-    INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_launch_test(test_services
@@ -296,9 +284,9 @@ rcl_add_custom_gtest(test_expand_topic_name
 
 rcl_add_custom_gtest(test_timer${target_suffix}
   SRCS rcl/test_timer.cpp
-  INCLUDE_DIRS ${osrf_testing_tools_cpp_INCLUDE_DIRS}
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
+  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
 rcl_add_custom_gtest(test_security_directory
