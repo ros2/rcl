@@ -232,7 +232,7 @@ rcl_get_topic_names_and_types(
  * callers responsibility to pass `service_names_and_types` to rcl_names_and_types_fini()
  * when it is no longer needed.
  * Failing to do so will result in leaked memory.
-
+ *
  * The returned names are not automatically remapped by this function.
  * Attempting to create clients or services using names returned by this function may not result in
  * the desired service name being used depending on the remap rules in use.
