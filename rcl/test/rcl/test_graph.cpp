@@ -131,7 +131,7 @@ public:
 
 /* Test the rcl_get_topic_names_and_types and rcl_destroy_topic_names_and_types functions.
  *
- * This does not test content of the rcl_topic_names_and_types_t structure.
+ * This does not test content of the rcl_names_and_types_t structure.
  */
 TEST_F(
   CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
@@ -165,6 +165,47 @@ TEST_F(
   rcl_reset_error();
   // valid calls
   ret = rcl_get_topic_names_and_types(this->node_ptr, &allocator, false, &tnat);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_names_and_types_fini(&tnat);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
+/* Test the rcl_get_service_names_and_types function.
+ *
+ * This does not test content of the rcl_names_and_types_t structure.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_service_names_and_types
+) {
+  rcl_ret_t ret;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_names_and_types_t tnat {};
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  // invalid node
+  ret = rcl_get_service_names_and_types(nullptr, &allocator, &tnat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_service_names_and_types(&zero_node, &allocator, &tnat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_service_names_and_types(this->old_node_ptr, &allocator, &tnat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid allocator
+  ret = rcl_get_service_names_and_types(this->node_ptr, nullptr, &tnat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid service_names_and_types
+  ret = rcl_get_service_names_and_types(this->node_ptr, &allocator, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid argument to rcl_destroy_service_names_and_types
+  ret = rcl_names_and_types_fini(nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // valid calls
+  ret = rcl_get_service_names_and_types(this->node_ptr, &allocator, &tnat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rcl_names_and_types_fini(&tnat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -205,9 +246,186 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
+/* Test the rcl_get_publisher_names_and_types_by_node function.
+ *
+ * This does not test content of the response.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_publisher_names_and_types_by_node
+) {
+  rcl_ret_t ret;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  const char * node_name = "/test_rcl_get_publisher_names_and_types_by_node";
+  const char * node_ns = "/test/namespace";
+  rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
+  // invalid node
+  ret = rcl_get_publisher_names_and_types_by_node(
+    nullptr, &allocator, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_publisher_names_and_types_by_node(
+    &zero_node, &allocator, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->old_node_ptr, &allocator, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid allocator
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, nullptr, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid names
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, nullptr, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, node_name, nullptr, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // TODO(jacobperron): test valid strings with invalid topic names in them
+  // invalid names and types
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, node_name, node_ns, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // unknown node name
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // valid call
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+/* Test the rcl_get_subscriber_names_and_types_by_node function.
+ *
+ * This does not test content of the response.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_subscriber_names_and_types_by_node
+) {
+  rcl_ret_t ret;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  const char * node_name = "/test_rcl_get_subscriber_names_and_types_by_node";
+  const char * node_ns = "/test/namespace";
+  rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
+  // invalid node
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    nullptr, &allocator, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    &zero_node, &allocator, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->old_node_ptr, &allocator, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid allocator
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, nullptr, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid names
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, nullptr, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, node_name, nullptr, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // TODO(jacobperron): test valid strings with invalid topic names in them
+  // invalid names and types
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, node_name, node_ns, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // unknown node name
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // valid call
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+/* Test the rcl_get_service_names_and_types_by_node function.
+ *
+ * This does not test content of the response.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_service_names_and_types_by_node
+) {
+  rcl_ret_t ret;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  const char * node_name = "/test_rcl_get_service_names_and_types_by_node";
+  const char * node_ns = "/test/namespace";
+  rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
+  // invalid node
+  ret = rcl_get_service_names_and_types_by_node(
+    nullptr, &allocator, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_service_names_and_types_by_node(
+    &zero_node, &allocator, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_service_names_and_types_by_node(
+    this->old_node_ptr, &allocator, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid allocator
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, nullptr, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid names
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, nullptr, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, node_name, nullptr, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // TODO(jacobperron): test valid strings with invalid topic names in them
+  // invalid names and types
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, node_name, node_ns, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // unknown node name
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, node_name, node_ns, &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // valid call
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
 /* Test the rcl_count_publishers function.
  *
- * This does not test content the response.
+ * This does not test content of the response.
  */
 TEST_F(
   CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
@@ -244,7 +462,7 @@ TEST_F(
 
 /* Test the rcl_count_subscribers function.
  *
- * This does not test content the response.
+ * This does not test content of the response.
  */
 TEST_F(
   CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
