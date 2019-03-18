@@ -292,6 +292,37 @@ rcl_get_service_names_and_types(
   rcl_allocator_t * allocator,
   rcl_names_and_types_t * service_names_and_types);
 
+/// Initialize a rcl_names_and_types_t object.
+/**
+ * This function initializes the string array for the names and allocates space
+ * for all the string arrays for the types according to the given size, but
+ * it does not initialize the string array for each setup of types.
+ * However, the string arrays for each set of types is zero initialized.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] names_and_types object to be initialized
+ * \param[in] size the number of names and sets of types to be stored
+ * \param[in] allocator to be used to allocate and deallocate memory
+ * \returns `RCL_RET_OK` on success, or
+ * \returns `RCL_RET_INVALID_ARGUMENT` if `names_and_types` is `NULL`, or
+ * \returns `RCL_BAD_ALLOC` if memory allocation fails, or
+ * \returns `RCL_RET_ERROR` when an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_names_and_types_init(
+  rcl_names_and_types_t * names_and_types,
+  size_t size,
+  rcl_allocator_t * allocator);
+
 /// Finalize a rcl_names_and_types_t object.
 /**
  * The object is populated when given to one of the rcl_get_*_names_and_types()

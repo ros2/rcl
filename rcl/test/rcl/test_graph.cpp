@@ -170,6 +170,41 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
+/* Test the rcl_names_and_types_init function.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_names_and_types_init
+) {
+  rcl_ret_t ret;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
+  // invalid names and types
+  ret = rcl_names_and_types_init(nullptr, 10, &allocator);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // invalid allocator
+  ret = rcl_names_and_types_init(&nat, 10, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // zero size
+  ret = rcl_names_and_types_init(&nat, 0, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(nat.names.size, 0u);
+  ret = rcl_names_and_types_fini(&nat);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // non-zero size
+  size_t num_names = 10u;
+  ret = rcl_names_and_types_init(&nat, num_names, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(nat.names.size, num_names);
+  for (size_t i = 0; i < num_names; i++) {
+    EXPECT_EQ(nat.types[i].size, 0u);
+  }
+  ret = rcl_names_and_types_fini(&nat);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
 /* Test the rcl_count_publishers function.
  *
  * This does not test content the response.

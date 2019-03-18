@@ -194,6 +194,17 @@ rcl_get_service_names_and_types(
 }
 
 rcl_ret_t
+rcl_names_and_types_init(
+  rcl_names_and_types_t * names_and_types,
+  size_t size,
+  rcl_allocator_t * allocator)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(names_and_types, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t rmw_ret = rmw_names_and_types_init(names_and_types, size, allocator);
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
+
+rcl_ret_t
 rcl_names_and_types_fini(rcl_names_and_types_t * topic_names_and_types)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
