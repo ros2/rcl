@@ -36,6 +36,7 @@ set(rcl_action_sources
   src/${PROJECT_NAME}/action_server.c
   src/${PROJECT_NAME}/goal_handle.c
   src/${PROJECT_NAME}/goal_state_machine.c
+  src/${PROJECT_NAME}/graph.c
   src/${PROJECT_NAME}/names.c
   src/${PROJECT_NAME}/types.c
 )
@@ -185,6 +186,19 @@ if(BUILD_TESTING)
       ${PROJECT_NAME}
     )
     ament_target_dependencies(test_action_server "rcl")
+  endif()
+  ament_add_gtest(test_graph
+    test/rcl_action/test_graph.cpp
+  )
+  if(TARGET test_graph)
+    target_include_directories(test_graph PUBLIC
+      ${osrf_testing_tools_cpp_INCLUDE_DIRS}
+      ${rcl_INCLUDE_DIRS}
+    )
+    target_link_libraries(test_graph
+      ${PROJECT_NAME}
+    )
+    ament_target_dependencies(test_graph "test_msgs")
   endif()
   ament_add_gtest(test_types
     test/rcl_action/test_types.cpp
