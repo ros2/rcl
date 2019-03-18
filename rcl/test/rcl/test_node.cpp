@@ -173,10 +173,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_EQ(nullptr, actual_node_name);
   rcl_reset_error();
   actual_node_name = rcl_node_get_name(&invalid_node);
-  EXPECT_TRUE(actual_node_name ? true : false);
-  if (actual_node_name) {
-    EXPECT_STREQ(name, actual_node_name);
-  }
+  EXPECT_STREQ(name, actual_node_name);
   rcl_reset_error();
   EXPECT_NO_MEMORY_OPERATIONS({
     actual_node_name = rcl_node_get_name(&node);
@@ -194,18 +191,12 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_EQ(nullptr, actual_node_namespace);
   rcl_reset_error();
   actual_node_namespace = rcl_node_get_namespace(&invalid_node);
-  EXPECT_TRUE(actual_node_namespace ? true : false);
-  if (actual_node_namespace) {
-    EXPECT_STREQ(namespace_, actual_node_namespace);
-  }
+  EXPECT_STREQ(namespace_, actual_node_namespace);
   rcl_reset_error();
   EXPECT_NO_MEMORY_OPERATIONS({
     actual_node_namespace = rcl_node_get_namespace(&node);
   });
-  EXPECT_TRUE(actual_node_namespace ? true : false);
-  if (actual_node_namespace) {
-    EXPECT_EQ(std::string(namespace_), std::string(actual_node_namespace));
-  }
+  EXPECT_STREQ(namespace_, actual_node_namespace);
   // Test rcl_node_get_fully_qualified_name().
   const char * actual_fq_node_name;
   actual_fq_node_name = rcl_node_get_fully_qualified_name(nullptr);
@@ -215,18 +206,12 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_EQ(nullptr, actual_fq_node_name);
   rcl_reset_error();
   actual_fq_node_name = rcl_node_get_fully_qualified_name(&invalid_node);
-  EXPECT_TRUE(actual_fq_node_name ? true : false);
-  if (actual_fq_node_name) {
-    EXPECT_STREQ(fq_name, actual_fq_node_name);
-  }
+  EXPECT_STREQ(fq_name, actual_fq_node_name);
   rcl_reset_error();
   EXPECT_NO_MEMORY_OPERATIONS({
     actual_fq_node_name = rcl_node_get_fully_qualified_name(&node);
   });
-  EXPECT_TRUE(actual_fq_node_name ? true : false);
-  if (actual_fq_node_name) {
-    EXPECT_EQ(std::string(fq_name), std::string(actual_fq_node_name));
-  }
+  EXPECT_STREQ(fq_name, actual_fq_node_name);
   // Test rcl_node_get_logger_name().
   const char * actual_node_logger_name;
   actual_node_logger_name = rcl_node_get_logger_name(nullptr);
@@ -236,7 +221,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_EQ(nullptr, actual_node_logger_name);
   rcl_reset_error();
   actual_node_logger_name = rcl_node_get_logger_name(&invalid_node);
-  EXPECT_TRUE(actual_node_logger_name ? true : false);
+  EXPECT_NE(actual_node_logger_name, nullptr);
   if (actual_node_logger_name) {
     EXPECT_EQ("ns." + std::string(name), std::string(actual_node_logger_name));
   }
@@ -244,7 +229,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_NO_MEMORY_OPERATIONS({
     actual_node_logger_name = rcl_node_get_logger_name(&node);
   });
-  EXPECT_TRUE(actual_node_logger_name ? true : false);
+  EXPECT_NE(actual_node_logger_name, nullptr);
   if (actual_node_logger_name) {
     EXPECT_EQ("ns." + std::string(name), std::string(actual_node_logger_name));
   }
@@ -644,7 +629,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_logger_name
     ret = rcl_node_init(&node, name, "/ns", &context, &default_options);
     ASSERT_EQ(RCL_RET_OK, ret);
     actual_node_logger_name = rcl_node_get_logger_name(&node);
-    EXPECT_TRUE(actual_node_logger_name ? true : false);
+    EXPECT_NE(actual_node_logger_name, nullptr);
     if (actual_node_logger_name) {
       EXPECT_EQ("ns." + std::string(name), std::string(actual_node_logger_name));
     }
@@ -658,7 +643,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_logger_name
     ret = rcl_node_init(&node, name, "", &context, &default_options);
     ASSERT_EQ(RCL_RET_OK, ret);
     actual_node_logger_name = rcl_node_get_logger_name(&node);
-    EXPECT_TRUE(actual_node_logger_name ? true : false);
+    EXPECT_NE(actual_node_logger_name, nullptr);
     if (actual_node_logger_name) {
       EXPECT_EQ(std::string(name), std::string(actual_node_logger_name));
     }
@@ -686,7 +671,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_logger_name
     ret = rcl_node_init(&node, name, "ns", &context, &default_options);
     ASSERT_EQ(RCL_RET_OK, ret);
     actual_node_logger_name = rcl_node_get_logger_name(&node);
-    EXPECT_TRUE(actual_node_logger_name ? true : false);
+    EXPECT_NE(actual_node_logger_name, nullptr);
     if (actual_node_logger_name) {
       EXPECT_EQ("ns." + std::string(name), std::string(actual_node_logger_name));
     }
@@ -700,7 +685,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_logger_name
     ret = rcl_node_init(&node, name, "/ns/sub_1/sub_2", &context, &default_options);
     ASSERT_EQ(RCL_RET_OK, ret);
     actual_node_logger_name = rcl_node_get_logger_name(&node);
-    EXPECT_TRUE(actual_node_logger_name ? true : false);
+    EXPECT_NE(actual_node_logger_name, nullptr);
     if (actual_node_logger_name) {
       EXPECT_EQ("ns.sub_1.sub_2." + std::string(name), std::string(actual_node_logger_name));
     }
@@ -744,18 +729,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names_and_n
     actual_node_namespace = rcl_node_get_namespace(&node);
     actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
 
-    EXPECT_TRUE(actual_node_name ? true : false);
-    if (actual_node_name) {
-      EXPECT_EQ("node", std::string(actual_node_name));
-    }
-    EXPECT_TRUE(actual_node_namespace ? true : false);
-    if (actual_node_namespace) {
-      EXPECT_EQ("/ns", std::string(actual_node_namespace));
-    }
-    EXPECT_TRUE(actual_node_fq_name ? true : false);
-    if (actual_node_fq_name) {
-      EXPECT_EQ("/ns/node", std::string(actual_node_fq_name));
-    }
+    EXPECT_STREQ("node", actual_node_name);
+    EXPECT_STREQ("/ns", actual_node_namespace);
+    EXPECT_STREQ("/ns/node", actual_node_fq_name);
 
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -771,18 +747,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names_and_n
     actual_node_namespace = rcl_node_get_namespace(&node);
     actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
 
-    EXPECT_TRUE(actual_node_name ? true : false);
-    if (actual_node_name) {
-      EXPECT_EQ("node", std::string(actual_node_name));
-    }
-    EXPECT_TRUE(actual_node_namespace ? true : false);
-    if (actual_node_namespace) {
-      EXPECT_EQ("/", std::string(actual_node_namespace));
-    }
-    EXPECT_TRUE(actual_node_fq_name ? true : false);
-    if (actual_node_fq_name) {
-      EXPECT_EQ("/node", std::string(actual_node_fq_name));
-    }
+    EXPECT_STREQ("node", actual_node_name);
+    EXPECT_STREQ("/", actual_node_namespace);
+    EXPECT_STREQ("/node", actual_node_fq_name);
 
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -798,18 +765,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names_and_n
     actual_node_namespace = rcl_node_get_namespace(&node);
     actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
 
-    EXPECT_TRUE(actual_node_name ? true : false);
-    if (actual_node_name) {
-      EXPECT_EQ("node", std::string(actual_node_name));
-    }
-    EXPECT_TRUE(actual_node_namespace ? true : false);
-    if (actual_node_namespace) {
-      EXPECT_EQ("/", std::string(actual_node_namespace));
-    }
-    EXPECT_TRUE(actual_node_fq_name ? true : false);
-    if (actual_node_fq_name) {
-      EXPECT_EQ("/node", std::string(actual_node_fq_name));
-    }
+    EXPECT_STREQ("node", actual_node_name);
+    EXPECT_STREQ("/", actual_node_namespace);
+    EXPECT_STREQ("/node", actual_node_fq_name);
 
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -824,18 +782,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names_and_n
     actual_node_namespace = rcl_node_get_namespace(&node);
     actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
 
-    EXPECT_TRUE(actual_node_name ? true : false);
-    if (actual_node_name) {
-      EXPECT_EQ("node", std::string(actual_node_name));
-    }
-    EXPECT_TRUE(actual_node_namespace ? true : false);
-    if (actual_node_namespace) {
-      EXPECT_EQ("/ns", std::string(actual_node_namespace));
-    }
-    EXPECT_TRUE(actual_node_fq_name ? true : false);
-    if (actual_node_fq_name) {
-      EXPECT_EQ("/ns/node", std::string(actual_node_fq_name));
-    }
+    EXPECT_STREQ("node", actual_node_name);
+    EXPECT_STREQ("/ns", actual_node_namespace);
+    EXPECT_STREQ("/ns/node", actual_node_fq_name);
 
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -851,18 +800,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names_and_n
     actual_node_namespace = rcl_node_get_namespace(&node);
     actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
 
-    EXPECT_TRUE(actual_node_name ? true : false);
-    if (actual_node_name) {
-      EXPECT_EQ("node", std::string(actual_node_name));
-    }
-    EXPECT_TRUE(actual_node_namespace ? true : false);
-    if (actual_node_namespace) {
-      EXPECT_EQ("/ns/sub_1/sub_2", std::string(actual_node_namespace));
-    }
-    EXPECT_TRUE(actual_node_fq_name ? true : false);
-    if (actual_node_fq_name) {
-      EXPECT_EQ("/ns/sub_1/sub_2/node", std::string(actual_node_fq_name));
-    }
+    EXPECT_STREQ("node", actual_node_name);
+    EXPECT_STREQ("/ns/sub_1/sub_2", actual_node_namespace);
+    EXPECT_STREQ("/ns/sub_1/sub_2/node", actual_node_fq_name);
 
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
