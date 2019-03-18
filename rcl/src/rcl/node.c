@@ -241,8 +241,12 @@ rcl_node_init(
     local_namespace_ = remapped_namespace;
   }
 
-  // compute fully qualified name of the node
-  node->impl->fq_name = rcutils_format_string(*allocator, "%s/%s", local_namespace_, name);
+  // compute fully qualfied name of the node.
+  if ('/' == local_namespace_[strlen(local_namespace_) - 1]) {
+    node->impl->fq_name = rcutils_format_string(*allocator, "%s%s", local_namespace_, name);
+  } else {
+    node->impl->fq_name = rcutils_format_string(*allocator, "%s/%s", local_namespace_, name);
+  }
 
   // node logger name
   node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);

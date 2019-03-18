@@ -708,3 +708,163 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_logger_name
     EXPECT_EQ(RCL_RET_OK, ret);
   }
 }
+
+/* Tests the names and namespaces associated with the node.
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names_and_namespaces) {
+  rcl_ret_t ret;
+
+  // Initialize rcl with rcl_init().
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+  });
+
+  const char * name = "node";
+  const char * actual_node_name;
+  const char * actual_node_namespace;
+  const char * actual_node_fq_name;
+  rcl_node_options_t default_options = rcl_node_get_default_options();
+
+  // First do a normal node namespace.
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&node, name, "/ns", &context, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+    actual_node_name = rcl_node_get_name(&node);
+    actual_node_namespace = rcl_node_get_namespace(&node);
+    actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
+
+    EXPECT_TRUE(actual_node_name ? true : false);
+    if (actual_node_name) {
+      EXPECT_EQ("node", std::string(actual_node_name));
+    }
+    EXPECT_TRUE(actual_node_namespace ? true : false);
+    if (actual_node_namespace) {
+      EXPECT_EQ("/ns", std::string(actual_node_namespace));
+    }
+    EXPECT_TRUE(actual_node_fq_name ? true : false);
+    if (actual_node_fq_name) {
+      EXPECT_EQ("/ns/node", std::string(actual_node_fq_name));
+    }
+
+    rcl_ret_t ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_OK, ret);
+  }
+
+  // Node namespace that is an empty string.
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&node, name, "", &context, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+
+    actual_node_name = rcl_node_get_name(&node);
+    actual_node_namespace = rcl_node_get_namespace(&node);
+    actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
+
+    EXPECT_TRUE(actual_node_name ? true : false);
+    if (actual_node_name) {
+      EXPECT_EQ("node", std::string(actual_node_name));
+    }
+    EXPECT_TRUE(actual_node_namespace ? true : false);
+    if (actual_node_namespace) {
+      EXPECT_EQ("/", std::string(actual_node_namespace));
+    }
+    EXPECT_TRUE(actual_node_fq_name ? true : false);
+    if (actual_node_fq_name) {
+      EXPECT_EQ("/node", std::string(actual_node_fq_name));
+    }
+
+    rcl_ret_t ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_OK, ret);
+  }
+
+  // Node namespace that is just a forward slash.
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&node, name, "/", &context, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+
+    actual_node_name = rcl_node_get_name(&node);
+    actual_node_namespace = rcl_node_get_namespace(&node);
+    actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
+
+    EXPECT_TRUE(actual_node_name ? true : false);
+    if (actual_node_name) {
+      EXPECT_EQ("node", std::string(actual_node_name));
+    }
+    EXPECT_TRUE(actual_node_namespace ? true : false);
+    if (actual_node_namespace) {
+      EXPECT_EQ("/", std::string(actual_node_namespace));
+    }
+    EXPECT_TRUE(actual_node_fq_name ? true : false);
+    if (actual_node_fq_name) {
+      EXPECT_EQ("/node", std::string(actual_node_fq_name));
+    }
+
+    rcl_ret_t ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_OK, ret);
+  }
+
+  // Node namespace that is not absolute.
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&node, name, "ns", &context, &default_options);
+
+    actual_node_name = rcl_node_get_name(&node);
+    actual_node_namespace = rcl_node_get_namespace(&node);
+    actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
+
+    EXPECT_TRUE(actual_node_name ? true : false);
+    if (actual_node_name) {
+      EXPECT_EQ("node", std::string(actual_node_name));
+    }
+    EXPECT_TRUE(actual_node_namespace ? true : false);
+    if (actual_node_namespace) {
+      EXPECT_EQ("/ns", std::string(actual_node_namespace));
+    }
+    EXPECT_TRUE(actual_node_fq_name ? true : false);
+    if (actual_node_fq_name) {
+      EXPECT_EQ("/ns/node", std::string(actual_node_fq_name));
+    }
+
+    rcl_ret_t ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_OK, ret);
+  }
+
+  // Nested namespace.
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&node, name, "/ns/sub_1/sub_2", &context, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+
+    actual_node_name = rcl_node_get_name(&node);
+    actual_node_namespace = rcl_node_get_namespace(&node);
+    actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
+
+    EXPECT_TRUE(actual_node_name ? true : false);
+    if (actual_node_name) {
+      EXPECT_EQ("node", std::string(actual_node_name));
+    }
+    EXPECT_TRUE(actual_node_namespace ? true : false);
+    if (actual_node_namespace) {
+      EXPECT_EQ("/ns/sub_1/sub_2", std::string(actual_node_namespace));
+    }
+    EXPECT_TRUE(actual_node_fq_name ? true : false);
+    if (actual_node_fq_name) {
+      EXPECT_EQ("/ns/sub_1/sub_2/node", std::string(actual_node_fq_name));
+    }
+
+    rcl_ret_t ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_OK, ret);
+  }
+}
