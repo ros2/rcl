@@ -123,6 +123,7 @@ if(BUILD_TESTING)
         ${PROJECT_NAME}
       )
       ament_target_dependencies(${target}${target_suffix}
+        "osrf_testing_tools_cpp"
         "rcl"
         "test_msgs"
       )
@@ -147,7 +148,9 @@ if(BUILD_TESTING)
       "test/rcl_action/test_action_communication.cpp")
     custom_test_c(test_action_interaction
       "test/rcl_action/test_action_interaction.cpp")
-  endmacro()
+    custom_test_c(test_graph
+      "test/rcl_action/test_graph.cpp")
+endmacro()
 
   call_for_each_rmw_implementation(targets)
 

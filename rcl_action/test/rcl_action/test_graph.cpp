@@ -28,7 +28,14 @@
 
 #include "test_msgs/action/fibonacci.h"
 
-class TestActionGraphFixture : public ::testing::Test
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+class CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -94,7 +101,10 @@ public:
   }
 };
 
-TEST_F(TestActionGraphFixture, test_action_get_client_names_and_types_by_node) {
+TEST_F(
+  CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION),
+  test_action_get_client_names_and_types_by_node)
+{
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
@@ -140,7 +150,10 @@ TEST_F(TestActionGraphFixture, test_action_get_client_names_and_types_by_node) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-TEST_F(TestActionGraphFixture, test_action_get_server_names_and_types_by_node) {
+TEST_F(
+  CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION),
+  test_action_get_server_names_and_types_by_node)
+{
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
@@ -186,7 +199,10 @@ TEST_F(TestActionGraphFixture, test_action_get_server_names_and_types_by_node) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-TEST_F(TestActionGraphFixture, test_action_get_names_and_types) {
+TEST_F(
+  CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION),
+  test_action_get_names_and_types)
+{
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
@@ -221,8 +237,7 @@ TEST_F(TestActionGraphFixture, test_action_get_names_and_types) {
  * Extend the TestActionGraphFixture with a multi-node fixture for node discovery and node-graph
  * perspective.
  */
-// TODO(jacobperron): public CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION)
-class TestActionGraphMultiNodeFixture : public TestActionGraphFixture
+class TestActionGraphMultiNodeFixture : public CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION)
 {
 public:
   const char * remote_node_name = "remote_graph_node";
@@ -232,8 +247,7 @@ public:
 
   void SetUp() override
   {
-    // CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION) ::SetUp();
-    TestActionGraphFixture::SetUp();
+    CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION) ::SetUp();
 
     rcl_ret_t ret;
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -258,8 +272,7 @@ public:
 
   void TearDown() override
   {
-    // CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION) ::TearDown();
-    TestActionGraphFixture::TearDown();
+    CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION) ::TearDown();
 
     rcl_ret_t ret;
     ret = rcl_node_fini(&this->remote_node);
