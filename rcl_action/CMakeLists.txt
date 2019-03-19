@@ -92,7 +92,11 @@ if(BUILD_TESTING)
     target_link_libraries(test_action_client
       ${PROJECT_NAME}
     )
-    ament_target_dependencies(test_action_client "osrf_testing_tools_cpp" "rcl" "test_msgs")
+    ament_target_dependencies(test_action_client
+      "osrf_testing_tools_cpp"
+      "rcl"
+      "test_msgs"
+    )
   endif()
 
   # get the rmw implementations ahead of time
