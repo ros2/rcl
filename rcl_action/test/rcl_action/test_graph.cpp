@@ -35,7 +35,7 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-class CLASSNAME(TestActionGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class CLASSNAME (TestActionGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -433,8 +433,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_server_names_and_types_b
     ret = rcl_action_server_is_available(&this->remote_node, &action_client, &is_available);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  while (!is_available);
+  } while (!is_available);
 
   ret = rcl_action_get_server_names_and_types_by_node(
     &this->node, &this->allocator, this->remote_node_name, "", &nat);
@@ -506,8 +505,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_client_names_and_types_b
     ret = rcl_action_server_is_available(&this->remote_node, &action_client, &is_available);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  while (!is_available);
+  } while (!is_available);
 
   ret = rcl_action_get_client_names_and_types_by_node(
     &this->node, &this->allocator, this->remote_node_name, "", &nat);
