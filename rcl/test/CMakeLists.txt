@@ -100,7 +100,7 @@ function(test_target_function)
   # TODO(mm318): why rmw_connext tests run much slower than rmw_fastrtps and rmw_opensplice tests
   elseif(rmw_implementation STREQUAL "rmw_connext_cpp")
     message(STATUS "Increasing test_graph${target_suffix} test timeout.")
-    set(AMENT_GTEST_ARGS TIMEOUT 90)
+    set(AMENT_GTEST_ARGS TIMEOUT 180)
   endif()
   rcl_add_custom_gtest(test_graph${target_suffix}
     SRCS rcl/test_graph.cpp
