@@ -43,7 +43,6 @@ public:
   rcl_context_t context;
   rcl_node_t old_node;
   rcl_node_t node;
-  rcl_wait_set_t wait_set;
   const char * test_graph_node_name = "test_action_graph_node";
   const char * test_graph_old_node_name = "test_action_graph_old_node_name";
 
@@ -73,20 +72,12 @@ public:
     this->node = rcl_get_zero_initialized_node();
     ret = rcl_node_init(&this->node, test_graph_node_name, "", &this->context, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    this->wait_set = rcl_get_zero_initialized_wait_set();
-    ret = rcl_wait_set_init(
-      &this->wait_set, 0, 1, 0, 0, 0, &this->context, this->allocator);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void TearDown()
   {
     rcl_ret_t ret;
     ret = rcl_node_fini(&this->old_node);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    ret = rcl_wait_set_fini(&this->wait_set);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     ret = rcl_node_fini(&this->node);
@@ -234,6 +225,12 @@ TEST_F(
 }
 
 /**
+ * Type define a get actions function.
+ */
+typedef std::function<rcl_ret_t(const rcl_node_t *,
+    rcl_names_and_types_t *)> GetActionsFunc;
+
+/**
  * Extend the TestActionGraphFixture with a multi-node fixture for node discovery and node-graph
  * perspective.
  */
@@ -244,6 +241,7 @@ public:
   const char * action_name = "/test_action_info_functions__";
   rcl_node_t remote_node;
   rcl_context_t remote_context;
+  GetActionsFunc action_func, clients_by_node_func, servers_by_node_func;
 
   void SetUp() override
   {
@@ -267,6 +265,23 @@ public:
     ret = rcl_node_init(
       &this->remote_node, this->remote_node_name, "", &this->remote_context, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    action_func = std::bind(rcl_action_get_names_and_types,
+        std::placeholders::_1,
+        &this->allocator,
+        std::placeholders::_2);
+    clients_by_node_func = std::bind(rcl_action_get_client_names_and_types_by_node,
+        std::placeholders::_1,
+        &this->allocator,
+        this->remote_node_name,
+        "",
+        std::placeholders::_2);
+    servers_by_node_func = std::bind(rcl_action_get_server_names_and_types_by_node,
+        std::placeholders::_1,
+        &this->allocator,
+        this->remote_node_name,
+        "",
+        std::placeholders::_2);
     WaitForAllNodesAlive();
   }
 
@@ -305,6 +320,30 @@ public:
       ASSERT_LE(attempts, max_attempts) << "Unable to attain all required nodes";
     }
   }
+
+  void WaitForActionCount(
+    GetActionsFunc func,
+    size_t expected_count,
+    std::chrono::milliseconds duration)
+  {
+    auto start_time = std::chrono::system_clock::now();
+    auto curr_time = start_time;
+
+    rcl_ret_t ret;
+    while ((curr_time - start_time) < duration) {
+      rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
+      ret = func(&this->node, &nat);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      size_t action_count = nat.names.size;
+      ret = rcl_names_and_types_fini(&nat);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      if (action_count == expected_count) {
+        return;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      curr_time = std::chrono::system_clock::now();
+    }
+  }
 };
 
 // Note, this test could be affected by other communication on the same ROS domain
@@ -327,13 +366,16 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_names_and_types) {
     EXPECT_EQ(RCL_RET_OK, rcl_action_client_fini(&action_client, &this->remote_node)) <<
       rcl_get_error_string().str;
   });
+
+  WaitForActionCount(action_func, 1u, std::chrono::seconds(1));
+
   // Check that there is exactly one action name
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
-  ret = rcl_action_get_names_and_types(&this->node, &this->allocator, &nat);
+  ret = action_func(&this->node, &nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_EQ(nat.names.size, 1u);
+  ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], client_action_name);
-  EXPECT_EQ(nat.types[0].size, 1u);
+  ASSERT_EQ(nat.types[0].size, 1u);
   EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
@@ -362,14 +404,16 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_names_and_types) {
       rcl_get_error_string().str;
   });
 
-  ret = rcl_action_get_names_and_types(&this->node, &this->allocator, &nat);
+  WaitForActionCount(action_func, 2u, std::chrono::seconds(1));
+
+  ret = action_func(&this->node, &nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_EQ(nat.names.size, 2u);
+  ASSERT_EQ(nat.names.size, 2u);
   EXPECT_STREQ(nat.names.data[0], client_action_name);
   EXPECT_STREQ(nat.names.data[1], server_action_name);
-  EXPECT_EQ(nat.types[0].size, 1u);
+  ASSERT_EQ(nat.types[0].size, 1u);
   EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
-  EXPECT_EQ(nat.types[1].size, 1u);
+  ASSERT_EQ(nat.types[1].size, 1u);
   EXPECT_STREQ(nat.types[1].data[0], "test_msgs/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
@@ -400,7 +444,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_server_names_and_types_b
   ret = rcl_action_get_server_names_and_types_by_node(
     &this->node, &this->allocator, this->remote_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_EQ(nat.names.size, 0u);
+  ASSERT_EQ(nat.names.size, 0u);
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -427,20 +471,12 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_server_names_and_types_b
       rcl_get_error_string().str;
   });
 
-  // Wait for server to be ready
-  bool is_available = false;
-  do {
-    ret = rcl_action_server_is_available(&this->remote_node, &action_client, &is_available);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  } while (!is_available);
-
-  ret = rcl_action_get_server_names_and_types_by_node(
-    &this->node, &this->allocator, this->remote_node_name, "", &nat);
+  WaitForActionCount(servers_by_node_func, 1u, std::chrono::seconds(1));
+  ret = servers_by_node_func(&this->node, &nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_EQ(nat.names.size, 1u);
+  ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], this->action_name);
-  EXPECT_EQ(nat.types[0].size, 1u);
+  ASSERT_EQ(nat.types[0].size, 1u);
   EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
@@ -479,7 +515,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_client_names_and_types_b
   ret = rcl_action_get_client_names_and_types_by_node(
     &this->node, &this->allocator, this->remote_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_EQ(nat.names.size, 0u);
+  ASSERT_EQ(nat.names.size, 0u);
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -499,20 +535,12 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_client_names_and_types_b
       rcl_get_error_string().str;
   });
 
-  // Wait for server to be ready
-  bool is_available = false;
-  do {
-    ret = rcl_action_server_is_available(&this->remote_node, &action_client, &is_available);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  } while (!is_available);
-
-  ret = rcl_action_get_client_names_and_types_by_node(
-    &this->node, &this->allocator, this->remote_node_name, "", &nat);
+  WaitForActionCount(clients_by_node_func, 1u, std::chrono::seconds(1));
+  ret = clients_by_node_func(&this->node, &nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_EQ(nat.names.size, 1u);
+  ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], this->action_name);
-  EXPECT_EQ(nat.types[0].size, 1u);
+  ASSERT_EQ(nat.types[0].size, 1u);
   EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);

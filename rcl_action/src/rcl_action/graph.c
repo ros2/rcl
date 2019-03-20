@@ -30,20 +30,22 @@ extern "C"
 static
 rcl_ret_t
 _filter_action_names(
-  rcl_names_and_types_t * input_names_and_types,
+  rcl_names_and_types_t * topic_names_and_types,
   rcl_allocator_t * allocator,
-  const char * action_name_suffix,
-  const char * action_type_suffix,
   rcl_names_and_types_t * action_names_and_types)
 {
-  assert(input_names_and_types);
+  assert(topic_names_and_types);
   assert(allocator);
-  assert(action_name_suffix);
   assert(action_names_and_types);
 
+  // Assumption: actions provide a topic name with the suffix "/_action/feedback"
+  // and it has type with the suffix "_FeedbackMessage"
+  const char * action_name_suffix = "/_action/feedback";
+  const char * action_type_suffix = "_FeedbackMessage";
+
   rcl_ret_t ret;
-  const size_t num_names = input_names_and_types->names.size;
-  char ** names = input_names_and_types->names.data;
+  const size_t num_names = topic_names_and_types->names.size;
+  char ** names = topic_names_and_types->names.data;
 
   // Count number of actions to determine how much memory to allocate
   size_t num_actions = 0u;
@@ -84,7 +86,7 @@ _filter_action_names(
       // Allocate storage for type list
       rcutils_ret_t rcutils_ret = rcutils_string_array_init(
         &action_names_and_types->types[j],
-        input_names_and_types->types[i].size,
+        topic_names_and_types->types[i].size,
         allocator);
       if (RCUTILS_RET_OK != rcutils_ret) {
         RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
@@ -93,8 +95,8 @@ _filter_action_names(
       }
 
       // Populate types list
-      for (size_t k = 0u; k < input_names_and_types->types[i].size; ++k) {
-        char * type_name = input_names_and_types->types[i].data[k];
+      for (size_t k = 0u; k < topic_names_and_types->types[i].size; ++k) {
+        char * type_name = topic_names_and_types->types[i].data[k];
         size_t action_type_len = strlen(type_name);
         // Trim type name suffix, if provided
         if (action_type_suffix) {
@@ -143,15 +145,9 @@ rcl_action_get_client_names_and_types_by_node(
     return ret;
   }
 
-  // Assumption: actions provide a topic name with the suffix "/_action/feedback"
-  // and it has type with the suffix "_FeedbackMessage"
-  const char * action_name_suffix = "/_action/feedback";
-  const char * action_type_suffix = "_FeedbackMessage";
   ret = _filter_action_names(
     &topic_names_and_types,
     allocator,
-    action_name_suffix,
-    action_type_suffix,
     action_names_and_types);
   return ret;
 }
@@ -174,15 +170,9 @@ rcl_action_get_server_names_and_types_by_node(
     return ret;
   }
 
-  // Assumption: actions provide a topic name with the suffix "/_action/feedback"
-  // and it has type with the suffix "_FeedbackMessage"
-  const char * action_name_suffix = "/_action/feedback";
-  const char * action_type_suffix = "_FeedbackMessage";
   ret = _filter_action_names(
     &topic_names_and_types,
     allocator,
-    action_name_suffix,
-    action_type_suffix,
     action_names_and_types);
   return ret;
 }
@@ -194,21 +184,15 @@ rcl_action_get_names_and_types(
   rcl_names_and_types_t * action_names_and_types)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(action_names_and_types, RCL_RET_INVALID_ARGUMENT);
-  rcl_names_and_types_t service_names_and_types = rcl_get_zero_initialized_names_and_types();
-  rcl_ret_t ret = rcl_get_service_names_and_types(node, allocator, &service_names_and_types);
+  rcl_names_and_types_t topic_names_and_types = rcl_get_zero_initialized_names_and_types();
+  rcl_ret_t ret = rcl_get_topic_names_and_types(node, allocator, false, &topic_names_and_types);
   if (RCL_RET_OK != ret) {
     return ret;
   }
 
-  // Assumption: actions provide a service name with the suffix "/_action/send_goal"
-  // and it has a type name with the suffix "_SendGoal"
-  const char * action_name_suffix = "/_action/send_goal";
-  const char * action_type_suffix = "_SendGoal";
   ret = _filter_action_names(
-    &service_names_and_types,
+    &topic_names_and_types,
     allocator,
-    action_name_suffix,
-    action_type_suffix,
     action_names_and_types);
   return ret;
 }
