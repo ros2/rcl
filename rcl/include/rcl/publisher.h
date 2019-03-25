@@ -468,6 +468,7 @@ rcl_publisher_get_subscription_count(
 /// Get the actual qos settings of the publisher.
 /**
  * Used to get the actual qos settings of the publisher.
+ * This resolves what is the actual value of RMW_*_SYSTEM_DEFAULT.
  *
  * <hr>
  * Attribute          | Adherence
