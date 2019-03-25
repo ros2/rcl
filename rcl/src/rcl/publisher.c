@@ -194,9 +194,9 @@ rcl_publisher_init(
   // context
   publisher->impl->context = node->context;
 
-goto cleanup;
+  goto cleanup;
 fail:
- if (publisher->impl) {
+  if (publisher->impl) {
     allocator->deallocate(publisher->impl, allocator->state);
   }
 
@@ -252,7 +252,9 @@ rcl_publisher_get_default_options()
 }
 
 rcl_ret_t
-rcl_publish(const rcl_publisher_t * publisher, const void * ros_message, rmw_publisher_allocation_t * allocation)
+rcl_publish(
+  const rcl_publisher_t * publisher, const void * ros_message,
+  rmw_publisher_allocation_t * allocation)
 {
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;  // error already set

@@ -68,7 +68,7 @@ std::ostream & operator<<(std::ostream & os, const TestMemoryParams & pr)
          " - QoS.depth : " << pr.qos_profile.depth <<
          " - QoS.reliability : " << pr.qos_profile.reliability <<
          " - QoS.durability : " << pr.qos_profile.durability <<
-         "] - [ MsgDescription : [ " << pr.messageDescription <<" ] \n";
+         "] - [ MsgDescription : [ " << pr.messageDescription << " ] \n";
 }
 
 std::shared_ptr<test_msgs__msg__Int32> getInt32Value()
@@ -91,7 +91,8 @@ std::shared_ptr<test_msgs__msg__SmallInt32StaticArray> getSmallInt32ArrayValue()
 
 std::shared_ptr<test_msgs__msg__LargeInt32StaticArray> getLargeInt32ArrayValue()
 {
-  std::shared_ptr<test_msgs__msg__LargeInt32StaticArray> msg(test_msgs__msg__LargeInt32StaticArray__create());
+  std::shared_ptr<test_msgs__msg__LargeInt32StaticArray> msg(
+    test_msgs__msg__LargeInt32StaticArray__create());
   return msg;
 }
 
@@ -154,11 +155,11 @@ TEST_P_RMW(TestMemoryFixture, test_memory_publisher) {
 
   rcl_allocator_t * allocator = (rcl_allocator_t *)&publisher_options.allocator;
   rmw_publisher_allocation_t * allocation = (rmw_publisher_allocation_t *)allocator->allocate(
-      sizeof(rmw_publisher_allocation_t), allocator->state);
+    sizeof(rmw_publisher_allocation_t), allocator->state);
   rmw_ret_t rmw_ret;
   rmw_ret = rmw_init_publisher_allocation(
-       param.ts, NULL, allocation
-   );
+    param.ts, NULL, allocation
+  );
   EXPECT_EQ(RMW_RET_OK, rmw_ret);
 
   rcl_ret_t ret =
@@ -245,14 +246,15 @@ TEST_P_RMW(TestMemoryFixture, test_memory_subscription) {
 
   rcl_allocator_t * allocator = (rcl_allocator_t *)&subscription_options.allocator;
   rmw_subscription_allocation_t * allocation = (rmw_subscription_allocation_t *)allocator->allocate(
-      sizeof(rmw_subscription_allocation_t), allocator->state);
+    sizeof(rmw_subscription_allocation_t), allocator->state);
   rmw_ret_t rmw_ret;
   rmw_ret = rmw_init_subscription_allocation(
-       param.ts, NULL, allocation
-   );
+    param.ts, NULL, allocation
+  );
   ASSERT_EQ(RMW_RET_OK, rmw_ret);
 
-  ret = rcl_subscription_init(&subscription, this->node_ptr, param.ts, topic, &subscription_options);
+  ret =
+    rcl_subscription_init(&subscription, this->node_ptr, param.ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
@@ -286,57 +288,69 @@ std::vector<TestMemoryParams> getTestMemoryParams()
 {
 
   const rosidl_message_type_support_t * ts_int32 =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Int32);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Int32);
   const rosidl_message_type_support_t * ts_small_int32_static_array =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Int32);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Int32);
   const rosidl_message_type_support_t * ts_large_int32_static_array =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Int32);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Int32);
 
   return
-   {
-     {rmw_qos_profile_sensor_data, getInt32Value(), getInt32Value(), ts_int32, "int32"},  // 0
-     {rmw_qos_profile_sensor_data, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(), ts_small_int32_static_array, "small_int32_static_array"},   // 1
-     {rmw_qos_profile_sensor_data, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(), ts_large_int32_static_array, "large_int32_static_array"}, //,  // 2
-     {rmw_qos_profile_parameters, getInt32Value(), getInt32Value(), ts_int32, "int32"},  // 3
-     {rmw_qos_profile_parameters, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(), ts_small_int32_static_array, "small_int32_static_array"},  // 4
-     {rmw_qos_profile_parameters, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(), ts_large_int32_static_array, "large_int32_static_array"},  // 5
-     {rmw_qos_profile_default, getInt32Value(), getInt32Value(), ts_int32, "int32"},  // 6
-     {rmw_qos_profile_default, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(), ts_small_int32_static_array, "small_int32_static_array"},  // 7
-     {rmw_qos_profile_default, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(), ts_large_int32_static_array, "large_int32_static_array"},  // 8
-     {rmw_qos_profile_services_default, getInt32Value(), getInt32Value(), ts_int32, "int32"},  // 9
-     {rmw_qos_profile_services_default, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(), ts_small_int32_static_array, "small_int32_static_array"},  // 10
-     {rmw_qos_profile_services_default, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(), ts_large_int32_static_array, "large_int32_static_array"},  // 11
-     {rmw_qos_profile_parameter_events, getInt32Value(), getInt32Value(), ts_int32, "int32"},  // 12
-     {rmw_qos_profile_parameter_events, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(), ts_small_int32_static_array, "small_int32_static_array"},  // 13
-     {rmw_qos_profile_parameter_events, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(), ts_large_int32_static_array, "large_int32_static_array"},  // 14
-     {rmw_qos_profile_system_default, getInt32Value(), getInt32Value(), ts_int32, "int32"},  // 15
-     {rmw_qos_profile_system_default, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(), ts_small_int32_static_array, "small_int32_static_array"},  // 16
-     {rmw_qos_profile_system_default, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(), ts_large_int32_static_array, "large_int32_static_array"},  // 17
-     {{
-       RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-       1000,
-       RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-       false
-     }, getInt32Value(), getInt32Value(), ts_int32, "int32"},  //  18
-     {{
-       RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-       1000,
-       RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-       false
-     }, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(), ts_small_int32_static_array, "small_int32_static_array"},  //  19
-     {{
-       RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-       1000,
-       RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-       false
-     }, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(), ts_large_int32_static_array, "large_int32_static_array"}  //  20
+    {
+      {rmw_qos_profile_sensor_data, getInt32Value(), getInt32Value(), ts_int32, "int32"}, // 0
+      {rmw_qos_profile_sensor_data, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(),
+        ts_small_int32_static_array, "small_int32_static_array"},  // 1
+      {rmw_qos_profile_sensor_data, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(),
+        ts_large_int32_static_array, "large_int32_static_array"}, // 2
+      {rmw_qos_profile_parameters, getInt32Value(), getInt32Value(), ts_int32, "int32"}, // 3
+      {rmw_qos_profile_parameters, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(),
+        ts_small_int32_static_array, "small_int32_static_array"}, // 4
+      {rmw_qos_profile_parameters, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(),
+        ts_large_int32_static_array, "large_int32_static_array"}, // 5
+      {rmw_qos_profile_default, getInt32Value(), getInt32Value(), ts_int32, "int32"}, // 6
+      {rmw_qos_profile_default, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(),
+        ts_small_int32_static_array, "small_int32_static_array"}, // 7
+      {rmw_qos_profile_default, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(),
+        ts_large_int32_static_array, "large_int32_static_array"}, // 8
+      {rmw_qos_profile_services_default, getInt32Value(), getInt32Value(), ts_int32, "int32"}, // 9
+      {rmw_qos_profile_services_default, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(),
+        ts_small_int32_static_array, "small_int32_static_array"}, // 10
+      {rmw_qos_profile_services_default, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(),
+        ts_large_int32_static_array, "large_int32_static_array"}, // 11
+      {rmw_qos_profile_parameter_events, getInt32Value(), getInt32Value(), ts_int32, "int32"}, // 12
+      {rmw_qos_profile_parameter_events, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(),
+        ts_small_int32_static_array, "small_int32_static_array"}, // 13
+      {rmw_qos_profile_parameter_events, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(),
+        ts_large_int32_static_array, "large_int32_static_array"}, // 14
+      {rmw_qos_profile_system_default, getInt32Value(), getInt32Value(), ts_int32, "int32"}, // 15
+      {rmw_qos_profile_system_default, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(),
+        ts_small_int32_static_array, "small_int32_static_array"}, // 16
+      {rmw_qos_profile_system_default, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(),
+        ts_large_int32_static_array, "large_int32_static_array"}, // 17
+      {{
+        RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+        1000,
+        RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+        false
+      }, getInt32Value(), getInt32Value(), ts_int32, "int32"}, //  18
+      {{
+        RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+        1000,
+        RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+        false
+      }, getSmallInt32ArrayValue(), getSmallInt32ArrayValue(), ts_small_int32_static_array,
+        "small_int32_static_array"}, //  19
+      {{
+        RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+        1000,
+        RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+        false
+      }, getLargeInt32ArrayValue(), getLargeInt32ArrayValue(), ts_large_int32_static_array,
+        "large_int32_static_array"} //  20
     };
 }
-
-//using TestMemoryFixtureForUInt64 = TestMemoryFixture<UInt64>
 
 INSTANTIATE_TEST_CASE_P_RMW(QOSGroup, TestMemoryFixture,
   ::testing::ValuesIn(getTestMemoryParams()));
