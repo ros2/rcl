@@ -1,0 +1,181 @@
+// Copyright 2018 Open Source Robotics Foundation, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#include <gtest/gtest.h>
+
+#include <chrono>
+#include <string>
+#include <thread>
+
+#include "rcl/error_handling.h"
+#include "rcl/rcl.h"
+#include "rcl/publisher.h"
+
+#include "rcutils/logging_macros.h"
+
+#include "test_msgs/msg/primitives.h"
+#include "test_msgs/srv/primitives.h"
+
+#ifdef RMW_IMPLEMENTATION
+# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
+# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+#else
+# define CLASSNAME(NAME, SUFFIX) NAME
+#endif
+
+#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME(test_fixture_name, \
+    RMW_IMPLEMENTATION)
+#define APPLY(macro, ...) macro(__VA_ARGS__)
+#define TEST_P_RMW(test_case_name, test_name) APPLY(TEST_P, \
+    CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
+#define INSTANTIATE_TEST_CASE_P_RMW(instance_name, test_case_name, ...) APPLY( \
+    INSTANTIATE_TEST_CASE_P, instance_name, CLASSNAME(test_case_name, \
+    RMW_IMPLEMENTATION), __VA_ARGS__)
+
+/**
+ * Parameterized test.
+ * The first param are the NodeOptions used to create the nodes.
+ * The second param are the expect intraprocess count results.
+ */
+struct CLASSNAME (TestParameters, RMW_IMPLEMENTATION)
+{
+rmw_qos_profile_t qos_to_set;
+rmw_qos_profile_t qos_expected;
+std::string description;
+};
+
+std::ostream & operator<<(
+  std::ostream & out,
+  const CLASSNAME(TestParameters, RMW_IMPLEMENTATION) & params)
+{
+  out << params.description;
+  return out;
+}
+
+
+class CLASSNAME (TestGetActualQoS, RMW_IMPLEMENTATION)
+  : public ::testing::TestWithParam<CLASSNAME(TestParameters, RMW_IMPLEMENTATION)>
+{
+public:
+  rcl_node_t * node_ptr;
+  rcl_context_t * context_ptr;
+  void SetUp()
+  {
+    rcl_ret_t ret;
+    rcl_node_options_t node_options = rcl_node_get_default_options();
+
+    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+    ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    this->context_ptr = new rcl_context_t;
+    *this->context_ptr = rcl_get_zero_initialized_context();
+    ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    this->node_ptr = new rcl_node_t;
+    *this->node_ptr = rcl_get_zero_initialized_node();
+    const char * name = "test_get_actual_qos_node";
+    ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  void TearDown()
+  {
+    rcl_ret_t ret;
+
+    ret = rcl_node_fini(this->node_ptr);
+    delete this->node_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_shutdown(this->context_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_context_fini(this->context_ptr);
+    delete this->context_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+};
+
+TEST_P(CLASSNAME(TestGetActualQoS, RMW_IMPLEMENTATION), test_publisher_get_qos_settings) {
+  CLASSNAME(TestParameters, RMW_IMPLEMENTATION) parameters =
+    GetParam();
+  std::string topic_name("/test_publisher_get_actual_qos__");
+  rcl_ret_t ret;
+
+  rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
+  rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
+  pub_ops.qos = parameters.qos_to_set;
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rmw_qos_profile_t qos;
+  ret = rcl_publisher_get_actual_qos(&pub, &qos);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    parameters.qos_to_set.history,
+    parameters.qos_expected.history);
+  EXPECT_EQ(
+    parameters.qos_to_set.depth,
+    parameters.qos_expected.depth);
+  EXPECT_EQ(
+    parameters.qos_to_set.reliability,
+    parameters.qos_expected.reliability);
+  EXPECT_EQ(
+    parameters.qos_to_set.durability,
+    parameters.qos_expected.durability);
+  EXPECT_EQ(
+    parameters.qos_to_set.avoid_ros_namespace_conventions,
+    parameters.qos_expected.avoid_ros_namespace_conventions);
+
+  ret = rcl_publisher_fini(&pub, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+CLASSNAME(TestParameters, RMW_IMPLEMENTATION) parameters[] = {
+  /*
+    Testing with default qos settings.
+   */
+  {
+    rmw_qos_profile_default,
+    rmw_qos_profile_default,
+    "publisher_default_qos"
+  },
+  /*
+    Test with non-default settings.
+   */
+  {
+    {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1000,
+      RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+      true
+    },
+    {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1000,
+      RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+      true
+    },
+    "publisher_non_default_qos"
+  }
+};
+
+INSTANTIATE_TEST_CASE_P_RMW(
+  TestWithDifferentQoSSettings,
+  TestGetActualQoS,
+  ::testing::ValuesIn(parameters),
+  ::testing::PrintToStringParamName());
