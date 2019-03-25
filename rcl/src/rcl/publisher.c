@@ -349,6 +349,29 @@ rcl_publisher_get_subscription_count(
   return RCL_RET_OK;
 }
 
+rmw_ret_t
+rcl_publisher_get_actual_qos(
+  const rcl_publisher_t * publisher,
+  rmw_qos_profile_t * qos)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(qos, RCL_RET_INVALID_ARGUMENT);
+
+  rmw_ret_t ret = rmw_publisher_get_actual_qos(publisher->impl->rmw_handle,
+      qos);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+  qos->avoid_ros_namespace_conventions =
+    publisher->impl->options.qos.avoid_ros_namespace_conventions;
+
+  return RCL_RET_OK;
+}
+
 #ifdef __cplusplus
 }
 #endif
