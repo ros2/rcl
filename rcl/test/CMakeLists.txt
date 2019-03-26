@@ -124,7 +124,7 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation} "test_msgs"
   )
 
   rcl_add_custom_gtest(test_init${target_suffix}

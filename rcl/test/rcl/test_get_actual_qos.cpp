@@ -1,4 +1,4 @@
-// Copyright 2018 Open Source Robotics Foundation, Inc.
+// Copyright 2019 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,11 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include <gtest/gtest.h>
 
-#include <chrono>
 #include <string>
-#include <thread>
+#include <vector>
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
@@ -42,29 +42,32 @@
     INSTANTIATE_TEST_CASE_P, instance_name, CLASSNAME(test_case_name, \
     RMW_IMPLEMENTATION), __VA_ARGS__)
 
+// One const for each of the RMW_IMPLEMENTATION values
+const char * rmw_fastrtps_cpp = "rmw_fastrtps_cpp";
+const char * rmw_fastrtps_dynamic_cpp = "rmw_fastrtps_dynamic_cpp";
+
 /**
  * Parameterized test.
  * The first param are the NodeOptions used to create the nodes.
  * The second param are the expect intraprocess count results.
  */
-struct CLASSNAME (TestParameters, RMW_IMPLEMENTATION)
+struct TestParameters
 {
-rmw_qos_profile_t qos_to_set;
-rmw_qos_profile_t qos_expected;
-std::string description;
+  rmw_qos_profile_t qos_to_set;
+  rmw_qos_profile_t qos_expected;
+  std::string description;
 };
 
 std::ostream & operator<<(
   std::ostream & out,
-  const CLASSNAME(TestParameters, RMW_IMPLEMENTATION) & params)
+  const TestParameters & params)
 {
   out << params.description;
   return out;
 }
 
-
-class CLASSNAME (TestGetActualQoS, RMW_IMPLEMENTATION)
-  : public ::testing::TestWithParam<CLASSNAME(TestParameters, RMW_IMPLEMENTATION)>
+class TEST_FIXTURE_P_RMW (TestGetActualQoS)
+  : public ::testing::TestWithParam<TestParameters>
 {
 public:
   rcl_node_t * node_ptr;
@@ -105,9 +108,8 @@ public:
   }
 };
 
-TEST_P(CLASSNAME(TestGetActualQoS, RMW_IMPLEMENTATION), test_publisher_get_qos_settings) {
-  CLASSNAME(TestParameters, RMW_IMPLEMENTATION) parameters =
-    GetParam();
+TEST_P_RMW(TestGetActualQoS, test_publisher_get_qos_settings) {
+  TestParameters parameters = GetParam();
   std::string topic_name("/test_publisher_get_actual_qos__");
   rcl_ret_t ret;
 
@@ -123,19 +125,19 @@ TEST_P(CLASSNAME(TestGetActualQoS, RMW_IMPLEMENTATION), test_publisher_get_qos_s
   ret = rcl_publisher_get_actual_qos(&pub, &qos);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(
-    parameters.qos_to_set.history,
+    qos.history,
     parameters.qos_expected.history);
   EXPECT_EQ(
-    parameters.qos_to_set.depth,
+    qos.depth,
     parameters.qos_expected.depth);
   EXPECT_EQ(
-    parameters.qos_to_set.reliability,
+    qos.reliability,
     parameters.qos_expected.reliability);
   EXPECT_EQ(
-    parameters.qos_to_set.durability,
+    qos.durability,
     parameters.qos_expected.durability);
   EXPECT_EQ(
-    parameters.qos_to_set.avoid_ros_namespace_conventions,
+    qos.avoid_ros_namespace_conventions,
     parameters.qos_expected.avoid_ros_namespace_conventions);
 
   ret = rcl_publisher_fini(&pub, this->node_ptr);
@@ -143,39 +145,67 @@ TEST_P(CLASSNAME(TestGetActualQoS, RMW_IMPLEMENTATION), test_publisher_get_qos_s
   rcl_reset_error();
 }
 
-CLASSNAME(TestParameters, RMW_IMPLEMENTATION) parameters[] = {
-  /*
-    Testing with default qos settings.
-   */
-  {
-    rmw_qos_profile_default,
-    rmw_qos_profile_default,
-    "publisher_default_qos"
-  },
-  /*
-    Test with non-default settings.
-   */
-  {
+std::vector<TestParameters>
+get_parameters()
+{
+  std::vector<TestParameters>
+  parameters({
+    /*
+      Testing with default qos settings.
+     */
     {
-      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
-      1000,
-      RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-      true
+      rmw_qos_profile_default,
+      rmw_qos_profile_default,
+      "publisher_default_qos"
     },
+    /*
+      Test with non-default settings.
+     */
     {
-      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
-      1000,
-      RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-      true
-    },
-    "publisher_non_default_qos"
+      {
+        RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+        1000,
+        RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+        true
+      },
+      {
+        RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+        1000,
+        RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+        true
+      },
+      "publisher_non_default_qos"
+    }
+  });
+  rmw_qos_profile_t expected_system_default_qos;
+
+#ifdef RMW_IMPLEMENTATION
+  // RMW_IMPLEMENTATION is one of the const char * defined above
+  if (std::string("rmw_fastrtps_cpp").compare(RMW_IMPLEMENTATION) ||
+    std::string("rmw_fastrtps_dynamic_cpp").compare(RMW_IMPLEMENTATION))
+  {
+    expected_system_default_qos.history =
+      RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+    expected_system_default_qos.depth = 1;
+    expected_system_default_qos.reliability =
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+    expected_system_default_qos.durability =
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+    expected_system_default_qos.avoid_ros_namespace_conventions =
+      false;
   }
-};
+  parameters.push_back({
+    rmw_qos_profile_system_default,
+    expected_system_default_qos,
+    "publisher_system_default_qos"});
+#endif
+  return parameters;
+}
 
 INSTANTIATE_TEST_CASE_P_RMW(
   TestWithDifferentQoSSettings,
   TestGetActualQoS,
-  ::testing::ValuesIn(parameters),
+  ::testing::ValuesIn(get_parameters()),
   ::testing::PrintToStringParamName());
