@@ -181,8 +181,9 @@ get_parameters()
   });
 
 #ifdef RMW_IMPLEMENTATION_STR
-  if (!std::string("rmw_fastrtps_cpp").compare(RMW_IMPLEMENTATION_STR) ||
-    !std::string("rmw_fastrtps_dynamic_cpp").compare(RMW_IMPLEMENTATION_STR))
+  std::string rmw_implementation_str = RMW_IMPLEMENTATION_STR;
+  if (!rmw_implementation_str.compare("rmw_fastrtps_cpp") ||
+    !rmw_implementation_str.compare("rmw_fastrtps_dynamic_cpp"))
   {
     rmw_qos_profile_t expected_system_default_qos = {
       RMW_QOS_POLICY_HISTORY_KEEP_LAST,
@@ -194,7 +195,10 @@ get_parameters()
       rmw_qos_profile_system_default,
       expected_system_default_qos,
       "publisher_system_default_qos"});
-  } else if (!std::string("rmw_opensplice_cpp").compare(RMW_IMPLEMENTATION_STR)) {
+  } else if (!rmw_implementation_str.compare("rmw_opensplice_cpp") ||
+    !rmw_implementation_str.compare("rmw_connext_cpp") ||
+    !rmw_implementation_str.compare("rmw_connext_dynamic_cpp"))
+  {
     rmw_qos_profile_t expected_system_default_qos = {
       RMW_QOS_POLICY_HISTORY_KEEP_LAST,
       1,
