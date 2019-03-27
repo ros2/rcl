@@ -26,9 +26,13 @@
 #include "test_msgs/msg/primitives.h"
 #include "test_msgs/srv/primitives.h"
 
+#define STRINGIFY_(x) #x
+#define STRINGIFY(x) STRINGIFY_(x)
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
+# define RMW_IMPLEMENTATION_STR STRINGIFY(RMW_IMPLEMENTATION)
 #else
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
@@ -41,10 +45,6 @@
 #define INSTANTIATE_TEST_CASE_P_RMW(instance_name, test_case_name, ...) APPLY( \
     INSTANTIATE_TEST_CASE_P, instance_name, CLASSNAME(test_case_name, \
     RMW_IMPLEMENTATION), __VA_ARGS__)
-
-// One const for each of the RMW_IMPLEMENTATION values
-const char * rmw_fastrtps_cpp = "rmw_fastrtps_cpp";
-const char * rmw_fastrtps_dynamic_cpp = "rmw_fastrtps_dynamic_cpp";
 
 /**
  * Parameterized test.
@@ -179,27 +179,33 @@ get_parameters()
       "publisher_non_default_qos"
     }
   });
-  rmw_qos_profile_t expected_system_default_qos;
 
-#ifdef RMW_IMPLEMENTATION
-  // RMW_IMPLEMENTATION is one of the const char * defined above
-  if (std::string("rmw_fastrtps_cpp").compare(RMW_IMPLEMENTATION) ||
-    std::string("rmw_fastrtps_dynamic_cpp").compare(RMW_IMPLEMENTATION))
+#ifdef RMW_IMPLEMENTATION_STR
+  if (!std::string("rmw_fastrtps_cpp").compare(RMW_IMPLEMENTATION_STR) ||
+    !std::string("rmw_fastrtps_dynamic_cpp").compare(RMW_IMPLEMENTATION_STR))
   {
-    expected_system_default_qos.history =
-      RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-    expected_system_default_qos.depth = 1;
-    expected_system_default_qos.reliability =
-      RMW_QOS_POLICY_RELIABILITY_RELIABLE;
-    expected_system_default_qos.durability =
-      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-    expected_system_default_qos.avoid_ros_namespace_conventions =
-      false;
+    rmw_qos_profile_t expected_system_default_qos = {
+      RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+      false};
+    parameters.push_back({
+      rmw_qos_profile_system_default,
+      expected_system_default_qos,
+      "publisher_system_default_qos"});
+  } else if (!std::string("rmw_opensplice_cpp").compare(RMW_IMPLEMENTATION_STR)) {
+    rmw_qos_profile_t expected_system_default_qos = {
+      RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+      RMW_QOS_POLICY_DURABILITY_VOLATILE,
+      false};
+    parameters.push_back({
+      rmw_qos_profile_system_default,
+      expected_system_default_qos,
+      "publisher_system_default_qos"});
   }
-  parameters.push_back({
-    rmw_qos_profile_system_default,
-    expected_system_default_qos,
-    "publisher_system_default_qos"});
 #endif
   return parameters;
 }
