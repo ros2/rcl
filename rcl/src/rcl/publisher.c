@@ -35,6 +35,7 @@ extern "C"
 typedef struct rcl_publisher_impl_t
 {
   rcl_publisher_options_t options;
+  rmw_qos_profile_t actual_qos;
   rcl_context_t * context;
   rmw_publisher_t * rmw_handle;
 } rcl_publisher_impl_t;
@@ -171,6 +172,17 @@ rcl_publisher_init(
     &(options->qos));
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
     rmw_get_error_string().str, goto fail);
+  // get actual qos, and store it
+  rmw_ret = rmw_publisher_get_actual_qos(
+    publisher->impl->rmw_handle,
+    &publisher->impl->actual_qos);
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    ret = RCL_RET_ERROR;
+    goto fail;
+  }
+  publisher->impl->actual_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
   // options
   publisher->impl->options = *options;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
@@ -349,27 +361,13 @@ rcl_publisher_get_subscription_count(
   return RCL_RET_OK;
 }
 
-rmw_ret_t
-rcl_publisher_get_actual_qos(
-  const rcl_publisher_t * publisher,
-  rmw_qos_profile_t * qos)
+const rmw_qos_profile_t *
+rcl_publisher_get_actual_qos(const rcl_publisher_t * publisher)
 {
-  if (!rcl_publisher_is_valid(publisher)) {
-    return RCL_RET_PUBLISHER_INVALID;
+  if (!rcl_publisher_is_valid_except_context(publisher)) {
+    return NULL;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(qos, RCL_RET_INVALID_ARGUMENT);
-
-  rmw_ret_t ret = rmw_publisher_get_actual_qos(publisher->impl->rmw_handle,
-      qos);
-
-  if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return rcl_convert_rmw_ret_to_rcl_ret(ret);
-  }
-  qos->avoid_ros_namespace_conventions =
-    publisher->impl->options.qos.avoid_ros_namespace_conventions;
-
-  return RCL_RET_OK;
+  return &publisher->impl->actual_qos;
 }
 
 #ifdef __cplusplus

@@ -22,17 +22,15 @@
 #include "rcl/publisher.h"
 
 #include "rcutils/logging_macros.h"
+#include "rcutils/macros.h"
 
 #include "test_msgs/msg/primitives.h"
 #include "test_msgs/srv/primitives.h"
 
-#define STRINGIFY_(x) #x
-#define STRINGIFY(x) STRINGIFY_(x)
-
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-# define RMW_IMPLEMENTATION_STR STRINGIFY(RMW_IMPLEMENTATION)
+# define RMW_IMPLEMENTATION_STR RCUTILS_STRINGIFY(RMW_IMPLEMENTATION)
 #else
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
@@ -121,23 +119,23 @@ TEST_P_RMW(TestGetActualQoS, test_publisher_get_qos_settings) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  rmw_qos_profile_t qos;
-  ret = rcl_publisher_get_actual_qos(&pub, &qos);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  const rmw_qos_profile_t * qos;
+  qos = rcl_publisher_get_actual_qos(&pub);
+  EXPECT_NE(nullptr, qos) << rcl_get_error_string().str;
   EXPECT_EQ(
-    qos.history,
+    qos->history,
     parameters.qos_expected.history);
   EXPECT_EQ(
-    qos.depth,
+    qos->depth,
     parameters.qos_expected.depth);
   EXPECT_EQ(
-    qos.reliability,
+    qos->reliability,
     parameters.qos_expected.reliability);
   EXPECT_EQ(
-    qos.durability,
+    qos->durability,
     parameters.qos_expected.durability);
   EXPECT_EQ(
-    qos.avoid_ros_namespace_conventions,
+    qos->avoid_ros_namespace_conventions,
     parameters.qos_expected.avoid_ros_namespace_conventions);
 
   ret = rcl_publisher_fini(&pub, this->node_ptr);
@@ -195,20 +193,22 @@ get_parameters()
       rmw_qos_profile_system_default,
       expected_system_default_qos,
       "publisher_system_default_qos"});
-  } else if (!rmw_implementation_str.compare("rmw_opensplice_cpp") ||
-    !rmw_implementation_str.compare("rmw_connext_cpp") ||
-    !rmw_implementation_str.compare("rmw_connext_dynamic_cpp"))
-  {
-    rmw_qos_profile_t expected_system_default_qos = {
-      RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-      1,
-      RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-      RMW_QOS_POLICY_DURABILITY_VOLATILE,
-      false};
-    parameters.push_back({
-      rmw_qos_profile_system_default,
-      expected_system_default_qos,
-      "publisher_system_default_qos"});
+  } else {
+    if (!rmw_implementation_str.compare("rmw_opensplice_cpp") ||
+      !rmw_implementation_str.compare("rmw_connext_cpp") ||
+      !rmw_implementation_str.compare("rmw_connext_dynamic_cpp"))
+    {
+      rmw_qos_profile_t expected_system_default_qos = {
+        RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+        1,
+        RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+        RMW_QOS_POLICY_DURABILITY_VOLATILE,
+        false};
+      parameters.push_back({
+        rmw_qos_profile_system_default,
+        expected_system_default_qos,
+        "publisher_system_default_qos"});
+    }
   }
 #endif
   return parameters;
