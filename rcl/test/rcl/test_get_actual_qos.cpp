@@ -35,14 +35,16 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+#define EXPAND(x) x
 #define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME(test_fixture_name, \
     RMW_IMPLEMENTATION)
-#define APPLY(macro, ...) macro(__VA_ARGS__)
-#define TEST_P_RMW(test_case_name, test_name) APPLY(TEST_P, \
+#define APPLY(macro, ...) EXPAND(macro(__VA_ARGS__))
+#define TEST_P_RMW(test_case_name, test_name) \
+  APPLY(TEST_P, \
     CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
-#define INSTANTIATE_TEST_CASE_P_RMW(instance_name, test_case_name, ...) APPLY( \
-    INSTANTIATE_TEST_CASE_P, instance_name, CLASSNAME(test_case_name, \
-    RMW_IMPLEMENTATION), __VA_ARGS__)
+#define INSTANTIATE_TEST_CASE_P_RMW(instance_name, test_case_name, ...) \
+  EXPAND(APPLY(INSTANTIATE_TEST_CASE_P, instance_name, \
+    CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
 
 /**
  * Parameterized test.
