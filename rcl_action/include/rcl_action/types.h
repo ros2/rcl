@@ -97,10 +97,10 @@ typedef int8_t rcl_action_goal_state_t;
 typedef enum rcl_action_goal_event_t
 {
   GOAL_EVENT_EXECUTE = 0,
+  GOAL_EVENT_REQUEST_CANCEL,
+  GOAL_EVENT_SUCCEED,
+  GOAL_EVENT_ABORT,
   GOAL_EVENT_CANCEL,
-  GOAL_EVENT_SET_SUCCEEDED,
-  GOAL_EVENT_SET_ABORTED,
-  GOAL_EVENT_SET_CANCELED,
   GOAL_EVENT_NUM_EVENTS
 } rcl_action_goal_event_t;
 

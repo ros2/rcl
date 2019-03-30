@@ -161,7 +161,7 @@ using EventStateActiveCancelableTuple =
   std::tuple<rcl_action_goal_event_t, rcl_action_goal_state_t, bool, bool>;
 using StateTransitionSequence = std::vector<EventStateActiveCancelableTuple>;
 const std::vector<std::string> event_strs = {
-  "EXECUTE", "CANCEL", "SET_SUCCEEDED", "SET_ABORTED", "SET_CANCELED"};
+  "EXECUTE", "CANCEL", "SUCCEED", "ABORT", "CANCEL"};
 
 class TestGoalHandleStateTransitionSequence
   : public ::testing::TestWithParam<StateTransitionSequence>
@@ -242,39 +242,39 @@ TEST_P(TestGoalHandleStateTransitionSequence, test_goal_handle_state_transitions
 const StateTransitionSequence valid_state_transition_sequences[] = {
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
-    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELING, true, false),
-    std::make_tuple(GOAL_EVENT_SET_CANCELED, GOAL_STATE_CANCELED, false, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELED, false, false),
   },
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
-    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELING, true, false),
-    std::make_tuple(GOAL_EVENT_SET_SUCCEEDED, GOAL_STATE_SUCCEEDED, false, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_SUCCEED, GOAL_STATE_SUCCEEDED, false, false),
   },
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
-    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELING, true, false),
-    std::make_tuple(GOAL_EVENT_SET_ABORTED, GOAL_STATE_ABORTED, false, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_ABORT, GOAL_STATE_ABORTED, false, false),
   },
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
-    std::make_tuple(GOAL_EVENT_SET_SUCCEEDED, GOAL_STATE_SUCCEEDED, false, false),
+    std::make_tuple(GOAL_EVENT_SUCCEED, GOAL_STATE_SUCCEEDED, false, false),
   },
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
-    std::make_tuple(GOAL_EVENT_SET_ABORTED, GOAL_STATE_ABORTED, false, false),
+    std::make_tuple(GOAL_EVENT_ABORT, GOAL_STATE_ABORTED, false, false),
   },
   {
-    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELING, true, false),
-    std::make_tuple(GOAL_EVENT_SET_CANCELED, GOAL_STATE_CANCELED, false, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELED, false, false),
   },
   {
-    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELING, true, false),
-    std::make_tuple(GOAL_EVENT_SET_ABORTED, GOAL_STATE_ABORTED, false, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_ABORT, GOAL_STATE_ABORTED, false, false),
   },
   // This is an odd case, but valid nonetheless
   {
-    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELING, true, false),
-    std::make_tuple(GOAL_EVENT_SET_SUCCEEDED, GOAL_STATE_SUCCEEDED, false, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_SUCCEED, GOAL_STATE_SUCCEEDED, false, false),
   },
 };
 
@@ -287,26 +287,26 @@ INSTANTIATE_TEST_CASE_P(
 const StateTransitionSequence invalid_state_transition_sequences[] = {
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
-    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_CANCELING, true, false),
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_UNKNOWN, false, false),
   },
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
-    std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_REQUEST_CANCEL, GOAL_STATE_UNKNOWN, false, false),
+  },
+  {
+    std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
+    std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_UNKNOWN, false, false),
+  },
+  {
     std::make_tuple(GOAL_EVENT_CANCEL, GOAL_STATE_UNKNOWN, false, false),
   },
   {
-    std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
-    std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_UNKNOWN, false, false),
+    std::make_tuple(GOAL_EVENT_SUCCEED, GOAL_STATE_UNKNOWN, false, false),
   },
   {
-    std::make_tuple(GOAL_EVENT_SET_CANCELED, GOAL_STATE_UNKNOWN, false, false),
-  },
-  {
-    std::make_tuple(GOAL_EVENT_SET_SUCCEEDED, GOAL_STATE_UNKNOWN, false, false),
-  },
-  {
-    std::make_tuple(GOAL_EVENT_SET_ABORTED, GOAL_STATE_UNKNOWN, false, false),
+    std::make_tuple(GOAL_EVENT_ABORT, GOAL_STATE_UNKNOWN, false, false),
   },
 };
 
