@@ -1,35 +1,49 @@
 # generated from rcl/test/test_two_executables.py.in
 
+import os
+
 from launch import LaunchDescription
-from launch import LaunchService
 from launch.actions import ExecuteProcess
-from launch_testing.legacy import LaunchTestService
+from launch.actions import OpaqueFunction
+
+import launch_testing
+import launch_testing.asserts
+
+import unittest
 
 
-def @TEST_NAME@():
-    launch_test = LaunchTestService()
+def generate_test_description(ready_fn):
     launch_description = LaunchDescription()
 
-    launch_test.add_fixture_action(
-        launch_description, ExecuteProcess(
+    launch_description.add_action(
+        ExecuteProcess(
             cmd=['@TEST_EXECUTABLE1@'],
             name='@TEST_EXECUTABLE1_NAME@',
-        ), exit_allowed=True
-    )
-
-    launch_test.add_test_action(
-        launch_description, ExecuteProcess(
-            cmd=['@TEST_EXECUTABLE2@', '@TEST_EXECUTABLE1_NAME@'],
-            name='@TEST_EXECUTABLE2_NAME@',
         )
     )
 
-    launch_service = LaunchService()
-    launch_service.include_launch_description(launch_description)
-    rc = launch_test.run(launch_service)
+    executable_under_test = ExecuteProcess(
+        cmd=['@TEST_EXECUTABLE2@', '@TEST_EXECUTABLE1_NAME@'],
+        name='@TEST_EXECUTABLE2_NAME@',
+    )
+    launch_description.add_action(executable_under_test)
 
-    assert rc == 0, "The launch file failed with exit code '" + str(rc) + "'. "
+    launch_description.add_action(
+        OpaqueFunction(function=lambda context: ready_fn())
+    )
+    return launch_description, locals()
 
 
-if __name__ == '__main__':
-    @TEST_NAME@()
+class TestTwoExecutables(unittest.TestCase):
+
+    def @TEST_NAME@(self, executable_under_test):
+        """Test that the executable under test terminates after a finite amount of time."""
+        self.proc_info.assertWaitForShutdown(process=executable_under_test, timeout=10)
+
+
+@launch_testing.post_shutdown_test()
+class TestTwoExecutablesAfterShutdown(unittest.TestCase):
+
+    def @TEST_NAME@(self, executable_under_test):
+        """Test that the executable under test finished cleanly."""
+        launch_testing.asserts.assertExitCodes(self.proc_info, process=executable_under_test)

@@ -15,6 +15,8 @@
 if(rcl_add_custom_launch_test_INCLUDED)
   return()
 endif()
+
+find_package(launch_testing_ament_cmake REQUIRED)
 set(rcl_add_custom_launch_test_INCLUDED TRUE)
 
 macro(rcl_add_custom_launch_test test_name executable1 executable2)
@@ -32,7 +34,11 @@ macro(rcl_add_custom_launch_test test_name executable1 executable2)
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/test/${test_name}${target_suffix}_$<CONFIG>.py"
     INPUT "${CMAKE_CURRENT_BINARY_DIR}/${test_name}${target_suffix}.py.configure"
   )
-  ament_add_pytest_test(${test_name}${target_suffix} "${CMAKE_CURRENT_BINARY_DIR}/test/${test_name}${target_suffix}_$<CONFIG>.py" ${ARGN})
+  add_launch_test(
+    "${CMAKE_CURRENT_BINARY_DIR}/test/${test_name}${target_suffix}_$<CONFIG>.py"
+    TARGET ${test_name}${target_suffix}
+    ${ARGN}
+  )
   if(TEST ${test_name}${target_suffix})
     set_tests_properties(${test_name}${target_suffix} PROPERTIES DEPENDS "${executable1}${target_suffix} ${executable2}${target_suffix}")
   endif()
