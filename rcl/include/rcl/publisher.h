@@ -455,7 +455,7 @@ rcl_publisher_is_valid_except_context(const rcl_publisher_t * publisher);
  * \param[out] subscription_count number of matched subscriptions
  * \return `RCL_RET_OK` if the count was retrieved, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
+ * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -464,6 +464,32 @@ rmw_ret_t
 rcl_publisher_get_subscription_count(
   const rcl_publisher_t * publisher,
   size_t * subscription_count);
+
+/// Get the actual qos settings of the publisher.
+/**
+ * Used to get the actual qos settings of the publisher.
+ * The actual configuration applied when using RMW_*_SYSTEM_DEFAULT
+ * can only be resolved after the creation of the publisher, and it
+ * depends on the underlying rmw implementation.
+ * If the underlying setting in use can't be represented in ROS terms,
+ * it will be set to RMW_*_UNKNOWN.
+ * The returned struct is only valid as long as the rcl_publisher_t is valid.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] publisher pointer to the rcl publisher
+ * \return qos struct if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const rmw_qos_profile_t *
+rcl_publisher_get_actual_qos(const rcl_publisher_t * publisher);
 
 #ifdef __cplusplus
 }
