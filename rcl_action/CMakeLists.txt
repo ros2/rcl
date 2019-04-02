@@ -152,8 +152,13 @@ if(BUILD_TESTING)
       "test/rcl_action/test_action_communication.cpp")
     custom_test_c(test_action_interaction
       "test/rcl_action/test_action_interaction.cpp")
-    custom_test_c(test_graph
-      "test/rcl_action/test_graph.cpp")
+
+    # TODO(jacobperron): Graph tests fail with opensplice. Re-enable after resolving
+    # https://github.com/ros2/ros2/issues/677
+    if(NOT rmw_implementation STREQUAL "rmw_opensplice_cpp")
+      custom_test_c(test_graph
+        "test/rcl_action/test_graph.cpp")
+    endif()
 endmacro()
 
   call_for_each_rmw_implementation(targets)
