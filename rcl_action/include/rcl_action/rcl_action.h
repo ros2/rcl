@@ -52,6 +52,7 @@ extern "C"
 #include "rcl_action/default_qos.h"
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/goal_state_machine.h"
+#include "rcl_action/graph.h"
 #include "rcl_action/types.h"
 #include "rcl_action/wait.h"
 
