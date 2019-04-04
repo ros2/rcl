@@ -161,7 +161,7 @@ using EventStateActiveCancelableTuple =
   std::tuple<rcl_action_goal_event_t, rcl_action_goal_state_t, bool, bool>;
 using StateTransitionSequence = std::vector<EventStateActiveCancelableTuple>;
 const std::vector<std::string> event_strs = {
-  "EXECUTE", "CANCEL", "SUCCEED", "ABORT", "CANCEL"};
+  "EXECUTE", "REQUEST_CANCEL", "SUCCEED", "ABORT", "CANCEL"};
 
 class TestGoalHandleStateTransitionSequence
   : public ::testing::TestWithParam<StateTransitionSequence>
