@@ -201,6 +201,7 @@ rcl_names_and_types_init(
   rcl_allocator_t * allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(names_and_types, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR(allocator, return RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_names_and_types_init(names_and_types, size, allocator);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
