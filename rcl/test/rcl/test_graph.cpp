@@ -317,7 +317,7 @@ TEST_F(
     this->node_ptr, &allocator, false, "_InvalidNodeName", "", &nat);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // FIXME(jacobperron): This test is not passing
+  // TODO(jacobperron): This succeeds, but should fail due to invalid namespace
   // ret = rcl_get_publisher_names_and_types_by_node(
   //   this->node_ptr, &allocator, false, this->test_graph_node_name, "_!invalidNs", &nat);
   // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
@@ -333,7 +333,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node namespace
-  // FIXME(jacobperron): This test is not passing
+  // TODO(jacobperron): This succeeds, but should fail due to invalid namespace
   // ret = rcl_get_publisher_names_and_types_by_node(
   //   this->node_ptr, &allocator, false, this->test_graph_node_name, unknown_node_ns, &nat);
   // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
@@ -401,7 +401,7 @@ TEST_F(
     this->node_ptr, &allocator, false, "_InvalidNodeName", "", &nat);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // FIXME(jacobperron): This test is not passing
+  // TODO(jacobperron): This succeeds, but should fail due to invalid namespace
   // ret = rcl_get_subscriber_names_and_types_by_node(
   //   this->node_ptr, &allocator, false, this->test_graph_node_name, "_!invalidNs", &nat);
   // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
@@ -417,7 +417,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node namespace
-  // FIXME(jacobperron): This test is not passing
+  // TODO(jacobperron): This succeeds, but should fail due to invalid namespace
   // ret = rcl_get_subscriber_names_and_types_by_node(
   //   this->node_ptr, &allocator, false, this->test_graph_node_name, unknown_node_ns, &nat);
   // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
@@ -485,7 +485,7 @@ TEST_F(
     this->node_ptr, &allocator, "_InvalidNodeName", "", &nat);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // FIXME(jacobperron): This test is not passing
+  // TODO(jacobperron): This succeeds, but should fail due to invalid namespace
   // ret = rcl_get_service_names_and_types_by_node(
   //   this->node_ptr, &allocator, false, this->test_graph_node_name, "_!invalidNs", &nat);
   // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
@@ -501,7 +501,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node namespace
-  // FIXME(jacobperron): This test is not passing
+  // TODO(jacobperron): This succeeds, but should fail due to invalid namespace
   // ret = rcl_get_service_names_and_types_by_node(
   //   this->node_ptr, &allocator, this->test_graph_node_name, unknown_node_ns, &nat);
   // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
