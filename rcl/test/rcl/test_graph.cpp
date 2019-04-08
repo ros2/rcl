@@ -257,47 +257,66 @@ TEST_F(
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
-  const char * node_name = "/test_rcl_get_publisher_names_and_types_by_node";
-  const char * node_ns = "/test/namespace";
+  const char * unknown_node_name = "/test_rcl_get_publisher_names_and_types_by_node";
+  const char * unknown_node_ns = "/test/namespace";
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
   // invalid node
   ret = rcl_get_publisher_names_and_types_by_node(
-    nullptr, &allocator, false, node_name, node_ns, &nat);
+    nullptr, &allocator, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_publisher_names_and_types_by_node(
-    &zero_node, &allocator, false, node_name, node_ns, &nat);
+    &zero_node, &allocator, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_publisher_names_and_types_by_node(
-    this->old_node_ptr, &allocator, false, node_name, node_ns, &nat);
+    this->old_node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // invalid allocator
   ret = rcl_get_publisher_names_and_types_by_node(
-    this->node_ptr, nullptr, false, node_name, node_ns, &nat);
+    this->node_ptr, nullptr, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // invalid names
   ret = rcl_get_publisher_names_and_types_by_node(
-    this->node_ptr, &allocator, false, nullptr, node_ns, &nat);
+    this->node_ptr, &allocator, false, nullptr, "", &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_publisher_names_and_types_by_node(
-    this->node_ptr, &allocator, false, node_name, nullptr, &nat);
+    this->node_ptr, &allocator, false, this->test_graph_node_name, nullptr, &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // TODO(jacobperron): test valid strings with invalid topic names in them
+  // test valid strings with invalid node names
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, "", "", &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, "_InvalidNodeName", "", &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // FIXME(jacobperron): This test is not passing
+  // ret = rcl_get_publisher_names_and_types_by_node(
+  //   this->node_ptr, &allocator, false, this->test_graph_node_name, "_!invalidNs", &nat);
+  // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  // rcl_reset_error();
   // invalid names and types
   ret = rcl_get_publisher_names_and_types_by_node(
-    this->node_ptr, &allocator, false, node_name, node_ns, nullptr);
+    this->node_ptr, &allocator, false, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node name
   ret = rcl_get_publisher_names_and_types_by_node(
-    this->node_ptr, &allocator, false, node_name, node_ns, &nat);
+    this->node_ptr, &allocator, false, unknown_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  // unknown node namespace
+  // FIXME(jacobperron): This test is not passing
+  // ret = rcl_get_publisher_names_and_types_by_node(
+  //   this->node_ptr, &allocator, false, this->test_graph_node_name, unknown_node_ns, &nat);
+  // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  // rcl_reset_error();
   // valid call
   ret = rcl_get_publisher_names_and_types_by_node(
     this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
@@ -316,47 +335,66 @@ TEST_F(
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
-  const char * node_name = "/test_rcl_get_subscriber_names_and_types_by_node";
-  const char * node_ns = "/test/namespace";
+  const char * unknown_node_name = "/test_rcl_get_subscriber_names_and_types_by_node";
+  const char * unknown_node_ns = "/test/namespace";
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
   // invalid node
   ret = rcl_get_subscriber_names_and_types_by_node(
-    nullptr, &allocator, false, node_name, node_ns, &nat);
+    nullptr, &allocator, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_subscriber_names_and_types_by_node(
-    &zero_node, &allocator, false, node_name, node_ns, &nat);
+    &zero_node, &allocator, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_subscriber_names_and_types_by_node(
-    this->old_node_ptr, &allocator, false, node_name, node_ns, &nat);
+    this->old_node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // invalid allocator
   ret = rcl_get_subscriber_names_and_types_by_node(
-    this->node_ptr, nullptr, false, node_name, node_ns, &nat);
+    this->node_ptr, nullptr, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // invalid names
   ret = rcl_get_subscriber_names_and_types_by_node(
-    this->node_ptr, &allocator, false, nullptr, node_ns, &nat);
+    this->node_ptr, &allocator, false, nullptr, "", &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_subscriber_names_and_types_by_node(
-    this->node_ptr, &allocator, false, node_name, nullptr, &nat);
+    this->node_ptr, &allocator, false, this->test_graph_node_name, nullptr, &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // TODO(jacobperron): test valid strings with invalid topic names in them
+  // test valid strings with invalid node names
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, "", "", &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, "_InvalidNodeName", "", &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // FIXME(jacobperron): This test is not passing
+  // ret = rcl_get_subscriber_names_and_types_by_node(
+  //   this->node_ptr, &allocator, false, this->test_graph_node_name, "_!invalidNs", &nat);
+  // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  // rcl_reset_error();
   // invalid names and types
   ret = rcl_get_subscriber_names_and_types_by_node(
-    this->node_ptr, &allocator, false, node_name, node_ns, nullptr);
+    this->node_ptr, &allocator, false, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node name
   ret = rcl_get_subscriber_names_and_types_by_node(
-    this->node_ptr, &allocator, false, node_name, node_ns, &nat);
+    this->node_ptr, &allocator, false, unknown_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  // unknown node namespace
+  // FIXME(jacobperron): This test is not passing
+  // ret = rcl_get_subscriber_names_and_types_by_node(
+  //   this->node_ptr, &allocator, false, this->test_graph_node_name, unknown_node_ns, &nat);
+  // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  // rcl_reset_error();
   // valid call
   ret = rcl_get_subscriber_names_and_types_by_node(
     this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
@@ -375,47 +413,66 @@ TEST_F(
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
-  const char * node_name = "/test_rcl_get_service_names_and_types_by_node";
-  const char * node_ns = "/test/namespace";
+  const char * unknown_node_name = "/test_rcl_get_service_names_and_types_by_node";
+  const char * unknown_node_ns = "/test/namespace";
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
   // invalid node
   ret = rcl_get_service_names_and_types_by_node(
-    nullptr, &allocator, node_name, node_ns, &nat);
+    nullptr, &allocator, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_service_names_and_types_by_node(
-    &zero_node, &allocator, node_name, node_ns, &nat);
+    &zero_node, &allocator, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_service_names_and_types_by_node(
-    this->old_node_ptr, &allocator, node_name, node_ns, &nat);
+    this->old_node_ptr, &allocator, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // invalid allocator
   ret = rcl_get_service_names_and_types_by_node(
-    this->node_ptr, nullptr, node_name, node_ns, &nat);
+    this->node_ptr, nullptr, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // invalid names
   ret = rcl_get_service_names_and_types_by_node(
-    this->node_ptr, &allocator, nullptr, node_ns, &nat);
+    this->node_ptr, &allocator, nullptr, "", &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_get_service_names_and_types_by_node(
-    this->node_ptr, &allocator, node_name, nullptr, &nat);
+    this->node_ptr, &allocator, this->test_graph_node_name, nullptr, &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // TODO(jacobperron): test valid strings with invalid topic names in them
+  // test valid strings with invalid node names
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, "", "", &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, "_InvalidNodeName", "", &nat);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // FIXME(jacobperron): This test is not passing
+  // ret = rcl_get_service_names_and_types_by_node(
+  //   this->node_ptr, &allocator, false, this->test_graph_node_name, "_!invalidNs", &nat);
+  // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  // rcl_reset_error();
   // invalid names and types
   ret = rcl_get_service_names_and_types_by_node(
-    this->node_ptr, &allocator, node_name, node_ns, nullptr);
+    this->node_ptr, &allocator, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node name
   ret = rcl_get_service_names_and_types_by_node(
-    this->node_ptr, &allocator, node_name, node_ns, &nat);
+    this->node_ptr, &allocator, unknown_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  // unknown node namespace
+  // FIXME(jacobperron): This test is not passing
+  // ret = rcl_get_service_names_and_types_by_node(
+  //   this->node_ptr, &allocator, this->test_graph_node_name, unknown_node_ns, &nat);
+  // EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  // rcl_reset_error();
   // valid call
   ret = rcl_get_service_names_and_types_by_node(
     this->node_ptr, &allocator, this->test_graph_node_name, "", &nat);
