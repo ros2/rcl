@@ -47,7 +47,6 @@ extern "C"
 
 #include "./common.h"
 #include "./context_impl.h"
-#include "tinydir/tinydir.h"
 
 #define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
 #define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"

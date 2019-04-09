@@ -13,11 +13,20 @@
 // limitations under the License.
 
 #include "rcl/security_directory.h"
-#include "tinydir/tinydir.h"
+
+#include "rcl/error_handling.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/get_env.h"
 #include "rcutils/format_string.h"
-#include "rcl/error_handling.h"
+
+#ifdef __clang__
+# pragma clang diagnostic push
+# pragma clang diagnostic ignored "-Wembedded-directive"
+#endif
+#include "tinydir/tinydir.h"
+#ifdef __clang__
+# pragma clang diagnostic pop
+#endif
 
 /**
  * A security lookup function takes in the node's name, namespace, a security root directory and an allocator;
