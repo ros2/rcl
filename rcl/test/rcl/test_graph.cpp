@@ -275,7 +275,7 @@ TEST_F(
     rcutils_get_zero_initialized_allocator());
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * unknown_node_name = "/test_rcl_get_publisher_names_and_types_by_node";
-  const char * unknown_node_ns = "/test/namespace";
+  // const char * unknown_node_ns = "/test/namespace";
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
   // invalid node
   ret = rcl_get_publisher_names_and_types_by_node(
@@ -359,7 +359,7 @@ TEST_F(
     rcutils_get_zero_initialized_allocator());
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * unknown_node_name = "/test_rcl_get_subscriber_names_and_types_by_node";
-  const char * unknown_node_ns = "/test/namespace";
+  // const char * unknown_node_ns = "/test/namespace";
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
   // invalid node
   ret = rcl_get_subscriber_names_and_types_by_node(
@@ -443,7 +443,7 @@ TEST_F(
     rcutils_get_zero_initialized_allocator());
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * unknown_node_name = "/test_rcl_get_service_names_and_types_by_node";
-  const char * unknown_node_ns = "/test/namespace";
+  // const char * unknown_node_ns = "/test/namespace";
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
   // invalid node
   ret = rcl_get_service_names_and_types_by_node(
