@@ -723,17 +723,17 @@ static void * get_value(
   }
 
   /// Check if it is bool
-  if ((0 == strncmp(value, "Y", strlen(value))) ||
-    (0 == strncmp(value, "y", strlen(value))) ||
-    (0 == strncmp(value, "yes", strlen(value))) ||
-    (0 == strncmp(value, "Yes", strlen(value))) ||
-    (0 == strncmp(value, "YES", strlen(value))) ||
-    (0 == strncmp(value, "true", strlen(value))) ||
-    (0 == strncmp(value, "True", strlen(value))) ||
-    (0 == strncmp(value, "TRUE", strlen(value))) ||
-    (0 == strncmp(value, "on", strlen(value))) ||
-    (0 == strncmp(value, "On", strlen(value))) ||
-    (0 == strncmp(value, "ON", strlen(value))))
+  if ((0 == strcmp(value, "Y")) ||
+    (0 == strcmp(value, "y")) ||
+    (0 == strcmp(value, "yes")) ||
+    (0 == strcmp(value, "Yes")) ||
+    (0 == strcmp(value, "YES")) ||
+    (0 == strcmp(value, "true")) ||
+    (0 == strcmp(value, "True")) ||
+    (0 == strcmp(value, "TRUE")) ||
+    (0 == strcmp(value, "on")) ||
+    (0 == strcmp(value, "On")) ||
+    (0 == strcmp(value, "ON")))
   {
     *val_type = DATA_TYPE_BOOL;
     ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
@@ -744,17 +744,17 @@ static void * get_value(
     return ret_val;
   }
 
-  if ((0 == strncmp(value, "N", strlen(value))) ||
-    (0 == strncmp(value, "n", strlen(value))) ||
-    (0 == strncmp(value, "no", strlen(value))) ||
-    (0 == strncmp(value, "No", strlen(value))) ||
-    (0 == strncmp(value, "NO", strlen(value))) ||
-    (0 == strncmp(value, "false", strlen(value))) ||
-    (0 == strncmp(value, "False", strlen(value))) ||
-    (0 == strncmp(value, "FALSE", strlen(value))) ||
-    (0 == strncmp(value, "off", strlen(value))) ||
-    (0 == strncmp(value, "Off", strlen(value))) ||
-    (0 == strncmp(value, "OFF", strlen(value))))
+  if ((0 == strcmp(value, "N")) ||
+    (0 == strcmp(value, "n")) ||
+    (0 == strcmp(value, "no")) ||
+    (0 == strcmp(value, "No")) ||
+    (0 == strcmp(value, "NO")) ||
+    (0 == strcmp(value, "false")) ||
+    (0 == strcmp(value, "False")) ||
+    (0 == strcmp(value, "FALSE")) ||
+    (0 == strcmp(value, "off")) ||
+    (0 == strcmp(value, "Off")) ||
+    (0 == strcmp(value, "OFF")))
   {
     *val_type = DATA_TYPE_BOOL;
     ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
