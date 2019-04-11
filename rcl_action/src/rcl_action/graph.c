@@ -52,7 +52,7 @@ _filter_action_names(
   for (size_t i = 0u; i < num_names; ++i) {
     const char * suffix_index = strstr(names[i], action_name_suffix);
     if (suffix_index) {
-      num_actions++;
+      ++num_actions;
     }
   }
 
@@ -114,7 +114,7 @@ _filter_action_names(
         }
         action_names_and_types->types[j].data[k] = action_type_name;
       }
-      j++;
+      ++j;
     }
   }
 

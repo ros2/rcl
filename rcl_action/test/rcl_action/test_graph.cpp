@@ -316,7 +316,7 @@ public:
     while (node_names.size < 3u) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       ret = rcl_get_node_names(&this->remote_node, allocator, &node_names, &node_namespaces);
-      attempts++;
+      ++attempts;
       ASSERT_LE(attempts, max_attempts) << "Unable to attain all required nodes";
     }
   }
