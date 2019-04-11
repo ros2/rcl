@@ -147,9 +147,9 @@ rcl_action_goal_handle_is_cancelable(const rcl_action_goal_handle_t * goal_handl
   if (!rcl_action_goal_handle_is_valid(goal_handle)) {
     return false;  // error message is set
   }
-  // Check if the state machine reports a request cancel event is valid
+  // Check if the state machine reports a cancel goal event is valid
   rcl_action_goal_state_t state = rcl_action_transition_goal_state(
-    goal_handle->impl->state, GOAL_EVENT_REQUEST_CANCEL);
+    goal_handle->impl->state, GOAL_EVENT_CANCEL_GOAL);
   return GOAL_STATE_CANCELING == state;
 }
 

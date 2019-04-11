@@ -24,11 +24,11 @@ TEST(TestGoalStateMachine, test_valid_transitions)
   EXPECT_EQ(GOAL_STATE_EXECUTING, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_ACCEPTED,
-    GOAL_EVENT_REQUEST_CANCEL);
+    GOAL_EVENT_CANCEL_GOAL);
   EXPECT_EQ(GOAL_STATE_CANCELING, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_EXECUTING,
-    GOAL_EVENT_REQUEST_CANCEL);
+    GOAL_EVENT_CANCEL_GOAL);
   EXPECT_EQ(GOAL_STATE_CANCELING, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_EXECUTING,
@@ -40,7 +40,7 @@ TEST(TestGoalStateMachine, test_valid_transitions)
   EXPECT_EQ(GOAL_STATE_ABORTED, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_CANCELING,
-    GOAL_EVENT_CANCEL);
+    GOAL_EVENT_CANCELED);
   EXPECT_EQ(GOAL_STATE_CANCELED, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_CANCELING,
@@ -61,7 +61,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_ACCEPTED,
-    GOAL_EVENT_CANCEL);
+    GOAL_EVENT_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
 
   // Invalid from EXECUTING
@@ -71,7 +71,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_EXECUTING,
-    GOAL_EVENT_CANCEL);
+    GOAL_EVENT_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
 
   // Invalid from CANCELING
@@ -81,7 +81,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_CANCELING,
-    GOAL_EVENT_REQUEST_CANCEL);
+    GOAL_EVENT_CANCEL_GOAL);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
 
   // Invalid from SUCCEEDED
@@ -91,7 +91,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_SUCCEEDED,
-    GOAL_EVENT_REQUEST_CANCEL);
+    GOAL_EVENT_CANCEL_GOAL);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_SUCCEEDED,
@@ -103,7 +103,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_SUCCEEDED,
-    GOAL_EVENT_CANCEL);
+    GOAL_EVENT_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
 
   // Invalid from ABORTED
@@ -113,7 +113,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_ABORTED,
-    GOAL_EVENT_REQUEST_CANCEL);
+    GOAL_EVENT_CANCEL_GOAL);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_ABORTED,
@@ -125,7 +125,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_ABORTED,
-    GOAL_EVENT_CANCEL);
+    GOAL_EVENT_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
 
   // Invalid from CANCELED
@@ -135,7 +135,7 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_CANCELED,
-    GOAL_EVENT_REQUEST_CANCEL);
+    GOAL_EVENT_CANCEL_GOAL);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_CANCELED,
@@ -147,6 +147,6 @@ TEST(TestGoalStateMachine, test_invalid_transitions)
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
   state = rcl_action_transition_goal_state(
     GOAL_STATE_CANCELED,
-    GOAL_EVENT_CANCEL);
+    GOAL_EVENT_CANCELED);
   EXPECT_EQ(GOAL_STATE_UNKNOWN, state);
 }

@@ -33,10 +33,10 @@ _execute_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t ev
 }
 
 rcl_action_goal_state_t
-_request_cancel_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
+_cancel_goal_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
   if ((GOAL_STATE_ACCEPTED != state && GOAL_STATE_EXECUTING != state) ||
-    GOAL_EVENT_REQUEST_CANCEL != event)
+    GOAL_EVENT_CANCEL_GOAL != event)
   {
     return GOAL_STATE_UNKNOWN;
   }
@@ -66,9 +66,9 @@ _abort_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t even
 }
 
 rcl_action_goal_state_t
-_cancel_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
+_canceled_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if (GOAL_STATE_CANCELING != state || GOAL_EVENT_CANCEL != event) {
+  if (GOAL_STATE_CANCELING != state || GOAL_EVENT_CANCELED != event) {
     return GOAL_STATE_UNKNOWN;
   }
   return GOAL_STATE_CANCELED;
@@ -79,17 +79,17 @@ static rcl_action_goal_event_handler
   _goal_state_transition_map[GOAL_STATE_NUM_STATES][GOAL_EVENT_NUM_EVENTS] = {
   [GOAL_STATE_ACCEPTED] = {
     [GOAL_EVENT_EXECUTE] = _execute_event_handler,
-    [GOAL_EVENT_REQUEST_CANCEL] = _request_cancel_event_handler,
+    [GOAL_EVENT_CANCEL_GOAL] = _cancel_goal_event_handler,
   },
   [GOAL_STATE_EXECUTING] = {
-    [GOAL_EVENT_REQUEST_CANCEL] = _request_cancel_event_handler,
+    [GOAL_EVENT_CANCEL_GOAL] = _cancel_goal_event_handler,
     [GOAL_EVENT_SUCCEED] = _succeed_event_handler,
     [GOAL_EVENT_ABORT] = _abort_event_handler,
   },
   [GOAL_STATE_CANCELING] = {
     [GOAL_EVENT_SUCCEED] = _succeed_event_handler,
     [GOAL_EVENT_ABORT] = _abort_event_handler,
-    [GOAL_EVENT_CANCEL] = _cancel_event_handler,
+    [GOAL_EVENT_CANCELED] = _canceled_event_handler,
   },
 };
 
