@@ -98,14 +98,13 @@ _filter_action_names(
       for (size_t k = 0u; k < topic_names_and_types->types[i].size; ++k) {
         char * type_name = topic_names_and_types->types[i].data[k];
         size_t action_type_len = strlen(type_name);
-        // Trim type name suffix, if provided
-        if (action_type_identifier) {
-          const size_t type_suffix_len = strlen(action_type_identifier);
-          const char * type_identifier_index = strstr(type_name, action_type_identifier);
-          if (type_identifier_index) {
-            action_type_len = strlen(type_name) - type_suffix_len;
-          }
+        // Trim type name suffix
+        const size_t type_suffix_len = strlen(action_type_identifier);
+        const char * type_identifier_index = strstr(type_name, action_type_identifier);
+        if (type_identifier_index) {
+          action_type_len = strlen(type_name) - type_suffix_len;
         }
+        // Copy name to output struct
         char * action_type_name = rcutils_strndup(type_name, action_type_len, *allocator);
         if (!action_type_name) {
           RCL_SET_ERROR_MSG("Failed to allocate memory for action type");
@@ -149,6 +148,11 @@ rcl_action_get_client_names_and_types_by_node(
     &topic_names_and_types,
     allocator,
     action_names_and_types);
+
+  rcl_ret_t nat_fini_ret = rcl_names_and_types_fini(&topic_names_and_types);
+  if (RCL_RET_OK != nat_fini_ret) {
+    return nat_fini_ret;
+  }
   return ret;
 }
 
@@ -174,6 +178,11 @@ rcl_action_get_server_names_and_types_by_node(
     &topic_names_and_types,
     allocator,
     action_names_and_types);
+
+  rcl_ret_t nat_fini_ret = rcl_names_and_types_fini(&topic_names_and_types);
+  if (RCL_RET_OK != nat_fini_ret) {
+    return nat_fini_ret;
+  }
   return ret;
 }
 
@@ -194,6 +203,11 @@ rcl_action_get_names_and_types(
     &topic_names_and_types,
     allocator,
     action_names_and_types);
+
+  rcl_ret_t nat_fini_ret = rcl_names_and_types_fini(&topic_names_and_types);
+  if (RCL_RET_OK != nat_fini_ret) {
+    return nat_fini_ret;
+  }
   return ret;
 }
 
