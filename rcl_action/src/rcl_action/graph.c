@@ -40,8 +40,8 @@ _filter_action_names(
 
   // Assumption: actions provide a topic name with the suffix "/_action/feedback"
   // and it has type with the suffix "_FeedbackMessage"
-  const char * action_name_suffix = "/_action/feedback";
-  const char * action_type_suffix = "_FeedbackMessage";
+  const char * action_name_identifier = "/_action/feedback";
+  const char * action_type_identifier = "_FeedbackMessage";
 
   rcl_ret_t ret;
   const size_t num_names = topic_names_and_types->names.size;
@@ -50,8 +50,8 @@ _filter_action_names(
   // Count number of actions to determine how much memory to allocate
   size_t num_actions = 0u;
   for (size_t i = 0u; i < num_names; ++i) {
-    const char * suffix_index = strstr(names[i], action_name_suffix);
-    if (suffix_index) {
+    const char * identifier_index = strstr(names[i], action_name_identifier);
+    if (identifier_index) {
       ++num_actions;
     }
   }
@@ -68,11 +68,11 @@ _filter_action_names(
   ret = RCL_RET_OK;
 
   // Prune names/types that are not actions (ie. do not contain the suffix)
-  const size_t suffix_len = strlen(action_name_suffix);
+  const size_t suffix_len = strlen(action_name_identifier);
   size_t j = 0u;
   for (size_t i = 0u; i < num_names; ++i) {
-    const char * suffix_index = strstr(names[i], action_name_suffix);
-    if (suffix_index) {
+    const char * identifier_index = strstr(names[i], action_name_identifier);
+    if (identifier_index) {
       const size_t action_name_len = strlen(names[i]) - suffix_len;
       char * action_name = rcutils_strndup(names[i], action_name_len, *allocator);
       if (!action_name) {
@@ -99,10 +99,10 @@ _filter_action_names(
         char * type_name = topic_names_and_types->types[i].data[k];
         size_t action_type_len = strlen(type_name);
         // Trim type name suffix, if provided
-        if (action_type_suffix) {
-          const size_t type_suffix_len = strlen(action_type_suffix);
-          const char * type_suffix_index = strstr(type_name, action_type_suffix);
-          if (type_suffix_index) {
+        if (action_type_identifier) {
+          const size_t type_suffix_len = strlen(action_type_identifier);
+          const char * type_identifier_index = strstr(type_name, action_type_identifier);
+          if (type_identifier_index) {
             action_type_len = strlen(type_name) - type_suffix_len;
           }
         }
