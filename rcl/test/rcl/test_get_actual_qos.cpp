@@ -145,6 +145,35 @@ TEST_P_RMW(TestGetActualQoS, test_publisher_get_qos_settings) {
   rcl_reset_error();
 }
 
+static constexpr rmw_qos_profile_t non_default_qos_profile()
+{
+  rmw_qos_profile_t profile = rmw_qos_profile_default;
+  profile.history = RMW_QOS_POLICY_HISTORY_KEEP_ALL;
+  profile.depth = 1000;
+  profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+  profile.avoid_ros_namespace_conventions = true;
+  return profile;
+}
+
+static constexpr rmw_qos_profile_t expected_fastrtps_default_qos_profile()
+{
+  rmw_qos_profile_t profile = rmw_qos_profile_default;
+  profile.depth = 1;
+  profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+  return profile;
+}
+
+static constexpr rmw_qos_profile_t expected_system_default_qos_profile()
+{
+  rmw_qos_profile_t profile = rmw_qos_profile_default;
+  profile.depth = 1;
+  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+  return profile;
+}
+
 std::vector<TestParameters>
 get_parameters()
 {
@@ -162,20 +191,8 @@ get_parameters()
       Test with non-default settings.
      */
     {
-      {
-        RMW_QOS_POLICY_HISTORY_KEEP_ALL,
-        1000,
-        RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-        true
-      },
-      {
-        RMW_QOS_POLICY_HISTORY_KEEP_ALL,
-        1000,
-        RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-        true
-      },
+      non_default_qos_profile(),
+      non_default_qos_profile(),
       "publisher_non_default_qos"
     }
   });
@@ -185,12 +202,7 @@ get_parameters()
   if (!rmw_implementation_str.compare("rmw_fastrtps_cpp") ||
     !rmw_implementation_str.compare("rmw_fastrtps_dynamic_cpp"))
   {
-    rmw_qos_profile_t expected_system_default_qos = {
-      RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-      1,
-      RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-      false};
+    rmw_qos_profile_t expected_system_default_qos = expected_fastrtps_default_qos_profile();
     parameters.push_back({
       rmw_qos_profile_system_default,
       expected_system_default_qos,
@@ -200,12 +212,7 @@ get_parameters()
       !rmw_implementation_str.compare("rmw_connext_cpp") ||
       !rmw_implementation_str.compare("rmw_connext_dynamic_cpp"))
     {
-      rmw_qos_profile_t expected_system_default_qos = {
-        RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-        1,
-        RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-        RMW_QOS_POLICY_DURABILITY_VOLATILE,
-        false};
+      rmw_qos_profile_t expected_system_default_qos = expected_system_default_qos_profile();
       parameters.push_back({
         rmw_qos_profile_system_default,
         expected_system_default_qos,
@@ -213,6 +220,7 @@ get_parameters()
     }
   }
 #endif
+
   return parameters;
 }
 
