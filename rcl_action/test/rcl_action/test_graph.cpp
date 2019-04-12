@@ -39,16 +39,21 @@ class CLASSNAME (TestActionGraphFixture, RMW_IMPLEMENTATION) : public ::testing:
 {
 public:
   rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_allocator_t zero_allocator;
   rcl_context_t old_context;
   rcl_context_t context;
   rcl_node_t old_node;
   rcl_node_t node;
+  rcl_node_t zero_node;
   const char * test_graph_node_name = "test_action_graph_node";
   const char * test_graph_old_node_name = "test_action_graph_old_node_name";
 
   void SetUp()
   {
     rcl_ret_t ret;
+    this->zero_node = rcl_get_zero_initialized_node();
+    this->zero_allocator = static_cast<rcl_allocator_t>(rcutils_get_zero_initialized_allocator());
+
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, this->allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -97,7 +102,6 @@ TEST_F(
   test_action_get_client_names_and_types_by_node)
 {
   rcl_ret_t ret;
-  rcl_node_t zero_node = rcl_get_zero_initialized_node();
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
 
   // Invalid node
@@ -106,7 +110,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_action_get_client_names_and_types_by_node(
-    &zero_node, &this->allocator, this->test_graph_node_name, "", &nat);
+    &this->zero_node, &this->allocator, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_action_get_client_names_and_types_by_node(
@@ -116,6 +120,10 @@ TEST_F(
   // Invalid allocator
   ret = rcl_action_get_client_names_and_types_by_node(
     &this->node, nullptr, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_action_get_client_names_and_types_by_node(
+    &this->node, &this->zero_allocator, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Invalid node name
@@ -147,7 +155,6 @@ TEST_F(
   test_action_get_server_names_and_types_by_node)
 {
   rcl_ret_t ret;
-  rcl_node_t zero_node = rcl_get_zero_initialized_node();
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
 
   // Invalid node
@@ -156,7 +163,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_action_get_server_names_and_types_by_node(
-    &zero_node, &this->allocator, this->test_graph_node_name, "", &nat);
+    &this->zero_node, &this->allocator, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_action_get_server_names_and_types_by_node(
@@ -166,6 +173,10 @@ TEST_F(
   // Invalid allocator
   ret = rcl_action_get_server_names_and_types_by_node(
     &this->node, nullptr, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_action_get_server_names_and_types_by_node(
+    &this->node, &this->zero_allocator, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Invalid node name
@@ -197,14 +208,13 @@ TEST_F(
   test_action_get_names_and_types)
 {
   rcl_ret_t ret;
-  rcl_node_t zero_node = rcl_get_zero_initialized_node();
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
 
   // Invalid node
   ret = rcl_action_get_names_and_types(nullptr, &this->allocator, &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  ret = rcl_action_get_names_and_types(&zero_node, &this->allocator, &nat);
+  ret = rcl_action_get_names_and_types(&this->zero_node, &this->allocator, &nat);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   ret = rcl_action_get_names_and_types(&this->old_node, &this->allocator, &nat);
@@ -212,6 +222,9 @@ TEST_F(
   rcl_reset_error();
   // Invalid allocator
   ret = rcl_action_get_names_and_types(&this->node, nullptr, &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_action_get_names_and_types(&this->node, &this->zero_allocator, &nat);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Invalid names and types
