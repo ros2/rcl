@@ -118,6 +118,7 @@ static rcl_ret_t replace_ns(
 
 static void * get_value(
   const char * const value,
+  yaml_scalar_style_t style,
   data_types_t * val_type,
   const rcl_allocator_t allocator);
 
@@ -709,6 +710,7 @@ static rcl_ret_t add_val_to_string_arr(
 ///
 static void * get_value(
   const char * const value,
+  yaml_scalar_style_t style,
   data_types_t * val_type,
   const rcl_allocator_t allocator)
 {
@@ -723,46 +725,50 @@ static void * get_value(
   }
 
   /// Check if it is bool
-  if ((0 == strcmp(value, "Y")) ||
-    (0 == strcmp(value, "y")) ||
-    (0 == strcmp(value, "yes")) ||
-    (0 == strcmp(value, "Yes")) ||
-    (0 == strcmp(value, "YES")) ||
-    (0 == strcmp(value, "true")) ||
-    (0 == strcmp(value, "True")) ||
-    (0 == strcmp(value, "TRUE")) ||
-    (0 == strcmp(value, "on")) ||
-    (0 == strcmp(value, "On")) ||
-    (0 == strcmp(value, "ON")))
+  if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
+    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
-    *val_type = DATA_TYPE_BOOL;
-    ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
-    if (NULL == ret_val) {
-      return NULL;
+    if ((0 == strcmp(value, "Y")) ||
+      (0 == strcmp(value, "y")) ||
+      (0 == strcmp(value, "yes")) ||
+      (0 == strcmp(value, "Yes")) ||
+      (0 == strcmp(value, "YES")) ||
+      (0 == strcmp(value, "true")) ||
+      (0 == strcmp(value, "True")) ||
+      (0 == strcmp(value, "TRUE")) ||
+      (0 == strcmp(value, "on")) ||
+      (0 == strcmp(value, "On")) ||
+      (0 == strcmp(value, "ON")))
+    {
+      *val_type = DATA_TYPE_BOOL;
+      ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
+      if (NULL == ret_val) {
+        return NULL;
+      }
+      *((bool *)ret_val) = true;
+      return ret_val;
     }
-    *((bool *)ret_val) = true;
-    return ret_val;
-  }
 
-  if ((0 == strcmp(value, "N")) ||
-    (0 == strcmp(value, "n")) ||
-    (0 == strcmp(value, "no")) ||
-    (0 == strcmp(value, "No")) ||
-    (0 == strcmp(value, "NO")) ||
-    (0 == strcmp(value, "false")) ||
-    (0 == strcmp(value, "False")) ||
-    (0 == strcmp(value, "FALSE")) ||
-    (0 == strcmp(value, "off")) ||
-    (0 == strcmp(value, "Off")) ||
-    (0 == strcmp(value, "OFF")))
-  {
-    *val_type = DATA_TYPE_BOOL;
-    ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
-    if (NULL == ret_val) {
-      return NULL;
+    if ((0 == strcmp(value, "N")) ||
+      (0 == strcmp(value, "n")) ||
+      (0 == strcmp(value, "no")) ||
+      (0 == strcmp(value, "No")) ||
+      (0 == strcmp(value, "NO")) ||
+      (0 == strcmp(value, "false")) ||
+      (0 == strcmp(value, "False")) ||
+      (0 == strcmp(value, "FALSE")) ||
+      (0 == strcmp(value, "off")) ||
+      (0 == strcmp(value, "Off")) ||
+      (0 == strcmp(value, "OFF")))
+    {
+      *val_type = DATA_TYPE_BOOL;
+      ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
+      if (NULL == ret_val) {
+        return NULL;
+      }
+      *((bool *)ret_val) = false;
+      return ret_val;
     }
-    *((bool *)ret_val) = false;
-    return ret_val;
   }
 
   /// Check for int
@@ -834,6 +840,7 @@ static rcl_ret_t parse_value(
   const size_t parameter_idx = ((params_st->params[node_idx].num_params) - 1U);
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
+  yaml_scalar_style_t style = event.data.scalar.style;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
   rcl_variant_t * param_value;
 
@@ -860,7 +867,7 @@ static rcl_ret_t parse_value(
   param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
 
   // param_value->string_value = rcutils_strdup(value, allocator);
-  ret_val = get_value(value, &val_type, allocator);
+  ret_val = get_value(value, style, &val_type, allocator);
   if (NULL == ret_val) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Error parsing value %s at line %d", value, line_num);
     return RCL_RET_ERROR;
