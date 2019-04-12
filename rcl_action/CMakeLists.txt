@@ -159,7 +159,7 @@ if(BUILD_TESTING)
       custom_test_c(test_graph
         "test/rcl_action/test_graph.cpp")
     endif()
-endmacro()
+  endmacro()
 
   call_for_each_rmw_implementation(targets)
 
