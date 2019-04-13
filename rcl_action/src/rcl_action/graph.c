@@ -51,7 +51,7 @@ _filter_action_names(
   size_t num_actions = 0u;
   for (size_t i = 0u; i < num_names; ++i) {
     const char * identifier_index = strstr(names[i], action_name_identifier);
-    if (identifier_index) {
+    if (identifier_index && strlen(identifier_index) == strlen(action_name_identifier)) {
       ++num_actions;
     }
   }
@@ -72,7 +72,7 @@ _filter_action_names(
   size_t j = 0u;
   for (size_t i = 0u; i < num_names; ++i) {
     const char * identifier_index = strstr(names[i], action_name_identifier);
-    if (identifier_index) {
+    if (identifier_index && strlen(identifier_index) == strlen(action_name_identifier)) {
       const size_t action_name_len = strlen(names[i]) - suffix_len;
       char * action_name = rcutils_strndup(names[i], action_name_len, *allocator);
       if (!action_name) {
@@ -101,7 +101,9 @@ _filter_action_names(
         // Trim type name suffix
         const size_t type_suffix_len = strlen(action_type_identifier);
         const char * type_identifier_index = strstr(type_name, action_type_identifier);
-        if (type_identifier_index) {
+        if (type_identifier_index &&
+          strlen(type_identifier_index) == strlen(action_type_identifier))
+        {
           action_type_len = strlen(type_name) - type_suffix_len;
         }
         // Copy name to output struct
