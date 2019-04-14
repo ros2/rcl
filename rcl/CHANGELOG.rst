@@ -2,6 +2,33 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2019-04-14)
+------------------
+* Added more test cases for graph API + fix bug. (`#404 <https://github.com/ros2/rcl/issues/404>`_)
+* Fixed missing include. (`#413 <https://github.com/ros2/rcl/issues/413>`_)
+* Updated to use pedantic. (`#412 <https://github.com/ros2/rcl/issues/412>`_)
+* Added function to get publisher actual qos settings. (`#406 <https://github.com/ros2/rcl/issues/406>`_)
+* Refactored graph API docs. (`#401 <https://github.com/ros2/rcl/issues/401>`_)
+* Updated to use ament_target_dependencies where possible. (`#400 <https://github.com/ros2/rcl/issues/400>`_)
+* Fixed regression around fully qualified node name. (`#402 <https://github.com/ros2/rcl/issues/402>`_)
+* Added function rcl_names_and_types_init. (`#403 <https://github.com/ros2/rcl/issues/403>`_)
+* Fixed uninitialize sequence number of client. (`#395 <https://github.com/ros2/rcl/issues/395>`_)
+* Added launch along with launch_testing as test dependencies. (`#393 <https://github.com/ros2/rcl/issues/393>`_)
+* Set symbol visibility to hidden for rcl. (`#391 <https://github.com/ros2/rcl/issues/391>`_)
+* Updated to split test_token to avoid compiler note. (`#392 <https://github.com/ros2/rcl/issues/392>`_)
+* Dropped legacy launch API usage. (`#387 <https://github.com/ros2/rcl/issues/387>`_)
+* Improved security directory lookup. (`#332 <https://github.com/ros2/rcl/issues/332>`_)
+* Enforce non-null argv values on rcl_init(). (`#388 <https://github.com/ros2/rcl/issues/388>`_)
+* Removed incorrect argument documentation. (`#361 <https://github.com/ros2/rcl/issues/361>`_)
+* Changed error to warning for multiple loggers. (`#384 <https://github.com/ros2/rcl/issues/384>`_)
+* Added rcl_node_get_fully_qualified_name. (`#255 <https://github.com/ros2/rcl/issues/255>`_)
+* Updated rcl_remap_t to use the PIMPL pattern. (`#377 <https://github.com/ros2/rcl/issues/377>`_)
+* Fixed documentation typo. (`#376 <https://github.com/ros2/rcl/issues/376>`_)
+* Removed test circumvention now that a bug is fixed in rmw_opensplice. (`#368 <https://github.com/ros2/rcl/issues/368>`_)
+* Updated to pass context to wait set, and fini rmw context. (`#373 <https://github.com/ros2/rcl/issues/373>`_)
+* Updated to publish logs to Rosout. (`#350 <https://github.com/ros2/rcl/issues/350>`_)
+* Contributors: AAlon, Dirk Thomas, Jacob Perron, M. M, Michael Carroll, Michel Hidalgo, Mikael Arguedas, Nick Burek, RARvolt, Ross Desmond, Sachin Suresh Bhat, Shane Loretz, William Woodall, ivanpauno
+
 0.6.4 (2019-01-11)
 ------------------
 * Added method for accessing rmw_context from rcl_context (`#372 <https://github.com/ros2/rcl/issues/372>`_)

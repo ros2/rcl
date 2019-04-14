@@ -2,6 +2,21 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2019-04-14)
+------------------
+* Added Action graph API (`#411 <https://github.com/ros2/rcl/issues/411>`_)
+* Updated to use ament_target_dependencies where possible. (`#400 <https://github.com/ros2/rcl/issues/400>`_)
+* Fixed typo in Doxyfile. (`#398 <https://github.com/ros2/rcl/issues/398>`_)
+* Updated tests to use separated action types. (`#340 <https://github.com/ros2/rcl/issues/340>`_)
+* Fixed minor documentation issues. (`#397 <https://github.com/ros2/rcl/issues/397>`_)
+* Set symbol visibility to hidden for rcl. (`#391 <https://github.com/ros2/rcl/issues/391>`_)
+* Fixed rcl_action documentation. (`#380 <https://github.com/ros2/rcl/issues/380>`_)
+* Removed now unused test executable . (`#382 <https://github.com/ros2/rcl/issues/382>`_)
+* Removed unused action server option 'clock_type'. (`#382 <https://github.com/ros2/rcl/issues/382>`_)
+* Set error message when there is an invalid goal transition. (`#382 <https://github.com/ros2/rcl/issues/382>`_)
+* Updated to pass context to wait set, and fini rmw context (`#373 <https://github.com/ros2/rcl/issues/373>`_)
+* Contributors: Dirk Thomas, Jacob Perron, Sachin Suresh Bhat, William Woodall, ivanpauno
+
 0.6.4 (2019-01-11)
 ------------------
 * Added parentheses around use of zerouuid macro (`#371 <https://github.com/ros2/rcl/issues/371>`_)

@@ -2,6 +2,13 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2019-04-14)
+------------------
+* Corrected bool reading from yaml files. (`#415 <https://github.com/ros2/rcl/issues/415>`_)
+* Added launch along with launch_testing as test dependencies. (`#393 <https://github.com/ros2/rcl/issues/393>`_)
+* Set symbol visibility to hidden for rcl. (`#391 <https://github.com/ros2/rcl/issues/391>`_)
+* Contributors: Michel Hidalgo, Sachin Suresh Bhat, ivanpauno
+
 0.6.4 (2019-01-11)
 ------------------
 
