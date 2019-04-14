@@ -36,6 +36,7 @@ set(rcl_action_sources
   src/${PROJECT_NAME}/action_server.c
   src/${PROJECT_NAME}/goal_handle.c
   src/${PROJECT_NAME}/goal_state_machine.c
+  src/${PROJECT_NAME}/graph.c
   src/${PROJECT_NAME}/names.c
   src/${PROJECT_NAME}/types.c
 )
@@ -91,7 +92,11 @@ if(BUILD_TESTING)
     target_link_libraries(test_action_client
       ${PROJECT_NAME}
     )
-    ament_target_dependencies(test_action_client "osrf_testing_tools_cpp" "rcl" "test_msgs")
+    ament_target_dependencies(test_action_client
+      "osrf_testing_tools_cpp"
+      "rcl"
+      "test_msgs"
+    )
   endif()
 
   # get the rmw implementations ahead of time
@@ -122,6 +127,7 @@ if(BUILD_TESTING)
         ${PROJECT_NAME}
       )
       ament_target_dependencies(${target}${target_suffix}
+        "osrf_testing_tools_cpp"
         "rcl"
         "test_msgs"
       )
@@ -146,6 +152,13 @@ if(BUILD_TESTING)
       "test/rcl_action/test_action_communication.cpp")
     custom_test_c(test_action_interaction
       "test/rcl_action/test_action_interaction.cpp")
+
+    # TODO(jacobperron): Graph tests fail with opensplice. Re-enable after resolving
+    # https://github.com/ros2/ros2/issues/677
+    if(NOT rmw_implementation STREQUAL "rmw_opensplice_cpp")
+      custom_test_c(test_graph
+        "test/rcl_action/test_graph.cpp")
+    endif()
   endmacro()
 
   call_for_each_rmw_implementation(targets)
