@@ -290,6 +290,32 @@ rcl_ret_t
 rcl_publish_serialized_message(
   const rcl_publisher_t * publisher, const rcl_serialized_message_t * serialized_message);
 
+/// Manually assert that this Publisher is alive (for RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC)
+/**
+ * If the rmw Liveliness policy is set to RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC, the creator of
+ * this publisher may manually call `assert_liveliness` at some point in time to signal to the rest
+ * of the system that this Node is still alive.
+ * This function must be called at least as often as the qos_profile's liveliness_lease_duration
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] publisher handle to the publisher that needs liveliness to be asserted
+ * \return `RCL_RET_OK` if the liveliness assertion was completed successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher);
+
 /// Get the topic name for the publisher.
 /**
  * This function returns the publisher's internal topic name string.

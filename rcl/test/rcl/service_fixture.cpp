@@ -36,7 +36,8 @@ wait_for_service_to_be_ready(
   int64_t period_ms)
 {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, context, rcl_get_default_allocator());
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, 0, context, rcl_get_default_allocator());
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string().str);

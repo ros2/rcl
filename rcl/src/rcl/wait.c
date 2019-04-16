@@ -29,6 +29,7 @@ extern "C"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
+#include "rmw/event.h"
 
 #include "./context_impl.h"
 
@@ -46,6 +47,10 @@ typedef struct rcl_wait_set_impl_t
   // number of services that have been added to the wait set
   size_t service_index;
   rmw_services_t rmw_services;
+  // number of events that have been added to the wait set
+  size_t event_index;
+  rmw_events_t rmw_events;
+
   rmw_wait_set_t * rmw_wait_set;
   // number of timers that have been added to the wait set
   size_t timer_index;
@@ -83,7 +88,7 @@ __wait_set_is_valid(const rcl_wait_set_t * wait_set)
 static void
 __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 {
-  rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0);
+  rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0, 0);
   (void)ret;  // NO LINT
   assert(RCL_RET_OK == ret);  // Defensive, shouldn't fail with size 0.
   if (wait_set->impl) {
@@ -100,6 +105,7 @@ rcl_wait_set_init(
   size_t number_of_timers,
   size_t number_of_clients,
   size_t number_of_services,
+  size_t number_of_events,
   rcl_context_t * context,
   rcl_allocator_t allocator)
 {
@@ -138,12 +144,15 @@ rcl_wait_set_init(
   wait_set->impl->rmw_clients.client_count = 0;
   wait_set->impl->rmw_services.services = NULL;
   wait_set->impl->rmw_services.service_count = 0;
+  wait_set->impl->rmw_events.events = NULL;
+  wait_set->impl->rmw_events.event_count = 0;
 
   size_t num_conditions =
     (2 * number_of_subscriptions) +
     number_of_guard_conditions +
     number_of_clients +
-    number_of_services;
+    number_of_services +
+    number_of_events;
 
   wait_set->impl->rmw_wait_set = rmw_create_wait_set(&(context->impl->rmw_context), num_conditions);
   if (!wait_set->impl->rmw_wait_set) {
@@ -157,7 +166,7 @@ rcl_wait_set_init(
   // Initialize subscription space.
   rcl_ret_t ret = rcl_wait_set_resize(
     wait_set, number_of_subscriptions, number_of_guard_conditions, number_of_timers,
-    number_of_clients, number_of_services);
+    number_of_clients, number_of_services, number_of_events);
   if (RCL_RET_OK != ret) {
     fail_ret = ret;
     goto fail;
@@ -328,6 +337,7 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set)
   SET_CLEAR(guard_condition);
   SET_CLEAR(client);
   SET_CLEAR(service);
+  SET_CLEAR(event);
   SET_CLEAR(timer);
 
   SET_CLEAR_RMW(
@@ -346,6 +356,10 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set)
     services,
     rmw_services.services,
     rmw_services.service_count);
+  SET_CLEAR_RMW(
+    events,
+    rmw_events.events,
+    rmw_events.event_count);
 
   return RCL_RET_OK;
 }
@@ -362,7 +376,8 @@ rcl_wait_set_resize(
   size_t guard_conditions_size,
   size_t timers_size,
   size_t clients_size,
-  size_t services_size)
+  size_t services_size,
+  size_t events_size)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set->impl, RCL_RET_WAIT_SET_INVALID);
@@ -419,6 +434,13 @@ rcl_wait_set_resize(
     SET_RESIZE_RMW_REALLOC(
       service, rmw_services.services, rmw_services.service_count)
   );
+  SET_RESIZE(event,
+    SET_RESIZE_RMW_DEALLOC(
+      rmw_events.events, rmw_events.event_count),
+    SET_RESIZE_RMW_REALLOC(
+      event, rmw_events.events, rmw_events.event_count)
+  );
+
   return RCL_RET_OK;
 }
 
@@ -478,6 +500,18 @@ rcl_wait_set_add_service(
 }
 
 rcl_ret_t
+rcl_wait_set_add_event(
+  rcl_wait_set_t * wait_set,
+  const rcl_event_t * event,
+  size_t * index)
+{
+  SET_ADD(event)
+  SET_ADD_RMW(event, rmw_events.events, rmw_events.event_count)
+  wait_set->impl->rmw_events.events[current_index] = rmw_handle;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
@@ -490,7 +524,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     wait_set->size_of_guard_conditions == 0 &&
     wait_set->size_of_timers == 0 &&
     wait_set->size_of_clients == 0 &&
-    wait_set->size_of_services == 0)
+    wait_set->size_of_services == 0 &&
+    wait_set->size_of_events == 0)
   {
     RCL_SET_ERROR_MSG("wait set is empty");
     return RCL_RET_WAIT_SET_EMPTY;
@@ -569,6 +604,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     &wait_set->impl->rmw_guard_conditions,
     &wait_set->impl->rmw_services,
     &wait_set->impl->rmw_clients,
+    &wait_set->impl->rmw_events,
     wait_set->impl->rmw_wait_set,
     timeout_argument);
 
@@ -629,6 +665,14 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Service in wait set is ready");
     if (!is_ready) {
       wait_set->services[i] = NULL;
+    }
+  }
+  // Set corresponding rcl event handles NULL.
+  for (i = 0; i < wait_set->size_of_events; ++i) {
+    bool is_ready = wait_set->impl->rmw_events.events[i] != NULL;
+    RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Event in wait set is ready");
+    if (!is_ready) {
+      wait_set->events[i] = NULL;
     }
   }
 

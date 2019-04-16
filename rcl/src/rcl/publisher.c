@@ -22,23 +22,16 @@ extern "C"
 #include <stdio.h>
 #include <string.h>
 
-#include "./common.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
-#include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
 
-typedef struct rcl_publisher_impl_t
-{
-  rcl_publisher_options_t options;
-  rmw_qos_profile_t actual_qos;
-  rcl_context_t * context;
-  rmw_publisher_t * rmw_handle;
-} rcl_publisher_impl_t;
+#include "./common.h"
+#include "./publisher_impl.h"
 
 rcl_publisher_t
 rcl_get_zero_initialized_publisher()
@@ -273,6 +266,19 @@ rcl_publish_serialized_message(
       return RCL_RET_BAD_ALLOC;
     }
     return RMW_RET_ERROR;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
+  }
+  if (rmw_publisher_assert_liveliness(publisher->impl->rmw_handle) != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
 }
