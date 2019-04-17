@@ -105,7 +105,6 @@ typedef rmw_ret_t rcl_ret_t;
 /// Failed to take an event from the event handle
 #define RCL_RET_EVENT_TAKE_FAILED 2001
 
-
 /// typedef for rmw_serialized_message_t;
 typedef rmw_serialized_message_t rcl_serialized_message_t;
 

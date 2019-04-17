@@ -19,7 +19,6 @@
 
 #include "rcl/subscription.h"
 
-
 typedef struct rcl_subscription_impl_t
 {
   rcl_subscription_options_t options;

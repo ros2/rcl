@@ -216,9 +216,9 @@ get_parameters()
     {
       rmw_qos_profile_t expected_system_default_qos = expected_system_default_qos_profile();
       parameters.push_back({
-       rmw_qos_profile_system_default,
-       expected_system_default_qos,
-       "publisher_system_default_qos"});
+        rmw_qos_profile_system_default,
+        expected_system_default_qos,
+        "publisher_system_default_qos"});
     }
   }
 #endif

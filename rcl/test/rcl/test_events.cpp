@@ -45,12 +45,12 @@ class CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 public:
   void SetUp()
   {
-    is_opensplice =
-      std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0;
-    is_fastrtps =
-      std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0;
+    is_opensplice = (std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0);
+    is_fastrtps = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
 
+    // TODO(mm318): Revisit once FastRTPS supports these QoS policies
     is_unsupported = is_fastrtps;
+
     rcl_ret_t ret;
     {
       rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -195,7 +195,9 @@ protected:
   rcl_event_t publisher_event;
   rcl_subscription_t subscription;
   rcl_event_t subscription_event;
-  bool is_unsupported, is_opensplice, is_fastrtps;
+  bool is_fastrtps;
+  bool is_opensplice;
+  bool is_unsupported;
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
 };
@@ -207,13 +209,13 @@ wait_for_msgs_and_events(
   rcl_event_t * publisher_event,
   rcl_context_t * context,
   int64_t period_ms,
-  bool & msg_ready,
-  bool & subscription_event_ready,
-  bool & publisher_event_ready)
+  bool * msg_ready,
+  bool * subscription_event_ready,
+  bool * publisher_event_ready)
 {
-  msg_ready = false;
-  subscription_event_ready = false;
-  publisher_event_ready = false;
+  *msg_ready = false;
+  *subscription_event_ready = false;
+  *publisher_event_ready = false;
 
   int num_subscriptions = (nullptr == subscription ? 0 : 1);
   int num_events = (nullptr == subscription_event ? 0 : 1) + (nullptr == publisher_event ? 0 : 1);
@@ -251,15 +253,15 @@ wait_for_msgs_and_events(
 
   for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
     if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
-      msg_ready = true;
+      *msg_ready = true;
     }
   }
   for (size_t i = 0; i < wait_set.size_of_events; ++i) {
     if (nullptr != wait_set.events[i]) {
       if (wait_set.events[i] == subscription_event) {
-        subscription_event_ready = true;
+        *subscription_event_ready = true;
       } else if (wait_set.events[i] == publisher_event) {
-        publisher_event_ready = true;
+        *publisher_event_ready = true;
       }
     }
   }
@@ -273,18 +275,18 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_lifespa
     rmw_time_t lifespan {1, 0};
     rmw_time_t lease_duration {1, 0};
     rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_subscriber(deadline, lifespan, lease_duration,
       liveliness_policy)) << "Initialized subscriber lifespan when unsupported";
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_publisher(deadline, lifespan, lease_duration,
       liveliness_policy)) << "Initialized publisher lifespan when unsupported";
 
     lifespan = {0, 1};
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_subscriber(deadline, lifespan, lease_duration,
       liveliness_policy)) << "Initialized subscriber lifespan when unsupported";
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_publisher(deadline, lifespan, lease_duration,
       liveliness_policy)) << "Initialized publisher lifespan when unsupported";
   }
@@ -296,21 +298,21 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_livelin
     rmw_time_t lifespan {0, 0};
     rmw_time_t lease_duration {0, 0};
     rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_subscriber(deadline, lifespan, lease_duration,
       liveliness_policy)) <<
       "Initialized subscriber RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE when unsupported";
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_publisher(deadline, lifespan, lease_duration,
       liveliness_policy)) <<
       "Initialized publisher RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE when unsupported";
 
     liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_subscriber(deadline, lifespan, lease_duration,
       liveliness_policy)) <<
       "Initialized subscriber RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC when unsupported";
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_publisher(deadline, lifespan, lease_duration,
       liveliness_policy)) <<
       "Initialized publisher RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC when unsupported";
@@ -323,18 +325,18 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_unsuppo
     rmw_time_t lifespan {0, 0};
     rmw_time_t lease_duration {0, 0};
     rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_subscriber(deadline, lifespan, lease_duration,
       liveliness_policy)) << "Initialized subscriber deadline when unsupported";
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_publisher(deadline, lifespan, lease_duration,
       liveliness_policy)) << "Initialized publisher deadline when unsupported";
 
     deadline = {0, 1};
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_subscriber(deadline, lifespan, lease_duration,
       liveliness_policy)) << "Initialized subscriber deadline when unsupported";
-    EXPECT_EQ(RMW_RET_ERROR,
+    EXPECT_EQ(RCL_RET_ERROR,
       setup_publisher(deadline, lifespan, lease_duration,
       liveliness_policy)) << "Initialized publisher deadline when unsupported";
   }
@@ -374,7 +376,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   // wait for events
   bool msg_ready, subscription_event_ready, publisher_event_ready;
   ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
-    context_ptr, 1000, msg_ready, subscription_event_ready, publisher_event_ready), RCL_RET_OK);
+    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
 
   // test that the message published to topic is as expected
   EXPECT_TRUE(msg_ready);
@@ -396,11 +398,12 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
     ret = rcl_take_event(&subscription_event, &liveliness_status);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(liveliness_status.alive_count, 0);
-    int32_t alive_count_changed = 0;
+    // TODO(ross-desmond): Connext and OpenSplice seem to be counting liveliness changes differently
     if (is_opensplice) {
-      alive_count_changed = 2;
+      EXPECT_EQ(liveliness_status.alive_count_change, 2);
+    } else {
+      EXPECT_EQ(liveliness_status.alive_count_change, 0);
     }
-    EXPECT_EQ(liveliness_status.alive_count_change, alive_count_changed);
     EXPECT_EQ(liveliness_status.not_alive_count, 0);
     EXPECT_EQ(liveliness_status.not_alive_count_change, 0);
   }
@@ -443,7 +446,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
   // wait for lease duration to expire
   std::this_thread::sleep_for(DEADLINE_PERIOD_IN_S + milliseconds(500));
   ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
-    context_ptr, 1000, msg_ready, subscription_event_ready, publisher_event_ready), RCL_RET_OK);
+    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
   // test that the message published to topic is as expected
   EXPECT_TRUE(msg_ready);
   {
@@ -507,7 +510,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
   // wait for events
   bool msg_ready, subscription_event_ready, publisher_event_ready;
   ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
-    context_ptr, 1000, msg_ready, subscription_event_ready, publisher_event_ready), RCL_RET_OK);
+    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
   // test that the message published to topic is as expected
   EXPECT_TRUE(msg_ready);
   {

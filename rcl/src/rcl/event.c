@@ -53,6 +53,7 @@ rcl_publisher_event_init(
   const rcl_publisher_event_type_t event_type)
 {
   rcl_ret_t ret = RCL_RET_OK;
+  RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_EVENT_INVALID);
   // Check publisher and allocator first, so allocator can be used with errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT);
   rcl_allocator_t * allocator = &publisher->impl->options.allocator;
@@ -92,6 +93,7 @@ rcl_subscription_event_init(
   const rcl_subscription_event_type_t event_type)
 {
   rcl_ret_t ret = RCL_RET_OK;
+  RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_EVENT_INVALID);
   // Check subscription and allocator first, so allocator can be used with errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
   rcl_allocator_t * allocator = &subscription->impl->options.allocator;
@@ -130,7 +132,7 @@ rcl_take_event(
   void * event_info)
 {
   bool taken = false;
-  RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_EVENT_INVALID);
   RCL_CHECK_ARGUMENT_FOR_NULL(event_info, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t ret = rmw_take_event(&event->impl->rmw_handle, event_info, &taken);
   if (RMW_RET_OK != ret) {

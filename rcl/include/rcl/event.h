@@ -27,7 +27,6 @@ extern "C"
 #include "rcl/subscription.h"
 #include "rcl/visibility_control.h"
 
-
 typedef enum rcl_publisher_event_type_t
 {
   RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
@@ -51,7 +50,6 @@ typedef struct rcl_event_t
 {
   struct rcl_event_impl_t * impl;
 } rcl_event_t;
-
 
 /// Return a rcl_event_t struct with members set to `NULL`.
 /**
