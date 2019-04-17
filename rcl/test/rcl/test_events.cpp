@@ -350,7 +350,8 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   if (is_unsupported) {
     return;
   }
-  setup_publisher_and_subscriber(RCL_PUBLISHER_LIVELINESS_LOST, RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
+  setup_publisher_and_subscriber(RCL_PUBLISHER_LIVELINESS_LOST,
+    RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
   rcl_ret_t ret;
 
   // publish message to topic
@@ -370,10 +371,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  // wait for lease duration to expire
-  std::this_thread::sleep_for(LIVELINESS_LEASE_DURATION_IN_S + milliseconds(500));
-
-  // wait for events
+  // wait for msg
   bool msg_ready, subscription_event_ready, publisher_event_ready;
   ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
     context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
@@ -390,6 +388,10 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
   }
+
+  // wait for event
+  ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
+    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
 
   // test subscriber/datareader liveliness changed status
   EXPECT_TRUE(subscription_event_ready);
@@ -440,13 +442,11 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  // wait for events
+  // wait for msg
   bool msg_ready, subscription_event_ready, publisher_event_ready;
-
-  // wait for lease duration to expire
-  std::this_thread::sleep_for(DEADLINE_PERIOD_IN_S + milliseconds(500));
   ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
     context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
+
   // test that the message published to topic is as expected
   EXPECT_TRUE(msg_ready);
   {
@@ -459,6 +459,10 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
   }
+
+  // wait for event
+  ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
+    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
 
   // test subscriber/datareader deadline missed status
   EXPECT_TRUE(subscription_event_ready);
