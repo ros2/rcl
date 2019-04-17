@@ -139,7 +139,7 @@ public:
 
     // wait for discovery
     // total wait time of 10 seconds, if never ready
-    size_t max_iterations = 100;
+    size_t max_iterations = 1000;
     milliseconds wait_period(10);
     size_t iteration = 0;
     do {
@@ -362,7 +362,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg);
     test_msgs__msg__Primitives__fini(&msg);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
   // kill the publisher
@@ -373,7 +373,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
 
   // wait for msg
   bool msg_ready, subscription_event_ready, publisher_event_ready;
-  ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
+  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
     context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
 
   // test that the message published to topic is as expected
@@ -385,12 +385,12 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
       test_msgs__msg__Primitives__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
   }
 
   // wait for event
-  ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
+  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
     context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
 
   // test subscriber/datareader liveliness changed status
@@ -398,7 +398,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   {
     rmw_liveliness_changed_status_t liveliness_status;
     ret = rcl_take_event(&subscription_event, &liveliness_status);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(liveliness_status.alive_count, 0);
     // TODO(ross-desmond): Connext and OpenSplice seem to be counting liveliness changes differently
     if (is_opensplice) {
@@ -439,12 +439,12 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg);
     test_msgs__msg__Primitives__fini(&msg);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
   // wait for msg
   bool msg_ready, subscription_event_ready, publisher_event_ready;
-  ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
+  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
     context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
 
   // test that the message published to topic is as expected
@@ -456,12 +456,12 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
       test_msgs__msg__Primitives__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
   }
 
   // wait for event
-  ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
+  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
     context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
 
   // test subscriber/datareader deadline missed status
@@ -469,7 +469,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
   {
     rmw_requested_deadline_missed_status_t deadline_status;
     ret = rcl_take_event(&subscription_event, &deadline_status);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(deadline_status.total_count, 1);
     EXPECT_EQ(deadline_status.total_count_change, 1);
   }
@@ -479,7 +479,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
   {
     rmw_offered_deadline_missed_status_t deadline_status;
     ret = rcl_take_event(&publisher_event, &deadline_status);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(deadline_status.total_count, 1);
     EXPECT_EQ(deadline_status.total_count_change, 1);
   }
@@ -508,13 +508,14 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg);
     test_msgs__msg__Primitives__fini(&msg);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  // wait for events
+  // wait for msg and events
   bool msg_ready, subscription_event_ready, publisher_event_ready;
-  ASSERT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
+  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
     context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
+
   // test that the message published to topic is as expected
   EXPECT_TRUE(msg_ready);
   {
@@ -524,7 +525,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
       test_msgs__msg__Primitives__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
   }
 
@@ -533,7 +534,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
   {
     rmw_requested_deadline_missed_status_t deadline_status;
     ret = rcl_take_event(&subscription_event, &deadline_status);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(deadline_status.total_count, 0);
     EXPECT_EQ(deadline_status.total_count_change, 0);
   }
@@ -543,7 +544,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
   {
     rmw_offered_deadline_missed_status_t deadline_status;
     ret = rcl_take_event(&publisher_event, &deadline_status);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(deadline_status.total_count, 0);
     EXPECT_EQ(deadline_status.total_count_change, 0);
   }
