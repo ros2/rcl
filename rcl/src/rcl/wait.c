@@ -83,11 +83,9 @@ __wait_set_is_valid(const rcl_wait_set_t * wait_set)
 static void
 __wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
 {
-  if (wait_set->subscriptions) {
-    rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0);
-    (void)ret;  // NO LINT
-    assert(RCL_RET_OK == ret);  // Defensive, shouldn't fail with size 0.
-  }
+  rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0);
+  (void)ret;  // NO LINT
+  assert(RCL_RET_OK == ret);  // Defensive, shouldn't fail with size 0.
   if (wait_set->impl) {
     allocator.deallocate(wait_set->impl, allocator.state);
     wait_set->impl = NULL;
