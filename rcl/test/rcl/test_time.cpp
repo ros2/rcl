@@ -289,7 +289,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), specific_clock_instantiation) {
 
 TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  auto ros_clock =
+  auto * ros_clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     allocator.deallocate(ros_clock, allocator.state);
