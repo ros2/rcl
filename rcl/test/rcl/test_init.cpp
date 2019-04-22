@@ -60,7 +60,7 @@ struct FakeTestArgv
   : allocator(rcutils_get_default_allocator()), argc(2)
   {
     this->argv =
-      reinterpret_cast<char **>(allocator.allocate(2 * sizeof(char *), allocator.state));
+      static_cast<char **>(allocator.allocate(2 * sizeof(char *), allocator.state));
     if (!this->argv) {
       throw std::bad_alloc();
     }
