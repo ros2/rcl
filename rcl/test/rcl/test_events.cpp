@@ -40,7 +40,7 @@ constexpr seconds DEADLINE_PERIOD_IN_S(1);
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-class CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class CLASSNAME (TestEventFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
   void SetUp()
@@ -371,46 +371,54 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  // wait for msg
   bool msg_ready, subscription_event_ready, publisher_event_ready;
-  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
-    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
-
-  // test that the message published to topic is as expected
-  EXPECT_TRUE(msg_ready);
-  {
-    test_msgs__msg__Primitives msg;
-    test_msgs__msg__Primitives__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      test_msgs__msg__Primitives__fini(&msg);
-    });
-    ret = rcl_take(&subscription, &msg, nullptr);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
-  }
-
-  // wait for event
-  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
-    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
-
-  // test subscriber/datareader liveliness changed status
-  EXPECT_TRUE(subscription_event_ready);
-  {
-    rmw_liveliness_changed_status_t liveliness_status;
-    ret = rcl_take_event(&subscription_event, &liveliness_status);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    EXPECT_EQ(liveliness_status.alive_count, 0);
-    // TODO(ross-desmond): Connext and OpenSplice seem to be counting liveliness changes differently
-    if (is_opensplice) {
-      EXPECT_EQ(liveliness_status.alive_count_change, 2);
-    } else {
-      EXPECT_EQ(liveliness_status.alive_count_change, 0);
+  bool msg_persist_ready = false;
+  bool subscription_persist_ready = false;
+  bool publisher_persist_ready = false;
+  auto timeout = milliseconds(2000);
+  auto start_time = std::chrono::system_clock::now();
+  do {
+    // wait for msg and events
+    wait_for_msgs_and_events(&subscription, &subscription_event, nullptr,
+      context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready);
+    if (msg_ready) {
+      test_msgs__msg__Primitives msg;
+      test_msgs__msg__Primitives__init(&msg);
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+        test_msgs__msg__Primitives__fini(&msg);
+      });
+      ret = rcl_take(&subscription, &msg, nullptr);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+      EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size),
+        std::string(test_string));
     }
-    EXPECT_EQ(liveliness_status.not_alive_count, 0);
-    EXPECT_EQ(liveliness_status.not_alive_count_change, 0);
-  }
+    if (subscription_event_ready) {
+      rmw_liveliness_changed_status_t liveliness_status;
+      ret = rcl_take_event(&subscription_event, &liveliness_status);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+      EXPECT_EQ(liveliness_status.alive_count, 0);
+      // TODO(ross-desmond): Connext and OpenSplice seem to be counting liveliness differently
+      if (is_opensplice) {
+        EXPECT_EQ(liveliness_status.alive_count_change, 2);
+      } else {
+        EXPECT_EQ(liveliness_status.alive_count_change, 0);
+      }
+      EXPECT_EQ(liveliness_status.not_alive_count, 0);
+      EXPECT_EQ(liveliness_status.not_alive_count_change, 0);
+    }
+    msg_persist_ready |= msg_ready;
+    subscription_persist_ready |= subscription_event_ready;
+    publisher_persist_ready |= publisher_event_ready;
+    if (std::chrono::system_clock::now() - start_time > timeout) {
+      break;
+    }
+  } while (!(msg_persist_ready && subscription_persist_ready));
+  // test that the message published to topic is as expected
+  EXPECT_TRUE(msg_persist_ready);
+  // test subscriber/datareader liveliness changed status
+  EXPECT_TRUE(subscription_persist_ready);
   // test that the killed publisher/datawriter has no active events
-  EXPECT_FALSE(publisher_event_ready);
+  EXPECT_FALSE(publisher_persist_ready);
 
   // clean up
   ret = rcl_event_fini(&subscription_event);
@@ -442,47 +450,59 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  // wait for msg
   bool msg_ready, subscription_event_ready, publisher_event_ready;
-  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
-    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
+  bool msg_persist_ready = false;
+  bool subscription_persist_ready = false;
+  bool publisher_persist_ready = false;
+  auto timeout = milliseconds(2000);
+  auto start_time = std::chrono::system_clock::now();
+  do {
+    // wait for msg and events
+    wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
+      context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready);
+    // test that the message published to topic is as expected
+    if (msg_ready) {
+      test_msgs__msg__Primitives msg;
+      test_msgs__msg__Primitives__init(&msg);
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+        test_msgs__msg__Primitives__fini(&msg);
+      });
+      ret = rcl_take(&subscription, &msg, nullptr);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+      EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size),
+        std::string(test_string));
+    }
 
+    if (subscription_event_ready) {
+      rmw_requested_deadline_missed_status_t deadline_status;
+      ret = rcl_take_event(&subscription_event, &deadline_status);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+      EXPECT_EQ(deadline_status.total_count, 1);
+      EXPECT_EQ(deadline_status.total_count_change, 1);
+    }
+
+    if (publisher_event_ready) {
+      rmw_offered_deadline_missed_status_t deadline_status;
+      ret = rcl_take_event(&publisher_event, &deadline_status);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+      EXPECT_EQ(deadline_status.total_count, 1);
+      EXPECT_EQ(deadline_status.total_count_change, 1);
+    }
+    msg_persist_ready |= msg_ready;
+    subscription_persist_ready |= subscription_event_ready;
+    publisher_persist_ready |= publisher_event_ready;
+    if (std::chrono::system_clock::now() - start_time > timeout) {
+      break;
+    }
+  } while (!(msg_persist_ready && subscription_persist_ready && publisher_persist_ready));
   // test that the message published to topic is as expected
-  EXPECT_TRUE(msg_ready);
-  {
-    test_msgs__msg__Primitives msg;
-    test_msgs__msg__Primitives__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      test_msgs__msg__Primitives__fini(&msg);
-    });
-    ret = rcl_take(&subscription, &msg, nullptr);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
-  }
-
-  // wait for event
-  EXPECT_EQ(wait_for_msgs_and_events(&subscription, &subscription_event, &publisher_event,
-    context_ptr, 1000, &msg_ready, &subscription_event_ready, &publisher_event_ready), RCL_RET_OK);
+  EXPECT_TRUE(msg_persist_ready);
 
   // test subscriber/datareader deadline missed status
-  EXPECT_TRUE(subscription_event_ready);
-  {
-    rmw_requested_deadline_missed_status_t deadline_status;
-    ret = rcl_take_event(&subscription_event, &deadline_status);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    EXPECT_EQ(deadline_status.total_count, 1);
-    EXPECT_EQ(deadline_status.total_count_change, 1);
-  }
+  EXPECT_TRUE(subscription_persist_ready);
 
   // test publisher/datawriter deadline missed status
-  EXPECT_TRUE(publisher_event_ready);
-  {
-    rmw_offered_deadline_missed_status_t deadline_status;
-    ret = rcl_take_event(&publisher_event, &deadline_status);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    EXPECT_EQ(deadline_status.total_count, 1);
-    EXPECT_EQ(deadline_status.total_count_change, 1);
-  }
+  EXPECT_TRUE(publisher_persist_ready);
 
   // clean up
   tear_down_publisher_subscriber();
