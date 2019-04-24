@@ -378,7 +378,6 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
  *
  * \param[in] node handle to the node that needs liveliness to be asserted
  * \return `RCL_RET_OK` if the liveliness assertion was completed successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */

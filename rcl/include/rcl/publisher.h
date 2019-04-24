@@ -307,7 +307,6 @@ rcl_publish_serialized_message(
  *
  * \param[in] publisher handle to the publisher that needs liveliness to be asserted
  * \return `RCL_RET_OK` if the liveliness assertion was completed successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */

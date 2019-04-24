@@ -87,7 +87,7 @@ public:
     publisher_options.qos.liveliness = liveliness_policy;
     publisher_options.qos.liveliness_lease_duration = liveliness_lease_duration;
     return rcl_publisher_init(&publisher, this->node_ptr, this->ts, this->topic,
-             &publisher_options);
+      &publisher_options);
   }
 
   rcl_ret_t setup_subscriber(
@@ -105,7 +105,7 @@ public:
     subscription_options.qos.liveliness_lease_duration = liveliness_lease_duration;
 
     return rcl_subscription_init(&subscription, this->node_ptr, this->ts, this->topic,
-             &subscription_options);
+      &subscription_options);
   }
 
   void setup_publisher_and_subscriber(
@@ -222,7 +222,7 @@ wait_for_msgs_and_events(
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(&wait_set, num_subscriptions, 0, 0, 0, 0, num_events,
-      context, rcl_get_default_allocator());
+    context, rcl_get_default_allocator());
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
@@ -269,16 +269,16 @@ wait_for_msgs_and_events(
   return RCL_RET_OK;
 }
 
-// @brief Conditional function for determining when the wait_for_msgs_and_events loop is complete.
+/// Conditional function for determining when the wait_for_msgs_and_events loop is complete.
 /**
  * Conditional function for determining when the wait_for_msgs_and_events loop is complete.
  *
- * @param msg_persist_ready true if a msg has ever been received
- * @param subscription_persist_readytrue if a subscription has been received
- * @param publisher_persist_ready true if a pulbisher event has been received
- * @return true when the desired conditions are met
+ * \param msg_persist_ready true if a msg has ever been received
+ * \param subscription_persist_readytrue if a subscription has been received
+ * \param publisher_persist_ready true if a pulbisher event has been received
+ * \return true when the desired conditions are met
  */
-using ConditionalFunction = std::function<
+using WaitConditionPredicate = std::function<
   bool (
     const bool & msg_persist_ready,
     const bool & subscription_persist_ready,
@@ -289,7 +289,7 @@ using ConditionalFunction = std::function<
 template<typename S, typename P>
 rcl_ret_t
 conditional_wait_for_msgs_and_events(
-  const ConditionalFunction & conditional_func,
+  const WaitConditionPredicate & events_ready,
   rcl_subscription_t * subscription,
   rcl_event_t * subscription_event,
   rcl_event_t * publisher_event,
@@ -326,9 +326,9 @@ conditional_wait_for_msgs_and_events(
     *subscription_persist_ready |= subscription_event_ready;
     *publisher_persist_ready |= publisher_event_ready;
     if (std::chrono::system_clock::now() - start_time > timeout) {
-      break;
+      return RCL_RET_TIMEOUT;
     }
-  } while (!(conditional_func(*msg_persist_ready,
+  } while (!(events_ready(*msg_persist_ready,
     *subscription_persist_ready,
     *publisher_persist_ready)));
   return RCL_RET_OK;
@@ -435,7 +435,8 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  ConditionalFunction conditional_func = [](
+
+  WaitConditionPredicate msg_and_subevent_ready = [](
     const bool & msg_persist_ready,
     const bool & subscription_persist_ready,
     const bool &) {
@@ -448,11 +449,11 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   });
   rmw_liveliness_changed_status_t liveliness_status;
   bool msg_persist_ready, subscription_persist_ready, publisher_persist_ready;
-  conditional_wait_for_msgs_and_events<rmw_liveliness_changed_status_t, void>(
-    conditional_func, &subscription, &subscription_event,
-    nullptr, context_ptr, 1000,
+  rcl_ret_t wait_res = conditional_wait_for_msgs_and_events<rmw_liveliness_changed_status_t, void>(
+    msg_and_subevent_ready, &subscription, &subscription_event, nullptr, context_ptr, 1000,
     &msg_persist_ready, &subscription_persist_ready, &publisher_persist_ready,
     &msg, &liveliness_status, nullptr);
+  EXPECT_EQ(wait_res, RCL_RET_OK);
 
   // test that the message published to topic is as expected
   EXPECT_TRUE(msg_persist_ready);
@@ -509,7 +510,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  ConditionalFunction conditional_func = [](
+  WaitConditionPredicate all_ready = [](
     const bool & msg_persist_ready,
     const bool & subscription_persist_ready,
     const bool & publisher_persist_ready) {
@@ -523,11 +524,11 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
   rmw_offered_deadline_missed_status_t offered_deadline_status;
   rmw_requested_deadline_missed_status_t requested_deadline_status;
   bool msg_persist_ready, subscription_persist_ready, publisher_persist_ready;
-  conditional_wait_for_msgs_and_events(
-    conditional_func, &subscription, &subscription_event,
-    &publisher_event, context_ptr, 1000,
+  rcl_ret_t wait_res = conditional_wait_for_msgs_and_events(
+    all_ready, &subscription, &subscription_event, &publisher_event, context_ptr, 1000,
     &msg_persist_ready, &subscription_persist_ready, &publisher_persist_ready,
     &msg, &requested_deadline_status, &offered_deadline_status);
+  EXPECT_EQ(wait_res, RCL_RET_OK);
 
   // test that the message published to topic is as expected
   if (msg_persist_ready) {
