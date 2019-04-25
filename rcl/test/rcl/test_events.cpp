@@ -470,7 +470,8 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   if (subscription_persist_ready) {
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(liveliness_status.alive_count, 0);
-    // TODO(ross-desmond): Connext and OpenSplice seem to be counting liveliness differently
+    // TODO(mm3188): Connext and OpenSplice seem to be tracking alive_count_change differently.
+    //               Issue has been raised at https://github.com/ADLINK-IST/opensplice/issues/88
     if (is_opensplice) {
       EXPECT_EQ(liveliness_status.alive_count_change, 2);
     } else {
