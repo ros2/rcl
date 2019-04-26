@@ -746,6 +746,8 @@ rcl_action_process_cancel_request(
   if (!uuidcmpzero(request_uuid) && (0u == request_nanosec)) {
     // UUID is not zero and timestamp is zero; cancel exactly one goal (if it exists)
     rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
+    // Assume the goal ID is invalid until we find it
+    cancel_response->msg.return_code = action_msgs__srv__CancelGoal_Response__ERROR_UNKNOWN_GOAL_ID;
     rcl_action_goal_handle_t * goal_handle;
     for (size_t i = 0u; i < total_num_goals; ++i) {
       goal_handle = action_server->impl->goal_handles[i];
@@ -758,11 +760,14 @@ rcl_action_process_cancel_request(
       if (uuidcmp(request_uuid, goal_info.goal_id.uuid)) {
         if (rcl_action_goal_handle_is_cancelable(goal_handle)) {
           goal_handles_to_cancel[num_goals_to_cancel++] = goal_handle;
+          cancel_response->msg.return_code = action_msgs__srv__CancelGoal_Response__ERROR_NONE;
         }
         break;
       }
     }
   } else {
+    // The caller can later update the response code to reject the request if desired
+    cancel_response->msg.return_code = action_msgs__srv__CancelGoal_Response__ERROR_NONE;
     if (uuidcmpzero(request_uuid) && (0u == request_nanosec)) {
       // UUID and timestamp are both zero; cancel all goals
       // Set timestamp to max to cancel all active goals in the following for-loop
