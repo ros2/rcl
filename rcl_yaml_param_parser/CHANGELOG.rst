@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2019-04-29)
+------------------
+
 0.7.0 (2019-04-14)
 ------------------
 * Corrected bool reading from yaml files. (`#415 <https://github.com/ros2/rcl/issues/415>`_)

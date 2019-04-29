@@ -2,6 +2,12 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2019-04-29)
+------------------
+* Renamed action state transitions (`#409 <https://github.com/ros2/rcl/issues/409>`_)
+* Updated initialization of rmw_qos_profile_t struct instances. (`#416 <https://github.com/ros2/rcl/issues/416>`_)
+* Contributors: Jacob Perron, M. M
+
 0.7.0 (2019-04-14)
 ------------------
 * Added Action graph API (`#411 <https://github.com/ros2/rcl/issues/411>`_)

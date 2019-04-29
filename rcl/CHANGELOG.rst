@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2019-04-29)
+------------------
+* Replaced reinterperet_cast with static_cast. (`#410 <https://github.com/ros2/rcl/issues/410>`_)
+* Fixed leak in __wait_set_clean_up. (`#418 <https://github.com/ros2/rcl/issues/418>`_)
+* Updated initialization of rmw_qos_profile_t struct instances. (`#416 <https://github.com/ros2/rcl/issues/416>`_)
+* Contributors: Dirk Thomas, M. M, jhdcs
+
 0.7.0 (2019-04-14)
 ------------------
 * Added more test cases for graph API + fix bug. (`#404 <https://github.com/ros2/rcl/issues/404>`_)
