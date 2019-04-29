@@ -761,6 +761,10 @@ rcl_action_process_cancel_request(
         if (rcl_action_goal_handle_is_cancelable(goal_handle)) {
           goal_handles_to_cancel[num_goals_to_cancel++] = goal_handle;
           cancel_response->msg.return_code = action_msgs__srv__CancelGoal_Response__ERROR_NONE;
+        } else {
+          // If the goal is not cancelable, it must be because it is in a terminal state
+          cancel_response->msg.return_code =
+            action_msgs__srv__CancelGoal_Response__ERROR_GOAL_TERMINATED;
         }
         break;
       }

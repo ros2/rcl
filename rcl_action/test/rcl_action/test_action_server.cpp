@@ -586,6 +586,28 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
       action_msgs__srv__CancelGoal_Response__ERROR_UNKNOWN_GOAL_ID);
     EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
   }
+  {
+    // Request to cancel a terminated goal
+    // First, transition a goal handle to a terminal state
+    rcl_ret_t ret = rcl_action_update_goal_state(&this->handles[3], GOAL_EVENT_EXECUTE);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_action_update_goal_state(&this->handles[3], GOAL_EVENT_SUCCEED);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    // Attempt to cancel the terminated goal
+    rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
+    cancel_request.goal_info.goal_id = this->goal_infos_out[3].goal_id;
+    rcl_action_cancel_response_t cancel_response =
+      rcl_action_get_zero_initialized_cancel_response();
+    ret = rcl_action_process_cancel_request(
+      &this->action_server, &cancel_request, &cancel_response);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(cancel_response.msg.goals_canceling.data, nullptr);
+    EXPECT_EQ(cancel_response.msg.goals_canceling.size, 0u);
+    EXPECT_EQ(
+      cancel_response.msg.return_code,
+      action_msgs__srv__CancelGoal_Response__ERROR_GOAL_TERMINATED);
+    EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
+  }
 }
 
 TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time)
