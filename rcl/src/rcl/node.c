@@ -126,6 +126,7 @@ rcl_node_init(
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   char * remapped_node_name = NULL;
+  char * node_secure_root = NULL;
 
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
@@ -306,7 +307,7 @@ rcl_node_init(
     node_security_options.enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
   } else {  // if use_security
     // File discovery magic here
-    const char * node_secure_root = rcl_get_secure_root(name, local_namespace_, allocator);
+    node_secure_root = rcl_get_secure_root(name, local_namespace_, allocator);
     if (node_secure_root) {
       RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Found security directory: %s", node_secure_root);
       node_security_options.security_root_path = node_secure_root;
@@ -408,6 +409,7 @@ cleanup:
   if (NULL != remapped_node_name) {
     allocator->deallocate(remapped_node_name, allocator->state);
   }
+  allocator->deallocate(node_secure_root, allocator->state);
   return ret;
 }
 

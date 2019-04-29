@@ -53,7 +53,7 @@ extern "C"
  * \returns machine specific (absolute) node secure root path or NULL on failure
  */
 RCL_PUBLIC
-const char * rcl_get_secure_root(
+char * rcl_get_secure_root(
   const char * node_name,
   const char * node_namespace,
   const rcl_allocator_t * allocator
