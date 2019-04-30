@@ -60,7 +60,7 @@ rcl_init(
 
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
-    "Initializing ROS client library, for context at address: %p", context);
+    "Initializing ROS client library, for context at address: %p", (void *) context);
 
   // test expectation that given context is zero initialized
   if (NULL != context->impl) {
@@ -161,7 +161,7 @@ rcl_shutdown(rcl_context_t * context)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
-    "Shutting down ROS client library, for context at address: %p", context);
+    "Shutting down ROS client library, for context at address: %p", (void *) context);
   RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     context->impl, "context is zero-initialized", return RCL_RET_INVALID_ARGUMENT);

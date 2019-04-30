@@ -709,7 +709,7 @@ void expect_topics_types(
   if (expect) {
     EXPECT_EQ(num_topics, nat.names.size);
   } else {
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expected topics %d, actual topics %d", num_topics,
+    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expected topics %zu, actual topics %zu", num_topics,
       nat.names.size);
   }
   ret = rcl_names_and_types_fini(&nat);
