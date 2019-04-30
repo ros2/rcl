@@ -166,6 +166,12 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   // Initialize a request.
   test_msgs__srv__Primitives_Request client_request;
   test_msgs__srv__Primitives_Request__init(&client_request);
+  // TODO(clalancette): the C __init methods do not initialize all structure
+  // members, so the numbers in the fields not explicitly set is arbitrary.
+  // The CDR deserialization in Fast-CDR requires a 0 or 1 for bool fields,
+  // so we explicitly initialize that even though we don't use it.  This can be
+  // removed once the C __init methods initialize all members by default.
+  client_request.bool_value = false;
   client_request.uint8_value = 1;
   client_request.uint32_value = 2;
   int64_t sequence_number;
