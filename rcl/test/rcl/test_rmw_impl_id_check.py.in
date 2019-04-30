@@ -3,15 +3,38 @@
 import os
 
 from launch import LaunchDescription
-from launch import LaunchService
 from launch.actions import ExecuteProcess
-from launch_testing import LaunchTestService
+from launch.actions import OpaqueFunction
 
+import launch_testing
+import launch_testing.asserts
+import launch_testing.util
 
-def launch_test(
-    rmw_implementation_env=None, rcl_assert_rmw_id_matches_env=None, expect_failure=False
+import unittest
+
+@launch_testing.parametrize(
+    'rmw_implementation_env,rcl_assert_rmw_id_matches_env',
+    [
+        # Test RMW_IMPLEMENTATION only.
+        ('@rmw_implementation@', None),
+        ('garbage', None),
+        ('', None),
+        # Test RCL_ASSERT_RMW_ID_MATCHES only.
+        (None, 'garbage'),
+        (None, ''),
+        # Test both.
+        ('@rmw_implementation@', '@rmw_implementation@'),
+        ('garbage', '@rmw_implementation@'),
+        ('@rmw_implementation@', 'garbage'),
+        ('garbage', 'garbage'),
+        ('', ''),
+    ]
+)
+def generate_test_description(
+    rmw_implementation_env,
+    rcl_assert_rmw_id_matches_env,
+    ready_fn
 ):
-    launch_test = LaunchTestService()
     launch_description = LaunchDescription()
 
     env = dict(os.environ)
@@ -20,62 +43,38 @@ def launch_test(
     if rcl_assert_rmw_id_matches_env is not None:
         env['RCL_ASSERT_RMW_ID_MATCHES'] = rcl_assert_rmw_id_matches_env
 
-    launch_test.add_test_action(
-        launch_description, ExecuteProcess(
-            cmd=['@TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME@'],
-            name='@TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME@',
-            env=env,
-        )
+    executable_under_test = ExecuteProcess(
+        cmd=['@TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME@'],
+        name='@TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME@',
+        env=env,
     )
+    launch_description.add_action(executable_under_test)
+    # Keep the test fixture alive till tests end.
+    launch_description.add_action(launch_testing.util.KeepAliveProc())
+    launch_description.add_action(
+        OpaqueFunction(function=lambda context: ready_fn())
+    )
+    return launch_description, locals()
 
-    launch_service = LaunchService()
-    launch_service.include_launch_description(launch_description)
-    rc = launch_test.run(launch_service)
+class TestRMWImplementationIDCheck(unittest.TestCase):
 
-    if expect_failure:
-        assert rc != 0, 'The executable did not fail as expected.'
-    else:
-        assert rc == 0, "The executable failed with exit code '" + str(rc) + "'. "
+    def test_process_terminates_in_a_finite_amount_of_time(self, executable_under_test):
+        """Test that executable under test terminates in a finite amount of time."""
+        self.proc_info.assertWaitForShutdown(process=executable_under_test, timeout=10)
 
+@launch_testing.post_shutdown_test()
+class TestRMWImplementationIDCheckAfterShutdown(unittest.TestCase):
 
-def test_rmw_implementation_env():
-    launch_test(rmw_implementation_env='@rmw_implementation@', expect_failure=False)
-    launch_test(rmw_implementation_env='', expect_failure=False)
-    launch_test(rmw_implementation_env='garbage', expect_failure=True)
-
-
-def test_rcl_assert_rmw_id_matches_env():
-    # Note(dhood): we don't test _only_ setting RCL_ASSERT_RMW_ID_MATCHES because if support for
-    # multiple RMW implementations is available then RMW_IMPLEMENTATION must be used in order to
-    # get non-default RMW implementation(s).
-    launch_test(rcl_assert_rmw_id_matches_env='', expect_failure=False)
-    launch_test(rcl_assert_rmw_id_matches_env='garbage', expect_failure=True)
-
-
-def test_both():
-    launch_test(
-        rmw_implementation_env='@rmw_implementation@',
-        rcl_assert_rmw_id_matches_env='@rmw_implementation@',
-        expect_failure=False)
-    launch_test(
-        rmw_implementation_env='',
-        rcl_assert_rmw_id_matches_env='',
-        expect_failure=False)
-    launch_test(
-        rmw_implementation_env='@rmw_implementation@',
-        rcl_assert_rmw_id_matches_env='garbage',
-        expect_failure=True)
-    launch_test(
-        rmw_implementation_env='garbage',
-        rcl_assert_rmw_id_matches_env='@rmw_implementation@',
-        expect_failure=True)
-    launch_test(
-        rmw_implementation_env='garbage',
-        rcl_assert_rmw_id_matches_env='garbage',
-        expect_failure=True)
-
-
-if __name__ == '__main__':
-    test_rmw_implementation_env()
-    test_rcl_assert_rmw_id_matches_env()
-    test_both()
+    def test_process_terminates_as_expected(
+        self,
+        proc_info,
+        executable_under_test,
+        rmw_implementation_env,
+        rcl_assert_rmw_id_matches_env
+    ):
+        """Test that the executable under test terminates as expected."""
+        assertion_method = self.assertEqual
+        if 'garbage' in (rmw_implementation_env, rcl_assert_rmw_id_matches_env):
+            assertion_method = self.assertNotEqual
+        executable_info = proc_info[executable_under_test]
+        assertion_method(executable_info.returncode, launch_testing.asserts.EXIT_OK)

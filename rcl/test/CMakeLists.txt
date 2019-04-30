@@ -1,5 +1,5 @@
 find_package(ament_cmake_gtest REQUIRED)
-find_package(ament_cmake_pytest REQUIRED)
+find_package(launch_testing_ament_cmake REQUIRED)
 
 find_package(test_msgs REQUIRED)
 
@@ -253,9 +253,9 @@ function(test_target_function)
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/test/test_rmw_impl_id_check${target_suffix}_$<CONFIG>.py"
     INPUT "${CMAKE_CURRENT_BINARY_DIR}/test_rmw_impl_id_check${target_suffix}.py.configure"
   )
-  ament_add_pytest_test(
-    test_rmw_impl_id_check${target_suffix}
+  add_launch_test(
     "${CMAKE_CURRENT_BINARY_DIR}/test/test_rmw_impl_id_check${target_suffix}_$<CONFIG>.py"
+    TARGET test_rmw_impl_id_check${target_suffix}
     APPEND_LIBRARY_DIRS "${extra_lib_dirs}"
     ${SKIP_TEST}
   )
