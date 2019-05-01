@@ -459,7 +459,10 @@ TEST_F(TestTimerFixture, test_ros_time_wakes_wait) {
 
   std::thread wait_thr([&](void) {
       rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-      ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr,
+      ret = rcl_wait_set_init(
+        &wait_set,
+        0, 0, 1, 0, 0, 0,
+        context_ptr,
         rcl_get_default_allocator());
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 

@@ -86,7 +86,11 @@ public:
     publisher_options.qos.lifespan = lifespan;
     publisher_options.qos.liveliness = liveliness_policy;
     publisher_options.qos.liveliness_lease_duration = liveliness_lease_duration;
-    return rcl_publisher_init(&publisher, this->node_ptr, this->ts, this->topic,
+    return rcl_publisher_init(
+      &publisher,
+      this->node_ptr,
+      this->ts,
+      this->topic,
       &publisher_options);
   }
 
@@ -104,7 +108,11 @@ public:
     subscription_options.qos.liveliness = liveliness_policy;
     subscription_options.qos.liveliness_lease_duration = liveliness_lease_duration;
 
-    return rcl_subscription_init(&subscription, this->node_ptr, this->ts, this->topic,
+    return rcl_subscription_init(
+      &subscription,
+      this->node_ptr,
+      this->ts,
+      this->topic,
       &subscription_options);
   }
 
@@ -221,8 +229,11 @@ wait_for_msgs_and_events(
   int num_events = (nullptr == subscription_event ? 0 : 1) + (nullptr == publisher_event ? 0 : 1);
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret = rcl_wait_set_init(&wait_set, num_subscriptions, 0, 0, 0, 0, num_events,
-    context, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_wait_set_init(
+    &wait_set,
+    num_subscriptions, 0, 0, 0, 0, num_events,
+    context,
+    rcl_get_default_allocator());
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
