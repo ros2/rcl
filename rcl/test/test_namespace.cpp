@@ -23,7 +23,7 @@
 #include "rcl/graph.h"
 
 #include "rosidl_generator_c/string_functions.h"
-#include "test_msgs/srv/primitives.h"
+#include "test_msgs/srv/basic_types.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
@@ -75,7 +75,7 @@ public:
  */
 TEST_F(TestNamespaceFixture, test_client_server) {
   rcl_ret_t ret;
-  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, Primitives);
+  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
   const char * service_name = "/my/namespace/test_namespace_client_server";
   const char * unmatched_client_name = "/your/namespace/test_namespace_client_server";
   const char * matched_client_name = "/my/namespace/test_namespace_client_server";

@@ -22,7 +22,7 @@
 #include "rcl/client.h"
 #include "rcl/rcl.h"
 
-#include "test_msgs/srv/primitives.h"
+#include "test_msgs/srv/basic_types.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
@@ -153,8 +153,8 @@ int main(int argc, char ** argv)
     });
 
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
-    const char * service_name = "primitives";
+      test_msgs, srv, BasicTypes);
+    const char * service_name = "basic_types";
 
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_client_options_t client_options = rcl_client_get_default_options();
@@ -180,11 +180,11 @@ int main(int argc, char ** argv)
     }
 
     // Initialize a request.
-    test_msgs__srv__Primitives_Request client_request;
+    test_msgs__srv__BasicTypes_Request client_request;
     // TODO(dirk-thomas) zero initialization necessary until
     // https://github.com/ros2/ros2/issues/397 is implemented
-    memset(&client_request, 0, sizeof(test_msgs__srv__Primitives_Request));
-    test_msgs__srv__Primitives_Request__init(&client_request);
+    memset(&client_request, 0, sizeof(test_msgs__srv__BasicTypes_Request));
+    test_msgs__srv__BasicTypes_Request__init(&client_request);
     client_request.uint8_value = 1;
     client_request.uint32_value = 2;
     int64_t sequence_number;
@@ -200,14 +200,14 @@ int main(int argc, char ** argv)
       return -1;
     }
 
-    test_msgs__srv__Primitives_Request__fini(&client_request);
+    test_msgs__srv__BasicTypes_Request__fini(&client_request);
 
     // Initialize the response owned by the client and take the response.
-    test_msgs__srv__Primitives_Response client_response;
+    test_msgs__srv__BasicTypes_Response client_response;
     // TODO(dirk-thomas) zero initialization necessary until
     // https://github.com/ros2/ros2/issues/397 is implemented
-    memset(&client_response, 0, sizeof(test_msgs__srv__Primitives_Response));
-    test_msgs__srv__Primitives_Response__init(&client_response);
+    memset(&client_response, 0, sizeof(test_msgs__srv__BasicTypes_Response));
+    test_msgs__srv__BasicTypes_Response__init(&client_response);
 
     if (!wait_for_client_to_be_ready(&client, &context, 1000, 100)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Client never became ready");
@@ -220,7 +220,7 @@ int main(int argc, char ** argv)
       return -1;
     }
 
-    test_msgs__srv__Primitives_Response__fini(&client_response);
+    test_msgs__srv__BasicTypes_Response__fini(&client_response);
   }
 
   return main_ret;

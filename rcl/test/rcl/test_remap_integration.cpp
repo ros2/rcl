@@ -18,8 +18,8 @@
 #include "rcl/remap.h"
 #include "rcl/error_handling.h"
 
-#include "test_msgs/msg/primitives.h"
-#include "test_msgs/srv/primitives.h"
+#include "test_msgs/msg/basic_types.h"
+#include "test_msgs/srv/basic_types.h"
 
 #include "./arg_macros.hpp"
 
@@ -65,7 +65,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
   }
   {  // Publisher topic gets remapped
     const rosidl_message_type_support_t * ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
@@ -75,7 +75,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
   }
   {  // Subscription topic gets remapped
     const rosidl_message_type_support_t * ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
@@ -86,7 +86,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
   }
   {  // Client service name gets remapped
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
+      test_msgs, srv, BasicTypes);
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
@@ -96,7 +96,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_using_g
   }
   {  // Server service name gets remapped
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
+      test_msgs, srv, BasicTypes);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
@@ -133,7 +133,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
   }
   {  // Publisher topic does not get remapped
     const rosidl_message_type_support_t * ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
@@ -143,7 +143,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
   }
   {  // Subscription topic does not get remapped
     const rosidl_message_type_support_t * ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
@@ -154,7 +154,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
   }
   {  // Client service name does not get remapped
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
+      test_msgs, srv, BasicTypes);
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
@@ -164,7 +164,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), ignore_global
   }
   {  // Server service name does not get remapped
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
+      test_msgs, srv, BasicTypes);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
@@ -202,7 +202,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
   }
   {  // Publisher topic
     const rosidl_message_type_support_t * ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "/foo/bar", &publisher_options);
@@ -212,7 +212,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
   }
   {  // Subscription topic
     const rosidl_message_type_support_t * ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
@@ -223,7 +223,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
   }
   {  // Client service name
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
+      test_msgs, srv, BasicTypes);
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "/foo/bar", &client_options);
@@ -233,7 +233,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), local_rules_b
   }
   {  // Server service name
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
+      test_msgs, srv, BasicTypes);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "/foo/bar", &service_options);
@@ -256,7 +256,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
 
   {  // Publisher topic
     const rosidl_message_type_support_t * ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_ret_t ret = rcl_publisher_init(&publisher, &node, ts, "bar", &publisher_options);
@@ -266,7 +266,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
   }
   {  // Subscription topic
     const rosidl_message_type_support_t * ts =
-      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+      ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_ret_t ret = rcl_subscription_init(
@@ -277,7 +277,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
   }
   {  // Client service name
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
+      test_msgs, srv, BasicTypes);
     rcl_client_options_t client_options = rcl_client_get_default_options();
     rcl_client_t client = rcl_get_zero_initialized_client();
     rcl_ret_t ret = rcl_client_init(&client, &node, ts, "bar", &client_options);
@@ -287,7 +287,7 @@ TEST_F(CLASSNAME(TestRemapIntegrationFixture, RMW_IMPLEMENTATION), remap_relativ
   }
   {  // Server service name
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
+      test_msgs, srv, BasicTypes);
     rcl_service_options_t service_options = rcl_service_get_default_options();
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_ret_t ret = rcl_service_init(&service, &node, ts, "bar", &service_options);
