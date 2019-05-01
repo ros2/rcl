@@ -173,8 +173,7 @@ rcl_publisher_init(
     rcl_node_get_rmw_handle(node),
     type_support,
     remapped_topic_name,
-    &(options->qos)
-  );
+    &(options->qos));
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
     rmw_get_error_string().str, goto fail);
   // get actual qos, and store it
@@ -253,7 +252,8 @@ rcl_publisher_get_default_options()
 
 rcl_ret_t
 rcl_publish(
-  const rcl_publisher_t * publisher, const void * ros_message,
+  const rcl_publisher_t * publisher,
+  const void * ros_message,
   rmw_publisher_allocation_t * allocation)
 {
   if (!rcl_publisher_is_valid(publisher)) {
@@ -269,13 +269,16 @@ rcl_publish(
 
 rcl_ret_t
 rcl_publish_serialized_message(
-  const rcl_publisher_t * publisher, const rcl_serialized_message_t * serialized_message)
+  const rcl_publisher_t * publisher,
+  const rcl_serialized_message_t * serialized_message,
+  rmw_publisher_allocation_t * allocation)
 {
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(serialized_message, RCL_RET_INVALID_ARGUMENT);
-  rmw_ret_t ret = rmw_publish_serialized_message(publisher->impl->rmw_handle, serialized_message);
+  rmw_ret_t ret = rmw_publish_serialized_message(publisher->impl->rmw_handle, serialized_message,
+      allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     if (ret == RMW_RET_BAD_ALLOC) {

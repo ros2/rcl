@@ -245,7 +245,7 @@ rcl_publisher_get_default_options(void);
  *
  * \param[in] publisher handle to the publisher which will do the publishing
  * \param[in] ros_message type-erased pointer to the ROS message
- * \param[in] publihser allocation structure pointer, used for memory preallocation
+ * \param[in] allocation structure pointer, used for memory preallocation (may be NULL)
  * \return `RCL_RET_OK` if the message was published successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
@@ -285,6 +285,7 @@ rcl_publish(
  *
  * \param[in] publisher handle to the publisher which will do the publishing
  * \param[in] serialized_message  pointer to the already serialized message in raw form
+ * \param[in] allocation structure pointer, used for memory preallocation (may be NULL)
  * \return `RCL_RET_OK` if the message was published successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
@@ -294,7 +295,10 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publish_serialized_message(
-  const rcl_publisher_t * publisher, const rcl_serialized_message_t * serialized_message);
+  const rcl_publisher_t * publisher,
+  const rcl_serialized_message_t * serialized_message,
+  rmw_publisher_allocation_t * allocation
+);
 
 /// Get the topic name for the publisher.
 /**
