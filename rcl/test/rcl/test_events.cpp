@@ -22,7 +22,7 @@
 #include "rcl/subscription.h"
 #include "rcl/error_handling.h"
 
-#include "test_msgs/msg/primitives.h"
+#include "test_msgs/msg/strings.h"
 #include "rosidl_generator_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -70,7 +70,7 @@ public:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+    ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   }
 
   rcl_ret_t setup_publisher(
@@ -309,7 +309,7 @@ conditional_wait_for_msgs_and_events(
   bool * msg_persist_ready,
   bool * subscription_persist_ready,
   bool * publisher_persist_ready,
-  test_msgs__msg__Primitives * msg,
+  test_msgs__msg__Strings * msg,
   S * subscription_discrete_event,
   P * publisher_discrete_event)
 {
@@ -325,7 +325,7 @@ conditional_wait_for_msgs_and_events(
       context, period_ms, &msg_ready, &subscription_event_ready, &publisher_event_ready);
     // test that the message published to topic is as expected
     if (msg_ready) {
-      EXPECT_EQ(rcl_take(subscription, msg, nullptr), RCL_RET_OK);
+      EXPECT_EQ(rcl_take(subscription, msg, nullptr, nullptr), RCL_RET_OK);
     }
     if (subscription_event_ready && subscription_discrete_event) {
       EXPECT_EQ(rcl_take_event(subscription_event, subscription_discrete_event), RCL_RET_OK);
@@ -433,11 +433,11 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   // publish message to topic
   const char * test_string = "testing";
   {
-    test_msgs__msg__Primitives msg;
-    test_msgs__msg__Primitives__init(&msg);
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings__init(&msg);
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg);
-    test_msgs__msg__Primitives__fini(&msg);
+    ret = rcl_publish(&publisher, &msg, nullptr);
+    test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -453,10 +453,10 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
     const bool &) {
       return msg_persist_ready && subscription_persist_ready;
     };
-  test_msgs__msg__Primitives msg;
-  test_msgs__msg__Primitives__init(&msg);
+  test_msgs__msg__Strings msg;
+  test_msgs__msg__Strings__init(&msg);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    test_msgs__msg__Primitives__fini(&msg);
+    test_msgs__msg__Strings__fini(&msg);
   });
   rmw_liveliness_changed_status_t liveliness_status;
   bool msg_persist_ready, subscription_persist_ready, publisher_persist_ready;
@@ -514,11 +514,11 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
   // publish message to topic
   const char * test_string = "testing";
   {
-    test_msgs__msg__Primitives msg;
-    test_msgs__msg__Primitives__init(&msg);
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings__init(&msg);
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg);
-    test_msgs__msg__Primitives__fini(&msg);
+    ret = rcl_publish(&publisher, &msg, nullptr);
+    test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -528,10 +528,10 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
     const bool & publisher_persist_ready) {
       return msg_persist_ready && subscription_persist_ready && publisher_persist_ready;
     };
-  test_msgs__msg__Primitives msg;
-  test_msgs__msg__Primitives__init(&msg);
+  test_msgs__msg__Strings msg;
+  test_msgs__msg__Strings__init(&msg);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    test_msgs__msg__Primitives__fini(&msg);
+    test_msgs__msg__Strings__fini(&msg);
   });
   rmw_offered_deadline_missed_status_t offered_deadline_status;
   rmw_requested_deadline_missed_status_t requested_deadline_status;
@@ -588,11 +588,11 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
   // publish message to topic
   const char * test_string = "testing";
   {
-    test_msgs__msg__Primitives msg;
-    test_msgs__msg__Primitives__init(&msg);
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings__init(&msg);
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg);
-    test_msgs__msg__Primitives__fini(&msg);
+    ret = rcl_publish(&publisher, &msg, nullptr);
+    test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -604,12 +604,12 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
   // test that the message published to topic is as expected
   EXPECT_TRUE(msg_ready);
   {
-    test_msgs__msg__Primitives msg;
-    test_msgs__msg__Primitives__init(&msg);
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings__init(&msg);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      test_msgs__msg__Primitives__fini(&msg);
+      test_msgs__msg__Strings__fini(&msg);
     });
-    ret = rcl_take(&subscription, &msg, nullptr);
+    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
   }
