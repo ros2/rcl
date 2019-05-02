@@ -163,7 +163,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__BasicTypes msg;
     test_msgs__msg__BasicTypes__init(&msg);
     msg.int64_value = 42;
-    ret = rcl_publish(&publisher, &msg);
+    ret = rcl_publish(&publisher, &msg, nullptr);
     test_msgs__msg__BasicTypes__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
@@ -176,7 +176,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
       test_msgs__msg__BasicTypes__fini(&msg);
     });
-    ret = rcl_take(&subscription, &msg, nullptr);
+    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(42, msg.int64_value);
   }
@@ -214,7 +214,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg);
+    ret = rcl_publish(&publisher, &msg, nullptr);
     test_msgs__msg__Strings__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
@@ -227,7 +227,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
       test_msgs__msg__Strings__fini(&msg);
     });
-    ret = rcl_take(&subscription, &msg, nullptr);
+    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(std::string(test_string), std::string(msg.string_value.data, msg.string_value.size));
   }

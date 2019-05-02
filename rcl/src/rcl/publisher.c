@@ -53,7 +53,8 @@ rcl_publisher_init(
   const rcl_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
-  const rcl_publisher_options_t * options)
+  const rcl_publisher_options_t * options
+)
 {
   rcl_ret_t fail_ret = RCL_RET_ERROR;
 
@@ -74,6 +75,8 @@ rcl_publisher_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Initializing publisher for topic name '%s'", topic_name);
+
+
   // Expand the given topic name.
   rcutils_allocator_t rcutils_allocator = *allocator;  // implicit conversion to rcutils version
   rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
@@ -162,6 +165,7 @@ rcl_publisher_init(
     sizeof(rcl_publisher_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     publisher->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
+
   // Fill out implementation struct.
   // rmw handle (create rmw publisher)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
@@ -188,11 +192,13 @@ rcl_publisher_init(
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
   // context
   publisher->impl->context = node->context;
+
   goto cleanup;
 fail:
   if (publisher->impl) {
     allocator->deallocate(publisher->impl, allocator->state);
   }
+
   ret = fail_ret;
   // Fall through to cleanup
 cleanup:
@@ -245,13 +251,16 @@ rcl_publisher_get_default_options()
 }
 
 rcl_ret_t
-rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
+rcl_publish(
+  const rcl_publisher_t * publisher,
+  const void * ros_message,
+  rmw_publisher_allocation_t * allocation)
 {
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
-  if (rmw_publish(publisher->impl->rmw_handle, ros_message) != RMW_RET_OK) {
+  if (rmw_publish(publisher->impl->rmw_handle, ros_message, allocation) != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
@@ -260,13 +269,16 @@ rcl_publish(const rcl_publisher_t * publisher, const void * ros_message)
 
 rcl_ret_t
 rcl_publish_serialized_message(
-  const rcl_publisher_t * publisher, const rcl_serialized_message_t * serialized_message)
+  const rcl_publisher_t * publisher,
+  const rcl_serialized_message_t * serialized_message,
+  rmw_publisher_allocation_t * allocation)
 {
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(serialized_message, RCL_RET_INVALID_ARGUMENT);
-  rmw_ret_t ret = rmw_publish_serialized_message(publisher->impl->rmw_handle, serialized_message);
+  rmw_ret_t ret = rmw_publish_serialized_message(publisher->impl->rmw_handle, serialized_message,
+      allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     if (ret == RMW_RET_BAD_ALLOC) {
