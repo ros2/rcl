@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <algorithm>
 #include "rcl/security_directory.h"
 #include "rcutils/filesystem.h"
 
@@ -109,7 +110,8 @@ TEST_F(TestGetSecureRoot, successScenarios) {
       TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME, allocator);
   std::string putenv_input = ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=";
   putenv_input += base_lookup_dir_fqn;
-  memcpy(g_envstring, putenv_input.c_str(), sizeof(g_envstring) - 1);
+  memcpy(g_envstring, putenv_input.c_str(),
+    std::min(putenv_input.length(), sizeof(g_envstring) - 1));
   putenv_wrapper(g_envstring);
   /* --------------------------
    * Namespace  : Root

@@ -390,7 +390,7 @@ rcl_action_take_cancel_response(
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type, RCL_RET_INVALID_ARGUMENT); \
   rmw_message_info_t message_info; /* ignored */ \
   rcl_ret_t ret = rcl_take( \
-    &action_client->impl->Type ## _subscription, ros_ ## Type, &message_info); \
+    &action_client->impl->Type ## _subscription, ros_ ## Type, &message_info, NULL); \
   if (RCL_RET_OK != ret) { \
     if (RCL_RET_SUBSCRIPTION_TAKE_FAILED == ret) { \
       return RCL_RET_ACTION_CLIENT_TAKE_FAILED; \

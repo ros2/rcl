@@ -45,7 +45,8 @@ rcl_subscription_init(
   const rcl_node_t * node,
   const rosidl_message_type_support_t * type_support,
   const char * topic_name,
-  const rcl_subscription_options_t * options)
+  const rcl_subscription_options_t * options
+)
 {
   rcl_ret_t fail_ret = RCL_RET_ERROR;
 
@@ -231,7 +232,9 @@ rcl_ret_t
 rcl_take(
   const rcl_subscription_t * subscription,
   void * ros_message,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation
+)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking message");
   if (!rcl_subscription_is_valid(subscription)) {
@@ -245,7 +248,8 @@ rcl_take(
   // Call rmw_take_with_info.
   bool taken = false;
   rmw_ret_t ret =
-    rmw_take_with_info(subscription->impl->rmw_handle, ros_message, &taken, message_info_local);
+    rmw_take_with_info(subscription->impl->rmw_handle, ros_message, &taken,
+      message_info_local, allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     if (RMW_RET_BAD_ALLOC == ret) {
@@ -265,7 +269,9 @@ rcl_ret_t
 rcl_take_serialized_message(
   const rcl_subscription_t * subscription,
   rcl_serialized_message_t * serialized_message,
-  rmw_message_info_t * message_info)
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation
+)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking serialized message");
   if (!rcl_subscription_is_valid(subscription)) {
@@ -278,7 +284,7 @@ rcl_take_serialized_message(
   // Call rmw_take_with_info.
   bool taken = false;
   rmw_ret_t ret = rmw_take_serialized_message_with_info(
-    subscription->impl->rmw_handle, serialized_message, &taken, message_info_local);
+    subscription->impl->rmw_handle, serialized_message, &taken, message_info_local, allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     if (RMW_RET_BAD_ALLOC == ret) {

@@ -23,7 +23,7 @@
 
 #include "rcl/rcl.h"
 
-#include "test_msgs/srv/primitives.h"
+#include "test_msgs/srv/basic_types.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
@@ -127,8 +127,8 @@ int main(int argc, char ** argv)
     });
 
     const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
-      test_msgs, srv, Primitives);
-    const char * service_name = "primitives";
+      test_msgs, srv, BasicTypes);
+    const char * service_name = "basic_types";
 
     rcl_service_t service = rcl_get_zero_initialized_service();
     rcl_service_options_t service_options = rcl_service_get_default_options();
@@ -148,13 +148,13 @@ int main(int argc, char ** argv)
     });
 
     // Initialize a response.
-    test_msgs__srv__Primitives_Response service_response;
+    test_msgs__srv__BasicTypes_Response service_response;
     // TODO(dirk-thomas) zero initialization necessary until
     // https://github.com/ros2/ros2/issues/397 is implemented
-    memset(&service_response, 0, sizeof(test_msgs__srv__Primitives_Response));
-    test_msgs__srv__Primitives_Response__init(&service_response);
+    memset(&service_response, 0, sizeof(test_msgs__srv__BasicTypes_Response));
+    test_msgs__srv__BasicTypes_Response__init(&service_response);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      test_msgs__srv__Primitives_Response__fini(&service_response);
+      test_msgs__srv__BasicTypes_Response__fini(&service_response);
     });
 
     // Block until a client request comes in.
@@ -165,13 +165,13 @@ int main(int argc, char ** argv)
     }
 
     // Take the pending request.
-    test_msgs__srv__Primitives_Request service_request;
+    test_msgs__srv__BasicTypes_Request service_request;
     // TODO(dirk-thomas) zero initialization necessary until
     // https://github.com/ros2/ros2/issues/397 is implemented
-    memset(&service_request, 0, sizeof(test_msgs__srv__Primitives_Request));
-    test_msgs__srv__Primitives_Request__init(&service_request);
+    memset(&service_request, 0, sizeof(test_msgs__srv__BasicTypes_Request));
+    test_msgs__srv__BasicTypes_Request__init(&service_request);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-      test_msgs__srv__Primitives_Request__fini(&service_request);
+      test_msgs__srv__BasicTypes_Request__fini(&service_request);
     });
     rmw_request_id_t header;
     // TODO(jacquelinekay) May have to check for timeout error codes

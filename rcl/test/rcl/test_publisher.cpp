@@ -17,7 +17,8 @@
 #include "rcl/publisher.h"
 
 #include "rcl/rcl.h"
-#include "test_msgs/msg/primitives.h"
+#include "test_msgs/msg/basic_types.h"
+#include "test_msgs/msg/strings.h"
 #include "rosidl_generator_c/string_functions.h"
 
 #include "./failing_allocator_functions.hpp"
@@ -78,7 +79,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   const char * topic_name = "chatter";
   const char * expected_topic_name = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
@@ -89,11 +90,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), expected_topic_name), 0);
-  test_msgs__msg__Primitives msg;
-  test_msgs__msg__Primitives__init(&msg);
+  test_msgs__msg__BasicTypes msg;
+  test_msgs__msg__BasicTypes__init(&msg);
   msg.int64_value = 42;
-  ret = rcl_publish(&publisher, &msg);
-  test_msgs__msg__Primitives__fini(&msg);
+  ret = rcl_publish(&publisher, &msg, nullptr);
+  test_msgs__msg__BasicTypes__fini(&msg);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
@@ -103,7 +104,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   const char * topic_name = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
@@ -112,11 +113,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  test_msgs__msg__Primitives msg;
-  test_msgs__msg__Primitives__init(&msg);
+  test_msgs__msg__Strings msg;
+  test_msgs__msg__Strings__init(&msg);
   ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, "testing"));
-  ret = rcl_publish(&publisher, &msg);
-  test_msgs__msg__Primitives__fini(&msg);
+  ret = rcl_publish(&publisher, &msg, nullptr);
+  test_msgs__msg__Strings__fini(&msg);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
@@ -130,7 +131,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts_int =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   const char * topic_name = "basename";
   const char * expected_topic_name = "/basename";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
@@ -144,7 +145,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
 
   rcl_publisher_t publisher_in_namespace = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts_string = ROSIDL_GET_MSG_TYPE_SUPPORT(
-    test_msgs, msg, Primitives);
+    test_msgs, msg, Strings);
   topic_name = "namespace/basename";
   expected_topic_name = "/namespace/basename";
   ret = rcl_publisher_init(
@@ -156,17 +157,17 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
   });
   EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher_in_namespace), expected_topic_name), 0);
 
-  test_msgs__msg__Primitives msg_int;
-  test_msgs__msg__Primitives__init(&msg_int);
+  test_msgs__msg__BasicTypes msg_int;
+  test_msgs__msg__BasicTypes__init(&msg_int);
   msg_int.int64_value = 42;
-  ret = rcl_publish(&publisher, &msg_int);
+  ret = rcl_publish(&publisher, &msg_int, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  test_msgs__msg__Primitives__fini(&msg_int);
+  test_msgs__msg__BasicTypes__fini(&msg_int);
 
-  test_msgs__msg__Primitives msg_string;
-  test_msgs__msg__Primitives__init(&msg_string);
+  test_msgs__msg__Strings msg_string;
+  test_msgs__msg__Strings__init(&msg_string);
   ASSERT_TRUE(rosidl_generator_c__String__assign(&msg_string.string_value, "testing"));
-  ret = rcl_publish(&publisher_in_namespace, &msg_string);
+  ret = rcl_publish(&publisher_in_namespace, &msg_string, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
@@ -177,7 +178,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   // Setup valid inputs.
   rcl_publisher_t publisher;
   const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   const char * topic_name = "chatter";
   rcl_publisher_options_t default_publisher_options = rcl_publisher_get_default_options();
 

@@ -23,8 +23,8 @@
 
 #include "rcutils/logging_macros.h"
 
-#include "test_msgs/msg/primitives.h"
-#include "test_msgs/srv/primitives.h"
+#include "test_msgs/msg/basic_types.h"
+#include "test_msgs/srv/basic_types.h"
 
 #include "rcl/error_handling.h"
 
@@ -152,7 +152,7 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
 
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
-  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -202,7 +202,7 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION),
   pub_ops.qos.avoid_ros_namespace_conventions = false;
   pub_ops.allocator = rcl_get_default_allocator();
 
-  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();

@@ -35,8 +35,8 @@
 #include "rcutils/logging_macros.h"
 #include "rcutils/logging.h"
 
-#include "test_msgs/msg/primitives.h"
-#include "test_msgs/srv/primitives.h"
+#include "test_msgs/msg/basic_types.h"
+#include "test_msgs/srv/basic_types.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
@@ -899,7 +899,7 @@ public:
 TEST_F(NodeGraphMultiNodeFixture, test_node_info_subscriptions)
 {
   rcl_ret_t ret;
-  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   // Create two subscribers.
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
@@ -935,7 +935,7 @@ TEST_F(NodeGraphMultiNodeFixture, test_node_info_publishers)
   // Now create a publisher on "topic_name" and check that it is seen.
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
-  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   ret = rcl_publisher_init(&pub, this->node_ptr, ts, this->topic_name.c_str(), &pub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -955,7 +955,7 @@ TEST_F(NodeGraphMultiNodeFixture, test_node_info_services)
   const char * service_name = "test_service";
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
-  auto ts1 = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, Primitives);
+  auto ts1 = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
   ret = rcl_service_init(&service, this->node_ptr, ts1, service_name, &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   VerifySubsystemCount(expected_node_state{1, 0, 1}, expected_node_state{1, 0, 0});
@@ -991,7 +991,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   // Now create a publisher on "topic_name" and check that it is seen.
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
-  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives);
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -1068,7 +1068,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
       rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
       rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
       rcl_ret_t ret = rcl_publisher_init(
-        &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives),
+        &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
         "/chatter_test_graph_guard_condition_topics", &pub_ops);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       // sleep
@@ -1077,7 +1077,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
       rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
       rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
       ret = rcl_subscription_init(
-        &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Primitives),
+        &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
         "/chatter_test_graph_guard_condition_topics", &sub_ops);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       // sleep
@@ -1127,7 +1127,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   rcl_ret_t ret;
   // First create a client which will be used to call the function.
   rcl_client_t client = rcl_get_zero_initialized_client();
-  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, Primitives);
+  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
   const char * service_name = "/service_test_rcl_service_server_is_available";
   rcl_client_options_t client_options = rcl_client_get_default_options();
   ret = rcl_client_init(&client, this->node_ptr, ts, service_name, &client_options);
