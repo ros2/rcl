@@ -51,6 +51,7 @@ extern "C"
  * \param[in] node_namespace validated, absolute namespace (starting with "/")
  * \param[in] allocator the allocator to use for allocation
  * \returns machine specific (absolute) node secure root path or NULL on failure
+ *          returned pointer must be deallocated by the caller of this function
  */
 RCL_PUBLIC
 char * rcl_get_secure_root(
