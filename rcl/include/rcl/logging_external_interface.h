@@ -31,7 +31,7 @@
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_logging_external_initialize(const char * config_file);
+rcl_logging_external_initialize(const char * config_file, rcutils_allocator_t allocator);
 
 /// Free the resources allocated for the external logging system.
 /**
