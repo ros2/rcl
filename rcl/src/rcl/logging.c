@@ -93,7 +93,7 @@ rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t
     }
   }
   if (g_rcl_logging_ext_lib_enabled) {
-    status = rcl_logging_external_initialize(config_file);
+    status = rcl_logging_external_initialize(config_file, g_logging_allocator);
     if (RCL_RET_OK == status) {
       rcl_logging_external_set_logger_level(NULL, default_level);
       g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =

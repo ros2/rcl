@@ -25,13 +25,21 @@
  *   logging library should use to configure itself.
  *   If no config file is provided this will be set to an empty string.
  *   Must be a NULL terminated c string.
+ * \param[in] allocator The allocator to use for memory allocation.  This is
+ *   an rcutils_allocator_t rather than an rcl_allocator_t to ensure that the
+ *   rcl_logging_* packages don't have a circular dependency back to rcl.
+ * \todo TODO(clalancette) This API is marked RCL_PUBLIC, but is not built or
+ *   exported from librcl.  Instead, these headers should be split into a
+ *   separate package which is then depended on by both rcl and the
+ *   rcl_logging_* implementations.  The duplicated headers from the
+ *   implementations could then be removed.
  * \return RCL_RET_OK if initialized successfully, or
  * \return RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_logging_external_initialize(const char * config_file);
+rcl_logging_external_initialize(const char * config_file, rcutils_allocator_t allocator);
 
 /// Free the resources allocated for the external logging system.
 /**
