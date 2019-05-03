@@ -99,7 +99,7 @@ public:
     this->wait_set_ptr = new rcl_wait_set_t;
     *this->wait_set_ptr = rcl_get_zero_initialized_wait_set();
     ret = rcl_wait_set_init(
-      this->wait_set_ptr, 0, 1, 0, 0, 0, this->context_ptr, rcl_get_default_allocator());
+      this->wait_set_ptr, 0, 1, 0, 0, 0, 0, this->context_ptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 

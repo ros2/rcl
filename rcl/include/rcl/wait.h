@@ -29,6 +29,7 @@ extern "C"
 #include "rcl/service.h"
 #include "rcl/subscription.h"
 #include "rcl/timer.h"
+#include "rcl/event.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
@@ -52,6 +53,9 @@ typedef struct rcl_wait_set_t
   /// Storage for service pointers.
   const rcl_service_t ** services;
   size_t size_of_services;
+  /// Storage for event pointers.
+  const rcl_event_t ** events;
+  size_t size_of_events;
   /// Implementation specific storage.
   struct rcl_wait_set_impl_t * impl;
 } rcl_wait_set_t;
@@ -124,6 +128,7 @@ rcl_wait_set_init(
   size_t number_of_timers,
   size_t number_of_clients,
   size_t number_of_services,
+  size_t number_of_events,
   rcl_context_t * context,
   rcl_allocator_t allocator);
 
@@ -289,7 +294,8 @@ rcl_wait_set_resize(
   size_t guard_conditions_size,
   size_t timers_size,
   size_t clients_size,
-  size_t services_size);
+  size_t services_size,
+  size_t events_size);
 
 /// Store a pointer to the guard condition in the next empty spot in the set.
 /**
@@ -341,6 +347,19 @@ rcl_ret_t
 rcl_wait_set_add_service(
   rcl_wait_set_t * wait_set,
   const rcl_service_t * service,
+  size_t * index);
+
+/// Store a pointer to the event in the next empty spot in the set.
+/**
+ * This function behaves exactly the same as for subscriptions.
+ * \see rcl_wait_set_add_subscription
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_wait_set_add_event(
+  rcl_wait_set_t * wait_set,
+  const rcl_event_t * event,
   size_t * index);
 
 /// Block until the wait set is ready or until the timeout has been exceeded.

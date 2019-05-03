@@ -361,6 +361,31 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
 
+/// Manually assert that this node is alive (for RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE)
+/**
+ * If the rmw Liveliness policy is set to RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE, the creator of
+ * this node may manually call `assert_liveliness` at some point in time to signal to the rest
+ * of the system that this Node is still alive.
+ * This function must be called at least as often as the qos_profile's liveliness_lease_duration
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node handle to the node that needs liveliness to be asserted
+ * \return `RCL_RET_OK` if the liveliness assertion was completed successfully, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_node_assert_liveliness(const rcl_node_t * node);
+
 /// Return the rmw node handle.
 /**
  * The handle returned is a pointer to the internally held rmw handle.

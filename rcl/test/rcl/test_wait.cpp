@@ -69,10 +69,10 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   // Initialize a wait set with a subscription and then resize it to zero.
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_resize(&wait_set, 0u, 0u, 0u, 0u, 0u);
+  ret = rcl_wait_set_resize(&wait_set, 0u, 0u, 0u, 0u, 0u, 0u);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   EXPECT_EQ(wait_set.size_of_subscriptions, 0ull);
@@ -89,7 +89,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   int64_t timeout = RCL_MS_TO_NS(10);  // nanoseconds
@@ -109,7 +109,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Add a dummy guard condition to avoid an error
@@ -156,7 +156,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Add a dummy guard condition to avoid an error
@@ -189,7 +189,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout) {
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_triggered_guard_condition) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 0, 1, 0, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
@@ -223,7 +223,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_triggered
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 0, 1, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Add a dummy guard condition to avoid an error
@@ -276,7 +276,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), excess_capacity) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 42, 42, 42, 42, 42, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 42, 42, 42, 42, 42, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   int64_t timeout = 1;
@@ -361,7 +361,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
     // setup the wait set
     test_set.wait_set = rcl_get_zero_initialized_wait_set();
     ret = rcl_wait_set_init(
-      &test_set.wait_set, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+      &test_set.wait_set, 0, 1, 0, 0, 0, 0, context_ptr, rcl_get_default_allocator());
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_wait_set_add_guard_condition(&test_set.wait_set, &test_set.guard_condition, NULL);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -419,7 +419,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), multi_wait_set_threade
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), guard_condition) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 0, 1, 0, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_guard_condition_t guard_cond = rcl_get_zero_initialized_guard_condition();
   ret = rcl_guard_condition_init(
@@ -467,7 +467,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), add_with_index) {
   const size_t kNumEntities = 3u;
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret = rcl_wait_set_init(
-    &wait_set, 0, kNumEntities, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+    &wait_set, 0, kNumEntities, 0, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Initialize to invalid value

@@ -84,7 +84,7 @@ TEST_F(TestTimerFixture, test_two_timers) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  ret = rcl_wait_set_init(&wait_set, 0, 0, 2, 0, 0, context_ptr, rcl_get_default_allocator());
+  ret = rcl_wait_set_init(&wait_set, 0, 0, 2, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
@@ -140,7 +140,7 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  ret = rcl_wait_set_init(&wait_set, 0, 0, 2, 0, 0, context_ptr, rcl_get_default_allocator());
+  ret = rcl_wait_set_init(&wait_set, 0, 0, 2, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
@@ -191,7 +191,7 @@ TEST_F(TestTimerFixture, test_timer_not_ready) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, context_ptr, rcl_get_default_allocator());
+  ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
@@ -239,7 +239,7 @@ TEST_F(TestTimerFixture, test_canceled_timer) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, context_ptr, rcl_get_default_allocator());
+  ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
@@ -459,7 +459,11 @@ TEST_F(TestTimerFixture, test_ros_time_wakes_wait) {
 
   std::thread wait_thr([&](void) {
       rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-      ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, context_ptr, rcl_get_default_allocator());
+      ret = rcl_wait_set_init(
+        &wait_set,
+        0, 0, 1, 0, 0, 0,
+        context_ptr,
+        rcl_get_default_allocator());
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
       ASSERT_EQ(RCL_RET_OK, rcl_wait_set_add_timer(&wait_set, &timer, NULL)) <<
