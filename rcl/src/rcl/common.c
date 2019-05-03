@@ -63,6 +63,8 @@ rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret)
       return RCL_RET_INVALID_ARGUMENT;
     case RMW_RET_BAD_ALLOC:
       return RCL_RET_BAD_ALLOC;
+    case RMW_RET_UNSUPPORTED:
+      return RCL_RET_UNSUPPORTED;
     default:
       return RCL_RET_ERROR;
   }
