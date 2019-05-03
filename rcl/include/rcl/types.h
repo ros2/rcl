@@ -28,6 +28,8 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_BAD_ALLOC RMW_RET_BAD_ALLOC
 /// Invalid argument return code.
 #define RCL_RET_INVALID_ARGUMENT RMW_RET_INVALID_ARGUMENT
+/// Unsupported return code.
+#define RCL_RET_UNSUPPORTED RMW_RET_UNSUPPORTED
 
 // rcl specific ret codes start at 100
 /// rcl_init() already called return code.
