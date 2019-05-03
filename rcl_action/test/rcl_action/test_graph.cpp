@@ -391,7 +391,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_names_and_types) {
   ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], client_action_name);
   ASSERT_EQ(nat.types[0].size, 1u);
-  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/action/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -427,9 +427,9 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_names_and_types) {
   EXPECT_STREQ(nat.names.data[0], client_action_name);
   EXPECT_STREQ(nat.names.data[1], server_action_name);
   ASSERT_EQ(nat.types[0].size, 1u);
-  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/action/Fibonacci");
   ASSERT_EQ(nat.types[1].size, 1u);
-  EXPECT_STREQ(nat.types[1].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[1].data[0], "test_msgs/action/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -492,7 +492,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_server_names_and_types_b
   ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], this->action_name);
   ASSERT_EQ(nat.types[0].size, 1u);
-  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/action/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -556,7 +556,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_client_names_and_types_b
   ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], this->action_name);
   ASSERT_EQ(nat.types[0].size, 1u);
-  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/action/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
