@@ -24,13 +24,13 @@
 macro(get_default_rcl_logging_implementation var)
 
   # if logging implementation already specified or RCL_LOGGING_IMPLEMENTATION environment variable
-  # is set then use that, otherwise default to using rcl_logging_noop
+  # is set then use that, otherwise default to using rcl_logging_log4cxx
   if(NOT "${RCL_LOGGING_IMPLEMENTATION}" STREQUAL "")
     set(_logging_implementation "${RCL_LOGGING_IMPLEMENTATION}")
   elseif(NOT "$ENV{RCL_LOGGING_IMPLEMENTATION}" STREQUAL "")
     set(_logging_implementation "$ENV{RCL_LOGGING_IMPLEMENTATION}")
   else()
-    set(_logging_implementation rcl_logging_noop)
+    set(_logging_implementation rcl_logging_log4cxx)
   endif()
 
   # persist implementation decision in cache
