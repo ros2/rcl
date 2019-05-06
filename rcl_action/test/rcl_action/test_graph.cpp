@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <string>
 #include <thread>
 
 #include "rcl_action/action_client.h"
@@ -34,6 +35,9 @@
 #else
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
+
+bool is_opensplice =
+  std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0;
 
 class CLASSNAME (TestActionGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
@@ -132,10 +136,13 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Non-existent node
-  ret = rcl_action_get_client_names_and_types_by_node(
-    &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
+  // Note, Opensplice successfully reports graph information about finalized nodes
+  if (!is_opensplice) {
+    ret = rcl_action_get_client_names_and_types_by_node(
+      &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
   // Invalid names and types
   ret = rcl_action_get_client_names_and_types_by_node(
     &this->node, &this->allocator, this->test_graph_node_name, "", nullptr);
@@ -185,10 +192,13 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Non-existent node
-  ret = rcl_action_get_server_names_and_types_by_node(
-    &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
+  // Note, Opensplice successfully reports graph information about finalized nodes
+  if (!is_opensplice) {
+    ret = rcl_action_get_server_names_and_types_by_node(
+      &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
   // Invalid names and types
   ret = rcl_action_get_server_names_and_types_by_node(
     &this->node, &this->allocator, this->test_graph_node_name, "", nullptr);
