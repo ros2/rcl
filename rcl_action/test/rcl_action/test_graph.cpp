@@ -36,7 +36,7 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-bool is_opensplice =
+const bool is_opensplice =
   std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0;
 
 class CLASSNAME (TestActionGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
