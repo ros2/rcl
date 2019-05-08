@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <string>
 #include <thread>
 
 #include "rcl_action/action_client.h"
@@ -34,6 +35,9 @@
 #else
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
+
+const bool is_opensplice =
+  std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0;
 
 class CLASSNAME (TestActionGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
@@ -132,10 +136,13 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Non-existent node
-  ret = rcl_action_get_client_names_and_types_by_node(
-    &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
+  // Note, Opensplice successfully reports graph information about finalized nodes
+  if (!is_opensplice) {
+    ret = rcl_action_get_client_names_and_types_by_node(
+      &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
   // Invalid names and types
   ret = rcl_action_get_client_names_and_types_by_node(
     &this->node, &this->allocator, this->test_graph_node_name, "", nullptr);
@@ -185,10 +192,13 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Non-existent node
-  ret = rcl_action_get_server_names_and_types_by_node(
-    &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
+  // Note, Opensplice successfully reports graph information about finalized nodes
+  if (!is_opensplice) {
+    ret = rcl_action_get_server_names_and_types_by_node(
+      &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
   // Invalid names and types
   ret = rcl_action_get_server_names_and_types_by_node(
     &this->node, &this->allocator, this->test_graph_node_name, "", nullptr);
@@ -391,7 +401,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_names_and_types) {
   ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], client_action_name);
   ASSERT_EQ(nat.types[0].size, 1u);
-  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/action/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -427,9 +437,9 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_names_and_types) {
   EXPECT_STREQ(nat.names.data[0], client_action_name);
   EXPECT_STREQ(nat.names.data[1], server_action_name);
   ASSERT_EQ(nat.types[0].size, 1u);
-  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/action/Fibonacci");
   ASSERT_EQ(nat.types[1].size, 1u);
-  EXPECT_STREQ(nat.types[1].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[1].data[0], "test_msgs/action/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -492,7 +502,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_server_names_and_types_b
   ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], this->action_name);
   ASSERT_EQ(nat.types[0].size, 1u);
-  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/action/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -556,7 +566,7 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_client_names_and_types_b
   ASSERT_EQ(nat.names.size, 1u);
   EXPECT_STREQ(nat.names.data[0], this->action_name);
   ASSERT_EQ(nat.types[0].size, 1u);
-  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/Fibonacci");
+  EXPECT_STREQ(nat.types[0].data[0], "test_msgs/action/Fibonacci");
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
