@@ -2,6 +2,21 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.2 (2019-05-08)
+------------------
+* Changes the default 3rd party logger from rcl_logging_noop to rcl_logging_log4cxx (`#425 <https://github.com/ros2/rcl/issues/425>`_)
+* fix leak in node.c (`#424 <https://github.com/ros2/rcl/issues/424>`_)
+* Add new RCL_RET_UNSUPPORTED (`#432 <https://github.com/ros2/rcl/issues/432>`_)
+* New interfaces and their implementations for QoS features (`#408 <https://github.com/ros2/rcl/issues/408>`_)
+* Add an allocator to the external logging initialization. (`#430 <https://github.com/ros2/rcl/issues/430>`_)
+* fix buffer overflow in test_security_dir (`#423 <https://github.com/ros2/rcl/issues/423>`_)
+* Rmw preallocate (`#428 <https://github.com/ros2/rcl/issues/428>`_)
+* Use new test interface definitions (`#427 <https://github.com/ros2/rcl/pull/427>`_)
+* Migrate launch tests to new launch_testing features & API (`#405 <https://github.com/ros2/rcl/issues/405>`_)
+* Fix argument passed to logging macros (`#421 <https://github.com/ros2/rcl/issues/421>`_)
+* Make sure to initialize the bool field. (`#426 <https://github.com/ros2/rcl/issues/426>`_)
+* Contributors: Abby Xu, Chris Lalancette, Emerson Knapp, Jacob Perron, M. M, Michael Carroll, Michel Hidalgo, Nick Burek, Thomas Moulard
+
 0.7.1 (2019-04-29)
 ------------------
 * Replaced reinterperet_cast with static_cast. (`#410 <https://github.com/ros2/rcl/issues/410>`_)

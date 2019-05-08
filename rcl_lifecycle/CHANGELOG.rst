@@ -2,6 +2,11 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.2 (2019-05-08)
+------------------
+* Rmw preallocate (`#428 <https://github.com/ros2/rcl/issues/428>`_)
+* Contributors: Michael Carroll
+
 0.7.1 (2019-04-29)
 ------------------
 
@@ -26,7 +31,7 @@ Changelog for package rcl_lifecycle
 * Contributors: William Woodall
 
 0.6.0 (2018-11-16)
------------
+------------------
 * Updated use new error handling API from rcutils (`#314 <https://github.com/ros2/rcl/issues/314>`_)
 * Deleted TRANSITION_SHUTDOWN (`#313 <https://github.com/ros2/rcl/issues/313>`_)
 * Refactored lifecycle (`#298 <https://github.com/ros2/rcl/issues/298>`_)

@@ -2,6 +2,14 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.2 (2019-05-08)
+------------------
+* Update graph test for change to rmw names and types struct (`#407 <https://github.com/ros2/rcl/issues/407>`_)
+* New interfaces and their implementations for QoS features (`#408 <https://github.com/ros2/rcl/issues/408>`_)
+* Add return code to CancelGoal service response (`#422 <https://github.com/ros2/rcl/issues/422>`_)
+* Rmw preallocate (`#428 <https://github.com/ros2/rcl/issues/428>`_)
+* Contributors: Jacob Perron, M. M, Michael Carroll
+
 0.7.1 (2019-04-29)
 ------------------
 * Renamed action state transitions (`#409 <https://github.com/ros2/rcl/issues/409>`_)
