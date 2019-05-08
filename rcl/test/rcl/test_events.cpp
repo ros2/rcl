@@ -50,9 +50,7 @@ public:
   {
     is_opensplice = (std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0);
     is_fastrtps = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
-
-    // TODO(mm318): Revisit once FastRTPS supports these QoS policies
-    is_unsupported = is_fastrtps;
+    is_unsupported = false;
 
     rcl_ret_t ret;
     {
@@ -85,7 +83,8 @@ public:
     // init publisher
     publisher = rcl_get_zero_initialized_publisher();
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-    publisher_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+    publisher_options.qos.reliability = is_fastrtps ?
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE : RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
     publisher_options.qos.deadline = deadline;
     publisher_options.qos.lifespan = lifespan;
     publisher_options.qos.liveliness = liveliness_policy;
@@ -107,7 +106,8 @@ public:
     // init publisher
     subscription = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-    subscription_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+    subscription_options.qos.reliability = is_fastrtps ?
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE : RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
     subscription_options.qos.deadline = deadline;
     subscription_options.qos.lifespan = lifespan;
     subscription_options.qos.liveliness = liveliness_policy;
