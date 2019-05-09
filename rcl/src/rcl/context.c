@@ -157,6 +157,7 @@ __cleanup_context(rcl_context_t * context)
       }
       allocator.deallocate(context->impl->argv, allocator.state);
     }
+    allocator.deallocate(context->impl, allocator.state);
   }  // if (NULL != context->impl)
 
   // zero-initialize the context
