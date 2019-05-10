@@ -50,7 +50,6 @@ public:
   {
     is_opensplice = (std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0);
     is_fastrtps = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
-    is_unsupported = false;
 
     rcl_ret_t ret;
     {
@@ -130,7 +129,7 @@ public:
     rmw_time_t lifespan {0, 0};
     rmw_time_t deadline {DEADLINE_PERIOD_IN_S.count(), 0};
     rmw_time_t lease_duration {LIVELINESS_LEASE_DURATION_IN_S.count(), 0};
-    rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+    rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
 
     // init publisher
     ret = setup_publisher(deadline, lifespan, lease_duration, liveliness_policy);
@@ -210,7 +209,6 @@ protected:
   rcl_event_t subscription_event;
   bool is_fastrtps;
   bool is_opensplice;
-  bool is_unsupported;
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
 };
@@ -340,87 +338,11 @@ conditional_wait_for_msgs_and_events(
   return RCL_RET_TIMEOUT;
 }
 
-TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_lifespan) {
-  if (is_unsupported) {
-    rmw_time_t deadline {0, 0};
-    rmw_time_t lifespan {1, 0};
-    rmw_time_t lease_duration {1, 0};
-    rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_subscriber(deadline, lifespan, lease_duration,
-      liveliness_policy)) << "Initialized subscriber lifespan when unsupported";
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_publisher(deadline, lifespan, lease_duration,
-      liveliness_policy)) << "Initialized publisher lifespan when unsupported";
-
-    lifespan = {0, 1};
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_subscriber(deadline, lifespan, lease_duration,
-      liveliness_policy)) << "Initialized subscriber lifespan when unsupported";
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_publisher(deadline, lifespan, lease_duration,
-      liveliness_policy)) << "Initialized publisher lifespan when unsupported";
-  }
-}
-
-TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_liveliness) {
-  if (is_unsupported) {
-    rmw_time_t deadline {0, 0};
-    rmw_time_t lifespan {0, 0};
-    rmw_time_t lease_duration {0, 0};
-    rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_subscriber(deadline, lifespan, lease_duration,
-      liveliness_policy)) <<
-      "Initialized subscriber RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE when unsupported";
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_publisher(deadline, lifespan, lease_duration,
-      liveliness_policy)) <<
-      "Initialized publisher RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE when unsupported";
-
-    liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_subscriber(deadline, lifespan, lease_duration,
-      liveliness_policy)) <<
-      "Initialized subscriber RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC when unsupported";
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_publisher(deadline, lifespan, lease_duration,
-      liveliness_policy)) <<
-      "Initialized publisher RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC when unsupported";
-  }
-}
-
-TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_unsupported_deadline) {
-  if (is_unsupported) {
-    rmw_time_t deadline {1, 0};
-    rmw_time_t lifespan {0, 0};
-    rmw_time_t lease_duration {0, 0};
-    rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_subscriber(deadline, lifespan, lease_duration,
-      liveliness_policy)) << "Initialized subscriber deadline when unsupported";
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_publisher(deadline, lifespan, lease_duration,
-      liveliness_policy)) << "Initialized publisher deadline when unsupported";
-
-    deadline = {0, 1};
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_subscriber(deadline, lifespan, lease_duration,
-      liveliness_policy)) << "Initialized subscriber deadline when unsupported";
-    EXPECT_EQ(RCL_RET_ERROR,
-      setup_publisher(deadline, lifespan, lease_duration,
-      liveliness_policy)) << "Initialized publisher deadline when unsupported";
-  }
-}
-
 /*
  * Basic test of publisher and subscriber deadline events, with first message sent before deadline
  */
 TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_missed)
 {
-  if (is_unsupported) {
-    return;
-  }
   setup_publisher_and_subscriber(RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
@@ -485,9 +407,6 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
  */
 TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_missed)
 {
-  if (is_unsupported) {
-    return;
-  }
   setup_publisher_and_subscriber(RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
@@ -559,9 +478,6 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
  */
 TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_kill_pub)
 {
-  if (is_unsupported) {
-    return;
-  }
   setup_publisher_and_subscriber(RCL_PUBLISHER_LIVELINESS_LOST,
     RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
   rcl_ret_t ret;
@@ -577,22 +493,18 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  // kill the publisher
-  ret = rcl_event_fini(&publisher_event);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  ret = rcl_publisher_fini(&publisher, this->node_ptr);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  std::this_thread::sleep_for(2 * LIVELINESS_LEASE_DURATION_IN_S);
 
-  WaitConditionPredicate msg_and_subevent_ready = [](
+  WaitConditionPredicate all_ready = [](
     const bool & msg_persist_ready,
     const bool & subscription_persist_ready,
-    const bool &) {
-      return msg_persist_ready && subscription_persist_ready;
+    const bool & publisher_persist_ready) {
+      return msg_persist_ready && subscription_persist_ready && publisher_persist_ready;
     };
   bool msg_persist_ready, subscription_persist_ready, publisher_persist_ready;
   rcl_ret_t wait_res = conditional_wait_for_msgs_and_events(
-    context_ptr, MAX_WAIT_PER_TESTCASE, msg_and_subevent_ready,
-    &subscription, &subscription_event, nullptr,
+    context_ptr, MAX_WAIT_PER_TESTCASE, all_ready,
+    &subscription, &subscription_event, &publisher_event,
     &msg_persist_ready, &subscription_persist_ready, &publisher_persist_ready);
   EXPECT_EQ(wait_res, RCL_RET_OK);
 
@@ -624,16 +536,20 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
     } else {
       EXPECT_EQ(liveliness_status.alive_count_change, 0);
     }
-    EXPECT_EQ(liveliness_status.not_alive_count, 0);
-    EXPECT_EQ(liveliness_status.not_alive_count_change, 0);
+    EXPECT_EQ(liveliness_status.not_alive_count, 1);
+    EXPECT_EQ(liveliness_status.not_alive_count_change, 1);
   }
 
   // test that the killed publisher/datawriter has no active events
-  EXPECT_FALSE(publisher_persist_ready);
+  EXPECT_TRUE(publisher_persist_ready);
+  if (publisher_persist_ready) {
+    rmw_liveliness_lost_status_t liveliness_status;
+    ret = rcl_take_event(&publisher_event, &liveliness_status);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(liveliness_status.total_count, 1);
+    EXPECT_EQ(liveliness_status.total_count_change, 1);
+  }
 
   // clean up
-  ret = rcl_event_fini(&subscription_event);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  ret = rcl_subscription_fini(&subscription, this->node_ptr);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  tear_down_publisher_subscriber();
 }
