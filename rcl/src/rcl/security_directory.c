@@ -219,13 +219,15 @@ char * rcl_get_secure_root(
   char * lookup_strategy = NULL;
   char * node_secure_root = NULL;
   if (ros_secure_node_override) {
-    node_secure_root = ros_secure_root_env;
+    node_secure_root = (char *)allocator->allocate(ros_secure_root_size + 1, allocator->state);
+    memcpy(node_secure_root, ros_secure_root_env, ros_secure_root_size + 1);
     lookup_strategy = g_security_lookup_type_strings[ROS_SECURITY_LOOKUP_NODE_OVERRIDE];
 
   } else {
     // Check which lookup method to use and invoke the relevant function.
     const char * ros_security_lookup_type = NULL;
     if (rcutils_get_env(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME, &ros_security_lookup_type)) {
+      allocator->deallocate(ros_secure_root_env, allocator->state);
       return NULL;
     }
     if (0 == strcmp(ros_security_lookup_type,
@@ -240,19 +242,23 @@ char * rcl_get_secure_root(
       lookup_strategy = g_security_lookup_type_strings[ROS_SECURITY_LOOKUP_MATCH_EXACT];
     }
   }
-  // Check node_secure_root is not NULL before checking directory
-  if (NULL == node_secure_root) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "SECURITY ERROR: unable to find a folder matching the node name in %s%s."
-      "Lookup strategy: %s",
-      ros_secure_root_env, node_namespace, lookup_strategy);
-  } else if (!rcutils_is_directory(node_secure_root)) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "SECURITY ERROR: directory %s does not exist. Lookup strategy: %s",
-      node_secure_root, lookup_strategy);
+
+  if (NULL == node_secure_root || !rcutils_is_directory(node_secure_root)) {
+    // Check node_secure_root is not NULL before checking directory
+    if (NULL == node_secure_root) {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "SECURITY ERROR: unable to find a folder matching the node name in %s%s."
+        "Lookup strategy: %s",
+        ros_secure_root_env, node_namespace, lookup_strategy);
+    } else {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "SECURITY ERROR: directory %s does not exist. Lookup strategy: %s",
+        node_secure_root, lookup_strategy);
+    }
+    allocator->deallocate(ros_secure_root_env, allocator->state);
     allocator->deallocate(node_secure_root, allocator->state);
-  } else {
-    return node_secure_root;
+    return NULL;
   }
-  return NULL;
+  allocator->deallocate(ros_secure_root_env, allocator->state);
+  return node_secure_root;
 }
