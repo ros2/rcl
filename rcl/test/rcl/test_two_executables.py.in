@@ -46,4 +46,8 @@ class TestTwoExecutablesAfterShutdown(unittest.TestCase):
 
     def @TEST_NAME@(self, executable_under_test):
         """Test that the executable under test finished cleanly."""
-        launch_testing.asserts.assertExitCodes(self.proc_info, process=executable_under_test)
+        launch_testing.asserts.assertExitCodes(
+            self.proc_info,
+            [launch_testing.asserts.EXIT_OK],
+            executable_under_test
+        )
