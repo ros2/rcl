@@ -50,6 +50,7 @@ public:
   {
     is_opensplice = (std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0);
     is_fastrtps = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
+    is_manual_liveliness_unsupported = is_fastrtps;
 
     rcl_ret_t ret;
     {
@@ -82,8 +83,7 @@ public:
     // init publisher
     publisher = rcl_get_zero_initialized_publisher();
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-    publisher_options.qos.reliability = is_fastrtps ?
-      RMW_QOS_POLICY_RELIABILITY_RELIABLE : RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+    publisher_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
     publisher_options.qos.deadline = deadline;
     publisher_options.qos.lifespan = lifespan;
     publisher_options.qos.liveliness = liveliness_policy;
@@ -105,8 +105,7 @@ public:
     // init publisher
     subscription = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-    subscription_options.qos.reliability = is_fastrtps ?
-      RMW_QOS_POLICY_RELIABILITY_RELIABLE : RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+    subscription_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
     subscription_options.qos.deadline = deadline;
     subscription_options.qos.lifespan = lifespan;
     subscription_options.qos.liveliness = liveliness_policy;
@@ -129,7 +128,8 @@ public:
     rmw_time_t lifespan {0, 0};
     rmw_time_t deadline {DEADLINE_PERIOD_IN_S.count(), 0};
     rmw_time_t lease_duration {LIVELINESS_LEASE_DURATION_IN_S.count(), 0};
-    rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+    rmw_qos_liveliness_policy_t liveliness_policy = is_manual_liveliness_unsupported ?
+      RMW_QOS_POLICY_LIVELINESS_AUTOMATIC : RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
 
     // init publisher
     ret = setup_publisher(deadline, lifespan, lease_duration, liveliness_policy);
@@ -209,6 +209,7 @@ protected:
   rcl_event_t subscription_event;
   bool is_fastrtps;
   bool is_opensplice;
+  bool is_manual_liveliness_unsupported;
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
 };
@@ -336,6 +337,33 @@ conditional_wait_for_msgs_and_events(
     }
   }
   return RCL_RET_TIMEOUT;
+}
+
+TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_liveliness) {
+  if (is_manual_liveliness_unsupported) {
+    rmw_time_t deadline {0, 0};
+    rmw_time_t lifespan {0, 0};
+    rmw_time_t lease_duration {0, 0};
+    rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
+    EXPECT_EQ(RCL_RET_ERROR,
+      setup_subscriber(deadline, lifespan, lease_duration,
+      liveliness_policy)) <<
+      "Initialized subscriber RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE when unsupported";
+    EXPECT_EQ(RCL_RET_ERROR,
+      setup_publisher(deadline, lifespan, lease_duration,
+      liveliness_policy)) <<
+      "Initialized publisher RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE when unsupported";
+
+    liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+    EXPECT_EQ(RCL_RET_ERROR,
+      setup_subscriber(deadline, lifespan, lease_duration,
+      liveliness_policy)) <<
+      "Initialized subscriber RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC when unsupported";
+    EXPECT_EQ(RCL_RET_ERROR,
+      setup_publisher(deadline, lifespan, lease_duration,
+      liveliness_policy)) <<
+      "Initialized publisher RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC when unsupported";
+  }
 }
 
 /*
@@ -478,6 +506,10 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
  */
 TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_kill_pub)
 {
+  if (is_manual_liveliness_unsupported) {
+    return;
+  }
+
   setup_publisher_and_subscriber(RCL_PUBLISHER_LIVELINESS_LOST,
     RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
   rcl_ret_t ret;
