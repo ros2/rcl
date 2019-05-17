@@ -111,4 +111,7 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), nominal) {
   });
   EXPECT_NE(rmw_context_ptr, nullptr) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  ret = rcl_init_options_fini(&init_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
