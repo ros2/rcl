@@ -19,6 +19,8 @@
 
 #include "action_msgs/srv/cancel_goal.h"
 
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 #include "rcl_action/action_server.h"
 
 #include "rcl/error_handling.h"
@@ -137,11 +139,20 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   ret = rcl_clock_fini(&clock);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
+  // Finalize init_options
+  ret = rcl_init_options_fini(&init_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
   // Finalize node
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
+  // Shutdown node
   ret = rcl_shutdown(&context);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Finalize context
+  ret = rcl_context_fini(&context);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
@@ -155,6 +166,9 @@ protected:
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+    });
     context = rcl_get_zero_initialized_context();
     ret = rcl_init(0, nullptr, &init_options, &context);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -184,6 +198,8 @@ protected:
     ret = rcl_node_fini(&this->node);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_shutdown(&context);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_context_fini(&this->context);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
