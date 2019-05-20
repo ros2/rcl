@@ -149,6 +149,7 @@ TEST_F(
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
   // Try invalid arguments.
   ret = rcl_guard_condition_init(nullptr, &context, default_options);
