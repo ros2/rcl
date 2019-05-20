@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.3 (2019-05-20)
+------------------
 * Fixed memory leak in ``test_client`` (`#443 <https://github.com/ros2/rcl/issues/443>`_)
 * Fixed memory leaks in ``test_wait.cpp`` (`#439 <https://github.com/ros2/rcl/issues/439>`_)
 * Fixed memory leak in ``test_context`` (`#441 <https://github.com/ros2/rcl/issues/441>`_)
