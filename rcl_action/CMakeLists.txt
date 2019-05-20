@@ -170,6 +170,7 @@ if(BUILD_TESTING)
       ${PROJECT_NAME}
     )
     ament_target_dependencies(test_action_server
+      "osrf_testing_tools_cpp"
       "rcl"
       "test_msgs"
     )

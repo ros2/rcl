@@ -52,6 +52,8 @@ protected:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(&this->context);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_context_fini(&this->context);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   rcl_context_t context;
