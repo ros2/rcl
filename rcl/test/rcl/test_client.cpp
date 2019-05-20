@@ -58,6 +58,9 @@ public:
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(this->context_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK);
+    ret = rcl_context_fini(this->context_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK);
     delete this->context_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
@@ -98,6 +101,7 @@ TEST_F(TestClientFixture, test_client_nominal) {
   ret = rcl_send_request(&client, &req, &sequence_number);
   EXPECT_EQ(sequence_number, 1);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  test_msgs__srv__BasicTypes_Request__fini(&req);
 }
 
 
@@ -138,6 +142,8 @@ TEST_F(TestClientFixture, test_client_init_fini) {
   ret = rcl_client_init(&client, this->node_ptr, ts, topic_name, &default_client_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_client_is_valid(&client));
+  ret = rcl_client_fini(&client, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing an invalid (uninitialized) node in init.
