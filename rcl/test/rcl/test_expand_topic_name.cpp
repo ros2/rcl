@@ -44,7 +44,11 @@ TEST(test_expand_topic_name, normal) {
     ret = rcl_expand_topic_name(topic, node, ns, &subs, allocator, &expanded_topic);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ(expected.c_str(), expanded_topic);
+    allocator.deallocate(expanded_topic, allocator.state);
   }
+
+  ret = rcutils_string_map_fini(&subs);
+  ASSERT_EQ(RCL_RET_OK, ret);
 }
 
 TEST(test_expand_topic_name, invalid_arguments) {
@@ -116,6 +120,9 @@ TEST(test_expand_topic_name, invalid_arguments) {
     EXPECT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
     rcl_reset_error();
   }
+
+  ret = rcutils_string_map_fini(&subs);
+  ASSERT_EQ(RCL_RET_OK, ret);
 }
 
 TEST(test_expand_topic_name, various_valid_topics) {
@@ -174,7 +181,11 @@ TEST(test_expand_topic_name, various_valid_topics) {
       ss.str() <<
       ", it failed with '" << ret << "': " << rcl_get_error_string().str;
     EXPECT_STREQ(expected.c_str(), expanded_topic) << ss.str() << " strings did not match.\n";
+    allocator.deallocate(expanded_topic, allocator.state);
   }
+
+  ret = rcutils_string_map_fini(&subs);
+  ASSERT_EQ(RCL_RET_OK, ret);
 }
 
 TEST(test_expand_topic_name, unknown_substitution) {
@@ -195,7 +206,11 @@ TEST(test_expand_topic_name, unknown_substitution) {
     EXPECT_EQ(RCL_RET_UNKNOWN_SUBSTITUTION, ret);
     rcl_reset_error();
     EXPECT_EQ(NULL, expanded_topic);
+    allocator.deallocate(expanded_topic, allocator.state);
   }
+
+  ret = rcutils_string_map_fini(&subs);
+  ASSERT_EQ(RCL_RET_OK, ret);
 }
 
 TEST(test_expand_topic_name, custom_substitution) {
@@ -218,5 +233,9 @@ TEST(test_expand_topic_name, custom_substitution) {
     ret = rcl_expand_topic_name(topic, node, ns, &subs, allocator, &expanded_topic);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_STREQ("/my_ns/pong", expanded_topic);
+    allocator.deallocate(expanded_topic, allocator.state);
   }
+
+  ret = rcutils_string_map_fini(&subs);
+  ASSERT_EQ(RCL_RET_OK, ret);
 }
