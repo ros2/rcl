@@ -21,6 +21,7 @@
 #include "rcl/rcl.h"
 #include "rcl/publisher.h"
 
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 
@@ -82,6 +83,9 @@ public:
     *this->context_ptr = rcl_get_zero_initialized_context();
     ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+    });
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "test_get_actual_qos_node";
