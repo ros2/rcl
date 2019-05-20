@@ -126,6 +126,8 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   rcl_service_options_t service_options = rcl_service_get_default_options();
   ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_service_fini(&service, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Check if null service is valid
   EXPECT_FALSE(rcl_service_is_valid(nullptr));
@@ -208,6 +210,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
     ret = rcl_send_response(&service, &header, &service_response);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    test_msgs__srv__BasicTypes_Request__fini(&service_request);
   }
   wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
 
@@ -220,4 +223,5 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(client_response.uint64_value, 3ULL);
   EXPECT_EQ(header.sequence_number, 1);
+  test_msgs__srv__BasicTypes_Response__fini(&client_response);
 }
