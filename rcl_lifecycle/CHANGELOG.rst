@@ -2,6 +2,9 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.2 (2019-05-08)
 ------------------
 * Rmw preallocate (`#428 <https://github.com/ros2/rcl/issues/428>`_)

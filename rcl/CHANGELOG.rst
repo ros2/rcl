@@ -2,6 +2,20 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed memory leak in ``test_client`` (`#443 <https://github.com/ros2/rcl/issues/443>`_)
+* Fixed memory leaks in ``test_wait.cpp`` (`#439 <https://github.com/ros2/rcl/issues/439>`_)
+* Fixed memory leak in ``test_context`` (`#441 <https://github.com/ros2/rcl/issues/441>`_)
+* Fixed memory leak in ``test_init`` (`#440 <https://github.com/ros2/rcl/issues/440>`_)
+* Enabled rcl ``test_events`` unit tests on macOS (`#433 <https://github.com/ros2/rcl/issues/433>`_)
+* Enabled deadline tests for FastRTPS (`#438 <https://github.com/ros2/rcl/issues/438>`_)
+* Corrected use of ``launch_testing.assert.assertExitCodes`` (`#437 <https://github.com/ros2/rcl/issues/437>`_)
+* Reverted "Changes the default 3rd party logger from rcl_logging_noop to… (`#436 <https://github.com/ros2/rcl/issues/436>`_)
+* Fixed memory leaks in ``test_security_directory`` (`#420 <https://github.com/ros2/rcl/issues/420>`_)
+* Fixed a memory leak in rcl context fini (`#434 <https://github.com/ros2/rcl/issues/434>`_)
+* Contributors: Abby Xu, Cameron Evans, Chris Lalancette, Dirk Thomas, M. M, ivanpauno
+
 0.7.2 (2019-05-08)
 ------------------
 * Changes the default 3rd party logger from rcl_logging_noop to rcl_logging_log4cxx (`#425 <https://github.com/ros2/rcl/issues/425>`_)

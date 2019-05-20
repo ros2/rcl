@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed memory leaks in ``rcl_action`` unit tests (`#442 <https://github.com/ros2/rcl/issues/442>`_)
+* Contributors: Prajakta Gokhale
+
 0.7.2 (2019-05-08)
 ------------------
 * Update graph test for change to rmw names and types struct (`#407 <https://github.com/ros2/rcl/issues/407>`_)
