@@ -29,10 +29,6 @@ extern "C"
 /// Internal rcl action goal implementation struct.
 struct rcl_action_goal_handle_impl_t;
 
-/// User friendly error messages for invalid trasntions
-extern const char * goal_state_descriptions[];
-extern const char * goal_event_descriptions[];
-
 /// Goal handle for an action.
 typedef struct rcl_action_goal_handle_t
 {

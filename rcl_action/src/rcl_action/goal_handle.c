@@ -22,13 +22,6 @@ extern "C"
 #include "rcl/rcl.h"
 #include "rcl/error_handling.h"
 
-const char * goal_state_descriptions[] =
-{"UNKNOWN", "ACCEPTED", "EXECUTING", "CANCELING", "SUCCEEDED", "CANCELED", "ABORTED"};
-
-const char * goal_event_descriptions[] =
-{"EXECUTE", "CANCEL_GOAL", "SUCCEED", "ABORT", "CANCELED", "NUM_EVENTS"};
-
-
 typedef struct rcl_action_goal_handle_impl_t
 {
   rcl_action_goal_info_t info;

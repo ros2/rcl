@@ -132,6 +132,13 @@ rcl_action_cancel_response_fini(rcl_action_cancel_response_t * cancel_response)
   return RCL_RET_OK;
 }
 
+/// Values should be changed if enum values chang
+const char * goal_state_descriptions[] =
+{"UNKNOWN", "ACCEPTED", "EXECUTING", "CANCELING", "SUCCEEDED", "CANCELED", "ABORTED"};
+
+const char * goal_event_descriptions[] =
+{"EXECUTE", "CANCEL_GOAL", "SUCCEED", "ABORT", "CANCELED", "NUM_EVENTS"};
+
 #ifdef __cplusplus
 }
 #endif
