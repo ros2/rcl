@@ -93,6 +93,11 @@ typedef int8_t rcl_action_goal_state_t;
 #define GOAL_STATE_ABORTED action_msgs__msg__GoalStatus__STATUS_ABORTED
 #define GOAL_STATE_NUM_STATES 7
 
+/// User friendly error messages for invalid trasntions
+// Description variables in types.c should be changed if enum values change
+extern const char * goal_state_descriptions[];
+extern const char * goal_event_descriptions[];
+
 /// Goal state transition events
 typedef enum rcl_action_goal_event_t
 {

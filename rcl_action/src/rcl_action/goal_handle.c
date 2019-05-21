@@ -89,9 +89,9 @@ rcl_action_update_goal_state(
     goal_handle->impl->state, goal_event);
   if (GOAL_STATE_UNKNOWN == new_state) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "goal_handle attempted invalid transition from state %d with event %d",
-      goal_handle->impl->state,
-      goal_event);
+      "goal_handle attempted invalid transition from state %s with event %s",
+      goal_state_descriptions[goal_handle->impl->state],
+      goal_event_descriptions[goal_event]);
     return RCL_RET_ACTION_GOAL_EVENT_INVALID;
   }
   goal_handle->impl->state = new_state;
