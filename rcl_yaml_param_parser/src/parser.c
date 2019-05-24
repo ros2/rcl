@@ -849,7 +849,10 @@ static rcl_ret_t parse_value(
       "Scalar value at line %d is bigger than %d bytes", line_num, MAX_STRING_SIZE);
     return RCL_RET_ERROR;
   } else {
-    if (0U == val_size) {
+    if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
+      style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
+      0U == val_size)
+    {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("No value at line %d", line_num);
       return RCL_RET_ERROR;
     }
