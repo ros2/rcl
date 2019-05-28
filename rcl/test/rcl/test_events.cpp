@@ -28,7 +28,6 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 using namespace std::chrono_literals;
-using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::chrono::duration_cast;
 
@@ -42,6 +41,9 @@ constexpr seconds MAX_WAIT_PER_TESTCASE = 10s;
 #else
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
+
+#define EXPECT_OK(varname) EXPECT_EQ(varname, RCL_RET_OK) << rcl_get_error_string().str
+
 
 class CLASSNAME (TestEventFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
@@ -149,21 +151,24 @@ public:
     ret = rcl_subscription_event_init(&subscription_event, &subscription, sub_event_type);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-    // wait for discovery
-    // total wait time of 10 seconds, if never ready
-    size_t max_iterations = 1000;
-    milliseconds wait_period(10);
-    size_t iteration = 0;
-    do {
-      iteration++;
-      size_t count = 0;
-      rcl_ret_t ret = rcl_subscription_get_publisher_count(&subscription, &count);
-      ASSERT_EQ(ret, RCL_RET_OK);
-      if (count > 0) {
+    // wait for discovery, time out after 10s
+    static const size_t max_iterations = 1000;
+    static const auto wait_period = 10ms;
+    bool subscribe_success = false;
+    for (size_t i = 0; i < max_iterations; ++i) {
+      size_t subscription_count = 0;
+      size_t publisher_count = 0;
+      ret = rcl_subscription_get_publisher_count(&subscription, &publisher_count);
+      EXPECT_OK(ret);
+      ret = rcl_publisher_get_subscription_count(&publisher, &subscription_count);
+      EXPECT_OK(ret);
+      if (subscription_count && publisher_count) {
+        subscribe_success = true;
         break;
       }
       std::this_thread::sleep_for(wait_period);
-    } while (iteration < max_iterations);
+    }
+    ASSERT_TRUE(subscribe_success) << "Publisher/Subscription discovery timed out";
   }
 
   void tear_down_publisher_subscriber()
@@ -280,7 +285,8 @@ wait_for_msgs_and_events(
       }
     }
   }
-
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_OK(ret);
   return ret;
 }
 
