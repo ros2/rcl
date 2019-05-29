@@ -2,6 +2,16 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.4 (2019-05-29)
+------------------
+* Fix tests now that FastRTPS correctly reports that liveliness is not supported (`#452 <https://github.com/ros2/rcl/issues/452>`_)
+* In test_events, wait for discovery to be complete bidirectionally before moving on (`#451 <https://github.com/ros2/rcl/issues/451>`_)
+* fix leak in test_service (`#447 <https://github.com/ros2/rcl/issues/447>`_)
+* fix leak in test_guard_condition (`#446 <https://github.com/ros2/rcl/issues/446>`_)
+* fix leak in test_get_actual_qos (`#445 <https://github.com/ros2/rcl/issues/445>`_)
+* fix leak in test_expand_topic_name (`#444 <https://github.com/ros2/rcl/issues/444>`_)
+* Contributors: Abby Xu, Emerson Knapp
+
 0.7.3 (2019-05-20)
 ------------------
 * Fixed memory leak in ``test_client`` (`#443 <https://github.com/ros2/rcl/issues/443>`_)

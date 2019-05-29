@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.4 (2019-05-29)
+------------------
+* Allow empty strings if they are quoted. (`#450 <https://github.com/ros2/rcl/issues/450>`_)
+* Contributors: Ralf Anton Beier
+
 0.7.3 (2019-05-20)
 ------------------
 
