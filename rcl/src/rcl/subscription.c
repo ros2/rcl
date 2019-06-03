@@ -27,6 +27,7 @@ extern "C"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
+#include "tracetools/tracetools.h"
 
 #include "./common.h"
 #include "./subscription_impl.h"
@@ -182,6 +183,13 @@ rcl_subscription_init(
   subscription->impl->options = *options;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
+  TRACEPOINT(
+    rcl_subscription_init,
+    (const void *)subscription,
+    (const void *)node,
+    (const void *)subscription->impl->rmw_handle,
+    remapped_topic_name,
+    options->qos.depth);
   goto cleanup;
 fail:
   if (subscription->impl) {

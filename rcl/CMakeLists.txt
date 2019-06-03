@@ -11,6 +11,7 @@ find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
 find_package(rosidl_generator_c REQUIRED)
 find_package(tinydir_vendor REQUIRED)
+find_package(tracetools REQUIRED)
 
 include_directories(include)
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
@@ -71,6 +72,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rosidl_generator_c"
   ${RCL_LOGGING_IMPL}
   "tinydir_vendor"
+  "tracetools"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -102,6 +104,7 @@ ament_export_dependencies(rmw)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rosidl_generator_c)
 ament_export_dependencies(${RCL_LOGGING_IMPL})
+ament_export_dependencies(tracetools)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
