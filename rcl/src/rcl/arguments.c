@@ -978,6 +978,9 @@ _rcl_parse_remap_nodename_replacement(
   // new_node_name
   ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, &node_name, &length);
   if (RCL_RET_WRONG_LEXEME == ret) {
+    node_name = rcl_lexer_lookahead2_get_text(lex_lookahead);
+    RCUTILS_LOG_WARN_NAMED(
+      ROS_PACKAGE_NAME, "Node name not remapped to invalid name: '%s'", node_name);
     return RCL_RET_INVALID_REMAP_RULE;
   }
   if (RCL_RET_OK != ret) {
