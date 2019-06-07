@@ -167,6 +167,17 @@ rcl_subscription_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
+  // get actual qos, and store it
+  rmw_ret = rmw_subscription_get_actual_qos(
+    subscription->impl->rmw_handle,
+    &subscription->impl->actual_qos);
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    ret = RCL_RET_ERROR;
+    goto fail;
+  }
+  subscription->impl->actual_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
   // options
   subscription->impl->options = *options;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
@@ -357,6 +368,15 @@ rcl_subscription_get_publisher_count(
     return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
   return RCL_RET_OK;
+}
+
+const rmw_qos_profile_t *
+rcl_subscription_get_actual_qos(const rcl_subscription_t * subscription)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    return NULL;
+  }
+  return &subscription->impl->actual_qos;
 }
 
 #ifdef __cplusplus

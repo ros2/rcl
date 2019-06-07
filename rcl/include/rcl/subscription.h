@@ -445,6 +445,32 @@ rcl_subscription_get_publisher_count(
   const rcl_subscription_t * subscription,
   size_t * publisher_count);
 
+/// Get the actual qos settings of the subscription.
+/**
+ * Used to get the actual qos settings of the subscription.
+ * The actual configuration applied when using RMW_*_SYSTEM_DEFAULT
+ * can only be resolved after the creation of the subscription, and it
+ * depends on the underlying rmw implementation.
+ * If the underlying setting in use can't be represented in ROS terms,
+ * it will be set to RMW_*_UNKNOWN.
+ * The returned struct is only valid as long as the rcl_subscription_t is valid.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] subscription pointer to the rcl subscription
+ * \return qos struct if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const rmw_qos_profile_t *
+rcl_subscription_get_actual_qos(const rcl_subscription_t * subscription);
+
 #ifdef __cplusplus
 }
 #endif
