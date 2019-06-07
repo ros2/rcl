@@ -1129,6 +1129,15 @@ static rcl_ret_t parse_key(
           }
           *is_new_map = false;
         }
+
+        // Guard against adding more than the maximum allowed parameters
+        if (params_st->params[node_idx].num_params >= MAX_NUM_PARAMS_PER_NODE) {
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Exceeded maximum allowed number of parameters for a node (%d)",
+            MAX_NUM_PARAMS_PER_NODE);
+          return RCL_RET_ERROR;
+        }
+
         /// Add a parameter name into the node parameters
         parameter_idx = params_st->params[node_idx].num_params;
         parameter_ns = ns_tracker->parameter_ns;
