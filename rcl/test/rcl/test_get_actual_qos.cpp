@@ -67,7 +67,7 @@ std::ostream & operator<<(
   return out;
 }
 
-class TEST_FIXTURE_P_RMW (TestGetActualQoS)
+class TEST_FIXTURE_P_RMW(TestGetActualQoS)
   : public ::testing::TestWithParam<TestParameters>
 {
 public:
@@ -114,7 +114,11 @@ protected:
   rcl_context_t * context_ptr;
 };
 
-TEST_P_RMW(TestGetActualQoS, test_publisher_get_qos_settings) {
+
+class TEST_FIXTURE_P_RMW(TestPublisherGetActualQoS)
+  : public TEST_FIXTURE_P_RMW(TestGetActualQoS) {};
+
+TEST_P_RMW(TestPublisherGetActualQoS, test_publisher_get_qos_settings) {
   TestParameters parameters = GetParam();
   std::string topic_name("/test_publisher_get_actual_qos__");
   rcl_ret_t ret;
@@ -143,6 +147,9 @@ TEST_P_RMW(TestGetActualQoS, test_publisher_get_qos_settings) {
     qos->durability,
     parameters.qos_expected.durability);
   EXPECT_EQ(
+    qos->liveliness,
+    parameters.qos_expected.liveliness);
+  EXPECT_EQ(
     qos->avoid_ros_namespace_conventions,
     parameters.qos_expected.avoid_ros_namespace_conventions);
 
@@ -151,7 +158,61 @@ TEST_P_RMW(TestGetActualQoS, test_publisher_get_qos_settings) {
   rcl_reset_error();
 }
 
-static constexpr rmw_qos_profile_t non_default_qos_profile()
+
+class TEST_FIXTURE_P_RMW(TestSubscriptionGetActualQoS)
+  : public TEST_FIXTURE_P_RMW(TestGetActualQoS) {};
+
+TEST_P_RMW(TestSubscriptionGetActualQoS, test_subscription_get_qos_settings) {
+  TestParameters parameters = GetParam();
+  std::string topic_name("/test_subscription_get_qos_settings");
+  rcl_ret_t ret;
+
+  rcl_subscription_t pub = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t pub_ops = rcl_subscription_get_default_options();
+  pub_ops.qos = parameters.qos_to_set;
+  auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  ret = rcl_subscription_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  const rmw_qos_profile_t * qos;
+  qos = rcl_subscription_get_actual_qos(&pub);
+  EXPECT_NE(nullptr, qos) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    qos->history,
+    parameters.qos_expected.history);
+  EXPECT_EQ(
+    qos->depth,
+    parameters.qos_expected.depth);
+  EXPECT_EQ(
+    qos->reliability,
+    parameters.qos_expected.reliability);
+  EXPECT_EQ(
+    qos->durability,
+    parameters.qos_expected.durability);
+  EXPECT_EQ(
+    qos->liveliness,
+    parameters.qos_expected.liveliness);
+  EXPECT_EQ(
+    qos->avoid_ros_namespace_conventions,
+    parameters.qos_expected.avoid_ros_namespace_conventions);
+
+  ret = rcl_subscription_fini(&pub, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+
+static constexpr rmw_qos_profile_t
+expected_default_qos_profile()
+{
+  rmw_qos_profile_t profile = rmw_qos_profile_default;
+  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+  return profile;
+}
+
+static constexpr rmw_qos_profile_t
+expected_nondefault_qos_profile()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
   profile.history = RMW_QOS_POLICY_HISTORY_KEEP_ALL;
@@ -163,7 +224,17 @@ static constexpr rmw_qos_profile_t non_default_qos_profile()
   return profile;
 }
 
-static constexpr rmw_qos_profile_t expected_fastrtps_default_qos_profile()
+static constexpr rmw_qos_profile_t
+expected_system_default_publisher_qos_profile()
+{
+  rmw_qos_profile_t profile = rmw_qos_profile_default;
+  profile.depth = 1;
+  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+  return profile;
+}
+
+static constexpr rmw_qos_profile_t
+expected_system_default_publisher_qos_profile_for_fastrtps()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
   profile.depth = 1;
@@ -172,16 +243,29 @@ static constexpr rmw_qos_profile_t expected_fastrtps_default_qos_profile()
   return profile;
 }
 
-static constexpr rmw_qos_profile_t expected_system_default_qos_profile()
+static constexpr rmw_qos_profile_t
+expected_system_default_subscription_qos_profile()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
   profile.depth = 1;
+  profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+  return profile;
+}
+
+static constexpr rmw_qos_profile_t
+expected_system_default_subscription_qos_profile_for_fastrtps()
+{
+  rmw_qos_profile_t profile = rmw_qos_profile_default;
+  profile.depth = 1;
+  profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
   return profile;
 }
 
 std::vector<TestParameters>
-get_parameters()
+get_parameters(bool for_publisher)
 {
   std::vector<TestParameters>
   parameters({
@@ -190,16 +274,16 @@ get_parameters()
      */
     {
       rmw_qos_profile_default,
-      rmw_qos_profile_default,
-      "publisher_default_qos"
+      expected_default_qos_profile(),
+      "default_qos"
     },
     /*
       Test with non-default settings.
      */
     {
-      non_default_qos_profile(),
-      non_default_qos_profile(),
-      "publisher_non_default_qos"
+      expected_nondefault_qos_profile(),
+      expected_nondefault_qos_profile(),
+      "nondefault_qos"
     }
   });
 
@@ -208,21 +292,25 @@ get_parameters()
   if (rmw_implementation_str == "rmw_fastrtps_cpp" ||
     rmw_implementation_str == "rmw_fastrtps_dynamic_cpp")
   {
-    rmw_qos_profile_t expected_system_default_qos = expected_fastrtps_default_qos_profile();
+    rmw_qos_profile_t expected_qos = for_publisher ?
+      expected_system_default_publisher_qos_profile_for_fastrtps() :
+      expected_system_default_subscription_qos_profile_for_fastrtps();
     parameters.push_back({
       rmw_qos_profile_system_default,
-      expected_system_default_qos,
-      "publisher_system_default_qos"});
+      expected_qos,
+      "system_default_publisher_qos"});
   } else {
     if (rmw_implementation_str == "rmw_connext_cpp" ||
       rmw_implementation_str == "rmw_connext_dynamic_cpp" ||
       rmw_implementation_str == "rmw_opensplice_cpp")
     {
-      rmw_qos_profile_t expected_system_default_qos = expected_system_default_qos_profile();
+      rmw_qos_profile_t expected_qos = for_publisher ?
+        expected_system_default_publisher_qos_profile() :
+        expected_system_default_subscription_qos_profile();
       parameters.push_back({
         rmw_qos_profile_system_default,
-        expected_system_default_qos,
-        "publisher_system_default_qos"});
+        expected_qos,
+        "system_default_publisher_qos"});
     }
   }
 #endif
@@ -231,7 +319,13 @@ get_parameters()
 }
 
 INSTANTIATE_TEST_CASE_P_RMW(
-  TestWithDifferentQoSSettings,
-  TestGetActualQoS,
-  ::testing::ValuesIn(get_parameters()),
+  TestPublisherWithDifferentQoSSettings,
+  TestPublisherGetActualQoS,
+  ::testing::ValuesIn(get_parameters(true)),
+  ::testing::PrintToStringParamName());
+
+INSTANTIATE_TEST_CASE_P_RMW(
+  TestSubscriptionWithDifferentQoSSettings,
+  TestSubscriptionGetActualQoS,
+  ::testing::ValuesIn(get_parameters(false)),
   ::testing::PrintToStringParamName());
