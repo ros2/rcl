@@ -67,7 +67,7 @@ std::ostream & operator<<(
   return out;
 }
 
-class TEST_FIXTURE_P_RMW(TestGetActualQoS)
+class TEST_FIXTURE_P_RMW (TestGetActualQoS)
   : public ::testing::TestWithParam<TestParameters>
 {
 public:
@@ -115,7 +115,7 @@ protected:
 };
 
 
-class TEST_FIXTURE_P_RMW(TestPublisherGetActualQoS)
+class TEST_FIXTURE_P_RMW (TestPublisherGetActualQoS)
   : public TEST_FIXTURE_P_RMW(TestGetActualQoS) {};
 
 TEST_P_RMW(TestPublisherGetActualQoS, test_publisher_get_qos_settings) {
@@ -159,7 +159,7 @@ TEST_P_RMW(TestPublisherGetActualQoS, test_publisher_get_qos_settings) {
 }
 
 
-class TEST_FIXTURE_P_RMW(TestSubscriptionGetActualQoS)
+class TEST_FIXTURE_P_RMW (TestSubscriptionGetActualQoS)
   : public TEST_FIXTURE_P_RMW(TestGetActualQoS) {};
 
 TEST_P_RMW(TestSubscriptionGetActualQoS, test_subscription_get_qos_settings) {
