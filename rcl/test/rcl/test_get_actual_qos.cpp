@@ -234,10 +234,7 @@ TEST_P_RMW(TestSubscriptionGetActualQoS, test_subscription_get_qos_settings)
   EXPECT_GE(
     qos->deadline,
     parameters.qos_expected.deadline);
-  // lifespan is not a concept in subscriptions
-  // EXPECT_GE(
-  //   qos->lifespan,
-  //   parameters.qos_expected.lifespan);
+  // note: lifespan is not a concept in subscriptions
   EXPECT_EQ(
     qos->liveliness,
     parameters.qos_expected.liveliness);
@@ -358,7 +355,6 @@ expected_system_default_subscription_qos_profile()
   profile.depth = 1;
   profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   profile.deadline.sec = 2147483647;
-  profile.lifespan.sec = 2147483647;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
   profile.liveliness_lease_duration.sec = 2147483647;
   return profile;
@@ -372,7 +368,6 @@ expected_system_default_subscription_qos_profile_for_fastrtps()
   profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
   profile.deadline.sec = 2147483647;
-  profile.lifespan.sec = 2147483647;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
   profile.liveliness_lease_duration.sec = 2147483647;
   return profile;
