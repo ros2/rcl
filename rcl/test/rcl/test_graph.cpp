@@ -966,6 +966,23 @@ TEST_F(NodeGraphMultiNodeFixture, test_node_info_services)
   VerifySubsystemCount(expected_node_state{1, 0, 0}, expected_node_state{1, 0, 0});
 }
 
+TEST_F(NodeGraphMultiNodeFixture, test_node_info_clients)
+{
+  rcl_ret_t ret;
+  const char * service_name = "test_service";
+  rcl_client_t client = rcl_get_zero_initialized_client();
+  rcl_client_options_t client_options = rcl_client_get_default_options();
+  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
+  ret = rcl_client_init(&client, this->node_ptr, ts, service_name, &client_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  VerifySubsystemCount(expected_node_state{1, 0, 1}, expected_node_state{1, 0, 0});
+
+  // Destroy client
+  ret = rcl_client_fini(&client, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  VerifySubsystemCount(expected_node_state{1, 0, 0}, expected_node_state{1, 0, 0});
+}
+
 /*
  * Test graph queries with a hand crafted graph.
  */
