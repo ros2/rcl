@@ -135,7 +135,7 @@ rcl_get_subscriber_names_and_types_by_node(
   const char * node_namespace,
   rcl_names_and_types_t * topic_names_and_types);
 
-/// Return a list of service names and types for associated with a node.
+/// Return a list of service names and types associated with a node.
 /**
  * The `node` parameter must point to a valid node.
  *
@@ -180,7 +180,7 @@ rcl_get_service_names_and_types_by_node(
   const char * node_namespace,
   rcl_names_and_types_t * service_names_and_types);
 
-/// Return a list of service client names and types for associated with a node.
+/// Return a list of service client names and types associated with a node.
 /**
  * The `node` parameter must point to a valid node.
  *
