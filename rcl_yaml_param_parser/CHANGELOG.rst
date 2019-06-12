@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix memory corruption when maximum number of parameters is exceeded (`#456 <https://github.com/ros2/rcl/issues/456>`_)
+* Contributors: Jacob Perron
+
 0.7.4 (2019-05-29)
 ------------------
 * Allow empty strings if they are quoted. (`#450 <https://github.com/ros2/rcl/issues/450>`_)
