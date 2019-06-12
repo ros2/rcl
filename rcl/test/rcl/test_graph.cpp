@@ -1063,12 +1063,12 @@ TEST_F(NodeGraphMultiNodeFixture, test_node_info_clients)
   auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
   ret = rcl_client_init(&client, this->node_ptr, ts, service_name, &client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  VerifySubsystemCount(expected_node_state{1, 0, 1}, expected_node_state{1, 0, 0});
+  VerifySubsystemCount(expected_node_state{1, 0, 0, 1}, expected_node_state{1, 0, 0, 0});
 
   // Destroy client
   ret = rcl_client_fini(&client, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  VerifySubsystemCount(expected_node_state{1, 0, 0}, expected_node_state{1, 0, 0});
+  VerifySubsystemCount(expected_node_state{1, 0, 0, 0}, expected_node_state{1, 0, 0, 0});
 }
 
 /*
