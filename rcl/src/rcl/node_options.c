@@ -69,7 +69,7 @@ rcl_node_options_fini(
   if (options->arguments.impl) {
     rcl_ret_t ret = rcl_arguments_fini(&options->arguments);
     if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG("Failed to fini rcl arguments");
+      RCL_SET_ERROR_MSG("Failed to find rcl arguments");
       return ret;
     }
   }

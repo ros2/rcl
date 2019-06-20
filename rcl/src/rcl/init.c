@@ -181,7 +181,7 @@ rcl_shutdown(rcl_context_t * context)
 
   rcl_ret_t rcl_ret = rcl_logging_fini();
   RCUTILS_LOG_ERROR_EXPRESSION_NAMED(RCL_RET_OK != rcl_ret, ROS_PACKAGE_NAME,
-    "Failed to fini logging, rcl_ret_t: %i, rcl_error_str: %s", rcl_ret,
+    "Failed to find logging, rcl_ret_t: %i, rcl_error_str: %s", rcl_ret,
     rcl_get_error_string().str);
   rcl_reset_error();
 

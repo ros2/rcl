@@ -383,7 +383,7 @@ fail:
   if (NULL != args_impl) {
     ret = rcl_arguments_fini(args_output);
     if (RCL_RET_OK != ret) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini arguments after earlier failure");
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to find arguments after earlier failure");
     }
   }
   return fail_ret;
@@ -1149,10 +1149,10 @@ _rcl_parse_remap_rule(
   if (RCL_RET_OK != ret) {
     // cleanup stuff, but return the original error code
     if (RCL_RET_OK != rcl_remap_fini(output_rule)) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini remap rule after error occurred");
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to find remap rule after error occurred");
     }
     if (RCL_RET_OK != rcl_lexer_lookahead2_fini(&lex_lookahead)) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini lookahead2 after error occurred");
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to find lookahead2 after error occurred");
     }
   } else {
     ret = rcl_lexer_lookahead2_fini(&lex_lookahead);

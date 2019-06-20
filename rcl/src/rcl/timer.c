@@ -167,7 +167,7 @@ rcl_timer_init(
       if (RCL_RET_OK != rcl_guard_condition_fini(&(impl.guard_condition))) {
         // Should be impossible
         RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME, "Failed to fini guard condition after failing to add jump callback");
+          ROS_PACKAGE_NAME, "Failed to find guard condition after failing to add jump callback");
       }
       return ret;
     }
@@ -183,7 +183,7 @@ rcl_timer_init(
   if (NULL == timer->impl) {
     if (RCL_RET_OK != rcl_guard_condition_fini(&(impl.guard_condition))) {
       // Should be impossible
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini guard condition after bad alloc");
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to find guard condition after bad alloc");
     }
     if (RCL_RET_OK != rcl_clock_remove_jump_callback(clock, _rcl_timer_time_jump, timer)) {
       // Should be impossible

@@ -274,7 +274,7 @@ void rcl_logging_rosout_output_handler(
 
     RCL_RET_FROM_RCUTIL_RET(status, rcutils_char_array_fini(&msg_array));
     if (RCL_RET_OK != status) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR("failed to fini char_array: ");
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to find char_array: ");
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       rcl_reset_error();
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");

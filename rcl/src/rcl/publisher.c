@@ -87,7 +87,7 @@ rcl_publisher_init(
     if (rcutils_ret != RCUTILS_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME,
-        "failed to fini string_map (%d) during error handling: %s",
+        "Failed to find string_map (%d) during error handling: %s",
         rcutils_ret,
         rcutils_get_error_string().str);
     }

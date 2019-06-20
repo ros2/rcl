@@ -361,7 +361,7 @@ fail:
     if (node->impl->logger_name) {
       ret = rcl_logging_rosout_fini_publisher_for_node(node);
       RCUTILS_LOG_ERROR_EXPRESSION_NAMED((ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT),
-        ROS_PACKAGE_NAME, "Failed to fini publisher for node: %i", ret);
+        ROS_PACKAGE_NAME, "Failed to find publisher for node: %i", ret);
       allocator->deallocate((char *)node->impl->logger_name, allocator->state);
     }
     if (node->impl->fq_name) {
@@ -372,7 +372,7 @@ fail:
       if (ret != RMW_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
           ROS_PACKAGE_NAME,
-          "failed to fini rmw node in error recovery: %s", rmw_get_error_string().str
+          "Failed to find rmw node in error recovery: %s", rmw_get_error_string().str
         );
       }
     }
@@ -381,7 +381,7 @@ fail:
       if (ret != RCL_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
           ROS_PACKAGE_NAME,
-          "failed to fini guard condition in error recovery: %s", rcl_get_error_string().str
+          "Failed to find guard condition in error recovery: %s", rcl_get_error_string().str
         );
       }
       allocator->deallocate(node->impl->graph_guard_condition, allocator->state);
@@ -391,7 +391,7 @@ fail:
       if (ret != RCL_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
           ROS_PACKAGE_NAME,
-          "failed to fini arguments in error recovery: %s", rcl_get_error_string().str
+          "Failed to find arguments in error recovery: %s", rcl_get_error_string().str
         );
       }
     }
