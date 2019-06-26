@@ -350,7 +350,6 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_livelin
   rmw_time_t deadline {0, 0};
   rmw_time_t lifespan {0, 0};
   rmw_time_t lease_duration {0, 0};
-  rmw_time_t nonzero_lease_duration {1, 0};
   rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
   EXPECT_EQ(RCL_RET_ERROR,
     setup_subscriber(deadline, lifespan, lease_duration, liveliness_policy)) <<
