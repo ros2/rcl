@@ -148,7 +148,7 @@ rcl_get_subscriber_names_and_types_by_node(
  * \see rcl_get_publisher_names_and_types_by_node for details on the `no_demangle` parameter.
  *
  * The returned names are not automatically remapped by this function.
- * Attempting to create services using names returned by this function may not
+ * Attempting to create service clients using names returned by this function may not
  * result in the desired service name being used depending on the remap rules in use.
  *
  * <hr>
@@ -193,7 +193,7 @@ rcl_get_service_names_and_types_by_node(
  * \see rcl_get_publisher_names_and_types_by_node for details on the `no_demangle` parameter.
  *
  * The returned names are not automatically remapped by this function.
- * Attempting to create clients using names returned by this function may not
+ * Attempting to create service servers using names returned by this function may not
  * result in the desired service name being used depending on the remap rules in use.
  *
  * <hr>
