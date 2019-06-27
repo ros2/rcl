@@ -772,40 +772,48 @@ static void * get_value(
   }
 
   /// Check for int
-  errno = 0;
-  ival = strtol(value, &endptr, 0);
-  if ((0 == errno) && (NULL != endptr)) {
-    if ((NULL != endptr) && (endptr != value)) {
-      if (('\0' != *value) && ('\0' == *endptr)) {
-        *val_type = DATA_TYPE_INT64;
-        ret_val = allocator.zero_allocate(1U, sizeof(int64_t), allocator.state);
-        if (NULL == ret_val) {
-          return NULL;
+  if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
+    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
+  {
+    errno = 0;
+    ival = strtol(value, &endptr, 0);
+    if ((0 == errno) && (NULL != endptr)) {
+      if ((NULL != endptr) && (endptr != value)) {
+        if (('\0' != *value) && ('\0' == *endptr)) {
+          *val_type = DATA_TYPE_INT64;
+          ret_val = allocator.zero_allocate(1U, sizeof(int64_t), allocator.state);
+          if (NULL == ret_val) {
+            return NULL;
+          }
+          *((int64_t *)ret_val) = ival;
+          return ret_val;
         }
-        *((int64_t *)ret_val) = ival;
-        return ret_val;
       }
     }
   }
 
   /// Check for float
-  errno = 0;
-  endptr = NULL;
-  dval = strtod(value, &endptr);
-  if ((0 == errno) && (NULL != endptr)) {
-    if ((NULL != endptr) && (endptr != value)) {
-      if (('\0' != *value) && ('\0' == *endptr)) {
-        *val_type = DATA_TYPE_DOUBLE;
-        ret_val = allocator.zero_allocate(1U, sizeof(double), allocator.state);
-        if (NULL == ret_val) {
-          return NULL;
+  if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
+    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
+  {
+    errno = 0;
+    endptr = NULL;
+    dval = strtod(value, &endptr);
+    if ((0 == errno) && (NULL != endptr)) {
+      if ((NULL != endptr) && (endptr != value)) {
+        if (('\0' != *value) && ('\0' == *endptr)) {
+          *val_type = DATA_TYPE_DOUBLE;
+          ret_val = allocator.zero_allocate(1U, sizeof(double), allocator.state);
+          if (NULL == ret_val) {
+            return NULL;
+          }
+          *((double *)ret_val) = dval;
+          return ret_val;
         }
-        *((double *)ret_val) = dval;
-        return ret_val;
       }
     }
+    errno = 0;
   }
-  errno = 0;
 
   /// It is a string
   *val_type = DATA_TYPE_STRING;
