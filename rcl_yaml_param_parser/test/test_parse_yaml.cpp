@@ -22,7 +22,6 @@
 #include "rcutils/filesystem.h"
 
 static char cur_dir[1024];
-rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
 TEST(test_file_parser, correct_syntax) {
   rcutils_reset_error();
@@ -46,6 +45,7 @@ TEST(test_file_parser, correct_syntax) {
 TEST(test_file_parser, string_array_with_quoted_number) {
   rcutils_reset_error();
   EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   char * test_path = rcutils_join_path(cur_dir, "test", allocator);
   char * path = rcutils_join_path(test_path, "string_array_with_quoted_number.yaml", allocator);
   fprintf(stderr, "cur_path: %s\n", path);
@@ -59,8 +59,8 @@ TEST(test_file_parser, string_array_with_quoted_number) {
     rcl_yaml_node_struct_print(params_hdl);
     rcl_yaml_node_struct_fini(params_hdl);
   }
-  free(test_path);
-  free(path);
+  allocator.deallocate(test_path, allocator.state);
+  allocator.deallocate(path, allocator.state);
 }
 
 TEST(test_file_parser, multi_ns_correct_syntax) {
