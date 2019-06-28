@@ -51,8 +51,6 @@ public:
   void SetUp()
   {
     is_opensplice = (std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0);
-    bool is_fastrtps = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
-    is_manual_by_node_liveliness_supported = !is_fastrtps;
 
     rcl_ret_t ret;
     {
@@ -212,7 +210,6 @@ protected:
   rcl_subscription_t subscription;
   rcl_event_t subscription_event;
   bool is_opensplice;
-  bool is_manual_by_node_liveliness_supported;
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
 };
@@ -341,22 +338,6 @@ conditional_wait_for_msgs_and_events(
     }
   }
   return RCL_RET_TIMEOUT;
-}
-
-TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_unsupported_liveliness) {
-  if (is_manual_by_node_liveliness_supported) {
-    return;
-  }
-  rmw_time_t deadline {0, 0};
-  rmw_time_t lifespan {0, 0};
-  rmw_time_t lease_duration {0, 0};
-  rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
-  EXPECT_EQ(RCL_RET_ERROR,
-    setup_subscriber(deadline, lifespan, lease_duration, liveliness_policy)) <<
-    "Initialized subscription with RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE when unsupported";
-  EXPECT_EQ(RCL_RET_ERROR,
-    setup_publisher(deadline, lifespan, lease_duration, liveliness_policy)) <<
-    "Initialized publisher with RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE when unsupported";
 }
 
 /*
