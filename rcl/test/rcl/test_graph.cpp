@@ -343,6 +343,9 @@ TEST_F(
     this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  ret = rcl_names_and_types_fini(&nat);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 /* Test the rcl_get_subscriber_names_and_types_by_node function.
