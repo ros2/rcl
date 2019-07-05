@@ -23,7 +23,7 @@
 
 static char cur_dir[1024];
 
-TEST(test_file_parser, correct_syntax) {
+TEST(test_parser, correct_syntax) {
   rcutils_reset_error();
   EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -34,8 +34,15 @@ TEST(test_file_parser, correct_syntax) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   EXPECT_FALSE(NULL == params_hdl);
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
-  EXPECT_TRUE(res);
+  EXPECT_TRUE(res) << rcutils_get_error_string().str;
+  res = rcl_parse_yaml_value("lidar_ns/lidar_1", "ports", "[8080]", params_hdl);
+  EXPECT_TRUE(res) << rcutils_get_error_string().str;
+  res = rcl_parse_yaml_value("lidar_ns/lidar_2", "is_back", "true", params_hdl);
+  EXPECT_TRUE(res) << rcutils_get_error_string().str;
+  res = rcl_parse_yaml_value("camera", "cam_spec.angle", "2.2", params_hdl);
+  EXPECT_TRUE(res) << rcutils_get_error_string().str;
+  res = rcl_parse_yaml_value("intel", "num_cores", "12", params_hdl);
+  EXPECT_TRUE(res) << rcutils_get_error_string().str;
   rcl_yaml_node_struct_print(params_hdl);
   rcl_yaml_node_struct_fini(params_hdl);
   allocator.deallocate(test_path, allocator.state);
