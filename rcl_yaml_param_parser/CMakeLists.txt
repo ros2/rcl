@@ -4,7 +4,6 @@ project(rcl_yaml_param_parser)
 
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcutils REQUIRED)
-find_package(rcl REQUIRED)
 find_package(libyaml_vendor REQUIRED)
 find_package(yaml REQUIRED)
 
@@ -26,9 +25,18 @@ set(rcl_yaml_parser_sources
 add_library(
   ${PROJECT_NAME}
   ${rcl_yaml_parser_sources})
-ament_target_dependencies(${PROJECT_NAME} "yaml" "rcutils" "rcl")
+ament_target_dependencies(${PROJECT_NAME} "yaml" "rcutils")
 
-rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
+# Set the visibility to hidden by default if possible
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  # Set the visibility of symbols to hidden by default for gcc and clang
+  # (this is already the default on Windows)
+  set_target_properties(${PROJECT_NAME}
+    PROPERTIES
+    COMPILE_FLAGS "-fvisibility=hidden"
+  )
+endif()
+
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_YAML_PARAM_PARSER_BUILDING_DLL")

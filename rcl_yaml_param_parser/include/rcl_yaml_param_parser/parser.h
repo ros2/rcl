@@ -47,7 +47,7 @@ bool rcl_parse_yaml_file(
   const char * file_path,
   rcl_params_t * params_st);
 
-/// \brief Print the parameter structure to stdout
+/// \brief Print the parameter structure to
 /// \param[in] params_st points to the populated parameter struct
 RCL_YAML_PARAM_PARSER_PUBLIC
 void rcl_yaml_node_struct_print(
