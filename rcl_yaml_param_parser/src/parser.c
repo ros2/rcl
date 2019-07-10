@@ -171,7 +171,7 @@ static rcutils_ret_t add_name_to_ns(
       sep_str = PARAMETER_NS_SEPERATOR;
       break;
     default:
-      ret = RCUTILS_RET_OK;
+      ret = RCUTILS_RET_ERROR;
       break;
   }
 
@@ -844,10 +844,8 @@ static rcutils_ret_t parse_value(
   yaml_scalar_style_t style = event.data.scalar.style;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
 
-  if (NULL == value) {
-    RCUTILS_SET_ERROR_MSG("event argument has no value");
-    return RCUTILS_RET_INVALID_ARGUMENT;
-  }
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    value, "event argument has no value", return RCUTILS_RET_INVALID_ARGUMENT);
 
   if (val_size > MAX_STRING_SIZE) {
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -896,7 +894,8 @@ static rcutils_ret_t parse_value(
             allocator.zero_allocate(1U, sizeof(rcl_bool_array_t), allocator.state);
           if (NULL == param_value->bool_array_value) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
-            return RCUTILS_RET_BAD_ALLOC;
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
           }
         } else {
           if (*seq_data_type != val_type) {
@@ -904,7 +903,8 @@ static rcutils_ret_t parse_value(
               "Sequence should be of same type. Value type 'bool' do not belong at line_num %d",
               line_num);
             allocator.deallocate(ret_val, allocator.state);
-            return RCUTILS_RET_ERROR;
+            ret = RCUTILS_RET_ERROR;
+            break;
           }
         }
         ret = add_val_to_bool_arr(param_value->bool_array_value, ret_val, allocator);
@@ -912,7 +912,6 @@ static rcutils_ret_t parse_value(
           if (NULL != ret_val) {
             allocator.deallocate(ret_val, allocator.state);
           }
-          return ret;
         }
       }
       break;
@@ -926,7 +925,8 @@ static rcutils_ret_t parse_value(
             allocator.zero_allocate(1U, sizeof(rcl_int64_array_t), allocator.state);
           if (NULL == param_value->integer_array_value) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
-            return RCUTILS_RET_BAD_ALLOC;
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
           }
         } else {
           if (*seq_data_type != val_type) {
@@ -934,7 +934,8 @@ static rcutils_ret_t parse_value(
               "Sequence should be of same type. Value type 'integer' do not belong at line_num %d",
               line_num);
             allocator.deallocate(ret_val, allocator.state);
-            return RCUTILS_RET_ERROR;
+            ret = RCUTILS_RET_ERROR;
+            break;
           }
         }
         ret = add_val_to_int_arr(param_value->integer_array_value, ret_val, allocator);
@@ -942,7 +943,6 @@ static rcutils_ret_t parse_value(
           if (NULL != ret_val) {
             allocator.deallocate(ret_val, allocator.state);
           }
-          return ret;
         }
       }
       break;
@@ -956,7 +956,8 @@ static rcutils_ret_t parse_value(
             allocator.zero_allocate(1U, sizeof(rcl_double_array_t), allocator.state);
           if (NULL == param_value->double_array_value) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
-            return RCUTILS_RET_BAD_ALLOC;
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
           }
         } else {
           if (*seq_data_type != val_type) {
@@ -964,7 +965,8 @@ static rcutils_ret_t parse_value(
               "Sequence should be of same type. Value type 'double' do not belong at line_num %d",
               line_num);
             allocator.deallocate(ret_val, allocator.state);
-            return RCUTILS_RET_ERROR;
+            ret = RCUTILS_RET_ERROR;
+            break;
           }
         }
         ret = add_val_to_double_arr(param_value->double_array_value, ret_val, allocator);
@@ -972,7 +974,6 @@ static rcutils_ret_t parse_value(
           if (NULL != ret_val) {
             allocator.deallocate(ret_val, allocator.state);
           }
-          return ret;
         }
       }
       break;
@@ -989,7 +990,8 @@ static rcutils_ret_t parse_value(
             if (NULL != ret_val) {
               allocator.deallocate(ret_val, allocator.state);
             }
-            return RCUTILS_RET_BAD_ALLOC;
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
           }
         } else {
           if (*seq_data_type != val_type) {
@@ -997,7 +999,8 @@ static rcutils_ret_t parse_value(
               "Sequence should be of same type. Value type 'string' do not belong at line_num %d",
               line_num);
             allocator.deallocate(ret_val, allocator.state);
-            return RCUTILS_RET_ERROR;
+            ret = RCUTILS_RET_ERROR;
+            break;
           }
         }
         ret = add_val_to_string_arr(param_value->string_array_value, ret_val, allocator);
@@ -1005,7 +1008,6 @@ static rcutils_ret_t parse_value(
           if (NULL != ret_val) {
             allocator.deallocate(ret_val, allocator.state);
           }
-          return ret;
         }
       }
       break;
@@ -1038,10 +1040,8 @@ static rcutils_ret_t parse_key(
   const char * value = (char *)event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
 
-  if (NULL == value) {
-    RCUTILS_SET_ERROR_MSG("event argument has no value");
-    return RCUTILS_RET_INVALID_ARGUMENT;
-  }
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    value, "event argument has no value", return RCUTILS_RET_INVALID_ARGUMENT);
 
   if (val_size > MAX_STRING_SIZE) {
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -1076,19 +1076,21 @@ static rcutils_ret_t parse_key(
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error adding node namespace at line %d", line_num);
-            return ret;
+            break;
           }
         } else {
           if (0U == ns_tracker->num_node_ns) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "There are no node names before %s at line %d", PARAMS_KEY, line_num);
-            return RCUTILS_RET_ERROR;
+            ret = RCUTILS_RET_ERROR;
+            break;
           }
           /// The previous key(last name in namespace) was the node name. Remove it
           /// from the namespace
           char * node_name_ns = rcutils_strdup(ns_tracker->node_ns, allocator);
           if (NULL == node_name_ns) {
-            return RCUTILS_RET_BAD_ALLOC;
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
           }
           params_st->node_names[num_nodes] = node_name_ns;
 
@@ -1096,13 +1098,13 @@ static rcutils_ret_t parse_key(
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error adding node namespace at line %d", line_num);
-            return ret;
+            break;
           }
           ret = node_params_init(&(params_st->params[num_nodes]), allocator);
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Error creating node parameter at line %d", line_num);
-            return ret;
+            break;
           }
           params_st->num_nodes++;
           /// Bump the map level to PARAMS
@@ -1124,14 +1126,16 @@ static rcutils_ret_t parse_key(
           if (NULL == parameter_ns) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error creating param namespace at line %d", line_num);
-            return RCUTILS_RET_ERROR;
+            ret = RCUTILS_RET_ERROR;
+            break;
           }
           ret = replace_ns(ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
               NS_TYPE_PARAM, allocator);
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error replacing namespace at line %d", line_num);
-            return RCUTILS_RET_ERROR;
+            ret = RCUTILS_RET_ERROR;
+            break;
           }
           *is_new_map = false;
         }
@@ -1141,7 +1145,8 @@ static rcutils_ret_t parse_key(
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Exceeded maximum allowed number of parameters for a node (%d)",
             MAX_NUM_PARAMS_PER_NODE);
-          return RCUTILS_RET_ERROR;
+          ret = RCUTILS_RET_ERROR;
+          break;
         }
 
         /// Add a parameter name into the node parameters
@@ -1150,7 +1155,8 @@ static rcutils_ret_t parse_key(
         if (NULL == parameter_ns) {
           param_name = rcutils_strdup(value, allocator);
           if (NULL == param_name) {
-            return RCUTILS_RET_BAD_ALLOC;
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
           }
         } else {
           const size_t params_ns_len = strlen(parameter_ns);
@@ -1160,12 +1166,14 @@ static rcutils_ret_t parse_key(
           if (tot_len > MAX_STRING_SIZE) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "The name length exceeds the MAX size %d at line %d", MAX_STRING_SIZE, line_num);
-            return RCUTILS_RET_OK;
+            ret = RCUTILS_RET_ERROR;
+            break;
           }
 
           param_name = allocator.zero_allocate(1U, tot_len, allocator.state);
           if (NULL == param_name) {
-            return RCUTILS_RET_BAD_ALLOC;
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
           }
 
           memmove(param_name, parameter_ns, params_ns_len);
@@ -1212,13 +1220,14 @@ static rcutils_ret_t parse_events(
   rcutils_ret_t ret = RCUTILS_RET_OK;
   while (0 == done_parsing) {
     if (RCUTILS_RET_OK != ret) {
-      return ret;
+      break;
     }
     int success = yaml_parser_parse(parser, &event);
     if (0 == success) {
       RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Error parsing a event near line %d", line_num);
-      return RCUTILS_RET_ERROR;
+      ret = RCUTILS_RET_ERROR;
+      break;
     }
     line_num = ((uint32_t)(event.start_mark.line) + 1U);
     switch (event.type) {
@@ -1232,8 +1241,7 @@ static rcutils_ret_t parse_events(
           if (true == is_key) {
             ret = parse_key(event, &map_level, &is_new_map, ns_tracker, params_st);
             if (RCUTILS_RET_OK != ret) {
-              yaml_event_delete(&event);
-              return ret;
+              break;
             }
             is_key = false;
           } else {
@@ -1241,42 +1249,38 @@ static rcutils_ret_t parse_events(
             if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
               RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
                 "Cannot have a value before %s at line %d", PARAMS_KEY, line_num);
-              yaml_event_delete(&event);
-              return RCUTILS_RET_ERROR;
+              ret = RCUTILS_RET_ERROR;
+              break;
             }
             ret = parse_value(event, is_seq, &seq_data_type, params_st);
             if (RCUTILS_RET_OK != ret) {
-              yaml_event_delete(&event);
-              return ret;
+              break;
             }
             if (false == is_seq) {
               is_key = true;
             }
           }
         }
-        yaml_event_delete(&event);
         break;
       case YAML_SEQUENCE_START_EVENT:
         if (true == is_key) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Sequences cannot be key at line %d", line_num);
-          yaml_event_delete(&event);
-          return RCUTILS_RET_ERROR;
+          ret = RCUTILS_RET_ERROR;
+          break;
         }
         if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Sequences can only be values and not keys in params. Error at line %d\n", line_num);
-          yaml_event_delete(&event);
-          return RCUTILS_RET_ERROR;
+          ret = RCUTILS_RET_ERROR;
+          break;
         }
         is_seq = true;
         seq_data_type = DATA_TYPE_UNKNOWN;
-        yaml_event_delete(&event);
         break;
       case YAML_SEQUENCE_END_EVENT:
         is_seq = false;
         is_key = true;
-        yaml_event_delete(&event);
         break;
       case YAML_MAPPING_START_EVENT:
         map_depth++;
@@ -1288,7 +1292,6 @@ static rcutils_ret_t parse_events(
         {
           is_new_map = false;
         }
-        yaml_event_delete(&event);
         break;
       case YAML_MAPPING_END_EVENT:
         if (MAP_PARAMS_LVL == map_level) {
@@ -1298,8 +1301,7 @@ static rcutils_ret_t parse_events(
             if (RCUTILS_RET_OK != ret) {
               RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
                 "Internal error removing parameter namespace at line %d", line_num);
-              yaml_event_delete(&event);
-              return ret;
+              break;
             }
           } else {
             map_level--;
@@ -1313,41 +1315,34 @@ static rcutils_ret_t parse_events(
             if (RCUTILS_RET_OK != ret) {
               RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
                 "Internal error removing node namespace at line %d", line_num);
-              yaml_event_delete(&event);
-              return ret;
+              break;
             }
           }
         }
         map_depth--;
-        yaml_event_delete(&event);
         break;
       case YAML_ALIAS_EVENT:
         RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Will not support aliasing at line %d\n", line_num);
         ret = RCUTILS_RET_ERROR;
-        yaml_event_delete(&event);
         break;
       case YAML_STREAM_START_EVENT:
-        yaml_event_delete(&event);
         break;
       case YAML_DOCUMENT_START_EVENT:
-        yaml_event_delete(&event);
         break;
       case YAML_DOCUMENT_END_EVENT:
-        yaml_event_delete(&event);
         break;
       case YAML_NO_EVENT:
         RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Received an empty event at line %d", line_num);
         ret = RCUTILS_RET_ERROR;
-        yaml_event_delete(&event);
         break;
       default:
         RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unknown YAML event at line %d", line_num);
         ret = RCUTILS_RET_ERROR;
-        yaml_event_delete(&event);
         break;
     }
+    yaml_event_delete(&event);
   }
   return ret;
 }
@@ -1369,10 +1364,8 @@ bool rcl_parse_yaml_file(
   }
   rcutils_allocator_t allocator = params_st->allocator;
 
-  if (NULL == file_path) {
-    RCUTILS_SET_ERROR_MSG("YAML file path is NULL");
-    return false;
-  }
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    file_path, "YAML file path is NULL", return false);
 
   yaml_parser_t parser;
   int success = yaml_parser_initialize(&parser);
