@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
@@ -486,6 +487,96 @@ void rcl_yaml_node_struct_fini(
   params_st->num_nodes = 0U;
   allocator.deallocate(params_st, allocator.state);
 }
+
+
+///
+/// Find node entry index in parameters' structure
+///
+static rcutils_ret_t find_node(
+  const char * node_name,
+  rcl_params_t * param_st,
+  size_t * node_idx)
+{
+  assert(NULL != node_name);
+  assert(NULL != param_st);
+  assert(NULL != node_idx);
+
+  for (*node_idx = 0U; *node_idx < param_st->num_nodes; (*node_idx)++) {
+    if (0 == strcmp(param_st->node_names[*node_idx], node_name)) {
+      // Node found.
+      return RCUTILS_RET_OK;
+    }
+  }
+  // Node not found, add it.
+  rcutils_allocator_t allocator = param_st->allocator;
+  param_st->node_names[*node_idx] = rcutils_strdup(node_name, allocator);
+  if (NULL == param_st->node_names[*node_idx]) {
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+  rcutils_ret_t ret = node_params_init(&param_st->params[*node_idx], allocator);
+  if (RCUTILS_RET_OK != ret) {
+    allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
+    return ret;
+  }
+  param_st->num_nodes++;
+  return RCUTILS_RET_OK;
+}
+
+///
+/// Find paremeter entry index in node parameters' structure
+///
+static rcutils_ret_t find_parameter(
+  const size_t node_idx,
+  const char * parameter_name,
+  rcl_params_t * param_st,
+  size_t * parameter_idx)
+{
+  assert(NULL != parameter_name);
+  assert(NULL != param_st);
+  assert(NULL != parameter_idx);
+
+  assert(node_idx < param_st->num_nodes);
+
+  rcl_node_params_t * node_param_st = &param_st->params[node_idx];
+  for (*parameter_idx = 0U; *parameter_idx < node_param_st->num_params; (*parameter_idx)++) {
+    if (0 == strcmp(node_param_st->parameter_names[*parameter_idx], parameter_name)) {
+      // Parameter found.
+      return RCUTILS_RET_OK;
+    }
+  }
+  // Parameter not found, add it.
+  rcutils_allocator_t allocator = param_st->allocator;
+  node_param_st->parameter_names[*parameter_idx] = rcutils_strdup(parameter_name, allocator);
+  if (NULL == node_param_st->parameter_names[*parameter_idx]) {
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+  node_param_st->num_params++;
+  return RCUTILS_RET_OK;
+}
+
+rcl_variant_t * rcl_yaml_node_struct_get(
+  const char * node_name,
+  const char * param_name,
+  rcl_params_t * params_st)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_name, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_name, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, NULL);
+
+  rcl_variant_t * param_value = NULL;
+
+  size_t node_idx = 0U;
+  rcutils_ret_t ret = find_node(node_name, params_st, &node_idx);
+  if (RCUTILS_RET_OK == ret) {
+    size_t parameter_idx = 0U;
+    ret = find_parameter(node_idx, param_name, params_st, &parameter_idx);
+    if (RCUTILS_RET_OK == ret) {
+      param_value = &params_st->params[node_idx].parameter_values[parameter_idx];
+    }
+  }
+  return param_value;
+}
+
 
 ///
 /// Dump the param structure
@@ -1377,125 +1468,47 @@ static rcutils_ret_t parse_value_events(
   data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
   rcutils_ret_t ret = RCUTILS_RET_OK;
   bool done_parsing = false;
-  while (!done_parsing) {
+  while (RCUTILS_RET_OK == ret && !done_parsing) {
     yaml_event_t event;
     int success = yaml_parser_parse(parser, &event);
     if (0 == success) {
       RCUTILS_SET_ERROR_MSG("Error parsing an event");
-      return RCUTILS_RET_ERROR;
+      ret = RCUTILS_RET_ERROR;
+      break;
     }
     switch (event.type) {
       case YAML_STREAM_END_EVENT:
         done_parsing = true;
-        yaml_event_delete(&event);
         break;
       case YAML_SCALAR_EVENT:
         ret = parse_value(
           event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
-        if (RCUTILS_RET_OK != ret) {
-          yaml_event_delete(&event);
-          return ret;
-        }
-        yaml_event_delete(&event);
         break;
       case YAML_SEQUENCE_START_EVENT:
         is_seq = true;
         seq_data_type = DATA_TYPE_UNKNOWN;
-        yaml_event_delete(&event);
         break;
       case YAML_SEQUENCE_END_EVENT:
         is_seq = false;
-        yaml_event_delete(&event);
         break;
       case YAML_STREAM_START_EVENT:
-        yaml_event_delete(&event);
         break;
       case YAML_DOCUMENT_START_EVENT:
-        yaml_event_delete(&event);
         break;
       case YAML_DOCUMENT_END_EVENT:
-        yaml_event_delete(&event);
         break;
       case YAML_NO_EVENT:
         RCUTILS_SET_ERROR_MSG("Received an empty event");
         ret = RCUTILS_RET_ERROR;
-        yaml_event_delete(&event);
         break;
       default:
         RCUTILS_SET_ERROR_MSG("Unknown YAML event");
         ret = RCUTILS_RET_ERROR;
-        yaml_event_delete(&event);
         break;
     }
+    yaml_event_delete(&event);
   }
   return ret;
-}
-
-///
-/// Find node entry index in parameters' structure
-///
-static rcutils_ret_t find_node(
-  const char * node_name,
-  rcl_params_t * param_st,
-  size_t * node_idx)
-{
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_name, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_st, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_idx, RCUTILS_RET_INVALID_ARGUMENT);
-
-  bool found = false;
-  for (*node_idx = 0U; *node_idx < param_st->num_nodes; (*node_idx)++) {
-    if (0 == strcmp(param_st->node_names[*node_idx], node_name)) {
-      found = true;
-      break;
-    }
-  }
-  if (!found) {
-    rcutils_allocator_t allocator = param_st->allocator;
-    param_st->node_names[*node_idx] = rcutils_strdup(node_name, allocator);
-    if (NULL == param_st->node_names[*node_idx]) {
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-    rcutils_ret_t ret = node_params_init(&param_st->params[*node_idx], allocator);
-    if (RCUTILS_RET_OK != ret) {
-      allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
-      return ret;
-    }
-    param_st->num_nodes++;
-  }
-  return RCUTILS_RET_OK;
-}
-
-///
-/// Find paremeter entry index in node parameters' structure
-///
-static rcutils_ret_t find_parameter(
-  const size_t node_idx,
-  const char * parameter_name,
-  rcl_params_t * param_st,
-  size_t * parameter_idx)
-{
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(parameter_name, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_st, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(parameter_idx, RCUTILS_RET_INVALID_ARGUMENT);
-
-  bool found = false;
-  rcl_node_params_t * node_param_st = &param_st->params[node_idx];
-  for (*parameter_idx = 0U; *parameter_idx < node_param_st->num_params; (*parameter_idx)++) {
-    if (0 == strcmp(node_param_st->parameter_names[*parameter_idx], parameter_name)) {
-      found = true;
-      break;
-    }
-  }
-  if (!found) {
-    rcutils_allocator_t allocator = param_st->allocator;
-    node_param_st->parameter_names[*parameter_idx] = rcutils_strdup(parameter_name, allocator);
-    if (NULL == node_param_st->parameter_names[*parameter_idx]) {
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-    node_param_st->num_params++;
-  }
-  return RCUTILS_RET_OK;
 }
 
 ///

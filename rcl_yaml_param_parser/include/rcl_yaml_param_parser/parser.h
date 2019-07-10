@@ -60,6 +60,18 @@ bool rcl_parse_yaml_value(
   const char * yaml_value,
   rcl_params_t * params_st);
 
+/// \brief Get the variant value for a given parameter, zero initializing it in the
+/// process if not present already
+/// \param[in] node_name is the name of the node to which the parameter belongs
+/// \param[in] param_name is the name of the parameter whose value is to be retrieved
+/// \param[inout] params_st points to the populated (or to be populated) parameter struct
+/// \return parameter variant value on success and NULL on failure
+RCL_YAML_PARAM_PARSER_PUBLIC
+rcl_variant_t * rcl_yaml_node_struct_get(
+  const char * node_name,
+  const char * param_name,
+  rcl_params_t * params_st);
+
 /// \brief Print the parameter structure to stdout
 /// \param[in] params_st points to the populated parameter struct
 RCL_YAML_PARAM_PARSER_PUBLIC
