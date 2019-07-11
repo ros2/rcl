@@ -420,14 +420,14 @@ void rcl_yaml_node_struct_fini(
     }
 
     if (NULL != params_st->params) {
-      rcl_node_params_t * node_params_st = &params_st->params[node_idx];
+      rcl_node_params_t * node_params_st = &(params_st->params[node_idx]);
       for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params; parameter_idx++) {
         if (
           (NULL != node_params_st->parameter_names) &&
           (NULL != node_params_st->parameter_values))
         {
           char * param_name = node_params_st->parameter_names[parameter_idx];
-          rcl_variant_t * param_var = &node_params_st->parameter_values[parameter_idx];
+          rcl_variant_t * param_var = &(node_params_st->parameter_values[parameter_idx]);
           if (NULL != param_name) {
             allocator.deallocate(param_name, allocator.state);
           }
@@ -513,7 +513,7 @@ static rcutils_ret_t find_node(
   if (NULL == param_st->node_names[*node_idx]) {
     return RCUTILS_RET_BAD_ALLOC;
   }
-  rcutils_ret_t ret = node_params_init(&param_st->params[*node_idx], allocator);
+  rcutils_ret_t ret = node_params_init(&(param_st->params[*node_idx]), allocator);
   if (RCUTILS_RET_OK != ret) {
     allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
     return ret;
@@ -537,7 +537,7 @@ static rcutils_ret_t find_parameter(
 
   assert(node_idx < param_st->num_nodes);
 
-  rcl_node_params_t * node_param_st = &param_st->params[node_idx];
+  rcl_node_params_t * node_param_st = &(param_st->params[node_idx]);
   for (*parameter_idx = 0U; *parameter_idx < node_param_st->num_params; (*parameter_idx)++) {
     if (0 == strcmp(node_param_st->parameter_names[*parameter_idx], parameter_name)) {
       // Parameter found.
@@ -571,7 +571,7 @@ rcl_variant_t * rcl_yaml_node_struct_get(
     size_t parameter_idx = 0U;
     ret = find_parameter(node_idx, param_name, params_st, &parameter_idx);
     if (RCUTILS_RET_OK == ret) {
-      param_value = &params_st->params[node_idx].parameter_values[parameter_idx];
+      param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
     }
   }
   return param_value;
@@ -597,14 +597,14 @@ void rcl_yaml_node_struct_print(
     }
 
     if (NULL != params_st->params) {
-      rcl_node_params_t * node_params_st = &params_st->params[node_idx];
+      rcl_node_params_t * node_params_st = &(params_st->params[node_idx]);
       for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params; parameter_idx++) {
         if (
           (NULL != node_params_st->parameter_names) &&
           (NULL != node_params_st->parameter_values))
         {
           char * param_name = node_params_st->parameter_names[parameter_idx];
-          rcl_variant_t * param_var = &node_params_st->parameter_values[parameter_idx];
+          rcl_variant_t * param_var = &(node_params_st->parameter_values[parameter_idx]);
           if (NULL != param_name) {
             printf("%*s", param_col, param_name);
           }
@@ -1296,7 +1296,6 @@ static rcutils_ret_t parse_file_events(
   rcl_params_t * params_st)
 {
   int32_t done_parsing = 0;
-  yaml_event_t event;
   bool is_key = true;
   bool is_seq = false;
   uint32_t line_num = 0;
@@ -1311,6 +1310,7 @@ static rcutils_ret_t parse_file_events(
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
 
+  yaml_event_t event;
   rcutils_ret_t ret = RCUTILS_RET_OK;
   while (0 == done_parsing) {
     if (RCUTILS_RET_OK != ret) {
