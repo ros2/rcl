@@ -25,26 +25,51 @@ extern "C"
 {
 #endif
 
-/// \brief Init param structure
+/// \brief Initialize parameter structure
 /// \param[in] allocator memory allocator to be used
 /// \return a pointer to param structure on success or NULL on failure
 RCL_YAML_PARAM_PARSER_PUBLIC
 rcl_params_t * rcl_yaml_node_struct_init(
   const rcutils_allocator_t allocator);
 
-/// \brief Free param structure
-/// \param[in] params_st points to the populated paramter struct
+/// \brief Free parameter structure
+/// \param[in] params_st points to the populated parameter struct
 RCL_YAML_PARAM_PARSER_PUBLIC
 void rcl_yaml_node_struct_fini(
   rcl_params_t * params_st);
 
 /// \brief Parse the YAML file, initialize and populate params_st
 /// \param[in] file_path is the path to the YAML file
-/// \param[inout] params_st points to the populated paramter struct
+/// \param[inout] params_st points to the populated parameter struct
 /// \return true on success and false on failure
 RCL_YAML_PARAM_PARSER_PUBLIC
 bool rcl_parse_yaml_file(
   const char * file_path,
+  rcl_params_t * params_st);
+
+/// \brief Parse a parameter value as a YAML string, updating params_st accordingly
+/// \param[in] node_name is the name of the node to which the parameter belongs
+/// \param[in] param_name is the name of the parameter whose value will be parsed
+/// \param[in] yaml_value is the parameter value as a YAML string to be parsed
+/// \param[inout] params_st points to the parameter struct
+/// \return true on success and false on failure
+RCL_YAML_PARAM_PARSER_PUBLIC
+bool rcl_parse_yaml_value(
+  const char * node_name,
+  const char * param_name,
+  const char * yaml_value,
+  rcl_params_t * params_st);
+
+/// \brief Get the variant value for a given parameter, zero initializing it in the
+/// process if not present already
+/// \param[in] node_name is the name of the node to which the parameter belongs
+/// \param[in] param_name is the name of the parameter whose value is to be retrieved
+/// \param[inout] params_st points to the populated (or to be populated) parameter struct
+/// \return parameter variant value on success and NULL on failure
+RCL_YAML_PARAM_PARSER_PUBLIC
+rcl_variant_t * rcl_yaml_node_struct_get(
+  const char * node_name,
+  const char * param_name,
   rcl_params_t * params_st);
 
 /// \brief Print the parameter structure to stdout

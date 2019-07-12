@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <yaml.h>
 
 #include "rcl_yaml_param_parser/parser.h"
@@ -25,8 +27,8 @@
 
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
-#include "rcutils/types.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types.h"
 
 /// NOTE: Will allow a max YAML mapping depth of 5
 /// map level 1 : Node name mapping
@@ -126,6 +128,8 @@ static void * get_value(
 static rcutils_ret_t parse_value(
   const yaml_event_t event,
   const bool is_seq,
+  const size_t node_idx,
+  const size_t parameter_idx,
   data_types_t * seq_data_type,
   rcl_params_t * params_st);
 
@@ -136,9 +140,15 @@ static rcutils_ret_t parse_key(
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st);
 
-static rcutils_ret_t parse_events(
+static rcutils_ret_t parse_file_events(
   yaml_parser_t * parser,
   namespace_tracker_t * ns_tracker,
+  rcl_params_t * params_st);
+
+static rcutils_ret_t parse_value_events(
+  yaml_parser_t * parser,
+  const size_t node_idx,
+  const size_t parameter_idx,
   rcl_params_t * params_st);
 
 ///
@@ -410,14 +420,14 @@ void rcl_yaml_node_struct_fini(
     }
 
     if (NULL != params_st->params) {
-      rcl_node_params_t * node_params_st = &params_st->params[node_idx];
+      rcl_node_params_t * node_params_st = &(params_st->params[node_idx]);
       for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params; parameter_idx++) {
         if (
           (NULL != node_params_st->parameter_names) &&
           (NULL != node_params_st->parameter_values))
         {
           char * param_name = node_params_st->parameter_names[parameter_idx];
-          rcl_variant_t * param_var = &node_params_st->parameter_values[parameter_idx];
+          rcl_variant_t * param_var = &(node_params_st->parameter_values[parameter_idx]);
           if (NULL != param_name) {
             allocator.deallocate(param_name, allocator.state);
           }
@@ -478,6 +488,96 @@ void rcl_yaml_node_struct_fini(
   allocator.deallocate(params_st, allocator.state);
 }
 
+
+///
+/// Find node entry index in parameters' structure
+///
+static rcutils_ret_t find_node(
+  const char * node_name,
+  rcl_params_t * param_st,
+  size_t * node_idx)
+{
+  assert(NULL != node_name);
+  assert(NULL != param_st);
+  assert(NULL != node_idx);
+
+  for (*node_idx = 0U; *node_idx < param_st->num_nodes; (*node_idx)++) {
+    if (0 == strcmp(param_st->node_names[*node_idx], node_name)) {
+      // Node found.
+      return RCUTILS_RET_OK;
+    }
+  }
+  // Node not found, add it.
+  rcutils_allocator_t allocator = param_st->allocator;
+  param_st->node_names[*node_idx] = rcutils_strdup(node_name, allocator);
+  if (NULL == param_st->node_names[*node_idx]) {
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+  rcutils_ret_t ret = node_params_init(&(param_st->params[*node_idx]), allocator);
+  if (RCUTILS_RET_OK != ret) {
+    allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
+    return ret;
+  }
+  param_st->num_nodes++;
+  return RCUTILS_RET_OK;
+}
+
+///
+/// Find paremeter entry index in node parameters' structure
+///
+static rcutils_ret_t find_parameter(
+  const size_t node_idx,
+  const char * parameter_name,
+  rcl_params_t * param_st,
+  size_t * parameter_idx)
+{
+  assert(NULL != parameter_name);
+  assert(NULL != param_st);
+  assert(NULL != parameter_idx);
+
+  assert(node_idx < param_st->num_nodes);
+
+  rcl_node_params_t * node_param_st = &(param_st->params[node_idx]);
+  for (*parameter_idx = 0U; *parameter_idx < node_param_st->num_params; (*parameter_idx)++) {
+    if (0 == strcmp(node_param_st->parameter_names[*parameter_idx], parameter_name)) {
+      // Parameter found.
+      return RCUTILS_RET_OK;
+    }
+  }
+  // Parameter not found, add it.
+  rcutils_allocator_t allocator = param_st->allocator;
+  node_param_st->parameter_names[*parameter_idx] = rcutils_strdup(parameter_name, allocator);
+  if (NULL == node_param_st->parameter_names[*parameter_idx]) {
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+  node_param_st->num_params++;
+  return RCUTILS_RET_OK;
+}
+
+rcl_variant_t * rcl_yaml_node_struct_get(
+  const char * node_name,
+  const char * param_name,
+  rcl_params_t * params_st)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_name, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_name, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, NULL);
+
+  rcl_variant_t * param_value = NULL;
+
+  size_t node_idx = 0U;
+  rcutils_ret_t ret = find_node(node_name, params_st, &node_idx);
+  if (RCUTILS_RET_OK == ret) {
+    size_t parameter_idx = 0U;
+    ret = find_parameter(node_idx, param_name, params_st, &parameter_idx);
+    if (RCUTILS_RET_OK == ret) {
+      param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
+    }
+  }
+  return param_value;
+}
+
+
 ///
 /// Dump the param structure
 ///
@@ -497,14 +597,14 @@ void rcl_yaml_node_struct_print(
     }
 
     if (NULL != params_st->params) {
-      rcl_node_params_t * node_params_st = &params_st->params[node_idx];
+      rcl_node_params_t * node_params_st = &(params_st->params[node_idx]);
       for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params; parameter_idx++) {
         if (
           (NULL != node_params_st->parameter_names) &&
           (NULL != node_params_st->parameter_values))
         {
           char * param_name = node_params_st->parameter_names[parameter_idx];
-          rcl_variant_t * param_var = &node_params_st->parameter_values[parameter_idx];
+          rcl_variant_t * param_var = &(node_params_st->parameter_values[parameter_idx]);
           if (NULL != param_name) {
             printf("%*s", param_col, param_name);
           }
@@ -817,6 +917,8 @@ static void * get_value(
 static rcutils_ret_t parse_value(
   const yaml_event_t event,
   const bool is_seq,
+  const size_t node_idx,
+  const size_t parameter_idx,
   data_types_t * seq_data_type,
   rcl_params_t * params_st)
 {
@@ -832,13 +934,6 @@ static rcutils_ret_t parse_value(
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
 
-  const size_t node_idx = (params_st->num_nodes - 1U);
-  if (0U == params_st->params[node_idx].num_params) {
-    RCUTILS_SET_ERROR_MSG("No parameter to update");
-    return RCUTILS_RET_INVALID_ARGUMENT;
-  }
-
-  const size_t parameter_idx = ((params_st->params[node_idx].num_params) - 1U);
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
   yaml_scalar_style_t style = event.data.scalar.style;
@@ -1056,11 +1151,10 @@ static rcutils_ret_t parse_key(
   }
 
   size_t node_idx = 0U;
-  size_t num_nodes = params_st->num_nodes;  // New node index
+  size_t num_nodes = params_st->num_nodes;
   if (num_nodes > 0U) {
-    node_idx = (num_nodes - 1U);  // Current node index
+    node_idx = num_nodes - 1U;
   }
-
   rcutils_ret_t ret = RCUTILS_RET_OK;
   switch (*map_level) {
     case MAP_UNINIT_LVL:
@@ -1114,8 +1208,8 @@ static rcutils_ret_t parse_key(
       break;
     case MAP_PARAMS_LVL:
       {
-        char * parameter_ns;
         size_t parameter_idx;
+        char * parameter_ns;
         char * param_name;
 
         /// If it is a new map, the previous key is param namespace
@@ -1194,15 +1288,14 @@ static rcutils_ret_t parse_key(
 }
 
 ///
-/// Get events from the parser and process the events
+/// Get events from parsing a parameter YAML file and process them
 ///
-static rcutils_ret_t parse_events(
+static rcutils_ret_t parse_file_events(
   yaml_parser_t * parser,
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st)
 {
   int32_t done_parsing = 0;
-  yaml_event_t event;
   bool is_key = true;
   bool is_seq = false;
   uint32_t line_num = 0;
@@ -1217,6 +1310,7 @@ static rcutils_ret_t parse_events(
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
 
+  yaml_event_t event;
   rcutils_ret_t ret = RCUTILS_RET_OK;
   while (0 == done_parsing) {
     if (RCUTILS_RET_OK != ret) {
@@ -1252,7 +1346,21 @@ static rcutils_ret_t parse_events(
               ret = RCUTILS_RET_ERROR;
               break;
             }
-            ret = parse_value(event, is_seq, &seq_data_type, params_st);
+            if (0U == params_st->num_nodes) {
+              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+                "Cannot have a value before %s at line %d", PARAMS_KEY, line_num);
+              yaml_event_delete(&event);
+              return RCUTILS_RET_ERROR;
+            }
+            const size_t node_idx = (params_st->num_nodes - 1U);
+            if (0U == params_st->params[node_idx].num_params) {
+              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+                "Cannot have a value before %s at line %d", PARAMS_KEY, line_num);
+              yaml_event_delete(&event);
+              return RCUTILS_RET_ERROR;
+            }
+            const size_t parameter_idx = (params_st->params[node_idx].num_params - 1U);
+            ret = parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -1348,7 +1456,62 @@ static rcutils_ret_t parse_events(
 }
 
 ///
-/// TODO (anup.pemmaiah): Support string yaml similar to yaml file
+/// Get events from parsing a parameter YAML value string and process them
+///
+static rcutils_ret_t parse_value_events(
+  yaml_parser_t * parser,
+  const size_t node_idx,
+  const size_t parameter_idx,
+  rcl_params_t * params_st)
+{
+  bool is_seq = false;
+  data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
+  rcutils_ret_t ret = RCUTILS_RET_OK;
+  bool done_parsing = false;
+  while (RCUTILS_RET_OK == ret && !done_parsing) {
+    yaml_event_t event;
+    int success = yaml_parser_parse(parser, &event);
+    if (0 == success) {
+      RCUTILS_SET_ERROR_MSG("Error parsing an event");
+      ret = RCUTILS_RET_ERROR;
+      break;
+    }
+    switch (event.type) {
+      case YAML_STREAM_END_EVENT:
+        done_parsing = true;
+        break;
+      case YAML_SCALAR_EVENT:
+        ret = parse_value(
+          event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
+        break;
+      case YAML_SEQUENCE_START_EVENT:
+        is_seq = true;
+        seq_data_type = DATA_TYPE_UNKNOWN;
+        break;
+      case YAML_SEQUENCE_END_EVENT:
+        is_seq = false;
+        break;
+      case YAML_STREAM_START_EVENT:
+        break;
+      case YAML_DOCUMENT_START_EVENT:
+        break;
+      case YAML_DOCUMENT_END_EVENT:
+        break;
+      case YAML_NO_EVENT:
+        RCUTILS_SET_ERROR_MSG("Received an empty event");
+        ret = RCUTILS_RET_ERROR;
+        break;
+      default:
+        RCUTILS_SET_ERROR_MSG("Unknown YAML event");
+        ret = RCUTILS_RET_ERROR;
+        break;
+    }
+    yaml_event_delete(&event);
+  }
+  return ret;
+}
+
+///
 /// TODO (anup.pemmaiah): Support Mutiple yaml files
 ///
 ///
@@ -1358,14 +1521,13 @@ bool rcl_parse_yaml_file(
   const char * file_path,
   rcl_params_t * params_st)
 {
-  if (NULL == params_st) {
-    RCUTILS_SAFE_FWRITE_TO_STDERR("Pass a initialized paramter structure");
-    return false;
-  }
-  rcutils_allocator_t allocator = params_st->allocator;
-
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     file_path, "YAML file path is NULL", return false);
+
+  if (NULL == params_st) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized parameter structure");
+    return false;
+  }
 
   yaml_parser_t parser;
   int success = yaml_parser_initialize(&parser);
@@ -1385,12 +1547,14 @@ bool rcl_parse_yaml_file(
 
   namespace_tracker_t ns_tracker;
   memset(&ns_tracker, 0, sizeof(namespace_tracker_t));
-  rcutils_ret_t ret = parse_events(&parser, &ns_tracker, params_st);
+  rcutils_ret_t ret = parse_file_events(&parser, &ns_tracker, params_st);
 
-  yaml_parser_delete(&parser);
   fclose(yaml_file);
 
+  yaml_parser_delete(&parser);
+
   if (RCUTILS_RET_OK != ret) {
+    rcutils_allocator_t allocator = params_st->allocator;
     if (NULL != ns_tracker.node_ns) {
       allocator.deallocate(ns_tracker.node_ns, allocator.state);
     }
@@ -1402,4 +1566,51 @@ bool rcl_parse_yaml_file(
   }
 
   return true;
+}
+
+///
+/// Parse a YAML string and populate params_st
+///
+bool rcl_parse_yaml_value(
+  const char * node_name,
+  const char * param_name,
+  const char * yaml_value,
+  rcl_params_t * params_st)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_name, false);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_name, false);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(yaml_value, false);
+
+  if (NULL == params_st) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized parameter structure");
+    return false;
+  }
+
+  size_t node_idx = 0U;
+  rcutils_ret_t ret = find_node(node_name, params_st, &node_idx);
+  if (RCUTILS_RET_OK != ret) {
+    return false;
+  }
+
+  size_t parameter_idx = 0U;
+  ret = find_parameter(node_idx, param_name, params_st, &parameter_idx);
+  if (RCUTILS_RET_OK != ret) {
+    return false;
+  }
+
+  yaml_parser_t parser;
+  int success = yaml_parser_initialize(&parser);
+  if (0 == success) {
+    RCUTILS_SET_ERROR_MSG("Could not initialize the parser");
+    return false;
+  }
+
+  yaml_parser_set_input_string(
+    &parser, (const unsigned char *)yaml_value, strlen(yaml_value));
+
+  ret = parse_value_events(&parser, node_idx, parameter_idx, params_st);
+
+  yaml_parser_delete(&parser);
+
+  return RCUTILS_RET_OK == ret;
 }

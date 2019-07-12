@@ -49,6 +49,7 @@ install(TARGETS ${PROJECT_NAME}
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
+  find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
   # Gtests
@@ -57,6 +58,8 @@ if(BUILD_TESTING)
   )
   if(TARGET test_parse_yaml)
     target_link_libraries(test_parse_yaml ${PROJECT_NAME})
+    target_include_directories(test_parse_yaml
+      PRIVATE ${osrf_testing_tools_cpp_INCLUDE_DIRS})
   endif()
 
 endif()
