@@ -10,12 +10,13 @@ Be sure to go over each item in the list below before submitting your pull reque
 
 ### Description
 
-Add your description here
+Briefly describe what your changes are doing. It is more important to mention why the changes are necessary, rather than the how.
 
 ### Checklist
 
 - [ ] Make sure that your commit messages include a [DCO](https://discourse.ros.org/t/starting-to-enforce-developer-certificate-of-origin-dco-for-some-ros-2-repos/7420).
 - [ ] Make sure your commit messages follow [good practices](https://chris.beams.io/posts/git-commit/).
+- [ ] Make sure your build passes tests locally.
 - [ ] Make sure your PR is minimal. Unrelated changes should be submitted separately.
 - [ ] If you have changed how any of the APIs worked, or added new APIs, please update the API documentation.
 - [ ] If you've added a new feature or new package, make sure to update the [documentation](https://index.ros.org/doc/ros2/),  describing the new feature.
@@ -26,15 +27,11 @@ Add your description here
 
 PRs must be tested on each Tier 1 platform as documented by the [REP-2000]( http://www.ros.org/reps/rep-2000.html).
 
-Tier 1:
-
 - [ ] Linux Ubuntu x86-64
 - [ ] Linux Ubuntu arch64
 - [ ] OS X Testing
 - [ ] Windows Testing
 
-Other tested Tier 2 and Tier 3 platforms:
-
 ### Release Engineering
 
-- Should this PR cherry-picked to the next patch release? Yes/No (choose No if unsure, only possible for PRs preserving ABI compatibility)
+- [ ] Should this PR be backported to supported ROS 2 releases? Changes that break API or ABI are not generally eligible to be backported.
