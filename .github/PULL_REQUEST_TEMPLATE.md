@@ -14,13 +14,13 @@ Briefly describe what your changes are doing. It is more important to mention wh
 
 ### Checklist
 
-- [ ] Make sure that your commit messages include a [DCO](https://discourse.ros.org/t/starting-to-enforce-developer-certificate-of-origin-dco-for-some-ros-2-repos/7420).
-- [ ] Make sure your commit messages follow [good practices](https://chris.beams.io/posts/git-commit/).
-- [ ] Make sure your build passes tests locally.
-- [ ] Make sure your PR is minimal. Unrelated changes should be submitted separately.
-- [ ] If you have changed how any of the APIs worked, or added new APIs, please update the API documentation.
-- [ ] If you've added a new feature or new package, make sure to update the [documentation](https://index.ros.org/doc/ros2/),  describing the new feature.
-- [ ] Add or update tests corresponding to your PR.  If tests cannot be added for some reason, be sure to explain why in the description.
+- [ ] The commit messages include a [DCO](https://discourse.ros.org/t/starting-to-enforce-developer-certificate-of-origin-dco-for-some-ros-2-repos/7420).
+- [ ] The commit messages follow [good practices](https://chris.beams.io/posts/git-commit/).
+- [ ] The build passes tests locally.
+- [ ] The PR is minimal and any unrelated changes are submitted separately.
+- [ ] The API documentation has been updated based on changes in APIs or addition of new APIs, if any.
+- [ ] The [documentation](https://index.ros.org/doc/ros2/) has been updated to describe the new feature or package added, if any.
+- [ ] Added or updated tests corresponding to the PR. If tests cannot be added for some reason, it has been explained in the description.
 - [ ] While waiting for someone to review your PR, please consider reviewing [another open pull request](https://github.com/ros2/rcl/pulls) to support the maintainers of RCL. Refer to the [ROS code review guide](https://github.com/rosin-project/ros_code_review_guide/blob/master/README.md) for general reviewing guidelines and [Quality Guide: Ensuring code quality](https://index.ros.org/doc/ros2/Contributing/Quality-Guide/) for ROS 2 specific guidelines
 
 ### Testing
@@ -34,4 +34,4 @@ PRs must be tested on each Tier 1 platform as documented by the [REP-2000]( http
 
 ### Release Engineering
 
-- [ ] Should this PR be backported to supported ROS 2 releases? Changes that break API or ABI are not generally eligible to be backported.
+- [ ] This PR shoub be backported to supported ROS 2 releases. I understand changes that break API or ABI are not generally eligible to be backported.
