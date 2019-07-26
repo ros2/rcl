@@ -9,7 +9,6 @@ find_package(action_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
-find_package(rmw_implementation_cmake REQUIRED)
 
 include_directories(
   include
