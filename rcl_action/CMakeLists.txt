@@ -9,7 +9,6 @@ find_package(action_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
-find_package(rmw_implementation_cmake REQUIRED)
 
 include_directories(
   include
@@ -110,12 +109,9 @@ if(BUILD_TESTING)
     ament_add_gtest(
       "${target}${target_suffix}" ${ARGN}
       TIMEOUT 60
-      APPEND_LIBRARY_DIRS "${append_library_dirs}"
       ENV
       RCL_ASSERT_RMW_ID_MATCHES=${rmw_implementation}
       RMW_IMPLEMENTATION=${rmw_implementation}
-      ROS_SECURITY_ROOT_DIRECTORY="${VALID_ROS_SECURITY_ROOT_DIRECTORY}"
-      PATH="${TEST_PATH}"
     )
     if(TARGET ${target}${target_suffix})
       target_compile_definitions(${target}${target_suffix}
@@ -135,19 +131,6 @@ if(BUILD_TESTING)
   endfunction()
 
   macro(targets)
-    set(ENV_PATH "$ENV{PATH}")
-    file(TO_CMAKE_PATH "${ENV_PATH}" ENV_PATH)
-    set(TEST_PATH "${ENV_PATH}")
-    if(rmw_implementation STREQUAL "rmw_connext_cpp")
-      if(UNIX AND NOT APPLE)
-        set(RTI_BIN_PATH "$ENV{RTI_OPENSSL_BIN}")
-        file(TO_CMAKE_PATH "${RTI_BIN_PATH}" RTI_BIN_PATH)
-        set(TEST_PATH "${RTI_BIN_PATH};${ENV_PATH}")
-        if(NOT WIN32)
-          string(REPLACE ";" ":" TEST_PATH "${TEST_PATH}")
-        endif()
-      endif()
-    endif()
     custom_test_c(test_action_communication
       "test/rcl_action/test_action_communication.cpp")
     custom_test_c(test_action_interaction
