@@ -34,6 +34,9 @@ typedef struct rcl_arguments_t
   struct rcl_arguments_impl_t * impl;
 } rcl_arguments_t;
 
+#define RCL_ROS_ARGS_FLAG "--ros-args"
+#define RCL_ROS_ARGS_EXPLICIT_END_TOKEN "--"
+
 #define RCL_LOG_LEVEL_ARG_RULE "__log_level:="
 #define RCL_EXTERNAL_LOG_CONFIG_ARG_RULE "__log_config_file:="
 #define RCL_LOG_DISABLE_STDOUT_ARG_RULE "__log_disable_stdout:="
