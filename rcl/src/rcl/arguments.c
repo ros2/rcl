@@ -217,6 +217,8 @@ rcl_parse_arguments(
   args_impl->external_log_config_file = NULL;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
+  args_impl->unparsed_ros_args = NULL;
+  args_impl->num_unparsed_ros_args = 0;
   args_impl->parameter_files = NULL;
   args_impl->num_param_files_args = 0;
   args_impl->log_stdout_disabled = false;
@@ -581,6 +583,8 @@ rcl_arguments_copy(
   args_out->impl->remap_rules = NULL;
   args_out->impl->unparsed_args = NULL;
   args_out->impl->num_unparsed_args = 0;
+  args_out->impl->unparsed_ros_args = NULL;
+  args_out->impl->num_unparsed_ros_args = 0;
   args_out->impl->parameter_files = NULL;
   args_out->impl->num_param_files_args = 0;
 
@@ -598,6 +602,22 @@ rcl_arguments_copy(
       args_out->impl->unparsed_args[i] = args->impl->unparsed_args[i];
     }
     args_out->impl->num_unparsed_args = args->impl->num_unparsed_args;
+  }
+
+  if (args->impl->num_unparsed_ros_args) {
+    // Copy unparsed ROS args
+    args_out->impl->unparsed_ros_args = allocator.allocate(
+      sizeof(int) * args->impl->num_unparsed_ros_args, allocator.state);
+    if (NULL == args_out->impl->unparsed_ros_args) {
+      if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
+      }
+      return RCL_RET_BAD_ALLOC;
+    }
+    for (int i = 0; i < args->impl->num_unparsed_ros_args; ++i) {
+      args_out->impl->unparsed_ros_args[i] = args->impl->unparsed_ros_args[i];
+    }
+    args_out->impl->num_unparsed_ros_args = args->impl->num_unparsed_ros_args;
   }
 
   if (args->impl->num_remap_rules) {
@@ -674,6 +694,10 @@ rcl_arguments_fini(
     args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
     args->impl->num_unparsed_args = 0;
     args->impl->unparsed_args = NULL;
+
+    args->impl->allocator.deallocate(args->impl->unparsed_ros_args, args->impl->allocator.state);
+    args->impl->num_unparsed_ros_args = 0;
+    args->impl->unparsed_ros_args = NULL;
 
     if (args->impl->parameter_files) {
       for (int p = 0; p < args->impl->num_param_files_args; ++p) {
