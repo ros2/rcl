@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.6 (2019-08-01)
+------------------
+* Accept quoted int or float values as strings. (`#474 <https://github.com/ros2/rcl/issues/474>`_)
+* Contributors: ivanpauno
+
 0.7.5 (2019-06-12)
 ------------------
 * Fix memory corruption when maximum number of parameters is exceeded (`#456 <https://github.com/ros2/rcl/issues/456>`_)
