@@ -468,6 +468,41 @@ rcl_arguments_get_unparsed(
   return RCL_RET_OK;
 }
 
+int
+rcl_arguments_get_count_unparsed_ros(
+  const rcl_arguments_t * args)
+{
+  if (NULL == args || NULL == args->impl) {
+    return -1;
+  }
+  return args->impl->num_unparsed_ros_args;
+}
+
+rcl_ret_t
+rcl_arguments_get_unparsed_ros(
+  const rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int ** output_unparsed_ros_indices)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_unparsed_ros_indices, RCL_RET_INVALID_ARGUMENT);
+
+  *output_unparsed_ros_indices = NULL;
+  if (args->impl->num_unparsed_ros_args) {
+    *output_unparsed_ros_indices = allocator.allocate(
+      sizeof(int) * args->impl->num_unparsed_ros_args, allocator.state);
+    if (NULL == *output_unparsed_ros_indices) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    for (int i = 0; i < args->impl->num_unparsed_ros_args; ++i) {
+      (*output_unparsed_ros_indices)[i] = args->impl->unparsed_ros_args[i];
+    }
+  }
+  return RCL_RET_OK;
+}
+
 rcl_arguments_t
 rcl_get_zero_initialized_arguments(void)
 {
