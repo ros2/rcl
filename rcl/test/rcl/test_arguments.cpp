@@ -68,72 +68,104 @@ public:
     EXPECT_STREQ(expected.str().c_str(), actual.str().c_str()); \
   } while (0)
 
+#define EXPECT_UNPARSED_ROS(parsed_args, ...) \
+  do { \
+    int expect_unparsed_ros[] = {__VA_ARGS__}; \
+    int expect_num_unparsed_ros = sizeof(expect_unparsed_ros) / sizeof(int); \
+    rcl_allocator_t alloc = rcl_get_default_allocator(); \
+    int actual_num_unparsed_ros = rcl_arguments_get_count_unparsed_ros(&parsed_args); \
+    int * actual_unparsed_ros = NULL; \
+    if (actual_num_unparsed_ros > 0) { \
+      rcl_ret_t ret = rcl_arguments_get_unparsed_ros(&parsed_args, alloc, &actual_unparsed_ros); \
+      ASSERT_EQ(RCL_RET_OK, ret); \
+    } \
+    std::stringstream expected; \
+    expected << "["; \
+    for (int e = 0; e < expect_num_unparsed_ros; ++e) { \
+      expected << expect_unparsed_ros[e] << ", ";       \
+    } \
+    expected << "]"; \
+    std::stringstream actual; \
+    actual << "["; \
+    for (int a = 0; a < actual_num_unparsed_ros; ++a) { \
+      actual << actual_unparsed_ros[a] << ", ";         \
+    } \
+    actual << "]"; \
+    if (NULL != actual_unparsed_ros) {                \
+      alloc.deallocate(actual_unparsed_ros, alloc.state); \
+    } \
+    EXPECT_STREQ(expected.str().c_str(), actual.str().c_str()); \
+  } while (0)
+
+
 bool
-is_valid_arg(const char * arg)
+is_valid_ros_arg(const char * arg)
 {
-  const char * argv[] = {arg};
+  const char * argv[] = {"--ros-args", arg};
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
-  rcl_ret_t ret = rcl_parse_arguments(1, argv, rcl_get_default_allocator(), &parsed_args);
+  rcl_ret_t ret = rcl_parse_arguments(2, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  bool is_valid = 0 == rcl_arguments_get_count_unparsed(&parsed_args);
+  bool is_valid = (
+    0 == rcl_arguments_get_count_unparsed(&parsed_args) &&
+    0 == rcl_arguments_get_count_unparsed_ros(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   return is_valid;
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_invalid_args) {
-  EXPECT_TRUE(is_valid_arg("__node:=node_name"));
-  EXPECT_TRUE(is_valid_arg("old_name:__node:=node_name"));
-  EXPECT_TRUE(is_valid_arg("old_name:__node:=nodename123"));
-  EXPECT_TRUE(is_valid_arg("__node:=nodename123"));
-  EXPECT_TRUE(is_valid_arg("__ns:=/foo/bar"));
-  EXPECT_TRUE(is_valid_arg("__ns:=/"));
-  EXPECT_TRUE(is_valid_arg("_:=kq"));
-  EXPECT_TRUE(is_valid_arg("nodename:__ns:=/foobar"));
-  EXPECT_TRUE(is_valid_arg("foo:=bar"));
-  EXPECT_TRUE(is_valid_arg("~/foo:=~/bar"));
-  EXPECT_TRUE(is_valid_arg("/foo/bar:=bar"));
-  EXPECT_TRUE(is_valid_arg("foo:=/bar"));
-  EXPECT_TRUE(is_valid_arg("/foo123:=/bar123"));
-  EXPECT_TRUE(is_valid_arg("node:/foo123:=/bar123"));
-  EXPECT_TRUE(is_valid_arg("rostopic:=/foo/bar"));
-  EXPECT_TRUE(is_valid_arg("rosservice:=baz"));
-  EXPECT_TRUE(is_valid_arg("rostopic://rostopic:=rosservice"));
-  EXPECT_TRUE(is_valid_arg("rostopic:///rosservice:=rostopic"));
-  EXPECT_TRUE(is_valid_arg("rostopic:///foo/bar:=baz"));
-  EXPECT_TRUE(is_valid_arg("__params:=file_name.yaml"));
+  EXPECT_TRUE(is_valid_ros_arg("__node:=node_name"));
+  EXPECT_TRUE(is_valid_ros_arg("old_name:__node:=node_name"));
+  EXPECT_TRUE(is_valid_ros_arg("old_name:__node:=nodename123"));
+  EXPECT_TRUE(is_valid_ros_arg("__node:=nodename123"));
+  EXPECT_TRUE(is_valid_ros_arg("__ns:=/foo/bar"));
+  EXPECT_TRUE(is_valid_ros_arg("__ns:=/"));
+  EXPECT_TRUE(is_valid_ros_arg("_:=kq"));
+  EXPECT_TRUE(is_valid_ros_arg("nodename:__ns:=/foobar"));
+  EXPECT_TRUE(is_valid_ros_arg("foo:=bar"));
+  EXPECT_TRUE(is_valid_ros_arg("~/foo:=~/bar"));
+  EXPECT_TRUE(is_valid_ros_arg("/foo/bar:=bar"));
+  EXPECT_TRUE(is_valid_ros_arg("foo:=/bar"));
+  EXPECT_TRUE(is_valid_ros_arg("/foo123:=/bar123"));
+  EXPECT_TRUE(is_valid_ros_arg("node:/foo123:=/bar123"));
+  EXPECT_TRUE(is_valid_ros_arg("rostopic:=/foo/bar"));
+  EXPECT_TRUE(is_valid_ros_arg("rosservice:=baz"));
+  EXPECT_TRUE(is_valid_ros_arg("rostopic://rostopic:=rosservice"));
+  EXPECT_TRUE(is_valid_ros_arg("rostopic:///rosservice:=rostopic"));
+  EXPECT_TRUE(is_valid_ros_arg("rostopic:///foo/bar:=baz"));
+  EXPECT_TRUE(is_valid_ros_arg("__params:=file_name.yaml"));
 
-  EXPECT_FALSE(is_valid_arg(":="));
-  EXPECT_FALSE(is_valid_arg("foo:="));
-  EXPECT_FALSE(is_valid_arg(":=bar"));
-  EXPECT_FALSE(is_valid_arg("__ns:="));
-  EXPECT_FALSE(is_valid_arg("__node:="));
-  EXPECT_FALSE(is_valid_arg("__node:=/foo/bar"));
-  EXPECT_FALSE(is_valid_arg("__ns:=foo"));
-  EXPECT_FALSE(is_valid_arg(":__node:=nodename"));
-  EXPECT_FALSE(is_valid_arg("~:__node:=nodename"));
-  EXPECT_FALSE(is_valid_arg("}foo:=/bar"));
-  EXPECT_FALSE(is_valid_arg("f oo:=/bar"));
-  EXPECT_FALSE(is_valid_arg("foo:=/b ar"));
-  EXPECT_FALSE(is_valid_arg("f{oo:=/bar"));
-  EXPECT_FALSE(is_valid_arg("foo:=/b}ar"));
-  EXPECT_FALSE(is_valid_arg("rostopic://:=rosservice"));
-  EXPECT_FALSE(is_valid_arg("rostopic::=rosservice"));
-  EXPECT_FALSE(is_valid_arg("__param:=file_name.yaml"));
+  EXPECT_FALSE(is_valid_ros_arg(":="));
+  EXPECT_FALSE(is_valid_ros_arg("foo:="));
+  EXPECT_FALSE(is_valid_ros_arg(":=bar"));
+  EXPECT_FALSE(is_valid_ros_arg("__ns:="));
+  EXPECT_FALSE(is_valid_ros_arg("__node:="));
+  EXPECT_FALSE(is_valid_ros_arg("__node:=/foo/bar"));
+  EXPECT_FALSE(is_valid_ros_arg("__ns:=foo"));
+  EXPECT_FALSE(is_valid_ros_arg(":__node:=nodename"));
+  EXPECT_FALSE(is_valid_ros_arg("~:__node:=nodename"));
+  EXPECT_FALSE(is_valid_ros_arg("}foo:=/bar"));
+  EXPECT_FALSE(is_valid_ros_arg("f oo:=/bar"));
+  EXPECT_FALSE(is_valid_ros_arg("foo:=/b ar"));
+  EXPECT_FALSE(is_valid_ros_arg("f{oo:=/bar"));
+  EXPECT_FALSE(is_valid_ros_arg("foo:=/b}ar"));
+  EXPECT_FALSE(is_valid_ros_arg("rostopic://:=rosservice"));
+  EXPECT_FALSE(is_valid_ros_arg("rostopic::=rosservice"));
+  EXPECT_FALSE(is_valid_ros_arg("__param:=file_name.yaml"));
 
   // Setting logger level
-  EXPECT_TRUE(is_valid_arg("__log_level:=UNSET"));
-  EXPECT_TRUE(is_valid_arg("__log_level:=DEBUG"));
-  EXPECT_TRUE(is_valid_arg("__log_level:=INFO"));
-  EXPECT_TRUE(is_valid_arg("__log_level:=WARN"));
-  EXPECT_TRUE(is_valid_arg("__log_level:=ERROR"));
-  EXPECT_TRUE(is_valid_arg("__log_level:=FATAL"));
-  EXPECT_TRUE(is_valid_arg("__log_level:=debug"));
-  EXPECT_TRUE(is_valid_arg("__log_level:=Info"));
+  EXPECT_TRUE(is_valid_ros_arg("__log_level:=UNSET"));
+  EXPECT_TRUE(is_valid_ros_arg("__log_level:=DEBUG"));
+  EXPECT_TRUE(is_valid_ros_arg("__log_level:=INFO"));
+  EXPECT_TRUE(is_valid_ros_arg("__log_level:=WARN"));
+  EXPECT_TRUE(is_valid_ros_arg("__log_level:=ERROR"));
+  EXPECT_TRUE(is_valid_ros_arg("__log_level:=FATAL"));
+  EXPECT_TRUE(is_valid_ros_arg("__log_level:=debug"));
+  EXPECT_TRUE(is_valid_ros_arg("__log_level:=Info"));
 
-  EXPECT_FALSE(is_valid_arg("__log:=foo"));
-  EXPECT_FALSE(is_valid_arg("__loglevel:=foo"));
-  EXPECT_FALSE(is_valid_arg("__log_level:="));
-  EXPECT_FALSE(is_valid_arg("__log_level:=foo"));
+  EXPECT_FALSE(is_valid_ros_arg("__log:=foo"));
+  EXPECT_FALSE(is_valid_ros_arg("__loglevel:=foo"));
+  EXPECT_FALSE(is_valid_ros_arg("__log_level:="));
+  EXPECT_FALSE(is_valid_ros_arg("__log_level:=foo"));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
@@ -141,6 +173,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(0, rcl_arguments_get_count_unparsed(&parsed_args));
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
@@ -161,29 +194,31 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args_outpu
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
-  const char * argv[] = {"process_name", "/foo/bar:=/fiz/buz"};
+  const char * argv[] = {"process_name", "--ros-args", "/foo/bar:=/fiz/buz"};
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_UNPARSED(parsed_args, 0);
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_invalid_rules) {
-  const char * argv[] = {"process_name", "/foo/bar:=", "bar:=/fiz/buz", "}bar:=fiz"};
+  const char * argv[] = {"process_name", "--ros-args", "/foo/bar:=", "bar:=/fiz/buz", "}bar:=fiz", "--", "run"};
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_UNPARSED(parsed_args, 0, 1, 3);
+  EXPECT_UNPARSED(parsed_args, 0, 6);
+  EXPECT_UNPARSED_ROS(parsed_args, 2, 4);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy) {
-  const char * argv[] = {"process_name", "/foo/bar:=", "bar:=/fiz/buz", "__ns:=/foo"};
+  const char * argv[] = {"process_name", "--ros-args", "/foo/bar:=", "bar:=/fiz/buz", "__ns:=/foo"};
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
@@ -195,10 +230,12 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy) {
   ret = rcl_arguments_copy(&parsed_args, &copied_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  EXPECT_UNPARSED(parsed_args, 0, 1);
+  EXPECT_UNPARSED(parsed_args, 0);
+  EXPECT_UNPARSED_ROS(parsed_args, 2);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 
-  EXPECT_UNPARSED(copied_args, 0, 1);
+  EXPECT_UNPARSED(copied_args, 0);
+  EXPECT_UNPARSED_ROS(copied_args, 2);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
 }
 
@@ -222,24 +259,27 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_no_args) {
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, allocator, &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(0, rcl_arguments_get_count_unparsed(&parsed_args));
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&parsed_args));
 
   rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
   ret = rcl_arguments_copy(&parsed_args, &copied_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(0, rcl_arguments_get_count_unparsed(&copied_args));
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&copied_args));
 
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_namespace) {
-  const char * argv[] = {"process_name", "__ns:=/foo/bar", "__ns:=/fiz/buz"};
+  const char * argv[] = {"process_name", "--ros-args", "__ns:=/foo/bar", "__ns:=/fiz/buz"};
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_UNPARSED(parsed_args, 0);
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
@@ -255,7 +295,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_uninitialized_p
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_double_parse) {
-  const char * argv[] = {"process_name", "__ns:=/foo/bar", "__ns:=/fiz/buz"};
+  const char * argv[] = {"process_name", "--ros-args", "__ns:=/foo/bar", "__ns:=/fiz/buz"};
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   ASSERT_EQ(RCL_RET_OK,
@@ -290,8 +330,10 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_twice) {
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args) {
-  const char * argv[] =
-  {"process_name", "-d", "__ns:=/foo/bar", "__ns:=/fiz/buz", "--foo=bar", "--baz"};
+  const char * argv[] = {
+    "process_name", "-d", "--ros-args", "__ns:=/foo/bar", "__ns:=/fiz/buz", "--",
+    "--foo=bar", "--baz"
+  };
   int argc = sizeof(argv) / sizeof(const char *);
 
   rcl_allocator_t alloc = rcl_get_default_allocator();
@@ -348,7 +390,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_zero) {
-  const char * argv[] = {"process_name", "__ns:=/namespace", "random:=arg"};
+  const char * argv[] = {"process_name", "--ros-args", "__ns:=/namespace", "random:=arg"};
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret;
 
@@ -365,7 +407,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_single) {
   const char * argv[] = {
-    "process_name", "__ns:=/namespace", "random:=arg", "__params:=parameter_filepath"
+    "process_name", "--ros-args", "__ns:=/namespace", "random:=arg", "__params:=parameter_filepath"
   };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret;
@@ -392,7 +434,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
   const char * argv[] = {
-    "process_name", "__params:=parameter_filepath1", "__ns:=/namespace",
+    "process_name", "--ros-args", "__params:=parameter_filepath1", "__ns:=/namespace",
     "random:=arg", "__params:=parameter_filepath2"
   };
   int argc = sizeof(argv) / sizeof(const char *);
