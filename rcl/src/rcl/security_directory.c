@@ -248,11 +248,11 @@ char * rcl_get_secure_root(
     if (NULL == node_secure_root) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "SECURITY ERROR: unable to find a folder matching the node name '%s' in '%s%s'.\n"
-        "Lookup strategy: '%s'",
+        "Lookup strategy: %s",
         node_name, ros_secure_root_env, node_namespace, lookup_strategy);
     } else {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "SECURITY ERROR: directory '%s' does not exist. Lookup strategy: '%s'",
+        "SECURITY ERROR: directory '%s' does not exist. Lookup strategy: %s",
         node_secure_root, lookup_strategy);
     }
     allocator->deallocate(ros_secure_root_env, allocator->state);
