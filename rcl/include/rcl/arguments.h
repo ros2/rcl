@@ -173,7 +173,7 @@ int
 rcl_arguments_get_count_unparsed_ros(
   const rcl_arguments_t * args);
 
-/// Return a list of indices to ROS specific arguments that weren't successfully parsed.
+/// Return a list of indices to ROS specific arguments that were not successfully parsed.
 /**
  * Some ROS specific arguments may not have been successfully parsed, or were not intended to be
  * parsed by rcl.

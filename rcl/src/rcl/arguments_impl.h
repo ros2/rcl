@@ -31,7 +31,7 @@ typedef struct rcl_arguments_impl_t
   /// Length of unparsed_ros_args.
   int num_unparsed_ros_args;
 
-  /// Array of indices to not ROS specific arguments.
+  /// Array of indices to non-ROS arguments.
   int * unparsed_args;
   /// Length of unparsed_args.
   int num_unparsed_args;

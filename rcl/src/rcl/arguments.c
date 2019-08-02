@@ -254,15 +254,10 @@ rcl_parse_arguments(
   }
 
   bool parsing_ros_args = false;
-  const size_t ros_args_flag_len = strlen(RCL_ROS_ARGS_FLAG);
-  const size_t ros_args_explicit_end_token_len = strlen(RCL_ROS_ARGS_EXPLICIT_END_TOKEN);
   for (int i = 0; i < argc; ++i) {
     if (parsing_ros_args) {
       // Check for ROS specific arguments explicit end token
-      if (
-        strncmp(RCL_ROS_ARGS_EXPLICIT_END_TOKEN, argv[i], ros_args_explicit_end_token_len) == 0 &&
-        argv[i][ros_args_explicit_end_token_len] == '\0')
-      {
+      if (strcmp(RCL_ROS_ARGS_EXPLICIT_END_TOKEN, argv[i]) == 0) {
         parsing_ros_args = false;
         continue;
       }
@@ -357,7 +352,7 @@ rcl_parse_arguments(
       ++(args_impl->num_unparsed_ros_args);
     } else {
       // Check for ROS specific arguments flags
-      if (strncmp(RCL_ROS_ARGS_FLAG, argv[i], ros_args_flag_len) == 0) {
+      if (strcmp(RCL_ROS_ARGS_FLAG, argv[i]) == 0) {
         parsing_ros_args = true;
         continue;
       }

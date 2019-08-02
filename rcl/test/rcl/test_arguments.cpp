@@ -49,6 +49,7 @@ public:
     if (actual_num_unparsed > 0) { \
       rcl_ret_t ret = rcl_arguments_get_unparsed(&parsed_args, alloc, &actual_unparsed); \
       ASSERT_EQ(RCL_RET_OK, ret); \
+      ASSERT_TRUE(NULL != actual_unparsed); \
     } \
     std::stringstream expected; \
     expected << "["; \
@@ -65,7 +66,7 @@ public:
     if (NULL != actual_unparsed) { \
       alloc.deallocate(actual_unparsed, alloc.state); \
     } \
-    EXPECT_STREQ(expected.str().c_str(), actual.str().c_str()); \
+    EXPECT_EQ(expected.str(), actual.str()); \
   } while (0)
 
 #define EXPECT_UNPARSED_ROS(parsed_args, ...) \
@@ -78,25 +79,25 @@ public:
     if (actual_num_unparsed_ros > 0) { \
       rcl_ret_t ret = rcl_arguments_get_unparsed_ros(&parsed_args, alloc, &actual_unparsed_ros); \
       ASSERT_EQ(RCL_RET_OK, ret); \
+      ASSERT_TRUE(NULL != actual_unparsed_ros); \
     } \
     std::stringstream expected; \
     expected << "["; \
     for (int e = 0; e < expect_num_unparsed_ros; ++e) { \
-      expected << expect_unparsed_ros[e] << ", ";       \
+      expected << expect_unparsed_ros[e] << ", "; \
     } \
     expected << "]"; \
     std::stringstream actual; \
     actual << "["; \
     for (int a = 0; a < actual_num_unparsed_ros; ++a) { \
-      actual << actual_unparsed_ros[a] << ", ";         \
+      actual << actual_unparsed_ros[a] << ", "; \
     } \
     actual << "]"; \
-    if (NULL != actual_unparsed_ros) {                \
+    if (NULL != actual_unparsed_ros) { \
       alloc.deallocate(actual_unparsed_ros, alloc.state); \
     } \
-    EXPECT_STREQ(expected.str().c_str(), actual.str().c_str()); \
+    EXPECT_EQ(expected.str(), actual.str()); \
   } while (0)
-
 
 bool
 is_valid_ros_arg(const char * arg)
@@ -206,7 +207,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_invalid_rules) {
-  const char * argv[] = {"process_name", "--ros-args", "/foo/bar:=", "bar:=/fiz/buz", "}bar:=fiz", "--", "run"};
+  const char * argv[] = {
+    "process_name", "--ros-args", "/foo/bar:=", "bar:=/fiz/buz", "}bar:=fiz", "--", "run"
+  };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
