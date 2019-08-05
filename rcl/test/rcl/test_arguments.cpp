@@ -178,7 +178,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
-
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args) {
   int argc = 1;
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
@@ -252,7 +251,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap_w_tra
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
-
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_mix_valid_invalid_rules) {
   const char * argv[] = {
     "process_name", "--ros-args", "/foo/bar:=", "bar:=/fiz/buz", "}bar:=fiz", "--", "arg"
@@ -312,7 +310,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_no_ros_arg
   EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&copied_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
 }
-
 
 // Similar to the default allocator, but returns NULL when size is zero.
 // This is useful for emulating systems where `malloc(0)` return NULL.
