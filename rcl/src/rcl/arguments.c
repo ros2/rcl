@@ -256,6 +256,11 @@ rcl_parse_arguments(
   bool parsing_ros_args = false;
   for (int i = 0; i < argc; ++i) {
     if (parsing_ros_args) {
+      // Ignore ROS specific arguments flags
+      if (strcmp(RCL_ROS_ARGS_FLAG, argv[i]) == 0) {
+        continue;
+      }
+
       // Check for ROS specific arguments explicit end token
       if (strcmp(RCL_ROS_ARGS_EXPLICIT_END_TOKEN, argv[i]) == 0) {
         parsing_ros_args = false;

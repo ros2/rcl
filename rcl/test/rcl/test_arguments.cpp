@@ -239,6 +239,18 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap) {
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap_two_ros_args) {
+  const char * argv[] = {"process_name", "--ros-args", "--ros-args", "/foo/bar:=/fiz/buz"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret;
+  ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_UNPARSED(parsed_args, 0);
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&parsed_args));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+}
+
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap_w_trailing_dashes) {
   const char * argv[] = {"process_name", "--ros-args", "/foo/bar:=/fiz/buz", "--"};
   int argc = sizeof(argv) / sizeof(const char *);
@@ -247,6 +259,18 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap_w_tra
   ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_UNPARSED(parsed_args, 0);
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&parsed_args));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap_w_two_trailing_dashes) {
+  const char * argv[] = {"process_name", "--ros-args", "/foo/bar:=/fiz/buz", "--", "--"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret;
+  ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_UNPARSED(parsed_args, 0, 4);
   EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&parsed_args));
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
@@ -403,7 +427,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_twice) {
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args) {
   const char * argv[] = {
     "process_name", "-d", "--ros-args", "__ns:=/foo/bar", "__ns:=/fiz/buz", "--",
-    "--foo=bar", "--baz", "--ros-args", "bar:=baz"
+    "--foo=bar", "--baz", "--ros-args", "--ros-args", "bar:=baz", "--", "--", "arg"
   };
   int argc = sizeof(argv) / sizeof(const char *);
 
@@ -424,11 +448,13 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
     &nonros_argv);
 
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ASSERT_EQ(nonros_argc, 4);
+  ASSERT_EQ(nonros_argc, 6);
   EXPECT_STREQ(nonros_argv[0], "process_name");
   EXPECT_STREQ(nonros_argv[1], "-d");
   EXPECT_STREQ(nonros_argv[2], "--foo=bar");
   EXPECT_STREQ(nonros_argv[3], "--baz");
+  EXPECT_STREQ(nonros_argv[4], "--");
+  EXPECT_STREQ(nonros_argv[5], "arg");
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 
   if (NULL != nonros_argv) {
