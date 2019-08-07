@@ -26,7 +26,12 @@ extern "C"
 /// \internal
 typedef struct rcl_arguments_impl_t
 {
-  /// Array of indices that were not valid ROS arguments.
+  /// Array of indices to unknown ROS specific arguments.
+  int * unparsed_ros_args;
+  /// Length of unparsed_ros_args.
+  int num_unparsed_ros_args;
+
+  /// Array of indices to non-ROS arguments.
   int * unparsed_args;
   /// Length of unparsed_args.
   int num_unparsed_args;

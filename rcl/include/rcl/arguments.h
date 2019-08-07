@@ -34,6 +34,9 @@ typedef struct rcl_arguments_t
   struct rcl_arguments_impl_t * impl;
 } rcl_arguments_t;
 
+#define RCL_ROS_ARGS_FLAG "--ros-args"
+#define RCL_ROS_ARGS_EXPLICIT_END_TOKEN "--"
+
 #define RCL_LOG_LEVEL_ARG_RULE "__log_level:="
 #define RCL_EXTERNAL_LOG_CONFIG_ARG_RULE "__log_config_file:="
 #define RCL_LOG_DISABLE_STDOUT_ARG_RULE "__log_disable_stdout:="
@@ -97,7 +100,7 @@ rcl_parse_arguments(
   rcl_allocator_t allocator,
   rcl_arguments_t * args_output);
 
-/// Return the number of arguments that were not successfully parsed.
+/// Return the number of arguments that were not ROS specific arguments.
 /**
  * <hr>
  * Attribute          | Adherence
@@ -117,10 +120,10 @@ int
 rcl_arguments_get_count_unparsed(
   const rcl_arguments_t * args);
 
-/// Return a list of indexes that weren't successfully parsed.
+/// Return a list of indices to non ROS specific arguments.
 /**
- * Some arguments may not have been successfully parsed, or were not intended as ROS arguments.
- * This function populates an array of indexes to these arguments in the original argv array.
+ * Non ROS specific arguments may have been provided i.e. arguments outside a '--ros-args' scope.
+ * This function populates an array of indices to these arguments in the original argv array.
  * Since the first argument is always assumed to be a process name, the list will always contain
  * the index 0.
  *
@@ -149,6 +152,58 @@ rcl_arguments_get_unparsed(
   const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int ** output_unparsed_indices);
+
+/// Return the number of ROS specific arguments that were not successfully parsed.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] args An arguments structure that has been parsed.
+ * \return number of unparsed ROS specific arguments, or
+ * \return -1 if args is `NULL` or zero initialized.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+int
+rcl_arguments_get_count_unparsed_ros(
+  const rcl_arguments_t * args);
+
+/// Return a list of indices to ROS specific arguments that were not successfully parsed.
+/**
+ * Some ROS specific arguments may not have been successfully parsed, or were not intended to be
+ * parsed by rcl.
+ * This function populates an array of indices to these arguments in the original argv array.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] args An arguments structure that has been parsed.
+ * \param[in] allocator A valid allocator.
+ * \param[out] output_unparsed_indices An allocated array of indices into the original argv array.
+ *   This array must be deallocated by the caller using the given allocator.
+ *   If there are no unparsed ROS specific arguments then the output will be set to NULL.
+ * \return `RCL_RET_OK` if everything goes correctly, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_arguments_get_unparsed_ros(
+  const rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int ** output_unparsed_ros_indices);
 
 /// Return the number of parameter yaml files given in the arguments.
 /**

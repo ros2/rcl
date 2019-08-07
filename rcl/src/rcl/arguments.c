@@ -217,6 +217,8 @@ rcl_parse_arguments(
   args_impl->external_log_config_file = NULL;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
+  args_impl->unparsed_ros_args = NULL;
+  args_impl->num_unparsed_ros_args = 0;
   args_impl->parameter_files = NULL;
   args_impl->num_param_files_args = 0;
   args_impl->log_stdout_disabled = false;
@@ -235,107 +237,135 @@ rcl_parse_arguments(
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
-  args_impl->unparsed_args = allocator.allocate(sizeof(int) * argc, allocator.state);
-  if (NULL == args_impl->unparsed_args) {
-    ret = RCL_RET_BAD_ALLOC;
-    goto fail;
-  }
   args_impl->parameter_files = allocator.allocate(sizeof(char *) * argc, allocator.state);
   if (NULL == args_impl->parameter_files) {
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
+  args_impl->unparsed_ros_args = allocator.allocate(sizeof(int) * argc, allocator.state);
+  if (NULL == args_impl->unparsed_ros_args) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
+  args_impl->unparsed_args = allocator.allocate(sizeof(int) * argc, allocator.state);
+  if (NULL == args_impl->unparsed_args) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
 
+  bool parsing_ros_args = false;
   for (int i = 0; i < argc; ++i) {
-    // Attempt to parse argument as parameter file rule
-    args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
-    if (
-      RCL_RET_OK == _rcl_parse_param_file_rule(
-        argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args])))
-    {
-      ++(args_impl->num_param_files_args);
+    if (parsing_ros_args) {
+      // Ignore ROS specific arguments flags
+      if (strcmp(RCL_ROS_ARGS_FLAG, argv[i]) == 0) {
+        continue;
+      }
+
+      // Check for ROS specific arguments explicit end token
+      if (strcmp(RCL_ROS_ARGS_EXPLICIT_END_TOKEN, argv[i]) == 0) {
+        parsing_ros_args = false;
+        continue;
+      }
+
+      // Attempt to parse argument as parameter file rule
+      args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
+      if (
+        RCL_RET_OK == _rcl_parse_param_file_rule(
+          argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args])))
+      {
+        ++(args_impl->num_param_files_args);
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+          "params rule : %s\n total num param rules %d",
+          args_impl->parameter_files[args_impl->num_param_files_args - 1],
+          args_impl->num_param_files_args);
+        continue;
+      }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "params rule : %s\n total num param rules %d",
-        args_impl->parameter_files[args_impl->num_param_files_args - 1],
-        args_impl->num_param_files_args);
-      continue;
+        "Couldn't parse arg %d (%s) as parameter file rule. Error: %s", i, argv[i],
+        rcl_get_error_string().str);
+      rcl_reset_error();
+
+      // Attempt to parse argument as remap rule
+      rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
+      *rule = rcl_get_zero_initialized_remap();
+      if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
+        ++(args_impl->num_remap_rules);
+        continue;
+      }
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "Couldn't parse arg %d (%s) as remap rule. Error: %s", i, argv[i],
+        rcl_get_error_string().str);
+      rcl_reset_error();
+
+      // Attempt to parse argument as log level configuration
+      int log_level;
+      if (RCL_RET_OK == _rcl_parse_log_level_rule(argv[i], allocator, &log_level)) {
+        args_impl->log_level = log_level;
+        continue;
+      }
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "Couldn't parse arg %d (%s) as log level rule. Error: %s", i, argv[i],
+        rcl_get_error_string().str);
+      rcl_reset_error();
+
+      // Attempt to parse argument as log configuration file
+      rcl_ret_t ret = _rcl_parse_external_log_config_file(
+        argv[i], allocator, &args_impl->external_log_config_file);
+      if (RCL_RET_OK == ret) {
+        continue;
+      }
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "Couldn't parse arg %d (%s) as log config rule. Error: %s", i, argv[i],
+        rcl_get_error_string().str);
+      rcl_reset_error();
+
+      // Attempt to parse argument as log_stdout_disabled
+      ret = _rcl_parse_bool_arg(
+        argv[i], RCL_LOG_DISABLE_STDOUT_ARG_RULE, &args_impl->log_stdout_disabled);
+      if (RCL_RET_OK == ret) {
+        continue;
+      }
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "Couldn't parse arg %d (%s) as log_stdout_disabled rule. Error: %s", i, argv[i],
+        rcl_get_error_string().str);
+      rcl_reset_error();
+
+      // Attempt to parse argument as log_rosout_disabled
+      ret = _rcl_parse_bool_arg(
+        argv[i], RCL_LOG_DISABLE_ROSOUT_ARG_RULE, &args_impl->log_rosout_disabled);
+      if (RCL_RET_OK == ret) {
+        continue;
+      }
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "Couldn't parse arg %d (%s) as log_rosout_disabled rule. Error: %s", i, argv[i],
+        rcl_get_error_string().str);
+      rcl_reset_error();
+
+      // Attempt to parse argument as log_ext_lib_disabled
+      ret = _rcl_parse_bool_arg(
+        argv[i], RCL_LOG_DISABLE_EXT_LIB_ARG_RULE, &args_impl->log_ext_lib_disabled);
+      if (RCL_RET_OK == ret) {
+        continue;
+      }
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "Couldn't parse arg %d (%s) as log_ext_lib_disabled rule. Error: %s", i, argv[i],
+        rcl_get_error_string().str);
+      rcl_reset_error();
+
+      // Argument is an unknown ROS specific argument
+      args_impl->unparsed_ros_args[args_impl->num_unparsed_ros_args] = i;
+      ++(args_impl->num_unparsed_ros_args);
+    } else {
+      // Check for ROS specific arguments flags
+      if (strcmp(RCL_ROS_ARGS_FLAG, argv[i]) == 0) {
+        parsing_ros_args = true;
+        continue;
+      }
+
+      // Argument is not a ROS specific argument
+      args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
+      ++(args_impl->num_unparsed_args);
     }
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-      "Couldn't parse arg %d (%s) as parameter file rule. Error: %s", i, argv[i],
-      rcl_get_error_string().str);
-    rcl_reset_error();
-
-    // Attempt to parse argument as remap rule
-    rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
-    *rule = rcl_get_zero_initialized_remap();
-    if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
-      ++(args_impl->num_remap_rules);
-      continue;
-    }
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-      "Couldn't parse arg %d (%s) as remap rule. Error: %s", i, argv[i],
-      rcl_get_error_string().str);
-    rcl_reset_error();
-
-    // Attempt to parse argument as log level configuration
-    int log_level;
-    if (RCL_RET_OK == _rcl_parse_log_level_rule(argv[i], allocator, &log_level)) {
-      args_impl->log_level = log_level;
-      continue;
-    }
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-      "Couldn't parse arg %d (%s) as log level rule. Error: %s", i, argv[i],
-      rcl_get_error_string().str);
-    rcl_reset_error();
-
-    // Attempt to parse argument as log configuration file
-    rcl_ret_t ret = _rcl_parse_external_log_config_file(
-      argv[i], allocator, &args_impl->external_log_config_file);
-    if (RCL_RET_OK == ret) {
-      continue;
-    }
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-      "Couldn't parse arg %d (%s) as log config rule. Error: %s", i, argv[i],
-      rcl_get_error_string().str);
-    rcl_reset_error();
-
-    // Attempt to parse argument as log_stdout_disabled
-    ret = _rcl_parse_bool_arg(
-      argv[i], RCL_LOG_DISABLE_STDOUT_ARG_RULE, &args_impl->log_stdout_disabled);
-    if (RCL_RET_OK == ret) {
-      continue;
-    }
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-      "Couldn't parse arg %d (%s) as log_stdout_disabled rule. Error: %s", i, argv[i],
-      rcl_get_error_string().str);
-    rcl_reset_error();
-
-    // Attempt to parse argument as log_rosout_disabled
-    ret = _rcl_parse_bool_arg(
-      argv[i], RCL_LOG_DISABLE_ROSOUT_ARG_RULE, &args_impl->log_rosout_disabled);
-    if (RCL_RET_OK == ret) {
-      continue;
-    }
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-      "Couldn't parse arg %d (%s) as log_rosout_disabled rule. Error: %s", i, argv[i],
-      rcl_get_error_string().str);
-    rcl_reset_error();
-
-    // Attempt to parse argument as log_ext_lib_disabled
-    ret = _rcl_parse_bool_arg(
-      argv[i], RCL_LOG_DISABLE_EXT_LIB_ARG_RULE, &args_impl->log_ext_lib_disabled);
-    if (RCL_RET_OK == ret) {
-      continue;
-    }
-    RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-      "Couldn't parse arg %d (%s) as log_ext_lib_disabled rule. Error: %s", i, argv[i],
-      rcl_get_error_string().str);
-    rcl_reset_error();
-
-
-    // Argument wasn't parsed by any rule
-    args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
-    ++(args_impl->num_unparsed_args);
   }
 
   // Shrink remap_rules array to match number of successfully parsed rules
@@ -351,6 +381,7 @@ rcl_parse_arguments(
     allocator.deallocate(args_impl->remap_rules, allocator.state);
     args_impl->remap_rules = NULL;
   }
+
   // Shrink Parameter files
   if (0 == args_impl->num_param_files_args) {
     allocator.deallocate(args_impl->parameter_files, allocator.state);
@@ -363,6 +394,21 @@ rcl_parse_arguments(
       goto fail;
     }
   }
+
+  // Shrink unparsed_ros_args
+  if (0 == args_impl->num_unparsed_ros_args) {
+    // No unparsed ros args
+    allocator.deallocate(args_impl->unparsed_ros_args, allocator.state);
+    args_impl->unparsed_ros_args = NULL;
+  } else if (args_impl->num_unparsed_ros_args < argc) {
+    args_impl->unparsed_ros_args = rcutils_reallocf(
+      args_impl->unparsed_ros_args, sizeof(int) * args_impl->num_unparsed_ros_args, &allocator);
+    if (NULL == args_impl->unparsed_ros_args) {
+      ret = RCL_RET_BAD_ALLOC;
+      goto fail;
+    }
+  }
+
   // Shrink unparsed_args
   if (0 == args_impl->num_unparsed_args) {
     // No unparsed args
@@ -419,6 +465,41 @@ rcl_arguments_get_unparsed(
     }
     for (int i = 0; i < args->impl->num_unparsed_args; ++i) {
       (*output_unparsed_indices)[i] = args->impl->unparsed_args[i];
+    }
+  }
+  return RCL_RET_OK;
+}
+
+int
+rcl_arguments_get_count_unparsed_ros(
+  const rcl_arguments_t * args)
+{
+  if (NULL == args || NULL == args->impl) {
+    return -1;
+  }
+  return args->impl->num_unparsed_ros_args;
+}
+
+rcl_ret_t
+rcl_arguments_get_unparsed_ros(
+  const rcl_arguments_t * args,
+  rcl_allocator_t allocator,
+  int ** output_unparsed_ros_indices)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(args->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_unparsed_ros_indices, RCL_RET_INVALID_ARGUMENT);
+
+  *output_unparsed_ros_indices = NULL;
+  if (args->impl->num_unparsed_ros_args) {
+    *output_unparsed_ros_indices = allocator.allocate(
+      sizeof(int) * args->impl->num_unparsed_ros_args, allocator.state);
+    if (NULL == *output_unparsed_ros_indices) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    for (int i = 0; i < args->impl->num_unparsed_ros_args; ++i) {
+      (*output_unparsed_ros_indices)[i] = args->impl->unparsed_ros_args[i];
     }
   }
   return RCL_RET_OK;
@@ -502,6 +583,8 @@ rcl_arguments_copy(
   args_out->impl->remap_rules = NULL;
   args_out->impl->unparsed_args = NULL;
   args_out->impl->num_unparsed_args = 0;
+  args_out->impl->unparsed_ros_args = NULL;
+  args_out->impl->num_unparsed_ros_args = 0;
   args_out->impl->parameter_files = NULL;
   args_out->impl->num_param_files_args = 0;
 
@@ -519,6 +602,22 @@ rcl_arguments_copy(
       args_out->impl->unparsed_args[i] = args->impl->unparsed_args[i];
     }
     args_out->impl->num_unparsed_args = args->impl->num_unparsed_args;
+  }
+
+  if (args->impl->num_unparsed_ros_args) {
+    // Copy unparsed ROS args
+    args_out->impl->unparsed_ros_args = allocator.allocate(
+      sizeof(int) * args->impl->num_unparsed_ros_args, allocator.state);
+    if (NULL == args_out->impl->unparsed_ros_args) {
+      if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
+      }
+      return RCL_RET_BAD_ALLOC;
+    }
+    for (int i = 0; i < args->impl->num_unparsed_ros_args; ++i) {
+      args_out->impl->unparsed_ros_args[i] = args->impl->unparsed_ros_args[i];
+    }
+    args_out->impl->num_unparsed_ros_args = args->impl->num_unparsed_ros_args;
   }
 
   if (args->impl->num_remap_rules) {
@@ -595,6 +694,10 @@ rcl_arguments_fini(
     args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
     args->impl->num_unparsed_args = 0;
     args->impl->unparsed_args = NULL;
+
+    args->impl->allocator.deallocate(args->impl->unparsed_ros_args, args->impl->allocator.state);
+    args->impl->num_unparsed_ros_args = 0;
+    args->impl->unparsed_ros_args = NULL;
 
     if (args->impl->parameter_files) {
       for (int p = 0; p < args->impl->num_param_files_args; ++p) {
