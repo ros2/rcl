@@ -14,6 +14,7 @@
   <build_export_depend>rmw</build_export_depend>
 
   <build_depend>rcl_interfaces</build_depend>
+  <build_depend>rcl_yaml_param_parser</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rosidl_generator_c</build_depend>
   <build_depend>tinydir_vendor</build_depend>

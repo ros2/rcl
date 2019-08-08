@@ -5,6 +5,7 @@ project(rcl)
 find_package(ament_cmake_ros REQUIRED)
 
 find_package(rcl_interfaces REQUIRED)
+find_package(rcl_yaml_param_parser REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
@@ -63,6 +64,7 @@ add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
   "rcl_interfaces"
+  "rcl_yaml_param_parser"
   "rmw_implementation"
   "rmw"
   "rcutils"
@@ -94,6 +96,7 @@ ament_export_libraries(${PROJECT_NAME})
 
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl_interfaces)
+ament_export_dependencies(rcl_yaml_param_parser)
 ament_export_dependencies(rmw_implementation)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rcutils)

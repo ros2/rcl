@@ -19,6 +19,7 @@
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
+#include "rcl_yaml_param_parser/types.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -36,6 +37,8 @@ typedef struct rcl_arguments_t
 
 #define RCL_ROS_ARGS_FLAG "--ros-args"
 #define RCL_ROS_ARGS_EXPLICIT_END_TOKEN "--"
+#define RCL_PARAM_FLAG "--param"
+#define RCL_SHORT_PARAM_FLAG "-p"
 
 #define RCL_LOG_LEVEL_ARG_RULE "__log_level:="
 #define RCL_EXTERNAL_LOG_CONFIG_ARG_RULE "__log_config_file:="
@@ -253,6 +256,32 @@ rcl_arguments_get_param_files(
   const rcl_arguments_t * arguments,
   rcl_allocator_t allocator,
   char *** parameter_files);
+
+/// Return all parameter overrides specified on the command line.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] arguments An arguments structure that has been parsed.
+ * \param[in] allocator A valid allocator.
+ * \param[out] parameter_overrides Zero or more parameter overrides.
+ *   This structure must be finalized by the caller.
+ * \return `RCL_RET_OK` if everything goes correctly, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_arguments_get_param_overrides(
+  const rcl_arguments_t * arguments,
+  rcl_params_t ** parameter_overrides);
 
 /// Return a list of arguments with ROS-specific arguments removed.
 /**

@@ -20,6 +20,8 @@
 
 #include "rcl/error_handling.h"
 
+#include "rcl_yaml_param_parser/parser.h"
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -554,5 +556,39 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
     alloc.deallocate(parameter_files[i], alloc.state);
   }
   alloc.deallocate(parameter_files, alloc.state);
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides) {
+  const char * argv[] = {
+    "process_name", "--ros-args",
+    "--param", "string_param:=test_string",
+    "-p", "some_node:int_param:=4"
+  };
+  int argc = sizeof(argv) / sizeof(const char *);
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_params_t * params = NULL;
+  ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_variant_t * param_value =
+    rcl_yaml_node_struct_get("/**", "string_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->string_value);
+  EXPECT_STREQ("test_string", param_value->string_value);
+
+  param_value = rcl_yaml_node_struct_get("/some_node", "int_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->integer_value);
+  EXPECT_EQ(4, *(param_value->integer_value));
+
+  rcl_yaml_node_struct_fini(params);
+
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }

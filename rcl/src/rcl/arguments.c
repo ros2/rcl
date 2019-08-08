@@ -23,6 +23,8 @@
 #include "rcl/error_handling.h"
 #include "rcl/lexer_lookahead.h"
 #include "rcl/validate_topic_name.h"
+#include "rcl_yaml_param_parser/parser.h"
+#include "rcl_yaml_param_parser/types.h"
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
 #include "rcutils/format_string.h"
@@ -73,6 +75,11 @@ _rcl_parse_param_file_rule(
   char ** param_file);
 
 rcl_ret_t
+_rcl_parse_param_rule(
+  const char * arg,
+  rcl_params_t * params);
+
+rcl_ret_t
 rcl_arguments_get_param_files(
   const rcl_arguments_t * arguments,
   rcl_allocator_t allocator,
@@ -113,6 +120,25 @@ rcl_arguments_get_param_files_count(
     return -1;
   }
   return args->impl->num_param_files_args;
+}
+
+rcl_ret_t
+rcl_arguments_get_param_overrides(
+  const rcl_arguments_t * arguments,
+  rcl_params_t ** parameter_overrides)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(parameter_overrides, RCL_RET_INVALID_ARGUMENT);
+  if (NULL != *parameter_overrides) {
+    RCL_SET_ERROR_MSG("Output parameter override pointer is not null. May leak memory.");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  *parameter_overrides = rcl_yaml_node_struct_copy(arguments->impl->parameter_overrides);
+  if (NULL == *parameter_overrides) {
+    return RCL_RET_BAD_ALLOC;
+  }
+  return RCL_RET_OK;
 }
 
 /// Parse an argument that may or may not be a log level rule.
@@ -219,6 +245,7 @@ rcl_parse_arguments(
   args_impl->num_unparsed_args = 0;
   args_impl->unparsed_ros_args = NULL;
   args_impl->num_unparsed_ros_args = 0;
+  args_impl->parameter_overrides = NULL;
   args_impl->parameter_files = NULL;
   args_impl->num_param_files_args = 0;
   args_impl->log_stdout_disabled = false;
@@ -237,6 +264,13 @@ rcl_parse_arguments(
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
+
+  args_impl->parameter_overrides = rcl_yaml_node_struct_init(allocator);
+  if (NULL == args_impl->parameter_overrides) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
+
   args_impl->parameter_files = allocator.allocate(sizeof(char *) * argc, allocator.state);
   if (NULL == args_impl->parameter_files) {
     ret = RCL_RET_BAD_ALLOC;
@@ -265,6 +299,26 @@ rcl_parse_arguments(
       if (strcmp(RCL_ROS_ARGS_EXPLICIT_END_TOKEN, argv[i]) == 0) {
         parsing_ros_args = false;
         continue;
+      }
+
+      // Attempt to parse argument as parameter override flag
+      if (strcmp(RCL_PARAM_FLAG, argv[i]) == 0 || strcmp(RCL_SHORT_PARAM_FLAG, argv[i]) == 0) {
+        if (i + 1 < argc) {
+          // Attempt to parse next argument as parameter override rule
+          if (RCL_RET_OK == _rcl_parse_param_rule(argv[i + 1], args_impl->parameter_overrides)) {
+            RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "param override rule : %s\n", argv[i + 1]);
+            i += 2;  // Skip both flag and rule
+            continue;
+          } else {
+            RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+              "Couldn't parse arg %d (%s) as parameter override rule. Error: %s", i + 1,
+              argv[i + 1], rcl_get_error_string().str);
+          }
+        } else {
+          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+            "Couldn't parse arg %d (%s) as parameter override flag. No rule found.\n",
+            i, argv[i]);
+        }
       }
 
       // Attempt to parse argument as parameter file rule
@@ -644,6 +698,12 @@ rcl_arguments_copy(
     }
   }
 
+  // Copy parameter rules
+  if (args->impl->parameter_overrides) {
+    args_out->impl->parameter_overrides =
+      rcl_yaml_node_struct_copy(args->impl->parameter_overrides);
+  }
+
   // Copy parameter files
   if (args->impl->num_param_files_args) {
     args_out->impl->parameter_files = allocator.allocate(
@@ -698,6 +758,10 @@ rcl_arguments_fini(
     args->impl->allocator.deallocate(args->impl->unparsed_ros_args, args->impl->allocator.state);
     args->impl->num_unparsed_ros_args = 0;
     args->impl->unparsed_ros_args = NULL;
+
+    if (args->impl->parameter_overrides) {
+      rcl_yaml_node_struct_fini(args->impl->parameter_overrides);
+    }
 
     if (args->impl->parameter_files) {
       for (int p = 0; p < args->impl->num_param_files_args; ++p) {
@@ -856,7 +920,7 @@ _rcl_parse_remap_replacement_name(
  */
 RCL_LOCAL
 rcl_ret_t
-_rcl_parse_remap_match_token(rcl_lexer_lookahead2_t * lex_lookahead)
+_rcl_parse_resource_match_token(rcl_lexer_lookahead2_t * lex_lookahead)
 {
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
@@ -876,11 +940,80 @@ _rcl_parse_remap_match_token(rcl_lexer_lookahead2_t * lex_lookahead)
     return RCL_RET_ERROR;
   } else {
     RCL_SET_ERROR_MSG("Expecting token or wildcard");
-    ret = RCL_RET_INVALID_REMAP_RULE;
+    ret = RCL_RET_WRONG_LEXEME;
   }
 
   return ret;
 }
+
+/// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
+/**
+ * \sa _rcl_parse_remap_begin_remap_rule()
+ */
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_resource_match(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_allocator_t allocator,
+  char ** resource_match)
+{
+  rcl_ret_t ret;
+  rcl_lexeme_t lexeme;
+
+  const char * match_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  if (NULL == match_start) {
+    RCL_SET_ERROR_MSG("failed to get start of match");
+    return RCL_RET_ERROR;
+  }
+
+  // private name (~/...) or fully qualified name (/...) ?
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  if (RCL_LEXEME_TILDE_SLASH == lexeme || RCL_LEXEME_FORWARD_SLASH == lexeme) {
+    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+
+  // token ( '/' token )*
+  ret = _rcl_parse_resource_match_token(lex_lookahead);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  while (RCL_LEXEME_SEPARATOR != lexeme) {
+    ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
+    if (RCL_RET_WRONG_LEXEME == ret) {
+      return RCL_RET_INVALID_REMAP_RULE;
+    }
+    ret = _rcl_parse_resource_match_token(lex_lookahead);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+    ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+
+  // Copy match into rule
+  const char * match_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  const size_t length = (size_t)(match_end - match_start);
+  *resource_match = rcutils_strndup(match_start, length, allocator);
+  if (NULL == *resource_match) {
+    RCL_SET_ERROR_MSG("failed to copy match");
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  return RCL_RET_OK;
+}
+
 
 /// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
 /**
@@ -912,58 +1045,12 @@ _rcl_parse_remap_match_name(
     return ret;
   }
 
-  const char * match_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
-  if (NULL == match_start) {
-    RCL_SET_ERROR_MSG("failed to get start of match");
-    return RCL_RET_ERROR;
+  ret = _rcl_parse_resource_match(
+    lex_lookahead, rule->impl->allocator, &rule->impl->match);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    ret = RCL_RET_INVALID_REMAP_RULE;
   }
-
-  // private name (~/...) or fully qualified name (/...) ?
-  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
-  if (RCL_RET_OK != ret) {
-    return ret;
-  }
-  if (RCL_LEXEME_TILDE_SLASH == lexeme || RCL_LEXEME_FORWARD_SLASH == lexeme) {
-    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
-  }
-  if (RCL_RET_OK != ret) {
-    return ret;
-  }
-
-  // token ( '/' token )*
-  ret = _rcl_parse_remap_match_token(lex_lookahead);
-  if (RCL_RET_OK != ret) {
-    return ret;
-  }
-  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
-  if (RCL_RET_OK != ret) {
-    return ret;
-  }
-  while (RCL_LEXEME_SEPARATOR != lexeme) {
-    ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
-    if (RCL_RET_WRONG_LEXEME == ret) {
-      return RCL_RET_INVALID_REMAP_RULE;
-    }
-    ret = _rcl_parse_remap_match_token(lex_lookahead);
-    if (RCL_RET_OK != ret) {
-      return ret;
-    }
-    ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
-    if (RCL_RET_OK != ret) {
-      return ret;
-    }
-  }
-
-  // Copy match into rule
-  const char * match_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
-  size_t length = (size_t)(match_end - match_start);
-  rule->impl->match = rcutils_strndup(match_start, length, rule->impl->allocator);
-  if (NULL == rule->impl->match) {
-    RCL_SET_ERROR_MSG("failed to copy match");
-    return RCL_RET_BAD_ALLOC;
-  }
-
-  return RCL_RET_OK;
+  return ret;
 }
 
 /// Parse a name remapping rule (ex: `rostopic:///foo:=bar`).
@@ -1101,7 +1188,40 @@ _rcl_parse_remap_nodename_replacement(
 }
 
 /// Parse a nodename prefix including trailing colon (ex: `node_name:`).
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_nodename_prefix(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_allocator_t allocator,
+  char ** node_name)
+{
+  size_t length = 0;
+  const char * token = NULL;
+
+  // Expect a token and a colon
+  rcl_ret_t ret =
+    rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, &token, &length);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_COLON, NULL, NULL);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  // Copy the node name
+  *node_name = rcutils_strndup(token, length, allocator);
+  if (NULL == *node_name) {
+    RCL_SET_ERROR_MSG("failed to allocate node name");
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  return RCL_RET_OK;
+}
+
+/// Parse a nodename prefix for a remap rule.
 /**
+ * \sa _rcl_parse_nodename_prefix()
  * \sa _rcl_parse_remap_begin_remap_rule()
  */
 RCL_LOCAL
@@ -1110,28 +1230,12 @@ _rcl_parse_remap_nodename_prefix(
   rcl_lexer_lookahead2_t * lex_lookahead,
   rcl_remap_t * rule)
 {
-  rcl_ret_t ret;
-  const char * node_name;
-  size_t length;
-
-  // Expect a token and a colon
-  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, &node_name, &length);
+  rcl_ret_t ret = _rcl_parse_nodename_prefix(
+    lex_lookahead, rule->impl->allocator, &rule->impl->node_name);
   if (RCL_RET_WRONG_LEXEME == ret) {
-    return RCL_RET_INVALID_REMAP_RULE;
+    ret = RCL_RET_INVALID_REMAP_RULE;
   }
-  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_COLON, NULL, NULL);
-  if (RCL_RET_WRONG_LEXEME == ret) {
-    return RCL_RET_INVALID_REMAP_RULE;
-  }
-
-  // copy the node name into the rule
-  rule->impl->node_name = rcutils_strndup(node_name, length, rule->impl->allocator);
-  if (NULL == rule->impl->node_name) {
-    RCL_SET_ERROR_MSG("failed to allocate node name");
-    return RCL_RET_BAD_ALLOC;
-  }
-
-  return RCL_RET_OK;
+  return ret;
 }
 
 /// Start recursive descent parsing of a remap rule.
@@ -1218,7 +1322,6 @@ _rcl_parse_log_level_rule(
   return RCL_RET_INVALID_LOG_LEVEL_RULE;
 }
 
-
 rcl_ret_t
 _rcl_parse_remap_rule(
   const char * arg,
@@ -1254,6 +1357,83 @@ _rcl_parse_remap_rule(
     if (RCL_RET_OK != rcl_remap_fini(output_rule)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini remap rule after error occurred");
     }
+    if (RCL_RET_OK != rcl_lexer_lookahead2_fini(&lex_lookahead)) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini lookahead2 after error occurred");
+    }
+  } else {
+    ret = rcl_lexer_lookahead2_fini(&lex_lookahead);
+  }
+  return ret;
+}
+
+rcl_ret_t
+_rcl_parse_param_rule(
+  const char * arg,
+  rcl_params_t * params)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(params, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret;
+
+  rcl_lexer_lookahead2_t lex_lookahead = rcl_get_zero_initialized_lexer_lookahead2();
+
+  ret = rcl_lexer_lookahead2_init(&lex_lookahead, arg, params->allocator);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  rcl_lexeme_t lexeme1;
+  rcl_lexeme_t lexeme2;
+
+  // Check for optional nodename prefix
+  ret = rcl_lexer_lookahead2_peek2(&lex_lookahead, &lexeme1, &lexeme2);
+  if (RCL_RET_OK != ret) {
+    goto cleanup;
+  }
+
+  char * node_name = NULL;
+  if (RCL_LEXEME_TOKEN == lexeme1 && RCL_LEXEME_COLON == lexeme2) {
+    ret = _rcl_parse_nodename_prefix(&lex_lookahead, params->allocator, &node_name);
+    if (RCL_RET_OK != ret) {
+      if (RCL_RET_WRONG_LEXEME == ret) {
+        ret = RCL_RET_INVALID_PARAM_RULE;
+      }
+      goto cleanup;
+    }
+  } else {
+    node_name = rcutils_strdup("/**", params->allocator);
+    if (NULL == node_name) {
+      ret = RCL_RET_BAD_ALLOC;
+      goto cleanup;
+    }
+  }
+
+  char * param_name = NULL;
+  ret = _rcl_parse_resource_match(&lex_lookahead, params->allocator, &param_name);
+  if (RCL_RET_OK != ret) {
+    if (RCL_RET_WRONG_LEXEME == ret) {
+      ret = RCL_RET_INVALID_PARAM_RULE;
+    }
+    goto cleanup;
+  }
+
+  ret = rcl_lexer_lookahead2_expect(&lex_lookahead, RCL_LEXEME_SEPARATOR, NULL, NULL);
+  if (RCL_RET_WRONG_LEXEME == ret) {
+    ret = RCL_RET_INVALID_PARAM_RULE;
+    goto cleanup;
+  }
+
+  const char * yaml_value = rcl_lexer_lookahead2_get_text(&lex_lookahead);
+  if (!rcl_parse_yaml_value(node_name, param_name, yaml_value, params)) {
+    ret = RCL_RET_INVALID_PARAM_RULE;
+    goto cleanup;
+  }
+
+cleanup:
+  params->allocator.deallocate(param_name, params->allocator.state);
+  params->allocator.deallocate(node_name, params->allocator.state);
+  if (RCL_RET_OK != ret) {
     if (RCL_RET_OK != rcl_lexer_lookahead2_fini(&lex_lookahead)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini lookahead2 after error occurred");
     }
