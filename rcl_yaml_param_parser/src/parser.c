@@ -498,7 +498,7 @@ rcl_params_t * rcl_yaml_node_struct_copy(
         }
         if (0U != param_var->integer_array_value->size) {
           out_param_var->integer_array_value->values = allocator.allocate(
-            sizeof(int) * param_var->integer_array_value->size, allocator.state);
+            sizeof(int64_t) * param_var->integer_array_value->size, allocator.state);
           if (NULL == out_param_var->integer_array_value->values) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             goto fail;
@@ -506,7 +506,7 @@ rcl_params_t * rcl_yaml_node_struct_copy(
           memcpy(
             out_param_var->integer_array_value->values,
             param_var->integer_array_value->values,
-            sizeof(int) * param_var->integer_array_value->size);
+            sizeof(int64_t) * param_var->integer_array_value->size);
         } else {
           out_param_var->integer_array_value->values = NULL;
         }
@@ -552,9 +552,9 @@ rcl_params_t * rcl_yaml_node_struct_copy(
           goto fail;
         }
         for (size_t str_idx = 0U; str_idx < param_var->string_array_value->size; ++str_idx) {
-          out_param_var->string_array_value->data[str_idx] =
-            rcutils_strdup(param_var->string_array_value->data[str_idx],
-                           out_param_var->string_array_value->allocator);
+          out_param_var->string_array_value->data[str_idx] = rcutils_strdup(
+            param_var->string_array_value->data[str_idx],
+            out_param_var->string_array_value->allocator);
           if (NULL == out_param_var->string_array_value->data[str_idx]) {
             RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
             goto fail;
@@ -567,7 +567,7 @@ rcl_params_t * rcl_yaml_node_struct_copy(
   }
   return out_params_st;
 
- fail:
+fail:
   rcl_yaml_node_struct_fini(out_params_st);
   return NULL;
 }
