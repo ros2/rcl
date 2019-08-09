@@ -559,7 +559,41 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides) {
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overrides) {
+  const char * argv[] = {"process_name"};
+  int argc = sizeof(argv) / sizeof(const char *);
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_arguments_get_param_overrides(&parsed_args, NULL);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_params_t * params = NULL;
+  ret = rcl_arguments_get_param_overrides(NULL, &params);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_params_t preallocated_params;
+  params = &preallocated_params;
+  ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  params = NULL;
+  ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0U, params->num_nodes);
+  rcl_yaml_node_struct_fini(params);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_param_overrides) {
   const char * argv[] = {
     "process_name", "--ros-args",
     "--param", "string_param:=test_string",
@@ -576,6 +610,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
   rcl_params_t * params = NULL;
   ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(2U, params->num_nodes);
 
   rcl_variant_t * param_value =
     rcl_yaml_node_struct_get("/**", "string_param", params);
@@ -583,7 +618,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
   ASSERT_TRUE(NULL != param_value->string_value);
   EXPECT_STREQ("test_string", param_value->string_value);
 
-  param_value = rcl_yaml_node_struct_get("/some_node", "int_param", params);
+  param_value = rcl_yaml_node_struct_get("some_node", "int_param", params);
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->integer_value);
   EXPECT_EQ(4, *(param_value->integer_value));

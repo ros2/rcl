@@ -307,7 +307,7 @@ rcl_parse_arguments(
           // Attempt to parse next argument as parameter override rule
           if (RCL_RET_OK == _rcl_parse_param_rule(argv[i + 1], args_impl->parameter_overrides)) {
             RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "param override rule : %s\n", argv[i + 1]);
-            i += 2;  // Skip both flag and rule
+            i += 1;  // Skip flag here, for loop will skip rule.
             continue;
           } else {
             RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
@@ -761,6 +761,7 @@ rcl_arguments_fini(
 
     if (args->impl->parameter_overrides) {
       rcl_yaml_node_struct_fini(args->impl->parameter_overrides);
+      args->impl->parameter_overrides = NULL;
     }
 
     if (args->impl->parameter_files) {
@@ -914,9 +915,9 @@ _rcl_parse_remap_replacement_name(
   return RCL_RET_OK;
 }
 
-/// Parse either a token or a wildcard (ex: `foobar`, or `*`, or `**`).
+/// Parse either a resource name token or a wildcard (ex: `foobar`, or `*`, or `**`).
 /**
- * \sa _rcl_parse_remap_begin_remap_rule()
+ * \sa _rcl_parse_resource_match()
  */
 RCL_LOCAL
 rcl_ret_t
@@ -946,9 +947,10 @@ _rcl_parse_resource_match_token(rcl_lexer_lookahead2_t * lex_lookahead)
   return ret;
 }
 
-/// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
+/// Parse a resource name match side of a rule (ex: `rostopic://foo`)
 /**
- * \sa _rcl_parse_remap_begin_remap_rule()
+ * \sa _rcl_parse_param_rule()
+ * \sa _rcl_parse_remap_match_name()
  */
 RCL_LOCAL
 rcl_ret_t
