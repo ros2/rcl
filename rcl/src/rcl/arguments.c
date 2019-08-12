@@ -639,6 +639,7 @@ rcl_arguments_copy(
   args_out->impl->num_unparsed_args = 0;
   args_out->impl->unparsed_ros_args = NULL;
   args_out->impl->num_unparsed_ros_args = 0;
+  args_out->impl->parameter_overrides = NULL;
   args_out->impl->parameter_files = NULL;
   args_out->impl->num_param_files_args = 0;
 
