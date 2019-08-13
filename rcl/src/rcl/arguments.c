@@ -1377,17 +1377,17 @@ _rcl_parse_param_rule(
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(params, RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret;
-
   rcl_lexer_lookahead2_t lex_lookahead = rcl_get_zero_initialized_lexer_lookahead2();
 
-  ret = rcl_lexer_lookahead2_init(&lex_lookahead, arg, params->allocator);
+  rcl_ret_t ret = rcl_lexer_lookahead2_init(&lex_lookahead, arg, params->allocator);
   if (RCL_RET_OK != ret) {
     return ret;
   }
 
   rcl_lexeme_t lexeme1;
   rcl_lexeme_t lexeme2;
+  char * node_name = NULL;
+  char * param_name = NULL;
 
   // Check for optional nodename prefix
   ret = rcl_lexer_lookahead2_peek2(&lex_lookahead, &lexeme1, &lexeme2);
@@ -1395,7 +1395,6 @@ _rcl_parse_param_rule(
     goto cleanup;
   }
 
-  char * node_name = NULL;
   if (RCL_LEXEME_TOKEN == lexeme1 && RCL_LEXEME_COLON == lexeme2) {
     ret = _rcl_parse_nodename_prefix(&lex_lookahead, params->allocator, &node_name);
     if (RCL_RET_OK != ret) {
@@ -1412,7 +1411,6 @@ _rcl_parse_param_rule(
     }
   }
 
-  char * param_name = NULL;
   ret = _rcl_parse_resource_match(&lex_lookahead, params->allocator, &param_name);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_WRONG_LEXEME == ret) {
