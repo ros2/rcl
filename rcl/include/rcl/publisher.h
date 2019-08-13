@@ -196,6 +196,43 @@ RCL_WARN_UNUSED
 rcl_publisher_options_t
 rcl_publisher_get_default_options(void);
 
+/// Allocate memory for a loaned message.
+/**
+ * The memory allocated for the ros message belongs to the middleware and must not be deallocated
+ * other than by a call to \sa rmw_deallocate_loaned_message.
+ * The given size has to be the exact size of the to be allocated message.
+ *
+ * \param[in] publisher Publisher to which the allocated message is associated.
+ * \param[in] type_support Typesupport to which the internal ros message is allocated.
+ * \param[in] message_size The amount of memory to be allocated.
+ * \return pointer to allocated memory.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+void *
+rcl_allocate_loaned_message(
+  const rcl_publisher_t * publisher,
+  const rosidl_message_type_support_t * type_support,
+  size_t message_size);
+
+/// Destroy and deallocate a loaned message
+/**
+ * Deallocates and destroys a previously loaned message.
+ * This function is the only allowed way of deallocating a loaned message.
+ *
+ * \param[in] publisher Publisher to which the loaned message is associated.
+ * \param[in] loaned_message Loaned message to be deallocated and destroyed.
+ * \return `RMW_RET_OK` if successful, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if an argument is null, or
+ * \return `RMW_RET_ERROR` if an unexpected error occurs and no message can be initialized.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_deallocate_loaned_message(
+  const rcl_publisher_t * publisher,
+  void * loaned_message);
+
 /// Publish a ROS message on a topic using a publisher.
 /**
  * It is the job of the caller to ensure that the type of the ros_message
@@ -248,6 +285,7 @@ rcl_publisher_get_default_options(void);
  * \param[in] publisher handle to the publisher which will do the publishing
  * \param[in] ros_message type-erased pointer to the ROS message
  * \param[in] allocation structure pointer, used for memory preallocation (may be NULL)
+ * \param[in] is_Loaned flag indicating if ros messages was allocated in the middleware
  * \return `RCL_RET_OK` if the message was published successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
@@ -259,7 +297,8 @@ rcl_ret_t
 rcl_publish(
   const rcl_publisher_t * publisher,
   const void * ros_message,
-  rmw_publisher_allocation_t * allocation
+  rmw_publisher_allocation_t * allocation,
+  bool is_loaned
 );
 
 /// Publish a serialized message on a topic using a publisher.
@@ -527,6 +566,16 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 const rmw_qos_profile_t *
 rcl_publisher_get_actual_qos(const rcl_publisher_t * publisher);
+
+
+/// Check if publisher instance can loan messages.
+/**
+ * Depending on the middleware and the message type, this will return true if the middleware
+ * can allocate a ROS message instance.
+ */
+RCL_PUBLIC
+bool
+rcl_publisher_can_loan_messages(const rcl_publisher_t * publisher);
 
 #ifdef __cplusplus
 }

@@ -93,7 +93,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   test_msgs__msg__BasicTypes msg;
   test_msgs__msg__BasicTypes__init(&msg);
   msg.int64_value = 42;
-  ret = rcl_publish(&publisher, &msg, nullptr);
+  ret = rcl_publish(&publisher, &msg, nullptr, false);
   test_msgs__msg__BasicTypes__fini(&msg);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
@@ -116,7 +116,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   test_msgs__msg__Strings msg;
   test_msgs__msg__Strings__init(&msg);
   ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, "testing"));
-  ret = rcl_publish(&publisher, &msg, nullptr);
+  ret = rcl_publish(&publisher, &msg, nullptr, false);
   test_msgs__msg__Strings__fini(&msg);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
@@ -160,14 +160,14 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
   test_msgs__msg__BasicTypes msg_int;
   test_msgs__msg__BasicTypes__init(&msg_int);
   msg_int.int64_value = 42;
-  ret = rcl_publish(&publisher, &msg_int, nullptr);
+  ret = rcl_publish(&publisher, &msg_int, nullptr, false);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   test_msgs__msg__BasicTypes__fini(&msg_int);
 
   test_msgs__msg__Strings msg_string;
   test_msgs__msg__Strings__init(&msg_string);
   ASSERT_TRUE(rosidl_generator_c__String__assign(&msg_string.string_value, "testing"));
-  ret = rcl_publish(&publisher_in_namespace, &msg_string, nullptr);
+  ret = rcl_publish(&publisher_in_namespace, &msg_string, nullptr, false);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 

@@ -255,7 +255,7 @@ rcl_lifecycle_com_interface_publish_notification(
   msg.goal_state.id = goal->id;
   rosidl_generator_c__String__assign(&msg.goal_state.label, goal->label);
 
-  return rcl_publish(&com_interface->pub_transition_event, &msg, NULL);
+  return rcl_publish(&com_interface->pub_transition_event, &msg, NULL, false);
 }
 
 #ifdef __cplusplus

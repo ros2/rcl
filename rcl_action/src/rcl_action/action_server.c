@@ -491,7 +491,7 @@ rcl_action_publish_feedback(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_feedback, RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret = rcl_publish(&action_server->impl->feedback_publisher, ros_feedback, NULL);
+  rcl_ret_t ret = rcl_publish(&action_server->impl->feedback_publisher, ros_feedback, NULL, false);
   if (RCL_RET_OK != ret) {
     return RCL_RET_ERROR;  // error already set
   }
@@ -559,7 +559,7 @@ rcl_action_publish_status(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(status_message, RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret = rcl_publish(&action_server->impl->status_publisher, status_message, NULL);
+  rcl_ret_t ret = rcl_publish(&action_server->impl->status_publisher, status_message, NULL, false);
   if (RCL_RET_OK != ret) {
     return RCL_RET_ERROR;  // error already set
   }

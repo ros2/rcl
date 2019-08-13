@@ -355,7 +355,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg, nullptr);
+    ret = rcl_publish(&publisher, &msg, nullptr, false);
     test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
@@ -419,7 +419,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg, nullptr);
+    ret = rcl_publish(&publisher, &msg, nullptr, false);
     test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
@@ -490,7 +490,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
     ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg, nullptr);
+    ret = rcl_publish(&publisher, &msg, nullptr, false);
     test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
