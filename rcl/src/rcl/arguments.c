@@ -16,6 +16,7 @@
 
 #include "rcl/arguments.h"
 
+#include <assert.h>
 #include <string.h>
 
 #include "./arguments_impl.h"
@@ -794,6 +795,9 @@ _rcl_parse_remap_fully_qualified_namespace(
 {
   rcl_ret_t ret;
 
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+
   // Must have at least one Forward slash /
   ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
   if (RCL_RET_WRONG_LEXEME == ret) {
@@ -826,6 +830,9 @@ _rcl_parse_remap_replacement_token(rcl_lexer_lookahead2_t * lex_lookahead)
 {
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
 
   ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
   if (RCL_RET_OK != ret) {
@@ -860,6 +867,10 @@ _rcl_parse_remap_replacement_name(
 {
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(NULL != rule);
 
   const char * replacement_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
   if (NULL == replacement_start) {
@@ -927,6 +938,9 @@ _rcl_parse_resource_match_token(rcl_lexer_lookahead2_t * lex_lookahead)
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
 
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+
   ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
   if (RCL_RET_OK != ret) {
     return ret;
@@ -962,6 +976,12 @@ _rcl_parse_resource_match(
 {
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(rcutils_allocator_is_valid(&allocator));
+  assert(NULL != resource_match);
+  assert(NULL == *resource_match);
 
   const char * match_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
   if (NULL == match_start) {
@@ -1030,6 +1050,11 @@ _rcl_parse_remap_match_name(
 {
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(NULL != rule);
+
   // rostopic:// rosservice://
   ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
   if (RCL_RET_OK != ret) {
@@ -1067,6 +1092,11 @@ _rcl_parse_remap_name_remap(
   rcl_remap_t * rule)
 {
   rcl_ret_t ret;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(NULL != rule);
+
   // match
   ret = _rcl_parse_remap_match_name(lex_lookahead, rule);
   if (RCL_RET_OK != ret) {
@@ -1097,6 +1127,11 @@ _rcl_parse_remap_namespace_replacement(
   rcl_remap_t * rule)
 {
   rcl_ret_t ret;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(NULL != rule);
+
   // __ns
   ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_NS, NULL, NULL);
   if (RCL_RET_WRONG_LEXEME == ret) {
@@ -1158,6 +1193,10 @@ _rcl_parse_remap_nodename_replacement(
   const char * node_name;
   size_t length;
 
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(NULL != rule);
+
   // __node
   ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_NODE, NULL, NULL);
   if (RCL_RET_WRONG_LEXEME == ret) {
@@ -1201,6 +1240,12 @@ _rcl_parse_nodename_prefix(
   size_t length = 0;
   const char * token = NULL;
 
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(rcutils_allocator_is_valid(&allocator));
+  assert(NULL != node_name);
+  assert(NULL == *node_name);
+
   // Expect a token and a colon
   rcl_ret_t ret =
     rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, &token, &length);
@@ -1233,6 +1278,10 @@ _rcl_parse_remap_nodename_prefix(
   rcl_lexer_lookahead2_t * lex_lookahead,
   rcl_remap_t * rule)
 {
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(NULL != rule);
+
   rcl_ret_t ret = _rcl_parse_nodename_prefix(
     lex_lookahead, rule->impl->allocator, &rule->impl->node_name);
   if (RCL_RET_WRONG_LEXEME == ret) {
@@ -1259,6 +1308,10 @@ _rcl_parse_remap_begin_remap_rule(
   rcl_ret_t ret;
   rcl_lexeme_t lexeme1;
   rcl_lexeme_t lexeme2;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(NULL != rule);
 
   // Check for optional nodename prefix
   ret = rcl_lexer_lookahead2_peek2(lex_lookahead, &lexeme1, &lexeme2);
