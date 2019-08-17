@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.6 (2019-08-17)
+------------------
+* Fix leak in __wait_set_clean_up. (`#418 <https://github.com/ros2/rcl/issues/418>`_) (`#486 <https://github.com/ros2/rcl/issues/486>`_)
+* Contributors: Dirk Thomas, Steven! Ragnarök
+
 0.6.5 (2019-02-08)
 ------------------
 * Changed error to warning when loggers are created for nodes non-unique names.(`#385 <https://github.com/ros2/rcl/issues/385>`_)
