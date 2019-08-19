@@ -107,16 +107,25 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
     ss << node_names.data[i] << std::endl;
   }
   EXPECT_EQ(size_t(4), node_names.size) << ss.str();
-  EXPECT_STREQ(node1_name, node_names.data[0]);
-  EXPECT_STREQ(node2_name, node_names.data[1]);
-  EXPECT_STREQ(node3_name, node_names.data[2]);
-  EXPECT_STREQ(node4_name, node_names.data[3]);
-
   EXPECT_EQ(size_t(4), node_namespaces.size) << ss.str();
-  EXPECT_STREQ(node1_namespace, node_namespaces.data[0]);
-  EXPECT_STREQ(node2_namespace, node_namespaces.data[1]);
-  EXPECT_STREQ(node3_namespace, node_namespaces.data[2]);
-  EXPECT_STREQ(node4_namespace, node_namespaces.data[3]);
+
+  size_t matched = 0;
+  const char * exp_names[] = {
+    node1_name, node2_name, node3_name, node4_name
+  };
+  const char * exp_namespaces[] = {
+    node1_namespace, node2_namespace, node3_namespace, node4_namespace
+  };
+  for (size_t i = 0; i < node_names.size; ++i) {
+    for (size_t j = 0; j < node_names.size; ++j) {
+      if (strcmp(exp_names[i], node_names.data[j]) == 0 &&
+        strcmp(exp_namespaces[i], node_namespaces.data[j]) == 0)
+      {
+        matched |= 1u << j;
+      }
+    }
+  }
+  EXPECT_EQ((size_t(1u) << node_names.size) - 1, matched);
 
   ret = rcutils_string_array_fini(&node_names);
   ASSERT_EQ(RCUTILS_RET_OK, ret);
