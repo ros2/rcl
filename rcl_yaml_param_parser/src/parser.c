@@ -410,7 +410,7 @@ rcl_params_t * rcl_yaml_node_struct_copy(
   }
 
   rcutils_ret_t ret;
-  for (size_t node_idx = 0U; node_idx < params_st->num_nodes; node_idx++) {
+  for (size_t node_idx = 0U; node_idx < params_st->num_nodes; ++node_idx) {
     out_params_st->node_names[node_idx] =
       rcutils_strdup(params_st->node_names[node_idx], allocator);
     if (NULL == out_params_st->node_names[node_idx]) {
@@ -428,7 +428,7 @@ rcl_params_t * rcl_yaml_node_struct_copy(
       }
       goto fail;
     }
-    for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params; parameter_idx++) {
+    for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params; ++parameter_idx) {
       out_node_params_st->parameter_names[parameter_idx] =
         rcutils_strdup(node_params_st->parameter_names[parameter_idx], allocator);
       if (NULL == out_node_params_st->parameter_names[parameter_idx]) {

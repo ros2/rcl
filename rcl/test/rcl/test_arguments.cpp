@@ -15,9 +15,10 @@
 #include <gtest/gtest.h>
 #include <sstream>
 
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 #include "rcl/rcl.h"
 #include "rcl/arguments.h"
-
 #include "rcl/error_handling.h"
 
 #include "rcl_yaml_param_parser/parser.h"
@@ -606,10 +607,16 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_param_overr
 
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   rcl_params_t * params = NULL;
   ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_yaml_node_struct_fini(params);
+  });
   EXPECT_EQ(2U, params->num_nodes);
 
   rcl_variant_t * param_value =
@@ -622,8 +629,4 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_param_overr
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->integer_value);
   EXPECT_EQ(4, *(param_value->integer_value));
-
-  rcl_yaml_node_struct_fini(params);
-
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }

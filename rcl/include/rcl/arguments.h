@@ -268,7 +268,6 @@ rcl_arguments_get_param_files(
  * Lock-Free          | Yes
  *
  * \param[in] arguments An arguments structure that has been parsed.
- * \param[in] allocator A valid allocator.
  * \param[out] parameter_overrides Zero or more parameter overrides.
  *   This structure must be finalized by the caller.
  * \return `RCL_RET_OK` if everything goes correctly, or
