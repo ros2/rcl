@@ -936,7 +936,8 @@ static rcutils_ret_t parse_value(
 
   if (val_size > MAX_STRING_SIZE) {
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Scalar value at line %d is bigger than %d bytes", line_num, MAX_STRING_SIZE);
+      "Scalar value at line %u has %zu bytes which is bigger than the compile "
+      "time limit of %u bytes", line_num, val_size, MAX_STRING_SIZE);
     return RCUTILS_RET_ERROR;
   } else {
     if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
