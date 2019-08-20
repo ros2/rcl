@@ -39,6 +39,8 @@ typedef struct rcl_arguments_t
 #define RCL_ROS_ARGS_EXPLICIT_END_TOKEN "--"
 #define RCL_PARAM_FLAG "--param"
 #define RCL_SHORT_PARAM_FLAG "-p"
+#define RCL_REMAP_FLAG "--remap"
+#define RCL_SHORT_REMAP_FLAG "-r"
 
 #define RCL_LOG_LEVEL_ARG_RULE "__log_level:="
 #define RCL_EXTERNAL_LOG_CONFIG_ARG_RULE "__log_config_file:="

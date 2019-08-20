@@ -1753,6 +1753,10 @@ bool rcl_parse_yaml_value(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_name, false);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(yaml_value, false);
 
+  if (0U == strlen(node_name) || 0U == strlen(param_name) || 0U == strlen(yaml_value)) {
+    return false;
+  }
+
   if (NULL == params_st) {
     RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized parameter structure");
     return false;
