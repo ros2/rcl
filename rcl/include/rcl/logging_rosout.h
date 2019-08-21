@@ -45,7 +45,7 @@ extern "C"
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_LOCAL
+RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_logging_rosout_init(
@@ -67,7 +67,7 @@ rcl_logging_rosout_init(
  * \return `RCL_RET_OK` if the rcl_logging_rosout feature was successfully unitialized, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_LOCAL
+RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_logging_rosout_fini();
