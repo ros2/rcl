@@ -18,6 +18,9 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
+#include <string>
+#include <set>
+#include <utility>
 
 #include "rcutils/types.h"
 
@@ -62,6 +65,8 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
     EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
   });
+  std::set<std::pair<std::string, std::string>> expected_nodes, discovered_nodes;
+
   auto node1_ptr = new rcl_node_t;
   *node1_ptr = rcl_get_zero_initialized_node();
   const char * node1_name = "node1";
@@ -69,6 +74,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   rcl_node_options_t node1_options = rcl_node_get_default_options();
   ret = rcl_node_init(node1_ptr, node1_name, node1_namespace, &context, &node1_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(std::make_pair(std::string(node1_name), std::string(node1_namespace)));
 
   auto node2_ptr = new rcl_node_t;
   *node2_ptr = rcl_get_zero_initialized_node();
@@ -77,6 +83,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   rcl_node_options_t node2_options = rcl_node_get_default_options();
   ret = rcl_node_init(node2_ptr, node2_name, node2_namespace, &context, &node2_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(std::make_pair(std::string(node2_name), std::string(node2_namespace)));
 
   auto node3_ptr = new rcl_node_t;
   *node3_ptr = rcl_get_zero_initialized_node();
@@ -85,6 +92,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   rcl_node_options_t node3_options = rcl_node_get_default_options();
   ret = rcl_node_init(node3_ptr, node3_name, node3_namespace, &context, &node3_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(std::make_pair(std::string(node3_name), std::string(node3_namespace)));
 
   auto node4_ptr = new rcl_node_t;
   *node4_ptr = rcl_get_zero_initialized_node();
@@ -93,6 +101,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   rcl_node_options_t node4_options = rcl_node_get_default_options();
   ret = rcl_node_init(node4_ptr, node4_name, node4_namespace, &context, &node4_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(std::make_pair(std::string(node4_name), std::string(node4_namespace)));
 
   std::this_thread::sleep_for(1s);
 
@@ -106,17 +115,13 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   for (size_t i = 0; i < node_names.size; ++i) {
     ss << node_names.data[i] << std::endl;
   }
-  EXPECT_EQ(size_t(4), node_names.size) << ss.str();
-  EXPECT_STREQ(node1_name, node_names.data[0]);
-  EXPECT_STREQ(node2_name, node_names.data[1]);
-  EXPECT_STREQ(node3_name, node_names.data[2]);
-  EXPECT_STREQ(node4_name, node_names.data[3]);
+  EXPECT_EQ(node_names.size, node_namespaces.size) << ss.str();
 
-  EXPECT_EQ(size_t(4), node_namespaces.size) << ss.str();
-  EXPECT_STREQ(node1_namespace, node_namespaces.data[0]);
-  EXPECT_STREQ(node2_namespace, node_namespaces.data[1]);
-  EXPECT_STREQ(node3_namespace, node_namespaces.data[2]);
-  EXPECT_STREQ(node4_namespace, node_namespaces.data[3]);
+  for (size_t i = 0; i < node_names.size; ++i) {
+    discovered_nodes.insert(std::make_pair(std::string(node_names.data[i]),
+      std::string(node_namespaces.data[i])));
+  }
+  EXPECT_EQ(discovered_nodes, expected_nodes);
 
   ret = rcutils_string_array_fini(&node_names);
   ASSERT_EQ(RCUTILS_RET_OK, ret);
