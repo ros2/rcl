@@ -62,7 +62,7 @@ typedef struct namespace_tracker_s
   uint32_t num_parameter_ns;
 } namespace_tracker_t;
 
-#define MAX_STRING_SIZE 128U
+#define MAX_STRING_SIZE 256U
 #define PARAMS_KEY "ros__parameters"
 #define NODE_NS_SEPERATOR "/"
 #define PARAMETER_NS_SEPERATOR "."
