@@ -16,6 +16,7 @@
 #define RCL__ARGUMENTS_IMPL_H_
 
 #include "rcl/arguments.h"
+#include "rcl_yaml_param_parser/types.h"
 #include "./remap_impl.h"
 
 #ifdef __cplusplus
@@ -36,7 +37,8 @@ typedef struct rcl_arguments_impl_t
   /// Length of unparsed_args.
   int num_unparsed_args;
 
-  // TODO(mikaelarguedas) consider storing CLI parameter rules here
+  /// Parameter override rules parsed from arguments.
+  rcl_params_t * parameter_overrides;
   /// Array of yaml parameter file paths
   char ** parameter_files;
   /// Length of parameter_files.

@@ -48,47 +48,112 @@ TEST(test_parser, correct_syntax) {
   bool res = rcl_parse_yaml_file(path, params_hdl);
   ASSERT_TRUE(res) << rcutils_get_error_string().str;
 
-  rcl_variant_t * param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_1", "ports", params_hdl);
-  ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
-  ASSERT_TRUE(NULL != param_value->integer_array_value);
-  ASSERT_EQ(3U, param_value->integer_array_value->size);
-  EXPECT_EQ(2438, param_value->integer_array_value->values[0]);
-  EXPECT_EQ(2439, param_value->integer_array_value->values[1]);
-  EXPECT_EQ(2440, param_value->integer_array_value->values[2]);
-  res = rcl_parse_yaml_value("lidar_ns/lidar_1", "ports", "[8080]", params_hdl);
-  EXPECT_TRUE(res) << rcutils_get_error_string().str;
-  ASSERT_TRUE(NULL != param_value->integer_array_value);
-  ASSERT_EQ(1U, param_value->integer_array_value->size);
-  EXPECT_EQ(8080, param_value->integer_array_value->values[0]);
+  rcl_params_t * copy_of_params_hdl = rcl_yaml_node_struct_copy(params_hdl);
+  ASSERT_TRUE(NULL != copy_of_params_hdl) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_yaml_node_struct_fini(copy_of_params_hdl);
+  });
 
-  param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_2", "is_back", params_hdl);
-  ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
-  ASSERT_TRUE(NULL != param_value->bool_value);
-  EXPECT_FALSE(*param_value->bool_value);
-  res = rcl_parse_yaml_value("lidar_ns/lidar_2", "is_back", "true", params_hdl);
-  EXPECT_TRUE(res) << rcutils_get_error_string().str;
-  ASSERT_TRUE(NULL != param_value->bool_value);
-  EXPECT_TRUE(*param_value->bool_value);
+  rcl_params_t * params_hdl_set[] = {params_hdl, copy_of_params_hdl};
+  for (rcl_params_t * params : params_hdl_set) {
+    rcl_variant_t * param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_2", "is_back", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->bool_value);
+    EXPECT_FALSE(*param_value->bool_value);
+    res = rcl_parse_yaml_value("lidar_ns/lidar_2", "is_back", "true", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->bool_value);
+    EXPECT_TRUE(*param_value->bool_value);
 
-  param_value = rcl_yaml_node_struct_get("camera", "cam_spec.angle", params_hdl);
-  ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
-  ASSERT_TRUE(NULL != param_value->double_value);
-  EXPECT_DOUBLE_EQ(2.34, *param_value->double_value);
-  res = rcl_parse_yaml_value("camera", "cam_spec.angle", "2.2", params_hdl);
-  EXPECT_TRUE(res) << rcutils_get_error_string().str;
-  ASSERT_TRUE(NULL != param_value->double_value);
-  EXPECT_DOUBLE_EQ(2.2, *param_value->double_value);
+    param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_2", "id", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_value);
+    EXPECT_EQ(11, *param_value->integer_value);
+    res = rcl_parse_yaml_value("lidar_ns/lidar_2", "id", "12", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_value);
+    EXPECT_EQ(12, *param_value->integer_value);
 
-  param_value = rcl_yaml_node_struct_get("intel", "arch", params_hdl);
-  ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
-  ASSERT_TRUE(NULL != param_value->string_value);
-  EXPECT_STREQ("x86_64", param_value->string_value);
-  res = rcl_parse_yaml_value("intel", "arch", "x86", params_hdl);
-  EXPECT_TRUE(res) << rcutils_get_error_string().str;
-  ASSERT_TRUE(NULL != param_value->string_value);
-  EXPECT_STREQ("x86", param_value->string_value);
+    param_value = rcl_yaml_node_struct_get("camera", "cam_spec.angle", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->double_value);
+    EXPECT_DOUBLE_EQ(2.34, *param_value->double_value);
+    res = rcl_parse_yaml_value("camera", "cam_spec.angle", "2.2", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->double_value);
+    EXPECT_DOUBLE_EQ(2.2, *param_value->double_value);
 
-  rcl_yaml_node_struct_print(params_hdl);
+    param_value = rcl_yaml_node_struct_get("intel", "arch", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_value);
+    EXPECT_STREQ("x86_64", param_value->string_value);
+    res = rcl_parse_yaml_value("intel", "arch", "x86", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_value);
+    EXPECT_STREQ("x86", param_value->string_value);
+
+    param_value = rcl_yaml_node_struct_get("new_camera_ns/new_camera1", "is_cam_on", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->bool_array_value);
+    ASSERT_EQ(6U, param_value->bool_array_value->size);
+    EXPECT_TRUE(param_value->bool_array_value->values[0]);
+    EXPECT_TRUE(param_value->bool_array_value->values[1]);
+    EXPECT_FALSE(param_value->bool_array_value->values[2]);
+    EXPECT_TRUE(param_value->bool_array_value->values[3]);
+    EXPECT_FALSE(param_value->bool_array_value->values[4]);
+    EXPECT_FALSE(param_value->bool_array_value->values[5]);
+    res = rcl_parse_yaml_value("new_camera_ns/new_camera1", "is_cam_on", "[false, true]", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->bool_array_value);
+    ASSERT_EQ(2U, param_value->bool_array_value->size);
+    EXPECT_FALSE(param_value->bool_array_value->values[0]);
+    EXPECT_TRUE(param_value->bool_array_value->values[1]);
+
+    param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_1", "ports", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_array_value);
+    ASSERT_EQ(3U, param_value->integer_array_value->size);
+    EXPECT_EQ(2438, param_value->integer_array_value->values[0]);
+    EXPECT_EQ(2439, param_value->integer_array_value->values[1]);
+    EXPECT_EQ(2440, param_value->integer_array_value->values[2]);
+    res = rcl_parse_yaml_value("lidar_ns/lidar_1", "ports", "[8080]", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_array_value);
+    ASSERT_EQ(1U, param_value->integer_array_value->size);
+    EXPECT_EQ(8080, param_value->integer_array_value->values[0]);
+
+    param_value = rcl_yaml_node_struct_get(
+      "lidar_ns/lidar_1", "driver1.bk_sensor_specs", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->double_array_value);
+    ASSERT_EQ(4U, param_value->double_array_value->size);
+    EXPECT_DOUBLE_EQ(12.1, param_value->double_array_value->values[0]);
+    EXPECT_DOUBLE_EQ(-2.3, param_value->double_array_value->values[1]);
+    EXPECT_DOUBLE_EQ(5.2, param_value->double_array_value->values[2]);
+    EXPECT_DOUBLE_EQ(9.0, param_value->double_array_value->values[3]);
+    res = rcl_parse_yaml_value("lidar_ns/lidar_1", "driver1.bk_sensor_specs", "[1.0]", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->double_array_value);
+    ASSERT_EQ(1U, param_value->double_array_value->size);
+    EXPECT_DOUBLE_EQ(1.0, param_value->double_array_value->values[0]);
+
+    param_value = rcl_yaml_node_struct_get("camera", "cam_spec.supported_brands", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_array_value);
+    ASSERT_EQ(3U, param_value->string_array_value->size);
+    EXPECT_STREQ("Bosch", param_value->string_array_value->data[0]);
+    EXPECT_STREQ("Novatek", param_value->string_array_value->data[1]);
+    EXPECT_STREQ("Mobius", param_value->string_array_value->data[2]);
+    res = rcl_parse_yaml_value(
+      "camera", "cam_spec.supported_brands", "[Mobius]", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value);
+    ASSERT_TRUE(NULL != param_value->string_array_value);
+    ASSERT_EQ(1U, param_value->string_array_value->size);
+    EXPECT_STREQ("Mobius", param_value->string_array_value->data[0]);
+
+    rcl_yaml_node_struct_print(params);
+  }
 }
 
 TEST(test_file_parser, string_array_with_quoted_number) {
