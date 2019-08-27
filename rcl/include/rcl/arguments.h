@@ -80,6 +80,9 @@ rcl_get_zero_initialized_arguments(void);
  * `warn`, not case sensitive.
  * If multiple of these rules are found, the last one parsed will be used.
  *
+ * If an argument does not appear to be a valid ROS argument e.g. a `-r/--remap` flag followed by
+ * anything but a valid remap rule, parsing will fail immediately.
+ *
  * If an argument does not appear to be a known ROS argument, then it is skipped and left unparsed.
  *
  * \sa rcl_arguments_get_count_unparsed_ros()
@@ -104,6 +107,7 @@ rcl_get_zero_initialized_arguments(void);
  * \param[out] args_output A structure that will contain the result of parsing.
  *   Must be zero initialized before use.
  * \return `RCL_RET_OK` if the arguments were parsed successfully, or
+ * \return `RCL_RET_INVALID_ROS_ARGS` if an invalid ROS argument is found, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -190,9 +194,9 @@ int
 rcl_arguments_get_count_unparsed_ros(
   const rcl_arguments_t * args);
 
-/// Return a list of indices to ROS specific arguments that were not successfully parsed.
+/// Return a list of indices to unknown ROS specific arguments that were left unparsed.
 /**
- * Some ROS specific arguments may not have been successfully parsed, or were not intended to be
+ * Some ROS specific arguments may not have been recognized, or were not intended to be
  * parsed by rcl.
  * This function populates an array of indices to these arguments in the original argv array.
  *
