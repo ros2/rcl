@@ -951,7 +951,7 @@ _rcl_parse_remap_namespace_replacement(
   return RCL_RET_OK;
 }
 
-/// Parse a nodename replacement rule (ex: `__node:=new_name`).
+/// Parse a nodename replacement rule (ex: `__node:=new_name` or `__name:=new_name`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
  */
