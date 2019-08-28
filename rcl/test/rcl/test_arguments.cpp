@@ -104,11 +104,11 @@ public:
   } while (0)
 
 bool
-are_valid_ros_args(int argc, std::vector<const char *> argv)
+are_known_ros_args(std::vector<const char *> argv)
 {
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(
-    argc, argv.data(), rcl_get_default_allocator(), &parsed_args);
+    argv.size(), argv.data(), rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   bool is_valid = (
     0 == rcl_arguments_get_count_unparsed(&parsed_args) &&
@@ -117,74 +117,80 @@ are_valid_ros_args(int argc, std::vector<const char *> argv)
   return is_valid;
 }
 
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_invalid_args) {
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "__node:=node_name"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "old_name:__node:=node_name"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "old_name:__node:=nodename123"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "__node:=nodename123"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "__ns:=/foo/bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "__ns:=/"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "_:=kq"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "nodename:__ns:=/foobar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "foo:=bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "~/foo:=~/bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "/foo/bar:=bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "foo:=/bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "/foo123:=/bar123"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "node:/foo123:=/bar123"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "rostopic:=/foo/bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "rosservice:=baz"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "rostopic://rostopic:=rosservice"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "rostopic:///rosservice:=rostopic"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-r", "rostopic:///foo/bar:=baz"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-p", "foo:=bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-p", "~/foo:=~/bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-p", "/foo/bar:=bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-p", "foo:=/bar"}));
-  EXPECT_TRUE(are_valid_ros_args(3, {"--ros-args", "-p", "/foo123:=/bar123"}));
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__params:=file_name.yaml"}));
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unknown_args) {
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "__node:=node_name"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "old_name:__node:=node_name"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "old_name:__node:=nodename123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "__node:=nodename123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "__ns:=/foo/bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "__ns:=/"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "_:=kq"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "nodename:__ns:=/foobar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "foo:=bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "~/foo:=~/bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "/foo/bar:=bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "foo:=/bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "/foo123:=/bar123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "node:/foo123:=/bar123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rostopic:=/foo/bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rosservice:=baz"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rostopic://rostopic:=rosservice"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rostopic:///rosservice:=rostopic"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rostopic:///foo/bar:=baz"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "foo:=bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "~/foo:=~/bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo/bar:=bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "foo:=/bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo123:=/bar123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__params:=file_name.yaml"}));
 
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", ":="}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "foo:="}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", ":=bar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "--remap"}));
 
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-p", ":="}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-p", "foo:="}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-p", ":=bar"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "__ns:="}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", ":="}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "foo:="}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", ":=bar"}));
 
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "__node:="}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "__node:=/foo/bar"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "__ns:=foo"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", ":__node:=nodename"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "~:__node:=nodename"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "}foo:=/bar"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "f oo:=/bar"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "foo:=/b ar"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "f{oo:=/bar"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "foo:=/b}ar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-p"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "--param"}));
 
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-p", "}foo:=/bar"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-p", "f oo:=/bar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-p", ":="}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-p", "foo:="}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-p", ":=bar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "__ns:="}));
 
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "rostopic://:=rosservice"}));
-  EXPECT_FALSE(are_valid_ros_args(3, {"--ros-args", "-r", "rostopic::=rosservice"}));
-  EXPECT_FALSE(are_valid_ros_args(2, {"--ros-args", "__param:=file_name.yaml"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "__node:="}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "__node:=/foo/bar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "__ns:=foo"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", ":__node:=nodename"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "~:__node:=nodename"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "}foo:=/bar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "f oo:=/bar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "foo:=/b ar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "f{oo:=/bar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "foo:=/b}ar"}));
+
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-p", "}foo:=/bar"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-p", "f oo:=/bar"}));
+
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "rostopic://:=rosservice"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "-r", "rostopic::=rosservice"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "__param:=file_name.yaml"}));
 
   // Setting logger level
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__log_level:=UNSET"}));
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__log_level:=DEBUG"}));
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__log_level:=INFO"}));
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__log_level:=WARN"}));
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__log_level:=ERROR"}));
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__log_level:=FATAL"}));
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__log_level:=debug"}));
-  EXPECT_TRUE(are_valid_ros_args(2, {"--ros-args", "__log_level:=Info"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__log_level:=UNSET"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__log_level:=DEBUG"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__log_level:=INFO"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__log_level:=WARN"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__log_level:=ERROR"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__log_level:=FATAL"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__log_level:=debug"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "__log_level:=Info"}));
 
-  EXPECT_FALSE(are_valid_ros_args(2, {"--ros-args", "__log:=foo"}));
-  EXPECT_FALSE(are_valid_ros_args(2, {"--ros-args", "__loglevel:=foo"}));
-  EXPECT_FALSE(are_valid_ros_args(2, {"--ros-args", "__log_level:="}));
-  EXPECT_FALSE(are_valid_ros_args(2, {"--ros-args", "__log_level:=foo"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "__log:=foo"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "__loglevel:=foo"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "__log_level:="}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "__log_level:=foo"}));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_args) {

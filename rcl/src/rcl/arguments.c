@@ -364,18 +364,6 @@ rcl_parse_arguments(
         rcl_get_error_string().str);
       rcl_reset_error();
 
-      // Attempt to parse argument as remap rule
-      rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
-      *rule = rcl_get_zero_initialized_remap();
-      if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
-        ++(args_impl->num_remap_rules);
-        continue;
-      }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as remap rule. Error: %s", i, argv[i],
-        rcl_get_error_string().str);
-      rcl_reset_error();
-
       // Attempt to parse argument as log level configuration
       int log_level;
       if (RCL_RET_OK == _rcl_parse_log_level_rule(argv[i], allocator, &log_level)) {
