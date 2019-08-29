@@ -65,6 +65,8 @@ rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret)
       return RCL_RET_BAD_ALLOC;
     case RMW_RET_UNSUPPORTED:
       return RCL_RET_UNSUPPORTED;
+    case RMW_RET_NON_EXISTENT_NODE_NAME:
+      RCL_RET_NON_EXISTENT_NODE_NAME;
     default:
       return RCL_RET_ERROR;
   }
