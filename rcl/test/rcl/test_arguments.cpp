@@ -106,9 +106,10 @@ public:
 bool
 are_known_ros_args(std::vector<const char *> argv)
 {
+  const int argc = static_cast<int>(argv.size());
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(
-    argv.size(), argv.data(), rcl_get_default_allocator(), &parsed_args);
+    argc, argv.data(), rcl_get_default_allocator(), &parsed_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   bool is_valid = (
     0 == rcl_arguments_get_count_unparsed(&parsed_args) &&
