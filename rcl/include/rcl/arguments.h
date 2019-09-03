@@ -57,26 +57,38 @@ rcl_get_zero_initialized_arguments(void);
 
 /// Parse command line arguments into a structure usable by code.
 /**
- * If an argument does not appear to be a valid ROS argument then it is skipped
- * and parsing continues with the next argument in `argv`.
- *
  * \sa rcl_get_zero_initialized_arguments()
- * \sa rcl_arguments_get_count_unparsed()
- * \sa rcl_arguments_get_unparsed()
  *
+ * ROS arguments are expected to be scoped by a leading `--ros-args` flag and a trailing double
+ * dash token `--` which may be elided if no non-ROS arguments follow after the last `--ros-args`.
+ *
+ * Remap rule parsing is supported via `-r/--remap` flags e.g. `--remap from:=to` or `-r from:=to`.
  * Successfully parsed remap rules are stored in the order they were given in `argv`.
  * If given arguments `{"__ns:=/foo", "__ns:=/bar"}` then the namespace used by nodes in this
  * process will be `/foo` and not `/bar`.
+ *
+ * \sa rcl_remap_topic_name()
+ * \sa rcl_remap_service_name()
+ * \sa rcl_remap_node_name()
+ * \sa rcl_remap_node_namespace()
+ *
+ * Parameter override rule parsing is supported via `-p/--param` flags e.g. `--param name:=value`
+ * or `-p name:=value`.
  *
  * The default log level will be parsed as `__log_level:=level`, where `level` is a name
  * representing one of the log levels in the `RCUTILS_LOG_SEVERITY` enum, e.g. `info`, `debug`,
  * `warn`, not case sensitive.
  * If multiple of these rules are found, the last one parsed will be used.
  *
- * \sa rcl_remap_topic_name()
- * \sa rcl_remap_service_name()
- * \sa rcl_remap_node_name()
- * \sa rcl_remap_node_namespace()
+ * If an argument does not appear to be a known ROS argument, then it is skipped and left unparsed.
+ *
+ * \sa rcl_arguments_get_count_unparsed_ros()
+ * \sa rcl_arguments_get_unparsed_ros()
+ *
+ * All arguments found outside a `--ros-args ... --` scope are skipped and left unparsed.
+ *
+ * \sa rcl_arguments_get_count_unparsed()
+ * \sa rcl_arguments_get_unparsed()
  *
  * <hr>
  * Attribute          | Adherence
