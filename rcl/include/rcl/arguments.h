@@ -39,15 +39,19 @@ typedef struct rcl_arguments_t
 #define RCL_ROS_ARGS_EXPLICIT_END_TOKEN "--"
 #define RCL_PARAM_FLAG "--param"
 #define RCL_SHORT_PARAM_FLAG "-p"
+#define RCL_PARAM_FILE_FLAG "--params-file"
+#define RCL_SHORT_PARAM_FILE_FLAG "-f"
 #define RCL_REMAP_FLAG "--remap"
 #define RCL_SHORT_REMAP_FLAG "-r"
+#define RCL_LOG_LEVEL_FLAG "--log-level"
+#define RCL_SHORT_LOG_LEVEL_FLAG "-l"
+#define RCL_EXTERNAL_LOG_CONFIG_FLAG "--log-config-file"
+#define RCL_SHORT_EXTERNAL_LOG_CONFIG_FLAG "-c"
+// To be prefixed with --enable- or --disable-
+#define RCL_LOG_STDOUT_FLAG_SUFFIX "stdout-logs"
+#define RCL_LOG_ROSOUT_FLAG_SUFFIX "rosout-logs"
+#define RCL_LOG_EXT_LIB_FLAG_SUFFIX "external-lib-logs"
 
-#define RCL_LOG_LEVEL_ARG_RULE "__log_level:="
-#define RCL_EXTERNAL_LOG_CONFIG_ARG_RULE "__log_config_file:="
-#define RCL_LOG_DISABLE_STDOUT_ARG_RULE "__log_disable_stdout:="
-#define RCL_LOG_DISABLE_ROSOUT_ARG_RULE "__log_disable_rosout:="
-#define RCL_LOG_DISABLE_EXT_LIB_ARG_RULE "__log_disable_external_lib:="
-#define RCL_PARAM_FILE_ARG_RULE "__params:="
 
 /// Return a rcl_arguments_t struct with members initialized to `NULL`.
 RCL_PUBLIC
@@ -75,7 +79,7 @@ rcl_get_zero_initialized_arguments(void);
  * Parameter override rule parsing is supported via `-p/--param` flags e.g. `--param name:=value`
  * or `-p name:=value`.
  *
- * The default log level will be parsed as `__log_level:=level`, where `level` is a name
+ * The default log level will be parsed as `--log-level level`, where `level` is a name
  * representing one of the log levels in the `RCUTILS_LOG_SEVERITY` enum, e.g. `info`, `debug`,
  * `warn`, not case sensitive.
  * If multiple of these rules are found, the last one parsed will be used.
