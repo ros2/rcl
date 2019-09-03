@@ -14,6 +14,7 @@
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/logging_rosout.h"
 #include "rcl/node.h"
 #include "rcl/publisher.h"
 #include "rcl/time.h"

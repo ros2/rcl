@@ -32,6 +32,13 @@ RCL_YAML_PARAM_PARSER_PUBLIC
 rcl_params_t * rcl_yaml_node_struct_init(
   const rcutils_allocator_t allocator);
 
+/// \brief Copy parameter structure
+/// \param[in] params_st points to the parameter struct to be copied
+/// \return a pointer to the copied param structure on success or NULL on failure
+RCL_YAML_PARAM_PARSER_PUBLIC
+rcl_params_t * rcl_yaml_node_struct_copy(
+  const rcl_params_t * params_st);
+
 /// \brief Free parameter structure
 /// \param[in] params_st points to the populated parameter struct
 RCL_YAML_PARAM_PARSER_PUBLIC

@@ -147,7 +147,8 @@ function(test_target_function)
     SRCS rcl/test_arguments.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}
+    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
+    AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
   )
 
   rcl_add_custom_gtest(test_remap${target_suffix}
