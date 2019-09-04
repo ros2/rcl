@@ -145,6 +145,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo123:=/bar123"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "__params:=file_name.yaml"}));
 
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "--custom-ros-arg"}));
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "__node:=node_name"}));
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "old_name:__node:=node_name"}));
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "/foo/bar:=bar"}));
@@ -174,6 +175,7 @@ are_valid_ros_args(std::vector<const char *> argv)
   rcl_ret_t ret = rcl_parse_arguments(
     argv.size(), argv.data(), rcl_get_default_allocator(), &parsed_args);
   if (RCL_RET_OK != ret) {
+    EXPECT_EQ(ret, RCL_RET_INVALID_ROS_ARGS) << rcl_get_error_string().str;
     rcl_reset_error();
     return false;
   }
@@ -183,6 +185,9 @@ are_valid_ros_args(std::vector<const char *> argv)
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_invalid_args) {
   EXPECT_TRUE(are_valid_ros_args({"--ros-args", "-p", "foo:=bar", "-r", "__node:=node_name"}));
+
+  // ROS args unknown to rcl are not (necessarily) invalid
+  EXPECT_TRUE(are_valid_ros_args({"--ros-args", "--custom-ros-arg"}));
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--remap"}));

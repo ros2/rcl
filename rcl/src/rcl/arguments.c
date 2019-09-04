@@ -324,7 +324,7 @@ rcl_parse_arguments(
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as parameter override rule. Not one of the %s or %s flags.", i,
+        "Couldn't parse arg %d (%s) as parameter override rule. Not a '%s' or '%s' flag.", i,
         argv[i], RCL_PARAM_FLAG, RCL_SHORT_PARAM_FLAG);
 
       // Attempt to parse argument as remap rule flag
@@ -352,7 +352,7 @@ rcl_parse_arguments(
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as remap rule. Not one of the %s or %s flags.", i,
+        "Couldn't parse arg %d (%s) as remap rule. Not a '%s' or '%s' flag.", i,
         argv[i], RCL_REMAP_FLAG, RCL_SHORT_REMAP_FLAG);
 
       // Attempt to parse argument as parameter file rule
