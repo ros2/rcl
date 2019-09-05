@@ -171,9 +171,10 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
 bool
 are_valid_ros_args(std::vector<const char *> argv)
 {
+  const int argc = static_cast<int>(argv.size());
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(
-    argv.size(), argv.data(), rcl_get_default_allocator(), &parsed_args);
+    argc, argv.data(), rcl_get_default_allocator(), &parsed_args);
   if (RCL_RET_OK != ret) {
     EXPECT_EQ(ret, RCL_RET_INVALID_ROS_ARGS) << rcl_get_error_string().str;
     rcl_reset_error();
