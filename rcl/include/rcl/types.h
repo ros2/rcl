@@ -96,6 +96,8 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_INVALID_REMAP_RULE 1001
 /// Expected one type of lexeme but got another
 #define RCL_RET_WRONG_LEXEME 1002
+/// Found invalid ros argument while parsing
+#define RCL_RET_INVALID_ROS_ARGS 1003
 /// Argument is not a valid parameter rule
 #define RCL_RET_INVALID_PARAM_RULE 1010
 /// Argument is not a valid log level rule

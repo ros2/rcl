@@ -310,18 +310,22 @@ rcl_parse_arguments(
             RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "param override rule : %s\n", argv[i + 1]);
             i += 1;  // Skip flag here, for loop will skip rule.
             continue;
-          } else {
-            RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-              "Couldn't parse arg %d (%s) as parameter override rule. Error: %s", i + 1,
-              argv[i + 1], rcl_get_error_string().str);
           }
+          rcl_error_string_t prev_error_string = rcl_get_error_string();
+          rcl_reset_error();
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Couldn't parse parameter override rule: '%s %s'. Error: %s", argv[i], argv[i + 1],
+            prev_error_string.str);
         } else {
-          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-            "Couldn't parse arg %d (%s) as parameter override flag. No rule found.\n",
-            i, argv[i]);
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Couldn't parse trailing parameter override rule: '%s'. No rule found.", argv[i]);
         }
-        rcl_reset_error();
+        ret = RCL_RET_INVALID_ROS_ARGS;
+        goto fail;
       }
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "Couldn't parse arg %d (%s) as parameter override rule. Not a '%s' or '%s' flag.", i,
+        argv[i], RCL_PARAM_FLAG, RCL_SHORT_PARAM_FLAG);
 
       // Attempt to parse argument as remap rule flag
       if (strcmp(RCL_REMAP_FLAG, argv[i]) == 0 || strcmp(RCL_SHORT_REMAP_FLAG, argv[i]) == 0) {
@@ -335,16 +339,21 @@ rcl_parse_arguments(
             i += 1;  // Skip flag here, for loop will skip rule.
             continue;
           }
-          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-            "Couldn't parse arg %d (%s) as remap rule. Error: %s", i + 1, argv[i + 1],
-            rcl_get_error_string().str);
+          rcl_error_string_t prev_error_string = rcl_get_error_string();
           rcl_reset_error();
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Couldn't parse remap rule: '%s %s'. Error: %s", argv[i], argv[i + 1],
+            prev_error_string.str);
         } else {
-          RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-            "Couldn't parse arg %d (%s) as remap rule flag. No rule found.\n",
-            i, argv[i]);
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Couldn't parse trailing remap rule: '%s'. No rule found.", argv[i]);
         }
+        ret = RCL_RET_INVALID_ROS_ARGS;
+        goto fail;
       }
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        "Couldn't parse arg %d (%s) as remap rule. Not a '%s' or '%s' flag.", i,
+        argv[i], RCL_REMAP_FLAG, RCL_SHORT_REMAP_FLAG);
 
       // Attempt to parse argument as parameter file rule
       args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
