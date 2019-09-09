@@ -152,7 +152,7 @@ _rcl_parse_log_level(
   rcl_allocator_t allocator,
   int * log_level);
 
-/// Parse an argument that may or may not be a log file.
+/// Parse an argument that may or may not be a log configuration file.
 /**
  * \param[in] arg the argument to parse
  * \param[in] allocator an allocator to use
@@ -375,7 +375,7 @@ rcl_parse_arguments(
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing param file flag: '%s'. No rule found.", argv[i]);
+            "Couldn't parse trailing param file flag: '%s'. No file path provided.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
@@ -404,7 +404,7 @@ rcl_parse_arguments(
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing log level flag: '%s'. No rule found.", argv[i]);
+            "Couldn't parse trailing log level flag: '%s'. No log level provided.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
@@ -421,7 +421,7 @@ rcl_parse_arguments(
         if (i + 1 < argc) {
           if (NULL != args_impl->external_log_config_file) {
             RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-              "Overriding log config file : %s\n",
+              "Overriding log configuration file : %s\n",
               args_impl->external_log_config_file);
             allocator.deallocate(args_impl->external_log_config_file, allocator.state);
             args_impl->external_log_config_file = NULL;
@@ -430,7 +430,7 @@ rcl_parse_arguments(
               argv[i + 1], allocator, &args_impl->external_log_config_file))
           {
             RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-              "Got log config file : %s\n",
+              "Got log configuration file : %s\n",
               args_impl->external_log_config_file);
             ++i;  // Skip flag here, for loop will skip value.
             continue;
@@ -438,17 +438,18 @@ rcl_parse_arguments(
           rcl_error_string_t prev_error_string = rcl_get_error_string();
           rcl_reset_error();
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse log config file: '%s %s'. Error: %s", argv[i], argv[i + 1],
+            "Couldn't parse log configuration file: '%s %s'. Error: %s", argv[i], argv[i + 1],
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing log config flag: '%s'. No rule found.", argv[i]);
+            "Couldn't parse trailing log configuration file flag: '%s'."
+            " No file path provided.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as log config flag. Not one of the %s or %s flags",
+        "Couldn't parse arg %d (%s) as log configuration file flag. Not one of the %s or %s flags",
         i, argv[i], RCL_EXTERNAL_LOG_CONFIG_FLAG, RCL_SHORT_EXTERNAL_LOG_CONFIG_FLAG);
 
       // Attempt to parse --enable/disable-stdout-logs flag
