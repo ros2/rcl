@@ -316,8 +316,8 @@ rcl_parse_arguments(
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as parameter override rule. Not a '%s' or '%s' flag.", i,
-        argv[i], RCL_PARAM_FLAG, RCL_SHORT_PARAM_FLAG);
+        "Couldn't parse arg %d (%s) as parameter override rule. Not a %s nor a %s flag.",
+        i, argv[i], RCL_PARAM_FLAG, RCL_SHORT_PARAM_FLAG);
 
       // Attempt to parse argument as remap rule flag
       if (strcmp(RCL_REMAP_FLAG, argv[i]) == 0 || strcmp(RCL_SHORT_REMAP_FLAG, argv[i]) == 0) {
@@ -344,14 +344,11 @@ rcl_parse_arguments(
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as remap rule. Not a '%s' or '%s' flag.", i,
+        "Couldn't parse arg %d (%s) as remap rule. Not a %s' nor a %s flag.", i,
         argv[i], RCL_REMAP_FLAG, RCL_SHORT_REMAP_FLAG);
 
       // Attempt to parse argument as parameter file rule
-      if (
-        strcmp(RCL_PARAM_FILE_FLAG, argv[i]) == 0 ||
-        strcmp(RCL_SHORT_PARAM_FILE_FLAG, argv[i]) == 0)
-      {
+      if (strcmp(RCL_PARAM_FILE_FLAG, argv[i]) == 0) {
         if (i + 1 < argc) {
           // Attempt to parse next argument as remap rule
           args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
@@ -375,20 +372,17 @@ rcl_parse_arguments(
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing param file flag: '%s'. No file path provided.", argv[i]);
+            "Couldn't parse trailing params file flag: '%s'. No file path provided.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as params file flag. Not one of the %s or %s flags", i,
-        argv[i], RCL_PARAM_FILE_FLAG, RCL_SHORT_PARAM_FILE_FLAG);
+        "Couldn't parse arg %d (%s) as params file flag. Not a %s flag.", i,
+        argv[i], RCL_PARAM_FILE_FLAG);
 
       // Attempt to parse argument as log level configuration
-      if (
-        strcmp(RCL_LOG_LEVEL_FLAG, argv[i]) == 0 ||
-        strcmp(RCL_SHORT_LOG_LEVEL_FLAG, argv[i]) == 0)
-      {
+      if (strcmp(RCL_LOG_LEVEL_FLAG, argv[i]) == 0) {
         if (i + 1 < argc) {
           int log_level;
           if (RCL_RET_OK == _rcl_parse_log_level(argv[i + 1], allocator, &log_level)) {
@@ -410,14 +404,11 @@ rcl_parse_arguments(
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as log level flag. Not one of the %s or %s flags",
-        i, argv[i], RCL_LOG_LEVEL_FLAG, RCL_SHORT_LOG_LEVEL_FLAG);
+        "Couldn't parse arg %d (%s) as log level flag. Not a %s flag.",
+        i, argv[i], RCL_LOG_LEVEL_FLAG);
 
       // Attempt to parse argument as log configuration file
-      if (
-        strcmp(RCL_EXTERNAL_LOG_CONFIG_FLAG, argv[i]) == 0 ||
-        strcmp(RCL_SHORT_EXTERNAL_LOG_CONFIG_FLAG, argv[i]) == 0)
-      {
+      if (strcmp(RCL_EXTERNAL_LOG_CONFIG_FLAG, argv[i]) == 0) {
         if (i + 1 < argc) {
           if (NULL != args_impl->external_log_config_file) {
             RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
@@ -449,8 +440,8 @@ rcl_parse_arguments(
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as log configuration file flag. Not one of the %s or %s flags",
-        i, argv[i], RCL_EXTERNAL_LOG_CONFIG_FLAG, RCL_SHORT_EXTERNAL_LOG_CONFIG_FLAG);
+        "Couldn't parse arg %d (%s) as log configuration file flag. Not a %s flag.",
+        i, argv[i], RCL_EXTERNAL_LOG_CONFIG_FLAG);
 
       // Attempt to parse --enable/disable-stdout-logs flag
       ret = _rcl_parse_disabling_flag(

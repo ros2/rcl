@@ -40,13 +40,10 @@ typedef struct rcl_arguments_t
 #define RCL_PARAM_FLAG "--param"
 #define RCL_SHORT_PARAM_FLAG "-p"
 #define RCL_PARAM_FILE_FLAG "--params-file"
-#define RCL_SHORT_PARAM_FILE_FLAG "-f"
 #define RCL_REMAP_FLAG "--remap"
 #define RCL_SHORT_REMAP_FLAG "-r"
 #define RCL_LOG_LEVEL_FLAG "--log-level"
-#define RCL_SHORT_LOG_LEVEL_FLAG "-l"
 #define RCL_EXTERNAL_LOG_CONFIG_FLAG "--log-config-file"
-#define RCL_SHORT_EXTERNAL_LOG_CONFIG_FLAG "-c"
 // To be prefixed with --enable- or --disable-
 #define RCL_LOG_STDOUT_FLAG_SUFFIX "stdout-logs"
 #define RCL_LOG_ROSOUT_FLAG_SUFFIX "rosout-logs"

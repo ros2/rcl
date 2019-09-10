@@ -143,7 +143,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo/bar:=bar"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "foo:=/bar"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo123:=/bar123"}));
-  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-f", "file_name.yaml"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "--params-file", "file_name.yaml"}));
 
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "--custom-ros-arg"}));
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "__node:=node_name"}));
@@ -154,7 +154,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
 
   // Setting config logging file
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "--log-config-file", "file.config"}));
-  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-c", "file.config"}));
 
   // Setting logger level
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "--log-level", "UNSET"}));
@@ -201,7 +200,8 @@ are_valid_ros_args(std::vector<const char *> argv)
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_invalid_args) {
   EXPECT_TRUE(are_valid_ros_args({
     "--ros-args", "-p", "foo:=bar", "-r", "__node:=node_name",
-    "-f", "file_name.yaml", "-l", "INFO", "-c", "file.config"
+    "--params-file", "file_name.yaml", "--log-level", "INFO",
+    "--log-config-file", "file.config"
   }));
 
   // ROS args unknown to rcl are not (necessarily) invalid
@@ -241,11 +241,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "f oo:=/bar"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--param", "f oo:=/bar"}));
 
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-f"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--params-file"}));
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--log-config-file"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-c"}));
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--log-level"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--log-level", "foo"}));
@@ -621,8 +619,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
   const char * argv[] = {
-    "process_name", "--ros-args", "-f", "parameter_filepath1", "-r", "__ns:=/namespace",
-    "random:=arg", "--params-file", "parameter_filepath2"
+    "process_name", "--ros-args", "--params-file", "parameter_filepath1",
+    "-r", "__ns:=/namespace", "random:=arg", "--params-file", "parameter_filepath2"
   };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret;
