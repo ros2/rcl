@@ -101,7 +101,7 @@ typedef rmw_ret_t rcl_ret_t;
 /// Argument is not a valid parameter rule
 #define RCL_RET_INVALID_PARAM_RULE 1010
 /// Argument is not a valid log level rule
-#define RCL_RET_INVALID_LOG_LEVEL 1020
+#define RCL_RET_INVALID_LOG_LEVEL_RULE 1020
 
 // rcl event specific ret codes in 20XX
 /// Invalid rcl_event_t given return code.
