@@ -185,6 +185,9 @@ _rcl_parse_param_file(
   rcl_allocator_t allocator,
   char ** param_file);
 
+#define RCL_ENABLE_FLAG_PREFIX "--enable-"
+#define RCL_DISABLE_FLAG_PREFIX "--disable-"
+
 /// Parse a bool argument that may or may not be for the provided key rule.
 /**
  * \param[in] arg the argument to parse
@@ -310,13 +313,13 @@ rcl_parse_arguments(
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing parameter override rule: '%s'. No rule found.", argv[i]);
+            "Couldn't parse trailing %s flag. No parameter override rule found.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as parameter override rule. Not a %s nor a %s flag.",
+        "Arg %d (%s) is not a %s nor a %s flag.",
         i, argv[i], RCL_PARAM_FLAG, RCL_SHORT_PARAM_FLAG);
 
       // Attempt to parse argument as remap rule flag
@@ -338,13 +341,13 @@ rcl_parse_arguments(
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing remap rule: '%s'. No rule found.", argv[i]);
+            "Couldn't parse trailing %s flag. No remap rule found.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as remap rule. Not a %s' nor a %s flag.", i,
+        "Arg %d (%s) is not a %s nor a %s flag.", i,
         argv[i], RCL_REMAP_FLAG, RCL_SHORT_REMAP_FLAG);
 
       // Attempt to parse argument as parameter file rule
@@ -372,14 +375,13 @@ rcl_parse_arguments(
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing params file flag: '%s'. No file path provided.", argv[i]);
+            "Couldn't parse trailing %s flag. No file path provided.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as params file flag. Not a %s flag.", i,
-        argv[i], RCL_PARAM_FILE_FLAG);
+        "Arg %d (%s) is not a %s flag.", i, argv[i], RCL_PARAM_FILE_FLAG);
 
       // Attempt to parse argument as log level configuration
       if (strcmp(RCL_LOG_LEVEL_FLAG, argv[i]) == 0) {
@@ -404,7 +406,7 @@ rcl_parse_arguments(
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as log level flag. Not a %s flag.",
+        "Arg %d (%s) is not a %s flag.",
         i, argv[i], RCL_LOG_LEVEL_FLAG);
 
       // Attempt to parse argument as log configuration file
@@ -433,14 +435,13 @@ rcl_parse_arguments(
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing log configuration file flag: '%s'."
-            " No file path provided.", argv[i]);
+            "Couldn't parse trailing %s flag. No file path provided.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as log configuration file flag. Not a %s flag.",
+        "Arg %d (%s) is not not a %s flag.",
         i, argv[i], RCL_EXTERNAL_LOG_CONFIG_FLAG);
 
       // Attempt to parse --enable/disable-stdout-logs flag
@@ -452,8 +453,9 @@ rcl_parse_arguments(
         continue;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as ...%s flag. Error: %s",
-        i, argv[i], RCL_LOG_STDOUT_FLAG_SUFFIX, rcl_get_error_string().str);
+        "Couldn't parse arg %d (%s) as %s/%s%s flag. Error: %s",
+        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_DISABLE_FLAG_PREFIX,
+        RCL_LOG_STDOUT_FLAG_SUFFIX, rcl_get_error_string().str);
       rcl_reset_error();
 
       // Attempt to parse --enable/disable-rosout-logs flag
@@ -465,8 +467,9 @@ rcl_parse_arguments(
         continue;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as ...%s flag. Error: %s",
-        i, argv[i], RCL_LOG_ROSOUT_FLAG_SUFFIX, rcl_get_error_string().str);
+        "Couldn't parse arg %d (%s) as %s/%s%s flag. Error: %s",
+        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_DISABLE_FLAG_PREFIX,
+        RCL_LOG_ROSOUT_FLAG_SUFFIX, rcl_get_error_string().str);
       rcl_reset_error();
 
       // Attempt to parse --enable/disable-external-lib-logs flag
@@ -478,8 +481,9 @@ rcl_parse_arguments(
         continue;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as ...%s flag. Error: %s",
-        i, argv[i], RCL_LOG_EXT_LIB_FLAG_SUFFIX, rcl_get_error_string().str);
+        "Couldn't parse arg %d (%s) as %s/%s%s flag. Error: %s",
+        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_DISABLE_FLAG_PREFIX,
+        RCL_LOG_EXT_LIB_FLAG_SUFFIX, rcl_get_error_string().str);
       rcl_reset_error();
 
       // Argument is an unknown ROS specific argument
@@ -1601,7 +1605,6 @@ _rcl_parse_external_log_config_file(
   return RCL_RET_OK;
 }
 
-RCL_LOCAL
 rcl_ret_t
 _rcl_parse_disabling_flag(
   const char * arg,
@@ -1612,28 +1615,28 @@ _rcl_parse_disabling_flag(
   RCL_CHECK_ARGUMENT_FOR_NULL(suffix, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(disable, RCL_RET_INVALID_ARGUMENT);
 
-  const char * true_prefix = "--enable-";
-  const size_t true_prefix_len = strlen(true_prefix);
+  const size_t enable_prefix_len = strlen(RCL_ENABLE_FLAG_PREFIX);
   if (
-    strncmp(true_prefix, arg, true_prefix_len) == 0 &&
-    strcmp(suffix, arg + true_prefix_len) == 0)
+    strncmp(RCL_ENABLE_FLAG_PREFIX, arg, enable_prefix_len) == 0 &&
+    strcmp(suffix, arg + enable_prefix_len) == 0)
   {
     *disable = false;
     return RCL_RET_OK;
   }
 
-  const char * false_prefix = "--disable-";
-  const size_t false_prefix_len = strlen(false_prefix);
+  const size_t disable_prefix_len = strlen(RCL_DISABLE_FLAG_PREFIX);
   if (
-    strncmp(false_prefix, arg, false_prefix_len) == 0 &&
-    strcmp(suffix, arg + false_prefix_len) == 0)
+    strncmp(RCL_DISABLE_FLAG_PREFIX, arg, disable_prefix_len) == 0 &&
+    strcmp(suffix, arg + disable_prefix_len) == 0)
   {
     *disable = true;
     return RCL_RET_OK;
   }
 
   RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-    "Argument does not match %s%s nor %s%s", true_prefix, suffix, false_prefix, suffix);
+    "Argument is not a %s%s nor a %s%s flag.",
+    RCL_ENABLE_FLAG_PREFIX, suffix,
+    RCL_DISABLE_FLAG_PREFIX, suffix);
   return RCL_RET_ERROR;
 }
 
