@@ -441,7 +441,7 @@ rcl_parse_arguments(
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Arg %d (%s) is not not a %s flag.",
+        "Arg %d (%s) is not a %s flag.",
         i, argv[i], RCL_EXTERNAL_LOG_CONFIG_FLAG);
 
       // Attempt to parse --enable/disable-stdout-logs flag
@@ -453,9 +453,9 @@ rcl_parse_arguments(
         continue;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as %s/%s%s flag. Error: %s",
-        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_DISABLE_FLAG_PREFIX,
-        RCL_LOG_STDOUT_FLAG_SUFFIX, rcl_get_error_string().str);
+        "Couldn't parse arg %d (%s) as %s%s or %s%s flag. Error: %s",
+        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_LOG_STDOUT_FLAG_SUFFIX,
+        RCL_DISABLE_FLAG_PREFIX, RCL_LOG_STDOUT_FLAG_SUFFIX, rcl_get_error_string().str);
       rcl_reset_error();
 
       // Attempt to parse --enable/disable-rosout-logs flag
@@ -467,9 +467,9 @@ rcl_parse_arguments(
         continue;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as %s/%s%s flag. Error: %s",
-        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_DISABLE_FLAG_PREFIX,
-        RCL_LOG_ROSOUT_FLAG_SUFFIX, rcl_get_error_string().str);
+        "Couldn't parse arg %d (%s) as %s%s or %s%s flag. Error: %s",
+        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_LOG_ROSOUT_FLAG_SUFFIX,
+        RCL_DISABLE_FLAG_PREFIX, RCL_LOG_ROSOUT_FLAG_SUFFIX, rcl_get_error_string().str);
       rcl_reset_error();
 
       // Attempt to parse --enable/disable-external-lib-logs flag
@@ -481,9 +481,9 @@ rcl_parse_arguments(
         continue;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as %s/%s%s flag. Error: %s",
-        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_DISABLE_FLAG_PREFIX,
-        RCL_LOG_EXT_LIB_FLAG_SUFFIX, rcl_get_error_string().str);
+        "Couldn't parse arg %d (%s) as %s%s or %s%s flag. Error: %s",
+        i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_LOG_EXT_LIB_FLAG_SUFFIX,
+        RCL_DISABLE_FLAG_PREFIX, RCL_LOG_EXT_LIB_FLAG_SUFFIX, rcl_get_error_string().str);
       rcl_reset_error();
 
       // Argument is an unknown ROS specific argument
