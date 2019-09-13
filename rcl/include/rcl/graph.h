@@ -75,6 +75,8 @@ typedef rmw_names_and_types_t rcl_names_and_types_t;
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the node name is invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the node namespace is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -122,6 +124,8 @@ rcl_get_publisher_names_and_types_by_node(
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the node name is invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the node namespace is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -168,6 +172,8 @@ rcl_get_subscriber_names_and_types_by_node(
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the node name is invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the node namespace is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -213,6 +219,8 @@ rcl_get_service_names_and_types_by_node(
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the node name is invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the node namespace is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -257,6 +265,8 @@ rcl_get_client_names_and_types_by_node(
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the node name is invalid, or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the node namespace is invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
