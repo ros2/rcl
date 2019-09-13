@@ -22,13 +22,49 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcutils/allocator.h"
 #include "rcutils/types.h"
+#include "rmw/error_handling.h"
 #include "rmw/get_node_info_and_types.h"
 #include "rmw/get_service_names_and_types.h"
 #include "rmw/get_topic_names_and_types.h"
 #include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
+#include "rmw/validate_namespace.h"
+#include "rmw/validate_node_name.h"
 
 #include "./common.h"
+
+rcl_ret_t
+__validate_node_name_and_namespace(
+  const char * node_name,
+  const char * node_namespace)
+{
+  int validation_result = 0;
+  rmw_ret_t rmw_ret = rmw_validate_namespace(node_namespace, &validation_result, NULL);
+
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  if (validation_result != RMW_NAMESPACE_VALID) {
+    const char * msg = rmw_namespace_validation_result_string(validation_result);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("%s, result: %d", msg, validation_result);
+    return RCL_RET_NODE_INVALID_NAMESPACE;
+  }
+
+  validation_result = 0;
+  rmw_ret = rmw_validate_node_name(node_name, &validation_result, NULL);
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  if (RMW_NODE_NAME_VALID != validation_result) {
+    const char * msg = rmw_node_name_validation_result_string(validation_result);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("%s, result: %d", msg, validation_result);
+    return RCL_RET_NODE_INVALID_NAME;
+  }
+
+  return RCL_RET_OK;
+}
 
 rcl_ret_t
 rcl_get_publisher_names_and_types_by_node(
@@ -51,10 +87,13 @@ rcl_get_publisher_names_and_types_by_node(
   if (strlen(node_namespace) > 0) {
     valid_namespace = node_namespace;
   }
-  rmw_ret_t rmw_ret;
-  rmw_ret = rmw_names_and_types_check_zero(topic_names_and_types);
-  if (rmw_ret != RMW_RET_OK) {
+  rmw_ret_t rmw_ret = rmw_names_and_types_check_zero(topic_names_and_types);
+  if (RMW_RET_OK != rmw_ret) {
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  rcl_ret_t rcl_ret = __validate_node_name_and_namespace(node_name, valid_namespace);
+  if (RCL_RET_OK != rcl_ret) {
+    return rcl_ret;
   }
   rcutils_allocator_t rcutils_allocator = *allocator;
   rmw_ret = rmw_get_publisher_names_and_types_by_node(
@@ -95,6 +134,10 @@ rcl_get_subscriber_names_and_types_by_node(
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
   rcutils_allocator_t rcutils_allocator = *allocator;
+  rcl_ret_t rcl_ret = __validate_node_name_and_namespace(node_name, valid_namespace);
+  if (RCL_RET_OK != rcl_ret) {
+    return rcl_ret;
+  }
   rmw_ret = rmw_get_subscriber_names_and_types_by_node(
     rcl_node_get_rmw_handle(node),
     &rcutils_allocator,
@@ -131,6 +174,10 @@ rcl_get_service_names_and_types_by_node(
   if (rmw_ret != RMW_RET_OK) {
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
+  rcl_ret_t rcl_ret = __validate_node_name_and_namespace(node_name, valid_namespace);
+  if (RCL_RET_OK != rcl_ret) {
+    return rcl_ret;
+  }
   rcutils_allocator_t rcutils_allocator = *allocator;
   rmw_ret = rmw_get_service_names_and_types_by_node(
     rcl_node_get_rmw_handle(node),
@@ -166,6 +213,10 @@ rcl_get_client_names_and_types_by_node(
   rmw_ret = rmw_names_and_types_check_zero(service_names_and_types);
   if (rmw_ret != RMW_RET_OK) {
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  rcl_ret_t rcl_ret = __validate_node_name_and_namespace(node_name, valid_namespace);
+  if (RCL_RET_OK != rcl_ret) {
+    return rcl_ret;
   }
   rcutils_allocator_t rcutils_allocator = *allocator;
   rmw_ret = rmw_get_client_names_and_types_by_node(
