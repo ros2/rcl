@@ -635,7 +635,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_deprecat
   }
 }
 
-
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args_zero) {
   const char * argv[] = {""};
   rcl_ret_t ret;
@@ -732,7 +731,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_para
   alloc.deallocate(parameter_files, alloc.state);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
-
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
   const char * argv[] = {
