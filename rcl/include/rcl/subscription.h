@@ -471,6 +471,15 @@ RCL_WARN_UNUSED
 const rmw_qos_profile_t *
 rcl_subscription_get_actual_qos(const rcl_subscription_t * subscription);
 
+/// Check if subscription instance can loan messages.
+/**
+ * Depending on the middleware and the message type, this will return true if the middleware
+ * can allocate a ROS message instance.
+ */
+RCL_PUBLIC
+bool
+rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
+
 #ifdef __cplusplus
 }
 #endif

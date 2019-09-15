@@ -378,6 +378,15 @@ rcl_subscription_get_actual_qos(const rcl_subscription_t * subscription)
   return &subscription->impl->actual_qos;
 }
 
+bool
+rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    return false;  // error message already set
+  }
+  return subscription->impl->rmw_handle->can_loan_messages;
+}
+
 #ifdef __cplusplus
 }
 #endif

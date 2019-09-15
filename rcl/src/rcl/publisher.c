@@ -252,7 +252,7 @@ rcl_allocate_loaned_message(
   size_t message_size)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-    return RCL_RET_PUBLISHER_INVALID;  // error already set
+    return NULL;  // error already set
   }
   return rmw_allocate_loaned_message(publisher->impl->rmw_handle, type_support, message_size);
 }
