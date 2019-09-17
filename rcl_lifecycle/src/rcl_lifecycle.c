@@ -236,14 +236,20 @@ rcl_lifecycle_state_machine_fini(
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
   if (rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle) != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("could not free lifecycle com interface. Leaking memory!\n");
+    rcl_error_string_t error_string = rcl_get_error_string();
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "could not free lifecycle com interface. Leaking memory!\n%s", error_string.str);
     fcn_ret = RCL_RET_ERROR;
   }
 
   if (rcl_lifecycle_transition_map_fini(
       &state_machine->transition_map, allocator) != RCL_RET_OK)
   {
-    RCL_SET_ERROR_MSG("could not free lifecycle transition map. Leaking memory!\n");
+    rcl_error_string_t error_string = rcl_get_error_string();
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "could not free lifecycle transition map. Leaking memory!\n%s", error_string.str);
     fcn_ret = RCL_RET_ERROR;
   }
 
@@ -333,7 +339,9 @@ _trigger_transition(
     rcl_ret_t ret = rcl_lifecycle_com_interface_publish_notification(
       &state_machine->com_interface, transition->start, state_machine->current_state);
     if (ret != RCL_RET_OK) {
-      RCL_SET_ERROR_MSG("Could not publish transition");
+      rcl_error_string_t error_string = rcl_get_error_string();
+      rcutils_reset_error();
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Could not publish transition: %s", error_string.str);
       return RCL_RET_ERROR;
     }
   }
