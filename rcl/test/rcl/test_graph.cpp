@@ -329,12 +329,12 @@ TEST_F(
   // unknown node name
   ret = rcl_get_publisher_names_and_types_by_node(
     this->node_ptr, &allocator, false, unknown_node_name, "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node namespace
   ret = rcl_get_publisher_names_and_types_by_node(
     this->node_ptr, &allocator, false, this->test_graph_node_name, unknown_node_ns, &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // valid call
   ret = rcl_get_publisher_names_and_types_by_node(
@@ -414,12 +414,12 @@ TEST_F(
   // unknown node name
   ret = rcl_get_subscriber_names_and_types_by_node(
     this->node_ptr, &allocator, false, unknown_node_name, "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node namespace
   ret = rcl_get_subscriber_names_and_types_by_node(
     this->node_ptr, &allocator, false, this->test_graph_node_name, unknown_node_ns, &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // valid call
   ret = rcl_get_subscriber_names_and_types_by_node(
@@ -496,12 +496,12 @@ TEST_F(
   // unknown node name
   ret = rcl_get_service_names_and_types_by_node(
     this->node_ptr, &allocator, unknown_node_name, "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node namespace
   ret = rcl_get_service_names_and_types_by_node(
     this->node_ptr, &allocator, this->test_graph_node_name, unknown_node_ns, &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // valid call
   ret = rcl_get_service_names_and_types_by_node(
@@ -525,6 +525,7 @@ TEST_F(
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * unknown_node_name = "test_rcl_get_client_names_and_types_by_node";
   const char * unknown_node_ns = "/test/namespace";
+
   rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
   // invalid node
   ret = rcl_get_client_names_and_types_by_node(
@@ -578,12 +579,12 @@ TEST_F(
   // unknown node name
   ret = rcl_get_client_names_and_types_by_node(
     this->node_ptr, &allocator, unknown_node_name, "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // unknown node namespace
   ret = rcl_get_client_names_and_types_by_node(
     this->node_ptr, &allocator, this->test_graph_node_name, unknown_node_ns, &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // valid call
   ret = rcl_get_client_names_and_types_by_node(

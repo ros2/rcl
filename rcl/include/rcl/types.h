@@ -52,6 +52,8 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_NODE_INVALID 200
 #define RCL_RET_NODE_INVALID_NAME 201
 #define RCL_RET_NODE_INVALID_NAMESPACE 202
+/// Failed to find node name
+#define RCL_RET_NODE_NAME_NON_EXISTENT 203
 
 // rcl publisher specific ret codes in 3XX
 /// Invalid rcl_publisher_t given return code.
