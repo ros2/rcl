@@ -23,12 +23,15 @@ extern "C"
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcutils/get_env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rmw/rmw.h"
 
 #include "rcl/types.h"
-#include "./common.h"
+
+#define RMW_IMPLEMENTATION_ENV_VAR_NAME "RMW_IMPLEMENTATION"
+#define RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME "RCL_ASSERT_RMW_ID_MATCHES"
 
 // Extracted this portable method of doing a "shared library constructor" from SO:
 //   http://stackoverflow.com/a/2390626/671658
@@ -59,14 +62,14 @@ INITIALIZER(initialize) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   char * expected_rmw_impl = NULL;
   const char * expected_rmw_impl_env = NULL;
-  rcl_ret_t ret = rcl_impl_getenv("RMW_IMPLEMENTATION", &expected_rmw_impl_env);
-  if (ret != RCL_RET_OK) {
+  const char * get_env_error_str = NULL;
+  get_env_error_str = rcutils_get_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, &expected_rmw_impl_env);
+  if (NULL != get_env_error_str) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
-      "Error getting environment variable 'RMW_IMPLEMENTATION': %s",
-      rcl_get_error_string().str
-    );
-    exit(ret);
+      "Error getting env var '" RCUTILS_STRINGIFY(RMW_IMPLEMENTATION_ENV_VAR_NAME) "': %s\n",
+      get_env_error_str);
+    exit(RCL_RET_ERROR);
   }
   if (strlen(expected_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
@@ -79,14 +82,15 @@ INITIALIZER(initialize) {
 
   char * asserted_rmw_impl = NULL;
   const char * asserted_rmw_impl_env = NULL;
-  ret = rcl_impl_getenv("RCL_ASSERT_RMW_ID_MATCHES", &asserted_rmw_impl_env);
-  if (ret != RCL_RET_OK) {
+  get_env_error_str = rcutils_get_env(
+    RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, &asserted_rmw_impl_env);
+  if (NULL != get_env_error_str) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
-      "Error getting environment variable 'RCL_ASSERT_RMW_ID_MATCHES': %s",
-      rcl_get_error_string().str
-    );
-    exit(ret);
+      "Error getting env var '"
+      RCUTILS_STRINGIFY(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME) "': %s\n",
+      get_env_error_str);
+    exit(RCL_RET_ERROR);
   }
   if (strlen(asserted_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.

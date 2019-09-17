@@ -45,11 +45,12 @@ extern "C"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 
-#include "./common.h"
 #include "./context_impl.h"
 
 #define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
 #define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
+#define ROS_DOMAIN_ID_VAR_NAME "ROS_DOMAIN_ID"
+
 
 typedef struct rcl_node_impl_t
 {
@@ -120,6 +121,7 @@ rcl_node_init(
 {
   size_t domain_id = 0;
   const char * ros_domain_id;
+  const char * get_env_error_str;
   const rmw_guard_condition_t * rmw_graph_guard_condition = NULL;
   rcl_guard_condition_options_t graph_guard_condition_options =
     rcl_guard_condition_get_default_options();
@@ -256,8 +258,11 @@ rcl_node_init(
   // node rmw_node_handle
   if (node->impl->options.domain_id == RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID) {
     // Find the domain ID set by the environment.
-    ret = rcl_impl_getenv("ROS_DOMAIN_ID", &ros_domain_id);
-    if (ret != RCL_RET_OK) {
+    get_env_error_str = rcutils_get_env(ROS_DOMAIN_ID_VAR_NAME, &ros_domain_id);
+    if (NULL != get_env_error_str) {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Error getting env var '" RCUTILS_STRINGIFY(ROS_DOMAIN_ID_VAR_NAME) "': %s\n",
+        get_env_error_str);
       goto fail;
     }
     if (ros_domain_id) {
@@ -278,10 +283,11 @@ rcl_node_init(
   const char * ros_security_enable = NULL;
   const char * ros_enforce_security = NULL;
 
-  if (rcutils_get_env(ROS_SECURITY_ENABLE_VAR_NAME, &ros_security_enable)) {
-    RCL_SET_ERROR_MSG(
-      "Environment variable " RCUTILS_STRINGIFY(ROS_SECURITY_ENABLE_VAR_NAME)
-      " could not be read");
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_ENABLE_VAR_NAME, &ros_security_enable);
+  if (NULL != get_env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var '" RCUTILS_STRINGIFY(ROS_SECURITY_ENABLE_VAR_NAME) "': %s\n",
+      get_env_error_str);
     ret = RCL_RET_ERROR;
     goto fail;
   }
@@ -290,10 +296,11 @@ rcl_node_init(
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false");
 
-  if (rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security)) {
-    RCL_SET_ERROR_MSG(
-      "Environment variable " RCUTILS_STRINGIFY(ROS_SECURITY_STRATEGY_VAR_NAME)
-      " could not be read");
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security);
+  if (NULL != get_env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var '" RCUTILS_STRINGIFY(ROS_SECURITY_STRATEGY_VAR_NAME) "': %s\n",
+      get_env_error_str);
     ret = RCL_RET_ERROR;
     goto fail;
   }
