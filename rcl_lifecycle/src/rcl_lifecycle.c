@@ -238,7 +238,8 @@ rcl_lifecycle_state_machine_fini(
   if (rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle) != RCL_RET_OK) {
     rcl_error_string_t error_string = rcl_get_error_string();
     rcutils_reset_error();
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("could not free lifecycle com interface. Leaking memory!\n%s", error_string.str);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "could not free lifecycle com interface. Leaking memory!\n%s", error_string.str);
     fcn_ret = RCL_RET_ERROR;
   }
 
@@ -247,7 +248,8 @@ rcl_lifecycle_state_machine_fini(
   {
     rcl_error_string_t error_string = rcl_get_error_string();
     rcutils_reset_error();
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("could not free lifecycle transition map. Leaking memory!\n%s", error_string.str);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "could not free lifecycle transition map. Leaking memory!\n%s", error_string.str);
     fcn_ret = RCL_RET_ERROR;
   }
 
