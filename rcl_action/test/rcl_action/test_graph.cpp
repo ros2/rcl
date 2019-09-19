@@ -51,6 +51,7 @@ public:
   rcl_node_t zero_node;
   const char * test_graph_node_name = "test_action_graph_node";
   const char * test_graph_old_node_name = "test_action_graph_old_node_name";
+  const char * test_graph_unknown_node_name = "test_action_graph_unknown_node_name";
 
   void SetUp()
   {
@@ -132,17 +133,14 @@ TEST_F(
   rcl_reset_error();
   // Invalid node name
   ret = rcl_action_get_client_names_and_types_by_node(
-    &this->node, &this->allocator, "_test_this_Isnot_a_valid_name", "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    &this->node, &this->allocator, "_!test_this_is_not_a_valid_name", "", &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID_NAME, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Non-existent node
-  // Note, Opensplice successfully reports graph information about finalized nodes
-  if (!is_opensplice) {
-    ret = rcl_action_get_client_names_and_types_by_node(
-      &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
-    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-  }
+  ret = rcl_action_get_client_names_and_types_by_node(
+    &this->node, &this->allocator, this->test_graph_unknown_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   // Invalid names and types
   ret = rcl_action_get_client_names_and_types_by_node(
     &this->node, &this->allocator, this->test_graph_node_name, "", nullptr);
@@ -188,17 +186,14 @@ TEST_F(
   rcl_reset_error();
   // Invalid node name
   ret = rcl_action_get_server_names_and_types_by_node(
-    &this->node, &this->allocator, "_test_this_Isnot_a_valid_name", "", &nat);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    &this->node, &this->allocator, "_!test_this_is_not_a_valid_name", "", &nat);
+  EXPECT_EQ(RCL_RET_NODE_INVALID_NAME, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Non-existent node
-  // Note, Opensplice successfully reports graph information about finalized nodes
-  if (!is_opensplice) {
-    ret = rcl_action_get_server_names_and_types_by_node(
-      &this->node, &this->allocator, this->test_graph_old_node_name, "", &nat);
-    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-  }
+  ret = rcl_action_get_server_names_and_types_by_node(
+    &this->node, &this->allocator, this->test_graph_unknown_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_NODE_NAME_NON_EXISTENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   // Invalid names and types
   ret = rcl_action_get_server_names_and_types_by_node(
     &this->node, &this->allocator, this->test_graph_node_name, "", nullptr);
