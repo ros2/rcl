@@ -137,6 +137,8 @@ static rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
+  size_t * node_idx,
+  size_t * parameter_idx,
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st);
 
@@ -1295,6 +1297,8 @@ static rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
+  size_t * node_idx,
+  size_t * parameter_idx,
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st)
 {
@@ -1323,11 +1327,6 @@ static rcutils_ret_t parse_key(
     }
   }
 
-  size_t node_idx = 0U;
-  size_t num_nodes = params_st->num_nodes;
-  if (num_nodes > 0U) {
-    node_idx = num_nodes - 1U;
-  }
   rcutils_ret_t ret = RCUTILS_RET_OK;
   switch (*map_level) {
     case MAP_UNINIT_LVL:
@@ -1359,7 +1358,11 @@ static rcutils_ret_t parse_key(
             ret = RCUTILS_RET_BAD_ALLOC;
             break;
           }
-          params_st->node_names[num_nodes] = node_name_ns;
+
+          ret = find_node(node_name_ns, params_st, node_idx);
+          if (RCUTILS_RET_OK != ret) {
+            break;
+          }
 
           ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
           if (RCUTILS_RET_OK != ret) {
@@ -1367,13 +1370,6 @@ static rcutils_ret_t parse_key(
               "Internal error adding node namespace at line %d", line_num);
             break;
           }
-          ret = node_params_init(&(params_st->params[num_nodes]), allocator);
-          if (RCUTILS_RET_OK != ret) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "Error creating node parameter at line %d", line_num);
-            break;
-          }
-          params_st->num_nodes++;
           /// Bump the map level to PARAMS
           (*map_level)++;
         }
@@ -1381,15 +1377,12 @@ static rcutils_ret_t parse_key(
       break;
     case MAP_PARAMS_LVL:
       {
-        size_t parameter_idx;
         char * parameter_ns;
         char * param_name;
 
         /// If it is a new map, the previous key is param namespace
         if (true == *is_new_map) {
-          params_st->params[node_idx].num_params--;
-          parameter_idx = params_st->params[node_idx].num_params;
-          parameter_ns = params_st->params[node_idx].parameter_names[parameter_idx];
+          parameter_ns = params_st->params[*node_idx].parameter_names[*parameter_idx];
           if (NULL == parameter_ns) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error creating param namespace at line %d", line_num);
@@ -1408,7 +1401,7 @@ static rcutils_ret_t parse_key(
         }
 
         // Guard against adding more than the maximum allowed parameters
-        if (params_st->params[node_idx].num_params >= MAX_NUM_PARAMS_PER_NODE) {
+        if (params_st->params[*node_idx].num_params >= MAX_NUM_PARAMS_PER_NODE) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Exceeded maximum allowed number of parameters for a node (%d)",
             MAX_NUM_PARAMS_PER_NODE);
@@ -1417,15 +1410,18 @@ static rcutils_ret_t parse_key(
         }
 
         /// Add a parameter name into the node parameters
-        parameter_idx = params_st->params[node_idx].num_params;
         parameter_ns = ns_tracker->parameter_ns;
         if (NULL == parameter_ns) {
-          param_name = rcutils_strdup(value, allocator);
-          if (NULL == param_name) {
-            ret = RCUTILS_RET_BAD_ALLOC;
+          ret = find_parameter(*node_idx, value, params_st, parameter_idx);
+          if (ret != RCUTILS_RET_OK) {
             break;
           }
         } else {
+          ret = find_parameter(*node_idx, parameter_ns, params_st, parameter_idx);
+          if (ret != RCUTILS_RET_OK) {
+            break;
+          }
+
           const size_t params_ns_len = strlen(parameter_ns);
           const size_t param_name_len = strlen(value);
           const size_t tot_len = (params_ns_len + param_name_len + 2U);
@@ -1447,9 +1443,9 @@ static rcutils_ret_t parse_key(
           param_name[params_ns_len] = '.';
           memmove((param_name + params_ns_len + 1U), value, param_name_len);
           param_name[tot_len - 1U] = '\0';
+
+          params_st->params[*node_idx].parameter_names[*parameter_idx] = param_name;
         }
-        params_st->params[node_idx].parameter_names[parameter_idx] = param_name;
-        params_st->params[node_idx].num_params++;
       }
       break;
     default:
@@ -1484,6 +1480,8 @@ static rcutils_ret_t parse_file_events(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
 
   yaml_event_t event;
+  size_t node_idx = 0;
+  size_t parameter_idx = 0;
   rcutils_ret_t ret = RCUTILS_RET_OK;
   while (0 == done_parsing) {
     if (RCUTILS_RET_OK != ret) {
@@ -1506,7 +1504,8 @@ static rcutils_ret_t parse_file_events(
         {
           /// Need to toggle between key and value at params level
           if (true == is_key) {
-            ret = parse_key(event, &map_level, &is_new_map, ns_tracker, params_st);
+            ret = parse_key(
+              event, &map_level, &is_new_map, &node_idx, &parameter_idx, ns_tracker, params_st);
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -1525,14 +1524,12 @@ static rcutils_ret_t parse_file_events(
               yaml_event_delete(&event);
               return RCUTILS_RET_ERROR;
             }
-            const size_t node_idx = (params_st->num_nodes - 1U);
             if (0U == params_st->params[node_idx].num_params) {
               RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
                 "Cannot have a value before %s at line %d", PARAMS_KEY, line_num);
               yaml_event_delete(&event);
               return RCUTILS_RET_ERROR;
             }
-            const size_t parameter_idx = (params_st->params[node_idx].num_params - 1U);
             ret = parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
             if (RCUTILS_RET_OK != ret) {
               break;
