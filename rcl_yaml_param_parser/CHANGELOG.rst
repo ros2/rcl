@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.7 (2019-09-20)
+------------------
+* Increase MAX_STRING_SIZE (`#487 <https://github.com/ros2/rcl/issues/487>`_) (`#503 <https://github.com/ros2/rcl/issues/503>`_)
+* Contributors: Zachary Michaels, Hyunseok Yang
+
 0.7.6 (2019-08-01)
 ------------------
 * Accept quoted int or float values as strings. (`#474 <https://github.com/ros2/rcl/issues/474>`_)
