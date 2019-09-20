@@ -43,13 +43,16 @@ set(rcl_add_custom_gtest_INCLUDED TRUE)
 # :type LIBRARIES: list of strings
 # :param AMENT_DEPENDENCIES: list of depends to pass ament_target_dependencies
 # :type AMENT_DEPENDENCIES: list of strings
-#
+# :param WORKING_DIRECTORY: the working directory for invoking the
+#   executable in, default defined by ``ament_add_test()``
+# :type WORKING_DIRECTORY: string
+
 # @public
 #
 macro(rcl_add_custom_gtest target)
   cmake_parse_arguments(_ARG
     "SKIP_TEST;TRACE"
-    "TIMEOUT"
+    "TIMEOUT;WORKING_DIRECTORY"
     "SRCS;ENV;APPEND_ENV;APPEND_LIBRARY_DIRS;INCLUDE_DIRS;LIBRARIES;AMENT_DEPENDENCIES"
     ${ARGN})
   if(_ARG_UNPARSED_ARGUMENTS)
@@ -72,10 +75,13 @@ macro(rcl_add_custom_gtest target)
   if(_ARG_TIMEOUT)
     set(_ARG_TIMEOUT "TIMEOUT" ${_ARG_TIMEOUT})
   endif()
+  if(_ARG_WORKING_DIRECTORY)
+    set(_ARG_WORKING_DIRECTORY "WORKING_DIRECTORY" ${_ARG_WORKING_DIRECTORY})
+  endif()
 
   # Pass args along to ament_add_gtest().
   ament_add_gtest(${target} ${_ARG_SRCS} ${_ARG_ENV} ${_ARG_APPEND_ENV} ${_ARG_APPEND_LIBRARY_DIRS}
-                  ${_ARG_SKIP_TEST} ${_ARG_TIMEOUT})
+                  ${_ARG_SKIP_TEST} ${_ARG_TIMEOUT} ${_ARG_WORKING_DIRECTORY})
   # Check if the target was actually created.
   if(TARGET ${target})
     if(_ARG_TRACE)

@@ -3,6 +3,7 @@ find_package(launch_testing_ament_cmake REQUIRED)
 
 find_package(test_msgs REQUIRED)
 
+find_package(rcpputils REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 
 find_package(osrf_testing_tools_cpp REQUIRED)
@@ -148,7 +149,7 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
+    AMENT_DEPENDENCIES "osrf_testing_tools_cpp" "rcpputils"
   )
 
   rcl_add_custom_gtest(test_remap${target_suffix}

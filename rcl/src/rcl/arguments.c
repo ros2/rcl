@@ -124,13 +124,17 @@ rcl_arguments_get_param_overrides(
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(parameter_overrides, RCL_RET_INVALID_ARGUMENT);
+
   if (NULL != *parameter_overrides) {
     RCL_SET_ERROR_MSG("Output parameter override pointer is not null. May leak memory.");
     return RCL_RET_INVALID_ARGUMENT;
   }
-  *parameter_overrides = rcl_yaml_node_struct_copy(arguments->impl->parameter_overrides);
-  if (NULL == *parameter_overrides) {
-    return RCL_RET_BAD_ALLOC;
+  *parameter_overrides = NULL;
+  if (NULL != arguments->impl->parameter_overrides) {
+    *parameter_overrides = rcl_yaml_node_struct_copy(arguments->impl->parameter_overrides);
+    if (NULL == *parameter_overrides) {
+      return RCL_RET_BAD_ALLOC;
+    }
   }
   return RCL_RET_OK;
 }
@@ -218,6 +222,7 @@ rcl_ret_t
 _rcl_parse_param_file(
   const char * arg,
   rcl_allocator_t allocator,
+  rcl_params_t * params,
   char ** param_file);
 
 /// Parse an argument that may or may not be a parameter file rule.
@@ -237,6 +242,7 @@ rcl_ret_t
 _rcl_parse_param_file_rule(
   const char * arg,
   rcl_allocator_t allocator,
+  rcl_params_t * params,
   char ** param_file);
 
 #define RCL_ENABLE_FLAG_PREFIX "--enable-"
@@ -443,11 +449,11 @@ rcl_parse_arguments(
       // Attempt to parse argument as parameter file rule
       if (strcmp(RCL_PARAM_FILE_FLAG, argv[i]) == 0) {
         if (i + 1 < argc) {
-          // Attempt to parse next argument as remap rule
+          // Attempt to parse next argument as parameter file rule
           args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
           if (
             RCL_RET_OK == _rcl_parse_param_file(
-              argv[i + 1], allocator,
+              argv[i + 1], allocator, args_impl->parameter_overrides,
               &args_impl->parameter_files[args_impl->num_param_files_args]))
           {
             ++(args_impl->num_param_files_args);
@@ -606,7 +612,8 @@ rcl_parse_arguments(
       args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
       if (
         RCL_RET_OK == _rcl_parse_param_file_rule(
-          argv[i], allocator, &(args_impl->parameter_files[args_impl->num_param_files_args])))
+          argv[i], allocator, args_impl->parameter_overrides,
+          &args_impl->parameter_files[args_impl->num_param_files_args]))
       {
         ++(args_impl->num_param_files_args);
         RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
@@ -741,6 +748,12 @@ rcl_parse_arguments(
       ret = RCL_RET_BAD_ALLOC;
       goto fail;
     }
+  }
+
+  // Drop parameter overrides if none was found.
+  if (0U == args_impl->parameter_overrides->num_nodes) {
+    rcl_yaml_node_struct_fini(args_impl->parameter_overrides);
+    args_impl->parameter_overrides = NULL;
   }
 
   // Shrink unparsed_ros_args
@@ -1811,15 +1824,20 @@ rcl_ret_t
 _rcl_parse_param_file(
   const char * arg,
   rcl_allocator_t allocator,
+  rcl_params_t * params,
   char ** param_file)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(params, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(param_file, RCL_RET_INVALID_ARGUMENT);
-
   *param_file = rcutils_strdup(arg, allocator);
   if (NULL == *param_file) {
     RCL_SET_ERROR_MSG("Failed to allocate memory for parameters file path");
     return RCL_RET_BAD_ALLOC;
+  }
+  if (!rcl_parse_yaml_file(*param_file, params)) {
+    // Error message already set.
+    return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
 }
@@ -1828,9 +1846,12 @@ rcl_ret_t
 _rcl_parse_param_file_rule(
   const char * arg,
   rcl_allocator_t allocator,
+  rcl_params_t * params,
   char ** param_file)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(params, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(param_file, RCL_RET_INVALID_ARGUMENT);
 
   const size_t param_prefix_len = strlen(RCL_PARAM_FILE_ARG_RULE);
   if (strncmp(RCL_PARAM_FILE_ARG_RULE, arg, param_prefix_len) == 0) {
@@ -1841,6 +1862,10 @@ _rcl_parse_param_file_rule(
       return RCL_RET_BAD_ALLOC;
     }
     snprintf(*param_file, outlen + 1, "%s", arg + param_prefix_len);
+    if (!rcl_parse_yaml_file(*param_file, params)) {
+      // Error message already set.
+      return RCL_RET_ERROR;
+    }
     return RCL_RET_OK;
   }
   RCL_SET_ERROR_MSG("Argument does not start with '" RCL_PARAM_FILE_ARG_RULE "'");

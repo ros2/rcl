@@ -1,0 +1,5 @@
+another_node:
+  ros__parameters:
+    double_param: 1.0
+    param_group:
+      boo_array_param: [true, false, false]
