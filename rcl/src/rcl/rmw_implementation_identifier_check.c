@@ -62,8 +62,9 @@ INITIALIZER(initialize) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   char * expected_rmw_impl = NULL;
   const char * expected_rmw_impl_env = NULL;
-  const char * get_env_error_str = NULL;
-  get_env_error_str = rcutils_get_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, &expected_rmw_impl_env);
+  const char * get_env_error_str = rcutils_get_env(
+    RMW_IMPLEMENTATION_ENV_VAR_NAME,
+    &expected_rmw_impl_env);
   if (NULL != get_env_error_str) {
     RCUTILS_LOG_ERROR_NAMED(
       ROS_PACKAGE_NAME,
