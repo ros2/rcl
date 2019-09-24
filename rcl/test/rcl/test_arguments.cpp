@@ -26,14 +26,12 @@
 
 #include "rcl_yaml_param_parser/parser.h"
 
-
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
 #else
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
-
 
 class CLASSNAME (TestArgumentsFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
@@ -542,10 +540,12 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_double_parse) {
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   ASSERT_EQ(RCL_RET_OK,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
   ASSERT_EQ(RCL_RET_INVALID_ARGUMENT,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_null) {
@@ -681,10 +681,12 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(0, parameter_filecount);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_single) {
@@ -701,6 +703,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(1, parameter_filecount);
@@ -732,8 +737,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->integer_value);
   EXPECT_EQ(1, *(param_value->integer_value));
-
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 // \deprecated to be removed in F-Turtle
@@ -752,6 +755,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_para
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(1, parameter_filecount);
@@ -783,8 +789,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_para
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->integer_value);
   EXPECT_EQ(1, *(param_value->integer_value));
-
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
@@ -802,6 +806,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(2, parameter_filecount);
@@ -828,14 +835,26 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
     rcl_yaml_node_struct_get("some_node", "int_param", params);
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->integer_value);
-  EXPECT_EQ(1, *(param_value->integer_value));
+  EXPECT_EQ(3, *(param_value->integer_value));
+
+  param_value = rcl_yaml_node_struct_get("some_node", "param_group.string_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->string_value);
+  EXPECT_STREQ("foo", param_value->string_value);
 
   param_value = rcl_yaml_node_struct_get("another_node", "double_param", params);
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->double_value);
   EXPECT_DOUBLE_EQ(1.0, *(param_value->double_value));
 
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  param_value = rcl_yaml_node_struct_get("another_node", "param_group.bool_array_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->bool_array_value);
+  ASSERT_TRUE(NULL != param_value->bool_array_value->values);
+  ASSERT_EQ(3U, param_value->bool_array_value->size);
+  EXPECT_TRUE(param_value->bool_array_value->values[0]);
+  EXPECT_FALSE(param_value->bool_array_value->values[1]);
+  EXPECT_FALSE(param_value->bool_array_value->values[2]);
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overrides) {
@@ -847,6 +866,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overri
 
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   ret = rcl_arguments_get_param_overrides(&parsed_args, NULL);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
@@ -867,8 +889,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overri
   ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(NULL == params);
-
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides) {

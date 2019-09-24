@@ -298,6 +298,7 @@ rcl_arguments_get_param_files(
  *
  * \param[in] arguments An arguments structure that has been parsed.
  * \param[out] parameter_overrides Parameter overrides as parsed from command line arguments.
+ *   This structure must be finalized by the caller.
  *   The output is NULL if no parameter overrides were parsed.
  * \return `RCL_RET_OK` if everything goes correctly, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
