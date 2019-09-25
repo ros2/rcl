@@ -283,8 +283,11 @@ rcl_arguments_get_param_files(
   rcl_allocator_t allocator,
   char *** parameter_files);
 
-/// Return all parameter overrides specified on the command line.
+/// Return all parameter overrides parsed from the command line.
 /**
+ * Parameter overrides are parsed directly from command line arguments and
+ * parameter files provided in the command line.
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -294,8 +297,9 @@ rcl_arguments_get_param_files(
  * Lock-Free          | Yes
  *
  * \param[in] arguments An arguments structure that has been parsed.
- * \param[out] parameter_overrides Zero or more parameter overrides.
+ * \param[out] parameter_overrides Parameter overrides as parsed from command line arguments.
  *   This structure must be finalized by the caller.
+ *   The output is NULL if no parameter overrides were parsed.
  * \return `RCL_RET_OK` if everything goes correctly, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or

@@ -14,9 +14,11 @@
 
 #include <gtest/gtest.h>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rcpputils/filesystem_helper.hpp"
 
 #include "rcl/rcl.h"
 #include "rcl/arguments.h"
@@ -36,11 +38,14 @@ class CLASSNAME (TestArgumentsFixture, RMW_IMPLEMENTATION) : public ::testing::T
 public:
   void SetUp()
   {
+    test_path /= "test_arguments";
   }
 
   void TearDown()
   {
   }
+
+  rcpputils::fs::path test_path{TEST_RESOURCES_DIRECTORY};
 };
 
 #define EXPECT_UNPARSED(parsed_args, ...) \
@@ -143,7 +148,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo/bar:=bar"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "foo:=/bar"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo123:=/bar123"}));
-  EXPECT_TRUE(are_known_ros_args({"--ros-args", "--params-file", "file_name.yaml"}));
+
+  const std::string parameters_filepath = (test_path / "test_parameters.1.yaml").string();
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "--params-file", parameters_filepath.c_str()}));
 
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "--custom-ros-arg"}));
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "__node:=node_name"}));
@@ -204,7 +211,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_deprecat
   EXPECT_TRUE(are_known_ros_args({"rostopic:///foo/bar:=baz"}));
 
   // Setting params file
-  EXPECT_TRUE(are_known_ros_args({"__params:=file_name.yaml"}));
+  const std::string parameters_filepath = (test_path / "test_parameters.1.yaml").string();
+  const std::string parameter_rule = "__params:=" + parameters_filepath;
+  EXPECT_TRUE(are_known_ros_args({parameter_rule.c_str()}));
 
   // Setting config logging file
   EXPECT_TRUE(are_known_ros_args({"__log_config_file:=file.config"}));
@@ -245,9 +254,10 @@ are_valid_ros_args(std::vector<const char *> argv)
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_invalid_args) {
+  const std::string parameters_filepath = (test_path / "test_parameters.1.yaml").string();
   EXPECT_TRUE(are_valid_ros_args({
     "--ros-args", "-p", "foo:=bar", "-r", "__node:=node_name",
-    "--params-file", "file_name.yaml", "--log-level", "INFO",
+    "--params-file", parameters_filepath.c_str(), "--log-level", "INFO",
     "--log-config-file", "file.config"
   }));
 
@@ -530,10 +540,12 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_double_parse) {
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   ASSERT_EQ(RCL_RET_OK,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
   ASSERT_EQ(RCL_RET_INVALID_ARGUMENT,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_null) {
@@ -669,16 +681,19 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(0, parameter_filecount);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_single) {
+  const std::string parameters_filepath = (test_path / "test_parameters.1.yaml").string();
   const char * argv[] = {
     "process_name", "--ros-args", "-r", "__ns:=/namespace", "random:=arg",
-    "--params-file", "parameter_filepath"
+    "--params-file", parameters_filepath.c_str()
   };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret;
@@ -688,26 +703,49 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(1, parameter_filecount);
   char ** parameter_files = NULL;
   ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_STREQ("parameter_filepath", parameter_files[0]);
+  EXPECT_STREQ(parameters_filepath.c_str(), parameter_files[0]);
 
   for (int i = 0; i < parameter_filecount; ++i) {
     alloc.deallocate(parameter_files[i], alloc.state);
   }
   alloc.deallocate(parameter_files, alloc.state);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+
+  rcl_params_t * params = NULL;
+  ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_yaml_node_struct_fini(params);
+  });
+  EXPECT_EQ(1U, params->num_nodes);
+
+  rcl_variant_t * param_value =
+    rcl_yaml_node_struct_get("some_node", "param_group.string_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->string_value);
+  EXPECT_STREQ("foo", param_value->string_value);
+
+  param_value = rcl_yaml_node_struct_get("some_node", "int_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->integer_value);
+  EXPECT_EQ(1, *(param_value->integer_value));
 }
 
 // \deprecated to be removed in F-Turtle
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_param_argument_single) {
+  const std::string parameters_filepath = (test_path / "test_parameters.1.yaml").string();
+  const std::string parameter_rule = "__params:=" + parameters_filepath;
   const char * argv[] = {
     "process_name", "--ros-args", "-r", "__ns:=/namespace", "random:=arg", "--",
-    "__params:=parameter_filepath"
+    parameter_rule.c_str()
   };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret;
@@ -717,25 +755,48 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_para
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(1, parameter_filecount);
   char ** parameter_files = NULL;
   ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_STREQ("parameter_filepath", parameter_files[0]);
+  EXPECT_STREQ(parameters_filepath.c_str(), parameter_files[0]);
 
   for (int i = 0; i < parameter_filecount; ++i) {
     alloc.deallocate(parameter_files[i], alloc.state);
   }
   alloc.deallocate(parameter_files, alloc.state);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+
+  rcl_params_t * params = NULL;
+  ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_yaml_node_struct_fini(params);
+  });
+  EXPECT_EQ(1U, params->num_nodes);
+
+  rcl_variant_t * param_value =
+    rcl_yaml_node_struct_get("some_node", "param_group.string_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->string_value);
+  EXPECT_STREQ("foo", param_value->string_value);
+
+  param_value = rcl_yaml_node_struct_get("some_node", "int_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->integer_value);
+  EXPECT_EQ(1, *(param_value->integer_value));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
+  const std::string parameters_filepath1 = (test_path / "test_parameters.1.yaml").string();
+  const std::string parameters_filepath2 = (test_path / "test_parameters.2.yaml").string();
   const char * argv[] = {
-    "process_name", "--ros-args", "--params-file", "parameter_filepath1",
-    "-r", "__ns:=/namespace", "random:=arg", "--params-file", "parameter_filepath2"
+    "process_name", "--ros-args", "--params-file", parameters_filepath1.c_str(),
+    "-r", "__ns:=/namespace", "random:=arg", "--params-file", parameters_filepath2.c_str()
   };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_ret_t ret;
@@ -745,19 +806,55 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
   EXPECT_EQ(2, parameter_filecount);
   char ** parameter_files = NULL;
   ret = rcl_arguments_get_param_files(&parsed_args, alloc, &parameter_files);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_STREQ("parameter_filepath1", parameter_files[0]);
-  EXPECT_STREQ("parameter_filepath2", parameter_files[1]);
+  EXPECT_STREQ(parameters_filepath1.c_str(), parameter_files[0]);
+  EXPECT_STREQ(parameters_filepath2.c_str(), parameter_files[1]);
   for (int i = 0; i < parameter_filecount; ++i) {
     alloc.deallocate(parameter_files[i], alloc.state);
   }
+
   alloc.deallocate(parameter_files, alloc.state);
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+
+  rcl_params_t * params = NULL;
+  ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_yaml_node_struct_fini(params);
+  });
+  EXPECT_EQ(2U, params->num_nodes);
+
+  rcl_variant_t * param_value =
+    rcl_yaml_node_struct_get("some_node", "int_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->integer_value);
+  EXPECT_EQ(3, *(param_value->integer_value));
+
+  param_value = rcl_yaml_node_struct_get("some_node", "param_group.string_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->string_value);
+  EXPECT_STREQ("foo", param_value->string_value);
+
+  param_value = rcl_yaml_node_struct_get("another_node", "double_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->double_value);
+  EXPECT_DOUBLE_EQ(1.0, *(param_value->double_value));
+
+  param_value = rcl_yaml_node_struct_get("another_node", "param_group.bool_array_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->bool_array_value);
+  ASSERT_TRUE(NULL != param_value->bool_array_value->values);
+  ASSERT_EQ(3U, param_value->bool_array_value->size);
+  EXPECT_TRUE(param_value->bool_array_value->values[0]);
+  EXPECT_FALSE(param_value->bool_array_value->values[1]);
+  EXPECT_FALSE(param_value->bool_array_value->values[2]);
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overrides) {
@@ -769,6 +866,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overri
 
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
 
   ret = rcl_arguments_get_param_overrides(&parsed_args, NULL);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
@@ -788,16 +888,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overri
   params = NULL;
   ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_EQ(0U, params->num_nodes);
-  rcl_yaml_node_struct_fini(params);
-
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  EXPECT_TRUE(NULL == params);
 }
 
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_param_overrides) {
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides) {
+  const std::string parameters_filepath = (test_path / "test_parameters.1.yaml").string();
   const char * argv[] = {
     "process_name", "--ros-args",
-    "--param", "string_param:=test_string",
+    "--params-file", parameters_filepath.c_str(),
+    "--param", "string_param:=bar",
     "-p", "some_node:int_param:=4"
   };
   int argc = sizeof(argv) / sizeof(const char *);
@@ -823,10 +922,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_two_param_overr
     rcl_yaml_node_struct_get("/**", "string_param", params);
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->string_value);
-  EXPECT_STREQ("test_string", param_value->string_value);
+  EXPECT_STREQ("bar", param_value->string_value);
 
   param_value = rcl_yaml_node_struct_get("some_node", "int_param", params);
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->integer_value);
   EXPECT_EQ(4, *(param_value->integer_value));
+
+  param_value = rcl_yaml_node_struct_get("some_node", "param_group.string_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->string_value);
+  EXPECT_STREQ("foo", param_value->string_value);
 }
