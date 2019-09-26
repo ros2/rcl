@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.0 (2019-09-26)
+------------------
 * Delete rcl_impl_getenv, replaced by rcutils_get_env (`#502 <https://github.com/ros2/rcl/issues/502>`_)
 * Parse CLI parameters and YAML files (`#508 <https://github.com/ros2/rcl/issues/508>`_)
 * Add specific return code for non existent node (`#492 <https://github.com/ros2/rcl/issues/492>`_)
