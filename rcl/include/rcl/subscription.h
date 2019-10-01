@@ -311,6 +311,71 @@ rcl_take_serialized_message(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation);
 
+/// Take a loaned message from a topic using a rcl subscription.
+/**
+ * Depending on the middleware, incoming messages can be loaned to the user's callback
+ * without further copying.
+ * The implicit contract here is that the middleware owns the memory allocated for this message.
+ * The user must not destroy the message, but rather has to return it with a call to
+ * \sa rcl_return_loaned_message to the middleware.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] subscription the handle to the subscription from which to take
+ * \param[inout] loaned_message a pointer to the loaned messages.
+ * \param[out] message_info rmw struct which contains meta-data for the message.
+ * \param[in] allocation structure pointer used for memory preallocation (may be NULL)
+ * \return `RCL_RET_OK` if the loaned message sequence was taken, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_SUBSCRIPTION_TAKE_FAILED` if take failed but no error
+ *         occurred in the middleware, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_take_loaned_message(
+  const rcl_subscription_t * subscription,
+  void ** loaned_message,
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation);
+
+/// Return a loaned message from a topic using a rcl subscription.
+/**
+ * If a loaned message was previously obtained from the middleware with a call to
+ * \sa rcl_take_loaned_message, this message has to be returned to the middleware.
+ * The user must not delete the message.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] subscription the handle to the subscription from which to take
+ * \param[in] loaned_message a pointer to the loaned messages.
+ * \return `RCL_RET_OK` if the message was published, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_return_loaned_message(
+  const rcl_subscription_t * subscription,
+  void * loaned_message);
+
 /// Take a loaned message sequence from a topic using a rcl subscription.
 /**
  * Depending on the middleware, incoming messages can be loaned to the user's callback
