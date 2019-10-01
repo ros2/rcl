@@ -57,9 +57,10 @@ rcl_lifecycle_transition_map_fini(
 
   // free valid transitions for all states
   for (unsigned int i = 0; i < transition_map->states_size; ++i) {
-      if (transition_map->states[i].valid_transitions != NULL) {
-          allocator->deallocate(transition_map->states[i].valid_transitions, allocator->state);
-      }
+    if (transition_map->states[i].valid_transitions != NULL) {
+      allocator->deallocate(transition_map->states[i].valid_transitions, allocator->state);
+      transition_map->states[i].valid_transitions = NULL;
+    }
   }
   // free the primary states
   allocator->deallocate(transition_map->states, allocator->state);
