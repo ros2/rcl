@@ -196,40 +196,61 @@ RCL_WARN_UNUSED
 rcl_publisher_options_t
 rcl_publisher_get_default_options(void);
 
-/// Allocate memory for a loaned message.
+/// Borrow a loaned message.
 /**
  * The memory allocated for the ros message belongs to the middleware and must not be deallocated
- * other than by a call to \sa rmw_deallocate_loaned_message.
- * The given size has to be the exact size of the to be allocated message.
+ * other than by a call to \sa rcl_return_loaned_message.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No [0]
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * [0] the underlying middleware might allocate new memory or returns an existing chunk form a pool.
+ * The function in rcl however does not allocate any additional memory.
  *
  * \param[in] publisher Publisher to which the allocated message is associated.
  * \param[in] type_support Typesupport to which the internal ros message is allocated.
- * \param[in] message_size The amount of memory to be allocated.
- * \return pointer to allocated memory.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-void *
-rcl_allocate_loaned_message(
-  const rcl_publisher_t * publisher,
-  const rosidl_message_type_support_t * type_support,
-  size_t message_size);
-
-/// Destroy and deallocate a loaned message
-/**
- * Deallocates and destroys a previously loaned message.
- * This function is the only allowed way of deallocating a loaned message.
- *
- * \param[in] publisher Publisher to which the loaned message is associated.
- * \param[in] loaned_message Loaned message to be deallocated and destroyed.
- * \return `RMW_RET_OK` if successful, or
- * \return `RMW_RET_INVALID_ARGUMENT` if an argument is null, or
- * \return `RMW_RET_ERROR` if an unexpected error occurs and no message can be initialized.
+ * \param[out] ros_message The pointer to be filled to a valid ros message by the middleware.
+ * \return RCL_RET_OK if the ros message was correctly initialized, or
+ * \return RCL_RET_INVALID_ARGUMENT if an argument other than the ros message is null, or
+ * \return RCL_RET_BAD_ALLOC if the ros message could not be correctly created, or
+ * \return RCL_RET_ERROR if an unexpected error occured.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_deallocate_loaned_message(
+rcl_borrow_loaned_message(
+  const rcl_publisher_t * publisher,
+  const rosidl_message_type_support_t * type_support,
+  void ** ros_message);
+
+/// Return a loaned message
+/**
+ * The ownership of the passed in ros message will be transferred back to the middleware.
+ * The middleware might deallocate and destroy the message so that the pointer is no longer
+ * guarantueed to be valid after that call.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] publisher Publisher to which the loaned message is associated.
+ * \param[in] loaned_message Loaned message to be deallocated and destroyed.
+ * \return `RCL_RET_OK` if successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if an argument is null, or
+ * \return `RCL_RET_ERROR` if an unexpected error occurs and no message can be initialized.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_return_loaned_message(
   const rcl_publisher_t * publisher,
   void * loaned_message);
 

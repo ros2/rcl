@@ -348,86 +348,16 @@ rcl_take_loaned_message(
 }
 
 rcl_ret_t
-rcl_return_loaned_message(
+rcl_release_loaned_message(
   const rcl_subscription_t * subscription,
   void * loaned_message)
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription returning loaned message");
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription releasing loaned message");
   if (!rcl_subscription_is_valid(subscription)) {
     return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
-  return rmw_return_loaned_message(subscription->impl->rmw_handle, loaned_message);
-}
-
-rcl_ret_t
-rcl_take_loaned_message_sequence(
-  const rcl_subscription_t * subscription,
-  rmw_loaned_message_sequence_t * loaned_message_sequence,
-  rmw_message_info_sequence_t * message_info_sequence,
-  size_t n,
-  rmw_subscription_allocation_t * allocation
-)
-{
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking loaned message sequence");
-  if (!rcl_subscription_is_valid(subscription)) {
-    return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message_sequence, RCL_RET_INVALID_ARGUMENT);
-  // If message_info is NULL, use a place holder which can be discarded.
-  rmw_message_info_sequence_t dummy_message_info_sequence;
-  rmw_message_info_sequence_t * message_info_local =
-    message_info_sequence ? message_info_sequence : &dummy_message_info_sequence;
-  // Call rmw_take_with_info.
-  bool taken = false;
-  rmw_ret_t ret = rmw_take_loaned_message_sequence_with_info(
-    subscription->impl->rmw_handle,
-    loaned_message_sequence,
-    n,
-    &taken,
-    message_info_local,
-    allocation);
-  if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    if (RMW_RET_BAD_ALLOC == ret) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
-  }
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME,
-    "Subscription loaned message sequence take succeeded: %s", taken ? "true" : "false");
-  if (!taken) {
-    return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
-  }
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_return_loaned_message_sequence(
-  const rcl_subscription_t * subscription,
-  rmw_loaned_message_sequence_t * loaned_message_sequence
-)
-{
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking loaned message sequence");
-  if (!rcl_subscription_is_valid(subscription)) {
-    return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message_sequence, RCL_RET_INVALID_ARGUMENT);
-
-  rmw_ret_t ret = rmw_return_loaned_message_sequence(
-    subscription->impl->rmw_handle, loaned_message_sequence);
-  if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    if (RMW_RET_BAD_ALLOC == ret) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
-  }
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME,
-    "Subscription loaned message sequence return succeeded");
-  return RCL_RET_OK;
+  return rmw_release_loaned_message(subscription->impl->rmw_handle, loaned_message);
 }
 
 const char *

@@ -245,20 +245,20 @@ rcl_publisher_get_default_options()
   return default_options;
 }
 
-void *
-rcl_allocate_loaned_message(
+rcl_ret_t
+rcl_borrow_loaned_message(
   const rcl_publisher_t * publisher,
   const rosidl_message_type_support_t * type_support,
-  size_t message_size)
+  void ** ros_message)
 {
   if (!rcl_publisher_is_valid(publisher)) {
-    return NULL;  // error already set
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
-  return rmw_allocate_loaned_message(publisher->impl->rmw_handle, type_support, message_size);
+  return rmw_borrow_loaned_message(publisher->impl->rmw_handle, type_support, ros_message);
 }
 
 rcl_ret_t
-rcl_deallocate_loaned_message(
+rcl_return_loaned_message(
   const rcl_publisher_t * publisher,
   void * loaned_message)
 {
@@ -266,7 +266,7 @@ rcl_deallocate_loaned_message(
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
-  return rmw_deallocate_loaned_message(publisher->impl->rmw_handle, loaned_message);
+  return rmw_return_loaned_message(publisher->impl->rmw_handle, loaned_message);
 }
 
 rcl_ret_t

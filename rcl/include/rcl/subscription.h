@@ -348,10 +348,11 @@ rcl_take_loaned_message(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation);
 
-/// Return a loaned message from a topic using a rcl subscription.
+/// Release a loaned message from a topic using a rcl subscription.
 /**
  * If a loaned message was previously obtained from the middleware with a call to
- * \sa rcl_take_loaned_message, this message has to be returned to the middleware.
+ * \sa rcl_take_loaned_message, this message has to be released to indicate to the middleware
+ * that the user no longer needs that memory.
  * The user must not delete the message.
  *
  * <hr>
@@ -372,80 +373,9 @@ rcl_take_loaned_message(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_return_loaned_message(
+rcl_release_loaned_message(
   const rcl_subscription_t * subscription,
   void * loaned_message);
-
-/// Take a loaned message sequence from a topic using a rcl subscription.
-/**
- * Depending on the middleware, incoming messages can be loaned to the user's callback
- * without further copying.
- * The implicit contract here is that the middleware owns the memory allocated for these messages.
- * The user must not destroy the messages, but rather has to return the sequence with a call to
- * \sa rcl_return_loaned_message_sequence to the middleware.
- *
- * The amount of messages to fetch from the middleware is specified by the parameter `n`.
- * If less than `n` messages are available, the middleware implementation shall fill the
- * sequence with all available messages.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] subscription the handle to the subscription from which to take
- * \param[inout] loaned_message_sequence a pointer to the container for the loaned messages.
- * \param[out] message_info_sequence rmw struct which contains meta-data for the messages.
- * \param[in] n amount of messages to take from the middleware
- * \param[in] allocation structure pointer used for memory preallocation (may be NULL)
- * \return `RCL_RET_OK` if the loaned message sequence was taken, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
- * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_SUBSCRIPTION_TAKE_FAILED` if take failed but no error
- *         occurred in the middleware, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_take_loaned_message_sequence(
-  const rcl_subscription_t * subscription,
-  rmw_loaned_message_sequence_t * loaned_message_sequence,
-  rmw_message_info_sequence_t * message_info_sequence,
-  size_t n,
-  rmw_subscription_allocation_t * allocation);
-
-/// Return a loaned message sequence from a topic using a rcl subscription.
-/**
- * If a loaned message sequence was previously obtained from the middleware with a call to
- * \sa rcl_take_loaned_message_sequence, this sequence has to be returned to the middleware.
- * The user must not delete the sequence.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] subscription the handle to the subscription from which to take
- * \param[in] loaned_message_sequence a pointer to the container for the loaned messages.
- * \return `RCL_RET_OK` if the message was published, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_return_loaned_message_sequence(
-  const rcl_subscription_t * subscription,
-  rmw_loaned_message_sequence_t * loaned_message_sequence);
 
 /// Get the topic name for the subscription.
 /**
