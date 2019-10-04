@@ -524,6 +524,93 @@ rcl_count_subscribers(
   const char * topic_name,
   size_t * count);
 
+/// Returns a list of all publishers to a topic.
+/// Each element in the list will contain the publisher's name and its respective qos profile.
+/**
+ * The `node` parameter must point to a valid node.
+ *
+ * The `topic_name` parameter must not be `NULL`.
+ *
+ * The `publishers` parameter must point to a valid struct of type rmw_participants_t.
+ * The `count` field inside the struct must be set to 0
+ * The `participants` field inside the struct must be set to null.
+ * The `publishers` parameter is the output for this function and will be set.
+ *
+ * The topic name is not automatically remapped by this function.
+ * If there is a publisher created with topic name `foo` and remap rule `foo:=bar` then calling
+ * this with `topic_name` set to `bar` will return a list with 1 publisher, and with `topic_name` set to `foo`
+ * will return a list with 0 publishers.
+ * /sa rcl_remap_topic_name()
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] topic_name the name of the topic in question
+ * \param[out] publishers a struct representing a list of publishers with their qos profile.
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_qos_for_publishers(
+  const rcl_node_t * node,
+  const char * topic_name,
+  rmw_participants_t * publishers);
+
+/// Returns a list of all subscribers to a topic.
+/// Each element in the list will contain the subscriber's name and its respective qos profile.
+/**
+ * The `node` parameter must point to a valid node.
+ *
+ * The `topic_name` parameter must not be `NULL`.
+ *
+ * The `subscriber` parameter must point to a valid struct of type rmw_participants_t.
+ * The `count` field inside the struct must be set to 0
+ * The `participants` field inside the struct must be set to null.
+ * The `subscribers` parameter is the output for this function and will be set.
+ *
+ * The topic name is not automatically remapped by this function.
+ * If there is a subscriber created with topic name `foo` and remap rule `foo:=bar` then calling
+ * this with `topic_name` set to `bar` will return a list with 1 subscriber , and with `topic_name` set to `foo`
+ * will return a list with 0 subscribers.
+ * /sa rcl_remap_topic_name()
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] topic_name the name of the topic in question
+ * \param[out] subscribers a struct representing a list of subscribers with their qos profile.
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_qos_for_subscribers(
+  const rcl_node_t * node,
+  const char * topic_name,
+  rmw_participants_t * subscribers);
+
+
 /// Check if a service server is available for the given service client.
 /**
  * This function will return true for `is_available` if there is a service server
