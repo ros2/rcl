@@ -162,7 +162,7 @@ rcl_subscription_init(
     type_support,
     remapped_topic_name,
     &(options->qos),
-    options->ignore_local_publications);
+    &(options->rmw_subscription_options));
   if (!subscription->impl->rmw_handle) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
@@ -236,6 +236,7 @@ rcl_subscription_get_default_options()
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_default;
   default_options.allocator = rcl_get_default_allocator();
+  default_options.rmw_subscription_options = rmw_get_default_subscription_options();
   return default_options;
 }
 
