@@ -40,8 +40,6 @@ typedef struct rcl_subscription_options_t
 {
   /// Middleware quality of service settings for the subscription.
   rmw_qos_profile_t qos;
-  /// If true, messages published from within the same node are ignored.
-  bool ignore_local_publications;
   /// Custom allocator for the subscription, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
