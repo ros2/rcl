@@ -311,7 +311,7 @@ rcl_publish_serialized_message(
 rcl_ret_t
 rcl_publish_loaned_message(
   const rcl_publisher_t * publisher,
-  const void * ros_message,
+  void * ros_message,
   rmw_publisher_allocation_t * allocation)
 {
   if (!rcl_publisher_is_valid(publisher)) {

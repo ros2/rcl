@@ -397,7 +397,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publish_loaned_message(
   const rcl_publisher_t * publisher,
-  const void * ros_message,
+  void * ros_message,
   rmw_publisher_allocation_t * allocation
 );
 
