@@ -306,7 +306,6 @@ rcl_return_loaned_message(
  * \param[in] publisher handle to the publisher which will do the publishing
  * \param[in] ros_message type-erased pointer to the ROS message
  * \param[in] allocation structure pointer, used for memory preallocation (may be NULL)
- * \param[in] is_Loaned flag indicating if ros messages was allocated in the middleware
  * \return `RCL_RET_OK` if the message was published successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
@@ -318,8 +317,7 @@ rcl_ret_t
 rcl_publish(
   const rcl_publisher_t * publisher,
   const void * ros_message,
-  rmw_publisher_allocation_t * allocation,
-  bool is_loaned
+  rmw_publisher_allocation_t * allocation
 );
 
 /// Publish a serialized message on a topic using a publisher.
@@ -359,6 +357,47 @@ rcl_ret_t
 rcl_publish_serialized_message(
   const rcl_publisher_t * publisher,
   const rcl_serialized_message_t * serialized_message,
+  rmw_publisher_allocation_t * allocation
+);
+
+/// Publish a loaned message on a topic using a publisher.
+/**
+ * A previously borrowed loaned message can be sent via this call to `rcl_publish_loaned_message`.
+ * By calling this function, the ownership of the loaned message is getting transferred back
+ * to the middleware.
+ * The pointer to the `ros_message` is not guarantueed to be valid after as the middleware
+ * migth deallocate the memory for this message internally.
+ * It is thus recommended to call this function only in combination with
+ * \sa `rcl_borrow_loaned_message`.
+ *
+ * Apart from this, the `publish_loaned_message` function has the same behavior as `rcl_publish`
+ * expect that no serialization step is done.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No [0]
+ * Thread-Safe        | Yes [1]
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[0] the middleware might deallocate the loaned message.
+ * The RCL function however does not allocate any memory.</i>
+ * <i>[1] for unique pairs of publishers and messages, see above for more</i>
+ *
+ * \param[in] publisher handle to the publisher which will do the publishing
+ * \param[in] ros_message  pointer to the previously borrow loaned message
+ * \param[in] allocation structure pointer, used for memory preallocation (may be NULL)
+ * \return `RCL_RET_OK` if the message was published successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_publish_loaned_message(
+  const rcl_publisher_t * publisher,
+  const void * ros_message,
   rmw_publisher_allocation_t * allocation
 );
 

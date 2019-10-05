@@ -273,14 +273,13 @@ rcl_ret_t
 rcl_publish(
   const rcl_publisher_t * publisher,
   const void * ros_message,
-  rmw_publisher_allocation_t * allocation,
-  bool is_loaned)
+  rmw_publisher_allocation_t * allocation)
 {
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
-  if (rmw_publish(publisher->impl->rmw_handle, ros_message, allocation, is_loaned) != RMW_RET_OK) {
+  if (rmw_publish(publisher->impl->rmw_handle, ros_message, allocation) != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
@@ -305,6 +304,24 @@ rcl_publish_serialized_message(
       return RCL_RET_BAD_ALLOC;
     }
     return RMW_RET_ERROR;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_publish_loaned_message(
+  const rcl_publisher_t * publisher,
+  const void * ros_message,
+  rmw_publisher_allocation_t * allocation)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t ret = rmw_publish_loaned_message(publisher->impl->rmw_handle, ros_message, allocation);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
 }
