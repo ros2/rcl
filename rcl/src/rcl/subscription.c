@@ -321,7 +321,7 @@ rcl_take_loaned_message(
   if (!rcl_subscription_is_valid(subscription)) {
     return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
   }
-  if (loaned_message) {
+  if (*loaned_message) {
     RCL_SET_ERROR_MSG("loaned message is already initialized");
     return RCL_RET_INVALID_ARGUMENT;
   }
