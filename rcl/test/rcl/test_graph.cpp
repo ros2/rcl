@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <chrono>
 #include <future>
+#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -63,6 +64,9 @@ public:
   rcl_wait_set_t * wait_set_ptr;
   const char * test_graph_node_name = "test_graph_node";
 
+  std::unique_ptr<rmw_topic_info_array_t> topic_info_array;
+  const char * const topic_name = "valid_topic_name";
+
   void SetUp()
   {
     rcl_ret_t ret;
@@ -101,6 +105,8 @@ public:
     ret = rcl_wait_set_init(
       this->wait_set_ptr, 0, 1, 0, 0, 0, 0, this->context_ptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    this->topic_info_array = std::make_unique<rmw_topic_info_array_t>();
   }
 
   void TearDown()
@@ -1320,4 +1326,177 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   // Assert the state goes back to "not available" after the service is removed.
   wait_for_service_state_to_change(false, is_available);
   ASSERT_FALSE(is_available);
+}
+
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_publishers_info_by_topic_null_node)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_publishers_info_by_topic(nullptr,
+      &allocator, this->topic_name, false, this->topic_info_array.get());
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_subscriptions_info_by_topic_null_node)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_subscriptions_info_by_topic(nullptr,
+      &allocator, this->topic_name, false, this->topic_info_array.get());
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_publishers_info_by_topic_invalid_node)
+{
+  // this->old_node_ptr is a pointer to an invalid node.
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_publishers_info_by_topic(this->old_node_ptr,
+      &allocator, this->topic_name, false, this->topic_info_array.get());
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_subscriptions_info_by_topic_invalid_node)
+{
+  // this->old_node_ptr is a pointer to an invalid node.
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_subscriptions_info_by_topic(this->old_node_ptr,
+      &allocator, this->topic_name, false, this->topic_info_array.get());
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_publishers_info_by_topic_null_allocator)
+{
+  const auto ret = rcl_get_publishers_info_by_topic(this->node_ptr, nullptr, this->topic_name,
+      false,
+      this->topic_info_array.get());
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_subscriptions_info_by_topic_null_allocator)
+{
+  const auto ret = rcl_get_subscriptions_info_by_topic(this->node_ptr, nullptr, this->topic_name,
+      false,
+      this->topic_info_array.get());
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_publishers_info_by_topic_null_topic)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_publishers_info_by_topic(this->node_ptr,
+      &allocator, nullptr, false, this->topic_info_array.get());
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_subscriptions_info_by_topic_null_topic)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_subscriptions_info_by_topic(this->node_ptr,
+      &allocator, nullptr, false, this->topic_info_array.get());
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_publishers_info_by_topic_null_participants)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_publishers_info_by_topic(this->node_ptr,
+      &allocator, this->topic_name, false, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_subscriptions_info_by_topic_null_participants)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_subscriptions_info_by_topic(this->node_ptr,
+      &allocator, this->topic_name, false, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_publishers_info_by_topic_invalid_participants)
+{
+  // this participant is invalid as the pointer "participants" inside is expected to be null.
+  const auto & temp_info_array = this->topic_info_array.get();
+  temp_info_array->info_array =
+    reinterpret_cast<rmw_topic_info_t *>(calloc(1, sizeof(rmw_topic_info_t)));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    free(temp_info_array->info_array);
+  });
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_publishers_info_by_topic(this->node_ptr,
+      &allocator, this->topic_name, false, temp_info_array);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+}
+
+/*
+ * This does not test content of the response.
+ * It only tests if the return code is the one expected.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_get_subscriptions_info_by_topic_invalid_participants)
+{
+  // this participant is invalid as the pointer "participants" inside is expected to be null.
+  const auto & temp_info_array = this->topic_info_array.get();
+  temp_info_array->info_array =
+    reinterpret_cast<rmw_topic_info_t *>(calloc(1, sizeof(rmw_topic_info_t)));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    free(temp_info_array->info_array);
+  });
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const auto ret = rcl_get_subscriptions_info_by_topic(this->node_ptr,
+      &allocator, this->topic_name, false, temp_info_array);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }

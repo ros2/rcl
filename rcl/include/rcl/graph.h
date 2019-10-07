@@ -525,22 +525,29 @@ rcl_count_subscribers(
   size_t * count);
 
 /// Returns a list of all publishers to a topic.
-/// Each element in the list will contain the publisher's name and its respective qos profile.
+/// Each element in the list will contain the node name, node namespace, topic type,
+/// gid and the qos profile of the publisher.
 /**
  * The `node` parameter must point to a valid node.
  *
  * The `topic_name` parameter must not be `NULL`.
  *
- * The `publishers` parameter must point to a valid struct of type rmw_participants_t.
- * The `count` field inside the struct must be set to 0
- * The `participants` field inside the struct must be set to null.
- * The `publishers` parameter is the output for this function and will be set.
+ * The `no_mangle` parameter determines if the provided topic_name should be
+ * expanded to its fully qualified name.
  *
- * The topic name is not automatically remapped by this function.
- * If there is a publisher created with topic name `foo` and remap rule `foo:=bar` then calling
- * this with `topic_name` set to `bar` will return a list with 1 publisher, and with `topic_name` set to `foo`
- * will return a list with 0 publishers.
- * /sa rcl_remap_topic_name()
+ * It is the responsibility of the caller to ensure that `publishers_info` parameter points
+ * to a valid struct of type rmw_topic_info_array_t. The `count` field inside the struct
+ * must be set to 0 and the `info_array` field inside the struct must be set to null.
+ * @see rmw_get_zero_initialized_topic_info_array
+ *
+ * The `allocator` will be used to allocate memory to the `info_array` member
+ * inside of `publishers_info`.
+ * Moreover, every const char * member inside of
+ * rmw_topic_info_t will be allocated memory and assigned a copied value.
+ * @see rmw_topic_info_set_node_name and the likes.
+ * However, it is the responsibility of the caller to
+ * reclaim any allocated resources to `publishers_info` to avoid leaking memory.
+ * @see rmw_topic_info_array_fini
  *
  * <hr>
  * Attribute          | Adherence
@@ -552,38 +559,52 @@ rcl_count_subscribers(
  * <i>[1] implementation may need to protect the data structure with a lock</i>
  *
  * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator to be used when allocating space for
+ *            the array inside publishers_info
  * \param[in] topic_name the name of the topic in question
- * \param[out] publishers a struct representing a list of publishers with their qos profile.
+ * \param[in] no_mangle if true, the topic_name will be expanded to its fully qualified name.
+ * \param[out] publishers_info a struct representing a list of publisher information.
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_get_qos_for_publishers(
+rcl_get_publishers_info_by_topic(
   const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
   const char * topic_name,
-  rmw_participants_t * publishers);
+  bool no_mangle,
+  rmw_topic_info_array_t * publishers_info);
 
-/// Returns a list of all subscribers to a topic.
-/// Each element in the list will contain the subscriber's name and its respective qos profile.
+
+/// Returns a list of all subscriptions to a topic.
+/// Each element in the list will contain the node name, node namespace, topic type,
+/// gid and the qos profile of the subscription.
 /**
  * The `node` parameter must point to a valid node.
  *
  * The `topic_name` parameter must not be `NULL`.
  *
- * The `subscriber` parameter must point to a valid struct of type rmw_participants_t.
- * The `count` field inside the struct must be set to 0
- * The `participants` field inside the struct must be set to null.
- * The `subscribers` parameter is the output for this function and will be set.
+ * The `no_mangle` parameter determines if the provided topic_name should be
+ * expanded to its fully qualified name.
  *
- * The topic name is not automatically remapped by this function.
- * If there is a subscriber created with topic name `foo` and remap rule `foo:=bar` then calling
- * this with `topic_name` set to `bar` will return a list with 1 subscriber , and with `topic_name` set to `foo`
- * will return a list with 0 subscribers.
- * /sa rcl_remap_topic_name()
+ * It is the responsibility of the caller to ensure that `subscriptions_info` parameter points
+ * to a valid struct of type rmw_topic_info_array_t. The `count` field inside the struct
+ * must be set to 0 and the `info_array` field inside the struct must be set to null.
+ * @see rmw_get_zero_initialized_topic_info_array
+ *
+ * The `allocator` will be used to allocate memory to the `info_array` member
+ * inside of `subscriptions_info`.
+ * Moreover, every const char * member inside of
+ * rmw_topic_info_t will be allocated memory and assigned a copied value.
+ * @see rmw_topic_info_set_node_name and the likes.
+ * However, it is the responsibility of the caller to
+ * reclaim any allocated resources to `subscriptions_info` to avoid leaking memory.
+ * @see rmw_topic_info_array_fini
  *
  * <hr>
  * Attribute          | Adherence
@@ -595,20 +616,26 @@ rcl_get_qos_for_publishers(
  * <i>[1] implementation may need to protect the data structure with a lock</i>
  *
  * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator to be used when allocating space for
+ *            the array inside publishers_info
  * \param[in] topic_name the name of the topic in question
- * \param[out] subscribers a struct representing a list of subscribers with their qos profile.
+ * \param[in] no_mangle if true, the topic_name will be expanded to its fully qualified name.
+ * \param[out] subscriptions_info a struct representing a list of subscriptions information.
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_get_qos_for_subscribers(
+rcl_get_subscriptions_info_by_topic(
   const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
   const char * topic_name,
-  rmw_participants_t * subscribers);
+  bool no_mangle,
+  rmw_topic_info_array_t * subscriptions_info);
 
 
 /// Check if a service server is available for the given service client.
