@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.1 (2019-10-08)
+------------------
 * Switch the default logging implementation to spdlog.
 * Contributors: Chris Lalancette
 
