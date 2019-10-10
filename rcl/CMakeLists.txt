@@ -37,6 +37,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/client.c
   src/rcl/common.c
   src/rcl/context.c
+  src/rcl/domain_id.c
   src/rcl/event.c
   src/rcl/expand_topic_name.c
   src/rcl/graph.c
@@ -53,13 +54,13 @@ set(${PROJECT_NAME}_sources
   src/rcl/publisher.c
   src/rcl/remap.c
   src/rcl/rmw_implementation_identifier_check.c
+  src/rcl/security.c
   src/rcl/service.c
   src/rcl/subscription.c
   src/rcl/time.c
   src/rcl/timer.c
   src/rcl/validate_topic_name.c
   src/rcl/wait.c
-  src/rcl/security_directory.c
 )
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})

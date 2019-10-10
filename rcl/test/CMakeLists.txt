@@ -98,6 +98,7 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+    TIMEOUT 120
     ${AMENT_GTEST_ARGS}
   )
 

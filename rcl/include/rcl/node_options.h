@@ -23,8 +23,10 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/arguments.h"
 
+#include "rcl/domain_id.h"
+
 /// Constant which indicates that the default domain id should be used.
-#define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID SIZE_MAX
+#define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID RCL_DEFAULT_DOMAIN_ID
 
 /// Structure which encapsulates the options for creating a rcl_node_t.
 typedef struct rcl_node_options_t
@@ -66,7 +68,7 @@ typedef struct rcl_node_options_t
 /**
  * The default values are:
  *
- * - domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID
+ * - domain_id = RMW_DEFAULT_DOMAIN_ID
  * - allocator = rcl_get_default_allocator()
  * - use_global_arguments = true
  * - arguments = rcl_get_zero_initialized_arguments()

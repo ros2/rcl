@@ -16,7 +16,7 @@
 
 #include <string>
 #include <algorithm>
-#include "rcl/security_directory.h"
+#include "rcl/security.h"
 #include "rcutils/filesystem.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"

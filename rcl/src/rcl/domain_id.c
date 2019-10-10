@@ -12,39 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl/localhost.h"
+#include "rcl/domain_id.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <limits.h>
 
 #include "rcutils/get_env.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
-const char * const RCL_LOCALHOST_ENV_VAR = "ROS_LOCALHOST_ONLY";
+const char * const RCL_DOMAIN_ID_ENV_VAR = "ROS_DOMAIN_ID";
 
 rcl_ret_t
-rcl_localhost_only(rmw_localhost_only_t * localhost_only)
+rcl_domain_id(size_t * domain_id)
 {
-  const char * ros_local_host_env_val = NULL;
-  const char * get_env_error_str = NULL;
+  const char * ros_domain_id;
+  const char * get_env_error_str;
 
-  if (!localhost_only) {
+  if (!domain_id) {
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  if (RMW_LOCALHOST_ONLY_DEFAULT == *localhost_only) {
+  if (RCL_DEFAULT_DOMAIN_ID != *domain_id) {
     return RCL_RET_OK;
   }
 
-  get_env_error_str = rcutils_get_env(RCL_LOCALHOST_ENV_VAR, &ros_local_host_env_val);
+  get_env_error_str = rcutils_get_env(RCL_DOMAIN_ID_ENV_VAR, &ros_domain_id);
   if (NULL != get_env_error_str) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Error getting env var '" RCUTILS_STRINGIFY(RCL_DOMAIN_ID_ENV_VAR) "': %s\n",
       get_env_error_str);
     return RCL_RET_ERROR;
   }
-  *localhost_only = ros_local_host_env_val != NULL && strcmp(ros_local_host_env_val, "1") == 0;
+  if (ros_domain_id) {
+    unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
+    if (number == ULONG_MAX) {
+      RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number");
+      return RCL_RET_ERROR;
+    }
+    *domain_id = (size_t)number;
+  }
   return RCL_RET_OK;
 }

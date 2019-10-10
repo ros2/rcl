@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl/security_directory.h"
+#include "rcl/security.h"
+
+#include <stdbool.h>
 
 #include "rcl/error_handling.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/get_env.h"
 #include "rcutils/format_string.h"
+#include "rmw/security_options.h"
 
 #ifdef __clang__
 # pragma clang diagnostic push
@@ -27,6 +30,51 @@
 #ifdef __clang__
 # pragma clang diagnostic pop
 #endif
+
+rcl_ret_t
+rcl_use_security(bool * use_security)
+{
+  const char * ros_security_enable = NULL;
+  const char * get_env_error_str = NULL;
+
+  if (!use_security) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_ENABLE_VAR_NAME, &ros_security_enable);
+  if (NULL != get_env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var '" RCUTILS_STRINGIFY(ROS_SECURITY_ENABLE_VAR_NAME) "': %s\n",
+      get_env_error_str);
+    return RCL_RET_ERROR;
+  }
+
+  *use_security = (0 == strcmp(ros_security_enable, "true"));
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy)
+{
+  const char * ros_enforce_security = NULL;
+  const char * get_env_error_str = NULL;
+
+  if (!policy) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security);
+  if (NULL != get_env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var '" RCUTILS_STRINGIFY(ROS_SECURITY_STRATEGY_VAR_NAME) "': %s\n",
+      get_env_error_str);
+    return RCL_RET_ERROR;
+  }
+
+  *policy = (0 == strcmp(ros_enforce_security, "Enforce")) ?
+    RMW_SECURITY_ENFORCEMENT_ENFORCE : RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
+  return RCL_RET_OK;
+}
 
 /**
  * A security lookup function takes in the node's name, namespace, a security root directory and an allocator;

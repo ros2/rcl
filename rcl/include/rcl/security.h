@@ -12,16 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__SECURITY_DIRECTORY_H_
-#define RCL__SECURITY_DIRECTORY_H_
+#ifndef RCL__SECURITY_H_
+#define RCL__SECURITY_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+#include <stdbool.h>
+
 #include "rcl/allocator.h"
+#include "rcl/types.h"
 #include "rcl/visibility_control.h"
+#include "rmw/security_options.h"
 
 #ifndef ROS_SECURITY_NODE_DIRECTORY_VAR_NAME
   #define ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "ROS_SECURITY_NODE_DIRECTORY"
@@ -34,6 +38,36 @@ extern "C"
 #ifndef ROS_SECURITY_LOOKUP_TYPE_VAR_NAME
   #define ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "ROS_SECURITY_LOOKUP_TYPE"
 #endif
+
+#ifndef ROS_SECURITY_STRATEGY_VAR_NAME
+#define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
+#endif
+
+#ifndef ROS_SECURITY_ENABLE_VAR_NAME
+#define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
+#endif
+
+/// Check if security has to be used, according to the environment.
+/**
+ * \param use_security[out] Must not be NULL.
+ * \returns RCL_RET_INVALID_ARGUMENT if an argument is not valid, or
+ * \returns RCL_RET_ERROR if an unexpected error happened, or
+ * \returns RCL_RET_OK.
+ */
+RCL_PUBLIC
+rcl_ret_t
+rcl_use_security(bool * use_security);
+
+/// Get security enforcement policy from the environment.
+/**
+ * \param policy[out] Must not be NULL.
+ * \returns RCL_RET_INVALID_ARGUMENT if an argument is not valid, or
+ * \returns RCL_RET_ERROR if an unexpected error happened, or
+ * \returns RCL_RET_OK.
+ */
+RCL_PUBLIC
+rcl_ret_t
+rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
 
 /// Return the secure root directory associated with a node given its validated name and namespace.
 /**
@@ -64,4 +98,4 @@ char * rcl_get_secure_root(
 }
 #endif
 
-#endif  // RCL__SECURITY_DIRECTORY_H_
+#endif  // RCL__SECURITY_H_

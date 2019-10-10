@@ -24,8 +24,11 @@ extern "C"
 #include "./context_impl.h"
 #include "./init_options_impl.h"
 #include "rcl/arguments.h"
+#include "rcl/domain_id.h"
 #include "rcl/error_handling.h"
+#include "rcl/localhost.h"
 #include "rcl/logging.h"
+#include "rcl/security.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rmw/error_handling.h"
@@ -143,6 +146,41 @@ rcl_init(
   }
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), next_instance_id);
   context->impl->init_options.impl->rmw_init_options.instance_id = next_instance_id;
+
+  // Get actual domain id based on environment variable, if needed.
+  ret = rcl_domain_id(&context->impl->init_options.impl->rmw_init_options.domain_id);
+  if (RCL_RET_OK != ret) {
+    fail_ret = ret;
+    goto fail;
+  }
+
+  // Get actual localhost_only value based on environment variable, if needed.
+  ret = rcl_localhost_only(&context->impl->init_options.impl->rmw_init_options.localhost_only);
+  if (RCL_RET_OK != ret) {
+    fail_ret = ret;
+    goto fail;
+  }
+
+  // TODO(ivanpauno): Uncomment this when new path discovery magic is ready.
+  // bool use_security = false;
+  // ret = rcl_use_security(&use_security);
+  // if (RCL_RET_OK != ret) {
+  //   fail_ret = ret;
+  //   goto fail;
+  // }
+  // RCUTILS_LOG_DEBUG_NAMED(
+  //   ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false");
+
+  // ret = rcl_get_enforcement_policy(
+  //   &context->impl->init_options.impl->rmw_init_options.security_options.enforce_security);
+  // if (RCL_RET_OK != ret) {
+  //   fail_ret = ret;
+  //   goto fail;
+  // }
+
+  // if (use_security) {
+  //   ...
+  // }
 
   // Initialize rmw_init.
   rmw_ret_t rmw_ret = rmw_init(
