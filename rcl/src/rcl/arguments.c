@@ -883,21 +883,30 @@ rcl_remove_ros_arguments(
   int * nonros_argc,
   const char ** nonros_argv[])
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argc, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-
-  *nonros_argc = rcl_arguments_get_count_unparsed(args);
-  *nonros_argv = NULL;
-
-  if (*nonros_argc <= 0) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argc, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argv, RCL_RET_INVALID_ARGUMENT);
+  if (NULL != *nonros_argv) {
+    RCL_SET_ERROR_MSG("Output nonros_argv pointer is not null. May leak memory.");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
+  *nonros_argc = rcl_arguments_get_count_unparsed(args);
+  if (*nonros_argc < 0) {
+    RCL_SET_ERROR_MSG("Failed to get unparsed non ROS specific arguments count.");
+    return RCL_RET_INVALID_ARGUMENT;
+  } else if (*nonros_argc > 0) {
+    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
+  }
+
+  *nonros_argv = NULL;
+  if (0 == *nonros_argc) {
+    return RCL_RET_OK;
+  }
+
   int * unparsed_indices = NULL;
-  rcl_ret_t ret;
-  ret = rcl_arguments_get_unparsed(args, allocator, &unparsed_indices);
+  rcl_ret_t ret = rcl_arguments_get_unparsed(args, allocator, &unparsed_indices);
 
   if (RCL_RET_OK != ret) {
     return ret;
