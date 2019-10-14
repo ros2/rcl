@@ -97,10 +97,12 @@ rcl_get_zero_initialized_node(void);
  * Expected usage:
  *
  * ```c
+ * rcl_context_t context = rcl_get_zero_initialized_context();
+ * // ... initialize the context with rcl_init()
  * rcl_node_t node = rcl_get_zero_initialized_node();
  * rcl_node_options_t node_ops = rcl_node_get_default_options();
  * // ... node options customization
- * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/node_ns", &node_ops);
+ * rcl_ret_t ret = rcl_node_init(&node, "node_name", "/node_ns", &context, &node_ops);
  * // ... error handling and then use the node, but eventually deinitialize it:
  * ret = rcl_node_fini(&node);
  * // ... error handling for rcl_node_fini()
@@ -116,6 +118,7 @@ rcl_get_zero_initialized_node(void);
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \pre the node handle must be allocated, zero initialized, and invalid
+ * \pre the context handle must be allocated, initialized, and valid
  * \post the node handle is valid and can be used in other `rcl_*` functions
  *
  * \param[inout] node a preallocated rcl_node_t
