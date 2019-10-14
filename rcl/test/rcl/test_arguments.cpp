@@ -570,6 +570,63 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_fini_twice) {
   rcl_reset_error();
 }
 
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_remove_ros_args) {
+  const char * argv[] = {"process_name"};
+  int argc = sizeof(argv) / sizeof(const char *);
+
+  rcl_allocator_t default_allocator = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, default_allocator, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
+
+  const char ** nonros_argv = NULL;
+  int nonros_argc = 0;
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+      NULL, &parsed_args, default_allocator, &nonros_argc, &nonros_argv));
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+      argv, NULL, default_allocator, &nonros_argc, &nonros_argv));
+
+  rcl_allocator_t zero_initialized_allocator =
+    (rcl_allocator_t)rcutils_get_zero_initialized_allocator();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+      argv, &parsed_args, zero_initialized_allocator, &nonros_argc, &nonros_argv));
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+      argv, &parsed_args, default_allocator, NULL, &nonros_argv));
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+      argv, &parsed_args, default_allocator, &nonros_argc, NULL));
+
+  rcl_arguments_t zero_initialized_parsed_args = rcl_get_zero_initialized_arguments();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+      argv, &zero_initialized_parsed_args, default_allocator, &nonros_argc, &nonros_argv));
+
+  const char * stack_allocated_nonros_argv[] = {"--foo", "--bar"};
+  const char ** initialized_nonros_argv = stack_allocated_nonros_argv;
+  int initialized_nonros_argc = sizeof(stack_allocated_nonros_argv) / sizeof(const char *);
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+      argv, &parsed_args, default_allocator, &initialized_nonros_argc, &initialized_nonros_argv));
+
+  rcl_arguments_t no_parsed_args = rcl_get_zero_initialized_arguments();
+  ret = rcl_parse_arguments(0, NULL, default_allocator, &no_parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&no_parsed_args));
+  });
+
+  ret = rcl_remove_ros_arguments(
+    NULL, &no_parsed_args, default_allocator, &nonros_argc, &nonros_argv);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(NULL == nonros_argv);
+  EXPECT_EQ(0, nonros_argc);
+}
+
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args) {
   const char * argv[] = {
     "process_name", "-d", "--ros-args", "-r", "__ns:=/foo/bar", "-r", "__ns:=/fiz/buz", "--",
