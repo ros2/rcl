@@ -587,24 +587,30 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_remove_ros_
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       NULL, &parsed_args, default_allocator, &nonros_argc, &nonros_argv));
+  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, NULL, default_allocator, &nonros_argc, &nonros_argv));
+  rcl_reset_error();
 
   rcl_allocator_t zero_initialized_allocator =
     (rcl_allocator_t)rcutils_get_zero_initialized_allocator();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, zero_initialized_allocator, &nonros_argc, &nonros_argv));
+  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, default_allocator, NULL, &nonros_argv));
+  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, default_allocator, &nonros_argc, NULL));
+  rcl_reset_error();
 
   rcl_arguments_t zero_initialized_parsed_args = rcl_get_zero_initialized_arguments();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &zero_initialized_parsed_args, default_allocator, &nonros_argc, &nonros_argv));
+  rcl_reset_error();
 
   const char * stack_allocated_nonros_argv[] = {"--foo", "--bar"};
   const char ** initialized_nonros_argv = stack_allocated_nonros_argv;
@@ -612,6 +618,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_remove_ros_
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, default_allocator, &initialized_nonros_argc, &initialized_nonros_argv));
+  rcl_reset_error();
 
   rcl_arguments_t no_parsed_args = rcl_get_zero_initialized_arguments();
   ret = rcl_parse_arguments(0, NULL, default_allocator, &no_parsed_args);
