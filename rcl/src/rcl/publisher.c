@@ -166,7 +166,8 @@ rcl_publisher_init(
     rcl_node_get_rmw_handle(node),
     type_support,
     remapped_topic_name,
-    &(options->qos));
+    &(options->qos),
+    &(options->rmw_publisher_options));
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
     rmw_get_error_string().str, goto fail);
   // get actual qos, and store it
@@ -240,6 +241,7 @@ rcl_publisher_get_default_options()
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_default;
   default_options.allocator = rcl_get_default_allocator();
+  default_options.rmw_publisher_options = rmw_get_default_publisher_options();
   return default_options;
 }
 

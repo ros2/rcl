@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.1 (2019-10-08)
+------------------
+* Switch the default logging implementation to spdlog.
+* Contributors: Chris Lalancette
+
 0.8.0 (2019-09-26)
 ------------------
 * Delete rcl_impl_getenv, replaced by rcutils_get_env (`#502 <https://github.com/ros2/rcl/issues/502>`_)

@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.1 (2019-10-08)
+------------------
+
 0.8.0 (2019-09-26)
 ------------------
 * Enable incremental parameter yaml file parsing. (`#507 <https://github.com/ros2/rcl/issues/507>`_)
