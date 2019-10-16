@@ -41,6 +41,7 @@ extern "C"
 #include "rcutils/snprintf.h"
 #include "rcutils/strdup.h"
 #include "rmw/error_handling.h"
+#include "rmw/localhost.h"
 #include "rmw/node_security_options.h"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
@@ -328,7 +329,7 @@ rcl_node_init(
   }
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
-    name, local_namespace_, domain_id, &node_security_options);
+    name, local_namespace_, domain_id, &node_security_options, rmw_localhost_only());
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
