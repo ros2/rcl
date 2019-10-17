@@ -73,7 +73,7 @@ rcl_ret_t rcl_logging_fini();
 
 /// See if logging rosout is enabled.
 /**
- * This function is meant to be used to check if logging rosout is enabled
+ * This function is meant to be used to check if logging rosout is enabled.
  *
  * <hr>
  * Attribute          | Adherence
