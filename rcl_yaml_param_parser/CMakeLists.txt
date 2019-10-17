@@ -27,6 +27,10 @@ add_library(
   ${rcl_yaml_parser_sources})
 ament_target_dependencies(${PROJECT_NAME} "yaml" "rcutils")
 
+# This compile definition used to enable bounding of string parameters
+# see MAX_STRING_SIZE definition in src/parser.c
+# target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_ENFORCE_MAX_STRING_SIZE")
+
 # Set the visibility to hidden by default if possible
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   # Set the visibility of symbols to hidden by default for gcc and clang
