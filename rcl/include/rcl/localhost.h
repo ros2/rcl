@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__LOCALHOST_H
-#define RCL__LOCALHOST_H
+#ifndef RCL__LOCALHOST_H_
+#define RCL__LOCALHOST_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -23,7 +23,7 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-extern const char * RCL_LOCALHOST_ENV_VAR;
+extern const char * const RCL_LOCALHOST_ENV_VAR;
 
 /// Determine if the user wants to communicate using loopback only.
 /**
@@ -39,4 +39,4 @@ rcl_localhost_only();
 }
 #endif
 
-#endif // RCL__LOCALHOST_H
+#endif  // RCL__LOCALHOST_H_

@@ -14,17 +14,17 @@
 
 #include <rcl/localhost.h>
 
-#include "rcutils/get_env.h"
-
 #include <stdlib.h>
 #include <string.h>
 
-const char * RCL_LOCALHOST_ENV_VAR = "ROS_LOCALHOST_ONLY";
+#include "rcutils/get_env.h"
+
+const char * const RCL_LOCALHOST_ENV_VAR = "ROS_LOCALHOST_ONLY";
 
 bool
 rcl_localhost_only()
 {
   const char * ros_local_host_env_val = NULL;
   return rcutils_get_env(RCL_LOCALHOST_ENV_VAR, &ros_local_host_env_val) == NULL &&
-    ros_local_host_env_val != NULL && strcmp(ros_local_host_env_val, "1") == 0;
+         ros_local_host_env_val != NULL && strcmp(ros_local_host_env_val, "1") == 0;
 }
