@@ -246,6 +246,30 @@ rcl_publisher_get_default_options()
 }
 
 rcl_ret_t
+rcl_borrow_loaned_message(
+  const rcl_publisher_t * publisher,
+  const rosidl_message_type_support_t * type_support,
+  void ** ros_message)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
+  }
+  return rmw_borrow_loaned_message(publisher->impl->rmw_handle, type_support, ros_message);
+}
+
+rcl_ret_t
+rcl_return_loaned_message(
+  const rcl_publisher_t * publisher,
+  void * loaned_message)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
+  return rmw_return_loaned_message(publisher->impl->rmw_handle, loaned_message);
+}
+
+rcl_ret_t
 rcl_publish(
   const rcl_publisher_t * publisher,
   const void * ros_message,
@@ -280,6 +304,24 @@ rcl_publish_serialized_message(
       return RCL_RET_BAD_ALLOC;
     }
     return RMW_RET_ERROR;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_publish_loaned_message(
+  const rcl_publisher_t * publisher,
+  void * ros_message,
+  rmw_publisher_allocation_t * allocation)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t ret = rmw_publish_loaned_message(publisher->impl->rmw_handle, ros_message, allocation);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
 }
@@ -388,6 +430,15 @@ rcl_publisher_get_actual_qos(const rcl_publisher_t * publisher)
     return NULL;
   }
   return &publisher->impl->actual_qos;
+}
+
+bool
+rcl_publisher_can_loan_messages(const rcl_publisher_t * publisher)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return false;  // error message already set
+  }
+  return publisher->impl->rmw_handle->can_loan_messages;
 }
 
 #ifdef __cplusplus
