@@ -337,6 +337,7 @@ rcl_take_serialized_message(
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_SUBSCRIPTION_TAKE_FAILED` if take failed but no error
  *         occurred in the middleware, or
+ * \return `RCL_RET_UNIMPLEMENTED` if the middleware does not support that feature, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -368,6 +369,7 @@ rcl_take_loaned_message(
  * \return `RCL_RET_OK` if the message was published, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
+ * \return `RCL_RET_UNIMPLEMENTED` if the middleware does not support that feature, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC

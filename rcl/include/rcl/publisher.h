@@ -214,10 +214,11 @@ rcl_publisher_get_default_options(void);
  * \param[in] publisher Publisher to which the allocated message is associated.
  * \param[in] type_support Typesupport to which the internal ros message is allocated.
  * \param[out] ros_message The pointer to be filled to a valid ros message by the middleware.
- * \return RCL_RET_OK if the ros message was correctly initialized, or
- * \return RCL_RET_INVALID_ARGUMENT if an argument other than the ros message is null, or
- * \return RCL_RET_BAD_ALLOC if the ros message could not be correctly created, or
- * \return RCL_RET_ERROR if an unexpected error occured.
+ * \return `RCL_RET_OK` if the ros message was correctly initialized, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if an argument other than the ros message is null, or
+ * \return `RCL_RET_BAD_ALLOC` if the ros message could not be correctly created, or
+ * \return `RCL_RET_UNIMPLEMENTED` if the middleware does not support that feature, or
+ * \return `RCL_RET_ERROR` if an unexpected error occured.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -231,7 +232,7 @@ rcl_borrow_loaned_message(
 /**
  * The ownership of the passed in ros message will be transferred back to the middleware.
  * The middleware might deallocate and destroy the message so that the pointer is no longer
- * guarantueed to be valid after that call.
+ * guaranteed to be valid after that call.
  *
  * <hr>
  * Attribute          | Adherence
@@ -245,6 +246,7 @@ rcl_borrow_loaned_message(
  * \param[in] loaned_message Loaned message to be deallocated and destroyed.
  * \return `RCL_RET_OK` if successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if an argument is null, or
+ * \return `RCL_RET_UNIMPLEMENTED` if the middleware does not support that feature, or
  * \return `RCL_RET_ERROR` if an unexpected error occurs and no message can be initialized.
  */
 RCL_PUBLIC
@@ -365,13 +367,13 @@ rcl_publish_serialized_message(
  * A previously borrowed loaned message can be sent via this call to `rcl_publish_loaned_message`.
  * By calling this function, the ownership of the loaned message is getting transferred back
  * to the middleware.
- * The pointer to the `ros_message` is not guarantueed to be valid after as the middleware
+ * The pointer to the `ros_message` is not guaranteed to be valid after as the middleware
  * migth deallocate the memory for this message internally.
  * It is thus recommended to call this function only in combination with
  * \sa `rcl_borrow_loaned_message`.
  *
  * Apart from this, the `publish_loaned_message` function has the same behavior as `rcl_publish`
- * expect that no serialization step is done.
+ * except that no serialization step is done.
  *
  * <hr>
  * Attribute          | Adherence
@@ -390,6 +392,7 @@ rcl_publish_serialized_message(
  * \return `RCL_RET_OK` if the message was published successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or
+ * \return `RCL_RET_UNIMPLEMENTED` if the middleware does not support that feature, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
