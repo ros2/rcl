@@ -26,6 +26,7 @@ extern "C"
 
 #include "rcl/arguments.h"
 #include "rcl/error_handling.h"
+#include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
 #include "rcl/rcl.h"
@@ -329,7 +330,7 @@ rcl_node_init(
   }
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
-    name, local_namespace_, domain_id, &node_security_options);
+    name, local_namespace_, domain_id, &node_security_options, rcl_localhost_only());
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
