@@ -45,6 +45,7 @@ extern "C"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
+#include "tracetools/tracetools.h"
 
 #include "./context_impl.h"
 
@@ -365,6 +366,12 @@ rcl_node_init(
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized");
   ret = RCL_RET_OK;
+  TRACEPOINT(
+    rcl_node_init,
+    (const void *)node,
+    (const void *)rcl_node_get_rmw_handle(node),
+    rcl_node_get_name(node),
+    rcl_node_get_namespace(node));
   goto cleanup;
 fail:
   if (node->impl) {
