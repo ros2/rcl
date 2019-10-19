@@ -356,7 +356,7 @@ rcl_take_loaned_message(
 }
 
 rcl_ret_t
-rcl_release_loaned_message(
+rcl_return_loaned_message_from_subscription(
   const rcl_subscription_t * subscription,
   void * loaned_message)
 {
@@ -365,7 +365,8 @@ rcl_release_loaned_message(
     return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
-  return rmw_release_loaned_message(subscription->impl->rmw_handle, loaned_message);
+  return rmw_return_loaned_message_from_subscription(
+    subscription->impl->rmw_handle, loaned_message);
 }
 
 const char *
