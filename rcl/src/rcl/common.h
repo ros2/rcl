@@ -22,27 +22,6 @@ extern "C"
 
 #include "rcl/types.h"
 
-/// Retrieve the value of the given environment variable if it exists, or "".
-/* The returned cstring is only valid until the next time this function is
- * called, because it is a direct pointer to the static storage.
- * The returned value char * variable should never have free() called on it.
- * If the environment variable is not set, an empty string will be returned.
- *
- * Environment variables will be truncated at 2048 characters on Windows.
- *
- * This function does not allocate heap memory, but the system calls might.
- * This function is not thread-safe.
- * This function is not lock-free.
- *
- * \param[in] env_name the name of the environment variable
- * \param[out] env_value pointer to the value cstring, or "" if unset
- * \return RCL_RET_OK if the value is retrieved successfully, or
- *         RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
- *         RCL_RET_ERROR an unspecified error occur.
- */
-rcl_ret_t
-rcl_impl_getenv(const char * env_name, const char ** env_value);
-
 /// Convenience function for converting common rmw_ret_t return codes to rcl.
 rcl_ret_t
 rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret);
