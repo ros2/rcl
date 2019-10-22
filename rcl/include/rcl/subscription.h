@@ -349,10 +349,10 @@ rcl_take_loaned_message(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation);
 
-/// Release a loaned message from a topic using a rcl subscription.
+/// Return a loaned message from a topic using a rcl subscription.
 /**
  * If a loaned message was previously obtained from the middleware with a call to
- * \sa rcl_take_loaned_message, this message has to be released to indicate to the middleware
+ * \sa rcl_take_loaned_message, this message has to be returned to indicate to the middleware
  * that the user no longer needs that memory.
  * The user must not delete the message.
  *
@@ -375,7 +375,7 @@ rcl_take_loaned_message(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_release_loaned_message(
+rcl_return_loaned_message_from_subscription(
   const rcl_subscription_t * subscription,
   void * loaned_message);
 

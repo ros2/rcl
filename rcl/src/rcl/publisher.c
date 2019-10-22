@@ -265,7 +265,7 @@ rcl_borrow_loaned_message(
 }
 
 rcl_ret_t
-rcl_return_loaned_message(
+rcl_return_loaned_message_from_publisher(
   const rcl_publisher_t * publisher,
   void * loaned_message)
 {
@@ -273,7 +273,7 @@ rcl_return_loaned_message(
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
-  return rmw_return_loaned_message(publisher->impl->rmw_handle, loaned_message);
+  return rmw_return_loaned_message_from_publisher(publisher->impl->rmw_handle, loaned_message);
 }
 
 rcl_ret_t

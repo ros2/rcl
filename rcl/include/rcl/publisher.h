@@ -199,7 +199,7 @@ rcl_publisher_get_default_options(void);
 /// Borrow a loaned message.
 /**
  * The memory allocated for the ros message belongs to the middleware and must not be deallocated
- * other than by a call to \sa rcl_return_loaned_message.
+ * other than by a call to \sa rcl_return_loaned_message_from_publisher.
  *
  * <hr>
  * Attribute          | Adherence
@@ -228,7 +228,7 @@ rcl_borrow_loaned_message(
   const rosidl_message_type_support_t * type_support,
   void ** ros_message);
 
-/// Return a loaned message
+/// Return a loaned message previously borrowed from a publisher.
 /**
  * The ownership of the passed in ros message will be transferred back to the middleware.
  * The middleware might deallocate and destroy the message so that the pointer is no longer
@@ -252,7 +252,7 @@ rcl_borrow_loaned_message(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_return_loaned_message(
+rcl_return_loaned_message_from_publisher(
   const rcl_publisher_t * publisher,
   void * loaned_message);
 
