@@ -55,6 +55,7 @@ if(BUILD_TESTING)
   # Gtests
   ament_add_gtest(test_parse_yaml
     test/test_parse_yaml.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   if(TARGET test_parse_yaml)
     target_link_libraries(test_parse_yaml ${PROJECT_NAME})
