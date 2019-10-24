@@ -144,10 +144,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rostopic:///rosservice:=rostopic"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rostopic:///foo/bar:=baz"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "foo:=bar"}));
-  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "~/foo:=~/bar"}));
-  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo/bar:=bar"}));
-  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "foo:=/bar"}));
-  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo123:=/bar123"}));
+  // TODO(hidmic): restore tests (and drop the following ones) when parameter names
+  //               are standardized to use slashes in lieu of dots.
+  // EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "~/foo:=~/bar"}));
+  // EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo/bar:=bar"}));
+  // EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "foo:=/bar"}));
+  // EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "/foo123:=/bar123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "foo.bar:=bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "node:foo:=bar"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "fizz123:=buzz456"}));
 
   const std::string parameters_filepath = (test_path / "test_parameters.1.yaml").string();
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "--params-file", parameters_filepath.c_str()}));
@@ -998,6 +1003,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
     "process_name", "--ros-args",
     "--params-file", parameters_filepath.c_str(),
     "--param", "string_param:=bar",
+    "-p", "some.bool_param:=false",
     "-p", "some_node:int_param:=4"
   };
   int argc = sizeof(argv) / sizeof(const char *);
@@ -1024,6 +1030,11 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->string_value);
   EXPECT_STREQ("bar", param_value->string_value);
+
+  param_value = rcl_yaml_node_struct_get("/**", "some.bool_param", params);
+  ASSERT_TRUE(NULL != param_value);
+  ASSERT_TRUE(NULL != param_value->bool_value);
+  EXPECT_FALSE(*(param_value->bool_value));
 
   param_value = rcl_yaml_node_struct_get("some_node", "int_param", params);
   ASSERT_TRUE(NULL != param_value);
