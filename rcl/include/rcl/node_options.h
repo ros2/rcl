@@ -58,8 +58,8 @@ typedef struct rcl_node_options_t
   /// Command line arguments that apply only to this node.
   rcl_arguments_t arguments;
 
-  /// Flag to disable rosout for this node
-  bool disable_rosout;
+  /// Flag to enable rosout for this node
+  bool enable_rosout;
 } rcl_node_options_t;
 
 /// Return the default node options in a rcl_node_options_t.

@@ -30,7 +30,7 @@ rcl_node_get_default_options()
   static rcl_node_options_t default_options = {
     .domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID,
     .use_global_arguments = true,
-    .disable_rosout = false,
+    .enable_rosout = true,
   };
   // Must set the allocator after because it is not a compile time constant.
   default_options.allocator = rcl_get_default_allocator();
@@ -52,7 +52,7 @@ rcl_node_options_copy(
   options_out->domain_id = options->domain_id;
   options_out->allocator = options->allocator;
   options_out->use_global_arguments = options->use_global_arguments;
-  options_out->disable_rosout = options->disable_rosout;
+  options_out->enable_rosout = options->enable_rosout;
   if (NULL != options->arguments.impl) {
     rcl_ret_t ret = rcl_arguments_copy(&(options->arguments), &(options_out->arguments));
     return ret;
