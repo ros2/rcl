@@ -64,10 +64,10 @@ digraph remapping_lexer {
   S0 -> S1 [ label = "\\"];
   S0 -> S2 [ label = "~"];
   S0 -> S3 [ label = "_" ];
-  S0 -> S8 [ label = "a-qs-zA-Z"];
-  S0 -> S10 [ label = "r"];
-  S0 -> S29 [ label = "*"];
-  S0 -> S30 [ label = ":"];
+  S0 -> S9 [ label = "a-qs-zA-Z"];
+  S0 -> S11 [ label = "r"];
+  S0 -> S30 [ label = "*"];
+  S0 -> S31 [ label = ":"];
   S1 -> T_BR1 [ label = "1"];
   S1 -> T_BR2 [ label = "2"];
   S1 -> T_BR3 [ label = "3"];
@@ -79,11 +79,11 @@ digraph remapping_lexer {
   S1 -> T_BR9 [ label = "9"];
   S2 -> T_TILDE_SLASH [ label ="/" ];
   S3 -> S4 [ label = "_" ];
-  S3 -> S9 [ label = "<else,1>", color = crimson, fontcolor = crimson];
+  S3 -> S10 [ label = "<else,1>", color = crimson, fontcolor = crimson];
   S4 -> S5 [ label = "n" ];
   S5 -> T_NS [ label = "s"];
   S5 -> S6 [ label = "o" ];
-  S6 -> S9 [ label = "d" ];
+  S6 -> S8 [ label = "d" ];
   S5 -> S7 [ label = "a" ];
   S7 -> S8 [ label = "m" ];
   S8 -> T_NODE [ label = "e"];
