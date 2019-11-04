@@ -39,9 +39,17 @@ typedef struct rcl_arguments_t
 #define RCL_ROS_ARGS_EXPLICIT_END_TOKEN "--"
 #define RCL_PARAM_FLAG "--param"
 #define RCL_SHORT_PARAM_FLAG "-p"
+#define RCL_PARAM_FILE_FLAG "--params-file"
 #define RCL_REMAP_FLAG "--remap"
 #define RCL_SHORT_REMAP_FLAG "-r"
+#define RCL_LOG_LEVEL_FLAG "--log-level"
+#define RCL_EXTERNAL_LOG_CONFIG_FLAG "--log-config-file"
+// To be prefixed with --enable- or --disable-
+#define RCL_LOG_STDOUT_FLAG_SUFFIX "stdout-logs"
+#define RCL_LOG_ROSOUT_FLAG_SUFFIX "rosout-logs"
+#define RCL_LOG_EXT_LIB_FLAG_SUFFIX "external-lib-logs"
 
+// \deprecated to be removed in F-Turtle
 #define RCL_LOG_LEVEL_ARG_RULE "__log_level:="
 #define RCL_EXTERNAL_LOG_CONFIG_ARG_RULE "__log_config_file:="
 #define RCL_LOG_DISABLE_STDOUT_ARG_RULE "__log_disable_stdout:="
@@ -75,10 +83,13 @@ rcl_get_zero_initialized_arguments(void);
  * Parameter override rule parsing is supported via `-p/--param` flags e.g. `--param name:=value`
  * or `-p name:=value`.
  *
- * The default log level will be parsed as `__log_level:=level`, where `level` is a name
+ * The default log level will be parsed as `--log-level level`, where `level` is a name
  * representing one of the log levels in the `RCUTILS_LOG_SEVERITY` enum, e.g. `info`, `debug`,
  * `warn`, not case sensitive.
  * If multiple of these rules are found, the last one parsed will be used.
+ *
+ * If an argument does not appear to be a valid ROS argument e.g. a `-r/--remap` flag followed by
+ * anything but a valid remap rule, parsing will fail immediately.
  *
  * If an argument does not appear to be a known ROS argument, then it is skipped and left unparsed.
  *
@@ -104,6 +115,7 @@ rcl_get_zero_initialized_arguments(void);
  * \param[out] args_output A structure that will contain the result of parsing.
  *   Must be zero initialized before use.
  * \return `RCL_RET_OK` if the arguments were parsed successfully, or
+ * \return `RCL_RET_INVALID_ROS_ARGS` if an invalid ROS argument is found, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -190,9 +202,9 @@ int
 rcl_arguments_get_count_unparsed_ros(
   const rcl_arguments_t * args);
 
-/// Return a list of indices to ROS specific arguments that were not successfully parsed.
+/// Return a list of indices to unknown ROS specific arguments that were left unparsed.
 /**
- * Some ROS specific arguments may not have been successfully parsed, or were not intended to be
+ * Some ROS specific arguments may not have been recognized, or were not intended to be
  * parsed by rcl.
  * This function populates an array of indices to these arguments in the original argv array.
  *
@@ -271,8 +283,11 @@ rcl_arguments_get_param_files(
   rcl_allocator_t allocator,
   char *** parameter_files);
 
-/// Return all parameter overrides specified on the command line.
+/// Return all parameter overrides parsed from the command line.
 /**
+ * Parameter overrides are parsed directly from command line arguments and
+ * parameter files provided in the command line.
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -282,8 +297,9 @@ rcl_arguments_get_param_files(
  * Lock-Free          | Yes
  *
  * \param[in] arguments An arguments structure that has been parsed.
- * \param[out] parameter_overrides Zero or more parameter overrides.
+ * \param[out] parameter_overrides Parameter overrides as parsed from command line arguments.
  *   This structure must be finalized by the caller.
+ *   The output is NULL if no parameter overrides were parsed.
  * \return `RCL_RET_OK` if everything goes correctly, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or

@@ -27,6 +27,7 @@ extern "C"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
+#include "tracetools/tracetools.h"
 
 #include "./common.h"
 #include "./subscription_impl.h"
@@ -162,7 +163,7 @@ rcl_subscription_init(
     type_support,
     remapped_topic_name,
     &(options->qos),
-    options->ignore_local_publications);
+    &(options->rmw_subscription_options));
   if (!subscription->impl->rmw_handle) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
@@ -182,6 +183,13 @@ rcl_subscription_init(
   subscription->impl->options = *options;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
+  TRACEPOINT(
+    rcl_subscription_init,
+    (const void *)subscription,
+    (const void *)node,
+    (const void *)subscription->impl->rmw_handle,
+    remapped_topic_name,
+    options->qos.depth);
   goto cleanup;
 fail:
   if (subscription->impl) {
@@ -230,12 +238,11 @@ rcl_subscription_options_t
 rcl_subscription_get_default_options()
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
-  static rcl_subscription_options_t default_options = {
-    .ignore_local_publications = false,
-  };
-  // Must set the allocator and qos after because they are not a compile time constant.
+  static rcl_subscription_options_t default_options;
+  // Must set these after declaration because they are not a compile time constants.
   default_options.qos = rmw_qos_profile_default;
   default_options.allocator = rcl_get_default_allocator();
+  default_options.rmw_subscription_options = rmw_get_default_subscription_options();
   return default_options;
 }
 
@@ -311,6 +318,57 @@ rcl_take_serialized_message(
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_take_loaned_message(
+  const rcl_subscription_t * subscription,
+  void ** loaned_message,
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
+{
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking loaned message");
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
+  }
+  if (*loaned_message) {
+    RCL_SET_ERROR_MSG("loaned message is already initialized");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  // If message_info is NULL, use a place holder which can be discarded.
+  rmw_message_info_t dummy_message_info;
+  rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
+  // Call rmw_take_with_info.
+  bool taken = false;
+  rmw_ret_t ret = rmw_take_loaned_message_with_info(
+    subscription->impl->rmw_handle, loaned_message, &taken, message_info_local, allocation);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    if (RMW_RET_BAD_ALLOC == ret) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    return RCL_RET_ERROR;
+  }
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Subscription loaned take succeeded: %s", taken ? "true" : "false");
+  if (!taken) {
+    return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_return_loaned_message_from_subscription(
+  const rcl_subscription_t * subscription,
+  void * loaned_message)
+{
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription releasing loaned message");
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
+  return rmw_return_loaned_message_from_subscription(
+    subscription->impl->rmw_handle, loaned_message);
+}
+
 const char *
 rcl_subscription_get_topic_name(const rcl_subscription_t * subscription)
 {
@@ -377,6 +435,15 @@ rcl_subscription_get_actual_qos(const rcl_subscription_t * subscription)
     return NULL;
   }
   return &subscription->impl->actual_qos;
+}
+
+bool
+rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    return false;  // error message already set
+  }
+  return subscription->impl->rmw_handle->can_loan_messages;
 }
 
 #ifdef __cplusplus

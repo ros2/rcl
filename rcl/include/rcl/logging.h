@@ -71,6 +71,25 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_logging_fini();
 
+/// See if logging rosout is enabled.
+/**
+ * This function is meant to be used to check if logging rosout is enabled.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \return `TRUE` if logging rosout is enabled, or
+ * \return `FALSE` if logging rosout is disabled.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+bool rcl_logging_rosout_enabled();
+
 #ifdef __cplusplus
 }
 #endif

@@ -110,11 +110,10 @@ rcl_action_get_zero_initialized_client(void)
     } \
     goto fail; \
   } \
-  rcl_subscription_options_t Type ## _topic_subscription_options = { \
-    .qos = options->Type ## _topic_qos, \
-    .ignore_local_publications = false, \
-    .allocator = allocator \
-  }; \
+  rcl_subscription_options_t Type ## _topic_subscription_options = \
+    rcl_subscription_get_default_options(); \
+  Type ## _topic_subscription_options.qos = options->Type ## _topic_qos; \
+  Type ## _topic_subscription_options.allocator = allocator; \
   action_client->impl->Type ## _subscription = rcl_get_zero_initialized_subscription(); \
   ret = rcl_subscription_init( \
     &action_client->impl->Type ## _subscription, \

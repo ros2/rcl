@@ -2,6 +2,53 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.2 (2019-10-23)
+------------------
+* Remove the prototype from rcl_impl_getenv. (`#525 <https://github.com/ros2/rcl/issues/525>`_)
+* Use return_loaned_message_from (`#523 <https://github.com/ros2/rcl/issues/523>`_)
+* Avoid ready_fn and self.proc_info (`#522 <https://github.com/ros2/rcl/issues/522>`_)
+* Add localhost option to node creation (`#520 <https://github.com/ros2/rcl/issues/520>`_)
+* Add initial instrumentation (`#473 <https://github.com/ros2/rcl/issues/473>`_)
+* Zero copy api (`#506 <https://github.com/ros2/rcl/issues/506>`_)
+* Don't create rosout publisher instance unless required. (`#514 <https://github.com/ros2/rcl/issues/514>`_)
+* Handle zero non-ROS specific args properly in rcl_remove_ros_arguments (`#518 <https://github.com/ros2/rcl/issues/518>`_)
+* Update rcl_node_init docstring (`#517 <https://github.com/ros2/rcl/issues/517>`_)
+* Remove vestigial references to rcl_ok() (`#516 <https://github.com/ros2/rcl/issues/516>`_)
+* Add mechanism to pass rmw impl specific payloads during pub/sub creation (`#513 <https://github.com/ros2/rcl/issues/513>`_)
+* Contributors: Brian Marchi, Chris Lalancette, Ingo Lütkebohle, Jacob Perron, Karsten Knese, Michel Hidalgo, Peter Baughman, William Woodall, tomoya
+
+0.8.1 (2019-10-08)
+------------------
+* Switch the default logging implementation to spdlog.
+* Contributors: Chris Lalancette
+
+0.8.0 (2019-09-26)
+------------------
+* Delete rcl_impl_getenv, replaced by rcutils_get_env (`#502 <https://github.com/ros2/rcl/issues/502>`_)
+* Parse CLI parameters and YAML files (`#508 <https://github.com/ros2/rcl/issues/508>`_)
+* Add specific return code for non existent node (`#492 <https://github.com/ros2/rcl/issues/492>`_)
+* Add node name and namespace validation to graph functions (`#499 <https://github.com/ros2/rcl/issues/499>`_)
+* Bring back deprecated CLI arguments (`#496 <https://github.com/ros2/rcl/issues/496>`_)
+* Polish rcl arguments implementation (`#497 <https://github.com/ros2/rcl/issues/497>`_)
+* Uncoment some test_graph test cases after fix in rmw_fastrtps (`ros2/rmw_fastrtps#316 <https://github.com/ros2/rmw_fastrtps/issues/316>`_) (`#498 <https://github.com/ros2/rcl/issues/498>`_)
+* Promote special CLI rules to flags (`#495 <https://github.com/ros2/rcl/issues/495>`_)
+* Fail fast on invalid ROS arguments (`#493 <https://github.com/ros2/rcl/issues/493>`_)
+* Enforce -r/--remap flags. (`#491 <https://github.com/ros2/rcl/issues/491>`_)
+* Support parameter overrides and remap rules flags on command line (`#483 <https://github.com/ros2/rcl/issues/483>`_)
+* Allow get_node_names to return result in any order (`#488 <https://github.com/ros2/rcl/issues/488>`_)
+* rosout init and fini marked as RCL_PUBLIC (`#479 <https://github.com/ros2/rcl/issues/479>`_)
+* included header in logging_rosout.c (`#478 <https://github.com/ros2/rcl/issues/478>`_)
+* Migrate to '--ros-args ... [--]'-based ROS args extraction (`#477 <https://github.com/ros2/rcl/issues/477>`_)
+* Improve security error messages  (`#480 <https://github.com/ros2/rcl/issues/480>`_)
+* Add function for getting clients by node (`#459 <https://github.com/ros2/rcl/issues/459>`_)
+* Remove special case check for manual_by_node for rmw_fastrtps (`#467 <https://github.com/ros2/rcl/issues/467>`_)
+* Fix memory leak of 56 bytes in test_graph
+* Change tests to try MANUAL_BY_TOPIC liveliness for FastRTPS (`#465 <https://github.com/ros2/rcl/issues/465>`_)
+* Implement get_actual_qos() for subscriptions (`#455 <https://github.com/ros2/rcl/issues/455>`_)
+* Log warning when remapping to an invalid node name (`#454 <https://github.com/ros2/rcl/issues/454>`_)
+* Use size_t printf format for size_t variable (`#453 <https://github.com/ros2/rcl/issues/453>`_)
+* Contributors: Alberto Soragna, Emerson Knapp, Jacob Perron, M. M, Michel Hidalgo, Mikael Arguedas, Víctor Mayoral Vilches, eboasson, ivanpauno
+
 0.7.4 (2019-05-29)
 ------------------
 * Fix tests now that FastRTPS correctly reports that liveliness is not supported (`#452 <https://github.com/ros2/rcl/issues/452>`_)

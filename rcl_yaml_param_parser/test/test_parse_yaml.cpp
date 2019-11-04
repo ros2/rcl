@@ -48,6 +48,15 @@ TEST(test_parser, correct_syntax) {
   bool res = rcl_parse_yaml_file(path, params_hdl);
   ASSERT_TRUE(res) << rcutils_get_error_string().str;
 
+  char * another_path = rcutils_join_path(test_path, "overlay.yaml", allocator);
+  ASSERT_TRUE(NULL != another_path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    allocator.deallocate(another_path, allocator.state);
+  });
+  ASSERT_TRUE(rcutils_exists(another_path)) << "No test YAML file found at " << another_path;
+  res = rcl_parse_yaml_file(another_path, params_hdl);
+  ASSERT_TRUE(res) << rcutils_get_error_string().str;
+
   rcl_params_t * copy_of_params_hdl = rcl_yaml_node_struct_copy(params_hdl);
   ASSERT_TRUE(NULL != copy_of_params_hdl) << rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
@@ -59,11 +68,11 @@ TEST(test_parser, correct_syntax) {
     rcl_variant_t * param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_2", "is_back", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->bool_value);
-    EXPECT_FALSE(*param_value->bool_value);
-    res = rcl_parse_yaml_value("lidar_ns/lidar_2", "is_back", "true", params);
+    EXPECT_TRUE(*param_value->bool_value);
+    res = rcl_parse_yaml_value("lidar_ns/lidar_2", "is_back", "false", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->bool_value);
-    EXPECT_TRUE(*param_value->bool_value);
+    EXPECT_FALSE(*param_value->bool_value);
 
     param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_2", "id", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
@@ -74,6 +83,15 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value->integer_value);
     EXPECT_EQ(12, *param_value->integer_value);
 
+    param_value = rcl_yaml_node_struct_get("camera", "loc", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_value);
+    EXPECT_STREQ("back", param_value->string_value);
+    res = rcl_parse_yaml_value("camera", "loc", "front", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_value);
+    EXPECT_STREQ("front", param_value->string_value);
+
     param_value = rcl_yaml_node_struct_get("camera", "cam_spec.angle", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->double_value);
@@ -82,6 +100,15 @@ TEST(test_parser, correct_syntax) {
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->double_value);
     EXPECT_DOUBLE_EQ(2.2, *param_value->double_value);
+
+    param_value = rcl_yaml_node_struct_get("intel", "num_cores", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_value);
+    EXPECT_EQ(12, *param_value->integer_value);
+    res = rcl_parse_yaml_value("intel", "num_cores", "8", params);
+    EXPECT_TRUE(res) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_value);
+    EXPECT_EQ(8, *param_value->integer_value);
 
     param_value = rcl_yaml_node_struct_get("intel", "arch", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
@@ -324,28 +351,6 @@ TEST(test_file_parser, no_alias_support) {
     allocator.deallocate(test_path, allocator.state);
   });
   char * path = rcutils_join_path(test_path, "no_alias_support.yaml", allocator);
-  ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    allocator.deallocate(path, allocator.state);
-  });
-  ASSERT_TRUE(rcutils_exists(path)) << "No test YAML file found at " << path;
-  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
-  ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
-  bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
-  EXPECT_FALSE(res);
-}
-
-TEST(test_file_parser, max_string_sz) {
-  rcutils_reset_error();
-  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024)) << rcutils_get_error_string().str;
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  char * test_path = rcutils_join_path(cur_dir, "test", allocator);
-  ASSERT_TRUE(NULL != test_path) << rcutils_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    allocator.deallocate(test_path, allocator.state);
-  });
-  char * path = rcutils_join_path(test_path, "max_string_sz.yaml", allocator);
   ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
     allocator.deallocate(path, allocator.state);

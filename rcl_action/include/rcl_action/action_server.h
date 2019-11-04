@@ -718,8 +718,6 @@ rcl_action_take_cancel_request(
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ACTION_SERVER_INVALID` if the action server is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_ACTION_SERVER_TAKE_FAILED` if take failed but no error occurred
- *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_ACTION_PUBLIC

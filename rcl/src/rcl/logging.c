@@ -119,6 +119,11 @@ rcl_ret_t rcl_logging_fini()
   return status;
 }
 
+bool rcl_logging_rosout_enabled()
+{
+  return g_rcl_logging_rosout_enabled;
+}
+
 static
 void
 rcl_logging_multiple_output_handler(

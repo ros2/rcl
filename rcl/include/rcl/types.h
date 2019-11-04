@@ -52,6 +52,8 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_NODE_INVALID 200
 #define RCL_RET_NODE_INVALID_NAME 201
 #define RCL_RET_NODE_INVALID_NAMESPACE 202
+/// Failed to find node name
+#define RCL_RET_NODE_NAME_NON_EXISTENT 203
 
 // rcl publisher specific ret codes in 3XX
 /// Invalid rcl_publisher_t given return code.
@@ -96,6 +98,8 @@ typedef rmw_ret_t rcl_ret_t;
 #define RCL_RET_INVALID_REMAP_RULE 1001
 /// Expected one type of lexeme but got another
 #define RCL_RET_WRONG_LEXEME 1002
+/// Found invalid ros argument while parsing
+#define RCL_RET_INVALID_ROS_ARGS 1003
 /// Argument is not a valid parameter rule
 #define RCL_RET_INVALID_PARAM_RULE 1010
 /// Argument is not a valid log level rule

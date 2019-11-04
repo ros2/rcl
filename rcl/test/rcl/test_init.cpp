@@ -98,9 +98,9 @@ private:
   FakeTestArgv(const FakeTestArgv &) = delete;
 };
 
-/* Tests the rcl_init(), rcl_ok(), and rcl_shutdown() functions.
+/* Tests the rcl_init() and rcl_shutdown() functions.
  */
-TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_ok_and_shutdown) {
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_shutdown) {
   rcl_ret_t ret;
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
@@ -206,9 +206,9 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_ok_and_s
   });
 }
 
-/* Tests the rcl_get_instance_id() and rcl_ok() functions.
+/* Tests the rcl_get_instance_id() function.
  */
-TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_get_instance_id_and_ok) {
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_get_instance_id) {
   rcl_ret_t ret;
   rcl_context_t context = rcl_get_zero_initialized_context();
   // Instance id should be 0 before rcl_init().

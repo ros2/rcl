@@ -25,6 +25,7 @@ extern "C"
 #include "rcutils/logging_macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rcutils/time.h"
+#include "tracetools/tracetools.h"
 
 typedef struct rcl_timer_impl_t
 {
@@ -194,6 +195,7 @@ rcl_timer_init(
     return RCL_RET_BAD_ALLOC;
   }
   *timer->impl = impl;
+  TRACEPOINT(rcl_timer_init, (const void *)timer, period);
   return RCL_RET_OK;
 }
 

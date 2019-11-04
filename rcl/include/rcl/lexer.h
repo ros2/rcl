@@ -73,7 +73,11 @@ typedef enum rcl_lexeme_t
   /// *
   RCL_LEXEME_WILD_ONE = 20,
   /// **
-  RCL_LEXEME_WILD_MULTI = 21
+  RCL_LEXEME_WILD_MULTI = 21,
+  // TODO(hidmic): remove when parameter names are standardized to
+  //               use slashes in lieu of dots
+  /// .
+  RCL_LEXEME_DOT = 22,
 } rcl_lexeme_t;
 
 

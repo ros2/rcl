@@ -2,6 +2,28 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.2 (2019-10-23)
+------------------
+* Specify test working directory (`#529 <https://github.com/ros2/rcl/issues/529>`_)
+* Remove the maximum string size. (`#524 <https://github.com/ros2/rcl/issues/524>`_)
+* Contributors: Chris Lalancette, Dan Rose
+
+0.8.1 (2019-10-08)
+------------------
+
+0.8.0 (2019-09-26)
+------------------
+* Enable incremental parameter yaml file parsing. (`#507 <https://github.com/ros2/rcl/issues/507>`_)
+* Support parameter overrides and remap rules flags on command line (`#483 <https://github.com/ros2/rcl/issues/483>`_)
+* Increase MAX_STRING_SIZE (`#487 <https://github.com/ros2/rcl/issues/487>`_)
+* include actual size in error message (`#490 <https://github.com/ros2/rcl/issues/490>`_)
+* Avoid C4703 error on UWP (`#282 <https://github.com/ros2/rcl/issues/282>`_)
+* [YAML Parser] Support parameter value parsing (`#471 <https://github.com/ros2/rcl/issues/471>`_)
+* [YAML Parser] Depend on rcutils only (`#470 <https://github.com/ros2/rcl/issues/470>`_)
+* Accept quoted int or float values as strings (`#464 <https://github.com/ros2/rcl/issues/464>`_)
+* Fix memory corruption when maximum number of parameters is exceeded (`#456 <https://github.com/ros2/rcl/issues/456>`_)
+* Contributors: Dirk Thomas, Esteve Fernandez, Jacob Perron, Michel Hidalgo, hyunseok-yang, ivanpauno
+
 0.7.4 (2019-05-29)
 ------------------
 * Allow empty strings if they are quoted. (`#450 <https://github.com/ros2/rcl/issues/450>`_)

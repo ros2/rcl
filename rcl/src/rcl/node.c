@@ -26,6 +26,8 @@ extern "C"
 
 #include "rcl/arguments.h"
 #include "rcl/error_handling.h"
+#include "rcl/localhost.h"
+#include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
 #include "rcl/rcl.h"
 #include "rcl/remap.h"
@@ -44,12 +46,14 @@ extern "C"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
+#include "tracetools/tracetools.h"
 
-#include "./common.h"
 #include "./context_impl.h"
 
 #define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
 #define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
+#define ROS_DOMAIN_ID_VAR_NAME "ROS_DOMAIN_ID"
+
 
 typedef struct rcl_node_impl_t
 {
@@ -120,6 +124,7 @@ rcl_node_init(
 {
   size_t domain_id = 0;
   const char * ros_domain_id;
+  const char * get_env_error_str;
   const rmw_guard_condition_t * rmw_graph_guard_condition = NULL;
   rcl_guard_condition_options_t graph_guard_condition_options =
     rcl_guard_condition_get_default_options();
@@ -256,8 +261,11 @@ rcl_node_init(
   // node rmw_node_handle
   if (node->impl->options.domain_id == RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID) {
     // Find the domain ID set by the environment.
-    ret = rcl_impl_getenv("ROS_DOMAIN_ID", &ros_domain_id);
-    if (ret != RCL_RET_OK) {
+    get_env_error_str = rcutils_get_env(ROS_DOMAIN_ID_VAR_NAME, &ros_domain_id);
+    if (NULL != get_env_error_str) {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Error getting env var '" RCUTILS_STRINGIFY(ROS_DOMAIN_ID_VAR_NAME) "': %s\n",
+        get_env_error_str);
       goto fail;
     }
     if (ros_domain_id) {
@@ -278,10 +286,11 @@ rcl_node_init(
   const char * ros_security_enable = NULL;
   const char * ros_enforce_security = NULL;
 
-  if (rcutils_get_env(ROS_SECURITY_ENABLE_VAR_NAME, &ros_security_enable)) {
-    RCL_SET_ERROR_MSG(
-      "Environment variable " RCUTILS_STRINGIFY(ROS_SECURITY_ENABLE_VAR_NAME)
-      " could not be read");
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_ENABLE_VAR_NAME, &ros_security_enable);
+  if (NULL != get_env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var '" RCUTILS_STRINGIFY(ROS_SECURITY_ENABLE_VAR_NAME) "': %s\n",
+      get_env_error_str);
     ret = RCL_RET_ERROR;
     goto fail;
   }
@@ -290,10 +299,11 @@ rcl_node_init(
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false");
 
-  if (rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security)) {
-    RCL_SET_ERROR_MSG(
-      "Environment variable " RCUTILS_STRINGIFY(ROS_SECURITY_STRATEGY_VAR_NAME)
-      " could not be read");
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security);
+  if (NULL != get_env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var '" RCUTILS_STRINGIFY(ROS_SECURITY_STRATEGY_VAR_NAME) "': %s\n",
+      get_env_error_str);
     ret = RCL_RET_ERROR;
     goto fail;
   }
@@ -320,7 +330,7 @@ rcl_node_init(
   }
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
-    name, local_namespace_, domain_id, &node_security_options);
+    name, local_namespace_, domain_id, &node_security_options, rcl_localhost_only());
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
@@ -348,17 +358,25 @@ rcl_node_init(
   }
   // The initialization for the rosout publisher requires the node to be in initialized to a point
   // that it can create new topic publishers
-  ret = rcl_logging_rosout_init_publisher_for_node(node);
-  if (ret != RCL_RET_OK) {
-    // error message already set
-    goto fail;
+  if (rcl_logging_rosout_enabled()) {
+    ret = rcl_logging_rosout_init_publisher_for_node(node);
+    if (ret != RCL_RET_OK) {
+      // error message already set
+      goto fail;
+    }
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized");
   ret = RCL_RET_OK;
+  TRACEPOINT(
+    rcl_node_init,
+    (const void *)node,
+    (const void *)rcl_node_get_rmw_handle(node),
+    rcl_node_get_name(node),
+    rcl_node_get_namespace(node));
   goto cleanup;
 fail:
   if (node->impl) {
-    if (node->impl->logger_name) {
+    if (rcl_logging_rosout_enabled() && node->impl->logger_name) {
       ret = rcl_logging_rosout_fini_publisher_for_node(node);
       RCUTILS_LOG_ERROR_EXPRESSION_NAMED((ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT),
         ROS_PACKAGE_NAME, "Failed to fini publisher for node: %i", ret);
@@ -424,10 +442,13 @@ rcl_node_fini(rcl_node_t * node)
   }
   rcl_allocator_t allocator = node->impl->options.allocator;
   rcl_ret_t result = RCL_RET_OK;
-  rcl_ret_t rcl_ret = rcl_logging_rosout_fini_publisher_for_node(node);
-  if (rcl_ret != RCL_RET_OK && rcl_ret != RCL_RET_NOT_INIT) {
-    RCL_SET_ERROR_MSG("Unable to fini publisher for node.");
-    result = RCL_RET_ERROR;
+  rcl_ret_t rcl_ret = RCL_RET_OK;
+  if (rcl_logging_rosout_enabled()) {
+    rcl_ret = rcl_logging_rosout_fini_publisher_for_node(node);
+    if (rcl_ret != RCL_RET_OK && rcl_ret != RCL_RET_NOT_INIT) {
+      RCL_SET_ERROR_MSG("Unable to fini publisher for node.");
+      result = RCL_RET_ERROR;
+    }
   }
   rmw_ret_t rmw_ret = rmw_destroy_node(node->impl->rmw_node_handle);
   if (rmw_ret != RMW_RET_OK) {

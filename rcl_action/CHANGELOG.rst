@@ -2,6 +2,21 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.2 (2019-10-23)
+------------------
+* Correct action server documentation (`#519 <https://github.com/ros2/rcl/issues/519>`_)
+* Add mechanism to pass rmw impl specific payloads during pub/sub creation (`#513 <https://github.com/ros2/rcl/issues/513>`_)
+* Contributors: Jacob Perron, William Woodall
+
+0.8.1 (2019-10-08)
+------------------
+
+0.8.0 (2019-09-26)
+------------------
+* Fix rcl_action test_graph (`#504 <https://github.com/ros2/rcl/issues/504>`_)
+* remove unused CMake code (`#475 <https://github.com/ros2/rcl/issues/475>`_)
+* Contributors: Mikael Arguedas, ivanpauno
+
 0.7.4 (2019-05-29)
 ------------------
 * rcl_action - user friendly error messages for invalid transitions (`#448 <https://github.com/ros2/rcl/issues/448>`_)

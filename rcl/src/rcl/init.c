@@ -29,6 +29,7 @@ extern "C"
 #include "rcutils/logging_macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rmw/error_handling.h"
+#include "tracetools/tracetools.h"
 
 static atomic_uint_least64_t __rcl_next_unique_id = ATOMIC_VAR_INIT(1);
 
@@ -121,7 +122,10 @@ rcl_init(
   ret = rcl_logging_configure(&context->global_arguments, &allocator);
   if (RCL_RET_OK != ret) {
     fail_ret = ret;
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to configure logging. %i", fail_ret);
+    RCUTILS_LOG_ERROR_NAMED(
+      ROS_PACKAGE_NAME,
+      "Failed to configure logging: %s",
+      rcutils_get_error_string().str);
     goto fail;
   }
 
@@ -149,6 +153,8 @@ rcl_init(
 
   // Store the allocator.
   context->impl->allocator = allocator;
+
+  TRACEPOINT(rcl_init, (const void *)context);
 
   return RCL_RET_OK;
 fail:
