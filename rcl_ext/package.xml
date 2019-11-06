@@ -2,22 +2,20 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>rcl_ext</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>Package containing convenience functions for the use of rcl as ROS 2 C API.</description>
-  <license>Apache License 2.0</license>
+  <maintainer email="jan.staschulat@de.bosch.com">Jan Staschulat</maintainer>
+  <license>Apache-2.0</license>
+  <author>Jan Staschulat</author>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <build_depend>rcl</build_depend>
   <build_depend>rcutils</build_depend>
-  <build_depend>rmw_implementation</build_depend>
-  <build_depend>rosidl_generator_c</build_depend>
 
   <exec_depend>rcl</exec_depend>
   <exec_depend>rcutils</exec_depend>
-  <exec_depend>rmw_implementation</exec_depend>
-  <exec_depend>rosidl_generator_c</exec_depend>
-
+  
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <test_depend>ament_lint_auto</test_depend>
@@ -27,3 +25,4 @@
     <build_type>ament_cmake</build_type>
   </export>
 </package>
+
