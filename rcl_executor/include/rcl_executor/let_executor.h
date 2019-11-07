@@ -48,7 +48,7 @@ typedef struct
   const rcl_allocator_t * allocator;
   /// Wait set (is initialized only in the first call of the rcle_let_executor_spin_some function)
   rcl_wait_set_t wait_set;
-  /// wait_set initialized 
+  /// wait_set initialized
   bool wait_set_initialized;
   /// Statistics objects about total number of subscriptions, timers, clients, services, etc.
   rcle_handle_size_t info;

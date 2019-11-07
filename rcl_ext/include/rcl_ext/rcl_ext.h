@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__RCL_EXT_H_
-#define RCL__RCL_EXT_H_
+#ifndef RCL_EXT__RCL_EXT_H_
+#define RCL_EXT__RCL_EXT_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -33,7 +33,8 @@ extern "C"
 */
 
 /// The init-object simplifies calls to rcl.
-typedef struct {
+typedef struct
+{
   rcl_init_options_t init_options;
   rcl_context_t context;
   rcl_allocator_t * allocator;
@@ -61,10 +62,10 @@ typedef struct {
  */
 rcl_ret_t
 rcl_ext_init(
-    rcl_ext_init_t * init_obj,
-    int argc, 
-    char const * const * argv, 
-    rcl_allocator_t * allocator);
+  rcl_ext_init_t * init_obj,
+  int argc,
+  char const * const * argv,
+  rcl_allocator_t * allocator);
 
 /**
  *  De-allocates the rcl-init object.
@@ -87,7 +88,7 @@ rcl_ext_init_fini(rcl_ext_init_t * init_obj);
 
 /**
  *  Creates an RCL node.
- * 
+ *
  *  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -98,15 +99,15 @@ rcl_ext_init_fini(rcl_ext_init_t * init_obj);
  *
  * \param[in] name the name of the node
  * \param[in] namespace the namespace of the node
- * \param[in] init_obj the rcl_ext_init_t object 
+ * \param[in] init_obj the rcl_ext_init_t object
  * \return rcl_node_t if successful
  * \return NULL if an error occurred
  */
 rcl_node_t *
 rcl_ext_create_node(
-    const char * name, 
-    const char * namespace_, 
-    rcl_ext_init_t * init_obj);
+  const char * name,
+  const char * namespace_,
+  rcl_ext_init_t * init_obj);
 
 /**
  *  Deallocates memory of node.
@@ -128,7 +129,7 @@ rcl_ext_create_node(
  */
 rcl_ret_t
 rcl_ext_node_fini(
-  rcl_ext_init_t * init_obj, 
+  rcl_ext_init_t * init_obj,
   rcl_node_t * node);
 
 /**
@@ -177,8 +178,8 @@ rcl_ext_create_publisher(
  */
 rcl_ret_t
 rcl_ext_publisher_fini(
-  rcl_ext_init_t * init_obj, 
-  rcl_publisher_t * publisher, 
+  rcl_ext_init_t * init_obj,
+  rcl_publisher_t * publisher,
   rcl_node_t * node);
 
 /**
@@ -227,8 +228,8 @@ rcl_ext_create_subscription(
  */
 rcl_ret_t
 rcl_ext_subscription_fini(
-  rcl_ext_init_t * init_obj, 
-  rcl_subscription_t * subscription, 
+  rcl_ext_init_t * init_obj,
+  rcl_subscription_t * subscription,
   rcl_node_t * node);
 
 /**
@@ -274,7 +275,7 @@ rcl_ext_create_timer(
  */
 rcl_ret_t
 rcl_ext_timer_fini(
-  rcl_ext_init_t * init_obj, 
+  rcl_ext_init_t * init_obj,
   rcl_timer_t * timer);
 
 /**
@@ -293,4 +294,4 @@ rcl_ext_timer_fini(
 }
 #endif
 
-#endif  // RCL__RCL_EXT_H_
+#endif  // RCL_EXT__RCL_EXT_H_

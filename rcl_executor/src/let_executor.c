@@ -43,7 +43,7 @@ _rcle_print_handles(rcle_let_executor_t * executor)
   }
 }
 
-rcl_ret_t 
+rcl_ret_t
 rcle_let_executor_init(
   rcle_let_executor_t * e,
   rcl_context_t * context,
@@ -65,7 +65,7 @@ rcle_let_executor_init(
 
   // e->wait_set willl be initialized only once in the rcle_executor_spin_some function
   e->wait_set_initialized = false;
-  
+
   e->allocator = allocator;
   e->timeout_ns = 100000000;  // default value 100ms = 100 000 000 ns
   // allocate memory for the array
@@ -184,7 +184,7 @@ rcle_let_executor_add_subscription(
 }
 
 
-rcl_ret_t 
+rcl_ret_t
 rcle_let_executor_add_timer(
   rcle_let_executor_t * executor,
   rcl_timer_t * timer)
@@ -242,11 +242,10 @@ _rcle_read_input_data(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set,
         rc = rcl_take(executor->handles[i].subscription, executor->handles[i].data, &messageInfo,
             NULL);
         if (rc != RCL_RET_OK) {
-
-          // it is documented, that rcl_take might return this error, even when rcl_wait reported new data
-          if ( rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
+          // it is documented, that rcl_take might return this error with successfull rcl_wait
+          if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
             PRINT_RCL_ERROR(rcle_read_input_data, rcl_take);
-            RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d",rc);
+            RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           }
 
           return rc;
@@ -289,7 +288,7 @@ _rcle_read_input_data(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set,
  * - calls every callback of each object depending on its type
  */
 static
-rcl_ret_t 
+rcl_ret_t
 _rcle_execute(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t i)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
@@ -356,7 +355,7 @@ _rcle_let_scheduling(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set)
   // complexity: O(n) where n denotes the number of handles
   for (size_t i = 0; (i < executor->max_handles && executor->handles[i].initialized); i++) {
     rc = _rcle_read_input_data(executor, wait_set, i);
-    if ((rc != RCL_RET_OK) &&  (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED)) {
+    if ((rc != RCL_RET_OK) && (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED)) {
       return rc;
     }
   }  // for-loop
@@ -458,7 +457,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
   return rc;
 }
 
-rcl_ret_t 
+rcl_ret_t
 rcle_let_executor_spin(rcle_let_executor_t * executor)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
