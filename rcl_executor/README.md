@@ -1,17 +1,30 @@
-General information about this repository, including legal information, build instructions and known issues/limitations, are given in [README.md](../README.md) in the repository root.
-
 # The rcl_executor package
 
-rcl_executor is a small [ROS 2](http://www.ros2.org/) package for providing real-time scheduling for ROS nodes. Currently the package supports a static order scheduler with logical-execution-time (LET) semantics. 
+This real-time executor is targeted as C API  based on the RCL layer for ROS2 applications running on a micro-controller[micro-ROS]. The rcl_executor is a small [ROS 2](http://www.ros2.org/) package for providing real-time scheduling. Currently the package supports a static order scheduler with logical-execution-time (LET) semantics. 
 
 Static order scheduling refers to the fact, that during configuration the order of DDS handles, e.g. subscriptions and timers, is specfied. If at runtime multiple handles are ready, e.g. subscriptions received new messages or timers are ready, then these handles are always processed in the order as specified during configuration. 
 
-LET refers to a semantic, where input data is first read for all handles, then all handels are processed. The benefit for static order scheduling, is that provides a deterministic execution in the case when multiple data is available. The benefit of LET is that there is no interference of input data for all handles processed. For example, if a timer callback evaluates the data processed by a subscription callback and the order of these is not given, then the timer callback could sometimes process the old data and sometimes the new. By reading all data first (and locally copying it), this dependence is removed simplifying the synchronization of callbacks.
+LET refers to a semantic, where input data is first read for all handles, then all handels are processed. The benefit for static order scheduling, is that provides a deterministic execution in the case when multiple data is available. The benefit of LET is that there is no interference of input data for all handles processed. For example, if a timer callback evaluates the data processed by a subscription callback and the order of these is not given, then the timer callback could sometimes process the old data and sometimes the new. By reading all data first (and locally copying it), this dependence is removed.
+The benefit is very low synchronization effort because interference between input data is avoided [EK2018] [BP2017]. See also a more detailed motivation of this Real Time Executor on the [micro-ROS website](https://micro-ros.github.io/docs/concepts/client_library/real-time_executor/). 
 
-Please see the [README.md](../rcl_executor_examples/README.md) of the [rcl_executor_examples package](../rcl_executor_examples/) for a step-by-step description how to use the executor.
+## LET semantics 
 
-## API of static LET executor
-The API of the static LET scheduler provides functions for configuration, defining the execution order, running the scheduler and cleaning-up:
+The LET-semantic is implemented by, 
+  1) waiting for new data from DDS (rcl_wait()), then 
+  2) requesting all new data for all ready handles from DDS (rcl_take()) and then
+  3) executing all ready handles in the order specified by the user. 
+
+ Waiting until all callbacks are processed and then publishing them, has been omitted in this implementation of the LET semantics, because this would require potentially unbounded buffers for publishing messages. However, this sequence already guarantees no interference between input data for the handles.
+
+## Memory allocation
+
+Special care has been taken about memory allocation. Memory is only allocated in the configuration phase, i.e. by specifying how many handles shall be executed, while at running phase, no memory is allocated by the RCL Executor. 
+
+## User Interface
+
+The API of the RCL-Executor provides functions, like `add_subscription` and `add_timer`, to add rcl-subscriptions and rcl-timers to the Executor. The order, in which the user adds these handles to the Executor, determines later on the execution order when new data is available for these handles. The executor is activated by calling the `spin_some`, `spin_period()` or `spin()` method. 
+
+The API of the static LET scheduler provide the following functions for configuration, defining the execution order, running the scheduler and cleaning-up:
 
 ### API Function Overview
 **Configuration**
@@ -46,11 +59,32 @@ The function `rcle_let_executor_spin` calls `rcle_let_executor_spin_some` indefi
 
 The function `rlce_executor_fini` frees the dynamically allocated memory of the executor.
 
-## Running a ROS node with the static LET Executor
+## Example
 
-The complete code example is provided in the package `rcl_executor_examples`. See also the corresponding [README](../rcl_executor_examples/README.md)
+An example, how to use the RCL Executor with the [rcl_ext package](https://github.com/micro-ROS/rcl/tree/feature/rcl_ext_and_executor/rcl_ext) (a package to simplify creation of rcl handles) can be found in the repository micro-ROS-demos on branch [feature/rcl_executor_examples](https://github.com/micro-ROS/micro-ROS-demos/tree/feature/rcl_executor_examples/C/rcl_executor_examples)
 
-### Step-by-step guide
+Building and running the example:
+After having built the rcl package with rcl_executor and rcl_ext), do the following:
+``` C
+$>colcon build --packages-select rcl_executor_examples
+$>ros2 run rcl_executor_examples executor_with_rcl_ext
+```
+
+## Limitations: 
+
+- support for subscriptions and timers (services, clients, guard conditions are not supported yet)
+
+## References
+
+[micro-ROS] [micro-ROS project](https://micro-ros.github.io/) 
+
+[EK2018] R. Ernst, S. Kuntz, S. Quinton, M. Simons: The Logical Execution Time Paradigm: New Perspectives for Multicore Systems, February 25-28 2018 (Dagstuhl Seminar 18092). [Paper](http://drops.dagstuhl.de/opus/volltexte/2018/9293/pdf/dagrep_v008_i002_p122_18092.pdf)
+
+[BP2017] A. Biondi, P. Pazzaglia, A. Balsini, M. D. Natale: Logical Execution Time Implementation and Memory Optimization Issues in AUTOSAR Applications for Multicores, International Worshop on Analysis Tools and Methodologies for Embedded and Real-Time Systems (WATERS2017), Dubrovnik, Croatia.[Paper](https://pdfs.semanticscholar.org/4a9e/b9a616c25fd0b4a4f7810924e73eee0e7515.pdf)
+
+
+## Step-by-step guide
+
 **Step 1:** <a name="Step1"> </a> Include the `let_executor.h` from the rcl_executor package in your C code.
 
 ```C

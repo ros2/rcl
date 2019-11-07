@@ -1,5 +1,3 @@
-General information about this repository, including legal information, build instructions and known issues/limitations, are given in [README.md](../README.md) in the repository root.
-
 # The rcl_ext package
 
 The package rcl_ext is a small [ROS 2](http://www.ros2.org/) package for providing a thin API layer on top of RCL to create nodes, publishers, subscribers and timers with a one-liner.
