@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.3 (2019-11-08)
+------------------
+* Support CLI parameter overrides using dots instead of slashes. (`#530 <https://github.com/ros2/rcl/issues/530>`_)
+  Signed-off-by: Michel Hidalgo <michel@ekumenlabs.com>
+* Contributors: Michel Hidalgo
+
 0.8.2 (2019-10-23)
 ------------------
 * Remove the prototype from rcl_impl_getenv. (`#525 <https://github.com/ros2/rcl/issues/525>`_)

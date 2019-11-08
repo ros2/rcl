@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.3 (2019-11-08)
+------------------
+
 0.8.2 (2019-10-23)
 ------------------
 * Specify test working directory (`#529 <https://github.com/ros2/rcl/issues/529>`_)

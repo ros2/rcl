@@ -2,6 +2,9 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.3 (2019-11-08)
+------------------
+
 0.8.2 (2019-10-23)
 ------------------
 * Correct action server documentation (`#519 <https://github.com/ros2/rcl/issues/519>`_)
