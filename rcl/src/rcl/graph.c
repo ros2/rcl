@@ -394,37 +394,38 @@ __rcl_get_info_by_topic(
   get_topic_info_func get_topic_info)
 {
   if (!rcl_node_is_valid(node)) {
-    RCL_SET_ERROR_MSG("Invalid node provided.");
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_NODE_INVALID; // error already set.
   }
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (!node_options) {
-    RCL_SET_ERROR_MSG("Node options are invalid.");
     return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so
   }
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
-  rcl_ret_t rcl_ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_topic_info_array_check_zero(info_array));
-  if (rcl_ret != RCL_RET_OK) {
+  rmw_error_string_t error_string;
+  rmw_ret_t rmw_ret = rmw_topic_info_array_check_zero(info_array);
+  if (rmw_ret != RMW_RET_OK) {
+    error_string = rmw_get_error_string();
+    rmw_reset_error();
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "rmw_topic_info_array_t must be zero initialized: %s,\n"
       "Use rmw_get_zero_initialized_topic_info_array",
-      rmw_get_error_string().str);
-    rmw_reset_error();
-    return rcl_ret;
+      error_string.str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
-  rmw_ret_t rmw_ret = get_topic_info(
+  rmw_ret = get_topic_info(
     rcl_node_get_rmw_handle(node),
     allocator,
     topic_name,
     no_mangle,
     info_array);
-  rcl_ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
-  if (rcl_ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+  if (rmw_ret != RMW_RET_OK) {
+    error_string = rmw_get_error_string();
+    rmw_reset_error();
+    RCL_SET_ERROR_MSG(error_string.str);
     rmw_reset_error();
   }
-  return rcl_ret;
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 rcl_ret_t
