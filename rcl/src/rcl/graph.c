@@ -394,7 +394,7 @@ __rcl_get_info_by_topic(
   get_topic_info_func get_topic_info)
 {
   if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID; // error already set.
+    return RCL_RET_NODE_INVALID;  // error already set.
   }
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (!node_options) {
