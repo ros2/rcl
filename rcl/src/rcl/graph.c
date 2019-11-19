@@ -423,7 +423,6 @@ __rcl_get_info_by_topic(
     error_string = rmw_get_error_string();
     rmw_reset_error();
     RCL_SET_ERROR_MSG(error_string.str);
-    rmw_reset_error();
   }
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }

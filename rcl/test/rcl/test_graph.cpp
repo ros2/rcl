@@ -24,7 +24,6 @@
 #include <algorithm>
 #include <chrono>
 #include <future>
-#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -64,9 +63,6 @@ public:
   rcl_wait_set_t * wait_set_ptr;
   const char * test_graph_node_name = "test_graph_node";
 
-  std::unique_ptr<rmw_topic_info_array_t> topic_info_array;
-  const char * const topic_name = "valid_topic_name";
-
   void SetUp()
   {
     rcl_ret_t ret;
@@ -105,8 +101,6 @@ public:
     ret = rcl_wait_set_init(
       this->wait_set_ptr, 0, 1, 0, 0, 0, 0, this->context_ptr, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    this->topic_info_array = std::make_unique<rmw_topic_info_array_t>();
   }
 
   void TearDown()

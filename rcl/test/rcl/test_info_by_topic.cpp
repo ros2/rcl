@@ -18,23 +18,11 @@
 
 #include <gtest/gtest.h>
 
-#include <algorithm>
-#include <chrono>
-#include <future>
 #include <memory>
-#include <string>
-#include <thread>
-#include <vector>
 
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
 #include "rcl/rcl.h"
-
-#include "rcutils/logging_macros.h"
-#include "rcutils/logging.h"
-
-#include "test_msgs/msg/basic_types.h"
-#include "test_msgs/srv/basic_types.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
