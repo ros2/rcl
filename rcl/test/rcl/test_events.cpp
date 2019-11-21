@@ -73,22 +73,23 @@ public:
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+
+    default_qos_profile.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+    default_qos_profile.depth = 0;
+    default_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+    default_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT;
+    default_qos_profile.lifespan = {0, 0};
+    default_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count(), 0};
+    default_qos_profile.liveliness_lease_duration = {LIVELINESS_LEASE_DURATION_IN_S.count(), 0};
+    default_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
   }
 
-  rcl_ret_t setup_publisher(
-    const rmw_time_t & deadline,
-    const rmw_time_t & lifespan,
-    const rmw_time_t & liveliness_lease_duration,
-    const rmw_qos_liveliness_policy_t liveliness_policy)
+  rcl_ret_t setup_publisher(const rmw_qos_profile_t qos_profile)
   {
     // init publisher
     publisher = rcl_get_zero_initialized_publisher();
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-    publisher_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-    publisher_options.qos.deadline = deadline;
-    publisher_options.qos.lifespan = lifespan;
-    publisher_options.qos.liveliness = liveliness_policy;
-    publisher_options.qos.liveliness_lease_duration = liveliness_lease_duration;
+    publisher_options.qos = qos_profile;
     return rcl_publisher_init(
       &publisher,
       this->node_ptr,
@@ -97,21 +98,12 @@ public:
       &publisher_options);
   }
 
-  rcl_ret_t setup_subscriber(
-    const rmw_time_t & deadline,
-    const rmw_time_t & lifespan,
-    const rmw_time_t & liveliness_lease_duration,
-    const rmw_qos_liveliness_policy_t liveliness_policy)
+  rcl_ret_t setup_subscriber(const rmw_qos_profile_t qos_profile)
   {
     // init publisher
     subscription = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-    subscription_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-    subscription_options.qos.deadline = deadline;
-    subscription_options.qos.lifespan = lifespan;
-    subscription_options.qos.liveliness = liveliness_policy;
-    subscription_options.qos.liveliness_lease_duration = liveliness_lease_duration;
-
+    subscription_options.qos = qos_profile;
     return rcl_subscription_init(
       &subscription,
       this->node_ptr,
@@ -122,17 +114,13 @@ public:
 
   void setup_publisher_and_subscriber(
     const rcl_publisher_event_type_t & pub_event_type,
-    const rcl_subscription_event_type_t & sub_event_type)
+    const rmw_qos_profile_t pub_qos_profile,
+    const rcl_subscription_event_type_t & sub_event_type,
+    const rmw_qos_profile_t sub_qos_profile)
   {
     rcl_ret_t ret;
-
-    rmw_time_t lifespan {0, 0};
-    rmw_time_t deadline {DEADLINE_PERIOD_IN_S.count(), 0};
-    rmw_time_t lease_duration {LIVELINESS_LEASE_DURATION_IN_S.count(), 0};
-    rmw_qos_liveliness_policy_t liveliness_policy = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
-
     // init publisher
-    ret = setup_publisher(deadline, lifespan, lease_duration, liveliness_policy);
+    ret = setup_publisher(pub_qos_profile);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
     // init publisher events
@@ -141,7 +129,7 @@ public:
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
     // init subscription
-    ret = setup_subscriber(deadline, lifespan, lease_duration, liveliness_policy);
+    ret = setup_subscriber(sub_qos_profile);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
     // init subscription event
@@ -167,6 +155,17 @@ public:
       std::this_thread::sleep_for(wait_period);
     }
     ASSERT_TRUE(subscribe_success) << "Publisher/Subscription discovery timed out";
+  }
+
+  void setup_publisher_and_subscriber(
+    const rcl_publisher_event_type_t & pub_event_type,
+    const rcl_subscription_event_type_t & sub_event_type)
+  {
+    setup_publisher_and_subscriber(
+      pub_event_type,
+      default_qos_profile,
+      sub_event_type,
+      default_qos_profile);
   }
 
   void tear_down_publisher_subscriber()
@@ -213,6 +212,7 @@ protected:
   bool is_opensplice;
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
+  rmw_qos_profile_t default_qos_profile;
 };
 
 rcl_ret_t
