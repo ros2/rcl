@@ -17,6 +17,8 @@
 #include <chrono>
 #include <string>
 #include <thread>
+#include <tuple>
+#include <vector>
 
 #include "rcl/rcl.h"
 #include "rcl/subscription.h"
@@ -569,9 +571,13 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
 
 /*
  * Basic test of publisher and subscriber incompatible qos callback events.
+ * Only implemented in opensplice at the moment.
  */
 TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_incompatible_qos)
 {
+  if (!is_opensplice) {
+    GTEST_SKIP();
+  }
   // a vector of tuples that holds the expected qos_policy_id, publisher qos profile,
   // subscription qos profile and the error message, in that order.
   std::vector<std::tuple<rmw_qos_policy_id_t, rmw_qos_profile_t, rmw_qos_profile_t,
@@ -633,7 +639,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_incompatible
 
   rcl_ret_t ret;
 
-  for (const auto & element: input) {
+  for (const auto & element : input) {
     const auto & qos_policy_id = std::get<0>(element);
     const auto & publisher_qos_profile = std::get<1>(element);
     const auto & subscription_qos_profile = std::get<2>(element);
