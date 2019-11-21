@@ -650,7 +650,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_incompatible
       RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS,
       subscription_qos_profile);
 
-    // try to received event for 10s
+    // try to receive event, retry for 10s
     static const size_t max_iterations = 1000;
     static const auto wait_period = 10ms;
     bool pub_event_success = false;
