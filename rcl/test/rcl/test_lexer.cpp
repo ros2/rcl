@@ -324,6 +324,19 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_ns)
   EXPECT_LEX(RCL_LEXEME_NONE, "__n!", "__n!");
 }
 
+TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_name)
+{
+  // Has __name
+  EXPECT_LEX(RCL_LEXEME_NODE, "__name", "__name");
+  EXPECT_LEX(RCL_LEXEME_NODE, "__name", "__namessss");
+
+  // Things that are almost __name
+  EXPECT_LEX(RCL_LEXEME_NONE, "__na", "__na");
+  EXPECT_LEX(RCL_LEXEME_NONE, "__naa", "__naa");
+  EXPECT_LEX(RCL_LEXEME_NONE, "__nam", "__nam");
+  EXPECT_LEX(RCL_LEXEME_NONE, "__nama", "__nama");
+}
+
 TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_node)
 {
   // Has __node
@@ -333,7 +346,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_node)
   // Things that are almost __node
   EXPECT_LEX(RCL_LEXEME_NONE, "__", "__");
   EXPECT_LEX(RCL_LEXEME_NONE, "__n", "__n");
-  EXPECT_LEX(RCL_LEXEME_NONE, "__na", "__na");
+  EXPECT_LEX(RCL_LEXEME_NONE, "__ne", "__ne");
   EXPECT_LEX(RCL_LEXEME_NONE, "__no", "__no");
   EXPECT_LEX(RCL_LEXEME_NONE, "__noa", "__noa");
   EXPECT_LEX(RCL_LEXEME_NONE, "__nod", "__nod");
