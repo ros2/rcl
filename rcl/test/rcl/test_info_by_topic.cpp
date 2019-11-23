@@ -241,7 +241,8 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_invalid_participants)
 {
-  // this participant is invalid as the pointer "participants" inside is expected to be null.
+  // temp_info_array is invalid because it is expected to be zero initialized
+  // and the info_array variable inside it is expected to be null.
   const auto & temp_info_array = this->topic_info_array.get();
   temp_info_array->info_array =
     reinterpret_cast<rmw_topic_info_t *>(calloc(1, sizeof(rmw_topic_info_t)));
@@ -261,7 +262,8 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_invalid_participants)
 {
-  // this participant is invalid as the pointer "participants" inside is expected to be null.
+  // temp_info_array is invalid because it is expected to be zero initialized
+  // and the info_array variable inside it is expected to be null.
   const auto & temp_info_array = this->topic_info_array.get();
   temp_info_array->info_array =
     reinterpret_cast<rmw_topic_info_t *>(calloc(1, sizeof(rmw_topic_info_t)));

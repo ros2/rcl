@@ -377,7 +377,7 @@ rcl_count_subscribers(
 }
 
 
-typedef rmw_ret_t (* get_topic_info_func)(
+typedef rmw_ret_t (* get_topic_info_func_t)(
   const rmw_node_t * node,
   rcutils_allocator_t * allocator,
   const char * topic_name,
@@ -391,7 +391,7 @@ __rcl_get_info_by_topic(
   const char * topic_name,
   bool no_mangle,
   rmw_topic_info_array_t * info_array,
-  get_topic_info_func get_topic_info)
+  get_topic_info_func_t get_topic_info)
 {
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;  // error already set.
