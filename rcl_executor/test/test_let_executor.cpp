@@ -386,6 +386,7 @@ TEST_F(TestDefaultExecutor, executor_init) {
   rcl_ret_t rc;
 
   rcle_let_executor_t executor;
+  executor = rcle_let_executor_get_zero_initialized_executor();
   rc = rcle_let_executor_init(&executor, this->context_ptr, 10, this->allocator);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
@@ -427,7 +428,7 @@ TEST_F(TestDefaultExecutor, executor_fini) {
   // rcutils_reset_error();
   // result : is not detected, even in un-initialized executor had in this case
   //          executor->initialized == true !!!
-
+  executor = rcle_let_executor_get_zero_initialized_executor();
   rc = rcle_let_executor_init(&executor, this->context_ptr, 10, this->allocator);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
@@ -444,7 +445,7 @@ TEST_F(TestDefaultExecutor, executor_fini) {
 TEST_F(TestDefaultExecutor, executor_add_subscription) {
   rcl_ret_t rc;
   rcle_let_executor_t executor;
-
+  executor = rcle_let_executor_get_zero_initialized_executor();
   // test with normal arguemnt and NULL pointers as arguments
   rc = rcle_let_executor_init(&executor, this->context_ptr, 10, this->allocator);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -498,7 +499,7 @@ TEST_F(TestDefaultExecutor, executor_add_subscription) {
 TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
   rcl_ret_t rc;
   rcle_let_executor_t executor;
-
+  executor = rcle_let_executor_get_zero_initialized_executor();
   // insert one handle, add two subscriptions
 
   rc = rcle_let_executor_init(&executor, this->context_ptr, 1, this->allocator);
@@ -528,7 +529,7 @@ TEST_F(TestDefaultExecutor, executor_add_subscription_too_many) {
 TEST_F(TestDefaultExecutor, executor_add_timer) {
   rcl_ret_t rc;
   rcle_let_executor_t executor;
-
+  executor = rcle_let_executor_get_zero_initialized_executor();
   // add a timer
   rc = rcle_let_executor_init(&executor, this->context_ptr, 10, this->allocator);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -548,7 +549,7 @@ TEST_F(TestDefaultExecutor, executor_add_timer) {
 TEST_F(TestDefaultExecutor, executor_spin_some_API) {
   rcl_ret_t rc;
   rcle_let_executor_t executor;
-
+  executor = rcle_let_executor_get_zero_initialized_executor();
   // add a timer
   rc = rcle_let_executor_init(&executor, this->context_ptr, 10, this->allocator);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
@@ -679,7 +680,7 @@ TEST_F(TestDefaultExecutor, spin_some_let_semantic) {
   rcl_ret_t ret;
   rcle_let_executor_t executor;
   unsigned int expected_msg;
-
+  executor = rcle_let_executor_get_zero_initialized_executor();
   // publisher 1
   rcl_publisher_t publisher1 = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts1 =
@@ -943,7 +944,7 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // by Jan Staschulat, under Apache 2.0 License
   rcl_ret_t ret;
   rcle_let_executor_t executor;
-
+  executor = rcle_let_executor_get_zero_initialized_executor();
   // publisher 1
   rcl_publisher_t publisher1 = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts1 =

@@ -148,6 +148,7 @@ rcle_let_executor_fini(rcle_let_executor_t * executor)
 
   if (_rcle_let_executor_is_valid(executor)) {
     executor->allocator->deallocate(executor->handles, executor->allocator->state);
+    executor->handles = NULL;
     executor->max_handles = 0;
     executor->index = 0;
     rcle_handle_size_zero_init(&executor->info);
@@ -163,8 +164,7 @@ rcle_let_executor_fini(rcle_let_executor_t * executor)
     }
     executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
   } else {
-    RCL_SET_ERROR_MSG("executor not initialized or called _fini function twice");
-    ret = RCL_RET_ERROR;     // TODO(jst3si) better name for "calling this function multiple times"
+    ret = RCL_RET_ERROR;
   }
   return ret;
 }
