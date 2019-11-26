@@ -45,7 +45,7 @@ _rcle_print_handles(rcle_let_executor_t * executor)
 
 rcl_ret_t
 rcle_let_executor_init(
-  rcle_let_executor_t * e,
+  rcle_let_executor_t * executor,
   rcl_context_t * context,
   const size_t number_of_handles,
   const rcl_allocator_t * allocator)
