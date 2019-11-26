@@ -399,7 +399,7 @@ TEST_F(TestDefaultExecutor, executor_init) {
   rcutils_reset_error();
 
   rc = rcle_let_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 
   // Error case: zero handles
@@ -408,7 +408,7 @@ TEST_F(TestDefaultExecutor, executor_init) {
   rcutils_reset_error();
 
   rc = rcle_let_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 }
 
@@ -436,9 +436,9 @@ TEST_F(TestDefaultExecutor, executor_fini) {
   rc = rcle_let_executor_fini(&executor);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
-  // failure: call fini twice
+  // call fini twice
   rc = rcle_let_executor_fini(&executor);
-  EXPECT_EQ(RCL_RET_ERROR, rc) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
   rcutils_reset_error();
 }
 

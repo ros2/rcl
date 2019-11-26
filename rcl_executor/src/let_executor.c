@@ -75,7 +75,7 @@ rcle_let_executor_get_zero_initialized_executor()
     .max_handles = 0,
     .index = 0,
     .allocator = NULL,
-    .wait_set_initialized = false,
+    .wait_set_valid = false,
     .timeout_ns = 0
   };
   return null_executor;
@@ -101,10 +101,8 @@ rcle_let_executor_init(
   executor->context = context;
   executor->max_handles = number_of_handles;
   executor->index = 0;
-
-  // executor->wait_set willl be initialized only once in the rcle_executor_spin_some function
-  executor->wait_set_initialized = false;
-
+  executor->wait_set = rcl_get_zero_initialized_wait_set();
+  executor->wait_set_valid = false;
   executor->allocator = allocator;
   executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
   // allocate memory for the array
@@ -153,12 +151,12 @@ rcle_let_executor_fini(rcle_let_executor_t * executor)
 
     // free memory of wait_set if it has been initialized
     // calling it with un-initialized wait_set will fail.
-    if (executor->wait_set_initialized) {
+    if (executor->wait_set_valid) {
       rcl_ret_t rc = rcl_wait_set_fini(&executor->wait_set);
       if (rc != RCL_RET_OK) {
         PRINT_RCL_ERROR(rcle_let_executor_fini, rcl_wait_set_fini);
       }
-      executor->wait_set_initialized = false;
+      executor->wait_set_valid = false;
     }
     executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
   } else {
@@ -201,6 +199,9 @@ rcle_let_executor_add_subscription(
   // increase index of handle array
   executor->index++;
 
+  // invalidate wait_set so that in next spin_some() wait_set is updated
+  executor->wait_set_valid = false;
+
   executor->info.number_of_subscriptions++;
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Added a subscription.");
@@ -233,6 +234,9 @@ rcle_let_executor_add_timer(
 
   // increase index of handle array
   executor->index++;
+
+  // invalidate wait_set so that in next spin_some() wait_set is updated
+  executor->wait_set_valid = false;
 
   executor->info.number_of_timers++;
 
@@ -402,10 +406,18 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
 {
   rcl_ret_t rc = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin");
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin_some");
 
   // the wait_set is initialized only once (aka in the first call of this function)
-  if (executor->wait_set_initialized == false) {
+  if (executor->wait_set_valid == false) {
+    // we assume that this is the first time and init has been called
+    // or some _add function has been called after spin_some and thereby
+    // adding some handles to the wait_set
+    // calling wait_set on zero_initialized wait_set multiple times is ok.
+    rcl_ret_t rc = rcl_wait_set_fini(&executor->wait_set);
+    if (rc != RCL_RET_OK) {
+      PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_fini);
+    }
     executor->wait_set = rcl_get_zero_initialized_wait_set();
     rc = rcl_wait_set_init(&executor->wait_set, executor->info.number_of_subscriptions,
         executor->info.number_of_guard_conditions, executor->info.number_of_timers,
@@ -417,7 +429,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
       return rc;
     }
 
-    executor->wait_set_initialized = true;
+    executor->wait_set_valid = true;
   }
 
   // set rmw fields to NULL
