@@ -144,8 +144,6 @@ rcle_let_executor_set_timeout(rcle_let_executor_t * executor, const uint64_t tim
 rcl_ret_t
 rcle_let_executor_fini(rcle_let_executor_t * executor)
 {
-  rcl_ret_t ret = RCL_RET_OK;
-
   if (_rcle_let_executor_is_valid(executor)) {
     executor->allocator->deallocate(executor->handles, executor->allocator->state);
     executor->handles = NULL;
@@ -164,9 +162,9 @@ rcle_let_executor_fini(rcle_let_executor_t * executor)
     }
     executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
   } else {
-    ret = RCL_RET_ERROR;
+    // Repeated calls to fini or calling fini on a zero initialized executor is ok
   }
-  return ret;
+  return RCL_RET_OK;
 }
 
 
