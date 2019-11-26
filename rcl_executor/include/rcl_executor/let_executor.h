@@ -54,11 +54,15 @@ typedef struct
   rcle_handle_size_t info;
   /// timeout in nanoseconds for rcl_wait() used in rcle_let_executor_spin_once(). Default 100ms
   uint64_t timeout_ns;
-  /// Flag is true, if executor is initialized, is reset in rcle_let_executor_fini
-  bool initialized;
 } rcle_let_executor_t;
 
 
+/**
+ *  Return a rcle_let_executor_t struct with pointer members initialized to `NULL`
+ *  and member variables to 0.
+ */
+rcle_let_executor_t
+rcle_let_executor_get_zero_initialized_executor(void);
 /**
  *  Initializes an executor.
  *  It creates a dynamic array with size \p number_of_handles using the

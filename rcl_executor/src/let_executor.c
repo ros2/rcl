@@ -18,6 +18,9 @@
 #include <sys/time.h>  // for gettimeofday()
 #include <unistd.h>  // for usleep()
 
+// default timeout for rcl_wait() is 100ms
+#define DEFAULT_WAIT_TIMEOUT_MS 100000000
+
 // declarations of helper functions
 
 /// get new data from DDS queue for handle i
@@ -42,6 +45,41 @@ _rcle_print_handles(rcle_let_executor_t * executor)
     rcle_handle_print(&executor->handles[i]);
   }
 }
+// rationale: user must create an executor with:
+// executor = rcle_let_executor_get_zero_initialized_executor();
+// then handles==NULL or not (e.g. properly initialized)
+static
+bool
+_rcle_let_executor_is_valid(rcle_let_executor_t * executor)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(executor, "executor pointer is invalid", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    executor->handles, "handle pointer is invalid", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    executor->allocator, "allocator pointer is invalid", return false);
+  if (executor->max_handles == 0) {
+    return false;
+  }
+
+  return true;
+}
+
+// wait_set and rcle_handle_size_t are structs and cannot be statically
+// initialized here.
+rcle_let_executor_t
+rcle_let_executor_get_zero_initialized_executor()
+{
+  static rcle_let_executor_t null_executor = {
+    .context = NULL,
+    .handles = NULL,
+    .max_handles = 0,
+    .index = 0,
+    .allocator = NULL,
+    .wait_set_initialized = false,
+    .timeout_ns = 0
+  };
+  return null_executor;
+}
 
 rcl_ret_t
 rcle_let_executor_init(
@@ -50,8 +88,9 @@ rcle_let_executor_init(
   const size_t number_of_handles,
   const rcl_allocator_t * allocator)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(e, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(executor, "executor is NULL", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(context, "context is NULL", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "allocator is NULL", return RCL_RET_INVALID_ARGUMENT);
 
   if (number_of_handles == 0) {
     RCL_SET_ERROR_MSG("number_of_handles is 0. Must be larger or equal to 1");
@@ -59,38 +98,31 @@ rcle_let_executor_init(
   }
 
   rcl_ret_t ret = RCL_RET_OK;
-  e->context = context;
-  e->max_handles = number_of_handles;
-  e->index = 0;
+  executor->context = context;
+  executor->max_handles = number_of_handles;
+  executor->index = 0;
 
-  // e->wait_set willl be initialized only once in the rcle_executor_spin_some function
-  e->wait_set_initialized = false;
+  // executor->wait_set willl be initialized only once in the rcle_executor_spin_some function
+  executor->wait_set_initialized = false;
 
-  e->allocator = allocator;
-  e->timeout_ns = 100000000;  // default value 100ms = 100 000 000 ns
+  executor->allocator = allocator;
+  executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
   // allocate memory for the array
-  e->handles = e->allocator->allocate( (number_of_handles * sizeof(rcle_handle_t)),
-      e->allocator->state);
-  if (NULL == e->handles) {
+  executor->handles = executor->allocator->allocate( (number_of_handles * sizeof(rcle_handle_t)),
+      executor->allocator->state);
+  if (NULL == executor->handles) {
     RCL_SET_ERROR_MSG("Could not allocate memory for 'handles'.");
     return RCL_RET_BAD_ALLOC;
   }
 
   // initialize handle
   for (size_t i = 0; i < number_of_handles; i++) {
-    rcle_handle_init(&e->handles[i], number_of_handles);
+    rcle_handle_init(&executor->handles[i], number_of_handles);
   }
 
-  // debug: output handle
-  /*
-  for (size_t i = 0; i < number_of_handles;i++)
-  {
-          rcle_handle_print(& e->handles[i] );
-  }
-  */
   // initialize #counts for handle types
-  rcle_handle_size_zero_init(&e->info);
-  e->initialized = true;
+  rcle_handle_size_zero_init(&executor->info);
+
   return ret;
 }
 
@@ -100,7 +132,7 @@ rcle_let_executor_set_timeout(rcle_let_executor_t * executor, const uint64_t tim
   RCL_CHECK_FOR_NULL_WITH_MSG(
     executor, "executor is null pointer", return RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
-  if (executor->initialized) {
+  if (_rcle_let_executor_is_valid(executor)) {
     executor->timeout_ns = timeout_ns;
   } else {
     RCL_SET_ERROR_MSG("executor not initialized.");
@@ -112,13 +144,9 @@ rcle_let_executor_set_timeout(rcle_let_executor_t * executor, const uint64_t tim
 rcl_ret_t
 rcle_let_executor_fini(rcle_let_executor_t * executor)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    executor, "executor is null pointer", return RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    executor->handles, "memory for exector->handles is NULL", return RCL_RET_ERROR);
   rcl_ret_t ret = RCL_RET_OK;
 
-  if (executor->initialized) {
+  if (_rcle_let_executor_is_valid(executor)) {
     executor->allocator->deallocate(executor->handles, executor->allocator->state);
     executor->max_handles = 0;
     executor->index = 0;
@@ -133,9 +161,7 @@ rcle_let_executor_fini(rcle_let_executor_t * executor)
       }
       executor->wait_set_initialized = false;
     }
-
-    executor->initialized = false;
-    // todo(jst3si) reset timeout to default value
+    executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
   } else {
     RCL_SET_ERROR_MSG("executor not initialized or called _fini function twice");
     ret = RCL_RET_ERROR;     // TODO(jst3si) better name for "calling this function multiple times"
