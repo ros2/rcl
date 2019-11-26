@@ -56,7 +56,6 @@ set(${PROJECT_NAME}_sources
   src/rcl/timer.c
   src/rcl/validate_topic_name.c
   src/rcl/wait.c
-  src/rcl/security_directory.c
 )
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})
