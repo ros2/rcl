@@ -307,7 +307,7 @@ rcl_node_init(
     node_security_options.enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
   } else {  // if use_security
     // File discovery magic here
-    node_secure_root = rcl_get_secure_root(name, local_namespace_, allocator);
+    node_secure_root = rcutils_get_secure_root(name, local_namespace_, allocator);
     if (node_secure_root) {
       RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Found security directory: %s", node_secure_root);
       node_security_options.security_root_path = node_secure_root;

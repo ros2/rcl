@@ -16,12 +16,10 @@
   <build_depend>rcl_interfaces</build_depend>
   <build_depend>rcutils</build_depend>
   <build_depend>rosidl_generator_c</build_depend>
-  <build_depend>tinydir_vendor</build_depend>
 
   <build_export_depend>rcl_interfaces</build_export_depend>
   <build_export_depend>rcutils</build_export_depend>
   <build_export_depend>rosidl_generator_c</build_export_depend>
-  <build_export_depend>tinydir_vendor</build_export_depend>
 
   <exec_depend>rcl_interfaces</exec_depend>
   <exec_depend>ament_cmake</exec_depend>
