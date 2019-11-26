@@ -459,6 +459,29 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout);
 
+/// Return `true` if the wait set is valid, else `false`.
+/**
+ * A wait set is invalid if:
+ *   - the implementation is `NULL` (rcl_wait_set_init not called or failed)
+ *   - the wait set has been finalized with rcl_wait_set_fini
+ *
+ * Also return `false` if the wait set pointer is `NULL`.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] wait_set the rcl_wait_set_t to be validated
+ * \return `true` if the wait_set is valid, otherwise `false`.
+ */
+RCL_PUBLIC
+bool
+rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set);
+
 #ifdef __cplusplus
 }
 #endif

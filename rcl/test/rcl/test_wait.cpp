@@ -65,6 +65,26 @@ public:
   }
 };
 
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_is_valid) {
+  // null pointers are invalid
+  EXPECT_FALSE(rcl_wait_set_is_valid(nullptr));
+
+  // uninitialized wait set is invalid
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  EXPECT_FALSE(rcl_wait_set_is_valid(&wait_set));
+
+  // initialized wait set is valid
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_wait_set_is_valid(&wait_set));
+
+  // finalized wait set is invalid
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(rcl_wait_set_is_valid(&wait_set));
+}
+
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   // Initialize a wait set with a subscription and then resize it to zero.
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
