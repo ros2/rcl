@@ -567,10 +567,6 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
   // guarantees fixed period
   next_time = timeval_add(&start, &period_val);
 
-  // printf("period_val %u: %u\n", (unsigned int )period_val.tv_sec,
-  //    (unsigned int) period_val.tv_usec);
-  // printf("next_time %d : %d\n", next_time.tv_sec, next_time.tv_usec);
-
   while (rcl_context_is_valid(executor->context) ) {
     #ifdef unit_test_spin_period
     // only for statistics: measure start time
