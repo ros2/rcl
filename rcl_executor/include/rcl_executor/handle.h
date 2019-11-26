@@ -76,7 +76,7 @@ typedef struct
   *    because this value will never be assigned as an index in the wait_set.
   */
   size_t index;
-  /// Internal varialbe. Flag, which is true, if the handle is initialized and therefore initialized
+  /// Internal variable. Flag, which is true, if the handle is initialized and therefore initialized
   bool initialized;
   /// Interval variable. Flag, which is true, if new data is available from DDS queue
   /// (is set after calling rcl_take)
