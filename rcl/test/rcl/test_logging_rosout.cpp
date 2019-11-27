@@ -216,7 +216,7 @@ get_parameters()
     "test_enable_explicit_global_rosout_enable_node_option"
   });
   /*
-   * Test with enable(implicit) global rosout logs and disable node option of rosout.
+   * Test with enable(explicit) global rosout logs and disable node option of rosout.
    */
   parameters.push_back({
     s_argc,
