@@ -69,7 +69,6 @@ if(BUILD_TESTING)
   find_package(std_msgs REQUIRED)
   find_package(geometry_msgs REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE) # No copyright header check since link to NOTICE file is not recognized properly.
-  find_package(rcl REQUIRED)
   find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
