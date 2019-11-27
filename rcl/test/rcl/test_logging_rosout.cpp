@@ -14,18 +14,14 @@
 
 #include <gtest/gtest.h>
 
-#include <chrono>
 #include <string>
-#include <thread>
-
-#include "rcl/subscription.h"
-
-#include "rcl/rcl.h"
-
-#include "rcl_interfaces/msg/log.h"
+#include <vector>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rcl/rcl.h"
+#include "rcl/subscription.h"
+#include "rcl_interfaces/msg/log.h"
 #include "rcutils/logging_macros.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -35,14 +31,42 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
-class CLASSNAME (TestLoggingRosoutFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+#define EXPAND(x) x
+#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME(test_fixture_name, \
+    RMW_IMPLEMENTATION)
+#define APPLY(macro, ...) EXPAND(macro(__VA_ARGS__))
+#define TEST_P_RMW(test_case_name, test_name) \
+  APPLY(TEST_P, \
+    CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
+#define INSTANTIATE_TEST_CASE_P_RMW(instance_name, test_case_name, ...) \
+  EXPAND(APPLY(INSTANTIATE_TEST_CASE_P, instance_name, \
+    CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
+
+struct TestParameters
+{
+  int argc;
+  const char** argv;
+  bool enable_node_option_rosout;
+  bool expected_success;
+  std::string description;
+};
+
+// for ::testing::PrintToStringParamName() to show the exact test case name
+std::ostream & operator<<(
+  std::ostream & out,
+  const TestParameters & params)
+{
+  out << params.description;
+  return out;
+}
+
+class TEST_FIXTURE_P_RMW(TestLoggingRosoutFixture)
+  : public ::testing::TestWithParam<TestParameters>
 {
 public:
-  rcl_context_t * context_ptr;
-  rcl_node_t * node_ptr;
-  rcl_subscription_t * subscription_ptr;
-  void SetUp(int argc, const char* argv[], bool enable_node_option_rosout)
+  void SetUp()
   {
+    auto param = GetParam();
     rcl_ret_t ret;
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
@@ -53,13 +77,13 @@ public:
     this->context_ptr = new rcl_context_t;
     *this->context_ptr = rcl_get_zero_initialized_context();
 
-    ret = rcl_init(argc, argv, &init_options, this->context_ptr);
+    ret = rcl_init(param.argc, param.argv, &init_options, this->context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     // create node
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    if (!enable_node_option_rosout) {
-      node_options.enable_rosout = enable_node_option_rosout;
+    if (!param.enable_node_option_rosout) {
+      node_options.enable_rosout = param.enable_node_option_rosout;
     }
     const char * name = "test_rcl_node_logging_rosout";
     const char * namespace_ = "/ns";
@@ -75,7 +99,8 @@ public:
     this->subscription_ptr = new rcl_subscription_t;
     *this->subscription_ptr = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(this->subscription_ptr, this->node_ptr, ts, topic, &subscription_options);
+    ret = rcl_subscription_init(
+      this->subscription_ptr, this->node_ptr, ts, topic, &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
@@ -93,6 +118,11 @@ public:
     delete this->context_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
+
+protected:
+  rcl_context_t * context_ptr;
+  rcl_node_t * node_ptr;
+  rcl_subscription_t * subscription_ptr;
 };
 
 void
@@ -133,57 +163,94 @@ wait_for_subscription_to_be_ready(
   success = false;
 }
 
-/* Basic nominal test of having rosout logging globally enabled and locally enabled in a node
+/* Testing the subscriber of topic 'rosout' whether to get event from logging or not.
  */
-TEST_F(CLASSNAME(TestLoggingRosoutFixture, RMW_IMPLEMENTATION), test_enable_global_rosout_enable_nodeoption) {
-  SetUp(0, nullptr, true);
-
+TEST_P_RMW(TestLoggingRosoutFixture, test_logging_rosout) {
   // log
   RCUTILS_LOG_INFO_NAMED(rcl_node_get_logger_name(this->node_ptr), "SOMETHING");
 
   bool success;
   wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100, success);
-  ASSERT_TRUE(success);
+  ASSERT_EQ(success, GetParam().expected_success);
 }
 
+//
+// create set of input and expected values
+//
+std::vector<TestParameters>
+get_parameters()
+{
+  std::vector<TestParameters> parameters;
+  static int s_argc = 2;
+  static const char* s_argv_enable_rosout[] = {"--ros-args", "--enable-rosout-logs"};
+  static const char* s_argv_disable_rosout[] = {"--ros-args", "--disable-rosout-logs"};
 
-/* Basic nominal test of having rosout logging globally enabled and locally disabled in a node
- */
-TEST_F(CLASSNAME(TestLoggingRosoutFixture, RMW_IMPLEMENTATION), test_enable_global_rosout_disable_nodeoption) {
-  SetUp(0, nullptr, false);
+  /*
+   * Test with enable(implicit) global rosout logs and enable node option of rosout.
+   */
+  parameters.push_back({
+    0,
+    nullptr,
+    true,
+    true,
+    "test_enable_implicit_global_rosout_enable_node_option"
+  });
+  /*
+   * Test with enable(implicit) global rosout logs and disable node option of rosout.
+   */
+  parameters.push_back({
+    0,
+    nullptr,
+    false,
+    false,
+    "test_enable_implicit_global_rosout_disable_node_option"
+  });
+  /*
+   * Test with enable(explicit) global rosout logs and enable node option of rosout.
+   */
+  parameters.push_back({
+    s_argc,
+    s_argv_enable_rosout,
+    true,
+    true,
+    "test_enable_explicit_global_rosout_enable_node_option"
+  });
+  /*
+   * Test with enable(implicit) global rosout logs and disable node option of rosout.
+   */
+  parameters.push_back({
+    s_argc,
+    s_argv_enable_rosout,
+    false,
+    false,
+    "test_enable_explicit_global_rosout_disable_node_option"
+  });
+  /*
+   * Test with disable global rosout logs and enable node option of rosout.
+   */
+  parameters.push_back({
+    s_argc,
+    s_argv_disable_rosout,
+    true,
+    false,
+    "test_disable_global_rosout_enable_node_option"
+  });
+  /*
+   * Test with disable global rosout logs and disable node option of rosout.
+   */
+  parameters.push_back({
+    s_argc,
+    s_argv_disable_rosout,
+    false,
+    false,
+    "test_disable_global_rosout_disable_node_option"
+  });
 
-  // log
-  RCUTILS_LOG_INFO_NAMED(rcl_node_get_logger_name(this->node_ptr), "SOMETHING");
-
-  bool success;
-  wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100, success);
-  ASSERT_FALSE(success);
+  return parameters;
 }
 
-/* Basic nominal test of having rosout logging globally disabled and locally enabled in a node
- */
-TEST_F(CLASSNAME(TestLoggingRosoutFixture, RMW_IMPLEMENTATION), test_disable_global_rosout_enable_nodeoption) {
-  const char* argv[] = {"--ros-args", "--disable-rosout-logs"};
-  SetUp(2, argv, true);
-
-  // log
-  RCUTILS_LOG_INFO_NAMED(rcl_node_get_logger_name(this->node_ptr), "SOMETHING");
-
-  bool success;
-  wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100, success);
-  ASSERT_FALSE(success);
-}
-
-/* Basic nominal test of having rosout logging globally disabled and locally disabled in a node
- */
-TEST_F(CLASSNAME(TestLoggingRosoutFixture, RMW_IMPLEMENTATION), test_disable_global_rosout_disable_nodeoption) {
-  const char* argv[] = {"--ros-args", "--disable-rosout-logs"};
-  SetUp(2, argv, false);
-
-  // log
-  RCUTILS_LOG_INFO_NAMED(rcl_node_get_logger_name(this->node_ptr), "SOMETHING");
-
-  bool success;
-  wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100, success);
-  ASSERT_FALSE(success);
-}
+INSTANTIATE_TEST_CASE_P_RMW(
+  TestLoggingRosoutWithDifferentSettings,
+  TestLoggingRosoutFixture,
+  ::testing::ValuesIn(get_parameters()),
+  ::testing::PrintToStringParamName());
