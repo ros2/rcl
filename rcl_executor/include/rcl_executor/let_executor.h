@@ -206,11 +206,12 @@ rcle_let_executor_add_timer(
  * * processes all handles in the order, how they were added to the executor with the respective add-functions
  *   by calling respective callback (thus implementing first-read, process, semantic of LET)
  *
+ * Memory is dynamically allocated within rcl-layer, when DDS queue is accessed with rcl_wait_set_init()
  *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | No
+ * Allocates Memory   | Yes
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
@@ -232,11 +233,13 @@ rcle_let_executor_spin_some(
  *  The spin function checks for new data at DDS queue as long as ros context is available.
  *  It calls {@link rcle_let_executor_spin_some()} as long as rcl_is_context_is_valid() returns true.
  *
+ *  Memory is dynamically allocated within rcl-layer, when DDS queue is accessed with rcl_wait_set_init()
+ *  (in spin_some function)
  *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | No
+ * Allocates Memory   | Yes
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
@@ -256,11 +259,12 @@ rcle_let_executor_spin(rcle_let_executor_t * executor);
  *  It is called every period nanoseconds.
  *  It calls {@link rcle_let_executor_spin_some()} as long as rcl_is_context_is_valid() returns true.
  *
- *
+ *  Memory is dynamically allocated within rcl-layer, when DDS queue is accessed with rcl_wait_set_init()
+ *  (in spin_some function)
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | No
+ * Allocates Memory   | Yes
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
