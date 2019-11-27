@@ -22,6 +22,7 @@ extern "C"
 
 #include <rmw/names_and_types.h>
 #include <rmw/get_topic_names_and_types.h>
+#include <rmw/topic_info_array.h>
 
 #include "rcutils/types.h"
 
