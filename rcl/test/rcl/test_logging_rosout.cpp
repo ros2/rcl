@@ -45,7 +45,7 @@
 struct TestParameters
 {
   int argc;
-  const char** argv;
+  const char ** argv;
   bool enable_node_option_rosout;
   bool expected_success;
   std::string description;
@@ -60,7 +60,7 @@ std::ostream & operator<<(
   return out;
 }
 
-class TEST_FIXTURE_P_RMW(TestLoggingRosoutFixture)
+class TEST_FIXTURE_P_RMW (TestLoggingRosoutFixture)
   : public ::testing::TestWithParam<TestParameters>
 {
 public:
@@ -182,8 +182,8 @@ get_parameters()
 {
   std::vector<TestParameters> parameters;
   static int s_argc = 2;
-  static const char* s_argv_enable_rosout[] = {"--ros-args", "--enable-rosout-logs"};
-  static const char* s_argv_disable_rosout[] = {"--ros-args", "--disable-rosout-logs"};
+  static const char * s_argv_enable_rosout[] = {"--ros-args", "--enable-rosout-logs"};
+  static const char * s_argv_disable_rosout[] = {"--ros-args", "--disable-rosout-logs"};
 
   /*
    * Test with enable(implicit) global rosout logs and enable node option of rosout.
