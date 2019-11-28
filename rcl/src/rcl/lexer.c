@@ -57,15 +57,17 @@ digraph remapping_lexer {
     T_WILD_MULTI
     T_EOF
     T_NONE
+    T_DOT
   node [shape = circle];
   S0 -> T_FORWARD_SLASH [ label = "/"];
+  S0 -> T_DOT [ label = "."];
   S0 -> S1 [ label = "\\"];
   S0 -> S2 [ label = "~"];
   S0 -> S3 [ label = "_" ];
-  S0 -> S8 [ label = "a-qs-zA-Z"];
-  S0 -> S10 [ label = "r"];
-  S0 -> S29 [ label = "*"];
-  S0 -> S30 [ label = ":"];
+  S0 -> S9 [ label = "a-qs-zA-Z"];
+  S0 -> S11 [ label = "r"];
+  S0 -> S30 [ label = "*"];
+  S0 -> S31 [ label = ":"];
   S1 -> T_BR1 [ label = "1"];
   S1 -> T_BR2 [ label = "2"];
   S1 -> T_BR3 [ label = "3"];
@@ -77,60 +79,62 @@ digraph remapping_lexer {
   S1 -> T_BR9 [ label = "9"];
   S2 -> T_TILDE_SLASH [ label ="/" ];
   S3 -> S4 [ label = "_" ];
-  S3 -> S9 [ label = "<else,1>", color = crimson, fontcolor = crimson];
+  S3 -> S10 [ label = "<else,1>", color = crimson, fontcolor = crimson];
   S4 -> S5 [ label = "n" ];
   S5 -> T_NS [ label = "s"];
   S5 -> S6 [ label = "o" ];
-  S6 -> S7 [ label = "d" ];
-  S7 -> T_NODE [ label = "e"];
-  S8 -> T_TOKEN [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S8 -> S8 [ label = "a-zA-Z0-9"];
-  S8 -> S9 [ label = "_"];
+  S6 -> S8 [ label = "d" ];
+  S5 -> S7 [ label = "a" ];
+  S7 -> S8 [ label = "m" ];
+  S8 -> T_NODE [ label = "e"];
   S9 -> T_TOKEN [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S9 -> S8 [ label = "a-zA-Z0-9"];
-  S10 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S10 -> S11 [ label = "o"];
-  S11 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S11 -> S12 [ label = "s"];
-  S12 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S12 -> S13 [ label = "t"];
-  S12 -> S20 [ label = "s"];
-  S13 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S13 -> S14 [ label = "o"];
-  S14 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S14 -> S15 [ label = "p"];
-  S15 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S15 -> S16 [ label = "i"];
-  S16 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S16 -> S17 [ label = "c"];
-  S17 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S17 -> S18 [ label = ":"];
-  S18 -> S19 [ label = "/"];
-  S18 -> S8 [ label = "<else,2>", color=crimson, fontcolor=crimson];
-  S19 -> T_URL_TOPIC [ label = "/"];
-  S19 -> S8 [ label = "<else,3>", color=crimson, fontcolor=crimson];
-  S20 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S20 -> S21 [ label = "e"];
-  S21 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S21 -> S22 [ label = "r"];
-  S22 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S22 -> S23 [ label = "v"];
-  S23 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S23 -> S24 [ label = "i"];
-  S24 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S24 -> S25 [ label = "c"];
-  S25 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S25 -> S26 [ label = "e"];
-  S26 -> S27 [ label = ":"];
-  S26 -> S8 [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S27 -> S28 [ label = "/"];
-  S27 -> S8 [ label = "<else,2>", color=crimson, fontcolor=crimson];
-  S28 -> T_URL_SERVICE [ label = "/"];
-  S28 -> S8 [ label = "<else,3>", color=crimson, fontcolor=crimson];
-  S29 -> T_WILD_MULTI[ label = "*"];
-  S29 -> T_WILD_ONE [ label = "<else,1>", color=crimson, fontcolor=crimson];
-  S30 -> T_SEPARATOR [ label = "="];
-  S30 -> T_COLON [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S9 -> S9 [ label = "a-zA-Z0-9"];
+  S9 -> S10 [ label = "_"];
+  S10 -> T_TOKEN [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S10 -> S9 [ label = "a-zA-Z0-9"];
+  S11 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S11 -> S12 [ label = "o"];
+  S12 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S12 -> S13 [ label = "s"];
+  S13 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S13 -> S14 [ label = "t"];
+  S13 -> S21 [ label = "s"];
+  S14 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S14 -> S15 [ label = "o"];
+  S15 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S15 -> S16 [ label = "p"];
+  S16 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S16 -> S17 [ label = "i"];
+  S17 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S17 -> S18 [ label = "c"];
+  S18 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S18 -> S19 [ label = ":"];
+  S19 -> S20 [ label = "/"];
+  S19 -> S9 [ label = "<else,2>", color=crimson, fontcolor=crimson];
+  S20 -> T_URL_TOPIC [ label = "/"];
+  S20 -> S9 [ label = "<else,3>", color=crimson, fontcolor=crimson];
+  S21 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S21 -> S22 [ label = "e"];
+  S22 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S22 -> S23 [ label = "r"];
+  S23 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S23 -> S24 [ label = "v"];
+  S24 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S24 -> S25 [ label = "i"];
+  S25 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S25 -> S26 [ label = "c"];
+  S26 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S26 -> S27 [ label = "e"];
+  S27 -> S28 [ label = ":"];
+  S27 -> S9 [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S28 -> S29 [ label = "/"];
+  S28 -> S9 [ label = "<else,2>", color=crimson, fontcolor=crimson];
+  S29 -> T_URL_SERVICE [ label = "/"];
+  S29 -> S9 [ label = "<else,3>", color=crimson, fontcolor=crimson];
+  S30 -> T_WILD_MULTI[ label = "*"];
+  S30 -> T_WILD_ONE [ label = "<else,1>", color=crimson, fontcolor=crimson];
+  S31 -> T_SEPARATOR [ label = "="];
+  S31 -> T_COLON [ label = "<else,1>", color=crimson, fontcolor=crimson];
 }
 */
 
@@ -155,7 +159,7 @@ typedef struct rcl_lexer_state_t
   /// Movement associated with taking else state
   const unsigned char else_movement;
   /// Transitions in the state machine (NULL value at end of array)
-  const rcl_lexer_transition_t transitions[11];
+  const rcl_lexer_transition_t transitions[12];
 } rcl_lexer_state_t;
 
 #define S0 0u
@@ -189,30 +193,32 @@ typedef struct rcl_lexer_state_t
 #define S28 28u
 #define S29 29u
 #define S30 30u
-#define LAST_STATE S30
+#define S31 31u
+#define LAST_STATE S31
 
-#define T_TILDE_SLASH 31u
-#define T_URL_SERVICE 32u
-#define T_URL_TOPIC 33u
-#define T_COLON 34u
-#define T_NODE 35u
-#define T_NS 36u
-#define T_SEPARATOR 37u
-#define T_BR1 38u
-#define T_BR2 39u
-#define T_BR3 40u
-#define T_BR4 41u
-#define T_BR5 42u
-#define T_BR6 43u
-#define T_BR7 44u
-#define T_BR8 45u
-#define T_BR9 46u
-#define T_TOKEN 47u
-#define T_FORWARD_SLASH 48u
-#define T_WILD_ONE 49u
-#define T_WILD_MULTI 50u
-#define T_EOF 51u
-#define T_NONE 52u
+#define T_TILDE_SLASH 32u
+#define T_URL_SERVICE 33u
+#define T_URL_TOPIC 34u
+#define T_COLON 35u
+#define T_NODE 36u
+#define T_NS 37u
+#define T_SEPARATOR 38u
+#define T_BR1 39u
+#define T_BR2 40u
+#define T_BR3 41u
+#define T_BR4 42u
+#define T_BR5 43u
+#define T_BR6 44u
+#define T_BR7 45u
+#define T_BR8 46u
+#define T_BR9 47u
+#define T_TOKEN 48u
+#define T_FORWARD_SLASH 49u
+#define T_WILD_ONE 50u
+#define T_WILD_MULTI 51u
+#define T_EOF 52u
+#define T_NONE 53u
+#define T_DOT 54u
 
 // used to figure out if a state is terminal or not
 #define FIRST_TERMINAL T_TILDE_SLASH
@@ -229,15 +235,16 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
     0u,
     {
       {T_FORWARD_SLASH, '/', '/'},
+      {T_DOT, '.', '.'},
       {S1, '\\', '\\'},
       {S2, '~', '~'},
       {S3, '_', '_'},
-      {S8, 'a', 'q'},
-      {S8, 's', 'z'},
-      {S8, 'A', 'Z'},
-      {S10, 'r', 'r'},
-      {S29, '*', '*'},
-      {S30, ':', ':'},
+      {S9, 'a', 'q'},
+      {S9, 's', 'z'},
+      {S9, 'A', 'Z'},
+      {S11, 'r', 'r'},
+      {S30, '*', '*'},
+      {S31, ':', ':'},
       END_TRANSITIONS
     }
   },
@@ -269,7 +276,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
   },
   // S3
   {
-    S9,
+    S10,
     1u,
     {
       {S4, '_', '_'},
@@ -292,6 +299,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
     {
       {T_NS, 's', 's'},
       {S6, 'o', 'o'},
+      {S7, 'a', 'a'},
       END_TRANSITIONS
     }
   },
@@ -300,7 +308,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
     T_NONE,
     0u,
     {
-      {S7, 'd', 'd'},
+      {S8, 'd', 'd'},
       END_TRANSITIONS
     }
   },
@@ -309,19 +317,16 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
     T_NONE,
     0u,
     {
-      {T_NODE, 'e', 'e'},
+      {S8, 'm', 'm'},
       END_TRANSITIONS
     }
   },
   // S8
   {
-    T_TOKEN,
-    1u,
+    T_NONE,
+    0u,
     {
-      {S8, 'a', 'z'},
-      {S8, 'A', 'Z'},
-      {S8, '0', '9'},
-      {S9, '_', '_'},
+      {T_NODE, 'e', 'e'},
       END_TRANSITIONS
     }
   },
@@ -330,185 +335,197 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
     T_TOKEN,
     1u,
     {
-      {S8, 'a', 'z'},
-      {S8, 'A', 'Z'},
-      {S8, '0', '9'},
+      {S9, 'a', 'z'},
+      {S9, 'A', 'Z'},
+      {S9, '0', '9'},
+      {S10, '_', '_'},
       END_TRANSITIONS
     }
   },
   // S10
   {
-    S8,
+    T_TOKEN,
     1u,
     {
-      {S11, 'o', 'o'},
+      {S9, 'a', 'z'},
+      {S9, 'A', 'Z'},
+      {S9, '0', '9'},
       END_TRANSITIONS
     }
   },
   // S11
   {
-    S8,
+    S9,
     1u,
     {
-      {S12, 's', 's'},
+      {S12, 'o', 'o'},
       END_TRANSITIONS
     }
   },
   // S12
   {
-    S8,
+    S9,
     1u,
     {
-      {S13, 't', 't'},
-      {S20, 's', 's'},
+      {S13, 's', 's'},
       END_TRANSITIONS
     }
   },
   // S13
   {
-    S8,
+    S9,
     1u,
     {
-      {S14, 'o', 'o'},
+      {S14, 't', 't'},
+      {S21, 's', 's'},
       END_TRANSITIONS
     }
   },
   // S14
   {
-    S8,
+    S9,
     1u,
     {
-      {S15, 'p', 'p'},
+      {S15, 'o', 'o'},
       END_TRANSITIONS
     }
   },
   // S15
   {
-    S8,
+    S9,
     1u,
     {
-      {S16, 'i', 'i'},
+      {S16, 'p', 'p'},
       END_TRANSITIONS
     }
   },
   // S16
   {
-    S8,
+    S9,
     1u,
     {
-      {S17, 'c', 'c'},
+      {S17, 'i', 'i'},
       END_TRANSITIONS
     }
   },
   // S17
   {
-    S8,
+    S9,
     1u,
     {
-      {S18, ':', ':'},
+      {S18, 'c', 'c'},
       END_TRANSITIONS
     }
   },
   // S18
   {
-    S8,
-    2u,
+    S9,
+    1u,
     {
-      {S19, '/', '/'},
+      {S19, ':', ':'},
       END_TRANSITIONS
     }
   },
   // S19
   {
-    S8,
+    S9,
+    2u,
+    {
+      {S20, '/', '/'},
+      END_TRANSITIONS
+    }
+  },
+  // S20
+  {
+    S9,
     3u,
     {
       {T_URL_TOPIC, '/', '/'},
       END_TRANSITIONS
     }
   },
-  // S20
+  // S21
   {
-    S8,
+    S9,
     1u,
     {
-      {S21, 'e', 'e'},
+      {S22, 'e', 'e'},
       END_TRANSITIONS
     }
   },
   // S21
   {
-    S8,
+    S9,
     1u,
     {
-      {S22, 'r', 'r'},
-      END_TRANSITIONS
-    }
-  },
-  // S22
-  {
-    S8,
-    1u,
-    {
-      {S23, 'v', 'v'},
+      {S23, 'r', 'r'},
       END_TRANSITIONS
     }
   },
   // S23
   {
-    S8,
+    S9,
     1u,
     {
-      {S24, 'i', 'i'},
+      {S24, 'v', 'v'},
       END_TRANSITIONS
     }
   },
   // S24
   {
-    S8,
+    S9,
     1u,
     {
-      {S25, 'c', 'c'},
+      {S25, 'i', 'i'},
       END_TRANSITIONS
     }
   },
   // S25
   {
-    S8,
+    S9,
     1u,
     {
-      {S26, 'e', 'e'},
+      {S26, 'c', 'c'},
       END_TRANSITIONS
     }
   },
   // S26
   {
-    S8,
+    S9,
     1u,
     {
-      {S27, ':', ':'},
+      {S27, 'e', 'e'},
       END_TRANSITIONS
     }
   },
   // S27
   {
-    S8,
-    2u,
+    S9,
+    1u,
     {
-      {S28, '/', '/'},
+      {S28, ':', ':'},
       END_TRANSITIONS
     }
   },
   // S28
   {
-    S8,
+    S9,
+    2u,
+    {
+      {S29, '/', '/'},
+      END_TRANSITIONS
+    }
+  },
+  // S29
+  {
+    S9,
     3u,
     {
       {T_URL_SERVICE, '/', '/'},
       END_TRANSITIONS
     }
   },
-  // S29
+  // S30
   {
     T_WILD_ONE,
     1u,
@@ -517,7 +534,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
       END_TRANSITIONS
     }
   },
-  // S30
+  // S31
   {
     T_COLON,
     1u,
@@ -525,7 +542,7 @@ static const rcl_lexer_state_t g_states[LAST_STATE + 1] =
       {T_SEPARATOR, '=', '='},
       END_TRANSITIONS
     }
-  },
+  }
 };
 
 static const rcl_lexeme_t g_terminals[LAST_TERMINAL + 1] = {
@@ -573,6 +590,8 @@ static const rcl_lexeme_t g_terminals[LAST_TERMINAL + 1] = {
   RCL_LEXEME_EOF,
   // 21
   RCL_LEXEME_NONE,
+  // 22
+  RCL_LEXEME_DOT
 };
 
 rcl_ret_t

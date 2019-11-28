@@ -2,6 +2,27 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.3 (2019-11-08)
+------------------
+* Support CLI parameter overrides using dots instead of slashes. (`#530 <https://github.com/ros2/rcl/issues/530>`_)
+  Signed-off-by: Michel Hidalgo <michel@ekumenlabs.com>
+* Contributors: Michel Hidalgo
+
+0.8.2 (2019-10-23)
+------------------
+* Remove the prototype from rcl_impl_getenv. (`#525 <https://github.com/ros2/rcl/issues/525>`_)
+* Use return_loaned_message_from (`#523 <https://github.com/ros2/rcl/issues/523>`_)
+* Avoid ready_fn and self.proc_info (`#522 <https://github.com/ros2/rcl/issues/522>`_)
+* Add localhost option to node creation (`#520 <https://github.com/ros2/rcl/issues/520>`_)
+* Add initial instrumentation (`#473 <https://github.com/ros2/rcl/issues/473>`_)
+* Zero copy api (`#506 <https://github.com/ros2/rcl/issues/506>`_)
+* Don't create rosout publisher instance unless required. (`#514 <https://github.com/ros2/rcl/issues/514>`_)
+* Handle zero non-ROS specific args properly in rcl_remove_ros_arguments (`#518 <https://github.com/ros2/rcl/issues/518>`_)
+* Update rcl_node_init docstring (`#517 <https://github.com/ros2/rcl/issues/517>`_)
+* Remove vestigial references to rcl_ok() (`#516 <https://github.com/ros2/rcl/issues/516>`_)
+* Add mechanism to pass rmw impl specific payloads during pub/sub creation (`#513 <https://github.com/ros2/rcl/issues/513>`_)
+* Contributors: Brian Marchi, Chris Lalancette, Ingo Lütkebohle, Jacob Perron, Karsten Knese, Michel Hidalgo, Peter Baughman, William Woodall, tomoya
+
 0.8.1 (2019-10-08)
 ------------------
 * Switch the default logging implementation to spdlog.

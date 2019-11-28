@@ -1,8 +1,0 @@
-# config/test_yaml
----
-
-lidar_ns:
-  lidar_1:
-    ros__parameters:
-      id: 10
-      name: "A long string that will not be supported by the yaml parser. The maximum supported length is 256 characters. Anything over that limit will be rejected and therefore this message has to be a bit longer in order to exceed that threshold by just one character."

@@ -65,7 +65,6 @@ typedef struct namespace_tracker_s
   uint32_t num_parameter_ns;
 } namespace_tracker_t;
 
-#define MAX_STRING_SIZE 256U
 #define PARAMS_KEY "ros__parameters"
 #define NODE_NS_SEPERATOR "/"
 #define PARAMETER_NS_SEPERATOR "."
@@ -207,10 +206,6 @@ static rcutils_ret_t add_name_to_ns(
 
     tot_len = ns_len + sep_len + name_len + 1U;
 
-    if (tot_len > MAX_STRING_SIZE) {
-      RCUTILS_SET_ERROR_MSG("New namespace string is exceeding max string size");
-      return RCUTILS_RET_ERROR;
-    }
     cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
     if (NULL == cur_ns) {
       return RCUTILS_RET_BAD_ALLOC;
@@ -1116,19 +1111,12 @@ static rcutils_ret_t parse_value(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     value, "event argument has no value", return RCUTILS_RET_INVALID_ARGUMENT);
 
-  if (val_size > MAX_STRING_SIZE) {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Scalar value at line %u has %zu bytes which is bigger than the compile "
-      "time limit of %u bytes", line_num, val_size, MAX_STRING_SIZE);
+  if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
+    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
+    0U == val_size)
+  {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("No value at line %d", line_num);
     return RCUTILS_RET_ERROR;
-  } else {
-    if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
-      style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
-      0U == val_size)
-    {
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("No value at line %d", line_num);
-      return RCUTILS_RET_ERROR;
-    }
   }
 
   if (NULL == params_st->params[node_idx].parameter_values) {
@@ -1315,16 +1303,9 @@ static rcutils_ret_t parse_key(
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     value, "event argument has no value", return RCUTILS_RET_INVALID_ARGUMENT);
 
-  if (val_size > MAX_STRING_SIZE) {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Scalar value at line %d is bigger than %d bytes",
-      line_num, MAX_STRING_SIZE);
+  if (0U == val_size) {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("No key at line %d", line_num);
     return RCUTILS_RET_ERROR;
-  } else {
-    if (0U == val_size) {
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("No key at line %d", line_num);
-      return RCUTILS_RET_ERROR;
-    }
   }
 
   rcutils_ret_t ret = RCUTILS_RET_OK;
@@ -1425,13 +1406,6 @@ static rcutils_ret_t parse_key(
           const size_t params_ns_len = strlen(parameter_ns);
           const size_t param_name_len = strlen(value);
           const size_t tot_len = (params_ns_len + param_name_len + 2U);
-
-          if (tot_len > MAX_STRING_SIZE) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "The name length exceeds the MAX size %d at line %d", MAX_STRING_SIZE, line_num);
-            ret = RCUTILS_RET_ERROR;
-            break;
-          }
 
           param_name = allocator.zero_allocate(1U, tot_len, allocator.state);
           if (NULL == param_name) {

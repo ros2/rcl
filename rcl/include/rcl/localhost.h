@@ -1,4 +1,4 @@
-// Copyright 2015 Open Source Robotics Foundation, Inc.
+// Copyright 2019 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__COMMON_H_
-#define RCL__COMMON_H_
+#ifndef RCL__LOCALHOST_H_
+#define RCL__LOCALHOST_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -21,13 +21,22 @@ extern "C"
 #endif
 
 #include "rcl/types.h"
+#include "rcl/visibility_control.h"
 
-/// Convenience function for converting common rmw_ret_t return codes to rcl.
-rcl_ret_t
-rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret);
+extern const char * const RCL_LOCALHOST_ENV_VAR;
+
+/// Determine if the user wants to communicate using loopback only.
+/**
+ * Checks if localhost should be used for network communication checking ROS_LOCALHOST_ONLY env
+ * variable
+ * \returns true if ROS_LOCALHOST_ONLY is set and is 1, false otherwise.
+ */
+RCL_PUBLIC
+bool
+rcl_localhost_only();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // RCL__COMMON_H_
+#endif  // RCL__LOCALHOST_H_

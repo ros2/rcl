@@ -42,7 +42,7 @@ typedef enum rcl_lexeme_t
   RCL_LEXEME_URL_TOPIC = 4,
   /// :
   RCL_LEXEME_COLON = 5,
-  /// __node
+  /// __node or __name
   RCL_LEXEME_NODE = 6,
   /// __ns
   RCL_LEXEME_NS = 7,
@@ -73,7 +73,11 @@ typedef enum rcl_lexeme_t
   /// *
   RCL_LEXEME_WILD_ONE = 20,
   /// **
-  RCL_LEXEME_WILD_MULTI = 21
+  RCL_LEXEME_WILD_MULTI = 21,
+  // TODO(hidmic): remove when parameter names are standardized to
+  //               use slashes in lieu of dots
+  /// .
+  RCL_LEXEME_DOT = 22,
 } rcl_lexeme_t;
 
 

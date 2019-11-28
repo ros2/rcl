@@ -883,21 +883,30 @@ rcl_remove_ros_arguments(
   int * nonros_argc,
   const char ** nonros_argv[])
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argc, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-
-  *nonros_argc = rcl_arguments_get_count_unparsed(args);
-  *nonros_argv = NULL;
-
-  if (*nonros_argc <= 0) {
+  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argc, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(nonros_argv, RCL_RET_INVALID_ARGUMENT);
+  if (NULL != *nonros_argv) {
+    RCL_SET_ERROR_MSG("Output nonros_argv pointer is not null. May leak memory.");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
+  *nonros_argc = rcl_arguments_get_count_unparsed(args);
+  if (*nonros_argc < 0) {
+    RCL_SET_ERROR_MSG("Failed to get unparsed non ROS specific arguments count.");
+    return RCL_RET_INVALID_ARGUMENT;
+  } else if (*nonros_argc > 0) {
+    RCL_CHECK_ARGUMENT_FOR_NULL(argv, RCL_RET_INVALID_ARGUMENT);
+  }
+
+  *nonros_argv = NULL;
+  if (0 == *nonros_argc) {
+    return RCL_RET_OK;
+  }
+
   int * unparsed_indices = NULL;
-  rcl_ret_t ret;
-  ret = rcl_arguments_get_unparsed(args, allocator, &unparsed_indices);
+  rcl_ret_t ret = rcl_arguments_get_unparsed(args, allocator, &unparsed_indices);
 
   if (RCL_RET_OK != ret) {
     return ret;
@@ -1342,6 +1351,70 @@ _rcl_parse_resource_match(
   return RCL_RET_OK;
 }
 
+/// Parse a parameter name in a parameter override rule (ex: `foo.bar`)
+/**
+ * \sa _rcl_parse_param_rule()
+ */
+// TODO(hidmic): remove when parameter names are standardized to use slashes
+//               in lieu of dots.
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_param_name(
+  rcl_lexer_lookahead2_t * lex_lookahead,
+  rcl_allocator_t allocator,
+  char ** param_name)
+{
+  rcl_ret_t ret;
+  rcl_lexeme_t lexeme;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+  assert(rcutils_allocator_is_valid(&allocator));
+  assert(NULL != param_name);
+  assert(NULL == *param_name);
+
+  const char * name_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  if (NULL == name_start) {
+    RCL_SET_ERROR_MSG("failed to get start of param name");
+    return RCL_RET_ERROR;
+  }
+
+  // token ( '.' token )*
+  ret = _rcl_parse_resource_match_token(lex_lookahead);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  while (RCL_LEXEME_SEPARATOR != lexeme) {
+    ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_DOT, NULL, NULL);
+    if (RCL_RET_WRONG_LEXEME == ret) {
+      return RCL_RET_INVALID_REMAP_RULE;
+    }
+    ret = _rcl_parse_resource_match_token(lex_lookahead);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+    ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+
+  // Copy param name
+  const char * name_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  const size_t length = (size_t)(name_end - name_start);
+  *param_name = rcutils_strndup(name_start, length, allocator);
+  if (NULL == *param_name) {
+    RCL_SET_ERROR_MSG("failed to copy param name");
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  return RCL_RET_OK;
+}
+
 
 /// Parse the match side of a name remapping rule (ex: `rostopic://foo`)
 /**
@@ -1484,7 +1557,7 @@ _rcl_parse_remap_namespace_replacement(
   return RCL_RET_OK;
 }
 
-/// Parse a nodename replacement rule (ex: `__node:=new_name`).
+/// Parse a nodename replacement rule (ex: `__node:=new_name` or `__name:=new_name`).
 /**
  * \sa _rcl_parse_remap_begin_remap_rule()
  */
@@ -1787,7 +1860,9 @@ _rcl_parse_param_rule(
     }
   }
 
-  ret = _rcl_parse_resource_match(&lex_lookahead, params->allocator, &param_name);
+  // TODO(hidmic): switch to _rcl_parse_resource_match() when parameter names
+  //               are standardized to use slashes in lieu of dots.
+  ret = _rcl_parse_param_name(&lex_lookahead, params->allocator, &param_name);
   if (RCL_RET_OK != ret) {
     if (RCL_RET_WRONG_LEXEME == ret) {
       ret = RCL_RET_INVALID_PARAM_RULE;
