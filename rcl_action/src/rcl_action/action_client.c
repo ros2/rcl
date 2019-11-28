@@ -284,6 +284,13 @@ rcl_action_server_is_available(
   }
   *is_available = *is_available && (number_of_publishers != 0);
 
+  ret = rcl_subscription_get_publisher_count(
+    &(client->impl->status_subscription), &number_of_publishers);
+  if (RCL_RET_OK != ret) {
+    return ret;  // error is already set
+  }
+  *is_available = *is_available && (number_of_publishers != 0);
+
   return RCL_RET_OK;
 }
 
