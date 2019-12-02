@@ -79,8 +79,8 @@ rcl_get_zero_initialized_wait_set()
   return null_wait_set;
 }
 
-static bool
-__wait_set_is_valid(const rcl_wait_set_t * wait_set)
+bool
+rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set)
 {
   return wait_set && wait_set->impl;
 }
@@ -118,7 +118,7 @@ rcl_wait_set_init(
 
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
-  if (__wait_set_is_valid(wait_set)) {
+  if (rcl_wait_set_is_valid(wait_set)) {
     RCL_SET_ERROR_MSG("wait_set already initialized, or memory was uninitialized.");
     return RCL_RET_ALREADY_INIT;
   }
@@ -173,7 +173,7 @@ rcl_wait_set_init(
   }
   return RCL_RET_OK;
 fail:
-  if (__wait_set_is_valid(wait_set)) {
+  if (rcl_wait_set_is_valid(wait_set)) {
     rmw_ret_t ret = rmw_destroy_wait_set(wait_set->impl->rmw_wait_set);
     if (ret != RMW_RET_OK) {
       fail_ret = RCL_RET_WAIT_SET_INVALID;
@@ -189,7 +189,7 @@ rcl_wait_set_fini(rcl_wait_set_t * wait_set)
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
 
-  if (__wait_set_is_valid(wait_set)) {
+  if (rcl_wait_set_is_valid(wait_set)) {
     rmw_ret_t ret = rmw_destroy_wait_set(wait_set->impl->rmw_wait_set);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
@@ -204,7 +204,7 @@ rcl_ret_t
 rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
-  if (!__wait_set_is_valid(wait_set)) {
+  if (!rcl_wait_set_is_valid(wait_set)) {
     RCL_SET_ERROR_MSG("wait set is invalid");
     return RCL_RET_WAIT_SET_INVALID;
   }
@@ -215,7 +215,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
 
 #define SET_ADD(Type) \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT); \
-  if (!__wait_set_is_valid(wait_set)) { \
+  if (!rcl_wait_set_is_valid(wait_set)) { \
     RCL_SET_ERROR_MSG("wait set is invalid"); \
     return RCL_RET_WAIT_SET_INVALID; \
   } \
@@ -515,7 +515,7 @@ rcl_ret_t
 rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
-  if (!__wait_set_is_valid(wait_set)) {
+  if (!rcl_wait_set_is_valid(wait_set)) {
     RCL_SET_ERROR_MSG("wait set is invalid");
     return RCL_RET_WAIT_SET_INVALID;
   }
