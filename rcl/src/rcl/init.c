@@ -82,6 +82,9 @@ rcl_init(
   // Zero initialize rmw context first so its validity can by checked in cleanup.
   context->impl->rmw_context = rmw_get_zero_initialized_context();
 
+  // Store the allocator.
+  context->impl->allocator = allocator;
+
   // Copy the options into the context for future reference.
   rcl_ret_t ret = rcl_init_options_copy(options, &(context->impl->init_options));
   if (RCL_RET_OK != ret) {
@@ -146,9 +149,6 @@ rcl_init(
     fail_ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
     goto fail;
   }
-
-  // Store the allocator.
-  context->impl->allocator = allocator;
 
   return RCL_RET_OK;
 fail:
