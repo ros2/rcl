@@ -33,7 +33,7 @@ extern "C"
 {
 #endif
 
-#define ROSOUT_TOPIC_NAME "rosout"
+#define ROSOUT_TOPIC_NAME "/rosout"
 
 /* Return RCL_RET_OK from this macro because we won't check throughout rcl if rosout is
  * initialized or not and in the case it's not we want things to continue working.

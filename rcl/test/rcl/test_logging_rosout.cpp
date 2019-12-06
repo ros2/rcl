@@ -95,7 +95,7 @@ public:
     // create rosout subscription
     const rosidl_message_type_support_t * ts =
       ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, Log);
-    const char * topic = "rosout";
+    const char * topic = "/rosout";
     this->subscription_ptr = new rcl_subscription_t;
     *this->subscription_ptr = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
