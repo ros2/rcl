@@ -14,10 +14,11 @@
 // limitations under the License.
 
 #include "rcl_executor/let_executor.h"
-#include "rcutils/time.h"
+
 
 #include <sys/time.h>  // for gettimeofday()
 #include <unistd.h>  // for usleep()
+#include "rcutils/time.h"
 
 // default timeout for rcl_wait() is 100ms
 #define DEFAULT_WAIT_TIMEOUT_MS 100000000
@@ -536,7 +537,7 @@ timeval_add(const struct timeval * a, const struct timeval * b)
  /// TODO (jst3si) write unit test to validate length of period
  */
 
-#define unit_test_spin_period  0 // enable this #define only for the Unit Test.
+#define unit_test_spin_period  0  // enable this #define only for the Unit Test.
 
 rcl_ret_t
 rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t period)
@@ -558,7 +559,7 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
   printf("Timepoint: %s\n", tp_str);
 
   if (rc != RCL_RET_OK) {
-    //sth went wrong
+    // sth went wrong
     return rc;
   }
   #ifdef unit_test_spin_period

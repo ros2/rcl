@@ -215,7 +215,7 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   // Do timer work...
   // Optionally reconfigure, cancel, or reset the timer...
   if (timer != NULL) {
-    //printf("Timer: time since last call %d\n", static_cast<int>(last_call_time));
+    // printf("Timer: time since last call %d\n", static_cast<int>(last_call_time));
   }
 }
 
@@ -1058,7 +1058,6 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   unsigned int max_iterations = 2;
   for (unsigned int i = 0; i < max_iterations; i++) {
     const unsigned int timeout_ms = 100;
-    printf("tc-invocation_type for-loop\n");
     ret = rcle_let_executor_spin_some(&executor, timeout_ms);
     if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
       // valid return values
@@ -1072,6 +1071,148 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   EXPECT_EQ(_cb2_cnt, (unsigned int) 1) << "cb2 msg does not match";
 }
 
+
+// call executor_add_subscription() after executor_spin_some()
+// this requires an update of the rcl wait_set
+TEST_F(TestDefaultExecutor, update_wait_set) {
+  rcl_ret_t ret;
+  rcle_let_executor_t executor;
+  const unsigned int timeout_ms = 100;
+
+  executor = rcle_let_executor_get_zero_initialized_executor();
+
+  // publisher 1
+  rcl_publisher_t publisher1 = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts1 =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32);
+  const char * topic1 = "chatter1";
+  rcl_publisher_options_t publisher_options1 = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher1, this->node_ptr, ts1, topic1, &publisher_options1);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_publisher_fini(&publisher1, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // subscription 1
+  rcl_subscription_t subscription1 = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options1 = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(&subscription1, this->node_ptr, ts1, topic1, &subscription_options1);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_subscription_fini(&subscription1, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  EXPECT_TRUE(rcl_subscription_is_valid(&subscription1));
+  rcl_reset_error();
+
+  // subscription 2
+  rcl_subscription_t subscription2 = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options2 = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(&subscription2, this->node_ptr, ts1, topic1, &subscription_options2);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t ret = rcl_subscription_fini(&subscription2, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  EXPECT_TRUE(rcl_subscription_is_valid(&subscription2));
+  rcl_reset_error();
+
+  // initialize result variables
+  _results_callback_counters_init();
+  // initialize executor with 2 handles
+  ret = rcle_let_executor_init(&executor, this->context_ptr, 2, this->allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // define subscription messages
+  std_msgs__msg__Int32 sub_msg1;
+  std_msgs__msg__Int32__init(&sub_msg1);
+
+  std_msgs__msg__Int32 sub_msg2;
+  std_msgs__msg__Int32__init(&sub_msg2);
+
+  // initially the wait_set is zero_initialized
+  EXPECT_EQ(false, rcl_wait_set_is_valid(&executor.wait_set));
+  // add subscription to the executor
+  ret =
+    rcle_let_executor_add_subscription(&executor, &subscription1, &sub_msg1, &int32_callback1,
+      ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // wait_set is not valid
+  EXPECT_EQ(false, rcl_wait_set_is_valid(&executor.wait_set));
+
+  // initialize pub message 1
+  std_msgs__msg__Int32 pub_msg1;
+  std_msgs__msg__Int32__init(&pub_msg1);
+  pub_msg1.data = 1;
+
+  ///////////////////////////////////////////////////////////////////////////////////
+  /////////// test case 1 : spin_once
+  ///////////////////////////////////////////////////////////////////////////////////
+
+  // received one message
+  EXPECT_EQ(0, _cb1_cnt);
+  EXPECT_EQ(0, _cb2_cnt);
+
+  ret = rcl_publish(&publisher1, &pub_msg1, nullptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
+  ret = rcl_publish(&publisher1, &pub_msg1, nullptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+  ret = rcle_let_executor_spin_some(&executor, timeout_ms);
+  if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
+    // valid return values
+  } else {
+    // any other error
+    EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
+  }
+
+  // wait_set is valid
+  EXPECT_EQ(true, rcl_wait_set_is_valid(&executor.wait_set));
+
+  // received one message
+  EXPECT_EQ(1, _cb1_cnt);
+  EXPECT_EQ(0, _cb2_cnt);
+
+  ///////////////////////////////////////////////////////////////////////////////////
+  /////////// test case 2 : add another subscription
+  ///////////////////////////////////////////////////////////////////////////////////
+
+  // wait_set is valid
+  EXPECT_EQ(true, rcl_wait_set_is_valid(&executor.wait_set));
+
+  ret =
+    rcle_let_executor_add_subscription(&executor, &subscription2, &sub_msg2, &int32_callback2,
+      ON_NEW_DATA);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // wait_set is not valid
+  EXPECT_EQ(false, rcl_wait_set_is_valid(&executor.wait_set));
+
+  ///////////////////////////////////////////////////////////////////////////////////
+  /////////// test case 3 : spin_some again
+  ///////////////////////////////////////////////////////////////////////////////////
+
+  ret = rcle_let_executor_spin_some(&executor, timeout_ms);
+  if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
+    // valid return values
+  } else {
+    // any other error
+    EXPECT_EQ(RCL_RET_OK, ret) << "spin_some error";
+  }
+
+  // wait_set is valid
+  EXPECT_EQ(true, rcl_wait_set_is_valid(&executor.wait_set));
+
+  // received two msg at callback 1 and one msg at callback 2:
+  EXPECT_EQ(2, _cb1_cnt);
+  EXPECT_EQ(1, _cb2_cnt);
+}
 
 /* NOTE
   this unit test is by default disabled, because spin_period runs
