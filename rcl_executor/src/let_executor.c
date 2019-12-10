@@ -197,7 +197,7 @@ rcle_let_executor_add_subscription(
   // increase index of handle array
   executor->index++;
 
-  // invalidate wait_set so that in next spin_some() call the 
+  // invalidate wait_set so that in next spin_some() call the
   // 'executor->wait_set' is updated accordingly
   if (rcl_wait_set_is_valid(&executor->wait_set)) {
     rcl_wait_set_fini(&executor->wait_set);
@@ -236,7 +236,7 @@ rcle_let_executor_add_timer(
   // increase index of handle array
   executor->index++;
 
-  // invalidate wait_set so that in next spin_some() call the 
+  // invalidate wait_set so that in next spin_some() call the
   // 'executor->wait_set' is updated accordingly
   if (rcl_wait_set_is_valid(&executor->wait_set)) {
     rcl_wait_set_fini(&executor->wait_set);
@@ -536,7 +536,7 @@ timeval_add(const struct timeval * a, const struct timeval * b)
  /// TODO (jst3si) write unit test to validate length of period
  */
 
-#define unit_test_spin_period  1 // enable this #define only for the Unit Test.
+#define unit_test_spin_period  0 // enable this #define only for the Unit Test.
 
 rcl_ret_t
 rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t period)
@@ -555,7 +555,7 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
   const unsigned int TIMEPOINT_STR_SIZE = 32;
   char tp_str[TIMEPOINT_STR_SIZE];
   rc = rcutils_time_point_value_as_nanoseconds_string(&startx, tp_str, TIMEPOINT_STR_SIZE);
-  printf("Timepoint: %s\n",tp_str);
+  printf("Timepoint: %s\n", tp_str);
 
   if (rc != RCL_RET_OK) {
     //sth went wrong

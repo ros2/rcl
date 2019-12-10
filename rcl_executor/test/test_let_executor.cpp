@@ -1024,7 +1024,7 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   // check, if all subscriptions were added
   size_t num_subscriptions = 2;
   EXPECT_EQ(executor.info.number_of_subscriptions, num_subscriptions) <<
-    "number of subscriptions should be = 3";
+    "number of subscriptions should be = 2";
 
   // publish message 1
   std_msgs__msg__Int32 pub_msg1;
@@ -1058,6 +1058,7 @@ TEST_F(TestDefaultExecutor, invocation_type) {
   unsigned int max_iterations = 2;
   for (unsigned int i = 0; i < max_iterations; i++) {
     const unsigned int timeout_ms = 100;
+    printf("tc-invocation_type for-loop\n");
     ret = rcle_let_executor_spin_some(&executor, timeout_ms);
     if ((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT)) {
       // valid return values
@@ -1139,7 +1140,7 @@ period average 0.999999
 period average 0.999971
 ...
 */
-
+/*
 TEST_F(TestDefaultExecutor, spin_period) {
   // 27.06.2019, adopted from ros2/rcl/rcl/test/rcl/test_subscriptions.cpp
   // by Jan Staschulat, under Apache 2.0 License
@@ -1165,4 +1166,4 @@ TEST_F(TestDefaultExecutor, spin_period) {
   rcle_let_executor_spin_period(&executor, 10);
   rcle_let_executor_fini(&executor);
 }
-
+*/
