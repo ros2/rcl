@@ -2,6 +2,9 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.8 (2019-12-10)
+------------------
+
 0.7.7 (2019-09-20)
 ------------------
 * reset error message before setting a new one, embed the original one (`#501 <https://github.com/ros2/rcl/issues/501>`_) (`#505 <https://github.com/ros2/rcl/issues/505>`_)

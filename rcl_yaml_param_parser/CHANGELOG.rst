@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.8 (2019-12-10)
+------------------
+* Avoid C4703 error on UWP. (`#282 <https://github.com/ros2/rcl/issues/282>`_) (`#536 <https://github.com/ros2/rcl/issues/536>`_)
+* Contributors: Sean Kelly
+
 0.7.7 (2019-09-20)
 ------------------
 * Increase MAX_STRING_SIZE (`#487 <https://github.com/ros2/rcl/issues/487>`_) (`#503 <https://github.com/ros2/rcl/issues/503>`_)

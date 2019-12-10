@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.8 (2019-12-10)
+------------------
+* Set allocator before goto fail. (`#540 <https://github.com/ros2/rcl/issues/540>`_)
+* Contributors: Borja Outerelo
+
 0.7.7 (2019-09-20)
 ------------------
 
