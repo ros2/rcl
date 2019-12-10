@@ -14,6 +14,7 @@
 // limitations under the License.
 
 #include "rcl_executor/let_executor.h"
+#include "rcutils/time.h"
 
 #include <sys/time.h>  // for gettimeofday()
 #include <unistd.h>  // for usleep()
@@ -532,7 +533,7 @@ timeval_add(const struct timeval * a, const struct timeval * b)
  /// TODO (jst3si) write unit test to validate length of period
  */
 
-// #define unit_test_spin_period  // enable this #define only for the Unit Test.
+#define unit_test_spin_period  1 // enable this #define only for the Unit Test.
 
 rcl_ret_t
 rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t period)
@@ -545,17 +546,30 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
   struct timeval period_val;
   int64_t secs_wait, micros_wait;
 
+  rcutils_time_point_value_t startx;
+  rcl_ret_t rc;
+  rc = rcutils_system_time_now(&startx);
+  const unsigned int TIMEPOINT_STR_SIZE = 32;
+  char tp_str[TIMEPOINT_STR_SIZE];
+  rc = rcutils_time_point_value_as_nanoseconds_string(&startx, tp_str, TIMEPOINT_STR_SIZE);
+  printf("Timepoint: %s\n",tp_str);
 
+  if (rc != RCL_RET_OK) {
+    //sth went wrong
+    return rc;
+  }
   #ifdef unit_test_spin_period
   // variables for statistics
   struct timeval prev_start;
   int64_t p_secs_used, p_micros_used;
   unsigned int period_sum = 0;
   unsigned int cnt = 0;
+  printf("starting unit test\n")
   #endif
 
   // conversion from nano-seconds to micro-seconds
   uint64_t period_usec = period / 1000;
+
 
   // convert period to timeval
   if (period_usec > 1000000) {
@@ -565,7 +579,7 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
     period_val.tv_sec = 0;
     period_val.tv_usec = period_usec;
   }
-
+  printf("spin period = %d usec\n" period_val:tv_usec);
   // initialization of timepoints
   gettimeofday(&start, NULL);
 
@@ -594,7 +608,6 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
     gettimeofday(&end, NULL);
     secs_wait = (next_time.tv_sec - end.tv_sec);  // avoid overflow by subtracting first
     micros_wait = ((secs_wait * 1000000) + next_time.tv_usec) - (end.tv_usec);
-    // printf("micro_wait %d\n", micros_wait);
     // sleep until next_time timepoint
     if (micros_wait > 0) {
       usleep(micros_wait);

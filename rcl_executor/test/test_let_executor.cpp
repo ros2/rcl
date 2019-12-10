@@ -215,7 +215,7 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   // Do timer work...
   // Optionally reconfigure, cancel, or reset the timer...
   if (timer != NULL) {
-    printf("Timer: time since last call %d\n", static_cast<int>(last_call_time));
+    //printf("Timer: time since last call %d\n", static_cast<int>(last_call_time));
   }
 }
 
@@ -1082,7 +1082,7 @@ to run this test case you also need to set the define
 execute the unit not with colcon test but direcly with
 $>rcl_executor/build/rcl_executor/test_let_executor
 
-test result (24.07.2017 Linux Ubunutu 16.04)
+test result (24.07.2019 Linux Ubunutu 16.04)
 avarage is computed over 1000 iterations of spin_some()
 
 period 100ms:
@@ -1139,7 +1139,7 @@ period average 0.999999
 period average 0.999971
 ...
 */
-/*
+
 TEST_F(TestDefaultExecutor, spin_period) {
   // 27.06.2019, adopted from ros2/rcl/rcl/test/rcl/test_subscriptions.cpp
   // by Jan Staschulat, under Apache 2.0 License
@@ -1165,4 +1165,4 @@ TEST_F(TestDefaultExecutor, spin_period) {
   rcle_let_executor_spin_period(&executor, 10);
   rcle_let_executor_fini(&executor);
 }
-*/
+
