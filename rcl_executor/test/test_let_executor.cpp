@@ -1214,84 +1214,10 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ(1, _cb2_cnt);
 }
 
-/* NOTE
-  this unit test is by default disabled, because spin_period runs
-  indefinitly - therefore call it manually and switch on the statistics
-  code in rcl_executor.c as described below.
-
-to run this test case you also need to set the define
-#define unit_test_spin_period
-execute the unit not with colcon test but direcly with
-$>rcl_executor/build/rcl_executor/test_let_executor
-
-test result (24.07.2019 Linux Ubunutu 16.04)
-avarage is computed over 1000 iterations of spin_some()
-
-period 100ms:
-[ RUN      ] TestDefaultExecutor.spin_period
-period average 100.000511
-period average 100.000000
-period average 99.999611
-period average 100.000046
-period average 100.000359
-period average 99.999634
-period average 99.999954
-period average 100.000053
-period average 100.000343
-period average 99.999969
-...
-period 20ms:
-[ RUN      ] TestDefaultExecutor.spin_period
-period average 20.000525
-period average 19.999645
-period average 20.000040
-period average 19.999886
-period average 20.000019
-period average 20.000000
-period average 20.000423
-period average 19.999517
-period average 20.000116
-period average 19.999918
-...
-period 10ms:
-[ RUN      ] TestDefaultExecutor.spin_period
-period average 10.000107
-period average 10.000002
-period average 9.999947
-period average 10.000008
-period average 10.000076
-period average 10.000026
-period average 9.999919
-period average 10.000435
-period average 9.999641
-period average 10.000361
-
-...
-period 1ms:
-[ RUN      ] TestDefaultExecutor.spin_period
-period average 1.000101
-period average 1.000021
-period average 1.000009
-period average 1.000118
-period average 0.999885
-period average 1.000282
-period average 0.999637
-period average 1.000084
-period average 0.999999
-period average 0.999971
-...
-*/
 /*
 TEST_F(TestDefaultExecutor, spin_period) {
-  // 27.06.2019, adopted from ros2/rcl/rcl/test/rcl/test_subscriptions.cpp
-  // by Jan Staschulat, under Apache 2.0 License
   rcl_ret_t rc;
   rcle_let_executor_t executor;
-
-  // to make it work, go to the implementation of the function rcle_let_executor_spin_period
-  // and un-comment the lines regarding the statistics as well as the printf
-  // // printf("period %ld \n", p_micros_used );
-  // then you should see the average period which is expected to be close to the specified one.
 
   // initialize result variables
   _fn_cnt = 0;
@@ -1303,8 +1229,8 @@ TEST_F(TestDefaultExecutor, spin_period) {
   rc = rcle_let_executor_add_timer(&executor, this->timer1_ptr);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
-  // spin with period 10ms
-  rcle_let_executor_spin_period(&executor, 10);
+  // spin with period 10ms = 10 000 000 ns
+  rcle_let_executor_spin_period(&executor, 10000000);
   rcle_let_executor_fini(&executor);
 }
 */

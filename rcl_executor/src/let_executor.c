@@ -527,17 +527,6 @@ timeval_add(const struct timeval * a, const struct timeval * b)
   }
   return result;
 }
-/*
- period in nanoseconds
- initial test results show an accuracy of 10^-4 milli-seconds accurary
- (tested with 10ms, 20ms 100ms period on Linux Ubuntu 16.04) see unit test
- sleeping only if there is time left, i.e. when the spin_some takes longer than
- period, then usleep is not called (hoping to catch up)
-
- /// TODO (jst3si) write unit test to validate length of period
- */
-
-#define unit_test_spin_period  0  // enable this #define only for the Unit Test.
 
 rcl_ret_t
 rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t period)
@@ -545,62 +534,25 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
 
-  struct timeval start, end;
-  struct timeval next_time;
-  struct timeval period_val;
-  int64_t secs_wait, micros_wait;
+  rcutils_time_point_value_t start_time_point;
+  rcutils_time_point_value_t end_time_point;
+  rcutils_time_point_value_t next_time_point;
+  rcutils_duration_value_t sleep_time;
 
-  rcutils_time_point_value_t startx;
-  rcl_ret_t rc;
-  rc = rcutils_system_time_now(&startx);
+  ret = rcutils_system_time_now(&start_time_point);
+
+  /*
   const unsigned int TIMEPOINT_STR_SIZE = 32;
   char tp_str[TIMEPOINT_STR_SIZE];
-  rc = rcutils_time_point_value_as_nanoseconds_string(&startx, tp_str, TIMEPOINT_STR_SIZE);
+  rc = rcutils_time_point_value_as_nanoseconds_string(&start_time_point, tp_str, TIMEPOINT_STR_SIZE);
   printf("Timepoint: %s\n", tp_str);
+  */
 
-  if (rc != RCL_RET_OK) {
-    // sth went wrong
-    return rc;
-  }
-  #ifdef unit_test_spin_period
-  // variables for statistics
-  struct timeval prev_start;
-  int64_t p_secs_used, p_micros_used;
-  unsigned int period_sum = 0;
-  unsigned int cnt = 0;
-  printf("starting unit test\n");
-  #endif
-
-  // conversion from nano-seconds to micro-seconds
-  uint64_t period_usec = period / 1000;
-
-
-  // convert period to timeval
-  if (period_usec > 1000000) {
-    period_val.tv_sec = period_usec / 1000000;
-    period_val.tv_usec = period_usec - period_val.tv_sec * 1000000;
-  } else {
-    period_val.tv_sec = 0;
-    period_val.tv_usec = period_usec;
-  }
-  printf("spin period = %ld usec\n", period_val.tv_usec);
-  // initialization of timepoints
-  gettimeofday(&start, NULL);
-
-  #ifdef unit_test_spin_period
-  prev_start.tv_sec = 0;
-  prev_start.tv_usec = 0;
-  #endif
-
-  // guarantees fixed period
-  next_time = timeval_add(&start, &period_val);
+  // start_time_point (unit: nanoseconds)
+  // period (unit: nanoseconds)
+  next_time_point = start_time_point + period;
 
   while (rcl_context_is_valid(executor->context) ) {
-    #ifdef unit_test_spin_period
-    // only for statistics: measure start time
-    gettimeofday(&start, NULL);
-    #endif
-
     // call spin_some
     ret = rcle_let_executor_spin_some(executor, executor->timeout_ns);
     if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
@@ -608,39 +560,18 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
       return ret;
     }
 
-    // wait for x micro-seconds, where x = micros_wait = next_time - end
-    gettimeofday(&end, NULL);
-    secs_wait = (next_time.tv_sec - end.tv_sec);  // avoid overflow by subtracting first
-    micros_wait = ((secs_wait * 1000000) + next_time.tv_usec) - (end.tv_usec);
+    // sleep until next_time_point, i.e. the difference
+    // betwwen next_time_point and end_time_point
+    ret = rcutils_system_time_now(&end_time_point);
+    sleep_time = next_time_point - end_time_point;
+
     // sleep until next_time timepoint
-    if (micros_wait > 0) {
-      usleep(micros_wait);
+    if (sleep_time > 0) {
+      usleep(sleep_time / 1000);
     }
 
     // compute next timepoint to wake up
-    next_time = timeval_add(&next_time, &period_val);
-
-    #ifdef unit_test_spin_period
-    if (prev_start.tv_sec == 0 && prev_start.tv_usec == 0) {
-      // skip first round
-    } else {
-      // statistics - measure the time difference of gettimeofday(start) in each iteration
-      p_secs_used = (start.tv_sec - prev_start.tv_sec);   // avoid overflow by subtracting first
-      p_micros_used = ((p_secs_used * 1000000) + start.tv_usec) - (prev_start.tv_usec);
-      // printf("period %ld \n", p_micros_used );
-
-      // statistics
-      period_sum += p_micros_used;
-      cnt++;
-      if (cnt == 1000) {
-        printf("period average %f\n", (float) period_sum / (1000 * (float) cnt ));
-        period_sum = 0;
-        cnt = 0;
-      }
-    }
-    // save start timepoint
-    prev_start = start;
-    #endif
+    next_time_point = next_time_point + period;
   }
   return ret;
 }
