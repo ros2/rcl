@@ -564,7 +564,7 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
   int64_t p_secs_used, p_micros_used;
   unsigned int period_sum = 0;
   unsigned int cnt = 0;
-  printf("starting unit test\n")
+  printf("starting unit test\n");
   #endif
 
   // conversion from nano-seconds to micro-seconds
@@ -579,7 +579,7 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
     period_val.tv_sec = 0;
     period_val.tv_usec = period_usec;
   }
-  printf("spin period = %d usec\n" period_val:tv_usec);
+  printf("spin period = %ld usec\n", period_val.tv_usec);
   // initialization of timepoints
   gettimeofday(&start, NULL);
 
