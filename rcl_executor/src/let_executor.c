@@ -197,8 +197,11 @@ rcle_let_executor_add_subscription(
   // increase index of handle array
   executor->index++;
 
-  // invalidate wait_set so that in next spin_some() wait_set is updated
-  executor->wait_set_valid = false;
+  // invalidate wait_set so that in next spin_some() call the 
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    rcl_wait_set_fini(&executor->wait_set);
+  }
 
   executor->info.number_of_subscriptions++;
 
@@ -233,8 +236,11 @@ rcle_let_executor_add_timer(
   // increase index of handle array
   executor->index++;
 
-  // invalidate wait_set so that in next spin_some() wait_set is updated
-  executor->wait_set_valid = false;
+  // invalidate wait_set so that in next spin_some() call the 
+  // 'executor->wait_set' is updated accordingly
+  if (rcl_wait_set_is_valid(&executor->wait_set)) {
+    rcl_wait_set_fini(&executor->wait_set);
+  }
 
   executor->info.number_of_timers++;
 
@@ -406,16 +412,19 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "spin_some");
 
-  if (executor->wait_set_valid == false) {
-    // we assume that this is the first time and init has been called
-    // or some _add function has been called after spin_some and thereby
-    // adding some handles to the wait_set
+  // initialize wait_set if
+  // (1) this is the first invocation of let_executor_spin_some()
+  // (2) let_executor_add_timer() or let_executor_add_subscription() has been called.
+  //     i.e. a new timer or subscription has been added to the Executor.
+  if (!rcl_wait_set_is_valid(&executor->wait_set)) {
     // calling wait_set on zero_initialized wait_set multiple times is ok.
     rcl_ret_t rc = rcl_wait_set_fini(&executor->wait_set);
     if (rc != RCL_RET_OK) {
       PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_fini);
     }
+    // initialize wait_set
     executor->wait_set = rcl_get_zero_initialized_wait_set();
+    // create sufficient memory space for all handles in the wait_set
     rc = rcl_wait_set_init(&executor->wait_set, executor->info.number_of_subscriptions,
         executor->info.number_of_guard_conditions, executor->info.number_of_timers,
         executor->info.number_of_clients, executor->info.number_of_services,
@@ -425,8 +434,6 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
       PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_init);
       return rc;
     }
-
-    executor->wait_set_valid = true;
   }
 
   // set rmw fields to NULL
