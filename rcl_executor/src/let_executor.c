@@ -166,18 +166,15 @@ rcle_let_executor_add_subscription(
   rcle_callback_t callback,
   rcle_invocation_t invocation)
 {
-  rcl_ret_t ret = RCL_RET_OK;
-
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(msg, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
-
+  rcl_ret_t ret = RCL_RET_OK;
   // array bound check
   if (executor->index >= executor->max_handles) {
-    rcl_ret_t ret = RCL_RET_ERROR;     // TODO(jst3si) better name : RCLE_RET_BUFFER_OVERFLOW
     RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
-    return ret;
+    return ret RCL_RET_ERROR;
   }
 
   // assign data fields
