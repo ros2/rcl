@@ -233,7 +233,7 @@ of 100ms with timer callback `timer1_timeout`, as defined in [Step 3](#Step3).
   rc = rcl_timer_init(&timer1, &clock, &context, RCL_MS_TO_NS(timer1_timeout),
       my_timer_callback, allocator);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(create_timer, rcl_timer_init);
+    PRINT_RCL_LET_ERROR(create_timer, rcl_timer_init);
     return -1;
   } else {
     printf("Created timer1 with timeout %d ms.\n", timer1_timeout);
@@ -263,7 +263,7 @@ The user can configure, when the callback shall be invoked: Options are `ALWAYS`
 
 ```C
   rcle_let_executor_add_timer(&exe, &timer1);
-  if (rc != RCL_RET_OK) {PRINT_RCL_ERROR(rcle_executor, add_timer);}
+  if (rc != RCL_RET_OK) {PRINT_RCL_LET_ERROR(rcle_executor, add_timer);}
 ```
 
 

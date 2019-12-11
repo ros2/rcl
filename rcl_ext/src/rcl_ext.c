@@ -29,14 +29,14 @@ rcl_ext_init(
   init_obj->init_options = rcl_get_zero_initialized_init_options();
   rc = rcl_init_options_init(&init_obj->init_options, (*allocator) );
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_init, rcl_init_options_init);
+    PRINT_RCL_LET_ERROR(rcl_ext_init, rcl_init_options_init);
     return rc;
   }
 
   init_obj->context = rcl_get_zero_initialized_context();
   rc = rcl_init(argc, argv, &init_obj->init_options, &init_obj->context);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_init, rcl_init);
+    PRINT_RCL_LET_ERROR(rcl_ext_init, rcl_init);
     return rc;
   }
   init_obj->allocator = allocator;
@@ -77,7 +77,7 @@ rcl_ext_create_node(
         &init_obj->context, &node_ops);
     if (rc != RCL_RET_OK) {
       init_obj->allocator->deallocate(node, init_obj->allocator->state);
-      PRINT_RCL_ERROR(rcl_ext_create_node, rcl_node_init);
+      PRINT_RCL_LET_ERROR(rcl_ext_create_node, rcl_node_init);
       return NULL;
     }
   }
@@ -93,7 +93,7 @@ rcl_ext_node_fini(rcl_ext_init_t * init_obj, rcl_node_t * node)
   // clean-up rcl_node_t
   rcl_ret_t rc = rcl_node_fini(node);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_node_fini, rcl_node_fini);
+    PRINT_RCL_LET_ERROR(rcl_ext_node_fini, rcl_node_fini);
   }
 
   // de-allocate node itself
@@ -129,7 +129,7 @@ rcl_ext_create_publisher(
     topic_name,
     &pub_opt);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_create_publisher, rcl_publisher_init);
+    PRINT_RCL_LET_ERROR(rcl_ext_create_publisher, rcl_publisher_init);
     allocator->deallocate(pub, allocator->state);
     return NULL;
   }
@@ -148,7 +148,7 @@ rcl_ext_publisher_fini(rcl_ext_init_t * init_obj, rcl_publisher_t * publisher, r
   // clean-up publisher
   rc = rcl_publisher_fini(publisher, node);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_publisher_fini, rcl_publisher_fini);
+    PRINT_RCL_LET_ERROR(rcl_publisher_fini, rcl_publisher_fini);
   }
 
   // de-allocate publisher itself
@@ -182,7 +182,7 @@ rcl_ext_create_subscription(
     topic_name,
     &sub_ops);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_create_subscription, rcl_subscription_init);
+    PRINT_RCL_LET_ERROR(rcl_ext_create_subscription, rcl_subscription_init);
     allocator->deallocate(sub, allocator->state);
     return NULL;
   }
@@ -204,7 +204,7 @@ rcl_ext_subscription_fini(
   // de-allocate memory inside subscription
   rcl_ret_t rc = rcl_subscription_fini(subscription, node);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_subscription_fini, rcl_subscription_fini);
+    PRINT_RCL_LET_ERROR(rcl_ext_subscription_fini, rcl_subscription_fini);
   }
 
   // de-allocate subscription itself
@@ -227,7 +227,7 @@ rcl_ext_create_timer(
 
   rc = rcl_clock_init(RCL_STEADY_TIME, &init_obj->clock, init_obj->allocator);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_create_timer, rcl_clock_init);
+    PRINT_RCL_LET_ERROR(rcl_ext_create_timer, rcl_clock_init);
     init_obj->allocator->deallocate(timer, init_obj->allocator->state);
     return NULL;
   }
@@ -236,7 +236,7 @@ rcl_ext_create_timer(
   rc = rcl_timer_init(timer, &init_obj->clock, &init_obj->context, timeout_ns,
       callback, (*init_obj->allocator));
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_create_timer, rcl_timer_init);
+    PRINT_RCL_LET_ERROR(rcl_ext_create_timer, rcl_timer_init);
     return NULL;
   } else {
     RCUTILS_LOG_INFO("Created a timer with period %ld ms.\n", timeout_ns / 1000000);
@@ -257,7 +257,7 @@ rcl_ext_timer_fini(rcl_ext_init_t * init_obj, rcl_timer_t * timer)
   // de-allocate the memory within rcl_timer_t
   rc = rcl_timer_fini(timer);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcl_ext_timer_fini, rcl_timer_fini);
+    PRINT_RCL_LET_ERROR(rcl_ext_timer_fini, rcl_timer_fini);
   }
   // de-allocate the timer itself
   init_obj->allocator->deallocate(timer, init_obj->allocator->state);

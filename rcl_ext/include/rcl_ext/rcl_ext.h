@@ -281,8 +281,8 @@ rcl_ext_timer_fini(
 /**
  * macro to print errors
  */
-#ifndef PRINT_RCL_ERROR
-#define PRINT_RCL_ERROR(rcl_ext, rcl) \
+#ifndef PRINT_RCL_LET_ERROR
+#define PRINT_RCL_LET_ERROR(rcl_ext, rcl) \
   do { \
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, \
       "[" #rcl_ext "] error in " #rcl ": %s\n", rcutils_get_error_string().str); \

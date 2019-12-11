@@ -147,7 +147,7 @@ rcle_let_executor_fini(rcle_let_executor_t * executor)
     if (rcl_wait_set_is_valid(&executor->wait_set)) {
       rcl_ret_t rc = rcl_wait_set_fini(&executor->wait_set);
       if (rc != RCL_RET_OK) {
-        PRINT_RCL_ERROR(rcle_let_executor_fini, rcl_wait_set_fini);
+        PRINT_RCL_LET_ERROR(rcle_let_executor_fini, rcl_wait_set_fini);
       }
     }
     executor->timeout_ns = DEFAULT_WAIT_TIMEOUT_MS;
@@ -267,7 +267,7 @@ _rcle_read_input_data(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set,
         if (rc != RCL_RET_OK) {
           // it is documented, that rcl_take might return this error with successfull rcl_wait
           if (rc != RCL_RET_SUBSCRIPTION_TAKE_FAILED) {
-            PRINT_RCL_ERROR(rcle_read_input_data, rcl_take);
+            PRINT_RCL_LET_ERROR(rcle_read_input_data, rcl_take);
             RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error number: %d", rc);
           }
 
@@ -283,7 +283,7 @@ _rcle_read_input_data(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set,
         bool timer_is_ready = false;
         rc = rcl_timer_is_ready(executor->handles[i].timer, &timer_is_ready);
         if (rc != RCL_RET_OK) {
-          PRINT_RCL_ERROR(rcle_read_input_data, rcl_timer_is_ready);
+          PRINT_RCL_LET_ERROR(rcle_read_input_data, rcl_timer_is_ready);
           return rc;
         }
 
@@ -292,7 +292,7 @@ _rcle_read_input_data(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set,
         if (timer_is_ready) {
           executor->handles[i].data_available = true;
         } else {
-          PRINT_RCL_ERROR(rcle_read_input_data, rcl_timer_should_be_ready);
+          PRINT_RCL_LET_ERROR(rcle_read_input_data, rcl_timer_should_be_ready);
           return RCL_RET_ERROR;
         }
       }
@@ -342,7 +342,7 @@ _rcle_execute(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set, size_t 
       case TIMER:
         rc = rcl_timer_call(executor->handles[i].timer);
         if (rc != RCL_RET_OK) {
-          PRINT_RCL_ERROR(rcle_execute, rcl_timer_call);
+          PRINT_RCL_LET_ERROR(rcle_execute, rcl_timer_call);
           return rc;
         }
         break;
@@ -411,7 +411,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
     // calling wait_set on zero_initialized wait_set multiple times is ok.
     rcl_ret_t rc = rcl_wait_set_fini(&executor->wait_set);
     if (rc != RCL_RET_OK) {
-      PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_fini);
+      PRINT_RCL_LET_ERROR(rcle_let_executor_spin_some, rcl_wait_set_fini);
     }
     // initialize wait_set
     executor->wait_set = rcl_get_zero_initialized_wait_set();
@@ -422,7 +422,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
         executor->info.number_of_events,
         executor->context, rcl_get_default_allocator());
     if (rc != RCL_RET_OK) {
-      PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_init);
+      PRINT_RCL_LET_ERROR(rcle_let_executor_spin_some, rcl_wait_set_init);
       return rc;
     }
   }
@@ -430,7 +430,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
   // set rmw fields to NULL
   rc = rcl_wait_set_clear(&executor->wait_set);
   if (rc != RCL_RET_OK) {
-    PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_clear);
+    PRINT_RCL_LET_ERROR(rcle_let_executor_spin_some, rcl_wait_set_clear);
     return rc;
   }
 
@@ -444,7 +444,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
         rc = rcl_wait_set_add_subscription(&executor->wait_set, executor->handles[i].subscription,
             &executor->handles[i].index);
         if (rc != RCL_RET_OK) {
-          PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_add_subscription);
+          PRINT_RCL_LET_ERROR(rcle_let_executor_spin_some, rcl_wait_set_add_subscription);
           return rc;
         } else {
           RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
@@ -458,7 +458,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
         rc = rcl_wait_set_add_timer(&executor->wait_set, executor->handles[i].timer,
             &executor->handles[i].index);
         if (rc != RCL_RET_OK) {
-          PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_add_timer);
+          PRINT_RCL_LET_ERROR(rcle_let_executor_spin_some, rcl_wait_set_add_timer);
           return rc;
         } else {
           RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer added to wait_set_timers[%ld]",
@@ -469,7 +469,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
       default:
         RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Error: unknown handle type: %d",
           executor->handles[i].type);
-        PRINT_RCL_ERROR(rcle_let_executor_spin_some, rcl_wait_set_unknown_handle);
+        PRINT_RCL_LET_ERROR(rcle_let_executor_spin_some, rcl_wait_set_unknown_handle);
         return RCL_RET_ERROR;
     }
   }
@@ -481,7 +481,7 @@ rcle_let_executor_spin_some(rcle_let_executor_t * executor, const uint64_t timeo
   rc = _rcle_let_scheduling(executor, &executor->wait_set);
 
   if (rc != RCL_RET_OK) {
-    // PRINT_RCL_ERROR has already been called in _rcle_let_scheduling()
+    // PRINT_RCL_LET_ERROR has already been called in _rcle_let_scheduling()
     return rc;
   }
 

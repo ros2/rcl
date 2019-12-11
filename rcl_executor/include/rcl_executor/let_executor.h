@@ -293,7 +293,7 @@ rcle_let_executor_spin_one_period(rcle_let_executor_t * executor, const uint64_t
  * macro to print errors
  */
 
-#define PRINT_RCL_ERROR(rclc, rcl) \
+#define PRINT_RCL_LET_ERROR(rclc, rcl) \
   do { \
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, \
       "[" #rclc "] error in " #rcl ": %s\n", rcutils_get_error_string().str); \
