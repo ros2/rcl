@@ -39,14 +39,6 @@ static
 rcl_ret_t
 _rcle_let_scheduling(rcle_let_executor_t * executor, rcl_wait_set_t * wait_set);
 
-
-void
-_rcle_print_handles(rcle_let_executor_t * executor)
-{
-  for (unsigned int i = 0; i < executor->max_handles && executor->handles[i].initialized; i++) {
-    rcle_handle_print(&executor->handles[i]);
-  }
-}
 // rationale: user must create an executor with:
 // executor = rcle_let_executor_get_zero_initialized_executor();
 // then handles==NULL or not (e.g. properly initialized)
