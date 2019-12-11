@@ -174,7 +174,7 @@ rcle_let_executor_add_subscription(
   // array bound check
   if (executor->index >= executor->max_handles) {
     RCL_SET_ERROR_MSG("Buffer overflow of 'executor->handles'. Increase 'max_handles'");
-    return ret RCL_RET_ERROR;
+    return RCL_RET_ERROR;
   }
 
   // assign data fields

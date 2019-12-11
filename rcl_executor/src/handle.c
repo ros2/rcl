@@ -25,14 +25,7 @@ rcl_ret_t
 rcle_handle_size_zero_init(rcle_handle_size_t * info)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(info, RCL_RET_INVALID_ARGUMENT);
-
-  info->number_of_subscriptions = 0;
-  info->number_of_guard_conditions = 0;
-  info->number_of_timers = 0;
-  info->number_of_clients = 0;
-  info->number_of_events = 0;
-  info->number_of_services = 0;
-
+  memset(info, 0, sizeof(rcle_handle_size_t));
   return RCL_RET_OK;
 }
 
