@@ -101,7 +101,8 @@ typedef struct
 } rcle_handle_size_t;
 
 
-/** Initializes total number of handle types to zero.
+/**
+ * Initializes total number of handle types to zero.
  *
  * <hr>
  * Attribute          | Adherence
