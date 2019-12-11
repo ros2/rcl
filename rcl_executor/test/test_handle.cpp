@@ -18,24 +18,9 @@
 // #include <geometry_msgs/msg/twist.h>
 #include <gtest/gtest.h>
 #include "rcl_executor/handle.h"
-#include "osrf_testing_tools_cpp/scope_exit.hpp"
 
-class TestDefaultHandle : public ::testing::Test
-{
-public:
-  void SetUp()
-  {
-  }
 
-  void TearDown()
-  {
-  }
-};
-
-/*
- * Test suite
- */
-TEST_F(TestDefaultHandle, handle_size_zero_init) {
+TEST(Test, handle_size_zero_init) {
   rcl_ret_t rc;
 
   rcle_handle_size_t info;
@@ -55,7 +40,7 @@ TEST_F(TestDefaultHandle, handle_size_zero_init) {
   rcutils_reset_error();
 }
 
-TEST_F(TestDefaultHandle, handle_init) {
+TEST(Test, handle_init) {
   rcl_ret_t rc;
 
   rcle_handle_t handle;
@@ -78,7 +63,7 @@ TEST_F(TestDefaultHandle, handle_init) {
   rcutils_reset_error();
 }
 
-TEST_F(TestDefaultHandle, handle_clear) {
+TEST(Test, handle_clear) {
   rcl_ret_t rc;
 
   rcle_handle_t handle;
@@ -100,7 +85,7 @@ TEST_F(TestDefaultHandle, handle_clear) {
   rcutils_reset_error();
 }
 
-TEST_F(TestDefaultHandle, handle_print) {
+TEST(Test, handle_print) {
   rcl_ret_t rc;
 
   rcle_handle_t handle;
