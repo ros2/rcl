@@ -528,50 +528,56 @@ timeval_add(const struct timeval * a, const struct timeval * b)
   return result;
 }
 
+
+/*
+ The reason for splitting this function up, is to be able to write a unit test.
+ The spin_period is an endless loop, therefore it is not possible to stop after x iterations. The function
+ rcle_let_executor_spin_period_ implements one iteration and the function
+ rcle_let_executor_spin_period implements the endless while-loop. The unit test covers only
+ rcle_let_executor_spin_period_.
+*/
 rcl_ret_t
-rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t period)
+rcle_let_executor_spin_period_(rcle_let_executor_t * executor, const uint64_t period)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
 
   rcutils_time_point_value_t start_time_point;
   rcutils_time_point_value_t end_time_point;
-  rcutils_time_point_value_t next_time_point;
+  static rcutils_time_point_value_t next_time_point;
   rcutils_duration_value_t sleep_time;
 
-  ret = rcutils_system_time_now(&start_time_point);
-
-  /*
-  const unsigned int TIMEPOINT_STR_SIZE = 32;
-  char tp_str[TIMEPOINT_STR_SIZE];
-  rc = rcutils_time_point_value_as_nanoseconds_string(&start_time_point, tp_str, TIMEPOINT_STR_SIZE);
-  printf("Timepoint: %s\n", tp_str);
-  */
-
-  // start_time_point (unit: nanoseconds)
-  // period (unit: nanoseconds)
-  next_time_point = start_time_point + period;
-
-  while (rcl_context_is_valid(executor->context) ) {
-    // call spin_some
-    ret = rcle_let_executor_spin_some(executor, executor->timeout_ns);
-    if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
-      RCL_SET_ERROR_MSG("rcle_let_executor_spin_some error");
-      return ret;
-    }
-
-    // sleep until next_time_point, i.e. the difference
-    // betwwen next_time_point and end_time_point
-    ret = rcutils_system_time_now(&end_time_point);
-    sleep_time = next_time_point - end_time_point;
-
-    // sleep until next_time timepoint
-    if (sleep_time > 0) {
-      usleep(sleep_time / 1000);
-    }
-
-    // compute next timepoint to wake up
-    next_time_point = next_time_point + period;
+  static bool initialized = false;
+  if (!initialized) {
+    ret = rcutils_system_time_now(&start_time_point);
+    // start_time_point (unit: nanoseconds)
+    // period (unit: nanoseconds)
+    next_time_point = start_time_point + period;
+    initialized = true;
   }
+  // call spin_some
+  ret = rcle_let_executor_spin_some(executor, executor->timeout_ns);
+  if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
+    RCL_SET_ERROR_MSG("rcle_let_executor_spin_some error");
+    return ret;
+  }
+  // sleep until next_time_point, i.e. the difference
+  // betwwen next_time_point and end_time_point
+  ret = rcutils_system_time_now(&end_time_point);
+  sleep_time = next_time_point - end_time_point;
+  // sleep until next_time_timepoint
+  if (sleep_time > 0) {
+    usleep(sleep_time / 1000);
+  }
+  // compute next timepoint to wake up
+  next_time_point = next_time_point + period;
   return ret;
+}
+
+rcl_ret_t
+rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t period)
+{
+  while (rcl_context_is_valid(executor->context) ) {
+    rcle_let_executor_spin_period_(executor, period);
+  }
 }

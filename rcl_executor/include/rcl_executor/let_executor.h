@@ -277,6 +277,16 @@ rcle_let_executor_spin(rcle_let_executor_t * executor);
 rcl_ret_t
 rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t period);
 
+
+/*
+ The reason for splitting this function up, is to be able to write a unit test.
+ The spin_period is an endless loop, therefore it is not possible to stop after x iterations. The function
+ rcle_let_executor_spin_period_ implements one iteration and the function
+ rcle_let_executor_spin_period implements the endless while-loop. The unit test covers only
+ rcle_let_executor_spin_period_.
+*/
+rcl_ret_t
+rcle_let_executor_spin_period_(rcle_let_executor_t * executor, const uint64_t period);
 /**
  * macro to print errors
  */

@@ -13,17 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/string.h>
 #include <geometry_msgs/msg/twist.h>
 #include <gtest/gtest.h>
+
 #include <vector>
 #include <chrono>
 #include <thread>
 
-#include "rcl_executor/let_executor.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
-
+#include "rcl_executor/let_executor.h"
+#include "rcutils/time.h"
 
 // 27.06.2019, unit test adapted from ros2/rcl/rcl_lifecycle/test/test_default_state_machine.cpp
 // by Jan Staschulat, under Apache 2.0 License
@@ -45,9 +47,6 @@ static unsigned int _cb1_cnt = 0;
 static unsigned int _cb2_cnt = 0;
 // callback for topic "chatter3"
 static unsigned int _cb3_cnt = 0;
-
-// number of function calls
-static unsigned int _fn_cnt = 0;
 
 static
 void
@@ -193,6 +192,49 @@ void cmd_hello_callback(const void * msgin)
   }
 }
 
+// callback for unit test 'spin_period'
+static const unsigned int MAX_SPIN_PERIOD_INVOCATIONS = 100;
+static rcutils_duration_value_t period_time[MAX_SPIN_PERIOD_INVOCATIONS];
+static unsigned int invocation_count = 0;  // array index
+
+void spin_period_callback(const void * msgin)
+{
+  const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
+  static rcutils_time_point_value_t last_call;
+  rcutils_time_point_value_t now;
+  rcl_ret_t rc;
+
+  // get current time stamp
+  rc = rcutils_system_time_now(&now);
+
+  // compute and store duration from 'last_call' until 'now'
+  if (invocation_count == 0) {
+    rc = rcutils_system_time_now(&last_call);
+  } else {
+    if (invocation_count < MAX_SPIN_PERIOD_INVOCATIONS) {
+      period_time[invocation_count] = now - last_call;
+      last_call = now;
+    } else {
+      printf("Error: spin_period_callback: Too many calls to the callback.\n");
+    }
+  }
+  // increment array index
+  invocation_count++;
+}
+
+// returns average time in nanoseconds
+uint64_t test_case_evaluate_spin_period()
+{
+  uint64_t sum;
+  sum = 0;
+  // i starts from 1 because the the first measurement starts in 1st iteration.
+  for (unsigned int i = 1; i < MAX_SPIN_PERIOD_INVOCATIONS; i++) {
+    sum += period_time[i];
+    // overflow => use micro-seconds (divide by 1000)
+  }
+  return sum / (MAX_SPIN_PERIOD_INVOCATIONS - 1);
+}
+
 // callback for topic "cmd_vel"
 int numberMsgCmdVel = 0;
 void cmd_vel_callback(const void * msgin)  // TwistConstPtr
@@ -219,12 +261,6 @@ void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
   }
 }
 
-// function call
-void my_function_call(void)
-{
-  _fn_cnt++;
-  // printf("Function called\n");
-}
 
 class TestDefaultExecutor : public ::testing::Test
 {
@@ -1153,8 +1189,8 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   ///////////////////////////////////////////////////////////////////////////////////
 
   // received one message
-  EXPECT_EQ(0, _cb1_cnt);
-  EXPECT_EQ(0, _cb2_cnt);
+  EXPECT_EQ((unsigned int)0, _cb1_cnt);
+  EXPECT_EQ((unsigned int)0, _cb2_cnt);
 
   ret = rcl_publish(&publisher1, &pub_msg1, nullptr);
   EXPECT_EQ(RCL_RET_OK, ret) << " publisher1 did not publish!";
@@ -1175,8 +1211,8 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ(true, rcl_wait_set_is_valid(&executor.wait_set));
 
   // received one message
-  EXPECT_EQ(1, _cb1_cnt);
-  EXPECT_EQ(0, _cb2_cnt);
+  EXPECT_EQ((unsigned int)1, _cb1_cnt);
+  EXPECT_EQ((unsigned int)0, _cb2_cnt);
 
   ///////////////////////////////////////////////////////////////////////////////////
   /////////// test case 2 : add another subscription
@@ -1210,27 +1246,39 @@ TEST_F(TestDefaultExecutor, update_wait_set) {
   EXPECT_EQ(true, rcl_wait_set_is_valid(&executor.wait_set));
 
   // received two msg at callback 1 and one msg at callback 2:
-  EXPECT_EQ(2, _cb1_cnt);
-  EXPECT_EQ(1, _cb2_cnt);
+  EXPECT_EQ((unsigned int)2, _cb1_cnt);
+  EXPECT_EQ((unsigned int)1, _cb2_cnt);
 }
 
-/*
+
 TEST_F(TestDefaultExecutor, spin_period) {
   rcl_ret_t rc;
   rcle_let_executor_t executor;
-
-  // initialize result variables
-  _fn_cnt = 0;
 
   // initialize executor with 1 handle
   rc = rcle_let_executor_init(&executor, this->context_ptr, 1, this->allocator);
   EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
 
-  rc = rcle_let_executor_add_timer(&executor, this->timer1_ptr);
-  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  // set timeout to zero - so that rcl_wait() comes back immediately
+  rc = rcle_let_executor_set_timeout(&executor, 0);
 
-  // spin with period 10ms = 10 000 000 ns
-  rcle_let_executor_spin_period(&executor, 10000000);
-  rcle_let_executor_fini(&executor);
+  // add dummy subscription (with string msg), which is always executed
+  rc = rcle_let_executor_add_subscription(&executor, this->sub2_ptr, &this->sub2_msg,
+      &spin_period_callback, ALWAYS);
+  EXPECT_EQ(RCL_RET_OK, rc) << rcl_get_error_string().str;
+  rcutils_reset_error();
+
+  // measure the timepoint, when spin_period_callback() is called
+  uint64_t spin_period = 20000000;  // 20 ms
+  for (unsigned int i = 0; i < MAX_SPIN_PERIOD_INVOCATIONS; i++) {
+    rcle_let_executor_spin_period_(&executor, spin_period);
+  }
+  // compute avarage time duration between calls to spin_period_callback
+  uint64_t duration = test_case_evaluate_spin_period();
+  printf("period  : %ld\n", spin_period);
+  printf("duration: %ld\n", duration);
+
+  uint64_t delta = 10000;  // 10 micro-seconds bound
+  EXPECT_LE(duration, spin_period + delta);
+  EXPECT_LE(spin_period - delta, duration);
 }
-*/
