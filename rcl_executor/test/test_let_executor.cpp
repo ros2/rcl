@@ -194,31 +194,22 @@ void cmd_hello_callback(const void * msgin)
 
 // callback for unit test 'spin_period'
 static const unsigned int MAX_SPIN_PERIOD_INVOCATIONS = 100;
-static rcutils_duration_value_t period_time[MAX_SPIN_PERIOD_INVOCATIONS];
+static rcutils_duration_value_t callback_invocation_timepoints[MAX_SPIN_PERIOD_INVOCATIONS];
 static unsigned int invocation_count = 0;  // array index
 
 void spin_period_callback(const void * msgin)
 {
   const std_msgs__msg__String * msg = (const std_msgs__msg__String *)msgin;
-  static rcutils_time_point_value_t last_call;
   rcutils_time_point_value_t now;
   rcl_ret_t rc;
 
-  // get current time stamp
   rc = rcutils_system_time_now(&now);
 
-  // compute and store duration from 'last_call' until 'now'
-  if (invocation_count == 0) {
-    rc = rcutils_system_time_now(&last_call);
+  if (invocation_count < MAX_SPIN_PERIOD_INVOCATIONS) {
+    callback_invocation_timepoints[invocation_count] = now;
   } else {
-    if (invocation_count < MAX_SPIN_PERIOD_INVOCATIONS) {
-      period_time[invocation_count] = now - last_call;
-      last_call = now;
-    } else {
-      printf("Error: spin_period_callback: Too many calls to the callback.\n");
-    }
+    printf("Error: spin_period_callback: Too many calls to the callback.\n");
   }
-  // increment array index
   invocation_count++;
 }
 
@@ -229,7 +220,7 @@ uint64_t test_case_evaluate_spin_period()
   sum = 0;
   // i starts from 1 because the the first measurement starts in 1st iteration.
   for (unsigned int i = 1; i < MAX_SPIN_PERIOD_INVOCATIONS; i++) {
-    sum += period_time[i];
+    sum += callback_invocation_timepoints[i] - callback_invocation_timepoints[i - 1];
     // overflow => use micro-seconds (divide by 1000)
   }
   return sum / (MAX_SPIN_PERIOD_INVOCATIONS - 1);
@@ -1271,7 +1262,7 @@ TEST_F(TestDefaultExecutor, spin_period) {
   // measure the timepoint, when spin_period_callback() is called
   uint64_t spin_period = 20000000;  // 20 ms
   for (unsigned int i = 0; i < MAX_SPIN_PERIOD_INVOCATIONS; i++) {
-    rcle_let_executor_spin_period_(&executor, spin_period);
+    rcle_let_executor_spin_one_period(&executor, spin_period);
   }
   // compute avarage time duration between calls to spin_period_callback
   uint64_t duration = test_case_evaluate_spin_period();

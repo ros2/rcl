@@ -1,5 +1,5 @@
-// Copyright (c) 2018 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rcl_executor.
+// Copyright (c) 2019 - for information on the respective copyright owner
+// see the NOTICE file.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -77,7 +77,8 @@ rcle_let_executor_get_zero_initialized_executor()
     .max_handles = 0,
     .index = 0,
     .allocator = NULL,
-    .timeout_ns = 0
+    .timeout_ns = 0,
+    .invocation_time = 0
   };
   return null_executor;
 }
@@ -514,20 +515,6 @@ rcle_let_executor_spin(rcle_let_executor_t * executor)
   return ret;
 }
 
-// calculates addition of positive arguments
-struct timeval
-timeval_add(const struct timeval * a, const struct timeval * b)
-{
-  struct timeval result;
-  result.tv_sec = a->tv_sec + b->tv_sec;
-  result.tv_usec = a->tv_usec + b->tv_usec;
-  if (result.tv_usec >= 1000000) {
-    result.tv_sec++;
-    result.tv_usec -= 1000000;
-  }
-  return result;
-}
-
 
 /*
  The reason for splitting this function up, is to be able to write a unit test.
@@ -537,40 +524,28 @@ timeval_add(const struct timeval * a, const struct timeval * b)
  rcle_let_executor_spin_period_.
 */
 rcl_ret_t
-rcle_let_executor_spin_period_(rcle_let_executor_t * executor, const uint64_t period)
+rcle_let_executor_spin_one_period(rcle_let_executor_t * executor, const uint64_t period)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(executor, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t ret = RCL_RET_OK;
-
-  rcutils_time_point_value_t start_time_point;
   rcutils_time_point_value_t end_time_point;
-  static rcutils_time_point_value_t next_time_point;
   rcutils_duration_value_t sleep_time;
 
-  static bool initialized = false;
-  if (!initialized) {
-    ret = rcutils_system_time_now(&start_time_point);
-    // start_time_point (unit: nanoseconds)
-    // period (unit: nanoseconds)
-    next_time_point = start_time_point + period;
-    initialized = true;
+  if (executor->invocation_time == 0) {
+    ret = rcutils_system_time_now(&executor->invocation_time);
   }
-  // call spin_some
   ret = rcle_let_executor_spin_some(executor, executor->timeout_ns);
   if (!((ret == RCL_RET_OK) || (ret == RCL_RET_TIMEOUT))) {
     RCL_SET_ERROR_MSG("rcle_let_executor_spin_some error");
     return ret;
   }
-  // sleep until next_time_point, i.e. the difference
-  // betwwen next_time_point and end_time_point
+  // sleep until invocation_time plus period
   ret = rcutils_system_time_now(&end_time_point);
-  sleep_time = next_time_point - end_time_point;
-  // sleep until next_time_timepoint
+  sleep_time = (executor->invocation_time + period) - end_time_point;
   if (sleep_time > 0) {
     usleep(sleep_time / 1000);
   }
-  // compute next timepoint to wake up
-  next_time_point = next_time_point + period;
+  executor->invocation_time += period;
   return ret;
 }
 
@@ -578,6 +553,8 @@ rcl_ret_t
 rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t period)
 {
   while (rcl_context_is_valid(executor->context) ) {
-    rcle_let_executor_spin_period_(executor, period);
+    rcle_let_executor_spin_one_period(executor, period);
   }
+  // never get here
+  return RCL_RET_OK;
 }

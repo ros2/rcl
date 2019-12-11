@@ -1,5 +1,5 @@
-// Copyright (c) 2018 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rcl_executor.
+// Copyright (c) 2019 - for information on the respective copyright owner
+// see the NOTICE file.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,6 +52,8 @@ typedef struct
   rcle_handle_size_t info;
   /// timeout in nanoseconds for rcl_wait() used in rcle_let_executor_spin_once(). Default 100ms
   uint64_t timeout_ns;
+  /// timepoint used for spin_period()
+  rcutils_time_point_value_t invocation_time;
 } rcle_let_executor_t;
 
 
@@ -286,7 +288,7 @@ rcle_let_executor_spin_period(rcle_let_executor_t * executor, const uint64_t per
  rcle_let_executor_spin_period_.
 */
 rcl_ret_t
-rcle_let_executor_spin_period_(rcle_let_executor_t * executor, const uint64_t period);
+rcle_let_executor_spin_one_period(rcle_let_executor_t * executor, const uint64_t period);
 /**
  * macro to print errors
  */

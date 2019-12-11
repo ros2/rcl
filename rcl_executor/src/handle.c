@@ -1,5 +1,5 @@
-// Copyright (c) 2018 - for information on the respective copyright owner
-// see the NOTICE file and/or the repository https://github.com/micro-ROS/rcl_executor.
+// Copyright (c) 2019 - for information on the respective copyright owner
+// see the NOTICE file.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
