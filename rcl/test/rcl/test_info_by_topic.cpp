@@ -268,7 +268,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(&this->node,
       &allocator, this->topic_name, false, temp_info_array);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_EQ(RCL_RET_ERROR, ret);
 }
 
 /*
@@ -289,7 +289,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(&this->node,
       &allocator, this->topic_name, false, temp_info_array);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_EQ(RCL_RET_ERROR, ret);
 }
 
 TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
