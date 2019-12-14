@@ -544,7 +544,7 @@ rcl_count_subscribers(
  * The `allocator` will be used to allocate memory to the `info_array` member
  * inside of `publishers_info`.
  * Moreover, every const char * member inside of
- * rmw_topic_info_t will be allocated memory and assigned a copied value.
+ * rmw_topic_info_t will be assigned a copied value on allocated memory.
  * @see rmw_topic_info_set_node_name and the likes.
  * However, it is the responsibility of the caller to
  * reclaim any allocated resources to `publishers_info` to avoid leaking memory.
@@ -601,7 +601,7 @@ rcl_get_publishers_info_by_topic(
  * The `allocator` will be used to allocate memory to the `info_array` member
  * inside of `subscriptions_info`.
  * Moreover, every const char * member inside of
- * rmw_topic_info_t will be allocated memory and assigned a copied value.
+ * rmw_topic_info_t will be assigned a copied value on allocated memory.
  * @see rmw_topic_info_set_node_name and the likes.
  * However, it is the responsibility of the caller to
  * reclaim any allocated resources to `subscriptions_info` to avoid leaking memory.
