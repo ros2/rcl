@@ -97,7 +97,11 @@ public:
     ret = rcl_context_fini(&this->context);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-    ret = rcl_shutdown(&this->old_context);
+    // old_context was supposed to have been shutdown already during SetUp()
+    if (rcl_context_is_valid(&this->old_context)) {
+      ret = rcl_shutdown(&this->old_context);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
     ret = rcl_context_fini(&this->old_context);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
@@ -257,17 +261,15 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_invalid_participants)
 {
-  // temp_info_array is invalid because it is expected to be zero initialized
+  // topic_info_array is invalid because it is expected to be zero initialized
   // and the info_array variable inside it is expected to be null.
-  const auto & temp_info_array = &this->topic_info_array;
-  temp_info_array->info_array =
-    static_cast<rmw_topic_info_t *>(calloc(1, sizeof(rmw_topic_info_t)));
+  this->topic_info_array.info_array = new rmw_topic_info_t();
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    free(temp_info_array->info_array);
+    free(this->topic_info_array.info_array);
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(&this->node,
-      &allocator, this->topic_name, false, temp_info_array);
+      &allocator, this->topic_name, false, &this->topic_info_array);
   EXPECT_EQ(RCL_RET_ERROR, ret);
 }
 
@@ -278,17 +280,15 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_invalid_participants)
 {
-  // temp_info_array is invalid because it is expected to be zero initialized
+  // topic_info_array is invalid because it is expected to be zero initialized
   // and the info_array variable inside it is expected to be null.
-  const auto & temp_info_array = &this->topic_info_array;
-  temp_info_array->info_array =
-    static_cast<rmw_topic_info_t *>(calloc(1, sizeof(rmw_topic_info_t)));
+  this->topic_info_array.info_array = new rmw_topic_info_t();
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    free(temp_info_array->info_array);
+    free(this->topic_info_array.info_array);
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(&this->node,
-      &allocator, this->topic_name, false, temp_info_array);
+      &allocator, this->topic_name, false, &this->topic_info_array);
   EXPECT_EQ(RCL_RET_ERROR, ret);
 }
 
@@ -344,7 +344,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   rmw_topic_info_t topic_info_pub = topic_info_array_pub.info_array[0];
   EXPECT_STREQ(topic_info_pub.node_name, this->test_graph_node_name);
   EXPECT_STREQ(topic_info_pub.node_namespace, "/");
-  EXPECT_STREQ(topic_info_pub.topic_type, "test_msgs::msg::dds_::Strings_");
+  EXPECT_STREQ(topic_info_pub.topic_type, "test_msgs/msg/Strings");
   assert_qos_equality(topic_info_pub.qos_profile, default_qos_profile);
 
   rmw_topic_info_array_t topic_info_array_sub = rmw_get_zero_initialized_topic_info_array();
@@ -355,7 +355,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   rmw_topic_info_t topic_info_sub = topic_info_array_sub.info_array[0];
   EXPECT_STREQ(topic_info_sub.node_name, this->test_graph_node_name);
   EXPECT_STREQ(topic_info_sub.node_namespace, "/");
-  EXPECT_STREQ(topic_info_sub.topic_type, "test_msgs::msg::dds_::Strings_");
+  EXPECT_STREQ(topic_info_sub.topic_type, "test_msgs/msg/Strings");
   assert_qos_equality(topic_info_sub.qos_profile, default_qos_profile);
 
   // clean up

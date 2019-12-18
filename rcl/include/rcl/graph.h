@@ -421,8 +421,8 @@ rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
  *
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] allocator used to control allocation and deallocation of names
- * \param[out] node_names struct storing discovered node names.
- * \param[out] node_namesspaces struct storing discovered node namespaces.
+ * \param[out] node_names struct storing discovered node names
+ * \param[out] node_namesspaces struct storing discovered node namespaces
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
@@ -537,8 +537,9 @@ rcl_count_subscribers(
  * expanded to its fully qualified name.
  *
  * It is the responsibility of the caller to ensure that `publishers_info` parameter points
- * to a valid struct of type rmw_topic_info_array_t. The `count` field inside the struct
- * must be set to 0 and the `info_array` field inside the struct must be set to null.
+ * to a valid struct of type rmw_topic_info_array_t.
+ * The `count` field inside the struct must be set to 0 and the `info_array` field inside
+ * the struct must be set to null.
  * @see rmw_get_zero_initialized_topic_info_array
  *
  * The `allocator` will be used to allocate memory to the `info_array` member
@@ -563,8 +564,8 @@ rcl_count_subscribers(
  * \param[in] allocator allocator to be used when allocating space for
  *            the array inside publishers_info
  * \param[in] topic_name the name of the topic in question
- * \param[in] no_mangle if true, the topic_name will be expanded to its fully qualified name.
- * \param[out] publishers_info a struct representing a list of publisher information.
+ * \param[in] no_mangle if true, the topic_name will be expanded to its fully qualified name
+ * \param[out] publishers_info a struct representing a list of publisher information
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -594,8 +595,9 @@ rcl_get_publishers_info_by_topic(
  * expanded to its fully qualified name.
  *
  * It is the responsibility of the caller to ensure that `subscriptions_info` parameter points
- * to a valid struct of type rmw_topic_info_array_t. The `count` field inside the struct
- * must be set to 0 and the `info_array` field inside the struct must be set to null.
+ * to a valid struct of type rmw_topic_info_array_t.
+ * The `count` field inside the struct must be set to 0 and the `info_array` field inside
+ * the struct must be set to null.
  * @see rmw_get_zero_initialized_topic_info_array
  *
  * The `allocator` will be used to allocate memory to the `info_array` member
@@ -620,8 +622,8 @@ rcl_get_publishers_info_by_topic(
  * \param[in] allocator allocator to be used when allocating space for
  *            the array inside publishers_info
  * \param[in] topic_name the name of the topic in question
- * \param[in] no_mangle if true, the topic_name will be expanded to its fully qualified name.
- * \param[out] subscriptions_info a struct representing a list of subscriptions information.
+ * \param[in] no_mangle if true, the topic_name will be expanded to its fully qualified name
+ * \param[out] subscriptions_info a struct representing a list of subscriptions information
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
