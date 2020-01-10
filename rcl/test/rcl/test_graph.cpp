@@ -916,8 +916,8 @@ public:
   /**
    * Verify the number of subsystems each node should have.
    *
-   * @param node_state expected state of node
-   * @param remote_node_state expected state of remote node
+   * \param node_state expected state of node
+   * \param remote_node_state expected state of remote node
    */
   void VerifySubsystemCount(
     const expected_node_state && node_state,

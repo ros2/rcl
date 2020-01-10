@@ -377,7 +377,6 @@ rcl_count_subscribers(
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
-
 typedef rmw_ret_t (* get_topic_info_func_t)(
   const rmw_node_t * node,
   rcutils_allocator_t * allocator,
@@ -436,8 +435,13 @@ rcl_get_publishers_info_by_topic(
   bool no_mangle,
   rmw_topic_info_array_t * publishers_info)
 {
-  return __rcl_get_info_by_topic(node, allocator, topic_name, no_mangle, publishers_info,
-           rmw_get_publishers_info_by_topic);
+  return __rcl_get_info_by_topic(
+    node,
+    allocator,
+    topic_name,
+    no_mangle,
+    publishers_info,
+    rmw_get_publishers_info_by_topic);
 }
 
 rcl_ret_t
@@ -448,8 +452,13 @@ rcl_get_subscriptions_info_by_topic(
   bool no_mangle,
   rmw_topic_info_array_t * subscriptions_info)
 {
-  return __rcl_get_info_by_topic(node, allocator, topic_name, no_mangle, subscriptions_info,
-           rmw_get_subscriptions_info_by_topic);
+  return __rcl_get_info_by_topic(
+    node,
+    allocator,
+    topic_name,
+    no_mangle,
+    subscriptions_info,
+    rmw_get_subscriptions_info_by_topic);
 }
 
 rcl_ret_t
