@@ -336,7 +336,8 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   const std::string fqdn = std::string("/") + this->topic_name;
   // Get publishers info by topic
-  rmw_topic_endpoint_info_array_t topic_endpoint_info_array_pub = rmw_get_zero_initialized_topic_endpoint_info_array();
+  rmw_topic_endpoint_info_array_t topic_endpoint_info_array_pub =
+    rmw_get_zero_initialized_topic_endpoint_info_array();
   ret = rcl_get_publishers_info_by_topic(&this->node,
       &allocator, fqdn.c_str(), false, &topic_endpoint_info_array_pub);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -347,7 +348,8 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   EXPECT_STREQ(topic_endpoint_info_pub.topic_type, "test_msgs/msg/Strings");
   assert_qos_equality(topic_endpoint_info_pub.qos_profile, default_qos_profile);
 
-  rmw_topic_endpoint_info_array_t topic_endpoint_info_array_sub = rmw_get_zero_initialized_topic_endpoint_info_array();
+  rmw_topic_endpoint_info_array_t topic_endpoint_info_array_sub =
+    rmw_get_zero_initialized_topic_endpoint_info_array();
   ret = rcl_get_subscriptions_info_by_topic(&this->node,
       &allocator, fqdn.c_str(), false, &topic_endpoint_info_array_sub);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -359,7 +361,8 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   assert_qos_equality(topic_endpoint_info_sub.qos_profile, default_qos_profile);
 
   // clean up
-  rmw_ret_t rmw_ret = rmw_topic_endpoint_info_array_fini(&topic_endpoint_info_array_pub, &allocator);
+  rmw_ret_t rmw_ret =
+    rmw_topic_endpoint_info_array_fini(&topic_endpoint_info_array_pub, &allocator);
   EXPECT_EQ(rmw_ret, RMW_RET_OK) << rmw_get_error_string().str;
   rmw_ret = rmw_topic_endpoint_info_array_fini(&topic_endpoint_info_array_sub, &allocator);
   EXPECT_EQ(rmw_ret, RMW_RET_OK) << rmw_get_error_string().str;
