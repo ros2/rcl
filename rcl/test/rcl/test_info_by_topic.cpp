@@ -25,7 +25,7 @@
 #include "rcl/graph.h"
 #include "rcl/rcl.h"
 
-#include "rmw/topic_info_array.h"
+#include "rmw/topic_endpoint_info_array.h"
 #include "rmw/error_handling.h"
 
 #include "test_msgs/msg/strings.h"
@@ -48,7 +48,7 @@ public:
   rcl_node_t old_node;
   rcl_node_t node;
   const char * test_graph_node_name = "test_graph_node";
-  rmw_topic_info_array_t topic_info_array;
+  rmw_topic_endpoint_info_array_t topic_endpoint_info_array;
   const char * const topic_name = "valid_topic_name";
   bool is_fastrtps;
 
@@ -131,7 +131,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(nullptr,
-      &allocator, this->topic_name, false, &this->topic_info_array);
+      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
 }
 
@@ -144,7 +144,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(nullptr,
-      &allocator, this->topic_name, false, &this->topic_info_array);
+      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
 }
 
@@ -158,7 +158,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   // this->old_node is an invalid node.
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(&this->old_node,
-      &allocator, this->topic_name, false, &this->topic_info_array);
+      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
 }
 
@@ -172,7 +172,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   // this->old_node is an invalid node.
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(&this->old_node,
-      &allocator, this->topic_name, false, &this->topic_info_array);
+      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
 }
 
@@ -185,7 +185,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 {
   const auto ret = rcl_get_publishers_info_by_topic(&this->node, nullptr, this->topic_name,
       false,
-      &this->topic_info_array);
+      &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -198,7 +198,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 {
   const auto ret = rcl_get_subscriptions_info_by_topic(&this->node, nullptr, this->topic_name,
       false,
-      &this->topic_info_array);
+      &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -211,7 +211,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(&this->node,
-      &allocator, nullptr, false, &this->topic_info_array);
+      &allocator, nullptr, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -224,7 +224,7 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(&this->node,
-      &allocator, nullptr, false, &this->topic_info_array);
+      &allocator, nullptr, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -261,15 +261,15 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_invalid_participants)
 {
-  // topic_info_array is invalid because it is expected to be zero initialized
+  // topic_endpoint_info_array is invalid because it is expected to be zero initialized
   // and the info_array variable inside it is expected to be null.
-  this->topic_info_array.info_array = new rmw_topic_info_t();
+  this->topic_endpoint_info_array.info_array = new rmw_topic_endpoint_info_t();
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    free(this->topic_info_array.info_array);
+    free(this->topic_endpoint_info_array.info_array);
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(&this->node,
-      &allocator, this->topic_name, false, &this->topic_info_array);
+      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_ERROR, ret);
 }
 
@@ -280,15 +280,15 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_invalid_participants)
 {
-  // topic_info_array is invalid because it is expected to be zero initialized
+  // topic_endpoint_info_array is invalid because it is expected to be zero initialized
   // and the info_array variable inside it is expected to be null.
-  this->topic_info_array.info_array = new rmw_topic_info_t();
+  this->topic_endpoint_info_array.info_array = new rmw_topic_endpoint_info_t();
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
-    free(this->topic_info_array.info_array);
+    free(this->topic_endpoint_info_array.info_array);
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(&this->node,
-      &allocator, this->topic_name, false, &this->topic_info_array);
+      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_ERROR, ret);
 }
 
@@ -336,32 +336,32 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   const std::string fqdn = std::string("/") + this->topic_name;
   // Get publishers info by topic
-  rmw_topic_info_array_t topic_info_array_pub = rmw_get_zero_initialized_topic_info_array();
+  rmw_topic_endpoint_info_array_t topic_endpoint_info_array_pub = rmw_get_zero_initialized_topic_endpoint_info_array();
   ret = rcl_get_publishers_info_by_topic(&this->node,
-      &allocator, fqdn.c_str(), false, &topic_info_array_pub);
+      &allocator, fqdn.c_str(), false, &topic_endpoint_info_array_pub);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  EXPECT_EQ(topic_info_array_pub.count, 1u) << "Expected one publisher";
-  rmw_topic_info_t topic_info_pub = topic_info_array_pub.info_array[0];
-  EXPECT_STREQ(topic_info_pub.node_name, this->test_graph_node_name);
-  EXPECT_STREQ(topic_info_pub.node_namespace, "/");
-  EXPECT_STREQ(topic_info_pub.topic_type, "test_msgs/msg/Strings");
-  assert_qos_equality(topic_info_pub.qos_profile, default_qos_profile);
+  EXPECT_EQ(topic_endpoint_info_array_pub.count, 1u) << "Expected one publisher";
+  rmw_topic_endpoint_info_t topic_endpoint_info_pub = topic_endpoint_info_array_pub.info_array[0];
+  EXPECT_STREQ(topic_endpoint_info_pub.node_name, this->test_graph_node_name);
+  EXPECT_STREQ(topic_endpoint_info_pub.node_namespace, "/");
+  EXPECT_STREQ(topic_endpoint_info_pub.topic_type, "test_msgs/msg/Strings");
+  assert_qos_equality(topic_endpoint_info_pub.qos_profile, default_qos_profile);
 
-  rmw_topic_info_array_t topic_info_array_sub = rmw_get_zero_initialized_topic_info_array();
+  rmw_topic_endpoint_info_array_t topic_endpoint_info_array_sub = rmw_get_zero_initialized_topic_endpoint_info_array();
   ret = rcl_get_subscriptions_info_by_topic(&this->node,
-      &allocator, fqdn.c_str(), false, &topic_info_array_sub);
+      &allocator, fqdn.c_str(), false, &topic_endpoint_info_array_sub);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  EXPECT_EQ(topic_info_array_sub.count, 1u) << "Expected one subscription";
-  rmw_topic_info_t topic_info_sub = topic_info_array_sub.info_array[0];
-  EXPECT_STREQ(topic_info_sub.node_name, this->test_graph_node_name);
-  EXPECT_STREQ(topic_info_sub.node_namespace, "/");
-  EXPECT_STREQ(topic_info_sub.topic_type, "test_msgs/msg/Strings");
-  assert_qos_equality(topic_info_sub.qos_profile, default_qos_profile);
+  EXPECT_EQ(topic_endpoint_info_array_sub.count, 1u) << "Expected one subscription";
+  rmw_topic_endpoint_info_t topic_endpoint_info_sub = topic_endpoint_info_array_sub.info_array[0];
+  EXPECT_STREQ(topic_endpoint_info_sub.node_name, this->test_graph_node_name);
+  EXPECT_STREQ(topic_endpoint_info_sub.node_namespace, "/");
+  EXPECT_STREQ(topic_endpoint_info_sub.topic_type, "test_msgs/msg/Strings");
+  assert_qos_equality(topic_endpoint_info_sub.qos_profile, default_qos_profile);
 
   // clean up
-  rmw_ret_t rmw_ret = rmw_topic_info_array_fini(&topic_info_array_pub, &allocator);
+  rmw_ret_t rmw_ret = rmw_topic_endpoint_info_array_fini(&topic_endpoint_info_array_pub, &allocator);
   EXPECT_EQ(rmw_ret, RMW_RET_OK) << rmw_get_error_string().str;
-  rmw_ret = rmw_topic_info_array_fini(&topic_info_array_sub, &allocator);
+  rmw_ret = rmw_topic_endpoint_info_array_fini(&topic_endpoint_info_array_sub, &allocator);
   EXPECT_EQ(rmw_ret, RMW_RET_OK) << rmw_get_error_string().str;
   ret = rcl_subscription_fini(&subscription, &this->node);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;

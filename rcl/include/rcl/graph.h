@@ -22,7 +22,7 @@ extern "C"
 
 #include <rmw/names_and_types.h>
 #include <rmw/get_topic_names_and_types.h>
-#include <rmw/topic_info_array.h>
+#include <rmw/topic_endpoint_info_array.h>
 
 #include "rcutils/types.h"
 
@@ -537,19 +537,19 @@ rcl_count_subscribers(
  * Each element in the `publishers_info` array will contain the node name, node namespace,
  * topic type, gid and the qos profile of the publisher.
  * It is the responsibility of the caller to ensure that `publishers_info` parameter points
- * to a valid struct of type rmw_topic_info_array_t.
+ * to a valid struct of type rmw_topic_endpoint_info_array_t.
  * The `count` field inside the struct must be set to 0 and the `info_array` field inside
  * the struct must be set to null.
- * \see rmw_get_zero_initialized_topic_info_array
+ * \see rmw_get_zero_initialized_topic_endpoint_info_array
  *
  * The `allocator` will be used to allocate memory to the `info_array` member
  * inside of `publishers_info`.
  * Moreover, every const char * member inside of
- * rmw_topic_info_t will be assigned a copied value on allocated memory.
- * \see rmw_topic_info_set_node_name and the likes.
+ * rmw_topic_endpoint_info_t will be assigned a copied value on allocated memory.
+ * \see rmw_topic_endpoint_info_set_node_name and the likes.
  * However, it is the responsibility of the caller to
  * reclaim any allocated resources to `publishers_info` to avoid leaking memory.
- * \see rmw_topic_info_array_fini
+ * \see rmw_topic_endpoint_info_array_fini
  *
  * <hr>
  * Attribute          | Adherence
@@ -580,7 +580,7 @@ rcl_get_publishers_info_by_topic(
   rcutils_allocator_t * allocator,
   const char * topic_name,
   bool no_mangle,
-  rmw_topic_info_array_t * publishers_info);
+  rmw_topic_endpoint_info_array_t * publishers_info);
 
 /// Return a list of all subscriptions to a topic.
 /**
@@ -594,19 +594,19 @@ rcl_get_publishers_info_by_topic(
  * Each element in the `subscriptions_info` array will contain the node name, node namespace,
  * topic type, gid and the qos profile of the subscription.
  * It is the responsibility of the caller to ensure that `subscriptions_info` parameter points
- * to a valid struct of type rmw_topic_info_array_t.
+ * to a valid struct of type rmw_topic_endpoint_info_array_t.
  * The `count` field inside the struct must be set to 0 and the `info_array` field inside
  * the struct must be set to null.
- * \see rmw_get_zero_initialized_topic_info_array
+ * \see rmw_get_zero_initialized_topic_endpoint_info_array
  *
  * The `allocator` will be used to allocate memory to the `info_array` member
  * inside of `subscriptions_info`.
  * Moreover, every const char * member inside of
- * rmw_topic_info_t will be assigned a copied value on allocated memory.
- * \see rmw_topic_info_set_node_name and the likes.
+ * rmw_topic_endpoint_info_t will be assigned a copied value on allocated memory.
+ * \see rmw_topic_endpoint_info_set_node_name and the likes.
  * However, it is the responsibility of the caller to
  * reclaim any allocated resources to `subscriptions_info` to avoid leaking memory.
- * \see rmw_topic_info_array_fini
+ * \see rmw_topic_endpoint_info_array_fini
  *
  * <hr>
  * Attribute          | Adherence
@@ -637,7 +637,7 @@ rcl_get_subscriptions_info_by_topic(
   rcutils_allocator_t * allocator,
   const char * topic_name,
   bool no_mangle,
-  rmw_topic_info_array_t * subscriptions_info);
+  rmw_topic_endpoint_info_array_t * subscriptions_info);
 
 /// Check if a service server is available for the given service client.
 /**
