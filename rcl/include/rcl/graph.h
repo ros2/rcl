@@ -531,8 +531,11 @@ rcl_count_subscribers(
  *
  * The `topic_name` parameter must not be `NULL`.
  *
- * The `no_mangle` parameter determines if the provided topic_name should be
- * expanded to its fully qualified name.
+ * When the `no_mangle` parameter is `true`, the provided `topic_name` should be a valid topic name
+ * for the middleware (useful when combining ROS with native middleware (e.g. DDS) apps).
+ * When the `no_mangle` parameter is `false`, the provided `topic_name` should follow
+ * ROS topic name conventions.
+ * In either case, the topic name should always be fully qualified.
  *
  * Each element in the `publishers_info` array will contain the node name, node namespace,
  * topic type, gid and the qos profile of the publisher.
@@ -588,8 +591,11 @@ rcl_get_publishers_info_by_topic(
  *
  * The `topic_name` parameter must not be `NULL`.
  *
- * The `no_mangle` parameter determines whether or not the provided topic_name should be
- * converted to its underlying middleware name.
+ * When the `no_mangle` parameter is `true`, the provided `topic_name` should be a valid topic name
+ * for the middleware (useful when combining ROS with native middleware (e.g. DDS) apps).
+ * When the `no_mangle` parameter is `false`, the provided `topic_name` should follow
+ * ROS topic name conventions.
+ * In either case, the topic name should always be fully qualified.
  *
  * Each element in the `subscriptions_info` array will contain the node name, node namespace,
  * topic type, gid and the qos profile of the subscription.
