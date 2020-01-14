@@ -349,5 +349,6 @@ rcl_add_custom_gtest(test_security
 )
 
 # Install test resources
-install(DIRECTORY ${test_resources_dir_name}
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+add_custom_target(${test_resources_dir_name} ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${test_resources_dir_name} ${test_resources_dir_name}
+  COMMENT "Copying test resources")
