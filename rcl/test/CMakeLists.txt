@@ -101,6 +101,21 @@ function(test_target_function)
     ${AMENT_GTEST_ARGS}
   )
 
+  set(AMENT_GTEST_ARGS "")
+  # TODO(mm318): why rmw_connext tests run much slower than rmw_fastrtps and rmw_opensplice tests
+  if(rmw_implementation STREQUAL "rmw_connext_cpp")
+    message(STATUS "Increasing test_info_by_topic${target_suffix} test timeout.")
+    set(AMENT_GTEST_ARGS TIMEOUT 120)
+  endif()
+  rcl_add_custom_gtest(test_info_by_topic${target_suffix}
+    SRCS rcl/test_info_by_topic.cpp
+    ENV ${rmw_implementation_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+    ${AMENT_GTEST_ARGS}
+  )
+
   rcl_add_custom_gtest(test_count_matched${target_suffix}
     SRCS rcl/test_count_matched.cpp
     ENV ${rmw_implementation_env_var}
