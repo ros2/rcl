@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.4 (2020-01-17)
+------------------
+* Set allocator before goto fail. (`#547 <https://github.com/ros2/rcl/issues/547>`_)
+* Contributors: Jacob Perron
+
 0.8.3 (2019-11-08)
 ------------------
 * Support CLI parameter overrides using dots instead of slashes. (`#530 <https://github.com/ros2/rcl/issues/530>`_)
