@@ -1705,7 +1705,6 @@ bool rcl_parse_yaml_file(
     if (NULL != ns_tracker.parameter_ns) {
       allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
     }
-    rcl_yaml_node_struct_fini(params_st);
     return false;
   }
 
