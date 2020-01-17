@@ -610,11 +610,10 @@ rcl_parse_arguments(
 
       // Attempt to parse argument as parameter file rule
       args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
-      if (
-        RCL_RET_OK == _rcl_parse_param_file_rule(
-          argv[i], allocator, args_impl->parameter_overrides,
-          &args_impl->parameter_files[args_impl->num_param_files_args]))
-      {
+      ret = _rcl_parse_param_file_rule(
+        argv[i], allocator, args_impl->parameter_overrides,
+        &args_impl->parameter_files[args_impl->num_param_files_args]);
+      if (RCL_RET_OK == ret) {
         ++(args_impl->num_param_files_args);
         RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
           "Found parameter file rule '%s'. This syntax is deprecated. Use '%s %s %s' instead.",
@@ -625,6 +624,10 @@ rcl_parse_arguments(
           args_impl->parameter_files[args_impl->num_param_files_args - 1],
           args_impl->num_param_files_args);
         continue;
+      } else if (RCL_RET_ERROR == ret) {
+        // If we return RCL_RET_ERROR then the argument contained the prefix '__params:=',
+        // but the parameter file may be malformed or does not exist.
+        goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as a deprecated parameter file rule. Error: %s",
@@ -751,7 +754,7 @@ rcl_parse_arguments(
   }
 
   // Drop parameter overrides if none was found.
-  if (0U == args_impl->parameter_overrides->num_nodes) {
+  if (NULL != args_impl->parameter_overrides && 0U == args_impl->parameter_overrides->num_nodes) {
     rcl_yaml_node_struct_fini(args_impl->parameter_overrides);
     args_impl->parameter_overrides = NULL;
   }
