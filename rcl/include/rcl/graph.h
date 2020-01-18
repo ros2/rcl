@@ -567,7 +567,8 @@ rcl_count_subscribers(
  * \param[in] allocator allocator to be used when allocating space for
  *            the array inside publishers_info
  * \param[in] topic_name the name of the topic in question
- * \param[in] no_mangle if true, the topic_name will be expanded to its fully qualified name
+ * \param[in] no_mangle if `true`, `topic_name` needs to be a valid middleware topic name,
+ *            otherwise it should be a valid ROS topic name
  * \param[out] publishers_info a struct representing a list of publisher information
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
@@ -627,7 +628,8 @@ rcl_get_publishers_info_by_topic(
  * \param[in] allocator allocator to be used when allocating space for
  *            the array inside publishers_info
  * \param[in] topic_name the name of the topic in question
- * \param[in] no_mangle if true, the topic_name will be expanded to its fully qualified name
+ * \param[in] no_mangle if `true`, `topic_name` needs to be a valid middleware topic name,
+ *            otherwise it should be a valid ROS topic name
  * \param[out] subscriptions_info a struct representing a list of subscriptions information
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
