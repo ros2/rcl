@@ -25,9 +25,11 @@ extern "C"
 #include "rmw/error_handling.h"
 #include "rmw/get_node_info_and_types.h"
 #include "rmw/get_service_names_and_types.h"
+#include "rmw/get_topic_endpoint_info.h"
 #include "rmw/get_topic_names_and_types.h"
 #include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
+#include "rmw/topic_endpoint_info_array.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 
@@ -373,6 +375,90 @@ rcl_count_subscribers(
   RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_count_subscribers(rcl_node_get_rmw_handle(node), topic_name, count);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
+
+typedef rmw_ret_t (* get_topic_endpoint_info_func_t)(
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * topic_name,
+  bool no_mangle,
+  rmw_topic_endpoint_info_array_t * info_array);
+
+rcl_ret_t
+__rcl_get_info_by_topic(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * topic_name,
+  bool no_mangle,
+  rmw_topic_endpoint_info_array_t * info_array,
+  get_topic_endpoint_info_func_t get_topic_endpoint_info)
+{
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;  // error already set.
+  }
+  const rcl_node_options_t * node_options = rcl_node_get_options(node);
+  if (!node_options) {
+    return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so
+  }
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
+  rmw_error_string_t error_string;
+  rmw_ret_t rmw_ret = rmw_topic_endpoint_info_array_check_zero(info_array);
+  if (rmw_ret != RMW_RET_OK) {
+    error_string = rmw_get_error_string();
+    rmw_reset_error();
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "rmw_topic_endpoint_info_array_t must be zero initialized: %s,\n"
+      "Use rmw_get_zero_initialized_topic_endpoint_info_array",
+      error_string.str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  rmw_ret = get_topic_endpoint_info(
+    rcl_node_get_rmw_handle(node),
+    allocator,
+    topic_name,
+    no_mangle,
+    info_array);
+  if (rmw_ret != RMW_RET_OK) {
+    error_string = rmw_get_error_string();
+    rmw_reset_error();
+    RCL_SET_ERROR_MSG(error_string.str);
+  }
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
+
+rcl_ret_t
+rcl_get_publishers_info_by_topic(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * topic_name,
+  bool no_mangle,
+  rmw_topic_endpoint_info_array_t * publishers_info)
+{
+  return __rcl_get_info_by_topic(
+    node,
+    allocator,
+    topic_name,
+    no_mangle,
+    publishers_info,
+    rmw_get_publishers_info_by_topic);
+}
+
+rcl_ret_t
+rcl_get_subscriptions_info_by_topic(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * topic_name,
+  bool no_mangle,
+  rmw_topic_endpoint_info_array_t * subscriptions_info)
+{
+  return __rcl_get_info_by_topic(
+    node,
+    allocator,
+    topic_name,
+    no_mangle,
+    subscriptions_info,
+    rmw_get_subscriptions_info_by_topic);
 }
 
 rcl_ret_t

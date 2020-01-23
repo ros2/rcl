@@ -410,7 +410,7 @@ rcl_publisher_is_valid_except_context(const rcl_publisher_t * publisher)
   return true;
 }
 
-rmw_ret_t
+rcl_ret_t
 rcl_publisher_get_subscription_count(
   const rcl_publisher_t * publisher,
   size_t * subscription_count)
