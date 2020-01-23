@@ -122,7 +122,7 @@ rcl_init(
     goto fail;
   }
 
-  ret = rcl_logging_configure(&context->global_arguments, &allocator);
+  ret = rcl_logging_init(&context->global_arguments, &allocator);
   if (RCL_RET_OK != ret) {
     fail_ret = ret;
     RCUTILS_LOG_ERROR_NAMED(

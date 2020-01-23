@@ -29,16 +29,16 @@ extern "C"
 
 /// Configure the logging system.
 /**
- * This function should be called during the ROS initialization process.
+ * This function should be called once during the ROS initialization process.
  * It will add the enabled log output appenders to the root logger.
  *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No
+ * Thread-Safe        | Yes
  * Uses Atomics       | No
- * Lock-Free          | Yes
+ * Lock-Free          | No
  *
  * \param global_args The global arguments for the system
  * \param allocator Used to allocate memory used by the logging system
@@ -49,7 +49,7 @@ extern "C"
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_logging_configure(
+rcl_logging_init(
   const rcl_arguments_t * global_args,
   const rcl_allocator_t * allocator);
 
@@ -60,9 +60,9 @@ rcl_logging_configure(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | Yes
  * Uses Atomics       | No
- * Lock-Free          | Yes
+ * Lock-Free          | No
  *
  * \return `RCL_RET_OK` if successful.
  * \return `RCL_RET_ERR` if a general error occurs
