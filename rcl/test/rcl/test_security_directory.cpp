@@ -14,12 +14,18 @@
 
 #include <gtest/gtest.h>
 
-#include <string>
 #include <algorithm>
+#include <string>
+
 #include "rcl/security.h"
-#include "rcutils/filesystem.h"
-#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+
+#include "rcutils/filesystem.h"
+
+#include "rmw/security.h"
+
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 
 #define ROOT_NAMESPACE "/"
 #define TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME "test_security_directory"
@@ -106,6 +112,7 @@ TEST_F(TestGetSecureRoot, failureScenarios) {
   ASSERT_EQ(
     rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
     (char *) NULL);
+  rcl_reset_error();
 
   putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
 
@@ -114,10 +121,12 @@ TEST_F(TestGetSecureRoot, failureScenarios) {
   ASSERT_EQ(
     rcl_get_secure_root(TEST_NODE_NAME, "/some_other_namespace", &allocator),
     (char *) NULL);
+  rcl_reset_error();
   /// Wrong node name
   ASSERT_EQ(
     rcl_get_secure_root("not_" TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
     (char *) NULL);
+  rcl_reset_error();
 }
 
 TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch) {
@@ -196,31 +205,37 @@ TEST_F(TestGetSecureRoot, successScenarios_root_prefixMatch) {
 }
 
 TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_validDirectory) {
-  /* Specify a valid directory */
-  putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
-  root_path = rcl_get_secure_root(
-    "name shouldn't matter", "namespace shouldn't matter", &allocator);
-  ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
+  if (rmw_use_node_name_in_security_directory_lookup()) {
+    /* Specify a valid directory */
+    putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+    root_path = rcl_get_secure_root(
+      "name shouldn't matter", "namespace shouldn't matter", &allocator);
+    ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
+  }
 }
 
 TEST_F(
   TestGetSecureRoot,
   nodeSecurityDirectoryOverride_validDirectory_overrideRootDirectoryAttempt) {
-  /* Setting root dir has no effect */
-  putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
-  root_path = rcl_get_secure_root(
-    "name shouldn't matter", "namespace shouldn't matter", &allocator);
-  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
-  ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
+  if (rmw_use_node_name_in_security_directory_lookup()) {
+    /* Setting root dir has no effect */
+    putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+    root_path = rcl_get_secure_root(
+      "name shouldn't matter", "namespace shouldn't matter", &allocator);
+    putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+    ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
+  }
 }
 
 TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_invalidDirectory) {
   /* The override provided should exist. Providing correct node/namespace/root dir won't help
    * if the node override is invalid. */
-  putenv_wrapper(
-    ROS_SECURITY_NODE_DIRECTORY_VAR_NAME
-    "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
-  ASSERT_EQ(
-    rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
-    (char *) NULL);
+  if (rmw_use_node_name_in_security_directory_lookup()) {
+    putenv_wrapper(
+      ROS_SECURITY_NODE_DIRECTORY_VAR_NAME
+      "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
+    ASSERT_EQ(
+      rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
+      (char *) NULL);
+  }
 }

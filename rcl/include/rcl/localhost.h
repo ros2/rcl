@@ -29,7 +29,7 @@ extern const char * const RCL_LOCALHOST_ENV_VAR;
 /// Determine if the user wants to communicate using loopback only.
 /**
  * Checks if localhost should be used for network communication.
- * If `localhost_only` is RCL_LOCALHOST_ONLY_DEFAULT, ROS_LOCALHOST_ONLY env variable is used.
+ * If `localhost_only` is RMW_LOCALHOST_ONLY_DEFAULT, ROS_LOCALHOST_ONLY env variable is used.
  * If not, `localhost_only` is not modified.
  *
  * \param[inout] localhost_only Must not be NULL.

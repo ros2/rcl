@@ -47,6 +47,7 @@ extern "C"
 #include "rmw/error_handling.h"
 #include "rmw/security_options.h"
 #include "rmw/rmw.h"
+#include "rmw/security.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 #include "tracetools/tracetools.h"
@@ -128,7 +129,6 @@ rcl_node_init(
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   char * remapped_node_name = NULL;
-  char * node_secure_root = NULL;
 
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
@@ -256,7 +256,7 @@ rcl_node_init(
     node->impl->logger_name, "creating logger name failed", goto fail);
 
   domain_id = node->impl->options.domain_id;
-  if (RMW_RET_OK != rcl_domain_id(&domain_id)) {
+  if (RCL_RET_OK != rcl_domain_id(&domain_id)) {
     goto fail;
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
@@ -264,35 +264,16 @@ rcl_node_init(
 
   rmw_security_options_t node_security_options =
     rmw_get_zero_initialized_security_options();
-
-  bool use_security;
-  ret = rcl_use_security(&use_security);
-  if (RCL_RET_OK != ret) {
-    fail_ret = ret;
-    goto fail;
-  }
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false");
-
-  ret = rcl_get_enforcement_policy(&node_security_options.enforce_security);
-  if (RCL_RET_OK != ret) {
-    fail_ret = ret;
-    goto fail;
-  }
-
-  if (!use_security) {
-    node_security_options.enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
-  } else {  // if use_security
-    // File discovery magic here
-    node_secure_root = rcl_get_secure_root(name, local_namespace_, allocator);
-    if (node_secure_root) {
-      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Found security directory: %s", node_secure_root);
-      node_security_options.security_root_path = node_secure_root;
-    } else {
-      if (RMW_SECURITY_ENFORCEMENT_ENFORCE == node_security_options.enforce_security) {
-        ret = RCL_RET_ERROR;
-        goto cleanup;
-      }
+  rmw_security_options_t * node_security_options_ptr = NULL;
+  if (rmw_use_node_name_in_security_directory_lookup()) {
+    node_security_options_ptr = &node_security_options;
+    ret = rcl_get_security_options_from_environment(
+      name,
+      local_namespace_,
+      allocator,
+      node_security_options_ptr);
+    if (RMW_RET_OK != ret) {
+      goto fail;
     }
   }
 
@@ -302,7 +283,7 @@ rcl_node_init(
 
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
-    name, local_namespace_, domain_id, &node_security_options, localhost_only);
+    name, local_namespace_, domain_id, node_security_options_ptr, localhost_only);
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
@@ -403,7 +384,7 @@ cleanup:
   if (NULL != remapped_node_name) {
     allocator->deallocate(remapped_node_name, allocator->state);
   }
-  allocator->deallocate(node_secure_root, allocator->state);
+  rmw_security_options_fini(node_security_options_ptr, allocator);
   return ret;
 }
 

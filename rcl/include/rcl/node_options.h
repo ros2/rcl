@@ -68,7 +68,7 @@ typedef struct rcl_node_options_t
 /**
  * The default values are:
  *
- * - domain_id = RMW_DEFAULT_DOMAIN_ID
+ * - domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID
  * - allocator = rcl_get_default_allocator()
  * - use_global_arguments = true
  * - arguments = rcl_get_zero_initialized_arguments()
