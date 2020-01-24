@@ -21,7 +21,6 @@ extern "C"
 #include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
-#include <pthread.h>
 
 #include "./arguments_impl.h"
 #include "rcl/allocator.h"
@@ -32,7 +31,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcutils/logging.h"
 #include "rcutils/time.h"
-#include "rcutils/logging_macros.h"
+#include "rcutils/stdatomic_helper.h"
 
 #define RCL_LOGGING_MAX_OUTPUT_FUNCS (4)
 
@@ -45,8 +44,7 @@ static bool g_rcl_logging_stdout_enabled = false;
 static bool g_rcl_logging_rosout_enabled = false;
 static bool g_rcl_logging_ext_lib_enabled = false;
 
-static pthread_mutex_t g_rcl_logging_mutex = PTHREAD_MUTEX_INITIALIZER;
-static bool g_rcl_logging_initialized = false;
+static atomic_uint_least64_t __rcl_logging_init_count = ATOMIC_VAR_INIT(0);
 
 /**
  * An output function that sends to multiple output appenders.
@@ -71,12 +69,6 @@ rcl_logging_ext_lib_output_handler(
 rcl_ret_t
 rcl_logging_init(const rcl_arguments_t * global_args, const rcl_allocator_t * allocator)
 {
-  pthread_mutex_lock(&g_rcl_logging_mutex);
-  if (g_rcl_logging_initialized) {
-    RCUTILS_LOG_WARN_NAMED("rcl.logging", "rcl_logging_init is already done.");
-    pthread_mutex_unlock(&g_rcl_logging_mutex);
-    return RCL_RET_ALREADY_INIT;
-  }
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
 
@@ -89,6 +81,7 @@ rcl_logging_init(const rcl_arguments_t * global_args, const rcl_allocator_t * al
   g_rcl_logging_ext_lib_enabled = !global_args->impl->log_ext_lib_disabled;
   rcl_ret_t status = RCL_RET_OK;
   g_rcl_logging_num_out_handlers = 0;
+  (void) rcutils_atomic_fetch_add_uint64_t(&__rcl_logging_init_count, 1);
 
   if (default_level >= 0) {
     rcutils_logging_set_default_logger_level(default_level);
@@ -113,24 +106,17 @@ rcl_logging_init(const rcl_arguments_t * global_args, const rcl_allocator_t * al
     }
   }
   rcutils_logging_set_output_handler(rcl_logging_multiple_output_handler);
-
-  if (RCL_RET_OK == status) {
-    g_rcl_logging_initialized = true;
-  }
-  pthread_mutex_unlock(&g_rcl_logging_mutex);
   return status;
 }
 
 rcl_ret_t rcl_logging_fini()
 {
-  pthread_mutex_lock(&g_rcl_logging_mutex);
-  if (!g_rcl_logging_initialized) {
-    RCUTILS_LOG_WARN_NAMED("rcl.logging", "rcl_logging_init is not called yet.");
-    pthread_mutex_unlock(&g_rcl_logging_mutex);
-    return RCL_RET_NOT_INIT;
-  }
-
   rcl_ret_t status = RCL_RET_OK;
+  uint64_t current_count = rcutils_atomic_fetch_add_uint64_t(&__rcl_logging_init_count, -1);
+
+  if (current_count != 1) {
+    return status;
+  }
 
   rcutils_logging_set_output_handler(rcutils_logging_console_output_handler);
 
@@ -140,11 +126,6 @@ rcl_ret_t rcl_logging_fini()
   if (RCL_RET_OK == status && g_rcl_logging_ext_lib_enabled) {
     status = rcl_logging_external_shutdown();
   }
-
-  if (RCL_RET_OK == status) {
-    g_rcl_logging_initialized = false;
-  }
-  pthread_mutex_unlock(&g_rcl_logging_mutex);
   return status;
 }
 
