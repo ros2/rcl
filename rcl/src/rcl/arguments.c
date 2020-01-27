@@ -613,12 +613,17 @@ rcl_parse_arguments(
       ret = _rcl_parse_param_file_rule(
         argv[i], allocator, args_impl->parameter_overrides,
         &args_impl->parameter_files[args_impl->num_param_files_args]);
-      if (RCL_RET_OK == ret) {
-        ++(args_impl->num_param_files_args);
+
+      // Deprecation warning regardless if there is an error parsing the file
+      if (RCL_RET_INVALID_PARAM_RULE != ret) {
         RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
           "Found parameter file rule '%s'. This syntax is deprecated. Use '%s %s %s' instead.",
           argv[i], RCL_ROS_ARGS_FLAG, RCL_PARAM_FILE_FLAG,
-          args_impl->parameter_files[args_impl->num_param_files_args - 1]);
+          args_impl->parameter_files[args_impl->num_param_files_args]);
+      }
+
+      if (RCL_RET_OK == ret) {
+        ++(args_impl->num_param_files_args);
         RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
           "params rule : %s\n total num param rules %d",
           args_impl->parameter_files[args_impl->num_param_files_args - 1],
@@ -627,6 +632,12 @@ rcl_parse_arguments(
       } else if (RCL_RET_ERROR == ret) {
         // If _rcl_parse_param_file_rule() returned RCL_RET_ERROR then the argument contained the
         // '__params:=' prefix, but parsing the parameter file failed.
+        rcl_error_string_t prev_error_string = rcl_get_error_string();
+        rcl_reset_error();
+        RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+          "Couldn't parse params file: '%s'. Error: %s",
+          args_impl->parameter_files[args_impl->num_param_files_args],
+          prev_error_string.str);
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
