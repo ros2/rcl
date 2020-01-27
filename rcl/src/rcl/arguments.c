@@ -625,8 +625,8 @@ rcl_parse_arguments(
           args_impl->num_param_files_args);
         continue;
       } else if (RCL_RET_ERROR == ret) {
-        // If we return RCL_RET_ERROR then the argument contained the prefix '__params:=',
-        // but the parameter file may be malformed or does not exist.
+        // If _rcl_parse_param_file_rule() returned RCL_RET_ERROR then the argument contained the
+        // '__params:=' prefix, but parsing the parameter file failed.
         goto fail;
       }
       RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
