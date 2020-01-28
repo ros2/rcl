@@ -897,6 +897,26 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_para
   EXPECT_EQ(1, *(param_value->integer_value));
 }
 
+// Regression test for https://github.com/ros2/rcl/issues/553
+// Testing behaviour that was broken in Eloquent
+TEST_F(
+  CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_param_argument_malformed)
+{
+  const std::string parameters_filepath = (test_path / "test_malformed_parameters.1.yaml").string();
+  const std::string parameter_rule = "__params:=" + parameters_filepath;
+  const char * argv[] = {
+    "process_name", parameter_rule.c_str()
+  };
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_ret_t ret;
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+}
+
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_multiple) {
   const std::string parameters_filepath1 = (test_path / "test_parameters.1.yaml").string();
   const std::string parameters_filepath2 = (test_path / "test_parameters.2.yaml").string();
