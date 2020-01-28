@@ -71,7 +71,9 @@ rcl_logging_init(const rcl_arguments_t * global_args, const rcl_allocator_t * al
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-
+  if (rcutils_atomic_fetch_add_uint64_t(&__rcl_logging_init_count, 1)) {
+    return RCL_RET_OK;
+  }
   RCUTILS_LOGGING_AUTOINIT
     g_logging_allocator = *allocator;
   int default_level = global_args->impl->log_level;
@@ -81,7 +83,6 @@ rcl_logging_init(const rcl_arguments_t * global_args, const rcl_allocator_t * al
   g_rcl_logging_ext_lib_enabled = !global_args->impl->log_ext_lib_disabled;
   rcl_ret_t status = RCL_RET_OK;
   g_rcl_logging_num_out_handlers = 0;
-  (void) rcutils_atomic_fetch_add_uint64_t(&__rcl_logging_init_count, 1);
 
   if (default_level >= 0) {
     rcutils_logging_set_default_logger_level(default_level);
@@ -112,10 +113,14 @@ rcl_logging_init(const rcl_arguments_t * global_args, const rcl_allocator_t * al
 rcl_ret_t rcl_logging_fini()
 {
   rcl_ret_t status = RCL_RET_OK;
-  uint64_t current_count = rcutils_atomic_fetch_add_uint64_t(&__rcl_logging_init_count, -1);
 
-  if (current_count != 1) {
-    return status;
+  if (rcutils_atomic_load_uint64_t(&__rcl_logging_init_count) > 0) {
+    uint64_t current_count = rcutils_atomic_fetch_add_uint64_t(&__rcl_logging_init_count, -1);
+    if (current_count != 1) {
+      return RCL_RET_OK;
+    }
+  } else {
+    return RCL_RET_OK;
   }
 
   rcutils_logging_set_output_handler(rcutils_logging_console_output_handler);
