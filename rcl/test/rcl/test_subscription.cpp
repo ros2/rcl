@@ -133,16 +133,15 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
   EXPECT_EQ(strcmp(rcl_subscription_get_topic_name(&subscription), expected_topic), 0);
+  ret = rcl_subscription_fini(&subscription, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Test is_valid for subscription with nullptr
   EXPECT_FALSE(rcl_subscription_is_valid(nullptr));
@@ -178,14 +177,15 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   {
     test_msgs__msg__BasicTypes msg;
     test_msgs__msg__BasicTypes__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-    {
-      test_msgs__msg__BasicTypes__fini(&msg);
-    });
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+        test_msgs__msg__BasicTypes__fini(&msg);
+      });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(42, msg.int64_value);
   }
+  ret = rcl_subscription_fini(&subscription, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 /* Basic nominal test of a publisher with a string.
