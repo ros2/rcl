@@ -129,6 +129,9 @@ rcl_node_init(
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   char * remapped_node_name = NULL;
+  rmw_security_options_t node_security_options =
+    rmw_get_zero_initialized_security_options();
+  rmw_security_options_t * node_security_options_ptr = NULL;
 
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
@@ -262,9 +265,6 @@ rcl_node_init(
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
   node->impl->actual_domain_id = domain_id;
 
-  rmw_security_options_t node_security_options =
-    rmw_get_zero_initialized_security_options();
-  rmw_security_options_t * node_security_options_ptr = NULL;
   if (rmw_use_node_name_in_security_directory_lookup()) {
     node_security_options_ptr = &node_security_options;
     ret = rcl_get_security_options_from_environment(
@@ -384,7 +384,9 @@ cleanup:
   if (NULL != remapped_node_name) {
     allocator->deallocate(remapped_node_name, allocator->state);
   }
-  rmw_security_options_fini(node_security_options_ptr, allocator);
+  if (node_security_options_ptr) {
+    rmw_security_options_fini(node_security_options_ptr, allocator);
+  }
   return ret;
 }
 
