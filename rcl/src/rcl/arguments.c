@@ -1117,6 +1117,11 @@ rcl_arguments_fini(
       args->impl->parameter_files = NULL;
     }
 
+    if (NULL != args->impl->external_log_config_file) {
+      args->impl->allocator.deallocate(args->impl->external_log_config_file, args->impl->allocator.state);
+      args->impl->external_log_config_file = NULL;
+    }
+
     args->impl->allocator.deallocate(args->impl, args->impl->allocator.state);
     args->impl = NULL;
     return ret;
