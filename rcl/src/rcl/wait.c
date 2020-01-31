@@ -422,19 +422,22 @@ rcl_wait_set_resize(
   }
 
   SET_RESIZE(timer,;,;);  // NOLINT
-  SET_RESIZE(client,
+  SET_RESIZE(
+    client,
     SET_RESIZE_RMW_DEALLOC(
       rmw_clients.clients, rmw_clients.client_count),
     SET_RESIZE_RMW_REALLOC(
       client, rmw_clients.clients, rmw_clients.client_count)
   );
-  SET_RESIZE(service,
+  SET_RESIZE(
+    service,
     SET_RESIZE_RMW_DEALLOC(
       rmw_services.services, rmw_services.service_count),
     SET_RESIZE_RMW_REALLOC(
       service, rmw_services.services, rmw_services.service_count)
   );
-  SET_RESIZE(event,
+  SET_RESIZE(
+    event,
     SET_RESIZE_RMW_DEALLOC(
       rmw_events.events, rmw_events.event_count),
     SET_RESIZE_RMW_REALLOC(
@@ -451,7 +454,8 @@ rcl_wait_set_add_guard_condition(
   size_t * index)
 {
   SET_ADD(guard_condition)
-  SET_ADD_RMW(guard_condition, rmw_guard_conditions.guard_conditions,
+  SET_ADD_RMW(
+    guard_condition, rmw_guard_conditions.guard_conditions,
     rmw_guard_conditions.guard_condition_count)
 
   return RCL_RET_OK;

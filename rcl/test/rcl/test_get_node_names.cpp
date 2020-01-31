@@ -55,13 +55,15 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
   });
@@ -118,8 +120,10 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   EXPECT_EQ(node_names.size, node_namespaces.size) << ss.str();
 
   for (size_t i = 0; i < node_names.size; ++i) {
-    discovered_nodes.insert(std::make_pair(std::string(node_names.data[i]),
-      std::string(node_namespaces.data[i])));
+    discovered_nodes.insert(
+      std::make_pair(
+        std::string(node_names.data[i]),
+        std::string(node_namespaces.data[i])));
   }
   EXPECT_EQ(discovered_nodes, expected_nodes);
 

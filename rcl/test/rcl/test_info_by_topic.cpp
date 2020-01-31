@@ -59,7 +59,8 @@ public:
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
     });
     this->old_context = rcl_get_zero_initialized_context();
@@ -114,9 +115,11 @@ public:
     EXPECT_EQ(qos_profile1.lifespan.nsec, qos_profile2.lifespan.nsec);
     EXPECT_EQ(qos_profile1.reliability, qos_profile2.reliability);
     EXPECT_EQ(qos_profile1.liveliness, qos_profile2.liveliness);
-    EXPECT_EQ(qos_profile1.liveliness_lease_duration.sec,
+    EXPECT_EQ(
+      qos_profile1.liveliness_lease_duration.sec,
       qos_profile2.liveliness_lease_duration.sec);
-    EXPECT_EQ(qos_profile1.liveliness_lease_duration.nsec,
+    EXPECT_EQ(
+      qos_profile1.liveliness_lease_duration.nsec,
       qos_profile2.liveliness_lease_duration.nsec);
     EXPECT_EQ(qos_profile1.durability, qos_profile2.durability);
   }
@@ -126,12 +129,14 @@ public:
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_null_node)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_publishers_info_by_topic(nullptr,
-      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_publishers_info_by_topic(
+    nullptr, &allocator, this->topic_name, false,
+    &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
 }
 
@@ -139,12 +144,14 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_null_node)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_subscriptions_info_by_topic(nullptr,
-      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_subscriptions_info_by_topic(
+    nullptr, &allocator, this->topic_name, false,
+    &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
 }
 
@@ -152,13 +159,15 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_invalid_node)
 {
   // this->old_node is an invalid node.
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_publishers_info_by_topic(&this->old_node,
-      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_publishers_info_by_topic(
+    &this->old_node, &allocator, this->topic_name, false,
+    &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
 }
 
@@ -166,13 +175,15 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_invalid_node)
 {
   // this->old_node is an invalid node.
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_subscriptions_info_by_topic(&this->old_node,
-      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_subscriptions_info_by_topic(
+    &this->old_node, &allocator, this->topic_name, false,
+    &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
 }
 
@@ -180,12 +191,13 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_null_allocator)
 {
-  const auto ret = rcl_get_publishers_info_by_topic(&this->node, nullptr, this->topic_name,
-      false,
-      &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_publishers_info_by_topic(
+    &this->node, nullptr, this->topic_name, false,
+    &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -193,12 +205,13 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_null_allocator)
 {
-  const auto ret = rcl_get_subscriptions_info_by_topic(&this->node, nullptr, this->topic_name,
-      false,
-      &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_subscriptions_info_by_topic(
+    &this->node, nullptr, this->topic_name, false,
+    &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -206,12 +219,13 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_null_topic)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_publishers_info_by_topic(&this->node,
-      &allocator, nullptr, false, &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_publishers_info_by_topic(
+    &this->node, &allocator, nullptr, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -219,12 +233,13 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_null_topic)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_subscriptions_info_by_topic(&this->node,
-      &allocator, nullptr, false, &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_subscriptions_info_by_topic(
+    &this->node, &allocator, nullptr, false, &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -232,12 +247,13 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_null_participants)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_publishers_info_by_topic(&this->node,
-      &allocator, this->topic_name, false, nullptr);
+  const auto ret = rcl_get_publishers_info_by_topic(
+    &this->node, &allocator, this->topic_name, false, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -245,12 +261,13 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_null_participants)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_subscriptions_info_by_topic(&this->node,
-      &allocator, this->topic_name, false, nullptr);
+  const auto ret = rcl_get_subscriptions_info_by_topic(
+    &this->node, &allocator, this->topic_name, false, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 }
 
@@ -258,18 +275,21 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_info_by_topic_invalid_participants)
 {
   // topic_endpoint_info_array is invalid because it is expected to be zero initialized
   // and the info_array variable inside it is expected to be null.
   this->topic_endpoint_info_array.info_array = new rmw_topic_endpoint_info_t();
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     free(this->topic_endpoint_info_array.info_array);
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_publishers_info_by_topic(&this->node,
-      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_publishers_info_by_topic(
+    &this->node, &allocator, this->topic_name, false,
+    &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_ERROR, ret);
 }
 
@@ -277,22 +297,26 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_subscriptions_info_by_topic_invalid_participants)
 {
   // topic_endpoint_info_array is invalid because it is expected to be zero initialized
   // and the info_array variable inside it is expected to be null.
   this->topic_endpoint_info_array.info_array = new rmw_topic_endpoint_info_t();
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     free(this->topic_endpoint_info_array.info_array);
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  const auto ret = rcl_get_subscriptions_info_by_topic(&this->node,
-      &allocator, this->topic_name, false, &this->topic_endpoint_info_array);
+  const auto ret = rcl_get_subscriptions_info_by_topic(
+    &this->node, &allocator, this->topic_name, false,
+    &this->topic_endpoint_info_array);
   EXPECT_EQ(RCL_RET_ERROR, ret);
 }
 
-TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
+TEST_F(
+  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_subscription_info_by_topic)
 {
   // This is implemented only in fastrtps currently.
@@ -338,8 +362,9 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   // Get publishers info by topic
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array_pub =
     rmw_get_zero_initialized_topic_endpoint_info_array();
-  ret = rcl_get_publishers_info_by_topic(&this->node,
-      &allocator, fqdn.c_str(), false, &topic_endpoint_info_array_pub);
+  ret = rcl_get_publishers_info_by_topic(
+    &this->node, &allocator, fqdn.c_str(), false,
+    &topic_endpoint_info_array_pub);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(topic_endpoint_info_array_pub.count, 1u) << "Expected one publisher";
   rmw_topic_endpoint_info_t topic_endpoint_info_pub = topic_endpoint_info_array_pub.info_array[0];
@@ -350,8 +375,9 @@ TEST_F(CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
 
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array_sub =
     rmw_get_zero_initialized_topic_endpoint_info_array();
-  ret = rcl_get_subscriptions_info_by_topic(&this->node,
-      &allocator, fqdn.c_str(), false, &topic_endpoint_info_array_sub);
+  ret = rcl_get_subscriptions_info_by_topic(
+    &this->node, &allocator, fqdn.c_str(), false,
+    &topic_endpoint_info_array_sub);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(topic_endpoint_info_array_sub.count, 1u) << "Expected one subscription";
   rmw_topic_endpoint_info_t topic_endpoint_info_sub = topic_endpoint_info_array_sub.info_array[0];

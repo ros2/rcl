@@ -121,8 +121,8 @@ rcl_clock_fini(
   rcl_clock_t * clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&clock->allocator, "clock has invalid allocator",
-    return RCL_RET_ERROR);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    &clock->allocator, "clock has invalid allocator", return RCL_RET_ERROR);
   switch (clock->type) {
     case RCL_ROS_TIME:
       return rcl_ros_clock_fini(clock);
@@ -384,8 +384,8 @@ rcl_clock_add_jump_callback(
 {
   // Make sure parameters are valid
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&(clock->allocator), "invalid allocator",
-    return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    &(clock->allocator), "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
   if (threshold.min_forward.nanoseconds < 0) {
     RCL_SET_ERROR_MSG("forward jump threshold must be positive or zero");
@@ -427,8 +427,8 @@ rcl_clock_remove_jump_callback(
 {
   // Make sure parameters are valid
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ALLOCATOR_WITH_MSG(&(clock->allocator), "invalid allocator",
-    return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    &(clock->allocator), "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(callback, RCL_RET_INVALID_ARGUMENT);
 
   // Delete callback if found, moving all callbacks after back one

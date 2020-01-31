@@ -37,15 +37,18 @@
 #endif
 
 #define EXPAND(x) x
-#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME(test_fixture_name, \
-    RMW_IMPLEMENTATION)
+#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME( \
+    test_fixture_name, RMW_IMPLEMENTATION)
 #define APPLY(macro, ...) EXPAND(macro(__VA_ARGS__))
 #define TEST_P_RMW(test_case_name, test_name) \
-  APPLY(TEST_P, \
+  APPLY( \
+    TEST_P, \
     CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
 #define INSTANTIATE_TEST_CASE_P_RMW(instance_name, test_case_name, ...) \
-  EXPAND(APPLY(INSTANTIATE_TEST_CASE_P, instance_name, \
-    CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
+  EXPAND( \
+    APPLY( \
+      INSTANTIATE_TEST_CASE_P, instance_name, \
+      CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
 
 /**
  * Parameterized test.
@@ -111,7 +114,8 @@ public:
     *this->context_ptr = rcl_get_zero_initialized_context();
     ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
     });
     this->node_ptr = new rcl_node_t;
@@ -385,7 +389,8 @@ get_parameters(bool for_publisher)
   /*
    * Testing with default qos settings.
    */
-  parameters.push_back({
+  parameters.push_back(
+  {
     rmw_qos_profile_default,
     expected_default_qos_profile(),
     "default_qos"
@@ -399,7 +404,8 @@ get_parameters(bool for_publisher)
     /*
      * Test with non-default settings.
      */
-    parameters.push_back({
+    parameters.push_back(
+    {
       nondefault_qos_profile_for_fastrtps(),
       expected_nondefault_qos_profile_for_fastrtps(),
       "nondefault_qos"
@@ -409,13 +415,15 @@ get_parameters(bool for_publisher)
      * Test with system default settings.
      */
     if (for_publisher) {
-      parameters.push_back({
+      parameters.push_back(
+      {
         rmw_qos_profile_system_default,
         expected_system_default_publisher_qos_profile_for_fastrtps(),
         "system_default_publisher_qos"
       });
     } else {
-      parameters.push_back({
+      parameters.push_back(
+      {
         rmw_qos_profile_system_default,
         expected_system_default_subscription_qos_profile_for_fastrtps(),
         "system_default_publisher_qos"
@@ -429,7 +437,8 @@ get_parameters(bool for_publisher)
       /*
        * Test with non-default settings.
        */
-      parameters.push_back({
+      parameters.push_back(
+      {
         nondefault_qos_profile(),
         expected_nondefault_qos_profile(),
         "nondefault_qos"
@@ -439,13 +448,15 @@ get_parameters(bool for_publisher)
        * Test with system default settings.
        */
       if (for_publisher) {
-        parameters.push_back({
+        parameters.push_back(
+        {
           rmw_qos_profile_system_default,
           expected_system_default_publisher_qos_profile(),
           "system_default_publisher_qos"
         });
       } else {
-        parameters.push_back({
+        parameters.push_back(
+        {
           rmw_qos_profile_system_default,
           expected_system_default_subscription_qos_profile(),
           "system_default_publisher_qos"

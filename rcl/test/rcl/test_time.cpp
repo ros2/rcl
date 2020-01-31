@@ -61,7 +61,8 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t retval = rcl_ros_clock_init(&ros_clock, &allocator);
   ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string().str;
   });
 
@@ -85,7 +86,8 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_ros_time_set_ove
   ret = rcl_is_enabled_ros_time_override(&ros_clock, &is_enabled);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(is_enabled, false);
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     // Check for normal operation (not allowed to alloc).
     ret = rcl_clock_get_now(&ros_clock, &query_now);
   });
@@ -173,14 +175,16 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_rcl_init_for_clock_a
   rcl_clock_t source;
   ret = rcl_ros_clock_init(&source, &allocator);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&source)) << rcl_get_error_string().str;
   });
 
   rcl_clock_t ros_clock;
   rcl_ret_t retval = rcl_ros_clock_init(&ros_clock, &allocator);
   ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string().str;
   });
 }
@@ -189,7 +193,8 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_ros_clock_initially_
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_clock_t ros_clock;
   ASSERT_EQ(RCL_RET_OK, rcl_ros_clock_init(&ros_clock, &allocator)) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&ros_clock)) << rcl_get_error_string().str;
   });
   ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&ros_clock)) << rcl_get_error_string().str;
@@ -207,7 +212,8 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), clock_validation) {
   rcl_ret_t ret;
   ret = rcl_ros_clock_init(&uninitialized, &allocator);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&uninitialized)) << rcl_get_error_string().str;
   });
 }
@@ -217,32 +223,37 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), default_clock_instanciation) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t retval = rcl_ros_clock_init(&ros_clock, &allocator);
   ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(&ros_clock)) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(rcl_clock_valid(&ros_clock));
 
   auto * steady_clock = static_cast<rcl_clock_t *>(
     allocator.zero_allocate(1, sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(steady_clock, allocator.state);
   });
 
   retval = rcl_steady_clock_init(steady_clock, &allocator);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_steady_clock_fini(steady_clock)) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(rcl_clock_valid(steady_clock));
 
   auto * system_clock = static_cast<rcl_clock_t *>(
     allocator.zero_allocate(1, sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(system_clock, allocator.state);
   });
   retval = rcl_system_clock_init(system_clock, &allocator);
   EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_system_clock_fini(system_clock)) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(rcl_clock_valid(system_clock));
@@ -291,12 +302,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto * ros_clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
   ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(ros_clock)) << rcl_get_error_string().str;
   });
   EXPECT_TRUE(ros_clock != nullptr);
@@ -326,12 +339,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference_signed) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto * ros_clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
   ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_ros_clock_fini(ros_clock)) << rcl_get_error_string().str;
   });
 
@@ -407,12 +422,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto * ros_clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
   ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
   });
   rcl_time_point_value_t query_now;
@@ -424,7 +441,8 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
   threshold.on_clock_change = true;
   threshold.min_forward.nanoseconds = 0;
   threshold.min_backward.nanoseconds = 0;
-  ASSERT_EQ(RCL_RET_OK,
+  ASSERT_EQ(
+    RCL_RET_OK,
     rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
     rcl_get_error_string().str;
   reset_callback_triggers();
@@ -470,12 +488,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_forward_jump_callbacks) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto * ros_clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
   ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
   });
 
@@ -488,7 +508,8 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_forward_jump_callbacks) {
   threshold.on_clock_change = false;
   threshold.min_forward.nanoseconds = 1;
   threshold.min_backward.nanoseconds = 0;
-  ASSERT_EQ(RCL_RET_OK,
+  ASSERT_EQ(
+    RCL_RET_OK,
     rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
     rcl_get_error_string().str;
   reset_callback_triggers();
@@ -531,12 +552,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_backward_jump_callbacks) 
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto * ros_clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(ros_clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(ros_clock, &allocator);
   ASSERT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(ros_clock));
   });
   rcl_ret_t ret;
@@ -548,7 +571,8 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_backward_jump_callbacks) 
   threshold.on_clock_change = false;
   threshold.min_forward.nanoseconds = 0;
   threshold.min_backward.nanoseconds = -1;
-  ASSERT_EQ(RCL_RET_OK,
+  ASSERT_EQ(
+    RCL_RET_OK,
     rcl_clock_add_jump_callback(ros_clock, threshold, clock_callback, &time_jump)) <<
     rcl_get_error_string().str;
   reset_callback_triggers();
@@ -591,12 +615,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_add_jump_callback) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto * clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
   ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
   });
 
@@ -627,12 +653,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_remove_jump_callback) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto * clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
   ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
   });
 
@@ -675,12 +703,14 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), add_remove_add_jump_callback) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   auto * clock =
     static_cast<rcl_clock_t *>(allocator.allocate(sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     allocator.deallocate(clock, allocator.state);
   });
   rcl_ret_t retval = rcl_ros_clock_init(clock, &allocator);
   ASSERT_EQ(RCL_RET_OK, retval) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(clock));
   });
 

@@ -93,9 +93,11 @@ rcl_ret_t rcl_logging_rosout_init(
     return RCL_RET_OK;
   }
   __logger_map = rcutils_get_zero_initialized_hash_map();
-  RCL_RET_FROM_RCUTIL_RET(status,
-    rcutils_hash_map_init(&__logger_map, 2, sizeof(const char *), sizeof(rosout_map_entry_t),
-    rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, allocator));
+  RCL_RET_FROM_RCUTIL_RET(
+    status,
+    rcutils_hash_map_init(
+      &__logger_map, 2, sizeof(const char *), sizeof(rosout_map_entry_t),
+      rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, allocator));
   if (RCL_RET_OK == status) {
     __rosout_allocator = *allocator;
     __is_initialized = true;
@@ -111,8 +113,8 @@ rcl_ret_t rcl_logging_rosout_fini()
   rosout_map_entry_t entry;
 
   // fini all the outstanding publishers
-  rcutils_ret_t hashmap_ret = rcutils_hash_map_get_next_key_and_data(&__logger_map, NULL, &key,
-      &entry);
+  rcutils_ret_t hashmap_ret = rcutils_hash_map_get_next_key_and_data(
+    &__logger_map, NULL, &key, &entry);
   while (RCL_RET_OK == status && RCUTILS_RET_OK == hashmap_ret) {
     // Teardown publisher
     status = rcl_publisher_fini(&entry.publisher, entry.node);
@@ -157,7 +159,8 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
     // @TODO(nburek) Update behavior to either enforce unique names or work with non-unique
     // names based on the outcome here: https://github.com/ros2/design/issues/187
-    RCUTILS_LOG_WARN_NAMED("rcl.logging_rosout",
+    RCUTILS_LOG_WARN_NAMED(
+      "rcl.logging_rosout",
       "Publisher already registered for provided node name. If this is due to multiple nodes "
       "with the same name then all logs for that logger name will go out over the existing "
       "publisher. As soon as any node with that name is destructed it will unregister the "

@@ -381,7 +381,8 @@ fail:
       node->impl->logger_name)
     {
       ret = rcl_logging_rosout_fini_publisher_for_node(node);
-      RCUTILS_LOG_ERROR_EXPRESSION_NAMED((ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT),
+      RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+        (ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT),
         ROS_PACKAGE_NAME, "Failed to fini publisher for node: %i", ret);
       allocator->deallocate((char *)node->impl->logger_name, allocator->state);
     }
