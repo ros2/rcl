@@ -1347,7 +1347,9 @@ static rcutils_ret_t parse_key(
             break;
           }
 
-          ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
+	  allocator.deallocate(node_name_ns, allocator.state);
+
+	  ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error adding node namespace at line %d", line_num);
