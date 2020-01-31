@@ -984,6 +984,7 @@ rcl_arguments_copy(
   args_out->impl->parameter_overrides = NULL;
   args_out->impl->parameter_files = NULL;
   args_out->impl->num_param_files_args = 0;
+  args_out->impl->external_log_config_file = NULL;
 
   if (args->impl->num_unparsed_args) {
     // Copy unparsed args
