@@ -1347,7 +1347,7 @@ static rcutils_ret_t parse_key(
             break;
           }
 
-	  allocator.deallocate(node_name_ns, allocator.state);
+          allocator.deallocate(node_name_ns, allocator.state);
 
 	  ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
           if (RCUTILS_RET_OK != ret) {
