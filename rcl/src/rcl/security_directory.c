@@ -104,9 +104,9 @@ static bool get_best_matching_directory(
     }
     if (file.is_dir) {
       size_t matched_name_length = strnlen(file.name, sizeof(file.name) - 1);
-      if (0 ==
-        strncmp(file.name, node_name,
-        matched_name_length) && matched_name_length > max_match_length)
+      if (
+        0 == strncmp(file.name, node_name, matched_name_length) &&
+        matched_name_length > max_match_length)
       {
         max_match_length = matched_name_length;
         memcpy(matched_name, file.name, max_match_length);
@@ -230,8 +230,10 @@ char * rcl_get_secure_root(
       allocator->deallocate(ros_secure_root_env, allocator->state);
       return NULL;
     }
-    if (0 == strcmp(ros_security_lookup_type,
-      g_security_lookup_type_strings[ROS_SECURITY_LOOKUP_MATCH_PREFIX]))
+    if (
+      0 == strcmp(
+        ros_security_lookup_type,
+        g_security_lookup_type_strings[ROS_SECURITY_LOOKUP_MATCH_PREFIX]))
     {
       node_secure_root = g_security_lookup_fns[ROS_SECURITY_LOOKUP_MATCH_PREFIX]
           (node_name, node_namespace, ros_secure_root_env, allocator);

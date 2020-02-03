@@ -32,15 +32,17 @@
 #endif
 
 #define EXPAND(x) x
-#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME(test_fixture_name, \
-    RMW_IMPLEMENTATION)
+#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME( \
+    test_fixture_name, RMW_IMPLEMENTATION)
 #define APPLY(macro, ...) EXPAND(macro(__VA_ARGS__))
 #define TEST_P_RMW(test_case_name, test_name) \
-  APPLY(TEST_P, \
-    CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
+  APPLY( \
+    TEST_P, CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
 #define INSTANTIATE_TEST_CASE_P_RMW(instance_name, test_case_name, ...) \
-  EXPAND(APPLY(INSTANTIATE_TEST_CASE_P, instance_name, \
-    CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
+  EXPAND( \
+    APPLY( \
+      INSTANTIATE_TEST_CASE_P, instance_name, \
+      CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
 
 struct TestParameters
 {
@@ -71,7 +73,8 @@ public:
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
     });
     this->context_ptr = new rcl_context_t;
@@ -137,7 +140,8 @@ wait_for_subscription_to_be_ready(
   rcl_ret_t ret =
     rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, 0, context, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
@@ -188,7 +192,8 @@ get_parameters()
   /*
    * Test with enable(implicit) global rosout logs and enable node option of rosout.
    */
-  parameters.push_back({
+  parameters.push_back(
+  {
     0,
     nullptr,
     true,
@@ -198,7 +203,8 @@ get_parameters()
   /*
    * Test with enable(implicit) global rosout logs and disable node option of rosout.
    */
-  parameters.push_back({
+  parameters.push_back(
+  {
     0,
     nullptr,
     false,
@@ -208,7 +214,8 @@ get_parameters()
   /*
    * Test with enable(explicit) global rosout logs and enable node option of rosout.
    */
-  parameters.push_back({
+  parameters.push_back(
+  {
     s_argc,
     s_argv_enable_rosout,
     true,
@@ -218,7 +225,8 @@ get_parameters()
   /*
    * Test with enable(explicit) global rosout logs and disable node option of rosout.
    */
-  parameters.push_back({
+  parameters.push_back(
+  {
     s_argc,
     s_argv_enable_rosout,
     false,
@@ -228,7 +236,8 @@ get_parameters()
   /*
    * Test with disable global rosout logs and enable node option of rosout.
    */
-  parameters.push_back({
+  parameters.push_back(
+  {
     s_argc,
     s_argv_disable_rosout,
     true,
@@ -238,7 +247,8 @@ get_parameters()
   /*
    * Test with disable global rosout logs and disable node option of rosout.
    */
-  parameters.push_back({
+  parameters.push_back(
+  {
     s_argc,
     s_argv_disable_rosout,
     false,

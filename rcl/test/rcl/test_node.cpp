@@ -90,7 +90,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   rcl_context_t invalid_context = rcl_get_zero_initialized_context();
@@ -115,20 +116,23 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     // This is the normal check (not windows and windows if not opensplice)
     ASSERT_EQ(RCL_RET_OK, ret);
   }
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     rcl_ret_t ret = rcl_node_fini(&invalid_node);
     EXPECT_EQ(RCL_RET_OK, ret);
   });
   ret = rcl_shutdown(&invalid_context);  // Shutdown to invalidate the node.
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&invalid_context)) << rcl_get_error_string().str;
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
@@ -139,7 +143,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   rcl_node_t node = rcl_get_zero_initialized_node();
   ret = rcl_node_init(&node, name, namespace_, &context, &default_options);
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -175,7 +180,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   actual_node_name = rcl_node_get_name(&invalid_node);
   EXPECT_STREQ(name, actual_node_name);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     actual_node_name = rcl_node_get_name(&node);
   });
   EXPECT_TRUE(actual_node_name ? true : false);
@@ -193,7 +199,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   actual_node_namespace = rcl_node_get_namespace(&invalid_node);
   EXPECT_STREQ(namespace_, actual_node_namespace);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     actual_node_namespace = rcl_node_get_namespace(&node);
   });
   EXPECT_STREQ(namespace_, actual_node_namespace);
@@ -208,7 +215,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   actual_fq_node_name = rcl_node_get_fully_qualified_name(&invalid_node);
   EXPECT_STREQ(fq_name, actual_fq_node_name);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     actual_fq_node_name = rcl_node_get_fully_qualified_name(&node);
   });
   EXPECT_STREQ(fq_name, actual_fq_node_name);
@@ -226,7 +234,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     EXPECT_EQ("ns." + std::string(name), std::string(actual_node_logger_name));
   }
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     actual_node_logger_name = rcl_node_get_logger_name(&node);
   });
   EXPECT_NE(actual_node_logger_name, nullptr);
@@ -248,7 +257,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     EXPECT_EQ(default_options.domain_id, actual_options->domain_id);
   }
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     actual_options = rcl_node_get_options(&node);
   });
   EXPECT_NE(nullptr, actual_options);
@@ -269,7 +279,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   ret = rcl_node_get_domain_id(&invalid_node, &actual_domain_id);
   EXPECT_EQ(RCL_RET_OK, ret);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     ret = rcl_node_get_domain_id(&node, &actual_domain_id);
   });
   EXPECT_EQ(RCL_RET_OK, ret);
@@ -288,7 +299,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   node_handle = rcl_node_get_rmw_handle(&invalid_node);
   EXPECT_NE(nullptr, node_handle);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     node_handle = rcl_node_get_rmw_handle(&node);
   });
   EXPECT_NE(nullptr, node_handle);
@@ -303,7 +315,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   instance_id = rcl_node_get_rcl_instance_id(&invalid_node);
   EXPECT_EQ(0u, instance_id);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     instance_id = rcl_node_get_rcl_instance_id(&node);
   });
   EXPECT_NE(0u, instance_id);
@@ -318,7 +331,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   graph_guard_condition = rcl_node_get_graph_guard_condition(&invalid_node);
   EXPECT_NE(nullptr, graph_guard_condition);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     graph_guard_condition = rcl_node_get_graph_guard_condition(&node);
   });
   EXPECT_NE(nullptr, graph_guard_condition);
@@ -342,12 +356,14 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
@@ -438,13 +454,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_name_restri
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
@@ -504,13 +522,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_r
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
@@ -608,13 +628,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names) {
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });

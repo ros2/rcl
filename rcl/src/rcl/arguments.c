@@ -397,8 +397,8 @@ rcl_parse_arguments(
         if (i + 1 < argc) {
           // Attempt to parse next argument as parameter override rule
           if (RCL_RET_OK == _rcl_parse_param_rule(argv[i + 1], args_impl->parameter_overrides)) {
-            RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-              "Got param override rule : %s\n", argv[i + 1]);
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Got param override rule : %s\n", argv[i + 1]);
             ++i;  // Skip flag here, for loop will skip rule.
             continue;
           }
@@ -414,8 +414,8 @@ rcl_parse_arguments(
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Arg %d (%s) is not a %s nor a %s flag.",
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME, "Arg %d (%s) is not a %s nor a %s flag.",
         i, argv[i], RCL_PARAM_FLAG, RCL_SHORT_PARAM_FLAG);
 
       // Attempt to parse argument as remap rule flag
@@ -442,9 +442,9 @@ rcl_parse_arguments(
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Arg %d (%s) is not a %s nor a %s flag.", i,
-        argv[i], RCL_REMAP_FLAG, RCL_SHORT_REMAP_FLAG);
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME, "Arg %d (%s) is not a %s nor a %s flag.",
+        i, argv[i], RCL_REMAP_FLAG, RCL_SHORT_REMAP_FLAG);
 
       // Attempt to parse argument as parameter file rule
       if (strcmp(RCL_PARAM_FILE_FLAG, argv[i]) == 0) {
@@ -457,7 +457,8 @@ rcl_parse_arguments(
               &args_impl->parameter_files[args_impl->num_param_files_args]))
           {
             ++(args_impl->num_param_files_args);
-            RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME,
               "Got params file : %s\ntotal num param files %d",
               args_impl->parameter_files[args_impl->num_param_files_args - 1],
               args_impl->num_param_files_args);
@@ -476,8 +477,9 @@ rcl_parse_arguments(
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Arg %d (%s) is not a %s flag.", i, argv[i], RCL_PARAM_FILE_FLAG);
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME, "Arg %d (%s) is not a %s flag.",
+        i, argv[i], RCL_PARAM_FILE_FLAG);
 
       // Attempt to parse argument as log level configuration
       if (strcmp(RCL_LOG_LEVEL_FLAG, argv[i]) == 0) {
@@ -501,16 +503,16 @@ rcl_parse_arguments(
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Arg %d (%s) is not a %s flag.",
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME, "Arg %d (%s) is not a %s flag.",
         i, argv[i], RCL_LOG_LEVEL_FLAG);
 
       // Attempt to parse argument as log configuration file
       if (strcmp(RCL_EXTERNAL_LOG_CONFIG_FLAG, argv[i]) == 0) {
         if (i + 1 < argc) {
           if (NULL != args_impl->external_log_config_file) {
-            RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-              "Overriding log configuration file : %s\n",
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Overriding log configuration file : %s\n",
               args_impl->external_log_config_file);
             allocator.deallocate(args_impl->external_log_config_file, allocator.state);
             args_impl->external_log_config_file = NULL;
@@ -518,8 +520,8 @@ rcl_parse_arguments(
           if (RCL_RET_OK == _rcl_parse_external_log_config_file(
               argv[i + 1], allocator, &args_impl->external_log_config_file))
           {
-            RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-              "Got log configuration file : %s\n",
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Got log configuration file : %s\n",
               args_impl->external_log_config_file);
             ++i;  // Skip flag here, for loop will skip value.
             continue;
@@ -536,19 +538,21 @@ rcl_parse_arguments(
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-        "Arg %d (%s) is not a %s flag.",
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME, "Arg %d (%s) is not a %s flag.",
         i, argv[i], RCL_EXTERNAL_LOG_CONFIG_FLAG);
 
       // Attempt to parse --enable/disable-stdout-logs flag
       ret = _rcl_parse_disabling_flag(
         argv[i], RCL_LOG_STDOUT_FLAG_SUFFIX, &args_impl->log_stdout_disabled);
       if (RCL_RET_OK == ret) {
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-          "Disable log stdout ? %s\n", args_impl->log_stdout_disabled ? "true" : "false");
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Disable log stdout ? %s\n",
+          args_impl->log_stdout_disabled ? "true" : "false");
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as %s%s or %s%s flag. Error: %s",
         i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_LOG_STDOUT_FLAG_SUFFIX,
         RCL_DISABLE_FLAG_PREFIX, RCL_LOG_STDOUT_FLAG_SUFFIX, rcl_get_error_string().str);
@@ -558,11 +562,13 @@ rcl_parse_arguments(
       ret = _rcl_parse_disabling_flag(
         argv[i], RCL_LOG_ROSOUT_FLAG_SUFFIX, &args_impl->log_rosout_disabled);
       if (RCL_RET_OK == ret) {
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-          "Disable log rosout ? %s\n", args_impl->log_rosout_disabled ? "true" : "false");
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Disable log rosout ? %s\n",
+          args_impl->log_rosout_disabled ? "true" : "false");
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as %s%s or %s%s flag. Error: %s",
         i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_LOG_ROSOUT_FLAG_SUFFIX,
         RCL_DISABLE_FLAG_PREFIX, RCL_LOG_ROSOUT_FLAG_SUFFIX, rcl_get_error_string().str);
@@ -572,11 +578,13 @@ rcl_parse_arguments(
       ret = _rcl_parse_disabling_flag(
         argv[i], RCL_LOG_EXT_LIB_FLAG_SUFFIX, &args_impl->log_ext_lib_disabled);
       if (RCL_RET_OK == ret) {
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-          "Disable log external lib ? %s\n", args_impl->log_ext_lib_disabled ? "true" : "false");
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Disable log external lib ? %s\n",
+          args_impl->log_ext_lib_disabled ? "true" : "false");
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as %s%s or %s%s flag. Error: %s",
         i, argv[i], RCL_ENABLE_FLAG_PREFIX, RCL_LOG_EXT_LIB_FLAG_SUFFIX,
         RCL_DISABLE_FLAG_PREFIX, RCL_LOG_EXT_LIB_FLAG_SUFFIX, rcl_get_error_string().str);
@@ -596,14 +604,16 @@ rcl_parse_arguments(
       rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
       *rule = rcl_get_zero_initialized_remap();
       if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
-        RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME,
           "Found remap rule '%s'. This syntax is deprecated. Use '%s %s %s' instead.",
           argv[i], RCL_ROS_ARGS_FLAG, RCL_REMAP_FLAG, argv[i]);
         RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Got remap rule : %s\n", argv[i + 1]);
         ++(args_impl->num_remap_rules);
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as a remap rule in its deprecated form. Error: %s",
         i, argv[i], rcl_get_error_string().str);
       rcl_reset_error();
@@ -616,17 +626,20 @@ rcl_parse_arguments(
           &args_impl->parameter_files[args_impl->num_param_files_args]))
       {
         ++(args_impl->num_param_files_args);
-        RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME,
           "Found parameter file rule '%s'. This syntax is deprecated. Use '%s %s %s' instead.",
           argv[i], RCL_ROS_ARGS_FLAG, RCL_PARAM_FILE_FLAG,
           args_impl->parameter_files[args_impl->num_param_files_args - 1]);
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME,
           "params rule : %s\n total num param rules %d",
           args_impl->parameter_files[args_impl->num_param_files_args - 1],
           args_impl->num_param_files_args);
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as a deprecated parameter file rule. Error: %s",
         i, argv[i], rcl_get_error_string().str);
       rcl_reset_error();
@@ -634,13 +647,15 @@ rcl_parse_arguments(
       // Attempt to parse argument as log level configuration
       int log_level;
       if (RCL_RET_OK == _rcl_parse_log_level_rule(argv[i], allocator, &log_level)) {
-        RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME,
           "Found log level rule '%s'. This syntax is deprecated. Use '%s %s %s' instead.",
           argv[i], RCL_ROS_ARGS_FLAG, RCL_LOG_LEVEL_FLAG, g_rcutils_log_severity_names[log_level]);
         args_impl->log_level = log_level;
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as a deprecated log level rule. Error: %s",
         i, argv[i], rcl_get_error_string().str);
       rcl_reset_error();
@@ -649,16 +664,18 @@ rcl_parse_arguments(
       rcl_ret_t ret = _rcl_parse_external_log_config_file_rule(
         argv[i], allocator, &args_impl->external_log_config_file);
       if (RCL_RET_OK == ret) {
-        RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME,
           "Found log config rule '%s'. This syntax is deprecated. Use '%s %s %s' instead.",
           argv[i], RCL_ROS_ARGS_FLAG, RCL_EXTERNAL_LOG_CONFIG_FLAG,
           args_impl->external_log_config_file);
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-          "Got log configuration file : %s\n",
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Got log configuration file : %s\n",
           args_impl->external_log_config_file);
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as a deprecated log config rule. Error: %s",
         i, argv[i], rcl_get_error_string().str);
       rcl_reset_error();
@@ -669,14 +686,17 @@ rcl_parse_arguments(
       if (RCL_RET_OK == ret) {
         const char * flag_prefix =
           args_impl->log_stdout_disabled ? RCL_DISABLE_FLAG_PREFIX : RCL_ENABLE_FLAG_PREFIX;
-        RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME,
           "Found '%s'. This syntax is deprecated. Use '%s %s%s' instead.",
           argv[i], RCL_ROS_ARGS_FLAG, flag_prefix, RCL_LOG_STDOUT_FLAG_SUFFIX);
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-          "Disable log stdout ? %s\n", args_impl->log_stdout_disabled ? "true" : "false");
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Disable log stdout ? %s\n",
+          args_impl->log_stdout_disabled ? "true" : "false");
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as a deprecated log_stdout_disabled rule. Error: %s",
         i, argv[i], rcl_get_error_string().str);
       rcl_reset_error();
@@ -687,14 +707,17 @@ rcl_parse_arguments(
       if (RCL_RET_OK == ret) {
         const char * flag_prefix =
           args_impl->log_rosout_disabled ? RCL_DISABLE_FLAG_PREFIX : RCL_ENABLE_FLAG_PREFIX;
-        RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME,
           "Found '%s'. This syntax is deprecated. Use '%s %s%s' instead.",
           argv[i], RCL_ROS_ARGS_FLAG, flag_prefix, RCL_LOG_ROSOUT_FLAG_SUFFIX);
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-          "Disable log rosout ? %s\n", args_impl->log_rosout_disabled ? "true" : "false");
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Disable log rosout ? %s\n",
+          args_impl->log_rosout_disabled ? "true" : "false");
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as a deprecated log_rosout_disabled rule. Error: %s",
         i, argv[i], rcl_get_error_string().str);
       rcl_reset_error();
@@ -705,14 +728,17 @@ rcl_parse_arguments(
       if (RCL_RET_OK == ret) {
         const char * flag_prefix =
           args_impl->log_ext_lib_disabled ? RCL_DISABLE_FLAG_PREFIX : RCL_ENABLE_FLAG_PREFIX;
-        RCUTILS_LOG_WARN_NAMED(ROS_PACKAGE_NAME,
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME,
           "Found '%s'. This syntax is deprecated. Use '%s %s%s' instead.",
           argv[i], RCL_ROS_ARGS_FLAG, flag_prefix, RCL_LOG_EXT_LIB_FLAG_SUFFIX);
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
-          "Disable log external lib ? %s\n", args_impl->log_ext_lib_disabled ? "true" : "false");
+        RCUTILS_LOG_DEBUG_NAMED(
+          ROS_PACKAGE_NAME, "Disable log external lib ? %s\n",
+          args_impl->log_ext_lib_disabled ? "true" : "false");
         continue;
       }
-      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME,
+      RCUTILS_LOG_DEBUG_NAMED(
+        ROS_PACKAGE_NAME,
         "Couldn't parse arg %d (%s) as a deprecated log_ext_lib_disabled rule. Error: %s",
         i, argv[i], rcl_get_error_string().str);
       rcl_reset_error();

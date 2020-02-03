@@ -70,7 +70,8 @@ wait_for_client_to_be_ready(
       ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string().str);
     return false;
   }
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string().str);
@@ -124,7 +125,8 @@ int main(int argc, char ** argv)
         ROS_PACKAGE_NAME, "Error in rcl init: %s", rcl_get_error_string().str);
       return -1;
     }
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       if (rcl_shutdown(&context) != RCL_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
           ROS_PACKAGE_NAME, "Error shutting down rcl: %s", rcl_get_error_string().str);
@@ -145,7 +147,8 @@ int main(int argc, char ** argv)
         ROS_PACKAGE_NAME, "Error in node init: %s", rcl_get_error_string().str);
       return -1;
     }
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       if (rcl_node_fini(&node) != RCL_RET_OK) {
         RCUTILS_LOG_ERROR_NAMED(
           ROS_PACKAGE_NAME, "Error in node fini: %s", rcl_get_error_string().str);
@@ -166,7 +169,8 @@ int main(int argc, char ** argv)
       return -1;
     }
 
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       if (rcl_client_fini(&client, &node)) {
         RCUTILS_LOG_ERROR_NAMED(
           ROS_PACKAGE_NAME, "Error in client fini: %s", rcl_get_error_string().str);

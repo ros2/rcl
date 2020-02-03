@@ -260,7 +260,9 @@ are_valid_ros_args(std::vector<const char *> argv)
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_invalid_args) {
   const std::string parameters_filepath = (test_path / "test_parameters.1.yaml").string();
-  EXPECT_TRUE(are_valid_ros_args({
+  EXPECT_TRUE(
+    are_valid_ros_args(
+  {
     "--ros-args", "-p", "foo:=bar", "-r", "__node:=node_name",
     "--params-file", parameters_filepath.c_str(), "--log-level", "INFO",
     "--log-config-file", "file.config"
@@ -532,7 +534,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_uninitialized_p
   rcl_arguments_t parsed_args;
   int not_null = 1;
   parsed_args.impl = reinterpret_cast<rcl_arguments_impl_t *>(&not_null);
-  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT,
+  ASSERT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   rcl_reset_error();
 }
@@ -543,12 +546,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_double_parse) {
   };
   int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
-  ASSERT_EQ(RCL_RET_OK,
+  ASSERT_EQ(
+    RCL_RET_OK,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
-  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT,
+  ASSERT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
     rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
   rcl_reset_error();
 }
@@ -583,37 +589,44 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_remove_ros_
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, default_allocator, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
   const char ** nonros_argv = NULL;
   int nonros_argc = 0;
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       NULL, &parsed_args, default_allocator, &nonros_argc, &nonros_argv));
   rcl_reset_error();
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, NULL, default_allocator, &nonros_argc, &nonros_argv));
   rcl_reset_error();
 
   rcl_allocator_t zero_initialized_allocator =
     (rcl_allocator_t)rcutils_get_zero_initialized_allocator();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, zero_initialized_allocator, &nonros_argc, &nonros_argv));
   rcl_reset_error();
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, default_allocator, NULL, &nonros_argv));
   rcl_reset_error();
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, default_allocator, &nonros_argc, NULL));
   rcl_reset_error();
 
   rcl_arguments_t zero_initialized_parsed_args = rcl_get_zero_initialized_arguments();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &zero_initialized_parsed_args, default_allocator, &nonros_argc, &nonros_argv));
   rcl_reset_error();
 
@@ -621,14 +634,16 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_remove_ros_
   const char ** initialized_nonros_argv = stack_allocated_nonros_argv;
   int initialized_nonros_argc = sizeof(stack_allocated_nonros_argv) / sizeof(const char *);
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, default_allocator, &initialized_nonros_argc, &initialized_nonros_argv));
   rcl_reset_error();
 
   rcl_arguments_t no_parsed_args = rcl_get_zero_initialized_arguments();
   ret = rcl_parse_arguments(0, NULL, default_allocator, &no_parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&no_parsed_args));
   });
 
@@ -650,13 +665,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
   int nonros_argc = 0;
   const char ** nonros_argv = NULL;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     alloc.deallocate(nonros_argv, alloc.state);
   });
 
@@ -690,13 +707,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_deprecat
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
   int nonros_argc = 0;
   const char ** nonros_argv = NULL;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     alloc.deallocate(nonros_argv, alloc.state);
   });
 
@@ -724,13 +743,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
   int nonros_argc = 0;
   const char ** nonros_argv = NULL;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     alloc.deallocate(nonros_argv, alloc.state);
   });
 
@@ -756,13 +777,15 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
   int nonros_argc = 0;
   const char ** nonros_argv = NULL;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     alloc.deallocate(nonros_argv, alloc.state);
   });
 
@@ -788,7 +811,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
@@ -809,7 +833,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
@@ -828,7 +853,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   rcl_params_t * params = NULL;
   ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     rcl_yaml_node_struct_fini(params);
   });
   EXPECT_EQ(1U, params->num_nodes);
@@ -861,7 +887,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_para
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
@@ -880,7 +907,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_deprecated_para
   rcl_params_t * params = NULL;
   ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     rcl_yaml_node_struct_fini(params);
   });
   EXPECT_EQ(1U, params->num_nodes);
@@ -912,7 +940,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
 
   ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
@@ -932,7 +961,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   rcl_params_t * params = NULL;
   ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     rcl_yaml_node_struct_fini(params);
   });
   EXPECT_EQ(2U, params->num_nodes);
@@ -972,7 +1002,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overri
 
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
@@ -1013,14 +1044,16 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
 
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
 
   rcl_params_t * params = NULL;
   ret = rcl_arguments_get_param_overrides(&parsed_args, &params);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     rcl_yaml_node_struct_fini(params);
   });
   EXPECT_EQ(2U, params->num_nodes);

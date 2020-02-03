@@ -431,8 +431,8 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_nodename_replacement)
   SCOPE_ARGS(global_arguments, "process_name");
 
   char * output = NULL;
-  ret = rcl_remap_node_name(NULL, &global_arguments, "NodeName", rcl_get_default_allocator(),
-      &output);
+  ret = rcl_remap_node_name(
+    NULL, &global_arguments, "NodeName", rcl_get_default_allocator(), &output);
   EXPECT_EQ(RCL_RET_OK, ret);
   EXPECT_EQ(NULL, output);
 }

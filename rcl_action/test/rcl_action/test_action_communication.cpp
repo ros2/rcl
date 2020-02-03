@@ -43,7 +43,8 @@ protected:
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
     });
     context = rcl_get_zero_initialized_context();
@@ -210,7 +211,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_goal_c
 
   // Check that the goal request was received correctly
   EXPECT_EQ(outgoing_goal_request.goal.order, incoming_goal_request.goal.order);
-  EXPECT_TRUE(uuidcmp(
+  EXPECT_TRUE(
+    uuidcmp(
       outgoing_goal_request.goal_id.uuid,
       incoming_goal_request.goal_id.uuid));
 
@@ -315,7 +317,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that the cancel request was received correctly
-  EXPECT_TRUE(uuidcmp(
+  EXPECT_TRUE(
+    uuidcmp(
       outgoing_cancel_request.goal_info.goal_id.uuid,
       incoming_cancel_request.goal_info.goal_id.uuid));
   EXPECT_EQ(
@@ -326,7 +329,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_cancel
     incoming_cancel_request.goal_info.stamp.nanosec);
 
   // Initialize cancel request
-  ASSERT_TRUE(action_msgs__msg__GoalInfo__Sequence__init(
+  ASSERT_TRUE(
+    action_msgs__msg__GoalInfo__Sequence__init(
       &outgoing_cancel_response.goals_canceling, 2));
   init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].goal_id.uuid);
   outgoing_cancel_response.goals_canceling.data[0].stamp.sec = 102;
@@ -437,12 +441,14 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that the result request was received correctly
-  EXPECT_TRUE(uuidcmp(
+  EXPECT_TRUE(
+    uuidcmp(
       outgoing_result_request.goal_id.uuid,
       incoming_result_request.goal_id.uuid));
 
   // Initialize result response
-  ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
+  ASSERT_TRUE(
+    rosidl_generator_c__int32__Sequence__init(
       &outgoing_result_response.result.sequence, 4));
   outgoing_result_response.result.sequence.data[0] = 0;
   outgoing_result_response.result.sequence.data[1] = 1;
@@ -491,7 +497,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_result
   ASSERT_EQ(
     outgoing_result_response.result.sequence.size,
     incoming_result_response.result.sequence.size);
-  EXPECT_TRUE(!memcmp(
+  EXPECT_TRUE(
+    !memcmp(
       outgoing_result_response.result.sequence.data,
       incoming_result_response.result.sequence.data,
       outgoing_result_response.result.sequence.size));
@@ -585,7 +592,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
   test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback);
 
   // Initialize feedback
-  ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
+  ASSERT_TRUE(
+    rosidl_generator_c__int32__Sequence__init(
       &outgoing_feedback.feedback.sequence, 3));
   outgoing_feedback.feedback.sequence.data[0] = 0;
   outgoing_feedback.feedback.sequence.data[1] = 1;
@@ -624,11 +632,13 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Check that feedback was received correctly
-  EXPECT_TRUE(uuidcmp(
+  EXPECT_TRUE(
+    uuidcmp(
       outgoing_feedback.goal_id.uuid,
       incoming_feedback.goal_id.uuid));
   ASSERT_EQ(outgoing_feedback.feedback.sequence.size, incoming_feedback.feedback.sequence.size);
-  EXPECT_TRUE(!memcmp(
+  EXPECT_TRUE(
+    !memcmp(
       outgoing_feedback.feedback.sequence.data,
       incoming_feedback.feedback.sequence.data,
       outgoing_feedback.feedback.sequence.size));
@@ -822,7 +832,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_canc
   action_msgs__srv__CancelGoal_Response__init(&incoming_cancel_response);
 
   // Initialize cancel request
-  ASSERT_TRUE(action_msgs__msg__GoalInfo__Sequence__init(
+  ASSERT_TRUE(
+    action_msgs__msg__GoalInfo__Sequence__init(
       &outgoing_cancel_response.goals_canceling, 2));
   init_test_uuid0(outgoing_cancel_response.goals_canceling.data[0].goal_id.uuid);
   outgoing_cancel_response.goals_canceling.data[0].stamp.sec = 102;
@@ -940,7 +951,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_resu
   test_msgs__action__Fibonacci_GetResult_Response__init(&incoming_result_response);
 
   // Initialize result response
-  ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
+  ASSERT_TRUE(
+    rosidl_generator_c__int32__Sequence__init(
       &outgoing_result_response.result.sequence, 4));
   outgoing_result_response.result.sequence.data[0] = 0;
   outgoing_result_response.result.sequence.data[1] = 1;
@@ -1002,7 +1014,8 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_feed
   test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback);
 
   // Initialize feedback
-  ASSERT_TRUE(rosidl_generator_c__int32__Sequence__init(
+  ASSERT_TRUE(
+    rosidl_generator_c__int32__Sequence__init(
       &outgoing_feedback.feedback.sequence, 3));
   outgoing_feedback.feedback.sequence.data[0] = 0;
   outgoing_feedback.feedback.sequence.data[1] = 1;

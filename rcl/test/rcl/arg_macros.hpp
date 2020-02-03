@@ -56,7 +56,8 @@ destroy_args(int argc, char ** args)
     rcl_ret_t ret = rcl_init(argc, argv, &init_options, &context); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
   } \
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({ \
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT( \
+  { \
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str; \
     destroy_args(argc, argv); \
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str; \
@@ -72,7 +73,8 @@ destroy_args(int argc, char ** args)
       local_argc, local_argv, rcl_get_default_allocator(), &local_arguments); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
   } \
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({ \
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT( \
+  { \
     ASSERT_EQ(RCL_RET_OK, rcl_arguments_fini(&local_arguments)); \
   })
 

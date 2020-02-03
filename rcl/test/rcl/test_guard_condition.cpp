@@ -66,7 +66,8 @@ TEST_F(
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     ASSERT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
   });
@@ -74,7 +75,8 @@ TEST_F(
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   // Setup automatic rcl_shutdown()
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
@@ -89,7 +91,8 @@ TEST_F(
   ret = rcl_guard_condition_init(&guard_condition, &context, default_options);
   ASSERT_EQ(RCL_RET_OK, ret);
   // Setup automatic finalization of guard condition.
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     rcl_ret_t ret = rcl_guard_condition_fini(&guard_condition);
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -103,7 +106,8 @@ TEST_F(
   actual_options = rcl_guard_condition_get_options(&zero_guard_condition);
   EXPECT_EQ(nullptr, actual_options);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     actual_options = rcl_guard_condition_get_options(&guard_condition);
   });
   EXPECT_NE(nullptr, actual_options);
@@ -118,7 +122,8 @@ TEST_F(
   gc_handle = rcl_guard_condition_get_rmw_handle(&zero_guard_condition);
   EXPECT_EQ(nullptr, gc_handle);
   rcl_reset_error();
-  EXPECT_NO_MEMORY_OPERATIONS({
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
     gc_handle = rcl_guard_condition_get_rmw_handle(&guard_condition);
   });
   EXPECT_NE(nullptr, gc_handle);
@@ -141,13 +146,15 @@ TEST_F(
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     ASSERT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
   });
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });

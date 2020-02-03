@@ -169,8 +169,8 @@ rcl_publisher_init(
     remapped_topic_name,
     &(options->qos),
     &(options->rmw_publisher_options));
-  RCL_CHECK_FOR_NULL_WITH_MSG(publisher->impl->rmw_handle,
-    rmw_get_error_string().str, goto fail);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    publisher->impl->rmw_handle, rmw_get_error_string().str, goto fail);
   // get actual qos, and store it
   rmw_ret = rmw_publisher_get_actual_qos(
     publisher->impl->rmw_handle,
@@ -303,8 +303,8 @@ rcl_publish_serialized_message(
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(serialized_message, RCL_RET_INVALID_ARGUMENT);
-  rmw_ret_t ret = rmw_publish_serialized_message(publisher->impl->rmw_handle, serialized_message,
-      allocation);
+  rmw_ret_t ret = rmw_publish_serialized_message(
+    publisher->impl->rmw_handle, serialized_message, allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     if (ret == RMW_RET_BAD_ALLOC) {
@@ -420,8 +420,8 @@ rcl_publisher_get_subscription_count(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription_count, RCL_RET_INVALID_ARGUMENT);
 
-  rmw_ret_t ret = rmw_publisher_count_matched_subscriptions(publisher->impl->rmw_handle,
-      subscription_count);
+  rmw_ret_t ret = rmw_publisher_count_matched_subscriptions(
+    publisher->impl->rmw_handle, subscription_count);
 
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);

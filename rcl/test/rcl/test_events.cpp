@@ -57,7 +57,8 @@ public:
       rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
       ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
       ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+      {
         EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
       });
       this->context_ptr = new rcl_context_t;
@@ -239,7 +240,8 @@ wait_for_msgs_and_events(
     context,
     rcl_get_default_allocator());
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
@@ -345,7 +347,8 @@ conditional_wait_for_msgs_and_events(
  */
 TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_missed)
 {
-  setup_publisher_and_subscriber(RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
+  setup_publisher_and_subscriber(
+    RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
 
@@ -372,7 +375,8 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
   if (msg_ready) {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       test_msgs__msg__Strings__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
@@ -409,7 +413,8 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
  */
 TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_missed)
 {
-  setup_publisher_and_subscriber(RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
+  setup_publisher_and_subscriber(
+    RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
 
@@ -442,12 +447,14 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
   if (msg_persist_ready) {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       test_msgs__msg__Strings__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size),
+    EXPECT_EQ(
+      std::string(msg.string_value.data, msg.string_value.size),
       std::string(test_string));
   }
 
@@ -480,7 +487,8 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
  */
 TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_kill_pub)
 {
-  setup_publisher_and_subscriber(RCL_PUBLISHER_LIVELINESS_LOST,
+  setup_publisher_and_subscriber(
+    RCL_PUBLISHER_LIVELINESS_LOST,
     RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
   rcl_ret_t ret;
 
@@ -515,12 +523,14 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
   if (msg_persist_ready) {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       test_msgs__msg__Strings__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size),
+    EXPECT_EQ(
+      std::string(msg.string_value.data, msg.string_value.size),
       std::string(test_string));
   }
 

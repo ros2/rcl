@@ -791,7 +791,8 @@ void rcl_yaml_node_struct_print(
               printf(": ");
               for (size_t i = 0; i < param_var->bool_array_value->size; i++) {
                 if (param_var->bool_array_value->values) {
-                  printf("%s, ",
+                  printf(
+                    "%s, ",
                     (param_var->bool_array_value->values[i]) ? "true" : "false");
                 }
               }
@@ -951,8 +952,9 @@ static rcutils_ret_t add_val_to_string_arr(
     val_array->data[0U] = value;
   } else {
     /// Increase the array size by one and add the new value
-    val_array->data = allocator.reallocate(val_array->data,
-        ((val_array->size + 1U) * sizeof(char *)), allocator.state);
+    val_array->data = allocator.reallocate(
+      val_array->data,
+      ((val_array->size + 1U) * sizeof(char *)), allocator.state);
     if (NULL == val_array->data) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
       return RCUTILS_RET_BAD_ALLOC;
@@ -1370,8 +1372,9 @@ static rcutils_ret_t parse_key(
             ret = RCUTILS_RET_ERROR;
             break;
           }
-          ret = replace_ns(ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
-              NS_TYPE_PARAM, allocator);
+          ret = replace_ns(
+            ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
+            NS_TYPE_PARAM, allocator);
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error replacing namespace at line %d", line_num);
