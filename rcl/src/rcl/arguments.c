@@ -299,6 +299,16 @@ _atob(
   const char * str,
   bool * val);
 
+/// Allocate and zero initialize arguments impl and.
+/**
+ * \param[out] args target arguments to set impl
+ * \param[in] allocator an allocator to use
+ * \return RCL_RET_OK if a valid rule was parsed, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed
+ */
+rcl_ret_t
+_rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t * allocator);
+
 rcl_ret_t
 rcl_parse_arguments(
   int argc,
@@ -323,26 +333,15 @@ rcl_parse_arguments(
   rcl_ret_t ret;
   rcl_ret_t fail_ret;
 
-  args_output->impl = allocator.allocate(sizeof(rcl_arguments_impl_t), allocator.state);
-  if (NULL == args_output->impl) {
-    return RCL_RET_BAD_ALLOC;
+  ret = _rcl_allocate_initialized_arguments_impl(args_output, &allocator);
+  if (RCL_RET_OK != ret) {
+    return ret;
   }
   rcl_arguments_impl_t * args_impl = args_output->impl;
-  args_impl->num_remap_rules = 0;
-  args_impl->remap_rules = NULL;
   args_impl->log_level = -1;
-  args_impl->external_log_config_file = NULL;
-  args_impl->unparsed_args = NULL;
-  args_impl->num_unparsed_args = 0;
-  args_impl->unparsed_ros_args = NULL;
-  args_impl->num_unparsed_ros_args = 0;
-  args_impl->parameter_overrides = NULL;
-  args_impl->parameter_files = NULL;
-  args_impl->num_param_files_args = 0;
   args_impl->log_stdout_disabled = false;
   args_impl->log_rosout_disabled = false;
   args_impl->log_ext_lib_disabled = false;
-  args_impl->allocator = allocator;
 
   if (argc == 0) {
     // there are no arguments to parse
@@ -967,24 +966,12 @@ rcl_arguments_copy(
 
   rcl_allocator_t allocator = args->impl->allocator;
 
-  args_out->impl = allocator.allocate(sizeof(rcl_arguments_impl_t), allocator.state);
-  if (NULL == args_out->impl) {
-    return RCL_RET_BAD_ALLOC;
-  }
-
-  args_out->impl->allocator = allocator;
-
-  // Zero so it's safe to call rcl_arguments_fini() if an error occurrs while copying.
-  args_out->impl->num_remap_rules = 0;
-  args_out->impl->remap_rules = NULL;
-  args_out->impl->unparsed_args = NULL;
-  args_out->impl->num_unparsed_args = 0;
-  args_out->impl->unparsed_ros_args = NULL;
-  args_out->impl->num_unparsed_ros_args = 0;
-  args_out->impl->parameter_overrides = NULL;
-  args_out->impl->parameter_files = NULL;
-  args_out->impl->num_param_files_args = 0;
-  args_out->impl->external_log_config_file = NULL;
+  do {
+    rcl_ret_t ret = _rcl_allocate_initialized_arguments_impl(args_out, &allocator);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  } while(false);
 
   if (args->impl->num_unparsed_args) {
     // Copy unparsed args
@@ -2098,6 +2085,37 @@ _atob(
     }
   }
   return RCL_RET_ERROR;
+}
+
+rcl_ret_t
+_rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t * allocator)
+{
+  args->impl = allocator->allocate(sizeof(rcl_arguments_impl_t), allocator->state);
+  if (NULL == args->impl) {
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  // TODO(y-okumura-isp): log_level and log_*disabled are initialized in rcl_parse_arguments()
+  //                      but not in rcl_arguments_copy().
+  //                      Check they are only forgotten or there is some reason.
+  rcl_arguments_impl_t * args_impl = args->impl;
+  args_impl->num_remap_rules = 0;
+  args_impl->remap_rules = NULL;
+  // args_impl->log_level = -1;
+  args_impl->external_log_config_file = NULL;
+  args_impl->unparsed_args = NULL;
+  args_impl->num_unparsed_args = 0;
+  args_impl->unparsed_ros_args = NULL;
+  args_impl->num_unparsed_ros_args = 0;
+  args_impl->parameter_overrides = NULL;
+  args_impl->parameter_files = NULL;
+  args_impl->num_param_files_args = 0;
+  // args_impl->log_stdout_disabled = false;
+  // args_impl->log_rosout_disabled = false;
+  // args_impl->log_ext_lib_disabled = false;
+  args_impl->allocator = *allocator;
+
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus
