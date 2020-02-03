@@ -173,6 +173,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
   test_msgs__msg__Strings__init(&msg_string);
   ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg_string.string_value, "testing"));
   ret = rcl_publish(&publisher_in_namespace, &msg_string, nullptr);
+  test_msgs__msg__Strings__fini(&msg_string);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
