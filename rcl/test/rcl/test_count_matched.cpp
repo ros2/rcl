@@ -114,6 +114,8 @@ public:
     *this->context_ptr = rcl_get_zero_initialized_context();
     ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_init_options_fini(&init_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "test_count_node";
