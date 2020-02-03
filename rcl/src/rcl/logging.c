@@ -44,7 +44,7 @@ static bool g_rcl_logging_stdout_enabled = false;
 static bool g_rcl_logging_rosout_enabled = false;
 static bool g_rcl_logging_ext_lib_enabled = false;
 
-static atomic_uint_least64_t __rcl_logging_init_count = ATOMIC_VAR_INIT(0);
+static atomic_uint_least64_t g_rcl_logging_init_count = ATOMIC_VAR_INIT(0);
 
 /**
  * An output function that sends to multiple output appenders.
@@ -71,7 +71,7 @@ rcl_logging_init(const rcl_arguments_t * global_args, const rcl_allocator_t * al
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-  if (rcutils_atomic_fetch_add_uint64_t(&__rcl_logging_init_count, 1)) {
+  if (rcutils_atomic_fetch_add_uint64_t(&g_rcl_logging_init_count, 1)) {
     return RCL_RET_OK;
   }
   RCUTILS_LOGGING_AUTOINIT
@@ -114,8 +114,8 @@ rcl_ret_t rcl_logging_fini()
 {
   rcl_ret_t status = RCL_RET_OK;
 
-  if (rcutils_atomic_load_uint64_t(&__rcl_logging_init_count) > 0) {
-    uint64_t current_count = rcutils_atomic_fetch_add_uint64_t(&__rcl_logging_init_count, -1);
+  if (rcutils_atomic_load_uint64_t(&g_rcl_logging_init_count) > 0) {
+    uint64_t current_count = rcutils_atomic_fetch_add_uint64_t(&g_rcl_logging_init_count, -1);
     if (current_count != 1) {
       return RCL_RET_OK;
     }
@@ -131,6 +131,7 @@ rcl_ret_t rcl_logging_fini()
   if (RCL_RET_OK == status && g_rcl_logging_ext_lib_enabled) {
     status = rcl_logging_external_shutdown();
   }
+
   return status;
 }
 
