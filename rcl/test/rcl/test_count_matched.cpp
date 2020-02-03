@@ -186,6 +186,14 @@ TEST_F(CLASSNAME(TestCountFixture, RMW_IMPLEMENTATION), test_count_matched_funct
 
   check_state(wait_set_ptr, nullptr, &sub, graph_guard_condition, -1, 0, 9);
   check_state(wait_set_ptr, nullptr, &sub2, graph_guard_condition, -1, 0, 9);
+
+  ret = rcl_subscription_fini(&sub, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_subscription_fini(&sub2, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
 }
 
 TEST_F(
@@ -240,6 +248,14 @@ TEST_F(
   // Even multiple subscribers should not match
   check_state(wait_set_ptr, &pub, &sub, graph_guard_condition, 0, 0, 9);
   check_state(wait_set_ptr, &pub, &sub2, graph_guard_condition, 0, 0, 9);
+
+  ret = rcl_subscription_fini(&sub, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_subscription_fini(&sub2, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
 
   ret = rcl_publisher_fini(&pub, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
