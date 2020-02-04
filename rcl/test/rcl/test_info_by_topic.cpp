@@ -364,7 +364,7 @@ TEST_F(
     &this->node, &allocator, fqdn.c_str(), false,
     &topic_endpoint_info_array_pub);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  EXPECT_EQ(topic_endpoint_info_array_pub.size, 1u) << "Expected one publisher";
+  ASSERT_EQ(topic_endpoint_info_array_pub.size, 1u) << "Expected one publisher";
   rmw_topic_endpoint_info_t topic_endpoint_info_pub = topic_endpoint_info_array_pub.info_array[0];
   EXPECT_STREQ(topic_endpoint_info_pub.node_name, this->test_graph_node_name);
   EXPECT_STREQ(topic_endpoint_info_pub.node_namespace, "/");
@@ -377,7 +377,7 @@ TEST_F(
     &this->node, &allocator, fqdn.c_str(), false,
     &topic_endpoint_info_array_sub);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  EXPECT_EQ(topic_endpoint_info_array_sub.size, 1u) << "Expected one subscription";
+  ASSERT_EQ(topic_endpoint_info_array_sub.size, 1u) << "Expected one subscription";
   rmw_topic_endpoint_info_t topic_endpoint_info_sub = topic_endpoint_info_array_sub.info_array[0];
   EXPECT_STREQ(topic_endpoint_info_sub.node_name, this->test_graph_node_name);
   EXPECT_STREQ(topic_endpoint_info_sub.node_namespace, "/");
