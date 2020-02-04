@@ -149,7 +149,7 @@ char * prefix_match_lookup(
   const rcl_allocator_t * allocator
 );
 
-security_lookup_fn_t g_security_lookup_fns[] = {
+const security_lookup_fn_t g_security_lookup_fns[] = {
   NULL,
   exact_match_lookup,
   prefix_match_lookup,
@@ -162,7 +162,7 @@ typedef enum ros_security_lookup_type_e
   ROS_SECURITY_LOOKUP_MATCH_PREFIX = 2,
 } ros_security_lookup_type_t;
 
-char * g_security_lookup_type_strings[] = {
+const char * const g_security_lookup_type_strings[] = {
   "NODE_OVERRIDE",
   "MATCH_EXACT",
   "MATCH_PREFIX"
@@ -308,7 +308,7 @@ char * rcl_get_secure_root(
   // found a usable environment variable, copy into our memory before overwriting with next lookup
   char * ros_secure_root_env = rcutils_strdup(env_buf, *allocator);
 
-  char * lookup_strategy = NULL;
+  const char * lookup_strategy = NULL;
   char * secure_root = NULL;
   if (ros_secure_node_override) {
     secure_root = rcutils_strdup(ros_secure_root_env, *allocator);
