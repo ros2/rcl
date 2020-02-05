@@ -202,7 +202,7 @@ static bool get_best_matching_directory(
       if (0 ==
         strncmp(
           file.name, name, matched_name_length) &&
-          matched_name_length > max_match_length)
+        matched_name_length > max_match_length)
       {
         max_match_length = matched_name_length;
         memcpy(matched_name, file.name, max_match_length);
