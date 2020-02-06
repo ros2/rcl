@@ -107,12 +107,16 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  void assert_qos_equality(rmw_qos_profile_t qos_profile1, rmw_qos_profile_t qos_profile2)
+  void assert_qos_equality(
+    rmw_qos_profile_t qos_profile1, rmw_qos_profile_t qos_profile2,
+    bool is_publisher)
   {
     EXPECT_EQ(qos_profile1.deadline.sec, qos_profile2.deadline.sec);
     EXPECT_EQ(qos_profile1.deadline.nsec, qos_profile2.deadline.nsec);
-    EXPECT_EQ(qos_profile1.lifespan.sec, qos_profile2.lifespan.sec);
-    EXPECT_EQ(qos_profile1.lifespan.nsec, qos_profile2.lifespan.nsec);
+    if (is_publisher) {
+      EXPECT_EQ(qos_profile1.lifespan.sec, qos_profile2.lifespan.sec);
+      EXPECT_EQ(qos_profile1.lifespan.nsec, qos_profile2.lifespan.nsec);
+    }
     EXPECT_EQ(qos_profile1.reliability, qos_profile2.reliability);
     EXPECT_EQ(qos_profile1.liveliness, qos_profile2.liveliness);
     EXPECT_EQ(
@@ -323,7 +327,7 @@ TEST_F(
   if (!is_fastrtps) {
     GTEST_SKIP();
   }
-  rmw_qos_profile_t default_qos_profile;
+  rmw_qos_profile_t default_qos_profile = rmw_qos_profile_system_default;
   default_qos_profile.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
   default_qos_profile.depth = 0;
   default_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
@@ -371,7 +375,7 @@ TEST_F(
   EXPECT_STREQ(topic_endpoint_info_pub.node_name, this->test_graph_node_name);
   EXPECT_STREQ(topic_endpoint_info_pub.node_namespace, "/");
   EXPECT_STREQ(topic_endpoint_info_pub.topic_type, "test_msgs/msg/Strings");
-  assert_qos_equality(topic_endpoint_info_pub.qos_profile, default_qos_profile);
+  assert_qos_equality(topic_endpoint_info_pub.qos_profile, default_qos_profile, true);
 
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array_sub =
     rmw_get_zero_initialized_topic_endpoint_info_array();
@@ -384,7 +388,7 @@ TEST_F(
   EXPECT_STREQ(topic_endpoint_info_sub.node_name, this->test_graph_node_name);
   EXPECT_STREQ(topic_endpoint_info_sub.node_namespace, "/");
   EXPECT_STREQ(topic_endpoint_info_sub.topic_type, "test_msgs/msg/Strings");
-  assert_qos_equality(topic_endpoint_info_sub.qos_profile, default_qos_profile);
+  assert_qos_equality(topic_endpoint_info_sub.qos_profile, default_qos_profile, false);
 
   // clean up
   rmw_ret_t rmw_ret =
