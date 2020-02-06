@@ -135,7 +135,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   });
 
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -151,12 +150,34 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   subscription = rcl_get_zero_initialized_subscription();
   EXPECT_FALSE(rcl_subscription_is_valid(&subscription));
   rcl_reset_error();
+}
 
-  // Check that valid subscriber is valid
-  subscription = rcl_get_zero_initialized_subscription();
+/* Basic nominal test of a subscription: valid subscriber is valid.
+ */
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal_valid) {
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic = "/chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  rcl_subscription_t  subscription = rcl_get_zero_initialized_subscription();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
   rcl_reset_error();
 
   // TODO(wjwwood): add logic to wait for the connection to be established
@@ -180,13 +201,11 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
         test_msgs__msg__BasicTypes__fini(&msg);
-      });
+    });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(42, msg.int64_value);
   }
-  ret = rcl_subscription_fini(&subscription, this->node_ptr);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
 /* Basic nominal test of a publisher with a string.
