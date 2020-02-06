@@ -177,7 +177,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   {
     test_msgs__msg__BasicTypes msg;
     test_msgs__msg__BasicTypes__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
         test_msgs__msg__BasicTypes__fini(&msg);
       });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
