@@ -116,9 +116,9 @@ wait_for_subscription_to_be_ready(
   success = false;
 }
 
-/* Basic nominal test of a subscription.
+/* Test subscription init, fini and is_valid functions
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal) {
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_init_fini_and_is_valid) {
   rcl_ret_t ret;
 
   const rosidl_message_type_support_t * ts =
@@ -144,9 +144,9 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   rcl_reset_error();
 }
 
-/* Basic nominal test of a subscription: valid subscriber is valid.
+/* Basic nominal test of a subscription
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal_valid) {
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
