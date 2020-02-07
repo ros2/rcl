@@ -201,6 +201,37 @@ rcl_logging_ext_lib_output_handler(
   }
 }
 
+bool
+rcl_contains_logging_arguments(int argc, char const * const * argv)
+{
+  static const char * logging_options[] = {
+    RCL_LOG_LEVEL_FLAG,
+    RCL_EXTERNAL_LOG_CONFIG_FLAG,
+    RCL_ENABLE_FLAG_PREFIX RCL_LOG_STDOUT_FLAG_SUFFIX,
+    RCL_DISABLE_FLAG_PREFIX RCL_LOG_STDOUT_FLAG_SUFFIX,
+    RCL_ENABLE_FLAG_PREFIX RCL_LOG_ROSOUT_FLAG_SUFFIX,
+    RCL_DISABLE_FLAG_PREFIX RCL_LOG_ROSOUT_FLAG_SUFFIX,
+    RCL_ENABLE_FLAG_PREFIX RCL_LOG_EXT_LIB_FLAG_SUFFIX,
+    RCL_DISABLE_FLAG_PREFIX RCL_LOG_EXT_LIB_FLAG_SUFFIX,
+    RCL_LOG_LEVEL_ARG_RULE,
+    RCL_EXTERNAL_LOG_CONFIG_ARG_RULE,
+    RCL_LOG_DISABLE_STDOUT_ARG_RULE,
+    RCL_LOG_DISABLE_ROSOUT_ARG_RULE,
+    RCL_LOG_DISABLE_EXT_LIB_ARG_RULE,
+  };
+  if (!argv) {
+    return false;
+  }
+  for (int i = 0; i < argc; ++i) {
+    for (size_t j = 0; j < sizeof(logging_options) / sizeof(const char *); j++) {
+      if (0u == strcmp(argv[i], logging_options[j])) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -19,19 +19,24 @@ extern "C"
 
 #include "rcl/init.h"
 
+#include "rcl/arguments.h"
+#include "rcl/error_handling.h"
+#include "rcl/logging.h"
+
+#include "rcutils/logging_macros.h"
+#include "rcutils/stdatomic_helper.h"
+
+#include "rmw/error_handling.h"
+
+#include "tracetools/tracetools.h"
+
 #include "./arguments_impl.h"
 #include "./common.h"
 #include "./context_impl.h"
 #include "./init_options_impl.h"
-#include "rcl/arguments.h"
-#include "rcl/error_handling.h"
-#include "rcl/logging.h"
-#include "rcutils/logging_macros.h"
-#include "rcutils/stdatomic_helper.h"
-#include "rmw/error_handling.h"
-#include "tracetools/tracetools.h"
 
-static atomic_uint_least64_t __rcl_next_unique_id = ATOMIC_VAR_INIT(1);
+static atomic_uint_least64_t g_rcl_next_unique_id = ATOMIC_VAR_INIT(1);
+static atomic_uint_least64_t g_logging_ref_count = ATOMIC_VAR_INIT(0);
 
 rcl_ret_t
 rcl_init(
@@ -122,23 +127,35 @@ rcl_init(
     goto fail;
   }
 
-  ret = rcl_logging_configure(&context->global_arguments, &allocator);
-  if (RCL_RET_OK != ret) {
-    fail_ret = ret;
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
-      "Failed to configure logging: %s",
-      rcutils_get_error_string().str);
-    goto fail;
+  if (0u == rcutils_atomic_fetch_add_uint64_t(&g_logging_ref_count, 1)) {
+    ret = rcl_logging_configure(&context->global_arguments, &allocator);
+    if (RCL_RET_OK != ret) {
+      fail_ret = ret;
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
+        "Failed to configure logging: %s",
+        rcutils_get_error_string().str);
+      goto fail;
+    }
+  } else {
+    // Check if logging configurations were specified again or not.
+    // It's not possible to check that in the already parsed `context->global_arguments`
+    // as many of the configurations have default values matching a possible argument.
+    if (rcl_contains_logging_arguments(argc, argv)) {
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME,
+        "rcl_init was called more than once with logging arguments,"
+        "ignoring the last logging configuration");
+    }
   }
 
   // Set the instance id.
-  uint64_t next_instance_id = rcutils_atomic_fetch_add_uint64_t(&__rcl_next_unique_id, 1);
+  uint64_t next_instance_id = rcutils_atomic_fetch_add_uint64_t(&g_rcl_next_unique_id, 1);
   if (0 == next_instance_id) {
     // Roll over occurred, this is an extremely unlikely occurrence.
     RCL_SET_ERROR_MSG("unique rcl instance ids exhausted");
     // Roll back to try to avoid the next call succeeding, but there's a data race here.
-    rcutils_atomic_store(&__rcl_next_unique_id, -1);
+    rcutils_atomic_store(&g_rcl_next_unique_id, -1);
     goto fail;
   }
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), next_instance_id);
@@ -184,13 +201,22 @@ rcl_shutdown(rcl_context_t * context)
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
+  size_t previous_logging_ref_count =
+    rcutils_atomic_fetch_add_uint64_t(&g_logging_ref_count, -1);
 
-  rcl_ret_t rcl_ret = rcl_logging_fini();
-  RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
-    RCL_RET_OK != rcl_ret, ROS_PACKAGE_NAME,
-    "Failed to fini logging, rcl_ret_t: %i, rcl_error_str: %s", rcl_ret,
-    rcl_get_error_string().str);
-  rcl_reset_error();
+  if (1u == previous_logging_ref_count) {
+    rcl_ret_t rcl_ret = rcl_logging_fini();
+    RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+      RCL_RET_OK != rcl_ret, ROS_PACKAGE_NAME,
+      "Failed to fini logging, rcl_ret_t: %i, rcl_error_str: %s", rcl_ret,
+      rcl_get_error_string().str);
+    rcl_reset_error();
+  } else if (0u >= previous_logging_ref_count) {
+    rcutils_atomic_fetch_add_uint64_t(&g_logging_ref_count, 1);
+    RCUTILS_LOG_ERROR_NAMED(
+      ROS_PACKAGE_NAME,
+      "logging was already finished");
+  }
 
   return RCL_RET_OK;
 }

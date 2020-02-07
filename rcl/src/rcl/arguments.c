@@ -245,9 +245,6 @@ _rcl_parse_param_file_rule(
   rcl_params_t * params,
   char ** param_file);
 
-#define RCL_ENABLE_FLAG_PREFIX "--enable-"
-#define RCL_DISABLE_FLAG_PREFIX "--disable-"
-
 /// Parse a bool argument that may or may not be for the provided key rule.
 /**
  * \param[in] arg the argument to parse

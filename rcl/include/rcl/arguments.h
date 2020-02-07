@@ -44,6 +44,9 @@ typedef struct rcl_arguments_t
 #define RCL_SHORT_REMAP_FLAG "-r"
 #define RCL_LOG_LEVEL_FLAG "--log-level"
 #define RCL_EXTERNAL_LOG_CONFIG_FLAG "--log-config-file"
+// Prefixes used for some options
+#define RCL_ENABLE_FLAG_PREFIX "--enable-"
+#define RCL_DISABLE_FLAG_PREFIX "--disable-"
 // To be prefixed with --enable- or --disable-
 #define RCL_LOG_STDOUT_FLAG_SUFFIX "stdout-logs"
 #define RCL_LOG_ROSOUT_FLAG_SUFFIX "rosout-logs"
