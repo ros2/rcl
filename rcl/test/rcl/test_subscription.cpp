@@ -118,8 +118,10 @@ wait_for_subscription_to_be_ready(
 
 /* Test subscription init, fini and is_valid functions
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION),
-  test_subscription_init_fini_and_is_valid) {
+TEST_F(
+  CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION),
+  test_subscription_init_fini_and_is_valid)
+{
   rcl_ret_t ret;
 
   const rosidl_message_type_support_t * ts =
