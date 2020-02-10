@@ -118,7 +118,8 @@ wait_for_subscription_to_be_ready(
 
 /* Test subscription init, fini and is_valid functions
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_init_fini_and_is_valid) {
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION),
+  test_subscription_init_fini_and_is_valid) {
   rcl_ret_t ret;
 
   const rosidl_message_type_support_t * ts =
@@ -162,7 +163,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   });
 
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-  rcl_subscription_t  subscription = rcl_get_zero_initialized_subscription();
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -192,7 +193,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__BasicTypes__init(&msg);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
-        test_msgs__msg__BasicTypes__fini(&msg);
+      test_msgs__msg__BasicTypes__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
