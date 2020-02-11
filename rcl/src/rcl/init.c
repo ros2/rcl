@@ -19,16 +19,16 @@ extern "C"
 
 #include "rcl/init.h"
 
-#include "rcl/arguments.h"
-#include "rcl/error_handling.h"
-#include "rcl/logging.h"
-
 #include "rcutils/logging_macros.h"
 #include "rcutils/stdatomic_helper.h"
 
 #include "rmw/error_handling.h"
 
 #include "tracetools/tracetools.h"
+
+#include "rcl/arguments.h"
+#include "rcl/error_handling.h"
+#include "rcl/logging.h"
 
 #include "./arguments_impl.h"
 #include "./common.h"

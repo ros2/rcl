@@ -90,23 +90,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 bool rcl_logging_rosout_enabled();
 
-/// Return `true` if argv contains logging arguments.
-/**
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param argc
- * \param argv can be `NULL`. In that case, the return value is `false`.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-bool
-rcl_contains_logging_arguments(int argc, char const * const * argv);
-
 #ifdef __cplusplus
 }
 #endif
