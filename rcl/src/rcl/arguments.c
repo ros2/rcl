@@ -1102,7 +1102,8 @@ rcl_arguments_fini(
     }
 
     if (NULL != args->impl->external_log_config_file) {
-      args->impl->allocator.deallocate(args->impl->external_log_config_file, args->impl->allocator.state);
+      args->impl->allocator.deallocate(args->impl->external_log_config_file,
+                                       args->impl->allocator.state);
       args->impl->external_log_config_file = NULL;
     }
 
