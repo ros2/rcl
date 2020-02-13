@@ -338,10 +338,6 @@ rcl_parse_arguments(
     return ret;
   }
   rcl_arguments_impl_t * args_impl = args_output->impl;
-  args_impl->log_level = -1;
-  args_impl->log_stdout_disabled = false;
-  args_impl->log_rosout_disabled = false;
-  args_impl->log_ext_lib_disabled = false;
 
   if (argc == 0) {
     // there are no arguments to parse
@@ -2095,13 +2091,10 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
     return RCL_RET_BAD_ALLOC;
   }
 
-  // TODO(y-okumura-isp): log_level and log_*disabled are initialized in rcl_parse_arguments()
-  //                      but not in rcl_arguments_copy().
-  //                      Check they are only forgotten or there is some reason.
   rcl_arguments_impl_t * args_impl = args->impl;
   args_impl->num_remap_rules = 0;
   args_impl->remap_rules = NULL;
-  // args_impl->log_level = -1;
+  args_impl->log_level = -1;
   args_impl->external_log_config_file = NULL;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
@@ -2110,9 +2103,9 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
   args_impl->parameter_overrides = NULL;
   args_impl->parameter_files = NULL;
   args_impl->num_param_files_args = 0;
-  // args_impl->log_stdout_disabled = false;
-  // args_impl->log_rosout_disabled = false;
-  // args_impl->log_ext_lib_disabled = false;
+  args_impl->log_stdout_disabled = false;
+  args_impl->log_rosout_disabled = false;
+  args_impl->log_ext_lib_disabled = false;
   args_impl->allocator = *allocator;
 
   return RCL_RET_OK;
