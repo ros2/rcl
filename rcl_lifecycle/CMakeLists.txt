@@ -8,6 +8,7 @@ find_package(lifecycle_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
+find_package(rosidl_generator_c)
 
 include_directories(include)
 
@@ -44,6 +45,7 @@ add_library(
 ament_target_dependencies(rcl_lifecycle
   "rcl"
   "lifecycle_msgs"
+  "rosidl_generator_c"
   "rcutils"
 )
 
