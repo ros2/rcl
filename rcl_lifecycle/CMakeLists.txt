@@ -44,7 +44,6 @@ add_library(
 ament_target_dependencies(rcl_lifecycle
   "rcl"
   "lifecycle_msgs"
-  "rosidl_generator_c"
   "rcutils"
 )
 
