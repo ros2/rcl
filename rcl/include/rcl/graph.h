@@ -34,8 +34,13 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 typedef rmw_names_and_types_t rcl_names_and_types_t;
+typedef rmw_topic_endpoint_info_t rcl_topic_endpoint_info_t;
+typedef rmw_topic_endpoint_info_array_t rcl_topic_endpoint_info_array_t;
 
 #define rcl_get_zero_initialized_names_and_types rmw_get_zero_initialized_names_and_types
+#define rcl_get_zero_initialized_topic_endpoint_info_array \
+  rmw_get_zero_initialized_topic_endpoint_info_array
+#define rcl_topic_endpoint_info_array_fini rmw_topic_endpoint_info_array_fini
 
 /// Return a list of topic names and types for publishers associated with a node.
 /**
@@ -540,7 +545,7 @@ rcl_count_subscribers(
  * Each element in the `publishers_info` array will contain the node name, node namespace,
  * topic type, gid and the qos profile of the publisher.
  * It is the responsibility of the caller to ensure that `publishers_info` parameter points
- * to a valid struct of type rmw_topic_endpoint_info_array_t.
+ * to a valid struct of type rcl_topic_endpoint_info_array_t.
  * The `count` field inside the struct must be set to 0 and the `info_array` field inside
  * the struct must be set to null.
  * \see rmw_get_zero_initialized_topic_endpoint_info_array
@@ -584,7 +589,7 @@ rcl_get_publishers_info_by_topic(
   rcutils_allocator_t * allocator,
   const char * topic_name,
   bool no_mangle,
-  rmw_topic_endpoint_info_array_t * publishers_info);
+  rcl_topic_endpoint_info_array_t * publishers_info);
 
 /// Return a list of all subscriptions to a topic.
 /**
@@ -601,7 +606,7 @@ rcl_get_publishers_info_by_topic(
  * Each element in the `subscriptions_info` array will contain the node name, node namespace,
  * topic type, gid and the qos profile of the subscription.
  * It is the responsibility of the caller to ensure that `subscriptions_info` parameter points
- * to a valid struct of type rmw_topic_endpoint_info_array_t.
+ * to a valid struct of type rcl_topic_endpoint_info_array_t.
  * The `count` field inside the struct must be set to 0 and the `info_array` field inside
  * the struct must be set to null.
  * \see rmw_get_zero_initialized_topic_endpoint_info_array
@@ -645,7 +650,7 @@ rcl_get_subscriptions_info_by_topic(
   rcutils_allocator_t * allocator,
   const char * topic_name,
   bool no_mangle,
-  rmw_topic_endpoint_info_array_t * subscriptions_info);
+  rcl_topic_endpoint_info_array_t * subscriptions_info);
 
 /// Check if a service server is available for the given service client.
 /**
