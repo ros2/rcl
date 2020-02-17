@@ -25,17 +25,13 @@
 const char * const RCL_LOCALHOST_ENV_VAR = "ROS_LOCALHOST_ONLY";
 
 rcl_ret_t
-rcl_localhost_only(rmw_localhost_only_t * localhost_only)
+rcl_get_localhost_only(rmw_localhost_only_t * localhost_only)
 {
   const char * ros_local_host_env_val = NULL;
   const char * get_env_error_str = NULL;
 
   if (!localhost_only) {
     return RCL_RET_INVALID_ARGUMENT;
-  }
-
-  if (RMW_LOCALHOST_ONLY_DEFAULT == *localhost_only) {
-    return RCL_RET_OK;
   }
 
   get_env_error_str = rcutils_get_env(RCL_LOCALHOST_ENV_VAR, &ros_local_host_env_val);

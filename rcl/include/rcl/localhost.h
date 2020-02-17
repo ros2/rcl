@@ -28,18 +28,16 @@ extern const char * const RCL_LOCALHOST_ENV_VAR;
 
 /// Determine if the user wants to communicate using loopback only.
 /**
- * Checks if localhost should be used for network communication.
- * If `localhost_only` is RMW_LOCALHOST_ONLY_DEFAULT, ROS_LOCALHOST_ONLY env variable is used.
- * If not, `localhost_only` is not modified.
+ * Checks if localhost should be used for network communication based on environment.
  *
- * \param[inout] localhost_only Must not be NULL.
+ * \param[out] localhost_only Must not be NULL.
  * \returns RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
  * \returns RCL_RET_ERROR if an unexpected error happened, or
  * \returns RCL_RET_OK.
  */
 RCL_PUBLIC
 rcl_ret_t
-rcl_localhost_only(rmw_localhost_only_t * localhost_only);
+rcl_get_localhost_only(rmw_localhost_only_t * localhost_only);
 
 #ifdef __cplusplus
 }

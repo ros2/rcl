@@ -148,18 +148,25 @@ rcl_init(
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), next_instance_id);
   context->impl->init_options.impl->rmw_init_options.instance_id = next_instance_id;
 
-  // Get actual domain id based on environment variable, if needed.
-  ret = rcl_domain_id(&context->impl->init_options.impl->rmw_init_options.domain_id);
-  if (RCL_RET_OK != ret) {
-    fail_ret = ret;
-    goto fail;
+  size_t * domain_id = &context->impl->init_options.impl->rmw_init_options.domain_id;
+  if (RCL_DEFAULT_DOMAIN_ID == *domain_id) {
+    // Get actual domain id based on environment variable.
+    ret = rcl_get_default_domain_id(domain_id);
+    if (RCL_RET_OK != ret) {
+      fail_ret = ret;
+      goto fail;
+    }
   }
 
-  // Get actual localhost_only value based on environment variable, if needed.
-  ret = rcl_localhost_only(&context->impl->init_options.impl->rmw_init_options.localhost_only);
-  if (RCL_RET_OK != ret) {
-    fail_ret = ret;
-    goto fail;
+  rmw_localhost_only_t * localhost_only =
+    &context->impl->init_options.impl->rmw_init_options.localhost_only;
+  if (RMW_LOCALHOST_ONLY_DEFAULT == *localhost_only) {
+    // Get actual localhost_only value based on environment variable, if needed.
+    ret = rcl_get_localhost_only(localhost_only);
+    if (RCL_RET_OK != ret) {
+      fail_ret = ret;
+      goto fail;
+    }
   }
 
   if (!rmw_use_node_name_in_security_directory_lookup()) {
@@ -186,7 +193,6 @@ rcl_init(
   }
 
   TRACEPOINT(rcl_init, (const void *)context);
-
   return RCL_RET_OK;
 fail:
   __cleanup_context(context);

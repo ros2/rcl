@@ -30,20 +30,16 @@ extern "C"
 
 extern const char * const RCL_DOMAIN_ID_ENV_VAR;
 
-/// Determine the default domain id, based on the environment.
+/// Determine the default domain ID, based on the environment.
 /**
- * Checks the default domain id based on ROS_DOMAIN_ID environment variable, if
- * the original `domain_id` was RCL_DEFAULT_DOMAIN_ID.
- * If not, the input `domain_id` is not modified.
- *
- * \param[inout] domain_id Must not be NULL.
+ * \param[out] domain_id Must not be NULL.
  * \returns RCL_RET_INVALID_ARGUMENT if an argument is invalid, or,
  * \returns RCL_RET_ERROR in case of an unexpected error, or,
  * \returns RCL_RET_OK.
  */
 RCL_PUBLIC
 rcl_ret_t
-rcl_domain_id(size_t * domain_id);
+rcl_get_default_domain_id(size_t * domain_id);
 
 #ifdef __cplusplus
 }

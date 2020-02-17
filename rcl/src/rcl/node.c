@@ -259,8 +259,10 @@ rcl_node_init(
     node->impl->logger_name, "creating logger name failed", goto fail);
 
   domain_id = node->impl->options.domain_id;
-  if (RCL_RET_OK != rcl_domain_id(&domain_id)) {
-    goto fail;
+  if (RCL_DEFAULT_DOMAIN_ID == domain_id) {
+    if (RCL_RET_OK != rcl_get_default_domain_id(&domain_id)) {
+      goto fail;
+    }
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
   node->impl->actual_domain_id = domain_id;
@@ -277,8 +279,10 @@ rcl_node_init(
     }
   }
 
-  if (RMW_RET_OK != rcl_localhost_only(&localhost_only)) {
-    goto fail;
+  if (RMW_LOCALHOST_ONLY_DEFAULT == localhost_only) {
+    if (RMW_RET_OK != rcl_get_localhost_only(&localhost_only)) {
+      goto fail;
+    }
   }
 
   node->impl->rmw_node_handle = rmw_create_node(

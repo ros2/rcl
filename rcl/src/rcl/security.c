@@ -48,31 +48,31 @@ rcl_get_security_options_from_environment(
   if (RCL_RET_OK != ret) {
     return ret;
   }
+
+  if (!use_security) {
+    security_options->enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
+    return RMW_RET_OK;
+  }
+
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false");
 
-  if (!rmw_use_node_name_in_security_directory_lookup()) {
-    ret = rcl_get_enforcement_policy(&security_options->enforce_security);
-    if (RCL_RET_OK != ret) {
-      return ret;
-    }
+  ret = rcl_get_enforcement_policy(&security_options->enforce_security);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
 
-    if (!use_security) {
-      security_options->enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
-    } else {  // if use_security
-      // File discovery magic here
-      char * secure_root = rcl_get_secure_root(
-        name,
-        namespace_,
-        allocator);
-      if (secure_root) {
-        RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Found security directory: %s", secure_root);
-        security_options->security_root_path = secure_root;
-      } else {
-        if (RMW_SECURITY_ENFORCEMENT_ENFORCE == security_options->enforce_security) {
-          return RCL_RET_ERROR;
-        }
-      }
+  // File discovery magic here
+  char * secure_root = rcl_get_secure_root(
+    name,
+    namespace_,
+    allocator);
+  if (secure_root) {
+    RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Found security directory: %s", secure_root);
+    security_options->security_root_path = secure_root;
+  } else {
+    if (RMW_SECURITY_ENFORCEMENT_ENFORCE == security_options->enforce_security) {
+      return RCL_RET_ERROR;
     }
   }
   return RCL_RET_OK;
@@ -84,9 +84,7 @@ rcl_security_enabled(bool * use_security)
   const char * ros_security_enable = NULL;
   const char * get_env_error_str = NULL;
 
-  if (!use_security) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(use_security, RCL_RET_INVALID_ARGUMENT);
 
   get_env_error_str = rcutils_get_env(ROS_SECURITY_ENABLE_VAR_NAME, &ros_security_enable);
   if (NULL != get_env_error_str) {
@@ -106,9 +104,7 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy)
   const char * ros_enforce_security = NULL;
   const char * get_env_error_str = NULL;
 
-  if (!policy) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(policy, RCL_RET_INVALID_ARGUMENT);
 
   get_env_error_str = rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security);
   if (NULL != get_env_error_str) {
@@ -126,7 +122,7 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy)
 /**
  * A security lookup function takes in the node/context's name, namespace, a security root directory and an allocator;
  *  It returns the relevant information required to load the security credentials,
- *   which is currently a path to a directory on the filesystem containing DDS Security permission files.
+ *  which is currently a path to a directory on the filesystem containing DDS Security permission files.
  */
 typedef char * (* security_lookup_fn_t) (
   const char * name,
@@ -168,7 +164,7 @@ const char * const g_security_lookup_type_strings[] = {
   "MATCH_PREFIX"
 };
 
-/// Return the directory whose name most closely matches name (longest-prefix match),
+/// Return the directory that most closely matches a given name (longest-prefix match),
 /// scanning under base_dir.
 /**
  * By using a prefix match, a name "my_name_123" will be able to load and use the

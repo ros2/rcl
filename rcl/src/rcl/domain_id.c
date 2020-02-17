@@ -24,17 +24,13 @@
 const char * const RCL_DOMAIN_ID_ENV_VAR = "ROS_DOMAIN_ID";
 
 rcl_ret_t
-rcl_domain_id(size_t * domain_id)
+rcl_get_default_domain_id(size_t * domain_id)
 {
   const char * ros_domain_id;
   const char * get_env_error_str;
 
   if (!domain_id) {
     return RCL_RET_INVALID_ARGUMENT;
-  }
-
-  if (RCL_DEFAULT_DOMAIN_ID != *domain_id) {
-    return RCL_RET_OK;
   }
 
   get_env_error_str = rcutils_get_env(RCL_DOMAIN_ID_ENV_VAR, &ros_domain_id);

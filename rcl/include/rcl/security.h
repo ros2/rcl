@@ -28,23 +28,23 @@ extern "C"
 #include "rmw/security_options.h"
 
 #ifndef ROS_SECURITY_NODE_DIRECTORY_VAR_NAME
-  #define ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "ROS_SECURITY_NODE_DIRECTORY"
+# define ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "ROS_SECURITY_NODE_DIRECTORY"
 #endif
 
 #ifndef ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME
-  #define ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "ROS_SECURITY_ROOT_DIRECTORY"
+# define ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "ROS_SECURITY_ROOT_DIRECTORY"
 #endif
 
 #ifndef ROS_SECURITY_LOOKUP_TYPE_VAR_NAME
-  #define ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "ROS_SECURITY_LOOKUP_TYPE"
+# define ROS_SECURITY_LOOKUP_TYPE_VAR_NAME "ROS_SECURITY_LOOKUP_TYPE"
 #endif
 
 #ifndef ROS_SECURITY_STRATEGY_VAR_NAME
-#define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
+# define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
 #endif
 
 #ifndef ROS_SECURITY_ENABLE_VAR_NAME
-#define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
+# define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
 #endif
 
 /// Init the security options from the values of the environment variables and passed names.
@@ -55,10 +55,10 @@ extern "C"
  *  \sa rcl_get_enforcement_policy
  *  \sa rcl_get_secure_root
  *
- * \param name[in] name used to find the securiy root path.
- * \param namespace_[in] namespace_ used to find the security root path.
- * \param allocator[in] used to do allocations.
- * \param security_options[out] security options that will be configured according to
+ * \param[in] name name used to find the securiy root path.
+ * \param[in] namespace_ namespace_ used to find the security root path.
+ * \param[in] allocator used to do allocations.
+ * \param[out] security_options security options that will be configured according to
  *  the environment.
  */
 RCL_PUBLIC
@@ -74,7 +74,7 @@ rcl_get_security_options_from_environment(
  * If `ROS_SECURITY_ENABLE` environment variable is set to "true", `use_security` will be set to
  * true.
  *
- * \param use_security[out] Must not be NULL.
+ * \param[out] use_security Must not be NULL.
  * \returns RCL_RET_INVALID_ARGUMENT if an argument is not valid, or
  * \returns RCL_RET_ERROR if an unexpected error happened, or
  * \returns RCL_RET_OK.
@@ -89,7 +89,7 @@ rcl_security_enabled(bool * use_security);
  * If `ROS_SECURITY_STRATEGY` is "Enforce", `policy` will be `RMW_SECURITY_ENFORCEMENT_ENFORCE`.
  * If not, `policy` will be `RMW_SECURITY_ENFORCEMENT_PERMISSIVE`.
  *
- * \param policy[out] Must not be NULL.
+ * \param[out] policy Must not be NULL.
  * \returns RCL_RET_INVALID_ARGUMENT if an argument is not valid, or
  * \returns RCL_RET_ERROR if an unexpected error happened, or
  * \returns RCL_RET_OK.
