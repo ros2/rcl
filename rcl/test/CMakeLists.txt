@@ -317,8 +317,8 @@ rcl_add_custom_gtest(test_timer${target_suffix}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
-rcl_add_custom_gtest(test_security_directory
-  SRCS rcl/test_security_directory.cpp
+rcl_add_custom_gtest(test_security
+  SRCS rcl/test_security.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
