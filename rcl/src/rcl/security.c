@@ -153,13 +153,13 @@ const security_lookup_fn_t g_security_lookup_fns[] = {
 
 typedef enum ros_security_lookup_type_e
 {
-  ROS_SECURITY_LOOKUP_NODE_OVERRIDE = 0,
+  ROS_SECURITY_LOOKUP_OVERRIDE = 0,
   ROS_SECURITY_LOOKUP_MATCH_EXACT = 1,
   ROS_SECURITY_LOOKUP_MATCH_PREFIX = 2,
 } ros_security_lookup_type_t;
 
 const char * const g_security_lookup_type_strings[] = {
-  "NODE_OVERRIDE",
+  "DIRECTORY_OVERRIDE",
   "MATCH_EXACT",
   "MATCH_PREFIX"
 };
@@ -270,7 +270,7 @@ char * rcl_get_secure_root(
   const char * namespace_,
   const rcl_allocator_t * allocator)
 {
-  bool ros_secure_node_override = true;
+  bool ros_secure_directory_override = true;
   bool use_node_name_in_lookup = rmw_use_node_name_in_security_directory_lookup();
 
   // find out if either of the configuration environment variables are set
@@ -278,16 +278,15 @@ char * rcl_get_secure_root(
   if (NULL == name) {
     return NULL;
   }
-  if (use_node_name_in_lookup) {
-    if (rcutils_get_env(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME, &env_buf)) {
-      return NULL;
-    }
-    if (!env_buf) {
-      return NULL;
-    }
+
+  if (rcutils_get_env(ROS_SECURITY_DIRECTORY_OVERRIDE, &env_buf)) {
+    return NULL;
   }
-  if (!use_node_name_in_lookup || 0 == strcmp("", env_buf)) {
-    // check root directory if node directory environment variable is empty
+  if (!env_buf) {
+    return NULL;
+  }
+  if (0 == strcmp("", env_buf)) {
+    // check root directory if override directory environment variable is empty
     if (rcutils_get_env(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME, &env_buf)) {
       return NULL;
     }
@@ -297,7 +296,7 @@ char * rcl_get_secure_root(
     if (0 == strcmp("", env_buf)) {
       return NULL;  // environment variable was empty
     } else {
-      ros_secure_node_override = false;
+      ros_secure_directory_override = false;
     }
   }
 
@@ -306,9 +305,9 @@ char * rcl_get_secure_root(
 
   const char * lookup_strategy = NULL;
   char * secure_root = NULL;
-  if (ros_secure_node_override) {
+  if (ros_secure_directory_override) {
     secure_root = rcutils_strdup(ros_secure_root_env, *allocator);
-    lookup_strategy = g_security_lookup_type_strings[ROS_SECURITY_LOOKUP_NODE_OVERRIDE];
+    lookup_strategy = g_security_lookup_type_strings[ROS_SECURITY_LOOKUP_OVERRIDE];
   } else {
     // Check which lookup method to use and invoke the relevant function.
     const char * ros_security_lookup_type = NULL;

@@ -27,8 +27,8 @@ extern "C"
 #include "rcl/visibility_control.h"
 #include "rmw/security_options.h"
 
-#ifndef ROS_SECURITY_NODE_DIRECTORY_VAR_NAME
-# define ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "ROS_SECURITY_NODE_DIRECTORY"
+#ifndef ROS_SECURITY_DIRECTORY_OVERRIDE
+# define ROS_SECURITY_DIRECTORY_OVERRIDE "ROS_SECURITY_DIRECTORY_OVERRIDE"
 #endif
 
 #ifndef ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME
@@ -113,12 +113,11 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
  * the node/context name, a best match would be used instead
  * (by performing longest-prefix matching).
  *
- * Only for rmw implementations that associate a security directory with a node:
- *  However, this expansion can be overridden by setting the secure node directory environment
- *  (`ROS_SECURITY_NODE_DIRECTORY`) variable, allowing users to explicitly specify the exact secure
- *  root directory to be utilized.
- *  Such an override is useful for where the FQN of a node is non-deterministic before runtime,
- *  or when testing and using additional tools that may not otherwise be easily provisioned.
+ * However, this expansion can be overridden by setting the secure directory override environment
+ * (`ROS_SECURITY_DIRECTORY_OVERRIDE`) variable, allowing users to explicitly specify the exact secure
+ * root directory to be utilized.
+ * Such an override is useful for where the FQN of a node/context is non-deterministic before runtime,
+ * or when testing and using additional tools that may not otherwise be easily provisioned.
  *
  * \param[in] name validated name (a single token)
  * \param[in] namespace_ validated, absolute namespace (starting with "/")

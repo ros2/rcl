@@ -66,7 +66,7 @@ protected:
 
     // Always make sure the variable we set is unset at the beginning of a test
     unsetenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME);
-    unsetenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME);
+    unsetenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE);
     unsetenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME);
     allocator = rcl_get_default_allocator();
     root_path = nullptr;
@@ -207,7 +207,7 @@ TEST_F(TestGetSecureRoot, successScenarios_root_prefixMatch) {
 TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_validDirectory) {
   if (rmw_use_node_name_in_security_directory_lookup()) {
     /* Specify a valid directory */
-    putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+    putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
     root_path = rcl_get_secure_root(
       "name shouldn't matter", "namespace shouldn't matter", &allocator);
     ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
@@ -219,7 +219,7 @@ TEST_F(
   nodeSecurityDirectoryOverride_validDirectory_overrideRootDirectoryAttempt) {
   if (rmw_use_node_name_in_security_directory_lookup()) {
     /* Setting root dir has no effect */
-    putenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+    putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
     root_path = rcl_get_secure_root(
       "name shouldn't matter", "namespace shouldn't matter", &allocator);
     putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
@@ -232,7 +232,7 @@ TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_invalidDirectory) {
    * if the node override is invalid. */
   if (rmw_use_node_name_in_security_directory_lookup()) {
     putenv_wrapper(
-      ROS_SECURITY_NODE_DIRECTORY_VAR_NAME
+      ROS_SECURITY_DIRECTORY_OVERRIDE
       "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
     ASSERT_EQ(
       rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
