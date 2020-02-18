@@ -22,6 +22,7 @@
 
 #include "rcutils/filesystem.h"
 
+#include "rmw/error_handling.h"
 #include "rmw/security.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -31,6 +32,12 @@
 #define TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME "test_security_directory"
 #define TEST_NODE_NAME "dummy_node"
 #define TEST_NODE_NAMESPACE ROOT_NAMESPACE TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
+
+#ifndef _WIN32
+# define PATH_SEPARATOR "/"
+#else
+# define PATH_SEPARATOR "\\"
+#endif
 
 char g_envstring[512] = {0};
 
@@ -68,6 +75,8 @@ protected:
     unsetenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME);
     unsetenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE);
     unsetenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME);
+    unsetenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME);
+    unsetenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME);
     allocator = rcl_get_default_allocator();
     root_path = nullptr;
     secure_root = nullptr;
@@ -232,4 +241,39 @@ TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_invalidDirectory) {
   ASSERT_EQ(
     rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
     (char *) NULL);
+}
+
+TEST_F(TestGetSecureRoot, test_get_security_options) {
+  /* The override provided should exist. Providing correct node/namespace/root dir won't help
+   * if the node override is invalid. */
+  rmw_security_options_t options = rmw_get_zero_initialized_security_options();
+  putenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME "=false");
+  rcl_ret_t ret = rcl_get_security_options_from_environment(
+    "doesn't matter at all", "doesn't matter at all", &allocator, &options);
+  ASSERT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
+  EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_PERMISSIVE, options.enforce_security);
+  EXPECT_EQ(NULL, options.security_root_path);
+
+  putenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME "=true");
+  putenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME "=Enforce");
+
+  putenv_wrapper(
+    ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
+  ret = rcl_get_security_options_from_environment(
+    "doesn't matter at all", "doesn't matter at all", &allocator, &options);
+  ASSERT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
+  EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_ENFORCE, options.enforce_security);
+  EXPECT_STREQ(TEST_RESOURCES_DIRECTORY, options.security_root_path);
+  EXPECT_EQ(RMW_RET_OK, rmw_security_options_fini(&options, &allocator));
+
+  options = rmw_get_zero_initialized_security_options();
+  unsetenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE);
+  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  ret = rcl_get_security_options_from_environment(
+    TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator, &options);
+  ASSERT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
+  EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_ENFORCE, options.enforce_security);
+  EXPECT_STREQ(
+    TEST_RESOURCES_DIRECTORY TEST_NODE_NAMESPACE PATH_SEPARATOR TEST_NODE_NAME,
+    options.security_root_path);
 }
