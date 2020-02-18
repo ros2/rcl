@@ -205,37 +205,31 @@ TEST_F(TestGetSecureRoot, successScenarios_root_prefixMatch) {
 }
 
 TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_validDirectory) {
-  if (rmw_use_node_name_in_security_directory_lookup()) {
-    /* Specify a valid directory */
-    putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
-    root_path = rcl_get_secure_root(
-      "name shouldn't matter", "namespace shouldn't matter", &allocator);
-    ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
-  }
+  /* Specify a valid directory */
+  putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
+  root_path = rcl_get_secure_root(
+    "name shouldn't matter", "namespace shouldn't matter", &allocator);
+  ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
 }
 
 TEST_F(
   TestGetSecureRoot,
   nodeSecurityDirectoryOverride_validDirectory_overrideRootDirectoryAttempt) {
-  if (rmw_use_node_name_in_security_directory_lookup()) {
-    /* Setting root dir has no effect */
-    putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
-    root_path = rcl_get_secure_root(
-      "name shouldn't matter", "namespace shouldn't matter", &allocator);
-    putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
-    ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
-  }
+  /* Setting root dir has no effect */
+  putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
+  root_path = rcl_get_secure_root(
+    "name shouldn't matter", "namespace shouldn't matter", &allocator);
+  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
 }
 
 TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_invalidDirectory) {
   /* The override provided should exist. Providing correct node/namespace/root dir won't help
    * if the node override is invalid. */
-  if (rmw_use_node_name_in_security_directory_lookup()) {
-    putenv_wrapper(
-      ROS_SECURITY_DIRECTORY_OVERRIDE
-      "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
-    ASSERT_EQ(
-      rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
-      (char *) NULL);
-  }
+  putenv_wrapper(
+    ROS_SECURITY_DIRECTORY_OVERRIDE
+    "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
+  ASSERT_EQ(
+    rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
+    (char *) NULL);
 }
