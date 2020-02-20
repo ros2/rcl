@@ -19,6 +19,7 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rcl/logging.h"
 #include "rcl/rcl.h"
 #include "rcl/subscription.h"
 #include "rcl_interfaces/msg/log.h"
@@ -70,8 +71,9 @@ public:
   {
     auto param = GetParam();
     rcl_ret_t ret;
+    rcl_allocator_t allocator = rcl_get_default_allocator();
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-    ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+    ret = rcl_init_options_init(&init_options, allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
@@ -82,6 +84,11 @@ public:
 
     ret = rcl_init(param.argc, param.argv, &init_options, this->context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    EXPECT_EQ(
+      RCL_RET_OK,
+      rcl_logging_configure(&this->context_ptr->global_arguments, &allocator)
+    ) << rcl_get_error_string().str;
 
     // create node
     rcl_node_options_t node_options = rcl_node_get_default_options();
@@ -120,6 +127,7 @@ public:
     ret = rcl_context_fini(this->context_ptr);
     delete this->context_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_logging_fini()) << rcl_get_error_string().str;
   }
 
 protected:
