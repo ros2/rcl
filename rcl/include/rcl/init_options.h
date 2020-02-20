@@ -152,6 +152,11 @@ RCL_WARN_UNUSED
 rmw_init_options_t *
 rcl_init_options_get_rmw_init_options(rcl_init_options_t * init_options);
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const rcl_allocator_t *
+rcl_init_options_get_allocator(const rcl_init_options_t * init_options);
+
 #ifdef __cplusplus
 }
 #endif
