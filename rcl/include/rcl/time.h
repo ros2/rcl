@@ -176,7 +176,8 @@ rcl_clock_valid(rcl_clock_t * clock);
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] if `clock_type` is `RCL_ROS_TIME`</i>
+ *
+ * <i>[1] If `clock_type` is `RCL_ROS_TIME`</i>
  *
  * \param[in] clock_type the type identifying the time source to provide
  * \param[in] clock the handle to the clock which is being initialized
@@ -206,7 +207,7 @@ rcl_clock_init(
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | Yes
+ * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
@@ -230,7 +231,7 @@ rcl_clock_fini(
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | No
+ * Allocates Memory   | Yes
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
@@ -260,7 +261,7 @@ rcl_ros_clock_init(
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | Yes
+ * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
@@ -316,12 +317,11 @@ rcl_steady_clock_init(
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | Yes
+ * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * <i>[1] if jump callbacks were added</i>
  * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -374,11 +374,10 @@ rcl_system_clock_init(
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | Yes [1]
+ * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
- * <i>[1] if jump callbacks were added</i>
  *
  * \param[in] clock the handle to the clock which is being initialized.
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
@@ -434,7 +433,7 @@ rcl_difference_times(
  * Uses Atomics       | Yes [1]
  * Lock-Free          | Yes
  *
- * <i>[1] if `clock` is of `RCL_ROS_TIME` type</i>
+ * <i>[1] If `clock` is of `RCL_ROS_TIME` type</i>
  *
  * \param[in] clock The time source from which to set the value.
  * \param[out] time_point_value The time_point value to populate.
@@ -459,12 +458,14 @@ rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_value_t * time_point_value
  * clock object.
  *
  * <hr>
- * Attribute          | Adherence
+ * Attribute          | Adherence [1]
  * ------------------ | -------------
  * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it</i>
  *
  * \param[in] clock The clock to enable.
  * \return `RCL_RET_OK` if the time source was enabled successfully, or
@@ -487,12 +488,14 @@ rcl_enable_ros_time_override(rcl_clock_t * clock);
  * clock object.
  *
  * <hr>
- * Attribute          | Adherence
+ * Attribute          | Adherence [1]
  * ------------------ | -------------
  * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it</i>
  *
  * \param[in] clock The clock to disable.
  * \return `RCL_RET_OK` if the time source was disabled successfully, or
@@ -546,12 +549,14 @@ rcl_is_enabled_ros_time_override(
  * clock object.
  *
  * <hr>
- * Attribute          | Adherence
+ * Attribute          | Adherence [1]
  * ------------------ | -------------
  * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | Yes
  * Lock-Free          | Yes
+ *
+ * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it</i>
  *
  * \param[in] clock The clock to update.
  * \param[in] time_value The new current time.
