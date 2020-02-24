@@ -49,6 +49,8 @@ typedef rcutils_duration_value_t rcl_duration_value_t;
 /**
  * RCL_ROS_TIME will report the latest value reported by a ROS time source, or
  * if a ROS time source is not active it reports the same as RCL_SYSTEM_TIME.
+ * For more information about ROS time sources, refer to the design document:
+ * http://design.ros2.org/articles/clock_and_time.html
  *
  * RCL_SYSTEM_TIME reports the same value as the system clock.
  *
