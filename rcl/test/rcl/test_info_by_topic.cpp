@@ -50,12 +50,9 @@ public:
   const char * test_graph_node_name = "test_graph_node";
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array;
   const char * const topic_name = "valid_topic_name";
-  bool is_fastrtps, is_cyclonedds;
 
   void SetUp()
   {
-    is_fastrtps = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
-    is_cyclonedds = (std::string(rmw_get_implementation_identifier()).find("rmw_cyclonedds") == 0);
     rcl_ret_t ret;
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
@@ -324,10 +321,6 @@ TEST_F(
   CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
   test_rcl_get_publishers_subscription_info_by_topic)
 {
-  // This is implemented only in fastrtps and cyclone currently.
-  if (!is_fastrtps && !is_cyclonedds) {
-    GTEST_SKIP();
-  }
   rmw_qos_profile_t default_qos_profile = rmw_qos_profile_system_default;
   default_qos_profile.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
   default_qos_profile.depth = 0;
