@@ -271,7 +271,6 @@ char * rcl_get_secure_root(
   const rcl_allocator_t * allocator)
 {
   bool ros_secure_directory_override = true;
-  bool use_node_name_in_lookup = rmw_use_node_name_in_security_directory_lookup();
 
   // find out if either of the configuration environment variables are set
   const char * env_buf = NULL;
