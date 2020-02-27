@@ -57,7 +57,9 @@ _succeed_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t ev
 rcl_action_goal_state_t
 _abort_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if ((GOAL_STATE_EXECUTING != state && GOAL_STATE_CANCELING != state) ||
+  if ((GOAL_STATE_EXECUTING != state &&
+    GOAL_STATE_CANCELING != state &&
+    GOAL_STATE_SUCCEEDED != state) ||
     GOAL_EVENT_ABORT != event)
   {
     return GOAL_STATE_UNKNOWN;
@@ -90,6 +92,9 @@ static rcl_action_goal_event_handler
     [GOAL_EVENT_SUCCEED] = _succeed_event_handler,
     [GOAL_EVENT_ABORT] = _abort_event_handler,
     [GOAL_EVENT_CANCELED] = _canceled_event_handler,
+  },
+  [GOAL_STATE_SUCCEEDED] = {
+    [GOAL_EVENT_ABORT] = _abort_event_handler,
   },
 };
 
