@@ -49,13 +49,13 @@ rcl_get_security_options_from_environment(
     return ret;
   }
 
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false");
+
   if (!use_security) {
     security_options->enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
     return RMW_RET_OK;
   }
-
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false");
 
   ret = rcl_get_enforcement_policy(&security_options->enforce_security);
   if (RCL_RET_OK != ret) {
@@ -201,7 +201,7 @@ static bool get_best_matching_directory(
         matched_name_length > max_match_length)
       {
         max_match_length = matched_name_length;
-        memcpy(matched_name, file.name, max_match_length);
+        strncpy(matched_name, file.name, max_match_length + 1);
       }
     }
     if (-1 == tinydir_next(&dir)) {

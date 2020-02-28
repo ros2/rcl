@@ -47,9 +47,9 @@ extern "C"
 # define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
 #endif
 
-/// Init the security options from the values of the environment variables and passed names.
+/// Initialize security options from values in the environment variables and given names.
 /**
- * Inits the passed security options based on the environment.
+ * Initialize the given security options based on the environment.
  * For more details:
  *  \sa rcl_security_enabled
  *  \sa rcl_get_enforcement_policy

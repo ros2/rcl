@@ -193,6 +193,7 @@ rcl_init(
   }
 
   TRACEPOINT(rcl_init, (const void *)context);
+
   return RCL_RET_OK;
 fail:
   __cleanup_context(context);
