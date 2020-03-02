@@ -54,7 +54,7 @@ typedef rcutils_duration_value_t rcl_duration_value_t;
  *
  * RCL_SYSTEM_TIME reports the same value as the system clock.
  *
- * RCL_STEADY_TIME reports a value from a monotionically increasing clock.
+ * RCL_STEADY_TIME reports a value from a monotonically increasing clock.
  */
 typedef enum rcl_clock_type_t
 {
