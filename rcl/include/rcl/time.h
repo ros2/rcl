@@ -46,6 +46,16 @@ typedef rcutils_time_point_value_t rcl_time_point_value_t;
 typedef rcutils_duration_value_t rcl_duration_value_t;
 
 /// Time source type, used to indicate the source of a time measurement.
+/**
+ * RCL_ROS_TIME will report the latest value reported by a ROS time source, or
+ * if a ROS time source is not active it reports the same as RCL_SYSTEM_TIME.
+ * For more information about ROS time sources, refer to the design document:
+ * http://design.ros2.org/articles/clock_and_time.html
+ *
+ * RCL_SYSTEM_TIME reports the same value as the system clock.
+ *
+ * RCL_STEADY_TIME reports a value from a monotonically increasing clock.
+ */
 typedef enum rcl_clock_type_t
 {
   RCL_CLOCK_UNINITIALIZED = 0,
