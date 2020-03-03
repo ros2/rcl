@@ -176,8 +176,8 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   // Late joining subscriptions get the last 10 seconds of logs, up to 1000 logs.
   options.qos.depth = 1000;
   options.qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  options.qos.lifespan.nsec = 0;
   options.qos.lifespan.sec = 10;
+  options.qos.lifespan.nsec = 0;
   new_entry.publisher = rcl_get_zero_initialized_publisher();
   status =
     rcl_publisher_init(&new_entry.publisher, node, type_support, ROSOUT_TOPIC_NAME, &options);
