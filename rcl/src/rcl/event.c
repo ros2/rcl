@@ -77,7 +77,7 @@ rcl_publisher_event_init(
       rmw_event_type = RMW_EVENT_LIVELINESS_LOST;
       break;
     case RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS:
-      rmw_event_type = RMW_EVENT_OFFERED_INCOMPATIBLE_QOS;
+      rmw_event_type = RMW_EVENT_OFFERED_QOS_INCOMPATIBLE;
       break;
     default:
       RCL_SET_ERROR_MSG("Event type for publisher not supported");
@@ -120,7 +120,7 @@ rcl_subscription_event_init(
       rmw_event_type = RMW_EVENT_LIVELINESS_CHANGED;
       break;
     case RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS:
-      rmw_event_type = RMW_EVENT_REQUESTED_INCOMPATIBLE_QOS;
+      rmw_event_type = RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE;
       break;
     default:
       RCL_SET_ERROR_MSG("Event type for subscription not supported");
