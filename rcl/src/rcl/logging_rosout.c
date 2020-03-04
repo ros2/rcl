@@ -173,8 +173,11 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   const rosidl_message_type_support_t * type_support =
     rosidl_typesupport_c__get_message_type_support_handle__rcl_interfaces__msg__Log();
   rcl_publisher_options_t options = rcl_publisher_get_default_options();
+  // Late joining subscriptions get the last 10 seconds of logs, up to 1000 logs.
   options.qos.depth = 1000;
   options.qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  options.qos.lifespan.sec = 10;
+  options.qos.lifespan.nsec = 0;
   new_entry.publisher = rcl_get_zero_initialized_publisher();
   status =
     rcl_publisher_init(&new_entry.publisher, node, type_support, ROSOUT_TOPIC_NAME, &options);
