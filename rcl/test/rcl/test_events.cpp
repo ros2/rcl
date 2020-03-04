@@ -14,11 +14,12 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <string>
 #include <thread>
 #include <tuple>
-#include <vector>
 
 #include "rcl/rcl.h"
 #include "rcl/subscription.h"
@@ -47,8 +48,11 @@ constexpr seconds MAX_WAIT_PER_TESTCASE = 10s;
 
 #define EXPECT_OK(varname) EXPECT_EQ(varname, RCL_RET_OK) << rcl_get_error_string().str
 
+using TestIncompatibleQosEventParams = std::tuple<rmw_qos_policy_kind_t, rmw_qos_profile_t,
+    rmw_qos_profile_t, std::string>;
 
-class CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION) : public ::testing::TestWithParam<std::tuple<rmw_qos_policy_kind_t, rmw_qos_profile_t, rmw_qos_profile_t, std::string>>
+class CLASSNAME (TestEventFixture, RMW_IMPLEMENTATION)
+  : public ::testing::TestWithParam<TestIncompatibleQosEventParams>
 {
 public:
   void SetUp()
@@ -76,15 +80,6 @@ public:
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-
-    default_qos_profile.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-    default_qos_profile.depth = 0;
-    default_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-    default_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT;
-    default_qos_profile.lifespan = {0, 0};
-    default_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count(), 0};
-    default_qos_profile.liveliness_lease_duration = {LIVELINESS_LEASE_DURATION_IN_S.count(), 0};
-    default_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
   }
 
   rcl_ret_t setup_publisher(const rmw_qos_profile_t qos_profile)
@@ -205,6 +200,20 @@ public:
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
+  struct PrintToStringParamName
+  {
+    template<class ParamType>
+    std::string operator()(const ::testing::TestParamInfo<ParamType> & info) const
+    {
+      const auto & test_params = static_cast<const TestIncompatibleQosEventParams &>(info.param);
+      std::string error_msg = std::get<3>(test_params);
+      std::replace(error_msg.begin(), error_msg.end(), ' ', '_');
+      return error_msg;
+    }
+  };
+
+  static const rmw_qos_profile_t default_qos_profile;
+
 protected:
   rcl_context_t * context_ptr;
   rcl_node_t * node_ptr;
@@ -216,7 +225,20 @@ protected:
   bool is_opensplice;
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
-  rmw_qos_profile_t default_qos_profile;
+};
+
+using TestEventFixture = CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION);
+
+const rmw_qos_profile_t TestEventFixture::default_qos_profile = {
+  RMW_QOS_POLICY_HISTORY_KEEP_LAST,             // history
+  0,                                            // depth
+  RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,       // reliability
+  RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT,     // durability
+  {DEADLINE_PERIOD_IN_S.count(), 0},            // deadline
+  {0, 0},                                       // lifespan
+  RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,    // liveliness
+  {LIVELINESS_LEASE_DURATION_IN_S.count(), 0},  // liveliness_lease_duration
+  false                                         // avoid_ros_namespace_conventions
 };
 
 rcl_ret_t
@@ -349,7 +371,7 @@ conditional_wait_for_msgs_and_events(
 /*
  * Basic test of publisher and subscriber deadline events, with first message sent before deadline
  */
-TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_missed)
+TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
 {
   setup_publisher_and_subscriber_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
@@ -415,7 +437,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_no_deadline_
 /*
  * Basic test of publisher and subscriber deadline events, with first message sent after deadline
  */
-TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_missed)
+TEST_F(TestEventFixture, test_pubsub_deadline_missed)
 {
   setup_publisher_and_subscriber_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
@@ -489,7 +511,7 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_deadline_mis
 /*
  * Basic test of publisher and subscriber liveliness events, with publisher killed
  */
-TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_kill_pub)
+TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
 {
   setup_publisher_and_subscriber_and_assert_discovery(
     RCL_PUBLISHER_LIVELINESS_LOST,
@@ -574,125 +596,138 @@ TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_liveliness_k
  * Basic test of publisher and subscriber incompatible qos callback events.
  * Only implemented in opensplice at the moment.
  */
-TEST_F(CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION), test_pubsub_incompatible_qos)
+TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
 {
   if (!is_opensplice) {
     GTEST_SKIP();
   }
-  // a vector of tuples that holds the expected qos_policy_kind, publisher qos profile,
-  // subscription qos profile and the error message, in that order.
-  std::vector<std::tuple<rmw_qos_policy_kind_t, rmw_qos_profile_t, rmw_qos_profile_t,
-    std::string>> input;
-  // durability
-  rmw_qos_profile_t pub_qos_profile = default_qos_profile;
-  rmw_qos_profile_t sub_qos_profile = default_qos_profile;
-  pub_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  sub_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  input.push_back(std::make_tuple(
-      RMW_QOS_POLICY_DURABILITY,
-      pub_qos_profile,
-      sub_qos_profile,
-      "Incompatible qos durability"));
 
-  // deadline
-  pub_qos_profile = default_qos_profile;
-  pub_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
-  sub_qos_profile = default_qos_profile;
-  sub_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count(), 0};
-  input.push_back(std::make_tuple(
-      RMW_QOS_POLICY_DEADLINE,
-      pub_qos_profile,
-      sub_qos_profile,
-      "Incompatible qos deadline"));
-
-  // liveliness
-  pub_qos_profile = default_qos_profile;
-  pub_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
-  sub_qos_profile = default_qos_profile;
-  sub_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
-  input.push_back(std::make_tuple(
-      RMW_QOS_POLICY_LIVELINESS,
-      pub_qos_profile,
-      sub_qos_profile,
-      "Incompatible qos liveliness policy"));
-
-  // liveliness lease duration
-  pub_qos_profile = default_qos_profile;
-  pub_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
-  sub_qos_profile = default_qos_profile;
-  sub_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count(), 0};
-  input.push_back(std::make_tuple(
-      RMW_QOS_POLICY_LIVELINESS,
-      pub_qos_profile,
-      sub_qos_profile,
-      "Incompatible qos liveliness_lease_duration"));
-
-  // reliability
-  pub_qos_profile = default_qos_profile;
-  pub_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  sub_qos_profile = default_qos_profile;
-  sub_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
-  input.push_back(std::make_tuple(
-      RMW_QOS_POLICY_RELIABILITY,
-      pub_qos_profile,
-      sub_qos_profile,
-      "Incompatible qos reliability"));
+  const auto & input = GetParam();
+  const auto & qos_policy_kind = std::get<0>(input);
+  const auto & publisher_qos_profile = std::get<1>(input);
+  const auto & subscription_qos_profile = std::get<2>(input);
+  const auto & error_msg = std::get<3>(input);
+  setup_publisher_and_subscriber(
+    RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
+    publisher_qos_profile,
+    RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS,
+    subscription_qos_profile);
 
   rcl_ret_t ret;
 
-  for (const auto & element : input) {
-    const auto & qos_policy_kind = std::get<0>(element);
-    const auto & publisher_qos_profile = std::get<1>(element);
-    const auto & subscription_qos_profile = std::get<2>(element);
-    const auto & error_msg = std::get<3>(element);
-    setup_publisher_and_subscriber(
-      RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
-      publisher_qos_profile,
-      RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS,
-      subscription_qos_profile);
-
-    // try to receive event, retry for 10s
-    static const size_t max_iterations = 1000;
-    static const auto wait_period = 10ms;
-    bool pub_event_success = false;
-    bool sub_event_success = false;
-    for (size_t i = 0; i < max_iterations; ++i) {
-      rmw_requested_qos_incompatible_event_status_t requested_incompatible_qos_status;
-      ret = rcl_take_event(&subscription_event, &requested_incompatible_qos_status);
-      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-      const auto & pub_total_count = requested_incompatible_qos_status.total_count;
-      const auto & pub_total_count_change = requested_incompatible_qos_status.total_count_change;
-      const auto & pub_last_policy_kind = requested_incompatible_qos_status.last_policy_kind;
-      if (pub_total_count != 0 && pub_total_count_change != 0 && pub_last_policy_kind != 0) {
-        pub_event_success = true;
-        EXPECT_EQ(pub_total_count, 1) << error_msg;
-        EXPECT_EQ(pub_total_count_change, 1) << error_msg;
-        EXPECT_EQ(pub_last_policy_kind, qos_policy_kind) << error_msg;
-      }
-
-      rmw_offered_qos_incompatible_event_status_t offered_incompatible_qos_status;
-      ret = rcl_take_event(&publisher_event, &offered_incompatible_qos_status);
-      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-      const auto & sub_total_count = offered_incompatible_qos_status.total_count;
-      const auto & sub_total_count_change = offered_incompatible_qos_status.total_count_change;
-      const auto & sub_last_policy_kind = offered_incompatible_qos_status.last_policy_kind;
-      if (sub_total_count != 0 && sub_total_count_change != 0 && sub_last_policy_kind != 0) {
-        sub_event_success = true;
-        EXPECT_EQ(sub_total_count, 1) << error_msg;
-        EXPECT_EQ(sub_total_count_change, 1) << error_msg;
-        EXPECT_EQ(sub_last_policy_kind, qos_policy_kind) << error_msg;
-      }
-
-      if (pub_event_success && sub_event_success) {
-        break;
-      }
-      std::this_thread::sleep_for(wait_period);
+  // try to receive event, retry for 10s
+  static const size_t max_iterations = 1000;
+  static const auto wait_period = 10ms;
+  bool pub_event_success = false;
+  bool sub_event_success = false;
+  for (size_t i = 0; i < max_iterations; ++i) {
+    rmw_requested_qos_incompatible_event_status_t requested_incompatible_qos_status;
+    ret = rcl_take_event(&subscription_event, &requested_incompatible_qos_status);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    const auto & pub_total_count = requested_incompatible_qos_status.total_count;
+    const auto & pub_total_count_change = requested_incompatible_qos_status.total_count_change;
+    const auto & pub_last_policy_kind = requested_incompatible_qos_status.last_policy_kind;
+    if (pub_total_count != 0 && pub_total_count_change != 0 && pub_last_policy_kind != 0) {
+      pub_event_success = true;
+      EXPECT_EQ(pub_total_count, 1) << error_msg;
+      EXPECT_EQ(pub_total_count_change, 1) << error_msg;
+      EXPECT_EQ(pub_last_policy_kind, qos_policy_kind) << error_msg;
     }
-    EXPECT_TRUE(pub_event_success) << "Publisher incompatible qos event timed out for: " +
-      error_msg;
-    EXPECT_TRUE(sub_event_success) << "Subscription incompatible qos event timed out for: " +
-      error_msg;
-    // clean up
-    tear_down_publisher_subscriber();
+
+    rmw_offered_qos_incompatible_event_status_t offered_incompatible_qos_status;
+    ret = rcl_take_event(&publisher_event, &offered_incompatible_qos_status);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    const auto & sub_total_count = offered_incompatible_qos_status.total_count;
+    const auto & sub_total_count_change = offered_incompatible_qos_status.total_count_change;
+    const auto & sub_last_policy_kind = offered_incompatible_qos_status.last_policy_kind;
+    if (sub_total_count != 0 && sub_total_count_change != 0 && sub_last_policy_kind != 0) {
+      sub_event_success = true;
+      EXPECT_EQ(sub_total_count, 1) << error_msg;
+      EXPECT_EQ(sub_total_count_change, 1) << error_msg;
+      EXPECT_EQ(sub_last_policy_kind, qos_policy_kind) << error_msg;
+    }
+
+    if (pub_event_success && sub_event_success) {
+      break;
+    }
+    std::this_thread::sleep_for(wait_period);
   }
+  EXPECT_TRUE(pub_event_success) << "Publisher incompatible qos event timed out for: " +
+    error_msg;
+  EXPECT_TRUE(sub_event_success) << "Subscription incompatible qos event timed out for: " +
+    error_msg;
+  // clean up
+  tear_down_publisher_subscriber();
 }
+
+static
+std::array<TestIncompatibleQosEventParams, 5>
+get_test_pubsub_incompatible_qos_inputs()
+{
+  // an array of tuples that holds the expected qos_policy_kind, publisher qos profile,
+  // subscription qos profile and the error message, in that order.
+  std::array<TestIncompatibleQosEventParams, 5> inputs;
+
+  // durability
+  rmw_qos_profile_t pub_qos_profile = TestEventFixture::default_qos_profile;
+  rmw_qos_profile_t sub_qos_profile = TestEventFixture::default_qos_profile;
+  pub_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  sub_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  inputs[0] = std::make_tuple(
+    RMW_QOS_POLICY_DURABILITY,
+    pub_qos_profile,
+    sub_qos_profile,
+    "Incompatible qos durability");
+
+  // deadline
+  pub_qos_profile = TestEventFixture::default_qos_profile;
+  pub_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
+  sub_qos_profile = TestEventFixture::default_qos_profile;
+  sub_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count(), 0};
+  inputs[1] = std::make_tuple(
+    RMW_QOS_POLICY_DEADLINE,
+    pub_qos_profile,
+    sub_qos_profile,
+    "Incompatible qos deadline");
+
+  // liveliness
+  pub_qos_profile = TestEventFixture::default_qos_profile;
+  pub_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
+  sub_qos_profile = TestEventFixture::default_qos_profile;
+  sub_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+  inputs[2] = std::make_tuple(
+    RMW_QOS_POLICY_LIVELINESS,
+    pub_qos_profile,
+    sub_qos_profile,
+    "Incompatible qos liveliness policy");
+
+  // liveliness lease duration
+  pub_qos_profile = TestEventFixture::default_qos_profile;
+  pub_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
+  sub_qos_profile = TestEventFixture::default_qos_profile;
+  sub_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count(), 0};
+  inputs[3] = std::make_tuple(
+    RMW_QOS_POLICY_LIVELINESS,
+    pub_qos_profile,
+    sub_qos_profile,
+    "Incompatible qos liveliness_lease_duration");
+
+  // reliability
+  pub_qos_profile = TestEventFixture::default_qos_profile;
+  pub_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  sub_qos_profile = TestEventFixture::default_qos_profile;
+  sub_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  inputs[4] = std::make_tuple(
+    RMW_QOS_POLICY_RELIABILITY,
+    pub_qos_profile,
+    sub_qos_profile,
+    "Incompatible qos reliability");
+
+  return inputs;
+}
+
+INSTANTIATE_TEST_CASE_P(
+  TestPubSubIncompatibilityWithDifferentQosSettings,
+  TestEventFixture,
+  ::testing::ValuesIn(get_test_pubsub_incompatible_qos_inputs()),
+  TestEventFixture::PrintToStringParamName());
