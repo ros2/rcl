@@ -18,7 +18,6 @@
   <depend>rcl_yaml_param_parser</depend>
   <depend>rcutils</depend>
   <depend>rmw_implementation</depend>
-  <depend>rosidl_generator_c</depend>
   <depend>tinydir_vendor</depend>
   <depend>tracetools</depend>
 

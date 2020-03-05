@@ -4,7 +4,6 @@ project(rcl_action)
 
 find_package(ament_cmake_ros REQUIRED)
 
-find_package(rosidl_generator_c REQUIRED)
 find_package(action_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
@@ -54,7 +53,6 @@ ament_target_dependencies(${PROJECT_NAME}
   "rcl"
   "rcutils"
   "rmw"
-  "rosidl_generator_c"
 )
 
 rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
@@ -210,5 +208,4 @@ ament_export_dependencies(rcl)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 ament_export_dependencies(action_msgs)
-ament_export_dependencies(rosidl_generator_c)
 ament_package()

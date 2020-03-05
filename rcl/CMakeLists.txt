@@ -9,7 +9,6 @@ find_package(rcl_yaml_param_parser REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
-find_package(rosidl_generator_c REQUIRED)
 find_package(tinydir_vendor REQUIRED)
 find_package(tracetools REQUIRED)
 
@@ -70,7 +69,6 @@ ament_target_dependencies(${PROJECT_NAME}
   "rmw_implementation"
   "rmw"
   "rcutils"
-  "rosidl_generator_c"
   ${RCL_LOGGING_IMPL}
   "tinydir_vendor"
   "tracetools"
@@ -103,7 +101,7 @@ ament_export_dependencies(rcl_yaml_param_parser)
 ament_export_dependencies(rmw_implementation)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rcutils)
-ament_export_dependencies(rosidl_generator_c)
+ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(${RCL_LOGGING_IMPL})
 ament_export_dependencies(tracetools)
 
