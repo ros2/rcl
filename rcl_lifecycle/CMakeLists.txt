@@ -8,6 +8,7 @@ find_package(lifecycle_msgs REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
+find_package(rosidl_runtime_c REQUIRED)
 
 include_directories(include)
 
@@ -42,9 +43,10 @@ add_library(
 
 # specific order: dependents before dependencies
 ament_target_dependencies(rcl_lifecycle
-  "rcl"
   "lifecycle_msgs"
+  "rcl"
   "rcutils"
+  "rosidl_runtime_c"
 )
 
 rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
@@ -100,9 +102,10 @@ endif()
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
-ament_export_dependencies(rcl)
 ament_export_dependencies(lifecycle_msgs)
+ament_export_dependencies(rcl)
 ament_export_dependencies(rcutils)
+ament_export_dependencies(rosidl_runtime_c)
 ament_package()
 
 install(
