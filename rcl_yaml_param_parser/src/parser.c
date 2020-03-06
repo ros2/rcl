@@ -1343,13 +1343,12 @@ static rcutils_ret_t parse_key(
           }
 
           ret = find_node(node_name_ns, params_st, node_idx);
+          allocator.deallocate(node_name_ns, allocator.state);
           if (RCUTILS_RET_OK != ret) {
             break;
           }
 
-          allocator.deallocate(node_name_ns, allocator.state);
-
-	  ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
+          ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error adding node namespace at line %d", line_num);

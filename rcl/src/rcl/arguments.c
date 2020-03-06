@@ -962,12 +962,10 @@ rcl_arguments_copy(
 
   rcl_allocator_t allocator = args->impl->allocator;
 
-  do {
-    rcl_ret_t ret = _rcl_allocate_initialized_arguments_impl(args_out, &allocator);
-    if (RCL_RET_OK != ret) {
-      return ret;
-    }
-  } while(false);
+  rcl_ret_t ret = _rcl_allocate_initialized_arguments_impl(args_out, &allocator);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
 
   if (args->impl->num_unparsed_args) {
     // Copy unparsed args
@@ -1014,7 +1012,7 @@ rcl_arguments_copy(
     args_out->impl->num_remap_rules = args->impl->num_remap_rules;
     for (int i = 0; i < args->impl->num_remap_rules; ++i) {
       args_out->impl->remap_rules[i] = rcl_get_zero_initialized_remap();
-      rcl_ret_t ret = rcl_remap_copy(
+      ret = rcl_remap_copy(
         &(args->impl->remap_rules[i]), &(args_out->impl->remap_rules[i]));
       if (RCL_RET_OK != ret) {
         if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
@@ -1102,8 +1100,8 @@ rcl_arguments_fini(
     }
 
     if (NULL != args->impl->external_log_config_file) {
-      args->impl->allocator.deallocate(args->impl->external_log_config_file,
-                                       args->impl->allocator.state);
+      args->impl->allocator.deallocate(
+        args->impl->external_log_config_file, args->impl->allocator.state);
       args->impl->external_log_config_file = NULL;
     }
 
