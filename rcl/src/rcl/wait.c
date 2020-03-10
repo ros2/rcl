@@ -65,14 +65,18 @@ rcl_get_zero_initialized_wait_set()
 {
   static rcl_wait_set_t null_wait_set = {
     .subscriptions = NULL,
+    .subscriptions_timestamps = NULL,
     .size_of_subscriptions = 0,
     .guard_conditions = NULL,
     .size_of_guard_conditions = 0,
     .clients = NULL,
+    .clients_timestamps = NULL,
     .size_of_clients = 0,
     .services = NULL,
+    .services_timestamps = NULL,
     .size_of_services = 0,
     .timers = NULL,
+    .timers_timestamps = NULL,
     .size_of_timers = 0,
     .impl = NULL,
   };
@@ -137,12 +141,15 @@ rcl_wait_set_init(
     wait_set->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
   memset(wait_set->impl, 0, sizeof(rcl_wait_set_impl_t));
   wait_set->impl->rmw_subscriptions.subscribers = NULL;
+  wait_set->impl->rmw_subscriptions.timestamps = NULL;
   wait_set->impl->rmw_subscriptions.subscriber_count = 0;
   wait_set->impl->rmw_guard_conditions.guard_conditions = NULL;
   wait_set->impl->rmw_guard_conditions.guard_condition_count = 0;
   wait_set->impl->rmw_clients.clients = NULL;
+  wait_set->impl->rmw_clients.timestamps = NULL;
   wait_set->impl->rmw_clients.client_count = 0;
   wait_set->impl->rmw_services.services = NULL;
+  wait_set->impl->rmw_services.timestamps = NULL;
   wait_set->impl->rmw_services.service_count = 0;
   wait_set->impl->rmw_events.events = NULL;
   wait_set->impl->rmw_events.event_count = 0;
