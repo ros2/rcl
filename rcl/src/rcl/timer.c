@@ -402,14 +402,10 @@ rcl_timer_reset(rcl_timer_t * timer)
   }
   int64_t period = rcutils_atomic_load_uint64_t(&timer->impl->period);
   rcutils_atomic_store(&timer->impl->next_call_time, now + period);
-  bool is_canceled;
-  is_canceled = rcutils_atomic_load_bool(&timer->impl->canceled);
   rcutils_atomic_store(&timer->impl->canceled, false);
-  if (is_canceled) {
-    rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
-    if (ret != RCL_RET_OK)
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
-  }
+  rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
+  if (ret != RCL_RET_OK)
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset");
   return RCL_RET_OK;
 }
