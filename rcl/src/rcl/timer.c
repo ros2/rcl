@@ -33,7 +33,7 @@ typedef struct rcl_timer_impl_t
   rcl_clock_t * clock;
   // The associated context.
   rcl_context_t * context;
-  // A guard condition used to wake a wait set if using ROSTime, else zero initialized.
+  // A guard condition used to wake a wait set
   rcl_guard_condition_t guard_condition;
   // The user supplied callback.
   atomic_uintptr_t callback;
@@ -49,8 +49,6 @@ typedef struct rcl_timer_impl_t
   atomic_bool canceled;
   // The user supplied allocator.
   rcl_allocator_t allocator;
-  // A guard condition used to wake a wait set to reset cancelled timer.
-  rcl_guard_condition_t notify_guard_condition;
 } rcl_timer_impl_t;
 
 rcl_timer_t
@@ -155,12 +153,12 @@ rcl_timer_init(
   impl.clock = clock;
   impl.context = context;
   impl.guard_condition = rcl_get_zero_initialized_guard_condition();
+  rcl_guard_condition_options_t options = rcl_guard_condition_get_default_options();
+  rcl_ret_t ret = rcl_guard_condition_init(&(impl.guard_condition), context, options);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
   if (RCL_ROS_TIME == impl.clock->type) {
-    rcl_guard_condition_options_t options = rcl_guard_condition_get_default_options();
-    rcl_ret_t ret = rcl_guard_condition_init(&(impl.guard_condition), context, options);
-    if (RCL_RET_OK != ret) {
-      return ret;
-    }
     rcl_jump_threshold_t threshold;
     threshold.on_clock_change = true;
     threshold.min_forward.nanoseconds = 1;
@@ -175,24 +173,6 @@ rcl_timer_init(
       return ret;
     }
   }
-
-  impl.notify_guard_condition = rcl_get_zero_initialized_guard_condition();
-  rcl_guard_condition_options_t options = rcl_guard_condition_get_default_options();
-  rcl_ret_t ret = rcl_guard_condition_init(&(impl.notify_guard_condition), context, options);
-  if (RCL_RET_OK != ret) {
-    if (RCL_RET_OK != rcl_guard_condition_fini(&(impl.guard_condition))) {
-      // Should be impossible
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Failed to fini guard condition after failing to add jump callback");
-    }
-
-    if (RCL_RET_OK != rcl_clock_remove_jump_callback(clock, _rcl_timer_time_jump, timer)) {
-      // Should be impossible
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to remove callback after bad alloc");
-    }
-    return ret;
-  }
-
   atomic_init(&impl.callback, (uintptr_t)callback);
   atomic_init(&impl.period, period);
   atomic_init(&impl.time_credit, 0);
@@ -205,10 +185,6 @@ rcl_timer_init(
     if (RCL_RET_OK != rcl_guard_condition_fini(&(impl.guard_condition))) {
       // Should be impossible
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini guard condition after bad alloc");
-    }
-    if (RCL_RET_OK != rcl_guard_condition_fini(&(impl.notify_guard_condition))) {
-      // Should be impossible
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini notify guard condition after bad alloc");
     }
     if (RCL_RET_OK != rcl_clock_remove_jump_callback(clock, _rcl_timer_time_jump, timer)) {
       // Should be impossible
@@ -235,10 +211,6 @@ rcl_timer_fini(rcl_timer_t * timer)
   rcl_ret_t fail_ret = rcl_guard_condition_fini(&(timer->impl->guard_condition));
   if (RCL_RET_OK != fail_ret) {
     RCL_SET_ERROR_MSG("Failure to fini guard condition");
-  }
-  fail_ret = rcl_guard_condition_fini(&(timer->impl->notify_guard_condition));
-  if (RCL_RET_OK != fail_ret) {
-    RCL_SET_ERROR_MSG("Failure to fini notify guard condition");
   }
   if (RCL_ROS_TIME == timer->impl->clock->type) {
     fail_ret = rcl_clock_remove_jump_callback(timer->impl->clock, _rcl_timer_time_jump, timer);
@@ -434,9 +406,9 @@ rcl_timer_reset(rcl_timer_t * timer)
   is_canceled = rcutils_atomic_load_bool(&timer->impl->canceled);
   rcutils_atomic_store(&timer->impl->canceled, false);
   if (is_canceled) {
-    rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->notify_guard_condition);
+    rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
     if (ret != RCL_RET_OK)
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer notify guard condition");
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset");
   return RCL_RET_OK;
@@ -457,15 +429,6 @@ rcl_timer_get_guard_condition(const rcl_timer_t * timer)
     return NULL;
   }
   return &timer->impl->guard_condition;
-}
-
-rcl_guard_condition_t *
-rcl_timer_get_notify_guard_condition(const rcl_timer_t * timer)
-{
-  if (NULL == timer || NULL == timer->impl || NULL == timer->impl->notify_guard_condition.impl) {
-    return NULL;
-  }
-  return &timer->impl->notify_guard_condition;
 }
 
 #ifdef __cplusplus

@@ -393,7 +393,7 @@ rcl_wait_set_resize(
 
   // Guard condition RMW size needs to be guard conditions + timers
   rmw_guard_conditions_t * rmw_gcs = &(wait_set->impl->rmw_guard_conditions);
-  const size_t num_rmw_gc = guard_conditions_size + timers_size * 2;
+  const size_t num_rmw_gc = guard_conditions_size + timers_size;
   // Clear added guard conditions
   rmw_gcs->guard_condition_count = 0u;
   if (0u == num_rmw_gc) {
@@ -468,24 +468,15 @@ rcl_wait_set_add_timer(
   size_t * index)
 {
   SET_ADD(timer)
-  // rcl_wait() will take care of moving these backwards and setting guard_condition_count.
-  const size_t gc_index = wait_set->size_of_guard_conditions + (wait_set->impl->timer_index - 1) * 2;
-
-  rcl_guard_condition_t * notify_guard_condition = rcl_timer_get_notify_guard_condition(timer);
-  if (NULL != notify_guard_condition) {
-    rmw_guard_condition_t * rmw_handle = rcl_guard_condition_get_rmw_handle(notify_guard_condition);
-    RCL_CHECK_FOR_NULL_WITH_MSG(
-      rmw_handle, rcl_get_error_string().str, return RCL_RET_ERROR);
-    wait_set->impl->rmw_guard_conditions.guard_conditions[gc_index] = rmw_handle->data;
-  }
-
   // Add timer guard conditions to end of rmw guard condtion set.
   rcl_guard_condition_t * guard_condition = rcl_timer_get_guard_condition(timer);
   if (NULL != guard_condition) {
+    // rcl_wait() will take care of moving these backwards and setting guard_condition_count.
+    const size_t index = wait_set->size_of_guard_conditions + (wait_set->impl->timer_index - 1);
     rmw_guard_condition_t * rmw_handle = rcl_guard_condition_get_rmw_handle(guard_condition);
     RCL_CHECK_FOR_NULL_WITH_MSG(
       rmw_handle, rcl_get_error_string().str, return RCL_RET_ERROR);
-    wait_set->impl->rmw_guard_conditions.guard_conditions[gc_index + 1] = rmw_handle->data;
+    wait_set->impl->rmw_guard_conditions.guard_conditions[index] = rmw_handle->data;
   }
   return RCL_RET_OK;
 }
@@ -556,28 +547,22 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       if (!wait_set->timers[i]) {
         continue;  // Skip NULL timers.
       }
-      bool is_canceled = false;
-      rcl_ret_t ret = rcl_timer_is_canceled(wait_set->timers[i], &is_canceled);
-      if (ret != RCL_RET_OK) {
-        return ret;  // The rcl error state should already be set.
-      }
       rmw_guard_conditions_t * rmw_gcs = &(wait_set->impl->rmw_guard_conditions);
-      size_t gc_idx = wait_set->size_of_guard_conditions + i * 2;
+      size_t gc_idx = wait_set->size_of_guard_conditions + i;
       if (NULL != rmw_gcs->guard_conditions[gc_idx]) {
         // This timer has a guard condition, so move it to make a legal wait set.
         rmw_gcs->guard_conditions[rmw_gcs->guard_condition_count] =
           rmw_gcs->guard_conditions[gc_idx];
         ++(rmw_gcs->guard_condition_count);
       }
+      bool is_canceled = false;
+      rcl_ret_t ret = rcl_timer_is_canceled(wait_set->timers[i], &is_canceled);
+      if (ret != RCL_RET_OK) {
+        return ret;  // The rcl error state should already be set.
+      }
       if (is_canceled) {
         wait_set->timers[i] = NULL;
         continue;
-      }
-      if (NULL != rmw_gcs->guard_conditions[gc_idx + 1]) {
-        // This timer has a guard condition, so move it to make a legal wait set.
-        rmw_gcs->guard_conditions[rmw_gcs->guard_condition_count] =
-          rmw_gcs->guard_conditions[gc_idx + 1];
-        ++(rmw_gcs->guard_condition_count);
       }
       // use timer time to to set the rmw_wait timeout
       // TODO(sloretz) fix spurious wake-ups on ROS_TIME timers with ROS_TIME enabled

@@ -588,22 +588,6 @@ RCL_WARN_UNUSED
 rcl_guard_condition_t *
 rcl_timer_get_guard_condition(const rcl_timer_t * timer);
 
-/// Retrieve a guard condition used by the timer to wake the waitset when rest.
-/**
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] timer the timer to be queried
- * \return `NULL` if the timer is invalid or does not have a guard condition, or
- * \return a guard condition pointer.
- */
-rcl_guard_condition_t *
-rcl_timer_get_notify_guard_condition(const rcl_timer_t * timer);
 #ifdef __cplusplus
 }
 #endif
