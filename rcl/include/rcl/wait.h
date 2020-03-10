@@ -22,6 +22,7 @@ extern "C"
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <rcutils/time.h>
 
 #include "rcl/client.h"
 #include "rcl/guard_condition.h"
@@ -33,6 +34,7 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
+
 struct rcl_wait_set_impl_t;
 
 /// Container for subscription's, guard condition's, etc to be waited on.
@@ -40,18 +42,22 @@ typedef struct rcl_wait_set_t
 {
   /// Storage for subscription pointers.
   const rcl_subscription_t ** subscriptions;
+  rcutils_time_point_value_t * subscriptions_timestamps;
   size_t size_of_subscriptions;
   /// Storage for guard condition pointers.
   const rcl_guard_condition_t ** guard_conditions;
   size_t size_of_guard_conditions;
   /// Storage for timer pointers.
   const rcl_timer_t ** timers;
+  rcutils_time_point_value_t * timers_timestamps;
   size_t size_of_timers;
   /// Storage for client pointers.
   const rcl_client_t ** clients;
+  rcutils_time_point_value_t * clients_timestamps;
   size_t size_of_clients;
   /// Storage for service pointers.
   const rcl_service_t ** services;
+  rcutils_time_point_value_t * services_timestamps;
   size_t size_of_services;
   /// Storage for event pointers.
   const rcl_event_t ** events;
