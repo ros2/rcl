@@ -33,7 +33,8 @@ typedef struct rcl_timer_impl_t
   rcl_clock_t * clock;
   // The associated context.
   rcl_context_t * context;
-  // A guard condition used to wake a wait set
+  // A guard condition used to wake the associated wait set, either when
+  // ROSTime causes the timer to expire or when the timer is reset.
   rcl_guard_condition_t guard_condition;
   // The user supplied callback.
   atomic_uintptr_t callback;
