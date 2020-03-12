@@ -173,11 +173,13 @@ rcl_clock_valid(rcl_clock_t * clock);
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes [1]
- * Thread-Safe        | No
+ * Thread-Safe        | No [2]
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
  * <i>[1] If `clock_type` is `RCL_ROS_TIME`</i>
+ * <i>[2] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object.</i>
  *
  * \param[in] clock_type the type identifying the time source to provide
  * \param[in] clock the handle to the clock which is being initialized
@@ -208,9 +210,13 @@ rcl_clock_init(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object associated with the
+ *        `clock` object.</i>
  *
  * \param[in] clock the handle to the clock which is being finalized
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
@@ -232,9 +238,12 @@ rcl_clock_fini(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[2] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object.</i>
  *
  * \param[in] clock the handle to the clock which is being initialized
  * \param[in] allocator The allocator to use for allocations
@@ -262,9 +271,13 @@ rcl_ros_clock_init(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object associated with the
+ *        `clock` object.</i>
  *
  * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
@@ -286,9 +299,12 @@ rcl_ros_clock_fini(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object.</i>
  *
  * \param[in] clock the handle to the clock which is being initialized
  * \param[in] allocator The allocator to use for allocations
@@ -318,9 +334,13 @@ rcl_steady_clock_init(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object associated with the
+ *        `clock` object.</i>
  *
  * \param[in] clock the handle to the clock which is being initialized
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
@@ -344,9 +364,13 @@ rcl_steady_clock_fini(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object associated with the
+ *        `clock` object.</i>
  *
  * \param[in] clock the handle to the clock which is being initialized
  * \param[in] allocator The allocator to use for allocations
@@ -375,9 +399,13 @@ rcl_system_clock_init(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object associated with the
+ *        `clock` object.</i>
  *
  * \param[in] clock the handle to the clock which is being initialized.
  * \return `RCL_RET_OK` if the time source was successfully finalized, or
@@ -433,7 +461,7 @@ rcl_difference_times(
  * Uses Atomics       | Yes [1]
  * Lock-Free          | Yes
  *
- * <i>[1] If `clock` is of `RCL_ROS_TIME` type</i>
+ * <i>[1] If `clock` is of `RCL_ROS_TIME` type.</i>
  *
  * \param[in] clock The time source from which to set the value.
  * \param[out] time_point_value The time_point value to populate.
@@ -461,11 +489,12 @@ rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_value_t * time_point_value
  * Attribute          | Adherence [1]
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [2]
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it</i>
+ * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it.</i>
+ * <i>[2] Function is reentrant, but concurrent calls on the same `clock` object are not safe.</i>
  *
  * \param[in] clock The clock to enable.
  * \return `RCL_RET_OK` if the time source was enabled successfully, or
@@ -491,11 +520,12 @@ rcl_enable_ros_time_override(rcl_clock_t * clock);
  * Attribute          | Adherence [1]
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [2]
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it</i>
+ * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it.</i>
+ * <i>[2] Function is reentrant, but concurrent calls on the same `clock` object are not safe.</i>
  *
  * \param[in] clock The clock to disable.
  * \return `RCL_RET_OK` if the time source was disabled successfully, or
@@ -521,9 +551,11 @@ rcl_disable_ros_time_override(rcl_clock_t * clock);
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.</i>
  *
  * \param[in] clock The clock to query.
  * \param[out] is_enabled Whether the override is enabled..
@@ -552,11 +584,12 @@ rcl_is_enabled_ros_time_override(
  * Attribute          | Adherence [1]
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | No [2]
  * Uses Atomics       | Yes
  * Lock-Free          | Yes
  *
- * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it</i>
+ * <i>[1] Only applies to the function itself, as jump callbacks may not abide to it.</i>
+ * <i>[2] Function is reentrant, but concurrent calls on the same `clock` object are not safe.</i>
  *
  * \param[in] clock The clock to update.
  * \param[in] time_value The new current time.
@@ -585,9 +618,13 @@ rcl_set_ros_time_override(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object associated with the
+ *        `clock` object.</i>
  *
  * \param[in] clock A clock to add a jump callback to.
  * \param[in] threshold Criteria indicating when to call the callback.
@@ -615,9 +652,13 @@ rcl_clock_add_jump_callback(
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No
+ * Thread-Safe        | No [1]
  * Uses Atomics       | No
  * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object associated with the
+ *        `clock` object.</i>
  *
  * \param[in] clock The clock to remove a jump callback from.
  * \param[in] threshold Criteria indicating when to call callback.
