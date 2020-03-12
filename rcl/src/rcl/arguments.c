@@ -245,6 +245,22 @@ _rcl_parse_param_file_rule(
   rcl_params_t * params,
   char ** param_file);
 
+/// Parse a security directory argument.
+/**
+ * \param[in] arg the argument to parse
+ * \param[in] allocator an allocator to use
+ * \param[in,out] security_directory parsed security directory
+ * \return RCL_RET_OK if a valid security directory was parsed, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ */
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_security_directory(
+  const char * arg,
+  rcl_allocator_t allocator,
+  char ** security_directory);
+
 #define RCL_ENABLE_FLAG_PREFIX "--enable-"
 #define RCL_DISABLE_FLAG_PREFIX "--disable-"
 
@@ -533,6 +549,39 @@ rcl_parse_arguments(
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
+
+      // Attempt to parse argument as a security directory
+      if (strcmp(RCL_SECURITY_DIRECTORY_FLAG, argv[i]) == 0) {
+        if (i + 1 < argc) {
+          if (NULL != args_impl->security_directory) {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Overriding security directory path : %s\n",
+              args_impl->security_directory);
+            allocator.deallocate(args_impl->security_directory, allocator.state);
+            args_impl->security_directory = NULL;
+          }
+          if (RCL_RET_OK == _rcl_parse_security_directory(
+              argv[i + 1], allocator, &args_impl->security_directory))
+          {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Got security directory : %s\n",
+              args_impl->security_directory);
+            ++i;  // Skip flag here, for loop will skip value.
+            continue;
+          }
+          rcl_error_string_t prev_error_string = rcl_get_error_string();
+          rcl_reset_error();
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Couldn't parse security directory path: '%s %s'. Error: %s", argv[i], argv[i + 1],
+            prev_error_string.str);
+        } else {
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Couldn't parse trailing %s flag. No security directory path provided.", argv[i]);
+        }
+        ret = RCL_RET_INVALID_ROS_ARGS;
+        goto fail;
+      }
+
       RCUTILS_LOG_DEBUG_NAMED(
         ROS_PACKAGE_NAME, "Arg %d (%s) is not a %s flag.",
         i, argv[i], RCL_EXTERNAL_LOG_CONFIG_FLAG);
@@ -1098,6 +1147,7 @@ rcl_arguments_fini(
       args->impl->num_param_files_args = 0;
       args->impl->parameter_files = NULL;
     }
+    args->impl->allocator.deallocate(args->impl->security_directory, args->impl->allocator.state);
 
     if (NULL != args->impl->external_log_config_file) {
       args->impl->allocator.deallocate(
@@ -2004,6 +2054,23 @@ _rcl_parse_external_log_config_file_rule(
 }
 
 rcl_ret_t
+_rcl_parse_security_directory(
+  const char * arg,
+  rcl_allocator_t allocator,
+  char ** security_directory)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(security_directory, RCL_RET_INVALID_ARGUMENT);
+
+  *security_directory = rcutils_strdup(arg, allocator);
+  if (NULL == *security_directory) {
+    RCL_SET_ERROR_MSG("Failed to allocate memory for security directory path");
+    return RCL_RET_BAD_ALLOC;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 _rcl_parse_disabling_flag(
   const char * arg,
   const char * suffix,
@@ -2105,6 +2172,7 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
   args_impl->log_stdout_disabled = false;
   args_impl->log_rosout_disabled = false;
   args_impl->log_ext_lib_disabled = false;
+  args_out->impl->security_directory = NULL;
   args_impl->allocator = *allocator;
 
   return RCL_RET_OK;

@@ -129,9 +129,6 @@ rcl_node_init(
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   char * remapped_node_name = NULL;
-  rmw_security_options_t node_security_options =
-    rmw_get_zero_initialized_security_options();
-  rmw_security_options_t * node_security_options_ptr = NULL;
 
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
@@ -267,18 +264,6 @@ rcl_node_init(
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
   node->impl->actual_domain_id = domain_id;
 
-  if (rmw_use_node_name_in_security_directory_lookup()) {
-    node_security_options_ptr = &node_security_options;
-    ret = rcl_get_security_options_from_environment(
-      name,
-      local_namespace_,
-      allocator,
-      node_security_options_ptr);
-    if (RMW_RET_OK != ret) {
-      goto fail;
-    }
-  }
-
   if (RMW_LOCALHOST_ONLY_DEFAULT == localhost_only) {
     if (RMW_RET_OK != rcl_get_localhost_only(&localhost_only)) {
       goto fail;
@@ -287,7 +272,7 @@ rcl_node_init(
 
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
-    name, local_namespace_, domain_id, node_security_options_ptr, localhost_only);
+    name, local_namespace_, domain_id, localhost_only);
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
@@ -387,9 +372,6 @@ cleanup:
   }
   if (NULL != remapped_node_name) {
     allocator->deallocate(remapped_node_name, allocator->state);
-  }
-  if (node_security_options_ptr) {
-    rmw_security_options_fini(node_security_options_ptr, allocator);
   }
   return ret;
 }

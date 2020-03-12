@@ -61,6 +61,9 @@ typedef struct rcl_arguments_impl_t
   /// A boolean value indicating if the external lib handler should be used for log output
   bool log_ext_lib_disabled;
 
+  /// Security directory to be used.
+  char * security_directory;
+
   /// Allocator used to allocate objects in this struct
   rcl_allocator_t allocator;
 } rcl_arguments_impl_t;

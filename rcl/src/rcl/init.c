@@ -19,21 +19,26 @@ extern "C"
 
 #include "rcl/init.h"
 
-#include "./arguments_impl.h"
-#include "./common.h"
-#include "./context_impl.h"
-#include "./init_options_impl.h"
+#include "rcutils/logging_macros.h"
+#include "rcutils/stdatomic_helper.h"
+#include "rcutils/strdup.h"
+
+#include "rmw/error_handling.h"
+#include "rmw/security.h"
+
+#include "tracetools/tracetools.h"
+
 #include "rcl/arguments.h"
 #include "rcl/domain_id.h"
 #include "rcl/error_handling.h"
 #include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/security.h"
-#include "rcutils/logging_macros.h"
-#include "rcutils/stdatomic_helper.h"
-#include "rmw/error_handling.h"
-#include "rmw/security.h"
-#include "tracetools/tracetools.h"
+
+#include "./arguments_impl.h"
+#include "./common.h"
+#include "./context_impl.h"
+#include "./init_options_impl.h"
 
 static atomic_uint_least64_t __rcl_next_unique_id = ATOMIC_VAR_INIT(1);
 
@@ -169,17 +174,30 @@ rcl_init(
     }
   }
 
-  if (!rmw_use_node_name_in_security_directory_lookup()) {
-    rmw_security_options_t * security_options =
-      &context->impl->init_options.impl->rmw_init_options.security_options;
-    ret = rcl_get_security_options_from_environment(
-      context->impl->rmw_context.options.name,
-      context->impl->rmw_context.options.namespace_,
-      &context->impl->allocator,
-      security_options);
-    if (RMW_RET_OK != ret) {
-      goto fail;
-    }
+  if (context->global_arguments.impl->security_directory) {
+    context->impl->init_options.impl->rmw_init_options.name = rcutils_strdup(
+      context->global_arguments.impl->security_directory,
+      context->impl->allocator);
+  } else {
+    context->impl->init_options.impl->rmw_init_options.name = rcutils_strdup(
+      "/", context->impl->allocator);
+  }
+  if (!context->impl->init_options.impl->rmw_init_options.name) {
+    RCL_SET_ERROR_MSG("failed to set context name");
+    fail_ret = RMW_RET_BAD_ALLOC;
+    goto fail;
+  }
+
+  rmw_security_options_t * security_options =
+    &context->impl->init_options.impl->rmw_init_options.security_options;
+  ret = rcl_get_security_options_from_environment(
+    "",
+    context->impl->init_options.impl->rmw_init_options.name,
+    &context->impl->allocator,
+    security_options);
+  if (RMW_RET_OK != ret) {
+    fail_ret = ret;
+    goto fail;
   }
 
   // Initialize rmw_init.
