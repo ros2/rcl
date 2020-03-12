@@ -167,9 +167,9 @@ TEST_P_RMW(TestPublisherGetActualQoS, test_publisher_get_qos_settings)
   EXPECT_EQ(
     qos->history,
     parameters.qos_expected.history);
-  EXPECT_EQ(
-    qos->depth,
-    parameters.qos_expected.depth);
+  if (parameters.qos_expected.history == RMW_QOS_POLICY_HISTORY_KEEP_LAST) {
+    EXPECT_EQ(qos->depth, parameters.qos_expected.depth);
+  }
   EXPECT_EQ(
     qos->reliability,
     parameters.qos_expected.reliability);
@@ -222,9 +222,9 @@ TEST_P_RMW(TestSubscriptionGetActualQoS, test_subscription_get_qos_settings)
   EXPECT_EQ(
     qos->history,
     parameters.qos_expected.history);
-  EXPECT_EQ(
-    qos->depth,
-    parameters.qos_expected.depth);
+  if (parameters.qos_expected.history == RMW_QOS_POLICY_HISTORY_KEEP_LAST) {
+    EXPECT_EQ(qos->depth, parameters.qos_expected.depth);
+  }
   EXPECT_EQ(
     qos->reliability,
     parameters.qos_expected.reliability);
