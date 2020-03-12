@@ -1343,6 +1343,7 @@ static rcutils_ret_t parse_key(
           }
 
           ret = find_node(node_name_ns, params_st, node_idx);
+          allocator.deallocate(node_name_ns, allocator.state);
           if (RCUTILS_RET_OK != ret) {
             break;
           }
