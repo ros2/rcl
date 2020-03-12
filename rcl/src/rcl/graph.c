@@ -357,6 +357,13 @@ rcl_get_node_names(
       return RCL_RET_ERROR;
     }
   }
+  // Check that none of the node namespaces are NULL
+  for (size_t i = 0u; i < node_names->size; ++i) {
+    if (!node_namespaces->data[i]) {
+      RCL_SET_ERROR_MSG("NULL node namespace returned by the RMW layer");
+      return RCL_RET_ERROR;
+    }
+  }
   return RCL_RET_OK;
 }
 
