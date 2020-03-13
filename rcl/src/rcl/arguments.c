@@ -2172,7 +2172,7 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
   args_impl->log_stdout_disabled = false;
   args_impl->log_rosout_disabled = false;
   args_impl->log_ext_lib_disabled = false;
-  args_out->impl->security_directory = NULL;
+  args_impl->security_directory = NULL;
   args_impl->allocator = *allocator;
 
   return RCL_RET_OK;
