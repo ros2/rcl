@@ -23,7 +23,6 @@
 #include "rcutils/filesystem.h"
 
 #include "rmw/error_handling.h"
-#include "rmw/security.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 

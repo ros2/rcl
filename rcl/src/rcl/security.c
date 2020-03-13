@@ -23,7 +23,6 @@
 #include "rcutils/get_env.h"
 #include "rcutils/strdup.h"
 
-#include "rmw/security.h"
 #include "rmw/security_options.h"
 
 rcl_ret_t

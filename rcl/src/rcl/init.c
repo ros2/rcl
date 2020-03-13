@@ -24,7 +24,6 @@ extern "C"
 #include "rcutils/strdup.h"
 
 #include "rmw/error_handling.h"
-#include "rmw/security.h"
 
 #include "tracetools/tracetools.h"
 
