@@ -22,6 +22,7 @@ extern "C"
 
 #include <stdbool.h>
 #include <stddef.h>
+
 #include <rcutils/time.h>
 
 #include "rcl/client.h"
@@ -33,7 +34,6 @@ extern "C"
 #include "rcl/event.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
-
 
 struct rcl_wait_set_impl_t;
 
