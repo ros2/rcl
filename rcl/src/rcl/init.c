@@ -34,6 +34,7 @@ extern "C"
 #include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/security.h"
+#include "rcl/validate_context_name.h"
 
 #include "./arguments_impl.h"
 #include "./common.h"
@@ -182,6 +183,26 @@ rcl_init(
     context->impl->init_options.impl->rmw_init_options.name = rcutils_strdup(
       "/", context->impl->allocator);
   }
+  int validation_result;
+  size_t invalid_index;
+  ret = rcl_validate_context_name(
+    context->impl->init_options.impl->rmw_init_options.name,
+    &validation_result,
+    &invalid_index);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("rcl_validate_context_name() failed");
+    fail_ret = ret;
+    goto fail;
+  }
+  if (RCL_CONTEXT_NAME_VALID != validation_result) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "rcl_validate_context_name result is not valid: '%s'. Invalid index: %zu",
+      rcl_context_name_validation_result_string(validation_result),
+      invalid_index);
+    fail_ret = RMW_RET_ERROR;
+    goto fail;
+  }
+
   if (!context->impl->init_options.impl->rmw_init_options.name) {
     RCL_SET_ERROR_MSG("failed to set context name");
     fail_ret = RMW_RET_BAD_ALLOC;
@@ -191,7 +212,6 @@ rcl_init(
   rmw_security_options_t * security_options =
     &context->impl->init_options.impl->rmw_init_options.security_options;
   ret = rcl_get_security_options_from_environment(
-    "",
     context->impl->init_options.impl->rmw_init_options.name,
     &context->impl->allocator,
     security_options);
