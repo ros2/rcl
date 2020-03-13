@@ -232,6 +232,9 @@ rcl_ret_t
 rcl_difference_times(
   rcl_time_point_t * start, rcl_time_point_t * finish, rcl_duration_t * delta)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(start, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(finish, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(delta, RCL_RET_INVALID_ARGUMENT);
   if (start->clock_type != finish->clock_type) {
     RCL_SET_ERROR_MSG("Cannot difference between time points with clocks types.");
     return RCL_RET_ERROR;
