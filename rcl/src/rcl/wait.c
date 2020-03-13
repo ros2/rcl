@@ -547,6 +547,14 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       if (!wait_set->timers[i]) {
         continue;  // Skip NULL timers.
       }
+      rmw_guard_conditions_t * rmw_gcs = &(wait_set->impl->rmw_guard_conditions);
+      size_t gc_idx = wait_set->size_of_guard_conditions + i;
+      if (NULL != rmw_gcs->guard_conditions[gc_idx]) {
+        // This timer has a guard condition, so move it to make a legal wait set.
+        rmw_gcs->guard_conditions[rmw_gcs->guard_condition_count] =
+          rmw_gcs->guard_conditions[gc_idx];
+        ++(rmw_gcs->guard_condition_count);
+      }
       bool is_canceled = false;
       rcl_ret_t ret = rcl_timer_is_canceled(wait_set->timers[i], &is_canceled);
       if (ret != RCL_RET_OK) {
@@ -555,14 +563,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       if (is_canceled) {
         wait_set->timers[i] = NULL;
         continue;
-      }
-      rmw_guard_conditions_t * rmw_gcs = &(wait_set->impl->rmw_guard_conditions);
-      size_t gc_idx = wait_set->size_of_guard_conditions + i;
-      if (NULL != rmw_gcs->guard_conditions[gc_idx]) {
-        // This timer has a guard condition, so move it to make a legal wait set.
-        rmw_gcs->guard_conditions[rmw_gcs->guard_condition_count] =
-          rmw_gcs->guard_conditions[gc_idx];
-        ++(rmw_gcs->guard_condition_count);
       }
       // use timer time to to set the rmw_wait timeout
       // TODO(sloretz) fix spurious wake-ups on ROS_TIME timers with ROS_TIME enabled
