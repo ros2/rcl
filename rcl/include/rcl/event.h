@@ -70,6 +70,7 @@ rcl_get_zero_initialized_event(void);
  * \param[in] event_type to listen for
  * \return `RCL_RET_OK` if the rcl_event_t is filled, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_UNSUPPORTED` if event_type is not supported, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -89,6 +90,7 @@ rcl_publisher_event_init(
  * \param[in] event_type to listen for
  * \return `RCL_RET_OK` if the rcl_event_t is filled, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_UNSUPPORTED` if event_type is not supported, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
