@@ -31,24 +31,24 @@ typedef struct rcl_ros_clock_storage_t
 } rcl_ros_clock_storage_t;
 
 // Implementation only
-rcl_ret_t
-_rcl_get_steady_time(void * data, rcl_time_point_value_t * current_time)
+static rcl_ret_t
+rcl_get_steady_time(void * data, rcl_time_point_value_t * current_time)
 {
   (void)data;  // unused
   return rcutils_steady_time_now(current_time);
 }
 
 // Implementation only
-rcl_ret_t
-_rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
+static rcl_ret_t
+rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
 {
   (void)data;  // unused
   return rcutils_system_time_now(current_time);
 }
 
 // Internal method for zeroing values on init, assumes clock is valid
-void
-_rcl_init_generic_clock(rcl_clock_t * clock)
+static void
+rcl_init_generic_clock(rcl_clock_t * clock)
 {
   clock->type = RCL_CLOCK_UNINITIALIZED;
   clock->jump_callbacks = NULL;
@@ -59,12 +59,12 @@ _rcl_init_generic_clock(rcl_clock_t * clock)
 
 // The function used to get the current ros time.
 // This is in the implementation only
-rcl_ret_t
-_rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
+static rcl_ret_t
+rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
 {
   rcl_ros_clock_storage_t * t = (rcl_ros_clock_storage_t *)data;
   if (!t->active) {
-    return _rcl_get_system_time(data, current_time);
+    return rcl_get_system_time(data, current_time);
   }
   *current_time = rcutils_atomic_load_uint64_t(&(t->current_time));
   return RCL_RET_OK;
@@ -91,7 +91,7 @@ rcl_clock_init(
   switch (clock_type) {
     case RCL_CLOCK_UNINITIALIZED:
       RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
-      _rcl_init_generic_clock(clock);
+      rcl_init_generic_clock(clock);
       return RCL_RET_OK;
     case RCL_ROS_TIME:
       return rcl_ros_clock_init(clock, allocator);
@@ -104,8 +104,8 @@ rcl_clock_init(
   }
 }
 
-void
-_rcl_clock_generic_fini(
+static void
+rcl_clock_generic_fini(
   rcl_clock_t * clock)
 {
   // Internal function; assume caller has already checked that clock is valid.
@@ -144,13 +144,13 @@ rcl_ros_clock_init(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-  _rcl_init_generic_clock(clock);
+  rcl_init_generic_clock(clock);
   clock->data = allocator->allocate(sizeof(rcl_ros_clock_storage_t), allocator->state);
   rcl_ros_clock_storage_t * storage = (rcl_ros_clock_storage_t *)clock->data;
   // 0 is a special value meaning time has not been set
   atomic_init(&(storage->current_time), 0);
   storage->active = false;
-  clock->get_now = _rcl_get_ros_time;
+  clock->get_now = rcl_get_ros_time;
   clock->type = RCL_ROS_TIME;
   clock->allocator = *allocator;
   return RCL_RET_OK;
@@ -165,7 +165,7 @@ rcl_ros_clock_fini(
     RCL_SET_ERROR_MSG("clock not of type RCL_ROS_TIME");
     return RCL_RET_ERROR;
   }
-  _rcl_clock_generic_fini(clock);
+  rcl_clock_generic_fini(clock);
   if (!clock->data) {
     RCL_SET_ERROR_MSG("clock data invalid");
     return RCL_RET_ERROR;
@@ -181,8 +181,8 @@ rcl_steady_clock_init(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-  _rcl_init_generic_clock(clock);
-  clock->get_now = _rcl_get_steady_time;
+  rcl_init_generic_clock(clock);
+  clock->get_now = rcl_get_steady_time;
   clock->type = RCL_STEADY_TIME;
   clock->allocator = *allocator;
   return RCL_RET_OK;
@@ -197,7 +197,7 @@ rcl_steady_clock_fini(
     RCL_SET_ERROR_MSG("clock not of type RCL_STEADY_TIME");
     return RCL_RET_ERROR;
   }
-  _rcl_clock_generic_fini(clock);
+  rcl_clock_generic_fini(clock);
   return RCL_RET_OK;
 }
 
@@ -208,8 +208,8 @@ rcl_system_clock_init(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-  _rcl_init_generic_clock(clock);
-  clock->get_now = _rcl_get_system_time;
+  rcl_init_generic_clock(clock);
+  clock->get_now = rcl_get_system_time;
   clock->type = RCL_SYSTEM_TIME;
   clock->allocator = *allocator;
   return RCL_RET_OK;
@@ -224,7 +224,7 @@ rcl_system_clock_fini(
     RCL_SET_ERROR_MSG("clock not of type RCL_SYSTEM_TIME");
     return RCL_RET_ERROR;
   }
-  _rcl_clock_generic_fini(clock);
+  rcl_clock_generic_fini(clock);
   return RCL_RET_OK;
 }
 
@@ -257,8 +257,8 @@ rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_value_t * time_point_value
   return RCL_RET_ERROR;
 }
 
-void
-_rcl_clock_call_callbacks(
+static void
+rcl_clock_call_callbacks(
   rcl_clock_t * clock, const rcl_time_jump_t * time_jump, bool before_jump)
 {
   // Internal function; assume parameters are valid.
@@ -295,9 +295,9 @@ rcl_enable_ros_time_override(rcl_clock_t * clock)
     rcl_time_jump_t time_jump;
     time_jump.delta.nanoseconds = 0;
     time_jump.clock_change = RCL_ROS_TIME_ACTIVATED;
-    _rcl_clock_call_callbacks(clock, &time_jump, true);
+    rcl_clock_call_callbacks(clock, &time_jump, true);
     storage->active = true;
-    _rcl_clock_call_callbacks(clock, &time_jump, false);
+    rcl_clock_call_callbacks(clock, &time_jump, false);
   }
   return RCL_RET_OK;
 }
@@ -320,9 +320,9 @@ rcl_disable_ros_time_override(rcl_clock_t * clock)
     rcl_time_jump_t time_jump;
     time_jump.delta.nanoseconds = 0;
     time_jump.clock_change = RCL_ROS_TIME_DEACTIVATED;
-    _rcl_clock_call_callbacks(clock, &time_jump, true);
+    rcl_clock_call_callbacks(clock, &time_jump, true);
     storage->active = false;
-    _rcl_clock_call_callbacks(clock, &time_jump, false);
+    rcl_clock_call_callbacks(clock, &time_jump, false);
   }
   return RCL_RET_OK;
 }
@@ -363,16 +363,16 @@ rcl_set_ros_time_override(
   if (storage->active) {
     time_jump.clock_change = RCL_ROS_TIME_NO_CHANGE;
     rcl_time_point_value_t current_time;
-    rcl_ret_t ret = _rcl_get_ros_time(storage, &current_time);
+    rcl_ret_t ret = rcl_get_ros_time(storage, &current_time);
     if (RCL_RET_OK != ret) {
       return ret;
     }
     time_jump.delta.nanoseconds = time_value - current_time;
-    _rcl_clock_call_callbacks(clock, &time_jump, true);
+    rcl_clock_call_callbacks(clock, &time_jump, true);
   }
   rcutils_atomic_store(&(storage->current_time), time_value);
   if (storage->active) {
-    _rcl_clock_call_callbacks(clock, &time_jump, false);
+    rcl_clock_call_callbacks(clock, &time_jump, false);
   }
   return RCL_RET_OK;
 }
