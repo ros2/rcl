@@ -98,7 +98,7 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
  *
  * The value of the environment variable `ROS_SECURITY_ROOT_DIRECTORY` is used as a root.
  * The specific directory to be used, is found from that root using the `name` passed.
- * E.g. for a context named "a/b/c" and root "/r", the secure root path will be
+ * E.g. for a context named "/a/b/c" and root "/r", the secure root path will be
  * "/r/a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
  *
  * However, this expansion can be overridden by setting the secure directory override environment
