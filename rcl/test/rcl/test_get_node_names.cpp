@@ -157,4 +157,8 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   ret = rcl_node_fini(node4_ptr);
   delete node4_ptr;
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_node_fini(node5_ptr);
+  delete node5_ptr;
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
