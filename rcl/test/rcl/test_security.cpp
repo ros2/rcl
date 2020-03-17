@@ -28,8 +28,8 @@
 
 
 #define TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME "/test_security_directory"
-#define TEST_CONTEXT_NAME "dummy_context"
-#define TEST_CONTEXT_NAME_ABSOLUTE "/" TEST_CONTEXT_NAME
+#define TEST_SECURITY_CONTEXT "dummy_security_context"
+#define TEST_SECURITY_CONTEXT_ABSOLUTE "/" TEST_SECURITY_CONTEXT
 
 #ifndef _WIN32
 # define PATH_SEPARATOR "/"
@@ -116,16 +116,16 @@ protected:
 
 TEST_F(TestGetSecureRoot, failureScenarios) {
   ASSERT_EQ(
-    rcl_get_secure_root(TEST_CONTEXT_NAME_ABSOLUTE, &allocator),
+    rcl_get_secure_root(TEST_SECURITY_CONTEXT_ABSOLUTE, &allocator),
     (char *) NULL);
   rcl_reset_error();
 
   putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
 
   /* Security directory is set, but there's no matching directory */
-  /// Wrong context name
+  /// Wrong security context
   ASSERT_EQ(
-    rcl_get_secure_root("some_other_context_name", &allocator),
+    rcl_get_secure_root("some_other_security_context", &allocator),
     (char *) NULL);
   rcl_reset_error();
 }
@@ -135,22 +135,22 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch) {
     ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
-  secure_root = rcl_get_secure_root(TEST_CONTEXT_NAME_ABSOLUTE, &allocator);
+  secure_root = rcl_get_secure_root(TEST_SECURITY_CONTEXT_ABSOLUTE, &allocator);
   std::string secure_root_str(secure_root);
   ASSERT_STREQ(
-    TEST_CONTEXT_NAME,
-    secure_root_str.substr(secure_root_str.size() - (sizeof(TEST_CONTEXT_NAME) - 1)).c_str());
+    TEST_SECURITY_CONTEXT,
+    secure_root_str.substr(secure_root_str.size() - (sizeof(TEST_SECURITY_CONTEXT) - 1)).c_str());
 }
 
 TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) {
   putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
 
   secure_root = rcl_get_secure_root(
-    TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME PATH_SEPARATOR TEST_CONTEXT_NAME, &allocator);
+    TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME PATH_SEPARATOR TEST_SECURITY_CONTEXT, &allocator);
   std::string secure_root_str(secure_root);
   ASSERT_STREQ(
-    TEST_CONTEXT_NAME,
-    secure_root_str.substr(secure_root_str.size() - (sizeof(TEST_CONTEXT_NAME) - 1)).c_str());
+    TEST_SECURITY_CONTEXT,
+    secure_root_str.substr(secure_root_str.size() - (sizeof(TEST_SECURITY_CONTEXT) - 1)).c_str());
 }
 
 TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_validDirectory) {
@@ -179,13 +179,13 @@ TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_invalidDirectory) {
     ROS_SECURITY_DIRECTORY_OVERRIDE
     "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
   ASSERT_EQ(
-    rcl_get_secure_root(TEST_CONTEXT_NAME_ABSOLUTE, &allocator),
+    rcl_get_secure_root(TEST_SECURITY_CONTEXT_ABSOLUTE, &allocator),
     (char *) NULL);
 }
 
 TEST_F(TestGetSecureRoot, test_get_security_options) {
-  /* The override provided should exist. Providing correct context name/root dir won't help
-   * if the node override is invalid. */
+  /* The override provided should exist. Providing correct security context name/root dir
+   * won't help if the node override is invalid. */
   rmw_security_options_t options = rmw_get_zero_initialized_security_options();
   putenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME "=false");
   rcl_ret_t ret = rcl_get_security_options_from_environment(
@@ -212,10 +212,10 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
     ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
   ret = rcl_get_security_options_from_environment(
-    TEST_CONTEXT_NAME_ABSOLUTE, &allocator, &options);
+    TEST_SECURITY_CONTEXT_ABSOLUTE, &allocator, &options);
   ASSERT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
   EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_ENFORCE, options.enforce_security);
   EXPECT_STREQ(
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
-    PATH_SEPARATOR TEST_CONTEXT_NAME, options.security_root_path);
+    PATH_SEPARATOR TEST_SECURITY_CONTEXT, options.security_root_path);
 }

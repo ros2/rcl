@@ -92,9 +92,9 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
 
-/// Return the secure root given a context name.
+/// Return the secure root given a security context name.
 /**
- * Return the security directory associated with the context name.
+ * Return the security directory associated with the security context name.
  *
  * The value of the environment variable `ROS_SECURITY_ROOT_DIRECTORY` is used as a root.
  * The specific directory to be used, is found from that root using the `name` passed.
@@ -104,7 +104,7 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
  * However, this expansion can be overridden by setting the secure directory override environment
  * (`ROS_SECURITY_DIRECTORY_OVERRIDE`) variable, allowing users to explicitly specify the exact secure
  * root directory to be utilized.
- * Such an override is useful for where the context name is non-deterministic before runtime,
+ * Such an override is useful for where the security context is non-deterministic before runtime,
  * or when testing and using additional tools that may not otherwise be easily provisioned.
  *
  * \param[in] name validated name (a single token)

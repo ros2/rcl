@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__VALIDATE_CONTEXT_NAME_H_
-#define RCL__VALIDATE_CONTEXT_NAME_H_
+#ifndef RCL__VALIDATE_SECURITY_CONTEXT_NAME_H_
+#define RCL__VALIDATE_SECURITY_CONTEXT_NAME_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -42,12 +42,12 @@ extern "C"
 
 #define RCL_CONTEXT_NAME_MAX_LENGTH RMW_NODE_NAME_MAX_NAME_LENGTH
 
-/// Determine if a given context name is valid.
+/// Determine if a given security context name is valid.
 /**
  * /sa The same rules as rmw_validate_namespace are used.
  * The only difference is the maximum length, which can be 255 characters.
  *
- * \param[in] context_name context_name to be validated
+ * \param[in] security_context security_context to be validated
  * \param[out] validation_result int in which the result of the check is stored
  * \param[out] invalid_index index of the input string where an error occurred
  * \returns `RMW_RET_OK` on successfully running the check, or
@@ -57,24 +57,24 @@ extern "C"
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_validate_context_name(
-  const char * context_name,
+rcl_validate_security_context_name(
+  const char * security_context,
   int * validation_result,
   size_t * invalid_index);
 
-/// Deterimine if a given context name is valid.
+/// Deterimine if a given security context name is valid.
 /**
- * This is an overload with an extra parameter for the length of context_name.
- * \param[in] context_name The number of characters in context_name.
+ * This is an overload with an extra parameter for the length of security_context.
+ * \param[in] security_context The number of characters in security_context.
  *
- * \sa rcl_validate_context_name(const char *, int *, size_t *)
+ * \sa rcl_validate_security_context(const char *, int *, size_t *)
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_validate_context_name_with_size(
-  const char * context_name,
-  size_t context_name_length,
+rcl_validate_security_context_name_with_size(
+  const char * security_context,
+  size_t security_context_length,
   int * validation_result,
   size_t * invalid_index);
 
@@ -82,10 +82,10 @@ rcl_validate_context_name_with_size(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 const char *
-rcl_context_name_validation_result_string(int validation_result);
+rcl_security_context_name_validation_result_string(int validation_result);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // RCL__VALIDATE_CONTEXT_NAME_H_
+#endif  // RCL__VALIDATE_SECURITY_CONTEXT_NAME_H_
