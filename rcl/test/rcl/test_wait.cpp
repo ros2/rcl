@@ -106,6 +106,32 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_init) {
+  // zero-initialized wait set should have zero size ;-)
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  EXPECT_EQ(wait_set.size_of_subscriptions, 0ull);
+  EXPECT_EQ(wait_set.size_of_guard_conditions, 0ull);
+  EXPECT_EQ(wait_set.size_of_clients, 0ull);
+  EXPECT_EQ(wait_set.size_of_services, 0ull);
+  EXPECT_EQ(wait_set.size_of_timers, 0ull);
+
+  // now lets get some fields
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_wait_set_is_valid(&wait_set));
+  EXPECT_EQ(wait_set.size_of_subscriptions, 1ull);
+  EXPECT_EQ(wait_set.size_of_guard_conditions, 1ull);
+  EXPECT_EQ(wait_set.size_of_clients, 1ull);
+  EXPECT_EQ(wait_set.size_of_services, 1ull);
+  EXPECT_EQ(wait_set.size_of_timers, 1ull);
+
+  // finalized wait set is invalid
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(rcl_wait_set_is_valid(&wait_set));
+}
+
 // Test rcl_wait with a positive finite timeout value (1ms)
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), finite_timeout) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
