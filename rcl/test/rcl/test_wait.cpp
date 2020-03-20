@@ -102,6 +102,20 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_resize_to_zero) {
   EXPECT_EQ(wait_set.size_of_services, 0ull);
   EXPECT_EQ(wait_set.size_of_timers, 0ull);
 
+  // check that arrays are gone
+  EXPECT_EQ(wait_set.subscriptions, nullptr);
+  EXPECT_EQ(wait_set.guard_conditions, nullptr);
+  EXPECT_EQ(wait_set.timers, nullptr);
+  EXPECT_EQ(wait_set.clients, nullptr);
+  EXPECT_EQ(wait_set.services, nullptr);
+  EXPECT_EQ(wait_set.events, nullptr);
+
+  // check that the timestamp arrays are gone as well
+  EXPECT_EQ(wait_set.subscriptions_timestamps, nullptr);
+  EXPECT_EQ(wait_set.timers_timestamps, nullptr);
+  EXPECT_EQ(wait_set.clients_timestamps, nullptr);
+  EXPECT_EQ(wait_set.services_timestamps, nullptr);
+
   ret = rcl_wait_set_fini(&wait_set);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
@@ -128,18 +142,18 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_init) {
   EXPECT_EQ(wait_set.size_of_events, 1ull);
 
   // check that we have arrays for return values
-  EXPECT_TRUE(wait_set.subscriptions != nullptr);
-  EXPECT_TRUE(wait_set.guard_conditions != nullptr);
-  EXPECT_TRUE(wait_set.timers != nullptr);
-  EXPECT_TRUE(wait_set.clients != nullptr);
-  EXPECT_TRUE(wait_set.services != nullptr);
-  EXPECT_TRUE(wait_set.events != nullptr);
+  EXPECT_NE(wait_set.subscriptions, nullptr);
+  EXPECT_NE(wait_set.guard_conditions, nullptr);
+  EXPECT_NE(wait_set.timers, nullptr);
+  EXPECT_NE(wait_set.clients, nullptr);
+  EXPECT_NE(wait_set.services, nullptr);
+  EXPECT_NE(wait_set.events, nullptr);
 
   // check that we have timestamp arrays as well
-  EXPECT_TRUE(wait_set.subscriptions_timestamps != nullptr);
-  EXPECT_TRUE(wait_set.timers_timestamps != nullptr);
-  EXPECT_TRUE(wait_set.clients_timestamps != nullptr);
-  EXPECT_TRUE(wait_set.services_timestamps != nullptr);
+  EXPECT_NE(wait_set.subscriptions_timestamps, nullptr);
+  EXPECT_NE(wait_set.timers_timestamps, nullptr);
+  EXPECT_NE(wait_set.clients_timestamps, nullptr);
+  EXPECT_NE(wait_set.services_timestamps, nullptr);
 
   // finalized wait set is invalid
   ret = rcl_wait_set_fini(&wait_set);
