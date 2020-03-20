@@ -193,7 +193,7 @@ rcl_init(
     fail_ret = ret;
     goto fail;
   }
-  if (RCL_CONTEXT_NAME_VALID != validation_result) {
+  if (RCL_SECURITY_CONTEXT_NAME_VALID != validation_result) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "security context name is not valid: '%s'. Invalid index: %zu",
       rcl_security_context_name_validation_result_string(validation_result),

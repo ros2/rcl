@@ -66,22 +66,22 @@ rcl_validate_security_context_name_with_size(
   {
     switch (t_validation_result) {
       case RMW_NAMESPACE_INVALID_IS_EMPTY_STRING:
-        *validation_result = RCL_CONTEXT_NAME_INVALID_IS_EMPTY_STRING;
+        *validation_result = RCL_SECURITY_CONTEXT_NAME_INVALID_IS_EMPTY_STRING;
         break;
       case RMW_NAMESPACE_INVALID_NOT_ABSOLUTE:
-        *validation_result = RCL_CONTEXT_NAME_INVALID_NOT_ABSOLUTE;
+        *validation_result = RCL_SECURITY_CONTEXT_NAME_INVALID_NOT_ABSOLUTE;
         break;
       case RMW_NAMESPACE_INVALID_ENDS_WITH_FORWARD_SLASH:
-        *validation_result = RCL_CONTEXT_NAME_INVALID_ENDS_WITH_FORWARD_SLASH;
+        *validation_result = RCL_SECURITY_CONTEXT_NAME_INVALID_ENDS_WITH_FORWARD_SLASH;
         break;
       case RMW_NAMESPACE_INVALID_CONTAINS_UNALLOWED_CHARACTERS:
-        *validation_result = RCL_CONTEXT_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS;
+        *validation_result = RCL_SECURITY_CONTEXT_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS;
         break;
       case RMW_NAMESPACE_INVALID_CONTAINS_REPEATED_FORWARD_SLASH:
-        *validation_result = RCL_CONTEXT_NAME_INVALID_CONTAINS_REPEATED_FORWARD_SLASH;
+        *validation_result = RCL_SECURITY_CONTEXT_NAME_INVALID_CONTAINS_REPEATED_FORWARD_SLASH;
         break;
       case RMW_NAMESPACE_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER:
-        *validation_result = RCL_CONTEXT_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER;
+        *validation_result = RCL_SECURITY_CONTEXT_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER;
         break;
       default:
         {
@@ -110,14 +110,14 @@ rcl_validate_security_context_name_with_size(
 
   // security_context might be longer that namespace length, check false positives and correct
   if (t_validation_result == RMW_NAMESPACE_INVALID_TOO_LONG &&
-    security_context_length <= RCL_CONTEXT_NAME_MAX_LENGTH)
+    security_context_length <= RCL_SECURITY_CONTEXT_NAME_MAX_LENGTH)
   {
-    *validation_result = RCL_CONTEXT_NAME_VALID;
+    *validation_result = RCL_SECURITY_CONTEXT_NAME_VALID;
     return RCL_RET_OK;
   }
 
   // everything was ok, set result to valid namespace, avoid setting invalid_index, and return
-  *validation_result = RCL_CONTEXT_NAME_VALID;
+  *validation_result = RCL_SECURITY_CONTEXT_NAME_VALID;
   return RCL_RET_OK;
 }
 
@@ -125,23 +125,23 @@ const char *
 rcl_security_context_name_validation_result_string(int validation_result)
 {
   switch (validation_result) {
-    case RCL_CONTEXT_NAME_VALID:
+    case RCL_SECURITY_CONTEXT_NAME_VALID:
       return NULL;
-    case RCL_CONTEXT_NAME_INVALID_IS_EMPTY_STRING:
+    case RCL_SECURITY_CONTEXT_NAME_INVALID_IS_EMPTY_STRING:
       return "context name must not be empty";
-    case RCL_CONTEXT_NAME_INVALID_NOT_ABSOLUTE:
+    case RCL_SECURITY_CONTEXT_NAME_INVALID_NOT_ABSOLUTE:
       return "context name must be absolute, it must lead with a '/'";
-    case RCL_CONTEXT_NAME_INVALID_ENDS_WITH_FORWARD_SLASH:
+    case RCL_SECURITY_CONTEXT_NAME_INVALID_ENDS_WITH_FORWARD_SLASH:
       return "context name must not end with a '/', unless only a '/'";
-    case RCL_CONTEXT_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS:
+    case RCL_SECURITY_CONTEXT_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS:
       return "context name must not contain characters other than alphanumerics, '_', or '/'";
-    case RCL_CONTEXT_NAME_INVALID_CONTAINS_REPEATED_FORWARD_SLASH:
+    case RCL_SECURITY_CONTEXT_NAME_INVALID_CONTAINS_REPEATED_FORWARD_SLASH:
       return "context name must not contain repeated '/'";
-    case RCL_CONTEXT_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER:
+    case RCL_SECURITY_CONTEXT_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER:
       return "context name must not have a token that starts with a number";
-    case RCL_CONTEXT_NAME_INVALID_TOO_LONG:
+    case RCL_SECURITY_CONTEXT_NAME_INVALID_TOO_LONG:
       return "context name should not exceed '"
-             RCUTILS_STRINGIFY(RCL_CONTEXT_NAME_MAX_NAME_LENGTH) "'";
+             RCUTILS_STRINGIFY(RCL_SECURITY_CONTEXT_NAME_MAX_NAME_LENGTH) "'";
     default:
       return "unknown result code for rcl context name validation";
   }
