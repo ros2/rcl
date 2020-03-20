@@ -51,7 +51,7 @@ rcl_get_security_options_from_environment(
   }
 
   // File discovery magic here
-  char * secure_root = rcl_get_secure_root(name,allocator);
+  char * secure_root = rcl_get_secure_root(name, allocator);
   if (secure_root) {
     RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Found security directory: %s", secure_root);
     security_options->security_root_path = secure_root;
