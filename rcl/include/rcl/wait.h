@@ -272,6 +272,10 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set);
  *
  * This can be called on an uninitialized (zero initialized) wait set.
  *
+ * If RCL_RET_BAD_ALLOC is returned, i.e. allocation failed, the wait_set
+ * may be *partially* allocated and therefore, it must still be cleaned up
+ * with _fini.
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
