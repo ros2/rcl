@@ -117,7 +117,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_init) {
 
   // now lets get some fields
   rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 1, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_wait_set_is_valid(&wait_set));
   EXPECT_EQ(wait_set.size_of_subscriptions, 1ull);
@@ -125,6 +125,21 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), test_init) {
   EXPECT_EQ(wait_set.size_of_clients, 1ull);
   EXPECT_EQ(wait_set.size_of_services, 1ull);
   EXPECT_EQ(wait_set.size_of_timers, 1ull);
+  EXPECT_EQ(wait_set.size_of_events, 1ull);
+
+  // check that we have arrays for return values
+  EXPECT_TRUE(wait_set.subscriptions != nullptr);
+  EXPECT_TRUE(wait_set.guard_conditions != nullptr);
+  EXPECT_TRUE(wait_set.timers != nullptr);
+  EXPECT_TRUE(wait_set.clients != nullptr);
+  EXPECT_TRUE(wait_set.services != nullptr);
+  EXPECT_TRUE(wait_set.events != nullptr);
+
+  // check that we have timestamp arrays as well
+  EXPECT_TRUE(wait_set.subscriptions_timestamps != nullptr);
+  EXPECT_TRUE(wait_set.timers_timestamps != nullptr);
+  EXPECT_TRUE(wait_set.clients_timestamps != nullptr);
+  EXPECT_TRUE(wait_set.services_timestamps != nullptr);
 
   // finalized wait set is invalid
   ret = rcl_wait_set_fini(&wait_set);

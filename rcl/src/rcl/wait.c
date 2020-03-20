@@ -257,6 +257,26 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     } \
   } while (false)
 
+/* This is for the case where the list has an associated timestamp list.
+ * I'm not checking whether the timestamp list is non-NULL, since it
+ * must always be in-sync with the main list.
+ */
+#define SET_CLEAR_TS(Type) \
+  do { \
+    if (NULL != wait_set->Type ## s) { \
+      memset( \
+        (void *)wait_set->Type ## s, \
+        0, \
+        sizeof(rcl_ ## Type ## _t *) * wait_set->size_of_ ## Type ## s); \
+      memset( \
+        (void *)wait_set->Type ## s_timestamps, \
+        0, \
+        sizeof(rcutils_time_point_value_t *) * wait_set->size_of_ ## Type ## s); \
+      wait_set->impl->Type ## _index = 0; \
+    } \
+  } while (false)
+
+
 #define SET_CLEAR_RMW(Type, RMWStorage, RMWCount) \
   do { \
     if (NULL != wait_set->impl->RMWStorage) { \
@@ -288,6 +308,42 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
         wait_set->Type ## s, "allocating memory failed", return RCL_RET_BAD_ALLOC); \
       memset((void *)wait_set->Type ## s, 0, sizeof(rcl_ ## Type ## _t *) * Type ## s_size); \
       wait_set->size_of_ ## Type ## s = Type ## s_size; \
+      ExtraRealloc \
+    } \
+  } while (false)
+
+#define SET_RESIZE_TS(Type, ExtraDealloc, ExtraRealloc) \
+  do { \
+    rcl_allocator_t allocator = wait_set->impl->allocator; \
+    wait_set->size_of_ ## Type ## s = 0; \
+    wait_set->impl->Type ## _index = 0; \
+    if (0 == Type ## s_size) { \
+      if (wait_set->Type ## s) { \
+        allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
+        wait_set->Type ## s = NULL; \
+      } \
+      if (wait_set->Type ## s_timestamps) { \
+        allocator.deallocate((void *)wait_set->Type ## s_timestamps, allocator.state); \
+        wait_set->Type ## s_timestamps = NULL; \
+      } \
+      ExtraDealloc \
+    } else { \
+      wait_set->Type ## s = (const rcl_ ## Type ## _t **)allocator.reallocate( \
+        (void *)wait_set->Type ## s, sizeof(rcl_ ## Type ## _t *) * Type ## s_size, \
+        allocator.state); \
+      RCL_CHECK_FOR_NULL_WITH_MSG( \
+        wait_set->Type ## s, "allocating memory failed", return RCL_RET_BAD_ALLOC); \
+      memset((void *)wait_set->Type ## s, 0, sizeof(rcl_ ## Type ## _t *) * Type ## s_size); \
+      wait_set->Type ## s_timestamps = (rcutils_time_point_value_t *)allocator.reallocate( \
+        (void *)wait_set->Type ## s_timestamps, \
+        sizeof(rcutils_time_point_value_t *) * Type ## s_size, \
+        allocator.state); \
+      RCL_CHECK_FOR_NULL_WITH_MSG( \
+        wait_set->Type ## s_timestamps, "allocating memory failed", { \
+        allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
+        wait_set->Type ## s = NULL; return RCL_RET_BAD_ALLOC;}); \
+      wait_set->size_of_ ## Type ## s = Type ## s_size; \
+      memset((void *)wait_set->Type ## s, 0, sizeof(rcl_ ## Type ## _t *) * Type ## s_size); \
       ExtraRealloc \
     } \
   } while (false)
@@ -340,12 +396,12 @@ rcl_wait_set_clear(rcl_wait_set_t * wait_set)
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set->impl, RCL_RET_WAIT_SET_INVALID);
 
-  SET_CLEAR(subscription);
+  SET_CLEAR_TS(subscription);
   SET_CLEAR(guard_condition);
-  SET_CLEAR(client);
-  SET_CLEAR(service);
+  SET_CLEAR_TS(client);
+  SET_CLEAR_TS(service);
   SET_CLEAR(event);
-  SET_CLEAR(timer);
+  SET_CLEAR_TS(timer);
 
   SET_CLEAR_RMW(
     subscription,
@@ -388,7 +444,7 @@ rcl_wait_set_resize(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set->impl, RCL_RET_WAIT_SET_INVALID);
-  SET_RESIZE(
+  SET_RESIZE_TS(
     subscription,
     SET_RESIZE_RMW_DEALLOC(
       rmw_subscriptions.subscribers, rmw_subscriptions.subscriber_count),
@@ -428,15 +484,15 @@ rcl_wait_set_resize(
     memset(rmw_gcs->guard_conditions, 0, sizeof(void *) * num_rmw_gc);
   }
 
-  SET_RESIZE(timer,;,;);  // NOLINT
-  SET_RESIZE(
+  SET_RESIZE_TS(timer,;,;);  // NOLINT
+  SET_RESIZE_TS(
     client,
     SET_RESIZE_RMW_DEALLOC(
       rmw_clients.clients, rmw_clients.client_count),
     SET_RESIZE_RMW_REALLOC(
       client, rmw_clients.clients, rmw_clients.client_count)
   );
-  SET_RESIZE(
+  SET_RESIZE_TS(
     service,
     SET_RESIZE_RMW_DEALLOC(
       rmw_services.services, rmw_services.service_count),
