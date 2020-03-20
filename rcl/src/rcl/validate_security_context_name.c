@@ -35,7 +35,7 @@ rcl_validate_security_context_name(
   if (!security_context) {
     return RCL_RET_INVALID_ARGUMENT;
   }
-  return rmw_validate_namespace_with_size(
+  return rcl_validate_security_context_name_with_size(
     security_context, strlen(security_context), validation_result, invalid_index);
 }
 
@@ -95,7 +95,7 @@ rcl_validate_security_context_name_with_size(
           if (ret < 0) {
             RCL_SET_ERROR_MSG(
               "rcl_validate_security_context_name_with_size(): "
-              "rcutils_snprintf() failed");
+              "rcutils_snprintf() failed while reporting an unknown validation result");
           } else {
             RCL_SET_ERROR_MSG(default_err_msg);
           }

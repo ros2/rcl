@@ -51,9 +51,7 @@ rcl_get_security_options_from_environment(
   }
 
   // File discovery magic here
-  char * secure_root = rcl_get_secure_root(
-    name,
-    allocator);
+  char * secure_root = rcl_get_secure_root(name,allocator);
   if (secure_root) {
     RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Found security directory: %s", secure_root);
     security_options->security_root_path = secure_root;
@@ -155,9 +153,8 @@ char * rcl_get_secure_root(
     }
     if (0 == strcmp("", env_buf)) {
       return NULL;  // environment variable was empty
-    } else {
-      ros_secure_directory_override = false;
     }
+    ros_secure_directory_override = false;
   }
 
   // found a usable environment variable, copy into our memory before overwriting with next lookup

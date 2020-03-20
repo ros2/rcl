@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstring>
 #include <string>
 
 #include "rcl/security.h"
@@ -44,7 +45,7 @@ static int putenv_wrapper(const char * env_var)
 #ifdef _WIN32
   return _putenv(env_var);
 #else
-  return putenv(reinterpret_cast<char *>(const_cast<char *>(env_var)));
+  return putenv(const_cast<char *>(env_var));
 #endif
 }
 
@@ -115,7 +116,7 @@ protected:
 };
 
 TEST_F(TestGetSecureRoot, failureScenarios) {
-  ASSERT_EQ(
+  EXPECT_EQ(
     rcl_get_secure_root(TEST_SECURITY_CONTEXT_ABSOLUTE, &allocator),
     (char *) NULL);
   rcl_reset_error();
@@ -124,7 +125,7 @@ TEST_F(TestGetSecureRoot, failureScenarios) {
 
   /* Security directory is set, but there's no matching directory */
   /// Wrong security context
-  ASSERT_EQ(
+  EXPECT_EQ(
     rcl_get_secure_root("some_other_security_context", &allocator),
     (char *) NULL);
   rcl_reset_error();
@@ -139,7 +140,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch) {
   std::string secure_root_str(secure_root);
   ASSERT_STREQ(
     TEST_SECURITY_CONTEXT,
-    secure_root_str.substr(secure_root_str.size() - (sizeof(TEST_SECURITY_CONTEXT) - 1)).c_str());
+    secure_root_str.substr(secure_root_str.size() - strlen(TEST_SECURITY_CONTEXT)).c_str());
 }
 
 TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) {
@@ -150,7 +151,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) 
   std::string secure_root_str(secure_root);
   ASSERT_STREQ(
     TEST_SECURITY_CONTEXT,
-    secure_root_str.substr(secure_root_str.size() - (sizeof(TEST_SECURITY_CONTEXT) - 1)).c_str());
+    secure_root_str.substr(secure_root_str.size() - strlen(TEST_SECURITY_CONTEXT)).c_str());
 }
 
 TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_validDirectory) {
@@ -166,8 +167,7 @@ TEST_F(
   nodeSecurityDirectoryOverride_validDirectory_overrideRootDirectoryAttempt) {
   /* Setting root dir has no effect */
   putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
-  root_path = rcl_get_secure_root(
-    "name shouldn't matter", &allocator);
+  root_path = rcl_get_secure_root("name shouldn't matter", &allocator);
   putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
   ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
 }
@@ -177,8 +177,8 @@ TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_invalidDirectory) {
    * if the node override is invalid. */
   putenv_wrapper(
     ROS_SECURITY_DIRECTORY_OVERRIDE
-    "=TheresN_oWayThi_sDirectory_Exists_hence_this_would_fail");
-  ASSERT_EQ(
+    "=TheresN_oWayThi_sDirectory_Exists_hence_this_should_fail");
+  EXPECT_EQ(
     rcl_get_secure_root(TEST_SECURITY_CONTEXT_ABSOLUTE, &allocator),
     (char *) NULL);
 }

@@ -195,7 +195,7 @@ rcl_init(
   }
   if (RCL_CONTEXT_NAME_VALID != validation_result) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "rcl_validate_security_context_name result is not valid: '%s'. Invalid index: %zu",
+      "security context name is not valid: '%s'. Invalid index: %zu",
       rcl_security_context_name_validation_result_string(validation_result),
       invalid_index);
     fail_ret = RMW_RET_ERROR;
