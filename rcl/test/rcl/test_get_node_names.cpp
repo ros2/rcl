@@ -162,3 +162,130 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   delete node5_ptr;
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
+
+TEST_F(
+  CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names_with_security_contexts)
+{
+  rcl_ret_t ret;
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  const char * security_context_name = "/default";
+  const char * argv[] = {"--ros-args", "--security-context", security_context_name};
+  ret = rcl_init(3, argv, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+  });
+  std::multiset<std::tuple<std::string, std::string, std::string>>
+  expected_nodes, discovered_nodes;
+
+  rcl_node_t node1 = rcl_get_zero_initialized_node();
+  const char * node1_name = "node1";
+  const char * node1_namespace = "/";
+  rcl_node_options_t node1_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node1, node1_name, node1_namespace, &context, &node1_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(
+    std::make_tuple(
+      std::string(node1_name),
+      std::string(node1_namespace),
+      std::string(security_context_name)));
+
+  rcl_node_t node2 = rcl_get_zero_initialized_node();
+  const char * node2_name = "node2";
+  const char * node2_namespace = "/";
+  rcl_node_options_t node2_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node2, node2_name, node2_namespace, &context, &node2_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(std::make_tuple(
+    std::string(node2_name),
+    std::string(node2_namespace),
+    std::string(security_context_name)));
+
+  rcl_node_t node3 = rcl_get_zero_initialized_node();
+  const char * node3_name = "node3";
+  const char * node3_namespace = "/ns";
+  rcl_node_options_t node3_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node3, node3_name, node3_namespace, &context, &node3_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(std::make_tuple(
+    std::string(node3_name),
+    std::string(node3_namespace),
+    std::string(security_context_name)));
+
+  rcl_node_t node4 = rcl_get_zero_initialized_node();
+  const char * node4_name = "node2";
+  const char * node4_namespace = "/ns/ns";
+  rcl_node_options_t node4_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node4, node4_name, node4_namespace, &context, &node4_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(std::make_tuple(
+    std::string(node4_name),
+    std::string(node4_namespace),
+    std::string(security_context_name)));
+
+  rcl_node_t node5 = rcl_get_zero_initialized_node();
+  const char * node5_name = "node1";
+  const char * node5_namespace = "/";
+  rcl_node_options_t node5_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node5, node5_name, node5_namespace, &context, &node5_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  expected_nodes.insert(std::make_tuple(
+    std::string(node5_name),
+    std::string(node5_namespace),
+    std::string(security_context_name)));
+
+  std::this_thread::sleep_for(1s);
+
+  rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t security_contexts = rcutils_get_zero_initialized_string_array();
+  ret = rcl_get_node_names_with_security_contexts(
+    &node1, node1_options.allocator, &node_names, &node_namespaces, &security_contexts);
+  ASSERT_EQ(RCUTILS_RET_OK, ret) << rcl_get_error_string().str;
+
+  std::stringstream ss;
+  ss << "[test_rcl_get_node_names]: Found node names:" << std::endl;
+  for (size_t i = 0; i < node_names.size; ++i) {
+    ss << node_names.data[i] << std::endl;
+  }
+  EXPECT_EQ(node_names.size, node_namespaces.size) << ss.str();
+
+  for (size_t i = 0; i < node_names.size; ++i) {
+    discovered_nodes.insert(
+      std::make_tuple(
+        std::string(node_names.data[i]),
+        std::string(node_namespaces.data[i]),
+        std::string(security_contexts.data[i])));
+  }
+  EXPECT_EQ(discovered_nodes, expected_nodes);
+
+  ret = rcutils_string_array_fini(&node_names);
+  ASSERT_EQ(RCUTILS_RET_OK, ret);
+
+  ret = rcutils_string_array_fini(&node_namespaces);
+  ASSERT_EQ(RCUTILS_RET_OK, ret);
+
+  ret = rcl_node_fini(&node1);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_node_fini(&node2);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_node_fini(&node3);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_node_fini(&node4);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_node_fini(&node5);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}

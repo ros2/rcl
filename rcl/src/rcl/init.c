@@ -174,9 +174,9 @@ rcl_init(
     }
   }
 
-  if (context->global_arguments.impl->security_directory) {
+  if (context->global_arguments.impl->security_context) {
     context->impl->init_options.impl->rmw_init_options.security_context = rcutils_strdup(
-      context->global_arguments.impl->security_directory,
+      context->global_arguments.impl->security_context,
       context->impl->allocator);
   } else {
     context->impl->init_options.impl->rmw_init_options.security_context = rcutils_strdup(

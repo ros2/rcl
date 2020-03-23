@@ -429,6 +429,7 @@ rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
  * \param[out] node_names struct storing discovered node names
  * \param[out] node_namesspaces struct storing discovered node namespaces
  * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_BAD_ALLOC` if an error occurred while allocating memory, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -439,6 +440,39 @@ rcl_get_node_names(
   rcl_allocator_t allocator,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces);
+
+/// Return a list of available nodes in the ROS graph, including their security context names.
+/**
+ * \sa Works like rcl_get_node_names, but it also include the security context name the node is
+ * using as an output.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator used to control allocation and deallocation of names
+ * \param[out] node_names struct storing discovered node names
+ * \param[out] node_namesspaces struct storing discovered node namespaces
+ * \param[out] security_contexts struct storing discovered node security contexts
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_BAD_ALLOC` if an error occurred while allocating memory, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_get_node_names_with_security_contexts(
+  const rcl_node_t * node,
+  rcl_allocator_t allocator,
+  rcutils_string_array_t * node_names,
+  rcutils_string_array_t * node_namespaces,
+  rcutils_string_array_t * security_contexts);
 
 /// Return the number of publishers on a given topic.
 /**
