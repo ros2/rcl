@@ -18,6 +18,7 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
+#include <tuple>
 #include <string>
 #include <set>
 #include <utility>
@@ -205,10 +206,11 @@ TEST_F(
   rcl_node_options_t node2_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node2, node2_name, node2_namespace, &context, &node2_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  expected_nodes.insert(std::make_tuple(
-    std::string(node2_name),
-    std::string(node2_namespace),
-    std::string(security_context_name)));
+  expected_nodes.insert(
+    std::make_tuple(
+      std::string(node2_name),
+      std::string(node2_namespace),
+      std::string(security_context_name)));
 
   rcl_node_t node3 = rcl_get_zero_initialized_node();
   const char * node3_name = "node3";
@@ -216,10 +218,11 @@ TEST_F(
   rcl_node_options_t node3_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node3, node3_name, node3_namespace, &context, &node3_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  expected_nodes.insert(std::make_tuple(
-    std::string(node3_name),
-    std::string(node3_namespace),
-    std::string(security_context_name)));
+  expected_nodes.insert(
+    std::make_tuple(
+      std::string(node3_name),
+      std::string(node3_namespace),
+      std::string(security_context_name)));
 
   rcl_node_t node4 = rcl_get_zero_initialized_node();
   const char * node4_name = "node2";
@@ -227,10 +230,11 @@ TEST_F(
   rcl_node_options_t node4_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node4, node4_name, node4_namespace, &context, &node4_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  expected_nodes.insert(std::make_tuple(
-    std::string(node4_name),
-    std::string(node4_namespace),
-    std::string(security_context_name)));
+  expected_nodes.insert(
+    std::make_tuple(
+      std::string(node4_name),
+      std::string(node4_namespace),
+      std::string(security_context_name)));
 
   rcl_node_t node5 = rcl_get_zero_initialized_node();
   const char * node5_name = "node1";
@@ -238,10 +242,11 @@ TEST_F(
   rcl_node_options_t node5_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node5, node5_name, node5_namespace, &context, &node5_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  expected_nodes.insert(std::make_tuple(
-    std::string(node5_name),
-    std::string(node5_namespace),
-    std::string(security_context_name)));
+  expected_nodes.insert(
+    std::make_tuple(
+      std::string(node5_name),
+      std::string(node5_namespace),
+      std::string(security_context_name)));
 
   std::this_thread::sleep_for(1s);
 
