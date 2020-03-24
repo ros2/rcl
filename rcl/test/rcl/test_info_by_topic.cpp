@@ -286,7 +286,7 @@ TEST_F(
   this->topic_endpoint_info_array.info_array = new rmw_topic_endpoint_info_t();
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    free(this->topic_endpoint_info_array.info_array);
+    delete this->topic_endpoint_info_array.info_array;
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(
@@ -308,7 +308,7 @@ TEST_F(
   this->topic_endpoint_info_array.info_array = new rmw_topic_endpoint_info_t();
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    free(this->topic_endpoint_info_array.info_array);
+    delete this->topic_endpoint_info_array.info_array;
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(
