@@ -142,7 +142,7 @@ rcl_timer_init(
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Initializing timer with period: %" PRIu64 "ns", period);
   if (timer->impl) {
-    RCL_SET_ERROR_MSG("timer already initailized, or memory was uninitialized");
+    RCL_SET_ERROR_MSG("timer already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
   }
   rcl_time_point_value_t now;
