@@ -453,7 +453,7 @@ rcl_get_node_names(
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Maybe [1]
- * <i>[1] implementation may need to protect the data structure with a lock</i>
+ * <i>[1] RMW implementation in use may need to protect the data structure with a lock</i>
  *
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] allocator used to control allocation and deallocation of names

@@ -64,10 +64,10 @@ rcl_validate_security_context_name(
 
 /// Deterimine if a given security context name is valid.
 /**
- * This is an overload with an extra parameter for the length of security_context.
- * \param[in] security_context The number of characters in security_context.
+ * \sa This is an overload of \ref rcl_validate_security_context_name with an extra parameter
+ * for the length of security_context.
  *
- * \sa rcl_validate_security_context(const char *, int *, size_t *)
+ * \param[in] security_context The number of characters in security_context.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

@@ -104,8 +104,9 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
  * However, this expansion can be overridden by setting the secure directory override environment
  * (`ROS_SECURITY_DIRECTORY_OVERRIDE`) variable, allowing users to explicitly specify the exact secure
  * root directory to be utilized.
- * Such an override is useful for where the security context is non-deterministic before runtime,
- * or when testing and using additional tools that may not otherwise be easily provisioned.
+ * Such an override is useful for applications where the security context is non-deterministic
+ * before runtime, or when testing and using additional tools that may not otherwise be easily
+ * provisioned.
  *
  * \param[in] name validated name (a single token)
  * \param[in] allocator the allocator to use for allocation
