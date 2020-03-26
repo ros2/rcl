@@ -109,10 +109,15 @@ rcl_validate_security_context_name_with_size(
   }
 
   // security_context might be longer that namespace length, check false positives and correct
-  if (tmp_validation_result == RMW_NAMESPACE_INVALID_TOO_LONG &&
-    security_context_length <= RCL_SECURITY_CONTEXT_NAME_MAX_LENGTH)
-  {
-    *validation_result = RCL_SECURITY_CONTEXT_NAME_VALID;
+  if (RMW_NAMESPACE_INVALID_TOO_LONG == tmp_validation_result) {
+    if (RCL_SECURITY_CONTEXT_NAME_MAX_LENGTH >= security_context_length) {
+      *validation_result = RCL_SECURITY_CONTEXT_NAME_VALID;
+    } else {
+      *validation_result = RCL_SECURITY_CONTEXT_NAME_INVALID_TOO_LONG;
+      if (invalid_index) {
+        *invalid_index = RCL_SECURITY_CONTEXT_NAME_MAX_LENGTH - 1;
+      }
+    }
     return RCL_RET_OK;
   }
 
