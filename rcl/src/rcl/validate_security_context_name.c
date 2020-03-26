@@ -53,18 +53,18 @@ rcl_validate_security_context_name_with_size(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  int t_validation_result;
-  size_t t_invalid_index;
+  int tmp_validation_result;
+  size_t tmp_invalid_index;
   rmw_ret_t ret = rmw_validate_namespace_with_size(
-    security_context, security_context_length, &t_validation_result, &t_invalid_index);
+    security_context, security_context_length, &tmp_validation_result, &tmp_invalid_index);
   if (ret != RMW_RET_OK) {
     return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
 
-  if (t_validation_result != RMW_NAMESPACE_VALID &&
-    t_validation_result != RMW_NAMESPACE_INVALID_TOO_LONG)
+  if (tmp_validation_result != RMW_NAMESPACE_VALID &&
+    tmp_validation_result != RMW_NAMESPACE_INVALID_TOO_LONG)
   {
-    switch (t_validation_result) {
+    switch (tmp_validation_result) {
       case RMW_NAMESPACE_INVALID_IS_EMPTY_STRING:
         *validation_result = RCL_SECURITY_CONTEXT_NAME_INVALID_IS_EMPTY_STRING;
         break;
@@ -91,7 +91,7 @@ rcl_validate_security_context_name_with_size(
             default_err_msg, sizeof(default_err_msg),
             "rcl_validate_security_context_name_with_size(): "
             "unknown rmw_validate_namespace_with_size() result '%d'",
-            t_validation_result);
+            tmp_validation_result);
           if (ret < 0) {
             RCL_SET_ERROR_MSG(
               "rcl_validate_security_context_name_with_size(): "
@@ -103,13 +103,13 @@ rcl_validate_security_context_name_with_size(
         return RCL_RET_ERROR;
     }
     if (invalid_index) {
-      *invalid_index = t_invalid_index;
+      *invalid_index = tmp_invalid_index;
     }
     return RCL_RET_OK;
   }
 
   // security_context might be longer that namespace length, check false positives and correct
-  if (t_validation_result == RMW_NAMESPACE_INVALID_TOO_LONG &&
+  if (tmp_validation_result == RMW_NAMESPACE_INVALID_TOO_LONG &&
     security_context_length <= RCL_SECURITY_CONTEXT_NAME_MAX_LENGTH)
   {
     *validation_result = RCL_SECURITY_CONTEXT_NAME_VALID;
