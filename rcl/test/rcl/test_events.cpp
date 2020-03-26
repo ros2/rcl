@@ -48,8 +48,14 @@ constexpr seconds MAX_WAIT_PER_TESTCASE = 10s;
 
 #define EXPECT_OK(varname) EXPECT_EQ(varname, RCL_RET_OK) << rcl_get_error_string().str
 
-using TestIncompatibleQosEventParams = std::tuple<rmw_qos_policy_kind_t, rmw_qos_profile_t,
-    rmw_qos_profile_t, std::string>;
+struct TestIncompatibleQosEventParams
+{
+  std::string testcase_name;
+  rmw_qos_policy_kind_t qos_policy_kind;
+  rmw_qos_profile_t publisher_qos_profile;
+  rmw_qos_profile_t subscription_qos_profile;
+  std::string error_msg;
+};
 
 class CLASSNAME (TestEventFixture, RMW_IMPLEMENTATION)
   : public ::testing::TestWithParam<TestIncompatibleQosEventParams>
@@ -57,7 +63,7 @@ class CLASSNAME (TestEventFixture, RMW_IMPLEMENTATION)
 public:
   void SetUp()
   {
-    is_opensplice = (std::string(rmw_get_implementation_identifier()).find("rmw_opensplice") == 0);
+    is_fastrtps = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
 
     rcl_ret_t ret;
     {
@@ -110,24 +116,30 @@ public:
       &subscription_options);
   }
 
-  void setup_publisher_and_subscriber(
-    const rcl_publisher_event_type_t & pub_event_type,
+  void setup_publisher_subscriber(
     const rmw_qos_profile_t pub_qos_profile,
-    const rcl_subscription_event_type_t & sub_event_type,
     const rmw_qos_profile_t sub_qos_profile)
   {
     rcl_ret_t ret;
+
     // init publisher
     ret = setup_publisher(pub_qos_profile);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
+    // init subscription
+    ret = setup_subscriber(sub_qos_profile);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  }
+
+  void setup_publisher_subscriber_events(
+    const rcl_publisher_event_type_t & pub_event_type,
+    const rcl_subscription_event_type_t & sub_event_type)
+  {
+    rcl_ret_t ret;
+
     // init publisher events
     publisher_event = rcl_get_zero_initialized_event();
     ret = rcl_publisher_event_init(&publisher_event, &publisher, pub_event_type);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-    // init subscription
-    ret = setup_subscriber(sub_qos_profile);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
     // init subscription event
@@ -136,15 +148,12 @@ public:
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  void setup_publisher_and_subscriber_and_assert_discovery(
+  void setup_publisher_subscriber_and_events_and_assert_discovery(
     const rcl_publisher_event_type_t & pub_event_type,
     const rcl_subscription_event_type_t & sub_event_type)
   {
-    setup_publisher_and_subscriber(
-      pub_event_type,
-      default_qos_profile,
-      sub_event_type,
-      default_qos_profile);
+    setup_publisher_subscriber(default_qos_profile, default_qos_profile);
+    setup_publisher_subscriber_events(pub_event_type, sub_event_type);
 
     rcl_ret_t ret;
     // wait for discovery, time out after 10s
@@ -171,16 +180,21 @@ public:
   {
     rcl_ret_t ret;
 
-    ret = rcl_event_fini(&subscription_event);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
     ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-    ret = rcl_event_fini(&publisher_event);
+    ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  }
+
+  void tear_down_publisher_subscriber_events()
+  {
+    rcl_ret_t ret;
+
+    ret = rcl_event_fini(&subscription_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-    ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    ret = rcl_event_fini(&publisher_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -206,9 +220,7 @@ public:
     std::string operator()(const ::testing::TestParamInfo<ParamType> & info) const
     {
       const auto & test_params = static_cast<const TestIncompatibleQosEventParams &>(info.param);
-      std::string error_msg = std::get<3>(test_params);
-      std::replace(error_msg.begin(), error_msg.end(), ' ', '_');
-      return error_msg;
+      return test_params.testcase_name;
     }
   };
 
@@ -222,7 +234,7 @@ protected:
   rcl_event_t publisher_event;
   rcl_subscription_t subscription;
   rcl_event_t subscription_event;
-  bool is_opensplice;
+  bool is_fastrtps;
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
 };
@@ -373,7 +385,7 @@ conditional_wait_for_msgs_and_events(
  */
 TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
 {
-  setup_publisher_and_subscriber_and_assert_discovery(
+  setup_publisher_subscriber_and_events_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
@@ -431,6 +443,7 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
   }
 
   // clean up
+  tear_down_publisher_subscriber_events();
   tear_down_publisher_subscriber();
 }
 
@@ -439,7 +452,7 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
  */
 TEST_F(TestEventFixture, test_pubsub_deadline_missed)
 {
-  setup_publisher_and_subscriber_and_assert_discovery(
+  setup_publisher_subscriber_and_events_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
@@ -505,6 +518,7 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
   }
 
   // clean up
+  tear_down_publisher_subscriber_events();
   tear_down_publisher_subscriber();
 }
 
@@ -513,7 +527,7 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
  */
 TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
 {
-  setup_publisher_and_subscriber_and_assert_discovery(
+  setup_publisher_subscriber_and_events_and_assert_discovery(
     RCL_PUBLISHER_LIVELINESS_LOST,
     RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
   rcl_ret_t ret;
@@ -567,13 +581,7 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
     ret = rcl_take_event(&subscription_event, &liveliness_status);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(liveliness_status.alive_count, 0);
-    // TODO(mm3188): Connext and OpenSplice seem to be tracking alive_count_change differently.
-    //               Issue has been raised at https://github.com/ADLINK-IST/opensplice/issues/88
-    if (is_opensplice) {
-      EXPECT_EQ(liveliness_status.alive_count_change, 2);
-    } else {
-      EXPECT_EQ(liveliness_status.alive_count_change, 0);
-    }
+    EXPECT_EQ(liveliness_status.alive_count_change, 0);
     EXPECT_EQ(liveliness_status.not_alive_count, 1);
     EXPECT_EQ(liveliness_status.not_alive_count_change, 1);
   }
@@ -589,6 +597,7 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
   }
 
   // clean up
+  tear_down_publisher_subscriber_events();
   tear_down_publisher_subscriber();
 }
 
@@ -598,65 +607,92 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
  */
 TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
 {
-  if (!is_opensplice) {
-    GTEST_SKIP();
+  const auto & input = GetParam();
+  const auto & qos_policy_kind = input.qos_policy_kind;
+  const auto & publisher_qos_profile = input.publisher_qos_profile;
+  const auto & subscription_qos_profile = input.subscription_qos_profile;
+  const auto & error_msg = input.error_msg;
+
+  setup_publisher_subscriber(publisher_qos_profile, subscription_qos_profile);
+  if (is_fastrtps) {
+    rcl_ret_t ret;
+
+    // init publisher events
+    publisher_event = rcl_get_zero_initialized_event();
+    ret = rcl_publisher_event_init(
+      &publisher_event,
+      &publisher,
+      RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS);
+    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
+
+    // init subscription event
+    subscription_event = rcl_get_zero_initialized_event();
+    ret = rcl_subscription_event_init(
+      &subscription_event,
+      &subscription,
+      RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
+    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
+
+    // clean up and exit test early
+    tear_down_publisher_subscriber();
+    return;
+  } else {
+    setup_publisher_subscriber_events(
+      RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
+      RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
   }
 
-  const auto & input = GetParam();
-  const auto & qos_policy_kind = std::get<0>(input);
-  const auto & publisher_qos_profile = std::get<1>(input);
-  const auto & subscription_qos_profile = std::get<2>(input);
-  const auto & error_msg = std::get<3>(input);
-  setup_publisher_and_subscriber(
-    RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
-    publisher_qos_profile,
-    RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS,
-    subscription_qos_profile);
+  WaitConditionPredicate events_ready = [](
+    const bool & /*msg_persist_ready*/,
+    const bool & subscription_persist_ready,
+    const bool & publisher_persist_ready) {
+      return subscription_persist_ready && publisher_persist_ready;
+    };
+  bool msg_persist_ready, subscription_persist_ready, publisher_persist_ready;
+  rcl_ret_t wait_res = conditional_wait_for_msgs_and_events(
+    context_ptr, MAX_WAIT_PER_TESTCASE, events_ready,
+    &subscription, &subscription_event, &publisher_event,
+    &msg_persist_ready, &subscription_persist_ready, &publisher_persist_ready);
+  EXPECT_EQ(wait_res, RCL_RET_OK);
 
-  rcl_ret_t ret;
-
-  // try to receive event, retry for 10s
-  static const size_t max_iterations = 1000;
-  static const auto wait_period = 10ms;
-  bool pub_event_success = false;
-  bool sub_event_success = false;
-  for (size_t i = 0; i < max_iterations; ++i) {
+  // test that the subscriber/datareader discovered an incompatible publisher/datawriter
+  EXPECT_TRUE(subscription_persist_ready);
+  if (subscription_persist_ready) {
     rmw_requested_qos_incompatible_event_status_t requested_incompatible_qos_status;
-    ret = rcl_take_event(&subscription_event, &requested_incompatible_qos_status);
+    rcl_ret_t ret = rcl_take_event(&subscription_event, &requested_incompatible_qos_status);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     const auto & pub_total_count = requested_incompatible_qos_status.total_count;
     const auto & pub_total_count_change = requested_incompatible_qos_status.total_count_change;
     const auto & pub_last_policy_kind = requested_incompatible_qos_status.last_policy_kind;
     if (pub_total_count != 0 && pub_total_count_change != 0 && pub_last_policy_kind != 0) {
-      pub_event_success = true;
       EXPECT_EQ(pub_total_count, 1) << error_msg;
       EXPECT_EQ(pub_total_count_change, 1) << error_msg;
       EXPECT_EQ(pub_last_policy_kind, qos_policy_kind) << error_msg;
+    } else {
+      ADD_FAILURE() << "Subscription incompatible qos event timed out for: " << error_msg;
     }
+  }
 
+  // test that the publisher/datawriter discovered an incompatible subscription/datareader
+  EXPECT_TRUE(publisher_persist_ready);
+  if (publisher_persist_ready) {
     rmw_offered_qos_incompatible_event_status_t offered_incompatible_qos_status;
-    ret = rcl_take_event(&publisher_event, &offered_incompatible_qos_status);
+    rcl_ret_t ret = rcl_take_event(&publisher_event, &offered_incompatible_qos_status);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     const auto & sub_total_count = offered_incompatible_qos_status.total_count;
     const auto & sub_total_count_change = offered_incompatible_qos_status.total_count_change;
     const auto & sub_last_policy_kind = offered_incompatible_qos_status.last_policy_kind;
     if (sub_total_count != 0 && sub_total_count_change != 0 && sub_last_policy_kind != 0) {
-      sub_event_success = true;
       EXPECT_EQ(sub_total_count, 1) << error_msg;
       EXPECT_EQ(sub_total_count_change, 1) << error_msg;
       EXPECT_EQ(sub_last_policy_kind, qos_policy_kind) << error_msg;
+    } else {
+      ADD_FAILURE() << "Publisher incompatible qos event timed out for: " << error_msg;
     }
-
-    if (pub_event_success && sub_event_success) {
-      break;
-    }
-    std::this_thread::sleep_for(wait_period);
   }
-  EXPECT_TRUE(pub_event_success) << "Publisher incompatible qos event timed out for: " +
-    error_msg;
-  EXPECT_TRUE(sub_event_success) << "Subscription incompatible qos event timed out for: " +
-    error_msg;
+
   // clean up
+  tear_down_publisher_subscriber_events();
   tear_down_publisher_subscriber();
 }
 
@@ -669,59 +705,49 @@ get_test_pubsub_incompatible_qos_inputs()
   std::array<TestIncompatibleQosEventParams, 5> inputs;
 
   // durability
-  rmw_qos_profile_t pub_qos_profile = TestEventFixture::default_qos_profile;
-  rmw_qos_profile_t sub_qos_profile = TestEventFixture::default_qos_profile;
-  pub_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  sub_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  inputs[0] = std::make_tuple(
-    RMW_QOS_POLICY_DURABILITY,
-    pub_qos_profile,
-    sub_qos_profile,
-    "Incompatible qos durability");
+  inputs[0].testcase_name = "IncompatibleQoS_Durability";
+  inputs[0].qos_policy_kind = RMW_QOS_POLICY_DURABILITY;
+  inputs[0].publisher_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[0].publisher_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  inputs[0].subscription_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[0].subscription_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  inputs[0].error_msg = "Incompatible qos durability";
 
   // deadline
-  pub_qos_profile = TestEventFixture::default_qos_profile;
-  pub_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
-  sub_qos_profile = TestEventFixture::default_qos_profile;
-  sub_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count(), 0};
-  inputs[1] = std::make_tuple(
-    RMW_QOS_POLICY_DEADLINE,
-    pub_qos_profile,
-    sub_qos_profile,
-    "Incompatible qos deadline");
+  inputs[1].testcase_name = "IncompatibleQoS_Deadline";
+  inputs[1].qos_policy_kind = RMW_QOS_POLICY_DEADLINE;
+  inputs[1].publisher_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[1].publisher_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
+  inputs[1].subscription_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[1].subscription_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count(), 0};
+  inputs[1].error_msg = "Incompatible qos deadline";
 
   // liveliness
-  pub_qos_profile = TestEventFixture::default_qos_profile;
-  pub_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
-  sub_qos_profile = TestEventFixture::default_qos_profile;
-  sub_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
-  inputs[2] = std::make_tuple(
-    RMW_QOS_POLICY_LIVELINESS,
-    pub_qos_profile,
-    sub_qos_profile,
-    "Incompatible qos liveliness policy");
+  inputs[2].testcase_name = "IncompatibleQoS_LivelinessPolicy";
+  inputs[2].qos_policy_kind = RMW_QOS_POLICY_LIVELINESS;
+  inputs[2].publisher_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[2].publisher_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
+  inputs[2].subscription_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[2].subscription_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+  inputs[2].error_msg = "Incompatible qos liveliness policy";
 
   // liveliness lease duration
-  pub_qos_profile = TestEventFixture::default_qos_profile;
-  pub_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
-  sub_qos_profile = TestEventFixture::default_qos_profile;
-  sub_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count(), 0};
-  inputs[3] = std::make_tuple(
-    RMW_QOS_POLICY_LIVELINESS,
-    pub_qos_profile,
-    sub_qos_profile,
-    "Incompatible qos liveliness_lease_duration");
+  inputs[3].testcase_name = "IncompatibleQoS_LivelinessLeaseDuration";
+  inputs[3].qos_policy_kind = RMW_QOS_POLICY_LIVELINESS;
+  inputs[3].publisher_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[3].publisher_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
+  inputs[3].subscription_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[3].subscription_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count(), 0};
+  inputs[3].error_msg = "Incompatible qos liveliness lease duration";
 
   // reliability
-  pub_qos_profile = TestEventFixture::default_qos_profile;
-  pub_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  sub_qos_profile = TestEventFixture::default_qos_profile;
-  sub_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
-  inputs[4] = std::make_tuple(
-    RMW_QOS_POLICY_RELIABILITY,
-    pub_qos_profile,
-    sub_qos_profile,
-    "Incompatible qos reliability");
+  inputs[4].testcase_name = "IncompatibleQoS_Reliability";
+  inputs[4].qos_policy_kind = RMW_QOS_POLICY_RELIABILITY;
+  inputs[4].publisher_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[4].publisher_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  inputs[4].subscription_qos_profile = TestEventFixture::default_qos_profile;
+  inputs[4].subscription_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  inputs[4].error_msg = "Incompatible qos reliability";
 
   return inputs;
 }
