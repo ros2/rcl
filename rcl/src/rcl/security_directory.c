@@ -15,6 +15,7 @@
 #include "rcl/security_directory.h"
 
 #include "rcl/error_handling.h"
+#include "rcutils/directory_and_file_reader.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/get_env.h"
 #include "rcutils/format_string.h"
@@ -23,7 +24,6 @@
 # pragma clang diagnostic push
 # pragma clang diagnostic ignored "-Wembedded-directive"
 #endif
-#include "tinydir/tinydir.h"
 #ifdef __clang__
 # pragma clang diagnostic pop
 #endif
@@ -81,7 +81,7 @@ char * g_security_lookup_type_strings[] = {
  * \param[in] base_dir
  * \param[in] node_name
  * \param[out] matched_name must be a valid memory address allocated with at least
- * _TINYDIR_FILENAME_MAX characters.
+ * RCUTILS_FILENAME_MAX characters.
  * \return true if a match was found
  */
 static bool get_best_matching_directory(
@@ -89,21 +89,21 @@ static bool get_best_matching_directory(
   const char * node_name,
   char * matched_name)
 {
+  rcutils_dir_t dir = rcutils_get_zero_initialized_dir();
   size_t max_match_length = 0;
-  tinydir_dir dir;
   if (NULL == base_dir || NULL == node_name || NULL == matched_name) {
     return false;
   }
-  if (-1 == tinydir_open(&dir, base_dir)) {
+  if (-1 == rcutils_open_dir(&dir, base_dir, rcutils_get_default_allocator())) {
     return false;
   }
   while (dir.has_next) {
-    tinydir_file file;
-    if (-1 == tinydir_readfile(&dir, &file)) {
+    rcutils_file_t file = rcutils_get_zero_initialized_file();
+    if (RCUTILS_RET_OK != rcutils_readfile(&dir, &file)) {
       goto cleanup;
     }
     if (file.is_dir) {
-      size_t matched_name_length = strnlen(file.name, sizeof(file.name) - 1);
+      size_t matched_name_length = strlen(file.name);
       if (
         0 == strncmp(file.name, node_name, matched_name_length) &&
         matched_name_length > max_match_length)
@@ -112,12 +112,16 @@ static bool get_best_matching_directory(
         memcpy(matched_name, file.name, max_match_length);
       }
     }
-    if (-1 == tinydir_next(&dir)) {
+    rcutils_file_fini(&file, dir.allocator);
+    if (RCUTILS_RET_OK != rcutils_next_dir(&dir)) {
       goto cleanup;
     }
   }
+
 cleanup:
-  tinydir_close(&dir);
+  if (rcutils_close_dir(&dir) != RCUTILS_RET_OK) {
+    RCL_SET_ERROR_MSG("Error closing the directory");
+  }
   return max_match_length > 0;
 }
 
@@ -156,7 +160,7 @@ char * prefix_match_lookup(
 {
   // Perform longest prefix match for the node's name in directory <root dir>/<namespace>.
   char * node_secure_root = NULL;
-  char matched_dir[_TINYDIR_FILENAME_MAX] = {0};
+  char matched_dir[RCUTILS_FILENAME_MAX] = {0};
   char * base_lookup_dir = NULL;
   if (strlen(node_namespace) == 1) {
     base_lookup_dir = (char *) ros_secure_root_env;
