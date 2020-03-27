@@ -20,14 +20,6 @@
 #include "rcutils/get_env.h"
 #include "rcutils/format_string.h"
 
-#ifdef __clang__
-# pragma clang diagnostic push
-# pragma clang diagnostic ignored "-Wembedded-directive"
-#endif
-#ifdef __clang__
-# pragma clang diagnostic pop
-#endif
-
 /**
  * A security lookup function takes in the node's name, namespace, a security root directory and an allocator;
  *  It returns the relevant information required to load the security credentials,
