@@ -112,7 +112,8 @@ static bool get_best_matching_directory(
 
 cleanup:
   if (rcutils_close_dir(&dir) != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG("Error closing the directory");
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error closing the directory '%s'", base_dir);
   }
   return max_match_length > 0;
 }
