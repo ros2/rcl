@@ -443,7 +443,7 @@ rcl_get_node_names(
 
 /// Return a list of available nodes in the ROS graph, including their security context names.
 /**
- * \sa An \ref rcl_get_node_names equivalent, but including in its output the security context
+ * An \ref rcl_get_node_names equivalent, but including in its output the security context
  * name the node is using.
  *
  * <hr>

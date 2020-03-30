@@ -44,7 +44,7 @@ extern "C"
 
 /// Determine if a given security context name is valid.
 /**
- * \sa The same rules as \ref rmw_validate_namespace are used.
+ * The same rules as \ref rmw_validate_namespace are used.
  * The only difference is in the maximum allowed length, which can be up to 255 characters.
  *
  * \param[in] security_context security_context to be validated
@@ -64,7 +64,7 @@ rcl_validate_security_context_name(
 
 /// Deterimine if a given security context name is valid.
 /**
- * \sa This is an overload of \ref rcl_validate_security_context_name with an extra parameter
+ * This is an overload of \ref rcl_validate_security_context_name with an extra parameter
  * for the length of security_context.
  *
  * \param[in] security_context The number of characters in security_context.

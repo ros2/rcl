@@ -1104,8 +1104,9 @@ rcl_arguments_copy(
   if (args->impl->security_context && !security_context_copy) {
     if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
       RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
+    } else {
+      RCL_SET_ERROR_MSG("Error while copying security context argument");
     }
-    RCL_SET_ERROR_MSG("Error while copying security context argument");
     return RCL_RET_BAD_ALLOC;
   }
   args_out->impl->security_context = security_context_copy;
