@@ -107,7 +107,6 @@ static bool get_best_matching_directory(
     rcutils_ret_t ret = rcutils_file_fini(&file, dir.allocator);
     if (ret != RCUTILS_RET_OK) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("%s", rcutils_get_error_string().str);
-      rcutils_reset_error();
       goto cleanup;
     }
     if (RCUTILS_RET_OK != rcutils_next_dir(&dir)) {
@@ -118,7 +117,6 @@ static bool get_best_matching_directory(
 cleanup:
   if (rcutils_close_dir(&dir) != RCUTILS_RET_OK) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("%s", rcutils_get_error_string().str);
-    rcutils_reset_error();
   }
   return max_match_length > 0;
 }
