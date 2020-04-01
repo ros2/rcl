@@ -27,10 +27,12 @@
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcl/wait.h"
+#include "rcl/graph.h"
 
 #include "rcutils/logging_macros.h"
 
 #include "test_msgs/msg/empty.h"
+#include "test_msgs/srv/basic_types.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -169,4 +171,86 @@ TEST_F(CLASSNAME(WaitSetTimestampTestFixture, RMW_IMPLEMENTATION), test_pub_sub)
   // now take the message to clear it from the queue
   ret = rcl_take(sub_ptr, &msg, nullptr, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
+TEST_F(CLASSNAME(WaitSetTimestampTestFixture, RMW_IMPLEMENTATION), test_client_service) {
+  rcl_ret_t ret  = RCL_RET_OK;
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+  const char * topic = "primitives";
+
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  ret = rcl_service_init(&service, send_node_ptr, ts, topic, &service_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+      rcl_ret_t ret = rcl_service_fini(&service, send_node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // query the graph until the service becomes available
+  rcl_names_and_types_t tnat {};
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  do {
+    ret = rcl_get_service_names_and_types(receive_node_ptr,
+        &allocator, &tnat);
+    EXPECT_EQ(RCL_RET_OK, ret);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      rcl_ret_t ret = rcl_names_and_types_fini(&tnat);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    });
+  } while(tnat.names.size == 0);
+
+
+  // create the client
+  rcl_client_t client = rcl_get_zero_initialized_client();
+
+  // Initialize the client.
+  rcl_client_options_t client_options = rcl_client_get_default_options();
+  ret = rcl_client_init(&client, send_node_ptr, ts, topic, &client_options);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_client_fini(&client, receive_node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // send request
+  test_msgs__srv__BasicTypes_Request client_request;
+  test_msgs__srv__BasicTypes_Request__init(&client_request);
+  int64_t sequence_number;
+  ret = rcl_send_request(&client, &client_request, &sequence_number);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(sequence_number, 1);
+
+  // wait for it
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  ret =
+    rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, 0, context_ptr, allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // first the service
+  ret = rcl_wait_set_add_service(&wait_set, &service, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1000));
+  EXPECT_EQ(RCL_RET_OK, ret);
+
+  bool request_received = false;
+  rcutils_time_point_value_t timestamp = 0;
+  for (size_t i = 0; i < wait_set.size_of_services; ++i) {
+    if (wait_set.services[i] && wait_set.services[i] == &service) {
+      request_received = true;
+      timestamp = wait_set.services_timestamps[i];
+    }
+  }
+  EXPECT_EQ(true, request_received);
+  EXPECT_NE(0, timestamp);
+
 }

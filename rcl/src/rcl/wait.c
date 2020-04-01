@@ -729,6 +729,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Client in wait set is ready");
     if (!is_ready) {
       wait_set->clients[i] = NULL;
+    } else {
+      wait_set->clients_timestamps[i] = wait_set->impl->rmw_clients.timestamps[i];
     }
   }
   // Set corresponding rcl service handles NULL.
@@ -737,6 +739,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Service in wait set is ready");
     if (!is_ready) {
       wait_set->services[i] = NULL;
+    } else {
+      wait_set->services_timestamps[i] = wait_set->impl->rmw_services.timestamps[i];
     }
   }
   // Set corresponding rcl event handles NULL.
