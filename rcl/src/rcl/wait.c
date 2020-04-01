@@ -710,6 +710,8 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       is_ready, ROS_PACKAGE_NAME, "Subscription in wait set is ready");
     if (!is_ready) {
       wait_set->subscriptions[i] = NULL;
+    } else {
+      wait_set->subscriptions_timestamps[i] = wait_set->impl->rmw_subscriptions.timestamps[i];
     }
   }
   // Set corresponding rcl guard_condition handles NULL.
