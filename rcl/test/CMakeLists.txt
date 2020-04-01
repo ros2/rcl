@@ -222,6 +222,24 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
+  # This condition runs the timestmap test only when we know the RMW implementation
+  # supports timestamping
+  # TODO(iluetkeb): remove when timestamping is considered required
+  if(rmw_implementation STREQUAL "rmw_fastrtps_cpp")
+    set(AMENT_GTEST_ARGS "")
+  else()
+    message(STATUS "Skipping test_wait_timestamp${target_suffix} test, timestamps not implemented.")
+    set(AMENT_GTEST_ARGS "SKIP_TEST")
+  endif()
+  rcl_add_custom_gtest(test_wait_timestamp${target_suffix}
+    SRCS rcl/test_wait_timestamp.cpp
+    ENV ${rmw_implementation_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+    ${AMENT_GTEST_ARGS}
+  )
+
   rcl_add_custom_gtest(test_wait_set_impl${target_suffix}
     SRCS rcl/test_wait_set_impl.cpp
     ENV ${rmw_implementation_env_var}
