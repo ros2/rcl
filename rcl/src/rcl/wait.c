@@ -696,6 +696,13 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Timer in wait set is ready");
     if (!is_ready) {
       wait_set->timers[i] = NULL;
+      wait_set->timers_timestamps[i] = 0;
+    } else if(wait_set->timers_timestamps[i] == 0) {
+      ret = rcutils_system_time_now(&(wait_set->timers_timestamps[i]));
+      if(ret != RCL_RET_OK) {
+        wait_set->timers_timestamps[i] = 0;
+        // TODO(iluetkeb) should we report this as an error?
+      }
     }
   }
   // Check for timeout, return RCL_RET_TIMEOUT only if it wasn't a timer.
