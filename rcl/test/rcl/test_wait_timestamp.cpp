@@ -1,4 +1,5 @@
 // Copyright 2016 Open Source Robotics Foundation, Inc.
+// Copyright 2020 Robert Bosch GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -252,4 +253,51 @@ TEST_F(CLASSNAME(WaitSetTimestampTestFixture, RMW_IMPLEMENTATION), test_client_s
   }
   EXPECT_EQ(true, request_received);
   EXPECT_NE(0, timestamp);
+
+  // now reply and check the client
+  {
+    test_msgs__srv__BasicTypes_Response service_response;
+    test_msgs__srv__BasicTypes_Response__init(&service_response);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      test_msgs__srv__BasicTypes_Response__fini(&service_response);
+    });
+
+    // Initialize a separate instance of the request and take the pending request.
+    test_msgs__srv__BasicTypes_Request service_request;
+    test_msgs__srv__BasicTypes_Request__init(&service_request);
+    rmw_request_id_t header;
+    ret = rcl_take_request(&service, &header, &service_request);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_send_response(&service, &header, &service_response);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    test_msgs__srv__BasicTypes_Request__fini(&service_request);
+  }
+
+  // wait for it
+  ret = rcl_wait_set_fini(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  wait_set = rcl_get_zero_initialized_wait_set();
+  ret =
+    rcl_wait_set_init(&wait_set, 0, 0, 0, 1, 0, 0, context_ptr, allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // we have a scope exit set up above already
+
+  // now wait for the client only
+  ret = rcl_wait_set_add_client(&wait_set, &client, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1000));
+  EXPECT_EQ(RCL_RET_OK, ret);
+
+  bool response_received = false;
+  rcutils_time_point_value_t response_timestamp = 0;
+  for (size_t i = 0; i < wait_set.size_of_clients; ++i) {
+    if (wait_set.clients[i] && wait_set.clients[i] == &client) {
+      response_received = true;
+      response_timestamp = wait_set.clients_timestamps[i];
+    }
+  }
+  EXPECT_EQ(true, response_received);
+  EXPECT_NE(0, response_timestamp);
 }
