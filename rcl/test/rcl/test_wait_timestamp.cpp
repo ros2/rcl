@@ -174,7 +174,7 @@ TEST_F(CLASSNAME(WaitSetTimestampTestFixture, RMW_IMPLEMENTATION), test_pub_sub)
 }
 
 TEST_F(CLASSNAME(WaitSetTimestampTestFixture, RMW_IMPLEMENTATION), test_client_service) {
-  rcl_ret_t ret  = RCL_RET_OK;
+  rcl_ret_t ret = RCL_RET_OK;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     test_msgs, srv, BasicTypes);
   const char * topic = "primitives";
@@ -185,23 +185,23 @@ TEST_F(CLASSNAME(WaitSetTimestampTestFixture, RMW_IMPLEMENTATION), test_client_s
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-      rcl_ret_t ret = rcl_service_fini(&service, send_node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    rcl_ret_t ret = rcl_service_fini(&service, send_node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
   // query the graph until the service becomes available
   rcl_names_and_types_t tnat {};
   rcl_allocator_t allocator = rcl_get_default_allocator();
   do {
-    ret = rcl_get_service_names_and_types(receive_node_ptr,
-        &allocator, &tnat);
+    ret = rcl_get_service_names_and_types(
+      receive_node_ptr, &allocator, &tnat);
     EXPECT_EQ(RCL_RET_OK, ret);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
       rcl_ret_t ret = rcl_names_and_types_fini(&tnat);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     });
-  } while(tnat.names.size == 0);
+  } while (tnat.names.size == 0);
 
 
   // create the client
@@ -252,5 +252,4 @@ TEST_F(CLASSNAME(WaitSetTimestampTestFixture, RMW_IMPLEMENTATION), test_client_s
   }
   EXPECT_EQ(true, request_received);
   EXPECT_NE(0, timestamp);
-
 }
