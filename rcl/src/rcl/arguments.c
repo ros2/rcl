@@ -245,6 +245,22 @@ _rcl_parse_param_file_rule(
   rcl_params_t * params,
   char ** param_file);
 
+/// Parse a security context argument.
+/**
+ * \param[in] arg the argument to parse
+ * \param[in] allocator an allocator to use
+ * \param[in,out] security_context parsed security context
+ * \return RCL_RET_OK if a valid security context was parsed, or
+ * \return RCL_RET_BAD_ALLOC if an allocation failed, or
+ * \return RLC_RET_ERROR if an unspecified error occurred.
+ */
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_security_context(
+  const char * arg,
+  rcl_allocator_t allocator,
+  char ** security_context);
+
 #define RCL_ENABLE_FLAG_PREFIX "--enable-"
 #define RCL_DISABLE_FLAG_PREFIX "--disable-"
 
@@ -533,6 +549,39 @@ rcl_parse_arguments(
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
       }
+
+      // Attempt to parse argument as a security context
+      if (strcmp(RCL_SECURITY_CONTEXT_FLAG, argv[i]) == 0) {
+        if (i + 1 < argc) {
+          if (NULL != args_impl->security_context) {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Overriding security context name : %s\n",
+              args_impl->security_context);
+            allocator.deallocate(args_impl->security_context, allocator.state);
+            args_impl->security_context = NULL;
+          }
+          if (RCL_RET_OK == _rcl_parse_security_context(
+              argv[i + 1], allocator, &args_impl->security_context))
+          {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Got security context : %s\n",
+              args_impl->security_context);
+            ++i;  // Skip flag here, for loop will skip value.
+            continue;
+          }
+          rcl_error_string_t prev_error_string = rcl_get_error_string();
+          rcl_reset_error();
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Couldn't parse security context name: '%s %s'. Error: %s", argv[i], argv[i + 1],
+            prev_error_string.str);
+        } else {
+          RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Couldn't parse trailing %s flag. No security context path provided.", argv[i]);
+        }
+        ret = RCL_RET_INVALID_ROS_ARGS;
+        goto fail;
+      }
+
       RCUTILS_LOG_DEBUG_NAMED(
         ROS_PACKAGE_NAME, "Arg %d (%s) is not a %s flag.",
         i, argv[i], RCL_EXTERNAL_LOG_CONFIG_FLAG);
@@ -1051,6 +1100,16 @@ rcl_arguments_copy(
       }
     }
   }
+  char * security_context_copy = rcutils_strdup(args->impl->security_context, allocator);
+  if (args->impl->security_context && !security_context_copy) {
+    if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+      RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
+    } else {
+      RCL_SET_ERROR_MSG("Error while copying security context argument");
+    }
+    return RCL_RET_BAD_ALLOC;
+  }
+  args_out->impl->security_context = security_context_copy;
   return RCL_RET_OK;
 }
 
@@ -1098,6 +1157,7 @@ rcl_arguments_fini(
       args->impl->num_param_files_args = 0;
       args->impl->parameter_files = NULL;
     }
+    args->impl->allocator.deallocate(args->impl->security_context, args->impl->allocator.state);
 
     if (NULL != args->impl->external_log_config_file) {
       args->impl->allocator.deallocate(
@@ -2004,6 +2064,23 @@ _rcl_parse_external_log_config_file_rule(
 }
 
 rcl_ret_t
+_rcl_parse_security_context(
+  const char * arg,
+  rcl_allocator_t allocator,
+  char ** security_context)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(security_context, RCL_RET_INVALID_ARGUMENT);
+
+  *security_context = rcutils_strdup(arg, allocator);
+  if (NULL == *security_context) {
+    RCL_SET_ERROR_MSG("Failed to allocate memory for security context name");
+    return RCL_RET_BAD_ALLOC;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 _rcl_parse_disabling_flag(
   const char * arg,
   const char * suffix,
@@ -2105,6 +2182,7 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
   args_impl->log_stdout_disabled = false;
   args_impl->log_rosout_disabled = false;
   args_impl->log_ext_lib_disabled = false;
+  args_impl->security_context = NULL;
   args_impl->allocator = *allocator;
 
   return RCL_RET_OK;

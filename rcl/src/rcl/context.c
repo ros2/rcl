@@ -108,7 +108,7 @@ __cleanup_context(rcl_context_t * context)
     rcl_ret_t ret = rcl_arguments_fini(&(context->global_arguments));
     if (RCL_RET_OK != ret) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(
-        "[rcl|init.c:" RCUTILS_STRINGIFY(__LINE__)
+        "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
         "] failed to finalize global arguments while cleaning up context, memory may be leaked: ");
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
@@ -126,7 +126,7 @@ __cleanup_context(rcl_context_t * context)
       rcl_ret_t ret = rcl_init_options_fini(&(context->impl->init_options));
       if (RCL_RET_OK != ret) {
         RCUTILS_SAFE_FWRITE_TO_STDERR(
-          "[rcl|init.c:" RCUTILS_STRINGIFY(__LINE__)
+          "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
           "] failed to finalize init options while cleaning up context, memory may be leaked: ");
         RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
         RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
@@ -139,7 +139,7 @@ __cleanup_context(rcl_context_t * context)
       rmw_ret_t rmw_ret = rmw_context_fini(&(context->impl->rmw_context));
       if (RMW_RET_OK != rmw_ret) {
         RCUTILS_SAFE_FWRITE_TO_STDERR(
-          "[rcl|init.c:" RCUTILS_STRINGIFY(__LINE__)
+          "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
           "] failed to finalize rmw context while cleaning up context, memory may be leaked: ");
         RCUTILS_SAFE_FWRITE_TO_STDERR(rcutils_get_error_string().str);
         RCUTILS_SAFE_FWRITE_TO_STDERR("\n");

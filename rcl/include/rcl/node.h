@@ -336,7 +336,7 @@ rcl_node_get_options(const rcl_node_t * node);
  * This function returns the ROS domain ID that the node is in.
  *
  * This function should be used to determine what `domain_id` was used rather
- * than checking the domin_id field in the node options, because if
+ * than checking the domain_id field in the node options, because if
  * `RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID` is used when creating the node then
  * it is not changed after creation, but this function will return the actual
  * `domain_id` used.

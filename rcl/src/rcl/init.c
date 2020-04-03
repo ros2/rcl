@@ -19,17 +19,26 @@ extern "C"
 
 #include "rcl/init.h"
 
+#include "rcutils/logging_macros.h"
+#include "rcutils/stdatomic_helper.h"
+#include "rcutils/strdup.h"
+
+#include "rmw/error_handling.h"
+
+#include "tracetools/tracetools.h"
+
+#include "rcl/arguments.h"
+#include "rcl/domain_id.h"
+#include "rcl/error_handling.h"
+#include "rcl/localhost.h"
+#include "rcl/logging.h"
+#include "rcl/security.h"
+#include "rcl/validate_security_context_name.h"
+
 #include "./arguments_impl.h"
 #include "./common.h"
 #include "./context_impl.h"
 #include "./init_options_impl.h"
-#include "rcl/arguments.h"
-#include "rcl/error_handling.h"
-#include "rcl/logging.h"
-#include "rcutils/logging_macros.h"
-#include "rcutils/stdatomic_helper.h"
-#include "rmw/error_handling.h"
-#include "tracetools/tracetools.h"
 
 static atomic_uint_least64_t __rcl_next_unique_id = ATOMIC_VAR_INIT(1);
 
@@ -143,6 +152,72 @@ rcl_init(
   }
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), next_instance_id);
   context->impl->init_options.impl->rmw_init_options.instance_id = next_instance_id;
+
+  size_t * domain_id = &context->impl->init_options.impl->rmw_init_options.domain_id;
+  if (RCL_DEFAULT_DOMAIN_ID == *domain_id) {
+    // Get actual domain id based on environment variable.
+    ret = rcl_get_default_domain_id(domain_id);
+    if (RCL_RET_OK != ret) {
+      fail_ret = ret;
+      goto fail;
+    }
+  }
+
+  rmw_localhost_only_t * localhost_only =
+    &context->impl->init_options.impl->rmw_init_options.localhost_only;
+  if (RMW_LOCALHOST_ONLY_DEFAULT == *localhost_only) {
+    // Get actual localhost_only value based on environment variable, if needed.
+    ret = rcl_get_localhost_only(localhost_only);
+    if (RCL_RET_OK != ret) {
+      fail_ret = ret;
+      goto fail;
+    }
+  }
+
+  if (context->global_arguments.impl->security_context) {
+    context->impl->init_options.impl->rmw_init_options.security_context = rcutils_strdup(
+      context->global_arguments.impl->security_context,
+      context->impl->allocator);
+  } else {
+    context->impl->init_options.impl->rmw_init_options.security_context = rcutils_strdup(
+      "/", context->impl->allocator);
+  }
+  int validation_result;
+  size_t invalid_index;
+  ret = rcl_validate_security_context_name(
+    context->impl->init_options.impl->rmw_init_options.security_context,
+    &validation_result,
+    &invalid_index);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("rcl_validate_security_context_name() failed");
+    fail_ret = ret;
+    goto fail;
+  }
+  if (RCL_SECURITY_CONTEXT_NAME_VALID != validation_result) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Security context name is not valid: '%s'. Invalid index: %zu",
+      rcl_security_context_name_validation_result_string(validation_result),
+      invalid_index);
+    fail_ret = RMW_RET_ERROR;
+    goto fail;
+  }
+
+  if (!context->impl->init_options.impl->rmw_init_options.security_context) {
+    RCL_SET_ERROR_MSG("failed to set context name");
+    fail_ret = RMW_RET_BAD_ALLOC;
+    goto fail;
+  }
+
+  rmw_security_options_t * security_options =
+    &context->impl->init_options.impl->rmw_init_options.security_options;
+  ret = rcl_get_security_options_from_environment(
+    context->impl->init_options.impl->rmw_init_options.security_context,
+    &context->impl->allocator,
+    security_options);
+  if (RMW_RET_OK != ret) {
+    fail_ret = ret;
+    goto fail;
+  }
 
   // Initialize rmw_init.
   rmw_ret_t rmw_ret = rmw_init(
