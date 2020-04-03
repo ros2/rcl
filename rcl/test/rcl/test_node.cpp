@@ -120,14 +120,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     rcl_ret_t ret = rcl_node_fini(&invalid_node);
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&invalid_context)) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_RET_OK, ret);
   });
   ret = rcl_shutdown(&invalid_context);  // Shutdown to invalidate the node.
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&invalid_context)) << rcl_get_error_string().str;
-  });
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret);

@@ -20,6 +20,7 @@ extern "C"
 #include "rcl/node_options.h"
 
 #include "rcl/arguments.h"
+#include "rcl/domain_id.h"
 #include "rcl/error_handling.h"
 #include "rcl/logging_rosout.h"
 

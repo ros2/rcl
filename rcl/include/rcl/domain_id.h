@@ -12,35 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__LOCALHOST_H_
-#define RCL__LOCALHOST_H_
+#ifndef RCL__DOMAIN_ID_H_
+#define RCL__DOMAIN_ID_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+#include <stddef.h>
+
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
-#include "rmw/localhost.h"
+#include "rmw/domain_id.h"
 
-extern const char * const RCL_LOCALHOST_ENV_VAR;
+#define RCL_DEFAULT_DOMAIN_ID RMW_DEFAULT_DOMAIN_ID
 
-/// Determine if the user wants to communicate using loopback only.
+extern const char * const RCL_DOMAIN_ID_ENV_VAR;
+
+/// Determine the default domain ID, based on the environment.
 /**
- * Checks if localhost should be used for network communication based on environment.
- *
- * \param[out] localhost_only Must not be NULL.
- * \returns RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
- * \returns RCL_RET_ERROR if an unexpected error happened, or
+ * \param[out] domain_id Must not be NULL.
+ * \returns RCL_RET_INVALID_ARGUMENT if an argument is invalid, or,
+ * \returns RCL_RET_ERROR in case of an unexpected error, or,
  * \returns RCL_RET_OK.
  */
 RCL_PUBLIC
 rcl_ret_t
-rcl_get_localhost_only(rmw_localhost_only_t * localhost_only);
+rcl_get_default_domain_id(size_t * domain_id);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // RCL__LOCALHOST_H_
+#endif  // RCL__DOMAIN_ID_H_

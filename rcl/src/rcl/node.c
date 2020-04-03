@@ -26,12 +26,14 @@ extern "C"
 
 #include "rcl/arguments.h"
 #include "rcl/error_handling.h"
+#include "rcl/domain_id.h"
 #include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
 #include "rcl/rcl.h"
 #include "rcl/remap.h"
-#include "rcl/security_directory.h"
+#include "rcl/security.h"
+
 #include "rcutils/filesystem.h"
 #include "rcutils/find.h"
 #include "rcutils/format_string.h"
@@ -41,19 +43,15 @@ extern "C"
 #include "rcutils/repl_str.h"
 #include "rcutils/snprintf.h"
 #include "rcutils/strdup.h"
+
 #include "rmw/error_handling.h"
-#include "rmw/node_security_options.h"
+#include "rmw/security_options.h"
 #include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 #include "tracetools/tracetools.h"
 
 #include "./context_impl.h"
-
-#define ROS_SECURITY_STRATEGY_VAR_NAME "ROS_SECURITY_STRATEGY"
-#define ROS_SECURITY_ENABLE_VAR_NAME "ROS_SECURITY_ENABLE"
-#define ROS_DOMAIN_ID_VAR_NAME "ROS_DOMAIN_ID"
-
 
 typedef struct rcl_node_impl_t
 {
@@ -123,15 +121,13 @@ rcl_node_init(
   const rcl_node_options_t * options)
 {
   size_t domain_id = 0;
-  const char * ros_domain_id;
-  const char * get_env_error_str;
+  rmw_localhost_only_t localhost_only = RMW_LOCALHOST_ONLY_DEFAULT;
   const rmw_guard_condition_t * rmw_graph_guard_condition = NULL;
   rcl_guard_condition_options_t graph_guard_condition_options =
     rcl_guard_condition_get_default_options();
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   char * remapped_node_name = NULL;
-  char * node_secure_root = NULL;
 
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
@@ -258,79 +254,24 @@ rcl_node_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->logger_name, "creating logger name failed", goto fail);
 
-  // node rmw_node_handle
-  if (node->impl->options.domain_id == RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID) {
-    // Find the domain ID set by the environment.
-    get_env_error_str = rcutils_get_env(ROS_DOMAIN_ID_VAR_NAME, &ros_domain_id);
-    if (NULL != get_env_error_str) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Error getting env var '" RCUTILS_STRINGIFY(ROS_DOMAIN_ID_VAR_NAME) "': %s\n",
-        get_env_error_str);
+  domain_id = node->impl->options.domain_id;
+  if (RCL_DEFAULT_DOMAIN_ID == domain_id) {
+    if (RCL_RET_OK != rcl_get_default_domain_id(&domain_id)) {
       goto fail;
     }
-    if (ros_domain_id) {
-      unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
-      if (number == ULONG_MAX) {
-        RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number");
-        goto fail;
-      }
-      domain_id = (size_t)number;
-    }
-  } else {
-    domain_id = node->impl->options.domain_id;
   }
-  // actual domain id
-  node->impl->actual_domain_id = domain_id;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
+  node->impl->actual_domain_id = domain_id;
 
-  const char * ros_security_enable = NULL;
-  const char * ros_enforce_security = NULL;
-
-  get_env_error_str = rcutils_get_env(ROS_SECURITY_ENABLE_VAR_NAME, &ros_security_enable);
-  if (NULL != get_env_error_str) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Error getting env var '" RCUTILS_STRINGIFY(ROS_SECURITY_ENABLE_VAR_NAME) "': %s\n",
-      get_env_error_str);
-    ret = RCL_RET_ERROR;
-    goto fail;
-  }
-
-  bool use_security = (0 == strcmp(ros_security_enable, "true"));
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Using security: %s", use_security ? "true" : "false");
-
-  get_env_error_str = rcutils_get_env(ROS_SECURITY_STRATEGY_VAR_NAME, &ros_enforce_security);
-  if (NULL != get_env_error_str) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Error getting env var '" RCUTILS_STRINGIFY(ROS_SECURITY_STRATEGY_VAR_NAME) "': %s\n",
-      get_env_error_str);
-    ret = RCL_RET_ERROR;
-    goto fail;
-  }
-
-  rmw_node_security_options_t node_security_options =
-    rmw_get_zero_initialized_node_security_options();
-  node_security_options.enforce_security = (0 == strcmp(ros_enforce_security, "Enforce")) ?
-    RMW_SECURITY_ENFORCEMENT_ENFORCE : RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
-
-  if (!use_security) {
-    node_security_options.enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
-  } else {  // if use_security
-    // File discovery magic here
-    node_secure_root = rcl_get_secure_root(name, local_namespace_, allocator);
-    if (node_secure_root) {
-      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Found security directory: %s", node_secure_root);
-      node_security_options.security_root_path = node_secure_root;
-    } else {
-      if (RMW_SECURITY_ENFORCEMENT_ENFORCE == node_security_options.enforce_security) {
-        ret = RCL_RET_ERROR;
-        goto cleanup;
-      }
+  if (RMW_LOCALHOST_ONLY_DEFAULT == localhost_only) {
+    if (RMW_RET_OK != rcl_get_localhost_only(&localhost_only)) {
+      goto fail;
     }
   }
+
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
-    name, local_namespace_, domain_id, &node_security_options, rcl_localhost_only());
+    name, local_namespace_, domain_id, localhost_only);
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
@@ -431,7 +372,6 @@ cleanup:
   if (NULL != remapped_node_name) {
     allocator->deallocate(remapped_node_name, allocator->state);
   }
-  allocator->deallocate(node_secure_root, allocator->state);
   return ret;
 }
 
