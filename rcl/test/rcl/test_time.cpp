@@ -509,6 +509,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_fail_set_jump_callbacks) 
   rcl_clock_t fail_clock;
   rcl_time_jump_t time_jump;
   rcl_jump_threshold_t threshold;
+  threshold.on_clock_change = NULL;
   threshold.min_forward.nanoseconds = -1;
   threshold.min_backward.nanoseconds = 0;
 
@@ -790,8 +791,9 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), fail_override) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   bool result;
   rcl_time_point_value_t set_point = 1000000000ull;
-  ASSERT_EQ(RCL_RET_OK, rcl_clock_init(
-    RCL_CLOCK_UNINITIALIZED, &ros_clock, &allocator))  << rcl_get_error_string().str;
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_clock_init(
+      RCL_CLOCK_UNINITIALIZED, &ros_clock, &allocator)) << rcl_get_error_string().str;
 
   EXPECT_EQ(RCL_RET_ERROR, rcl_enable_ros_time_override(&ros_clock));
   EXPECT_EQ(RCL_RET_ERROR, rcl_disable_ros_time_override(&ros_clock));
