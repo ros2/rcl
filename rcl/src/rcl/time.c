@@ -146,6 +146,11 @@ rcl_ros_clock_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
   rcl_init_generic_clock(clock);
   clock->data = allocator->allocate(sizeof(rcl_ros_clock_storage_t), allocator->state);
+  if (NULL == clock->data) {
+    RCL_SET_ERROR_MSG("allocating memory failed");
+    return RCL_RET_BAD_ALLOC;
+  }
+
   rcl_ros_clock_storage_t * storage = (rcl_ros_clock_storage_t *)clock->data;
   // 0 is a special value meaning time has not been set
   atomic_init(&(storage->current_time), 0);
