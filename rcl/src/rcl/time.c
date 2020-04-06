@@ -31,7 +31,7 @@ typedef struct rcl_ros_clock_storage_t
 } rcl_ros_clock_storage_t;
 
 // Implementation only
-rcl_ret_t
+static rcl_ret_t
 rcl_get_steady_time(void * data, rcl_time_point_value_t * current_time)
 {
   (void)data;  // unused
@@ -39,7 +39,7 @@ rcl_get_steady_time(void * data, rcl_time_point_value_t * current_time)
 }
 
 // Implementation only
-rcl_ret_t
+static rcl_ret_t
 rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
 {
   (void)data;  // unused
@@ -47,7 +47,7 @@ rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
 }
 
 // Internal method for zeroing values on init, assumes clock is valid
-void
+static void
 rcl_init_generic_clock(rcl_clock_t * clock)
 {
   clock->type = RCL_CLOCK_UNINITIALIZED;
@@ -59,7 +59,7 @@ rcl_init_generic_clock(rcl_clock_t * clock)
 
 // The function used to get the current ros time.
 // This is in the implementation only
-rcl_ret_t
+static rcl_ret_t
 rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
 {
   rcl_ros_clock_storage_t * t = (rcl_ros_clock_storage_t *)data;
@@ -104,8 +104,8 @@ rcl_clock_init(
   }
 }
 
-void
-_rcl_clock_generic_fini(
+static void
+rcl_clock_generic_fini(
   rcl_clock_t * clock)
 {
   // Internal function; assume caller has already checked that clock is valid.
@@ -165,7 +165,7 @@ rcl_ros_clock_fini(
     RCL_SET_ERROR_MSG("clock not of type RCL_ROS_TIME");
     return RCL_RET_ERROR;
   }
-  _rcl_clock_generic_fini(clock);
+  rcl_clock_generic_fini(clock);
   if (!clock->data) {
     RCL_SET_ERROR_MSG("clock data invalid");
     return RCL_RET_ERROR;
@@ -197,7 +197,7 @@ rcl_steady_clock_fini(
     RCL_SET_ERROR_MSG("clock not of type RCL_STEADY_TIME");
     return RCL_RET_ERROR;
   }
-  _rcl_clock_generic_fini(clock);
+  rcl_clock_generic_fini(clock);
   return RCL_RET_OK;
 }
 
@@ -224,7 +224,7 @@ rcl_system_clock_fini(
     RCL_SET_ERROR_MSG("clock not of type RCL_SYSTEM_TIME");
     return RCL_RET_ERROR;
   }
-  _rcl_clock_generic_fini(clock);
+  rcl_clock_generic_fini(clock);
   return RCL_RET_OK;
 }
 
@@ -260,8 +260,8 @@ rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_value_t * time_point_value
   return RCL_RET_ERROR;
 }
 
-void
-_rcl_clock_call_callbacks(
+static void
+rcl_clock_call_callbacks(
   rcl_clock_t * clock, const rcl_time_jump_t * time_jump, bool before_jump)
 {
   // Internal function; assume parameters are valid.
@@ -298,9 +298,9 @@ rcl_enable_ros_time_override(rcl_clock_t * clock)
     rcl_time_jump_t time_jump;
     time_jump.delta.nanoseconds = 0;
     time_jump.clock_change = RCL_ROS_TIME_ACTIVATED;
-    _rcl_clock_call_callbacks(clock, &time_jump, true);
+    rcl_clock_call_callbacks(clock, &time_jump, true);
     storage->active = true;
-    _rcl_clock_call_callbacks(clock, &time_jump, false);
+    rcl_clock_call_callbacks(clock, &time_jump, false);
   }
   return RCL_RET_OK;
 }
@@ -323,9 +323,9 @@ rcl_disable_ros_time_override(rcl_clock_t * clock)
     rcl_time_jump_t time_jump;
     time_jump.delta.nanoseconds = 0;
     time_jump.clock_change = RCL_ROS_TIME_DEACTIVATED;
-    _rcl_clock_call_callbacks(clock, &time_jump, true);
+    rcl_clock_call_callbacks(clock, &time_jump, true);
     storage->active = false;
-    _rcl_clock_call_callbacks(clock, &time_jump, false);
+    rcl_clock_call_callbacks(clock, &time_jump, false);
   }
   return RCL_RET_OK;
 }
@@ -371,11 +371,11 @@ rcl_set_ros_time_override(
       return ret;
     }
     time_jump.delta.nanoseconds = time_value - current_time;
-    _rcl_clock_call_callbacks(clock, &time_jump, true);
+    rcl_clock_call_callbacks(clock, &time_jump, true);
   }
   rcutils_atomic_store(&(storage->current_time), time_value);
   if (storage->active) {
-    _rcl_clock_call_callbacks(clock, &time_jump, false);
+    rcl_clock_call_callbacks(clock, &time_jump, false);
   }
   return RCL_RET_OK;
 }
