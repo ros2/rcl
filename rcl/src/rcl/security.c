@@ -115,11 +115,12 @@ char * exact_match_lookup(
   if (0 == strcmp(name, "/")) {
     secure_root = rcutils_strdup(ros_secure_root_env, *allocator);
   } else {
-    char * root_path = NULL;
+    char * relative_path = NULL;
+    char * contexts_dir = NULL;
     // Get native path, ignore the leading forward slash
     // TODO(ros2team): remove the hard-coded length, use the length of the root namespace instead
-    const char * relative_path = rcutils_to_native_path(name + 1, *allocator);
-    const char * contexts_dir = rcutils_join_path(ros_secure_root_env, "contexts", *allocator);
+    relative_path = rcutils_to_native_path(name + 1, *allocator);
+    contexts_dir = rcutils_join_path(ros_secure_root_env, "contexts", *allocator);
     secure_root = rcutils_join_path(contexts_dir, relative_path, *allocator);
     allocator->deallocate(relative_path, allocator->state);
     allocator->deallocate(contexts_dir, allocator->state);
