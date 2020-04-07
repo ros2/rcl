@@ -109,7 +109,7 @@ char * exact_match_lookup(
   const char * ros_secure_root_env,
   const rcl_allocator_t * allocator)
 {
-  // Perform an exact match for the node/context's name in directory <root dir>/<namespace>.
+  // Perform an exact match for the context name in directory <root dir>.
   char * secure_root = NULL;
   // "/" case when root namespace is explicitly passed in
   if (0 == strcmp(name, "/")) {
@@ -118,9 +118,11 @@ char * exact_match_lookup(
     char * root_path = NULL;
     // Get native path, ignore the leading forward slash
     // TODO(ros2team): remove the hard-coded length, use the length of the root namespace instead
-    root_path = rcutils_to_native_path(name + 1, *allocator);
-    secure_root = rcutils_join_path(ros_secure_root_env, root_path, *allocator);
-    allocator->deallocate(root_path, allocator->state);
+    const char * relative_path = rcutils_to_native_path(name + 1, *allocator);
+    const char * contexts_dir = rcutils_join_path(ros_secure_root_env, "contexts", *allocator);
+    secure_root = rcutils_join_path(contexts_dir, relative_path, *allocator);
+    allocator->deallocate(relative_path, allocator->state);
+    allocator->deallocate(contexts_dir, allocator->state);
   }
   return secure_root;
 }
