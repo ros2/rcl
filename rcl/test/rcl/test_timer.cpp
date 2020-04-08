@@ -562,13 +562,26 @@ TEST_F(TestPreInitTimer, test_timer_get_allocator) {
 
 TEST_F(TestPreInitTimer, test_timer_clock) {
   rcl_clock_t * clock_impl;
-  EXPECT_EQ(RCL_RET_OK, rcl_timer_clock(&timer, &clock_impl));
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_clock(&timer, &clock_impl)) << rcl_get_error_string().str;
   EXPECT_EQ(clock_impl, &clock);
 }
 
 TEST_F(TestPreInitTimer, test_timer_call) {
+  /*
+    TODO: Use better names for next_call_start and next_call_end (?)
+
+    API does not expose the explicit time for the next call of the timer,
+    but provides time missing before/after next call.
+    I'm using this to compare the time difference between consecutive calls, to see if
+    the next_time variable is updated properly.
+    Comparing next_call_start and next_call_end is the same as
+    comparing missing_time_next_call1 vs missing_time_next_call2
+
+    Open to suggestions before merging
+   */
   int64_t next_call_start, next_call_end;
   int64_t old_period = 0;
+  times_called = 0;
 
   EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_start));
   ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
@@ -595,4 +608,25 @@ TEST_F(TestPreInitTimer, test_timer_call) {
 
 TEST_F(TestPreInitTimer, test_get_callback) {
   ASSERT_EQ(timer_callback_test, rcl_timer_get_callback(&timer)) << rcl_get_error_string().str;
+}
+
+TEST_F(TestPreInitTimer, test_timer_reset) {
+  int64_t next_call_start, next_call_end;
+  times_called = 0;
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 2);
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_start));
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_end));
+  EXPECT_GT(next_call_start, next_call_end);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_cancel(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_TIMER_CANCELED, rcl_timer_call(&timer));
+  EXPECT_EQ(times_called, 2);
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 3);
 }
