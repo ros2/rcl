@@ -588,16 +588,17 @@ static void callback_function(rcl_timer_t * timer, int64_t last_call)
 }
 static rcl_timer_callback_t timer_callback_test = &callback_function;
 
-// To test: rcl_timer_call
 TEST_F(TestTimerFixture, test_timer_call) {
   rcl_ret_t ret;
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
   int64_t next_call_start, next_call_end;
+  int64_t old_period = 0;
 
-  ASSERT_EQ(RCL_RET_OK,
-      rcl_clock_init(RCL_ROS_TIME, &clock, &allocator)) << rcl_get_error_string().str;
+  ASSERT_EQ(
+    RCL_RET_OK,
+    rcl_clock_init(RCL_ROS_TIME, &clock, &allocator)) << rcl_get_error_string().str;
 
   ret = rcl_timer_init(
     &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), timer_callback_test,
@@ -625,6 +626,42 @@ TEST_F(TestTimerFixture, test_timer_call) {
   EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_end));
   EXPECT_GT(next_call_end, next_call_start);
 
-  // Test timer with period 0
-  // Test calling when timer is canceled prior to call
+  next_call_start = next_call_end;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_exchange_period(&timer, 0, &old_period));
+  EXPECT_EQ(RCL_S_TO_NS(1), old_period);
+  ret = rcl_timer_call(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 4);
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_end));
+  EXPECT_GT(next_call_start, next_call_end);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_cancel(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_TIMER_CANCELED, rcl_timer_call(&timer));
+  EXPECT_EQ(times_called, 4);
+}
+
+TEST_F(TestTimerFixture, test_get_callback) {
+  rcl_ret_t ret;
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+
+  ASSERT_EQ(
+    RCL_RET_OK,
+    rcl_clock_init(RCL_ROS_TIME, &clock, &allocator)) << rcl_get_error_string().str;
+
+  ret = rcl_timer_init(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), timer_callback_test,
+    rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  ASSERT_EQ(timer_callback_test, rcl_timer_get_callback(&timer)) << rcl_get_error_string().str;
 }
