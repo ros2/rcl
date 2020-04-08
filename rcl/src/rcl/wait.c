@@ -365,7 +365,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     RCL_SET_ERROR_MSG("allocating memory failed"); \
     return RCL_RET_BAD_ALLOC; \
   } \
-  memset(wait_set->impl->RMWStorage, 0, sizeof(void *) * Type ## s_size);
+  memset(wait_set->impl->RMWTimestamps, 0, sizeof(rcutils_time_point_value_t) * Type ## s_size);
 
 /* Implementation-specific notes:
  *
@@ -699,7 +699,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       wait_set->timers_timestamps[i] = 0;
     } else if(wait_set->timers_timestamps[i] == 0) {
       ret = rcutils_system_time_now(&(wait_set->timers_timestamps[i]));
-      if(ret != RCL_RET_OK) {
+      if (ret != RCL_RET_OK) {
         wait_set->timers_timestamps[i] = 0;
         // TODO(iluetkeb) should we report this as an error?
       }
