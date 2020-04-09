@@ -649,3 +649,7 @@ TEST_F(TestPreInitTimer, test_timer_exchange_callback) {
   ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
   EXPECT_EQ(times_called, 0);
 }
+
+TEST_F(TestPreInitTimer, test_invalid_get_guard) {
+  ASSERT_EQ(NULL, rcl_timer_get_guard_condition(nullptr));
+}
