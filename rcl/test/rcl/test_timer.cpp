@@ -23,6 +23,8 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
+#include "./allocator_testing_utils.h"
+
 class TestTimerFixture : public ::testing::Test
 {
 public:
@@ -652,4 +654,22 @@ TEST_F(TestPreInitTimer, test_timer_exchange_callback) {
 
 TEST_F(TestPreInitTimer, test_invalid_get_guard) {
   ASSERT_EQ(NULL, rcl_timer_get_guard_condition(nullptr));
+}
+
+TEST_F(TestPreInitTimer, test_invalid_init_fini) {
+  rcl_allocator_t bad_allocator = get_failing_allocator();
+  rcl_timer_t timer_fail;
+
+  EXPECT_EQ(
+    RCL_RET_ALREADY_INIT, rcl_timer_init(
+      &timer, &clock, this->context_ptr, 500, nullptr,
+      rcl_get_default_allocator())) << rcl_get_error_string().str;
+
+  timer_fail = rcl_get_zero_initialized_timer();
+  ASSERT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_timer_init(
+      &timer_fail, &clock, this->context_ptr, RCL_S_TO_NS(1), timer_callback_test,
+      bad_allocator)) << rcl_get_error_string().str;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(nullptr));
 }
