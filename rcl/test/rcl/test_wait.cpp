@@ -30,8 +30,6 @@
 
 #include "rcutils/logging_macros.h"
 
-#include "test_msgs/msg/empty.h"
-
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
