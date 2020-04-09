@@ -38,6 +38,9 @@
 # define PATH_SEPARATOR "\\"
 #endif
 
+#define TEST_SECURITY_CONTEXT_MULTIPLE_TOKENS \
+  "/group1" PATH_SEPARATOR TEST_SECURITY_CONTEXT
+
 char g_envstring[512] = {0};
 
 static int putenv_wrapper(const char * env_var)
@@ -137,6 +140,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch) {
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
   secure_root = rcl_get_secure_root(TEST_SECURITY_CONTEXT_ABSOLUTE, &allocator);
+  ASSERT_NE(nullptr, secure_root);
   std::string secure_root_str(secure_root);
   ASSERT_STREQ(
     TEST_SECURITY_CONTEXT,
@@ -144,10 +148,13 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch) {
 }
 
 TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) {
-  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  putenv_wrapper(
+    ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
   secure_root = rcl_get_secure_root(
-    TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME PATH_SEPARATOR TEST_SECURITY_CONTEXT, &allocator);
+    TEST_SECURITY_CONTEXT_MULTIPLE_TOKENS, &allocator);
+  ASSERT_NE(nullptr, secure_root);
   std::string secure_root_str(secure_root);
   ASSERT_STREQ(
     TEST_SECURITY_CONTEXT,
@@ -217,5 +224,6 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
   EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_ENFORCE, options.enforce_security);
   EXPECT_STREQ(
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
-    PATH_SEPARATOR TEST_SECURITY_CONTEXT, options.security_root_path);
+    PATH_SEPARATOR "contexts" PATH_SEPARATOR TEST_SECURITY_CONTEXT,
+    options.security_root_path);
 }
