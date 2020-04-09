@@ -552,3 +552,11 @@ TEST_F(TestTimerFixture, test_ros_time_wakes_wait) {
   EXPECT_TRUE(timer_was_ready);
   EXPECT_LT(finish - start, std::chrono::milliseconds(100));
 }
+
+TEST_F(TestPreInitTimer, test_timer_get_allocator) {
+  const rcl_allocator_t * allocator_returned;
+  allocator_returned = rcl_timer_get_allocator(&timer);
+  EXPECT_TRUE(rcutils_allocator_is_valid(allocator_returned));
+
+  EXPECT_EQ(NULL, rcl_timer_get_allocator(nullptr));
+}
