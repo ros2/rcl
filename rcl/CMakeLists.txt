@@ -10,7 +10,6 @@ find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
-find_package(tinydir_vendor REQUIRED)
 find_package(tracetools REQUIRED)
 
 include_directories(include)
@@ -74,7 +73,6 @@ ament_target_dependencies(${PROJECT_NAME}
   "rmw_implementation"
   ${RCL_LOGGING_IMPL}
   "rosidl_runtime_c"
-  "tinydir_vendor"
   "tracetools"
 )
 
