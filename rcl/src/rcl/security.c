@@ -111,16 +111,16 @@ char * exact_match_lookup(
 {
   // Perform an exact match for the context name in directory <root dir>.
   char * secure_root = NULL;
+  char * contexts_dir = NULL;
+  contexts_dir = rcutils_join_path(ros_secure_root_env, "contexts", *allocator);
   // "/" case when root namespace is explicitly passed in
   if (0 == strcmp(name, "/")) {
-    secure_root = rcutils_strdup(ros_secure_root_env, *allocator);
+    secure_root = contexts_dir;
   } else {
     char * relative_path = NULL;
-    char * contexts_dir = NULL;
     // Get native path, ignore the leading forward slash
     // TODO(ros2team): remove the hard-coded length, use the length of the root namespace instead
     relative_path = rcutils_to_native_path(name + 1, *allocator);
-    contexts_dir = rcutils_join_path(ros_secure_root_env, "contexts", *allocator);
     secure_root = rcutils_join_path(contexts_dir, relative_path, *allocator);
     allocator->deallocate(relative_path, allocator->state);
     allocator->deallocate(contexts_dir, allocator->state);
