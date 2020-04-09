@@ -566,6 +566,8 @@ rcl_timer_reset(rcl_timer_t * timer);
  * \param[inout] timer handle to the timer object
  * \return pointer to the allocator, or `NULL` if an error occurred
  */
+RCL_PUBLIC
+RCL_WARN_UNUSED
 const rcl_allocator_t *
 rcl_timer_get_allocator(const rcl_timer_t * timer);
 
