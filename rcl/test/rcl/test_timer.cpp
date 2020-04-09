@@ -72,6 +72,12 @@ static void callback_function(rcl_timer_t * timer, int64_t last_call)
   (void) last_call;
   times_called++;
 }
+static void callback_function_changed(rcl_timer_t * timer, int64_t last_call)
+{
+  (void) timer;
+  (void) last_call;
+  times_called--;
+}
 
 class TestPreInitTimer : public TestTimerFixture
 {
@@ -80,6 +86,7 @@ public:
   rcl_allocator_t allocator;
   rcl_timer_t timer;
   rcl_timer_callback_t timer_callback_test = &callback_function;
+  rcl_timer_callback_t timer_callback_changed = &callback_function_changed;
 
   void SetUp() override
   {
@@ -629,4 +636,16 @@ TEST_F(TestPreInitTimer, test_timer_reset) {
   ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
   EXPECT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
   EXPECT_EQ(times_called, 3);
+}
+
+TEST_F(TestPreInitTimer, test_timer_exchange_callback) {
+  times_called = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 1);
+  ASSERT_EQ(
+    timer_callback_test, rcl_timer_exchange_callback(
+      &timer, timer_callback_changed)) << rcl_get_error_string().str;
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 0);
 }
