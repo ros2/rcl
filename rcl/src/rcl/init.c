@@ -33,7 +33,7 @@ extern "C"
 #include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/security.h"
-#include "rcl/validate_security_context_name.h"
+#include "rcl/validate_enclave_name.h"
 
 #include "./arguments_impl.h"
 #include "./common.h"
@@ -174,35 +174,35 @@ rcl_init(
     }
   }
 
-  if (context->global_arguments.impl->security_context) {
-    context->impl->init_options.impl->rmw_init_options.security_context = rcutils_strdup(
-      context->global_arguments.impl->security_context,
+  if (context->global_arguments.impl->enclave) {
+    context->impl->init_options.impl->rmw_init_options.enclave = rcutils_strdup(
+      context->global_arguments.impl->enclave,
       context->impl->allocator);
   } else {
-    context->impl->init_options.impl->rmw_init_options.security_context = rcutils_strdup(
+    context->impl->init_options.impl->rmw_init_options.enclave = rcutils_strdup(
       "/", context->impl->allocator);
   }
   int validation_result;
   size_t invalid_index;
-  ret = rcl_validate_security_context_name(
-    context->impl->init_options.impl->rmw_init_options.security_context,
+  ret = rcl_validate_enclave_name(
+    context->impl->init_options.impl->rmw_init_options.enclave,
     &validation_result,
     &invalid_index);
   if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG("rcl_validate_security_context_name() failed");
+    RCL_SET_ERROR_MSG("rcl_validate_enclave_name() failed");
     fail_ret = ret;
     goto fail;
   }
-  if (RCL_SECURITY_CONTEXT_NAME_VALID != validation_result) {
+  if (RCL_ENCLAVE_NAME_VALID != validation_result) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Security context name is not valid: '%s'. Invalid index: %zu",
-      rcl_security_context_name_validation_result_string(validation_result),
+      rcl_enclave_name_validation_result_string(validation_result),
       invalid_index);
     fail_ret = RMW_RET_ERROR;
     goto fail;
   }
 
-  if (!context->impl->init_options.impl->rmw_init_options.security_context) {
+  if (!context->impl->init_options.impl->rmw_init_options.enclave) {
     RCL_SET_ERROR_MSG("failed to set context name");
     fail_ret = RMW_RET_BAD_ALLOC;
     goto fail;
@@ -211,7 +211,7 @@ rcl_init(
   rmw_security_options_t * security_options =
     &context->impl->init_options.impl->rmw_init_options.security_options;
   ret = rcl_get_security_options_from_environment(
-    context->impl->init_options.impl->rmw_init_options.security_context,
+    context->impl->init_options.impl->rmw_init_options.enclave,
     &context->impl->allocator,
     security_options);
   if (RMW_RET_OK != ret) {

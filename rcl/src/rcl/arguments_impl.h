@@ -62,7 +62,7 @@ typedef struct rcl_arguments_impl_t
   bool log_ext_lib_disabled;
 
   /// Security context to be used.
-  char * security_context;
+  char * enclave;
 
   /// Allocator used to allocate objects in this struct
   rcl_allocator_t allocator;

@@ -165,7 +165,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
 }
 
 TEST_F(
-  CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names_with_security_contexts)
+  CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names_with_enclave)
 {
   rcl_ret_t ret;
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -176,8 +176,8 @@ TEST_F(
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
-  const char * security_context_name = "/default";
-  const char * argv[] = {"--ros-args", "--security-context", security_context_name};
+  const char * enclave_name = "/enclave";
+  const char * argv[] = {"--ros-args", "--enclave", enclave_name};
   ret = rcl_init(3, argv, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -198,7 +198,7 @@ TEST_F(
     std::make_tuple(
       std::string(node1_name),
       std::string(node1_namespace),
-      std::string(security_context_name)));
+      std::string(enclave_name)));
 
   rcl_node_t node2 = rcl_get_zero_initialized_node();
   const char * node2_name = "node2";
@@ -210,7 +210,7 @@ TEST_F(
     std::make_tuple(
       std::string(node2_name),
       std::string(node2_namespace),
-      std::string(security_context_name)));
+      std::string(enclave_name)));
 
   rcl_node_t node3 = rcl_get_zero_initialized_node();
   const char * node3_name = "node3";
@@ -222,7 +222,7 @@ TEST_F(
     std::make_tuple(
       std::string(node3_name),
       std::string(node3_namespace),
-      std::string(security_context_name)));
+      std::string(enclave_name)));
 
   rcl_node_t node4 = rcl_get_zero_initialized_node();
   const char * node4_name = "node2";
@@ -234,7 +234,7 @@ TEST_F(
     std::make_tuple(
       std::string(node4_name),
       std::string(node4_namespace),
-      std::string(security_context_name)));
+      std::string(enclave_name)));
 
   rcl_node_t node5 = rcl_get_zero_initialized_node();
   const char * node5_name = "node1";
@@ -246,15 +246,15 @@ TEST_F(
     std::make_tuple(
       std::string(node5_name),
       std::string(node5_namespace),
-      std::string(security_context_name)));
+      std::string(enclave_name)));
 
   std::this_thread::sleep_for(1s);
 
   rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
   rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
-  rcutils_string_array_t security_contexts = rcutils_get_zero_initialized_string_array();
-  ret = rcl_get_node_names_with_security_contexts(
-    &node1, node1_options.allocator, &node_names, &node_namespaces, &security_contexts);
+  rcutils_string_array_t enclaves = rcutils_get_zero_initialized_string_array();
+  ret = rcl_get_node_names_with_enclaves(
+    &node1, node1_options.allocator, &node_names, &node_namespaces, &enclaves);
   ASSERT_EQ(RCUTILS_RET_OK, ret) << rcl_get_error_string().str;
 
   std::stringstream ss;
@@ -269,7 +269,7 @@ TEST_F(
       std::make_tuple(
         std::string(node_names.data[i]),
         std::string(node_namespaces.data[i]),
-        std::string(security_contexts.data[i])));
+        std::string(enclaves.data[i])));
   }
   EXPECT_EQ(discovered_nodes, expected_nodes);
 

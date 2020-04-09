@@ -441,9 +441,9 @@ rcl_get_node_names(
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces);
 
-/// Return a list of available nodes in the ROS graph, including their security context names.
+/// Return a list of available nodes in the ROS graph, including their enclave names.
 /**
- * An \ref rcl_get_node_names equivalent, but including in its output the security context
+ * An \ref rcl_get_node_names equivalent, but including in its output the enclave
  * name the node is using.
  *
  * <hr>
@@ -459,7 +459,7 @@ rcl_get_node_names(
  * \param[in] allocator used to control allocation and deallocation of names
  * \param[out] node_names struct storing discovered node names
  * \param[out] node_namesspaces struct storing discovered node namespaces
- * \param[out] security_contexts struct storing discovered node security contexts
+ * \param[out] enclaves struct storing discovered node enclaves
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_BAD_ALLOC` if an error occurred while allocating memory, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -467,12 +467,12 @@ rcl_get_node_names(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_get_node_names_with_security_contexts(
+rcl_get_node_names_with_enclaves(
   const rcl_node_t * node,
   rcl_allocator_t allocator,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * security_contexts);
+  rcutils_string_array_t * enclaves);
 
 /// Return the number of publishers on a given topic.
 /**
