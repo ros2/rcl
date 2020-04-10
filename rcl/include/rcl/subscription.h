@@ -266,6 +266,17 @@ rcl_take(
   rmw_subscription_allocation_t * allocation
 );
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_take_sequence(
+  const rcl_subscription_t * subscription,
+  size_t count,
+  rmw_message_sequence_t * message_sequence,
+  rmw_message_info_sequence_t * message_info_sequence,
+  rmw_subscription_allocation_t * allocation
+);
+
 /// Take a serialized raw message from a topic using a rcl subscription.
 /**
  * In contrast to `rcl_take`, this function stores the taken message in

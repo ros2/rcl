@@ -284,6 +284,56 @@ rcl_take(
 }
 
 rcl_ret_t
+rcl_take_sequence(
+  const rcl_subscription_t * subscription,
+  size_t count,
+  rmw_message_sequence_t * message_sequence,
+  rmw_message_info_sequence_t * message_info_sequence,
+  rmw_subscription_allocation_t * allocation
+)
+{
+  // Set the sizes to zero to indicate that there are no valid messages
+  message_sequence->size = 0;
+  message_info_sequence->size = 0;
+
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking n messags");
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;  // error message already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(message_sequence, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(message_info_sequence, RCL_RET_INVALID_ARGUMENT);
+
+  if (message_sequence->capacity < count) {
+    RCL_SET_ERROR_MSG("Insufficient message sequence capacity for requested count");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  if (message_info_sequence->capacity < count) {
+    RCL_SET_ERROR_MSG("Insufficient message info sequence capacity for requested count");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  size_t taken = 0;
+  rmw_ret_t ret = rmw_take_sequence(
+    subscription->impl->rmw_handle, count, message_sequence, message_info_sequence, &taken,
+    allocation);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+
+    if (RMW_RET_BAD_ALLOC == ret) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    return RCL_RET_ERROR;
+  }
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Subscription take_n succeeded: %s", taken > 0 ? "true" : "false");
+  if (taken == 0) {
+    return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 rcl_take_serialized_message(
   const rcl_subscription_t * subscription,
   rcl_serialized_message_t * serialized_message,
