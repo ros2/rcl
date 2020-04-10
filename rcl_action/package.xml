@@ -13,7 +13,7 @@
   <depend>rcl</depend>
   <depend>rcutils</depend>
   <depend>rmw</depend>
-  <depend>rosidl_generator_c</depend>
+  <depend>rosidl_runtime_c</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_common</test_depend>
