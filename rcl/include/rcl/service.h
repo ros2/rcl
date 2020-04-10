@@ -82,7 +82,7 @@ rcl_get_zero_initialized_service(void);
  * For C++, a template function is used:
  *
  * ```cpp
- * #include <rosidl_generator_cpp/service_type_support.hpp>
+ * #include <rosidl_runtime_cpp/service_type_support.hpp>
  * #include <example_interfaces/srv/add_two_ints.h>
  * using rosidl_typesupport_cpp::get_service_type_support_handle;
  * const rosidl_service_type_support_t * ts =
