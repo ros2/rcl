@@ -424,7 +424,8 @@ TEST_F(
     ASSERT_EQ(3u, messages.size);
     ASSERT_EQ(3u, message_infos.size);
 
-    ASSERT_EQ(std::string(test_string),
+    ASSERT_EQ(
+      std::string(test_string),
       std::string(seq->data[0].string_value.data, seq->data[0].string_value.size));
   }
 }
