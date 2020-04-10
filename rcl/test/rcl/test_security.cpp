@@ -134,7 +134,7 @@ TEST_F(TestGetSecureRoot, failureScenarios) {
   rcl_reset_error();
 }
 
-TEST_F(TestGetSecureRoot, successScenarios_local_root_security_context) {
+TEST_F(TestGetSecureRoot, successScenarios_local_root_enclave) {
   putenv_wrapper(
     ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
@@ -142,7 +142,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_root_security_context) {
   secure_root = rcl_get_secure_root("/", &allocator);
   ASSERT_NE(nullptr, secure_root);
   ASSERT_STREQ(
-    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME PATH_SEPARATOR "contexts",
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME PATH_SEPARATOR "enclaves",
     secure_root);
 }
 
