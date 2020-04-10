@@ -134,6 +134,18 @@ TEST_F(TestGetSecureRoot, failureScenarios) {
   rcl_reset_error();
 }
 
+TEST_F(TestGetSecureRoot, successScenarios_local_root_security_context) {
+  putenv_wrapper(
+    ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
+
+  secure_root = rcl_get_secure_root("/", &allocator);
+  ASSERT_NE(nullptr, secure_root);
+  ASSERT_STREQ(
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME PATH_SEPARATOR "contexts",
+    secure_root);
+}
+
 TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch) {
   putenv_wrapper(
     ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
