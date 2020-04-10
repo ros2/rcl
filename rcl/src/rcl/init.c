@@ -195,7 +195,7 @@ rcl_init(
   }
   if (RCL_ENCLAVE_NAME_VALID != validation_result) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Security context name is not valid: '%s'. Invalid index: %zu",
+      "Enclave name is not valid: '%s'. Invalid index: %zu",
       rcl_enclave_name_validation_result_string(validation_result),
       invalid_index);
     fail_ret = RMW_RET_ERROR;

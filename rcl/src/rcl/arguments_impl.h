@@ -61,7 +61,7 @@ typedef struct rcl_arguments_impl_t
   /// A boolean value indicating if the external lib handler should be used for log output
   bool log_ext_lib_disabled;
 
-  /// Security context to be used.
+  /// Enclave to be used.
   char * enclave;
 
   /// Allocator used to allocate objects in this struct
