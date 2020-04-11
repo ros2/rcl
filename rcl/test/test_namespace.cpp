@@ -22,7 +22,7 @@
 #include "rcl/rcl.h"
 #include "rcl/graph.h"
 
-#include "rosidl_generator_c/string_functions.h"
+#include "rosidl_runtime_c/string_functions.h"
 #include "test_msgs/srv/basic_types.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"

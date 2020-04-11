@@ -31,8 +31,8 @@ extern "C"
 
 #include "rmw/validate_full_topic_name.h"
 
-#include "rosidl_generator_c/message_type_support_struct.h"
-#include "rosidl_generator_c/string_functions.h"
+#include "rosidl_runtime_c/message_type_support_struct.h"
+#include "rosidl_runtime_c/string_functions.h"
 
 #include "rcl_lifecycle/data_types.h"
 
@@ -251,9 +251,9 @@ rcl_lifecycle_com_interface_publish_notification(
   const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal)
 {
   msg.start_state.id = start->id;
-  rosidl_generator_c__String__assign(&msg.start_state.label, start->label);
+  rosidl_runtime_c__String__assign(&msg.start_state.label, start->label);
   msg.goal_state.id = goal->id;
-  rosidl_generator_c__String__assign(&msg.goal_state.label, goal->label);
+  rosidl_runtime_c__String__assign(&msg.goal_state.label, goal->label);
 
   return rcl_publish(&com_interface->pub_transition_event, &msg, NULL);
 }

@@ -22,7 +22,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 
-#include "rosidl_generator_c/primitives_sequence_functions.h"
+#include "rosidl_runtime_c/primitives_sequence_functions.h"
 
 #include "test_msgs/action/fibonacci.h"
 
@@ -307,7 +307,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Initialize feedback
   ASSERT_TRUE(
-    rosidl_generator_c__int32__Sequence__init(
+    rosidl_runtime_c__int32__Sequence__init(
       &this->outgoing_feedback.feedback.sequence, 3));
   this->outgoing_feedback.feedback.sequence.data[0] = 0;
   this->outgoing_feedback.feedback.sequence.data[1] = 1;
@@ -398,7 +398,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 
   // Initialize result response
   ASSERT_TRUE(
-    rosidl_generator_c__int32__Sequence__init(
+    rosidl_runtime_c__int32__Sequence__init(
       &this->outgoing_result_response.result.sequence, 4));
   this->outgoing_result_response.result.sequence.data[0] = 0;
   this->outgoing_result_response.result.sequence.data[1] = 1;
@@ -575,7 +575,7 @@ TEST_F(
 
   // Initialize feedback
   ASSERT_TRUE(
-    rosidl_generator_c__int32__Sequence__init(
+    rosidl_runtime_c__int32__Sequence__init(
       &this->outgoing_feedback.feedback.sequence, 3));
   this->outgoing_feedback.feedback.sequence.data[0] = 0;
   this->outgoing_feedback.feedback.sequence.data[1] = 1;
@@ -666,7 +666,7 @@ TEST_F(
 
   // Initialize result response
   ASSERT_TRUE(
-    rosidl_generator_c__int32__Sequence__init(
+    rosidl_runtime_c__int32__Sequence__init(
       &this->outgoing_result_response.result.sequence, 4));
   this->outgoing_result_response.result.sequence.data[0] = 0;
   this->outgoing_result_response.result.sequence.data[1] = 1;

@@ -20,7 +20,7 @@ extern "C"
 {
 #endif
 
-#include "rosidl_generator_c/service_type_support_struct.h"
+#include "rosidl_runtime_c/service_type_support_struct.h"
 
 #include "rcl/macros.h"
 #include "rcl/node.h"
@@ -73,7 +73,7 @@ rcl_get_zero_initialized_service(void);
  * For C, a macro can be used (for example `example_interfaces/AddTwoInts`):
  *
  * ```c
- * #include <rosidl_generator_c/service_type_support_struct.h>
+ * #include <rosidl_runtime_c/service_type_support_struct.h>
  * #include <example_interfaces/srv/add_two_ints.h>
  * const rosidl_service_type_support_t * ts =
  *   ROSIDL_GET_SRV_TYPE_SUPPORT(example_interfaces, srv, AddTwoInts);
@@ -105,7 +105,7 @@ rcl_get_zero_initialized_service(void);
  *
  * ```c
  * #include <rcl/rcl.h>
- * #include <rosidl_generator_c/service_type_support_struct.h>
+ * #include <rosidl_runtime_c/service_type_support_struct.h>
  * #include <example_interfaces/srv/add_two_ints.h>
  *
  * rcl_node_t node = rcl_get_zero_initialized_node();

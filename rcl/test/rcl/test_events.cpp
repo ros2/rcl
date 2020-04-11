@@ -27,7 +27,7 @@
 #include "rmw/incompatible_qos_events_statuses.h"
 
 #include "test_msgs/msg/strings.h"
-#include "rosidl_generator_c/string_functions.h"
+#include "rosidl_runtime_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
@@ -395,7 +395,7 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg, nullptr);
     test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -462,7 +462,7 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg, nullptr);
     test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -537,7 +537,7 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg, nullptr);
     test_msgs__msg__Strings__fini(&msg);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;

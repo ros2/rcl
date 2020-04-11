@@ -23,7 +23,7 @@
 #include "rcl/rcl.h"
 #include "test_msgs/msg/basic_types.h"
 #include "test_msgs/msg/strings.h"
-#include "rosidl_generator_c/string_functions.h"
+#include "rosidl_runtime_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
@@ -236,7 +236,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg, nullptr);
     test_msgs__msg__Strings__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
