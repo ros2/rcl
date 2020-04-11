@@ -29,7 +29,7 @@
 #include "rmw/error_handling.h"
 
 #include "test_msgs/msg/strings.h"
-#include "rosidl_generator_c/string_functions.h"
+#include "rosidl_runtime_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 

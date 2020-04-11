@@ -19,7 +19,7 @@
 #include "rcl/rcl.h"
 #include "test_msgs/msg/basic_types.h"
 #include "test_msgs/msg/strings.h"
-#include "rosidl_generator_c/string_functions.h"
+#include "rosidl_runtime_c/string_functions.h"
 
 #include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -118,7 +118,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   });
   test_msgs__msg__Strings msg;
   test_msgs__msg__Strings__init(&msg);
-  ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, "testing"));
+  ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, "testing"));
   ret = rcl_publish(&publisher, &msg, nullptr);
   test_msgs__msg__Strings__fini(&msg);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -171,7 +171,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publishers_diff
 
   test_msgs__msg__Strings msg_string;
   test_msgs__msg__Strings__init(&msg_string);
-  ASSERT_TRUE(rosidl_generator_c__String__assign(&msg_string.string_value, "testing"));
+  ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg_string.string_value, "testing"));
   ret = rcl_publish(&publisher_in_namespace, &msg_string, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }

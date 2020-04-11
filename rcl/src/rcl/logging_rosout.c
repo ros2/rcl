@@ -26,7 +26,7 @@
 #include "rcutils/macros.h"
 #include "rcutils/types/hash_map.h"
 #include "rcutils/types/rcutils_ret.h"
-#include "rosidl_generator_c/string_functions.h"
+#include "rosidl_runtime_c/string_functions.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -265,10 +265,10 @@ void rcl_logging_rosout_output_handler(
         log_message->stamp.nanosec = (timestamp % RCL_S_TO_NS(1));
         log_message->level = severity;
         log_message->line = (int32_t) location->line_number;
-        rosidl_generator_c__String__assign(&log_message->name, name);
-        rosidl_generator_c__String__assign(&log_message->msg, msg_array.buffer);
-        rosidl_generator_c__String__assign(&log_message->file, location->file_name);
-        rosidl_generator_c__String__assign(&log_message->function, location->function_name);
+        rosidl_runtime_c__String__assign(&log_message->name, name);
+        rosidl_runtime_c__String__assign(&log_message->msg, msg_array.buffer);
+        rosidl_runtime_c__String__assign(&log_message->file, location->file_name);
+        rosidl_runtime_c__String__assign(&log_message->function, location->function_name);
         status = rcl_publish(&entry.publisher, log_message, NULL);
         if (RCL_RET_OK != status) {
           RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to publish log message to rosout: ");

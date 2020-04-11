@@ -94,7 +94,7 @@ rcl_action_get_zero_initialized_client(void);
  * For C, a macro can be used (for example `example_interfaces/Fibonacci`):
  *
  * ```c
- * #include <rosidl_generator_c/action_type_support_struct.h>
+ * #include <rosidl_runtime_c/action_type_support_struct.h>
  * #include <example_interfaces/action/fibonacci.h>
  * const rosidl_action_type_support_t * ts =
  *   ROSIDL_GET_ACTION_TYPE_SUPPORT(example_interfaces, Fibonacci);
@@ -127,7 +127,7 @@ rcl_action_get_zero_initialized_client(void);
  * ```c
  * #include <rcl/rcl.h>
  * #include <rcl_action/action_client.h>
- * #include <rosidl_generator_c/action_type_support_struct.h>
+ * #include <rosidl_runtime_c/action_type_support_struct.h>
  * #include <example_interfaces/action/fibonacci.h>
  *
  * rcl_node_t node = rcl_get_zero_initialized_node();
