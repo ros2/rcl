@@ -132,7 +132,7 @@ char * rcl_get_secure_root(
   const char * name,
   const rcl_allocator_t * allocator)
 {
-  bool ros_secure_directory_override = true;
+  bool ros_secure_enclave_override = true;
 
   // find out if either of the configuration environment variables are set
   const char * env_buf = NULL;
@@ -157,14 +157,14 @@ char * rcl_get_secure_root(
     if (0 == strcmp("", env_buf)) {
       return NULL;  // environment variable was empty
     }
-    ros_secure_directory_override = false;
+    ros_secure_enclave_override = false;
   }
 
   // found a usable environment variable, copy into our memory before overwriting with next lookup
   char * ros_secure_root_env = rcutils_strdup(env_buf, *allocator);
 
   char * secure_root = NULL;
-  if (ros_secure_directory_override) {
+  if (ros_secure_enclave_override) {
     secure_root = rcutils_strdup(ros_secure_root_env, *allocator);
   } else {
     secure_root = exact_match_lookup(name, ros_secure_root_env, allocator);

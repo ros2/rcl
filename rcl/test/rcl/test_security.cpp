@@ -173,7 +173,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) 
     secure_root_str.substr(secure_root_str.size() - strlen(TEST_ENCLAVE)).c_str());
 }
 
-TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_validDirectory) {
+TEST_F(TestGetSecureRoot, nodeSecurityEnclaveOverride_validDirectory) {
   /* Specify a valid directory */
   putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
   root_path = rcl_get_secure_root(
@@ -183,7 +183,7 @@ TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_validDirectory) {
 
 TEST_F(
   TestGetSecureRoot,
-  nodeSecurityDirectoryOverride_validDirectory_overrideRootDirectoryAttempt) {
+  nodeSecurityEnclaveOverride_validDirectory_overrideRootDirectoryAttempt) {
   /* Setting root dir has no effect */
   putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
   root_path = rcl_get_secure_root("name shouldn't matter", &allocator);
@@ -191,7 +191,7 @@ TEST_F(
   ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
 }
 
-TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_invalidDirectory) {
+TEST_F(TestGetSecureRoot, nodeSecurityEnclaveOverride_invalidDirectory) {
   /* The override provided should exist. Providing correct node/namespace/root dir won't help
    * if the node override is invalid. */
   putenv_wrapper(
