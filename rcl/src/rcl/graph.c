@@ -340,12 +340,12 @@ rcl_get_node_names(
 }
 
 rcl_ret_t
-rcl_get_node_names_with_security_contexts(
+rcl_get_node_names_with_enclaves(
   const rcl_node_t * node,
   rcl_allocator_t allocator,
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * security_contexts)
+  rcutils_string_array_t * enclaves)
 {
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;  // error already set
@@ -368,21 +368,21 @@ rcl_get_node_names_with_security_contexts(
     RCL_SET_ERROR_MSG("node_namespaces is not null");
     return RCL_RET_INVALID_ARGUMENT;
   }
-  RCL_CHECK_ARGUMENT_FOR_NULL(security_contexts, RCL_RET_INVALID_ARGUMENT);
-  if (security_contexts->size != 0) {
-    RCL_SET_ERROR_MSG("security_contexts size is not zero");
+  RCL_CHECK_ARGUMENT_FOR_NULL(enclaves, RCL_RET_INVALID_ARGUMENT);
+  if (enclaves->size != 0) {
+    RCL_SET_ERROR_MSG("enclaves size is not zero");
     return RCL_RET_INVALID_ARGUMENT;
   }
-  if (security_contexts->data) {
-    RCL_SET_ERROR_MSG("security_contexts is not null");
+  if (enclaves->data) {
+    RCL_SET_ERROR_MSG("enclaves is not null");
     return RCL_RET_INVALID_ARGUMENT;
   }
   (void)allocator;  // to be used in rmw_get_node_names in the future
-  rmw_ret_t rmw_ret = rmw_get_node_names_with_security_contexts(
+  rmw_ret_t rmw_ret = rmw_get_node_names_with_enclaves(
     rcl_node_get_rmw_handle(node),
     node_names,
     node_namespaces,
-    security_contexts);
+    enclaves);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 

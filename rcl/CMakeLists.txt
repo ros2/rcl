@@ -58,7 +58,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/subscription.c
   src/rcl/time.c
   src/rcl/timer.c
-  src/rcl/validate_security_context_name.c
+  src/rcl/validate_enclave_name.c
   src/rcl/validate_topic_name.c
   src/rcl/wait.c
 )
