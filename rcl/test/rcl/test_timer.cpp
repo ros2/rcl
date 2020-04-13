@@ -72,7 +72,6 @@ static void callback_function(rcl_timer_t * timer, int64_t last_call)
   (void) last_call;
   times_called++;
 }
-static rcl_timer_callback_t timer_callback_test = &callback_function;
 
 class TestPreInitTimer : public TestTimerFixture
 {
@@ -80,6 +79,7 @@ public:
   rcl_clock_t clock;
   rcl_allocator_t allocator;
   rcl_timer_t timer;
+  rcl_timer_callback_t timer_callback_test = &callback_function;
 
   void SetUp() override
   {
@@ -554,8 +554,7 @@ TEST_F(TestTimerFixture, test_ros_time_wakes_wait) {
 }
 
 TEST_F(TestPreInitTimer, test_timer_get_allocator) {
-  const rcl_allocator_t * allocator_returned;
-  allocator_returned = rcl_timer_get_allocator(&timer);
+  const rcl_allocator_t * allocator_returned = rcl_timer_get_allocator(&timer);
   EXPECT_TRUE(rcutils_allocator_is_valid(allocator_returned));
 
   EXPECT_EQ(NULL, rcl_timer_get_allocator(nullptr));
