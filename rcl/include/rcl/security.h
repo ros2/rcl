@@ -101,16 +101,16 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
  * E.g. for a context named "/a/b/c" and root "/r", the secure root path will be
  * "/r/a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
  *
- * However, this expansion can be overridden by setting the secure directory override environment
- * (`ROS_SECURITY_ENCLAVE_OVERRIDE`) variable, allowing users to explicitly specify the exact secure
- * root directory to be utilized.
+ * However, this expansion can be overridden by setting the secure enclave override environment
+ * (`ROS_SECURITY_ENCLAVE_OVERRIDE`) variable, allowing users to explicitly specify the exact enclave
+ * directory to be utilized.
  * Such an override is useful for applications where the enclave is non-deterministic
  * before runtime, or when testing and using additional tools that may not otherwise be easily
  * provisioned.
  *
  * \param[in] name validated name (a single token)
  * \param[in] allocator the allocator to use for allocation
- * \returns Machine specific (absolute) secure root path or NULL on failure.
+ * \returns Machine specific (absolute) enclave directory path or NULL on failure.
  *  Returned pointer must be deallocated by the caller of this function
  */
 RCL_PUBLIC

@@ -147,7 +147,7 @@ char * rcl_get_secure_root(
     return NULL;
   }
   if (0 == strcmp("", env_buf)) {
-    // check root directory if override directory environment variable is empty
+    // check root directory if override enclave environment variable is empty
     if (rcutils_get_env(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME, &env_buf)) {
       return NULL;
     }
