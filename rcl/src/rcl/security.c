@@ -140,7 +140,7 @@ char * rcl_get_secure_root(
     return NULL;
   }
 
-  if (rcutils_get_env(ROS_SECURITY_DIRECTORY_OVERRIDE, &env_buf)) {
+  if (rcutils_get_env(ROS_SECURITY_ENCLAVE_OVERRIDE, &env_buf)) {
     return NULL;
   }
   if (!env_buf) {

@@ -75,7 +75,7 @@ protected:
 
     // Always make sure the variable we set is unset at the beginning of a test
     unsetenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME);
-    unsetenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE);
+    unsetenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE);
     unsetenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME);
     unsetenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME);
     allocator = rcl_get_default_allocator();
@@ -175,7 +175,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) 
 
 TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_validDirectory) {
   /* Specify a valid directory */
-  putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
+  putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
   root_path = rcl_get_secure_root(
     "name shouldn't matter", &allocator);
   ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
@@ -185,7 +185,7 @@ TEST_F(
   TestGetSecureRoot,
   nodeSecurityDirectoryOverride_validDirectory_overrideRootDirectoryAttempt) {
   /* Setting root dir has no effect */
-  putenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
+  putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
   root_path = rcl_get_secure_root("name shouldn't matter", &allocator);
   putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
   ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
@@ -195,7 +195,7 @@ TEST_F(TestGetSecureRoot, nodeSecurityDirectoryOverride_invalidDirectory) {
   /* The override provided should exist. Providing correct node/namespace/root dir won't help
    * if the node override is invalid. */
   putenv_wrapper(
-    ROS_SECURITY_DIRECTORY_OVERRIDE
+    ROS_SECURITY_ENCLAVE_OVERRIDE
     "=TheresN_oWayThi_sDirectory_Exists_hence_this_should_fail");
   EXPECT_EQ(
     rcl_get_secure_root(TEST_ENCLAVE_ABSOLUTE, &allocator),
@@ -217,7 +217,7 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
   putenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME "=Enforce");
 
   putenv_wrapper(
-    ROS_SECURITY_DIRECTORY_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
+    ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
   ret = rcl_get_security_options_from_environment(
     "doesn't matter at all", &allocator, &options);
   ASSERT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
@@ -226,7 +226,7 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
   EXPECT_EQ(RMW_RET_OK, rmw_security_options_fini(&options, &allocator));
 
   options = rmw_get_zero_initialized_security_options();
-  unsetenv_wrapper(ROS_SECURITY_DIRECTORY_OVERRIDE);
+  unsetenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE);
   putenv_wrapper(
     ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);

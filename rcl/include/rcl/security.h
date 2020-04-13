@@ -27,8 +27,8 @@ extern "C"
 #include "rcl/visibility_control.h"
 #include "rmw/security_options.h"
 
-#ifndef ROS_SECURITY_DIRECTORY_OVERRIDE
-# define ROS_SECURITY_DIRECTORY_OVERRIDE "ROS_SECURITY_DIRECTORY_OVERRIDE"
+#ifndef ROS_SECURITY_ENCLAVE_OVERRIDE
+# define ROS_SECURITY_ENCLAVE_OVERRIDE "ROS_SECURITY_ENCLAVE_OVERRIDE"
 #endif
 
 #ifndef ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME
@@ -102,7 +102,7 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
  * "/r/a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
  *
  * However, this expansion can be overridden by setting the secure directory override environment
- * (`ROS_SECURITY_DIRECTORY_OVERRIDE`) variable, allowing users to explicitly specify the exact secure
+ * (`ROS_SECURITY_ENCLAVE_OVERRIDE`) variable, allowing users to explicitly specify the exact secure
  * root directory to be utilized.
  * Such an override is useful for applications where the enclave is non-deterministic
  * before runtime, or when testing and using additional tools that may not otherwise be easily
