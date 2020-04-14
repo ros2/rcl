@@ -173,30 +173,31 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) 
     secure_root_str.substr(secure_root_str.size() - strlen(TEST_ENCLAVE)).c_str());
 }
 
-TEST_F(TestGetSecureRoot, nodeSecurityEnclaveOverride_validDirectory) {
-  /* Specify a valid directory */
-  putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
+TEST_F(TestGetSecureRoot, nodeSecurityEnclaveOverride_validEnclave) {
+  putenv_wrapper(
+    ROS_SECURITY_KEYSTORE_VAR_NAME "="
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
+
+  /* Specify a valid enclave */
+  putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_ENCLAVE_ABSOLUTE);
   root_path = rcl_get_secure_root(
     "name shouldn't matter", &allocator);
-  ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
+  ASSERT_STREQ(
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
+    PATH_SEPARATOR "enclaves" PATH_SEPARATOR TEST_ENCLAVE,
+    root_path);
 }
 
-TEST_F(
-  TestGetSecureRoot,
-  nodeSecurityEnclaveOverride_validDirectory_overrideKeystoreAttempt) {
-  /* Setting root dir has no effect */
-  putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
-  root_path = rcl_get_secure_root("name shouldn't matter", &allocator);
-  putenv_wrapper(ROS_SECURITY_KEYSTORE_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
-  ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
-}
+TEST_F(TestGetSecureRoot, nodeSecurityEnclaveOverride_invalidEnclave) {
+  putenv_wrapper(
+    ROS_SECURITY_KEYSTORE_VAR_NAME "="
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
-TEST_F(TestGetSecureRoot, nodeSecurityEnclaveOverride_invalidDirectory) {
   /* The override provided should exist. Providing correct node/namespace/root dir won't help
    * if the node override is invalid. */
   putenv_wrapper(
     ROS_SECURITY_ENCLAVE_OVERRIDE
-    "=TheresN_oWayThi_sDirectory_Exists_hence_this_should_fail");
+    "=TheresN_oWayThi_sEnclave_Exists_hence_this_should_fail");
   EXPECT_EQ(
     rcl_get_secure_root(TEST_ENCLAVE_ABSOLUTE, &allocator),
     (char *) NULL);
@@ -215,14 +216,20 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
 
   putenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME "=true");
   putenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME "=Enforce");
+  putenv_wrapper(
+    ROS_SECURITY_KEYSTORE_VAR_NAME "="
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
   putenv_wrapper(
-    ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
+    ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_ENCLAVE_MULTIPLE_TOKENS);
   ret = rcl_get_security_options_from_environment(
     "doesn't matter at all", &allocator, &options);
   ASSERT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
   EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_ENFORCE, options.enforce_security);
-  EXPECT_STREQ(TEST_RESOURCES_DIRECTORY, options.security_root_path);
+  EXPECT_STREQ(
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
+    PATH_SEPARATOR "enclaves" TEST_ENCLAVE_MULTIPLE_TOKENS,
+    options.security_root_path);
   EXPECT_EQ(RMW_RET_OK, rmw_security_options_fini(&options, &allocator));
 
   options = rmw_get_zero_initialized_security_options();

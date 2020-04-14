@@ -103,7 +103,7 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
  *
  * However, this expansion can be overridden by setting the secure enclave override environment
  * (`ROS_SECURITY_ENCLAVE_OVERRIDE`) variable, allowing users to explicitly specify the exact enclave
- * directory to be utilized.
+ * `name` to be utilized.
  * Such an override is useful for applications where the enclave is non-deterministic
  * before runtime, or when testing and using additional tools that may not otherwise be easily
  * provisioned.

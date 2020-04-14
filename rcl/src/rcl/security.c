@@ -165,7 +165,7 @@ char * rcl_get_secure_root(
 
   char * secure_root = NULL;
   if (ros_secure_enclave_override) {
-    secure_root = rcutils_strdup(ros_secure_keystore_env, *allocator);
+    secure_root = exact_match_lookup(ros_secure_keystore_env, ros_secure_keystore_env, allocator);
   } else {
     secure_root = exact_match_lookup(name, ros_secure_keystore_env, allocator);
   }
