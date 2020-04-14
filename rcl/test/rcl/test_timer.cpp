@@ -673,3 +673,12 @@ TEST_F(TestPreInitTimer, test_invalid_init_fini) {
 
   EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(nullptr));
 }
+
+TEST_F(TestPreInitTimer, test_timer_get_period) {
+  int64_t period;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_period(&timer, &period));
+  EXPECT_EQ(RCL_S_TO_NS(1), period);
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_timer_get_period(nullptr, &period));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_timer_get_period(&timer, nullptr));
+}
