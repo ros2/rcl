@@ -682,3 +682,11 @@ TEST_F(TestPreInitTimer, test_timer_get_period) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_timer_get_period(nullptr, &period));
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_timer_get_period(&timer, nullptr));
 }
+
+TEST_F(TestPreInitTimer, test_time_since_last_call) {
+  rcl_time_point_value_t time_sice_next_call_start, time_sice_next_call_end;
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_since_last_call(&timer, &time_sice_next_call_start));
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_since_last_call(&timer, &time_sice_next_call_end));
+  EXPECT_GT(time_sice_next_call_end, time_sice_next_call_start);
+}
