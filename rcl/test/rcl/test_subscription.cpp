@@ -197,9 +197,14 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     {
       test_msgs__msg__BasicTypes__fini(&msg);
     });
-    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+    rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+    ret = rcl_take(&subscription, &msg, &message_info, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(42, msg.int64_value);
+    EXPECT_NE(0u, message_info.source_timestamp.sec);
+    EXPECT_NE(0u, message_info.source_timestamp.nsec);
+    EXPECT_NE(0u, message_info.received_timestamp.sec);
+    EXPECT_NE(0u, message_info.received_timestamp.nsec);
   }
 }
 
