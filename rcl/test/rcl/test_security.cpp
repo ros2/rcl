@@ -74,7 +74,7 @@ protected:
     rcl_reset_error();
 
     // Always make sure the variable we set is unset at the beginning of a test
-    unsetenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME);
+    unsetenv_wrapper(ROS_SECURITY_KEYSTORE_VAR_NAME);
     unsetenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE);
     unsetenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME);
     unsetenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME);
@@ -104,7 +104,7 @@ protected:
   {
     base_lookup_dir_fqn = rcutils_join_path(
       resource_dir, resource_dir_name, allocator);
-    std::string putenv_input = ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=";
+    std::string putenv_input = ROS_SECURITY_KEYSTORE_VAR_NAME "=";
     putenv_input += base_lookup_dir_fqn;
     memcpy(
       g_envstring, putenv_input.c_str(),
@@ -124,7 +124,7 @@ TEST_F(TestGetSecureRoot, failureScenarios) {
     (char *) NULL);
   rcl_reset_error();
 
-  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  putenv_wrapper(ROS_SECURITY_KEYSTORE_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
 
   /* Security directory is set, but there's no matching directory */
   /// Wrong enclave
@@ -136,7 +136,7 @@ TEST_F(TestGetSecureRoot, failureScenarios) {
 
 TEST_F(TestGetSecureRoot, successScenarios_local_root_enclave) {
   putenv_wrapper(
-    ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
+    ROS_SECURITY_KEYSTORE_VAR_NAME "="
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
   secure_root = rcl_get_secure_root("/", &allocator);
@@ -148,7 +148,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_root_enclave) {
 
 TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch) {
   putenv_wrapper(
-    ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
+    ROS_SECURITY_KEYSTORE_VAR_NAME "="
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
   secure_root = rcl_get_secure_root(TEST_ENCLAVE_ABSOLUTE, &allocator);
@@ -161,7 +161,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch) {
 
 TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) {
   putenv_wrapper(
-    ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
+    ROS_SECURITY_KEYSTORE_VAR_NAME "="
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
   secure_root = rcl_get_secure_root(
@@ -187,7 +187,7 @@ TEST_F(
   /* Setting root dir has no effect */
   putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
   root_path = rcl_get_secure_root("name shouldn't matter", &allocator);
-  putenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
+  putenv_wrapper(ROS_SECURITY_KEYSTORE_VAR_NAME "=" TEST_RESOURCES_DIRECTORY);
   ASSERT_STREQ(root_path, TEST_RESOURCES_DIRECTORY);
 }
 
@@ -228,7 +228,7 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
   options = rmw_get_zero_initialized_security_options();
   unsetenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE);
   putenv_wrapper(
-    ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "="
+    ROS_SECURITY_KEYSTORE_VAR_NAME "="
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
   ret = rcl_get_security_options_from_environment(
     TEST_ENCLAVE_ABSOLUTE, &allocator, &options);

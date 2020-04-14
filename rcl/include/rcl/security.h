@@ -31,8 +31,8 @@ extern "C"
 # define ROS_SECURITY_ENCLAVE_OVERRIDE "ROS_SECURITY_ENCLAVE_OVERRIDE"
 #endif
 
-#ifndef ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME
-# define ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME "ROS_SECURITY_ROOT_DIRECTORY"
+#ifndef ROS_SECURITY_KEYSTORE_VAR_NAME
+# define ROS_SECURITY_KEYSTORE_VAR_NAME "ROS_SECURITY_KEYSTORE"
 #endif
 
 #ifndef ROS_SECURITY_STRATEGY_VAR_NAME
@@ -96,7 +96,7 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy);
 /**
  * Return the security directory associated with the enclave name.
  *
- * The value of the environment variable `ROS_SECURITY_ROOT_DIRECTORY` is used as a root.
+ * The value of the environment variable `ROS_SECURITY_KEYSTORE` is used as a root.
  * The specific directory to be used, is found from that root using the `name` passed.
  * E.g. for a context named "/a/b/c" and root "/r", the secure root path will be
  * "/r/a/b/c", where the delimiter "/" is native for target file system (e.g. "\\" for _WIN32).
