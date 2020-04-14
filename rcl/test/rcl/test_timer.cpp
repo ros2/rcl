@@ -65,6 +65,46 @@ public:
   }
 };
 
+static uint8_t times_called = 0;
+static void callback_function(rcl_timer_t * timer, int64_t last_call)
+{
+  (void) timer;
+  (void) last_call;
+  times_called++;
+}
+
+class TestPreInitTimer : public TestTimerFixture
+{
+public:
+  rcl_clock_t clock;
+  rcl_allocator_t allocator;
+  rcl_timer_t timer;
+  rcl_timer_callback_t timer_callback_test = &callback_function;
+
+  void SetUp() override
+  {
+    TestTimerFixture::SetUp();
+    rcl_ret_t ret;
+    allocator = rcl_get_default_allocator();
+    timer = rcl_get_zero_initialized_timer();
+    ASSERT_EQ(
+      RCL_RET_OK,
+      rcl_clock_init(RCL_ROS_TIME, &clock, &allocator)) << rcl_get_error_string().str;
+
+    ret = rcl_timer_init(
+      &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), timer_callback_test,
+      rcl_get_default_allocator());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  void TearDown() override
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string().str;
+    TestTimerFixture::TearDown();
+  }
+};
+
 TEST_F(TestTimerFixture, test_two_timers) {
   rcl_ret_t ret;
 
@@ -511,4 +551,11 @@ TEST_F(TestTimerFixture, test_ros_time_wakes_wait) {
   auto finish = std::chrono::steady_clock::now();
   EXPECT_TRUE(timer_was_ready);
   EXPECT_LT(finish - start, std::chrono::milliseconds(100));
+}
+
+TEST_F(TestPreInitTimer, test_timer_get_allocator) {
+  const rcl_allocator_t * allocator_returned = rcl_timer_get_allocator(&timer);
+  EXPECT_TRUE(rcutils_allocator_is_valid(allocator_returned));
+
+  EXPECT_EQ(NULL, rcl_timer_get_allocator(nullptr));
 }
