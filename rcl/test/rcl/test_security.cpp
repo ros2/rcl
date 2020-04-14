@@ -183,7 +183,7 @@ TEST_F(TestGetSecureRoot, nodeSecurityEnclaveOverride_validDirectory) {
 
 TEST_F(
   TestGetSecureRoot,
-  nodeSecurityEnclaveOverride_validDirectory_overrideRootDirectoryAttempt) {
+  nodeSecurityEnclaveOverride_validDirectory_overrideKeystoreAttempt) {
   /* Setting root dir has no effect */
   putenv_wrapper(ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_RESOURCES_DIRECTORY);
   root_path = rcl_get_secure_root("name shouldn't matter", &allocator);
