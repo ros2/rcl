@@ -38,8 +38,10 @@
 # define PATH_SEPARATOR "\\"
 #endif
 
-#define TEST_ENCLAVE_MULTIPLE_TOKENS \
-  "/group1" PATH_SEPARATOR TEST_ENCLAVE
+#define TEST_ENCLAVE_MULTIPLE_TOKENS_ABSOLUTE \
+  "/group1" TEST_ENCLAVE_ABSOLUTE
+#define TEST_ENCLAVE_MULTIPLE_TOKENS_DIR \
+  "group1" PATH_SEPARATOR TEST_ENCLAVE
 
 char g_envstring[512] = {0};
 
@@ -165,7 +167,7 @@ TEST_F(TestGetSecureRoot, successScenarios_local_exactMatch_multipleTokensName) 
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
   secure_root = rcl_get_secure_root(
-    TEST_ENCLAVE_MULTIPLE_TOKENS, &allocator);
+    TEST_ENCLAVE_MULTIPLE_TOKENS_ABSOLUTE, &allocator);
   ASSERT_NE(nullptr, secure_root);
   std::string secure_root_str(secure_root);
   ASSERT_STREQ(
@@ -221,14 +223,14 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME);
 
   putenv_wrapper(
-    ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_ENCLAVE_MULTIPLE_TOKENS);
+    ROS_SECURITY_ENCLAVE_OVERRIDE "=" TEST_ENCLAVE_MULTIPLE_TOKENS_ABSOLUTE);
   ret = rcl_get_security_options_from_environment(
     "doesn't matter at all", &allocator, &options);
   ASSERT_EQ(RMW_RET_OK, ret) << rmw_get_error_string().str;
   EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_ENFORCE, options.enforce_security);
   EXPECT_STREQ(
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
-    PATH_SEPARATOR "enclaves" TEST_ENCLAVE_MULTIPLE_TOKENS,
+    PATH_SEPARATOR "enclaves" PATH_SEPARATOR TEST_ENCLAVE_MULTIPLE_TOKENS_DIR,
     options.security_root_path);
   EXPECT_EQ(RMW_RET_OK, rmw_security_options_fini(&options, &allocator));
 
