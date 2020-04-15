@@ -158,12 +158,15 @@ char * rcl_get_secure_root(
   char * error_str = rcutils_get_env(ROS_SECURITY_KEYSTORE_VAR_NAME, &env_buf);
   if (error_str) {
     RCUTILS_LOG_ERROR("rcutils_get_env failed: %s\n", error_str);
+    allocator->deallocate(ros_secure_enclave_override_env, allocator->state);
     return NULL;
   }
   if (!env_buf) {
+    allocator->deallocate(ros_secure_enclave_override_env, allocator->state);
     return NULL;
   }
   if (0 == strcmp("", env_buf)) {
+    allocator->deallocate(ros_secure_enclave_override_env, allocator->state);
     return NULL;  // environment variable was empty
   }
   char * ros_secure_keystore_env = rcutils_strdup(env_buf, *allocator);
