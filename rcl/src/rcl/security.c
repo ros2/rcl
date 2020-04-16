@@ -106,13 +106,13 @@ rcl_get_enforcement_policy(rmw_security_enforcement_policy_t * policy)
 
 char * exact_match_lookup(
   const char * name,
-  const char * ros_secure_root_env,
+  const char * ros_secure_keystore_env,
   const rcl_allocator_t * allocator)
 {
   // Perform an exact match for the enclave name in directory <root dir>.
   char * secure_root = NULL;
   char * enclaves_dir = NULL;
-  enclaves_dir = rcutils_join_path(ros_secure_root_env, "enclaves", *allocator);
+  enclaves_dir = rcutils_join_path(ros_secure_keystore_env, "enclaves", *allocator);
   // "/" case when root namespace is explicitly passed in
   if (0 == strcmp(name, "/")) {
     secure_root = enclaves_dir;
@@ -132,42 +132,57 @@ char * rcl_get_secure_root(
   const char * name,
   const rcl_allocator_t * allocator)
 {
-  bool ros_secure_directory_override = true;
+  bool ros_secure_enclave_override = true;
 
   // find out if either of the configuration environment variables are set
   const char * env_buf = NULL;
   if (NULL == name) {
     return NULL;
   }
-
-  if (rcutils_get_env(ROS_SECURITY_DIRECTORY_OVERRIDE, &env_buf)) {
+  const char * get_env_error_str = NULL;
+  // check if enclave override environment variable is empty
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_ENCLAVE_OVERRIDE, &env_buf);
+  if (NULL != get_env_error_str) {
+    RCUTILS_LOG_ERROR("rcutils_get_env failed: %s\n", get_env_error_str);
     return NULL;
   }
   if (!env_buf) {
     return NULL;
   }
   if (0 == strcmp("", env_buf)) {
-    // check root directory if override directory environment variable is empty
-    if (rcutils_get_env(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME, &env_buf)) {
-      return NULL;
-    }
-    if (!env_buf) {
-      return NULL;
-    }
-    if (0 == strcmp("", env_buf)) {
-      return NULL;  // environment variable was empty
-    }
-    ros_secure_directory_override = false;
+    ros_secure_enclave_override = false;
   }
+  char * ros_secure_enclave_override_env = rcutils_strdup(env_buf, *allocator);
 
-  // found a usable environment variable, copy into our memory before overwriting with next lookup
-  char * ros_secure_root_env = rcutils_strdup(env_buf, *allocator);
+  // check if keystore environment variable is empty
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_KEYSTORE_VAR_NAME, &env_buf);
+  if (NULL != get_env_error_str) {
+    RCUTILS_LOG_ERROR("rcutils_get_env failed: %s\n", get_env_error_str);
+    allocator->deallocate(ros_secure_enclave_override_env, allocator->state);
+    return NULL;
+  }
+  if (!env_buf) {
+    allocator->deallocate(ros_secure_enclave_override_env, allocator->state);
+    return NULL;
+  }
+  if (0 == strcmp("", env_buf)) {
+    allocator->deallocate(ros_secure_enclave_override_env, allocator->state);
+    return NULL;  // environment variable was empty
+  }
+  char * ros_secure_keystore_env = rcutils_strdup(env_buf, *allocator);
 
+  // given usable environment variables, overwrite with next lookup
   char * secure_root = NULL;
-  if (ros_secure_directory_override) {
-    secure_root = rcutils_strdup(ros_secure_root_env, *allocator);
+  if (ros_secure_enclave_override) {
+    secure_root = exact_match_lookup(
+      ros_secure_enclave_override_env,
+      ros_secure_keystore_env,
+      allocator);
   } else {
-    secure_root = exact_match_lookup(name, ros_secure_root_env, allocator);
+    secure_root = exact_match_lookup(
+      name,
+      ros_secure_keystore_env,
+      allocator);
   }
 
   if (NULL == secure_root || !rcutils_is_directory(secure_root)) {
@@ -175,15 +190,16 @@ char * rcl_get_secure_root(
     if (NULL == secure_root) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "SECURITY ERROR: unable to find a folder matching the name '%s' in '%s'. ",
-        name, ros_secure_root_env);
+        name, ros_secure_keystore_env);
     } else {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "SECURITY ERROR: directory '%s' does not exist.", secure_root);
     }
-    allocator->deallocate(ros_secure_root_env, allocator->state);
+    allocator->deallocate(ros_secure_enclave_override_env, allocator->state);
+    allocator->deallocate(ros_secure_keystore_env, allocator->state);
     allocator->deallocate(secure_root, allocator->state);
     return NULL;
   }
-  allocator->deallocate(ros_secure_root_env, allocator->state);
+  allocator->deallocate(ros_secure_keystore_env, allocator->state);
   return secure_root;
 }
