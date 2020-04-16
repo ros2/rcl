@@ -478,7 +478,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   {
-    ret = rcl_publish(&publisher, &serialized_msg, nullptr);
+    ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
   bool success;
