@@ -790,7 +790,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   {
-    ret = rcl_publish(&publisher, &serialized_msg, nullptr);
+    ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
   bool success;
@@ -806,7 +806,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     ASSERT_EQ(RMW_RET_OK, ret);
 
     // Compare serialized version
-    // This test fails too, suggesting a problem with the resializing mechanism stage
     for (size_t i = 0; i < serialized_msg_rcv.buffer_length; ++i) {
       EXPECT_EQ(serialized_msg.buffer[i], serialized_msg_rcv.buffer[i]);
     }
