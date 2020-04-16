@@ -290,7 +290,7 @@ TEST_F(
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   const char * topic = "rcl_test_subscription_nominal_string_sequence_chatter";
-  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+    rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -300,7 +300,7 @@ TEST_F(
   });
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+    ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -320,7 +320,7 @@ TEST_F(
     ret = rcl_publish(&publisher, &msg, nullptr);
     ret = rcl_publish(&publisher, &msg, nullptr);
     test_msgs__msg__Strings__fini(&msg);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+        ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
   bool success;
   wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
@@ -428,5 +428,75 @@ TEST_F(
     ASSERT_EQ(
       std::string(test_string),
       std::string(seq->data[0].string_value.data, seq->data[0].string_value.size));
+  }
+}
+
+/* Basic nominal test of a subscription with take_serialize msg
+ */
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_serialized) {
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  rcutils_allocator_t allocator = rcl_get_default_allocator();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic = "/chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
+  auto initial_capacity_ser = 0u;
+  ASSERT_EQ(
+    RCL_RET_OK, rmw_serialized_message_init(
+      &serialized_msg, initial_capacity_ser, &allocator)) << rcl_get_error_string().str;
+  const char * test_string = "testing";
+  test_msgs__msg__Strings msg;
+  test_msgs__msg__Strings__init(&msg);
+  ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+
+  // TEST BEFORE SERIALIZE, works
+  ASSERT_STREQ(msg.string_value.data, test_string);
+
+  ret = rmw_serialize(&msg, ts, &serialized_msg);
+  ASSERT_EQ(RMW_RET_OK, ret);
+
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  rcl_reset_error();
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  {
+    ret = rcl_publish(&publisher, &serialized_msg, nullptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+  bool success;
+  wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ASSERT_TRUE(success);
+  {
+    rcl_serialized_message_t serialized_msg_rcv = rmw_get_zero_initialized_serialized_message();
+    initial_capacity_ser = 0u;
+    ASSERT_EQ(
+      RCL_RET_OK, rmw_serialized_message_init(
+        &serialized_msg_rcv, initial_capacity_ser, &allocator)) << rcl_get_error_string().str;
+    ret = rcl_take_serialized_message(&subscription, &serialized_msg_rcv, nullptr, nullptr);
+    ASSERT_EQ(RMW_RET_OK, ret);
+
+    test_msgs__msg__Strings msg_rcv;
+    test_msgs__msg__Strings__init(&msg_rcv);
+    ret = rmw_deserialize(&serialized_msg_rcv, ts, &msg_rcv);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_STREQ(test_string, msg_rcv.string_value.data);
   }
 }
