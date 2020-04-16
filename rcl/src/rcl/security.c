@@ -139,11 +139,12 @@ char * rcl_get_secure_root(
   if (NULL == name) {
     return NULL;
   }
-
+  
+  const char * get_env_error_str = NULL;
   // check if enclave override environment variable is empty
-  char * error_str = rcutils_get_env(ROS_SECURITY_ENCLAVE_OVERRIDE, &env_buf);
-  if (error_str) {
-    RCUTILS_LOG_ERROR("rcutils_get_env failed: %s\n", error_str);
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_ENCLAVE_OVERRIDE, &env_buf);
+  if (NULL != get_env_error_str) {
+    RCUTILS_LOG_ERROR("rcutils_get_env failed: %s\n", get_env_error_str);
     return NULL;
   }
   if (!env_buf) {
@@ -155,9 +156,9 @@ char * rcl_get_secure_root(
   char * ros_secure_enclave_override_env = rcutils_strdup(env_buf, *allocator);
 
   // check if keystore environment variable is empty
-  char * error_str = rcutils_get_env(ROS_SECURITY_KEYSTORE_VAR_NAME, &env_buf);
-  if (error_str) {
-    RCUTILS_LOG_ERROR("rcutils_get_env failed: %s\n", error_str);
+  get_env_error_str = rcutils_get_env(ROS_SECURITY_KEYSTORE_VAR_NAME, &env_buf);
+  if (NULL != get_env_error_str) {
+    RCUTILS_LOG_ERROR("rcutils_get_env failed: %s\n", get_env_error_str);
     allocator->deallocate(ros_secure_enclave_override_env, allocator->state);
     return NULL;
   }
