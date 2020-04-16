@@ -139,7 +139,6 @@ char * rcl_get_secure_root(
   if (NULL == name) {
     return NULL;
   }
-  
   const char * get_env_error_str = NULL;
   // check if enclave override environment variable is empty
   get_env_error_str = rcutils_get_env(ROS_SECURITY_ENCLAVE_OVERRIDE, &env_buf);
