@@ -16,8 +16,6 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-include_directories(include ${yaml_INCLUDE_DIRS} ${rcutils_INCLUDE_DIRS})
-
 set(rcl_yaml_parser_sources
   src/parser.c
 )
@@ -25,6 +23,9 @@ set(rcl_yaml_parser_sources
 add_library(
   ${PROJECT_NAME}
   ${rcl_yaml_parser_sources})
+target_include_directories(${PROJECT_NAME} PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 ament_target_dependencies(${PROJECT_NAME} "yaml" "rcutils")
 
 # Set the visibility to hidden by default if possible
@@ -41,7 +42,7 @@ endif()
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_YAML_PARAM_PARSER_BUILDING_DLL")
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
@@ -72,4 +73,5 @@ install(
   DESTINATION include
 )
 ament_export_libraries(${PROJECT_NAME})
+ament_export_targets(${PROJECT_NAME})
 ament_package()
