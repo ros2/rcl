@@ -16,7 +16,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-include_directories(include ${yaml_INCLUDE_DIRS} ${rcutils_INCLUDE_DIRS} ${rcl_INCLUDE_DIRS})
+include_directories(include ${yaml_INCLUDE_DIRS} ${rcutils_INCLUDE_DIRS})
 
 set(rcl_yaml_parser_sources
   src/parser.c
