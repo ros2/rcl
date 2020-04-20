@@ -173,7 +173,7 @@ rcl_service_init(
  * Lock-Free          | Yes
  *
  * \param[inout] service handle to the service to be deinitialized
- * \param[in] node handle to the node used to create the service
+ * \param[in] node a valid (not finalized) handle to the node used to create the service
  * \return `RCL_RET_OK` if service was deinitialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_SERVICE_INVALID` if the service is invalid, or

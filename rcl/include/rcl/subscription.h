@@ -175,7 +175,7 @@ rcl_subscription_init(
  * Lock-Free          | Yes
  *
  * \param[inout] subscription handle to the subscription to be deinitialized
- * \param[in] node handle to the node used to create the subscription
+ * \param[in] node a valid (not finalized) handle to the node used to create the subscription
  * \return `RCL_RET_OK` if subscription was deinitialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or

@@ -153,8 +153,13 @@ rcl_node_init(
  * Destroys any automatically created infrastructure and deallocates memory.
  * After calling, the rcl_node_t can be safely deallocated.
  *
- * Any middleware primitives created by the user, e.g. publishers, services, etc.,
- * are invalid after deinitialization.
+ * All middleware primitives created by the user, e.g. publishers, services, etc,
+ * which were created from this node must be finalized using their respective
+ * `rcl_*_fini()` functions before this is called.
+ * \sa rcl_publisher_fini()
+ * \sa rcl_subscription_fini()
+ * \sa rcl_client_fini()
+ * \sa rcl_service_fini()
  *
  * <hr>
  * Attribute          | Adherence
