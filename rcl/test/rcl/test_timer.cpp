@@ -576,18 +576,6 @@ TEST_F(TestPreInitTimer, test_timer_clock) {
 }
 
 TEST_F(TestPreInitTimer, test_timer_call) {
-  /*
-    TODO: Use better names for next_call_start and next_call_end (?)
-
-    API does not expose the explicit time for the next call of the timer,
-    but provides time missing before/after next call.
-    I'm using this to compare the time difference between consecutive calls, to see if
-    the next_time variable is updated properly.
-    Comparing next_call_start and next_call_end is the same as
-    comparing missing_time_next_call1 vs missing_time_next_call2
-
-    Open to suggestions before merging
-   */
   int64_t next_call_start, next_call_end;
   int64_t old_period = 0;
   times_called = 0;
