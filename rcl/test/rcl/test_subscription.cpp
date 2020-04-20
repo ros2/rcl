@@ -494,8 +494,97 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__Strings__init(&msg_rcv);
     ret = rmw_deserialize(&serialized_msg_rcv, ts, &msg_rcv);
     ASSERT_EQ(RMW_RET_OK, ret);
-    // ASSERT_STREQ(test_string, msg_rcv.string_value.data);
     ASSERT_EQ(
       std::string(test_string), std::string(msg_rcv.string_value.data, msg_rcv.string_value.size));
   }
+}
+
+/* Basic test for subscription loan functions
+ */
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loaned) {
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  const char * topic = "rcl_loan";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  // TODO(wjwwood): add logic to wait for the connection to be established
+  //                probably using the count_subscriptions busy wait mechanism
+  //                until then we will sleep for a short period of time
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  const char * test_string = "testing";
+  {
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings__init(&msg);
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+    ret = rcl_publish(&publisher, &msg, nullptr);
+    test_msgs__msg__Strings__fini(&msg);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+  bool success;
+  wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ASSERT_TRUE(success);
+  {
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings * msg_loaned;
+    test_msgs__msg__Strings__init(&msg);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      test_msgs__msg__Strings__fini(&msg);
+    });
+
+    // Only if rmw supports the functionality
+    if (rcl_subscription_can_loan_messages(&subscription)) {
+      ret = rcl_take_loaned_message(
+        &subscription, reinterpret_cast<void **>(&msg_loaned), nullptr, nullptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      ASSERT_EQ(
+        std::string(test_string),
+        std::string(*msg_loaned->string_value.data, msg_loaned->string_value.size));
+    } else {
+      ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      ASSERT_EQ(
+        std::string(test_string), std::string(msg.string_value.data, msg.string_value.size));
+    }
+  }
+}
+
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_get_options) {
+  rcl_ret_t ret;
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  const char * topic = "test_get_options";
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  const rcl_subscription_options_t * get_sub_options = rcl_subscription_get_options(&subscription);
+  ASSERT_EQ(subscription_options.qos.history, get_sub_options->qos.history);
+  ASSERT_EQ(subscription_options.qos.depth, get_sub_options->qos.depth);
+  ASSERT_EQ(subscription_options.qos.durability, get_sub_options->qos.durability);
+
+  ASSERT_EQ(NULL, rcl_subscription_get_options(nullptr));
 }
