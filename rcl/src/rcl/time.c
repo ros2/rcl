@@ -48,13 +48,14 @@ rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
 
 // Internal method for zeroing values on init, assumes clock is valid
 static void
-rcl_init_generic_clock(rcl_clock_t * clock)
+rcl_init_generic_clock(rcl_clock_t * clock, rcl_allocator_t * allocator)
 {
   clock->type = RCL_CLOCK_UNINITIALIZED;
   clock->jump_callbacks = NULL;
   clock->num_jump_callbacks = 0u;
   clock->get_now = NULL;
   clock->data = NULL;
+  clock->allocator = *allocator;
 }
 
 // The function used to get the current ros time.
@@ -91,7 +92,7 @@ rcl_clock_init(
   switch (clock_type) {
     case RCL_CLOCK_UNINITIALIZED:
       RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
-      rcl_init_generic_clock(clock);
+      rcl_init_generic_clock(clock, allocator);
       return RCL_RET_OK;
     case RCL_ROS_TIME:
       return rcl_ros_clock_init(clock, allocator);
@@ -144,7 +145,7 @@ rcl_ros_clock_init(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-  rcl_init_generic_clock(clock);
+  rcl_init_generic_clock(clock, allocator);
   clock->data = allocator->allocate(sizeof(rcl_ros_clock_storage_t), allocator->state);
   if (NULL == clock->data) {
     RCL_SET_ERROR_MSG("allocating memory failed");
@@ -186,7 +187,7 @@ rcl_steady_clock_init(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-  rcl_init_generic_clock(clock);
+  rcl_init_generic_clock(clock, allocator);
   clock->get_now = rcl_get_steady_time;
   clock->type = RCL_STEADY_TIME;
   clock->allocator = *allocator;
@@ -213,7 +214,7 @@ rcl_system_clock_init(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-  rcl_init_generic_clock(clock);
+  rcl_init_generic_clock(clock, allocator);
   clock->get_now = rcl_get_system_time;
   clock->type = RCL_SYSTEM_TIME;
   clock->allocator = *allocator;
