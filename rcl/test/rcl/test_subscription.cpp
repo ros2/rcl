@@ -814,7 +814,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__Strings__init(&msg_rcv);
     ret = rmw_deserialize(&serialized_msg_rcv, ts, &msg_rcv);
     ASSERT_EQ(RMW_RET_OK, ret);
-    // ASSERT_STREQ(test_string, msg_rcv.string_value.data);
     ASSERT_EQ(
       std::string(test_string), std::string(msg_rcv.string_value.data, msg_rcv.string_value.size));
   }
