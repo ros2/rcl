@@ -180,10 +180,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   //                until then we will sleep for a short period of time
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 #ifdef RMW_TIMESTAMPS_SUPPORTED
-  timespec pre_publish_ts;
-  EXPECT_EQ(0, clock_gettime(CLOCK_REALTIME, &pre_publish_ts)) << " clock_gettime failed";
-  rmw_time_point_value_t pre_publish_time =
-    RCUTILS_S_TO_NS(pre_publish_ts.tv_sec) + pre_publish_ts.tv_nsec;
+  rcl_time_point_value_t pre_publish_time;
+  EXPECT_EQ(0, rcutils_system_time_now(&pre_publish_time)) << " could not get system time failed";  
 #endif
   {
     test_msgs__msg__BasicTypes msg;
