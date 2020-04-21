@@ -71,7 +71,7 @@ RCL_WARN_UNUSED
 rcl_lifecycle_transition_t *
 rcl_lifecycle_get_transitions(
   rcl_lifecycle_transition_map_t * transition_map,
-  unsigned int state_id);
+  unsigned int transition_id);
 
 #ifdef __cplusplus
 }
