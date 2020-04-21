@@ -293,10 +293,10 @@ rcl_take_sequence(
 )
 {
   // Set the sizes to zero to indicate that there are no valid messages
-  message_sequence->size = 0;
-  message_info_sequence->size = 0;
+  message_sequence->size = 0u;
+  message_info_sequence->size = 0u;
 
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking n messags");
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking %zu messages", count);
   if (!rcl_subscription_is_valid(subscription)) {
     return RCL_RET_SUBSCRIPTION_INVALID;  // error message already set
   }
@@ -313,7 +313,7 @@ rcl_take_sequence(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  size_t taken = 0;
+  size_t taken = 0u;
   rmw_ret_t ret = rmw_take_sequence(
     subscription->impl->rmw_handle, count, message_sequence, message_info_sequence, &taken,
     allocation);
@@ -326,7 +326,7 @@ rcl_take_sequence(
     return RCL_RET_ERROR;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Subscription take_n succeeded: %s", taken > 0 ? "true" : "false");
+    ROS_PACKAGE_NAME, "Subscription took %zu messages", taken);
   if (taken == 0) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
