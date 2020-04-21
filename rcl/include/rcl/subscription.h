@@ -250,7 +250,7 @@ rcl_subscription_get_default_options(void);
  * \param[inout] ros_message type-erased ptr to a allocated ROS message
  * \param[out] message_info rmw struct which contains meta-data for the message
  * \param[in] allocation structure pointer used for memory preallocation (may be NULL)
- * \return `RCL_RET_OK` if the message was published, or
+ * \return `RCL_RET_OK` if the message was taken, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
@@ -272,7 +272,7 @@ rcl_take(
 /**
  * In contrast to `rcl_take`, this function can take multiple messages at
  * the same time.
- * It is the job of the caller to enusre that the type of the message_sequence
+ * It is the job of the caller to ensure that the type of the message_sequence
  * argument and the type associated with the subscription, via the type
  * support, match.
  *
@@ -299,9 +299,9 @@ rcl_take(
  * \param[in] subscription the handle to the subscription from which to take.
  * \param[in] count number of messages to attempt to take.
  * \param[inout] message_sequence pointer to a (pre-allocated) message sequence.
- * \param[inout] message_info_sequence pointer to a (pre-allocated) message info sequence .
+ * \param[inout] message_info_sequence pointer to a (pre-allocated) message info sequence.
  * \param[in] allocation structure pointer used for memory preallocation (may be NULL)
- * \return `RCL_RET_OK` if the message was published, or
+ * \return `RCL_RET_OK` if one or more messages was taken, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or

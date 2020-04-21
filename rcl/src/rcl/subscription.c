@@ -323,7 +323,7 @@ rcl_take_sequence(
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Subscription took %zu messages", taken);
-  if (taken == 0) {
+  if (0u == taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
   return RCL_RET_OK;
