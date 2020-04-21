@@ -205,9 +205,15 @@ function(test_target_function)
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
+  if(rmw_implementation STREQUAL "rmw_fastrtps_cpp")
+    message(STATUS "Enabling message timestamp test for ${rmw_implementation}")
+    target_compile_definitions(test_subscription${target_suffix} PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1")
+  else()
+    message(STATUS "Disabling message timestamp test for ${rmw_implementation}")
+  endif()
 
+  # enable timestamps test only for middlewares that support it
   set(AMENT_GTEST_ARGS "SKIP_TEST")
-  # TODO(wjwwood): remove this when the graph API works properly for connext dynamic
   if(rmw_implementation STREQUAL "rmw_fastrtps_dynamic_cpp")
     message(STATUS "Skipping test_graph${target_suffix} test.")
   else()
@@ -221,7 +227,6 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
     ${AMENT_GTEST_ARGS}
   )
-
 
   rcl_add_custom_gtest(test_events${target_suffix}
     SRCS rcl/test_events.cpp
