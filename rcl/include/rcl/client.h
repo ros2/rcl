@@ -287,7 +287,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_take_response(
   const rcl_client_t * client,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_response);
 
 /// Get the name of the service that this client will request a response from.

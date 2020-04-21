@@ -247,7 +247,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_take_request(
   const rcl_service_t * service,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_request);
 
 /// Send a ROS response to a client using a service.

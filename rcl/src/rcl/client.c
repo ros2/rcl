@@ -291,7 +291,7 @@ rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t 
 rcl_ret_t
 rcl_take_response(
   const rcl_client_t * client,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_response)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client taking service response");
