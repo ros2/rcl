@@ -309,7 +309,6 @@ rcl_take(
  *         occurred in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
