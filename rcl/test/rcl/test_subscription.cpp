@@ -179,8 +179,12 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   //                probably using the count_subscriptions busy wait mechanism
   //                until then we will sleep for a short period of time
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  timespec pre_publish_time;
-  EXPECT_EQ(0, clock_gettime(CLOCK_REALTIME, &pre_publish_time)) << " clock_gettime failed";
+#ifdef RMW_TIMESTAMPS_SUPPORTED
+  timespec pre_publish_ts;
+  EXPECT_EQ(0, clock_gettime(CLOCK_REALTIME, &pre_publish_ts)) << " clock_gettime failed";
+  rmw_time_point_value_t pre_publish_time =
+    RCUTILS_S_TO_NS(pre_publish_ts.tv_sec) + pre_publish_ts.tv_nsec;
+#endif
   {
     test_msgs__msg__BasicTypes msg;
     test_msgs__msg__BasicTypes__init(&msg);
@@ -204,23 +208,15 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(42, msg.int64_value);
   #ifdef RMW_TIMESTAMPS_SUPPORTED
-    EXPECT_NE(0u, message_info.source_timestamp.sec);
-    EXPECT_TRUE(pre_publish_time.tv_sec <= (time_t)message_info.source_timestamp.sec) <<
-      pre_publish_time.tv_sec << " > " << (time_t)message_info.source_timestamp.sec;
-    EXPECT_NE(0u, message_info.source_timestamp.nsec);
-    EXPECT_TRUE(pre_publish_time.tv_nsec <= (long)message_info.source_timestamp.nsec) <<
-      pre_publish_time.tv_nsec << " > " << (time_t)message_info.source_timestamp.nsec;
-    EXPECT_NE(0u, message_info.received_timestamp.sec);
-    EXPECT_TRUE(pre_publish_time.tv_sec <= (time_t)message_info.received_timestamp.sec);
-    EXPECT_TRUE(message_info.source_timestamp.sec <= message_info.received_timestamp.sec);
-    EXPECT_NE(0u, message_info.received_timestamp.nsec);
-    EXPECT_TRUE(pre_publish_time.tv_nsec <= (long)message_info.received_timestamp.nsec);
-    EXPECT_TRUE(message_info.source_timestamp.nsec <= message_info.received_timestamp.nsec);
+    EXPECT_NE(0u, message_info.source_timestamp);
+    EXPECT_TRUE(pre_publish_time <= message_info.source_timestamp) <<
+      pre_publish_time << " > " << message_info.source_timestamp;
+    EXPECT_NE(0u, message_info.received_timestamp);
+    EXPECT_TRUE(pre_publish_time <= message_info.received_timestamp);
+    EXPECT_TRUE(message_info.source_timestamp <= message_info.received_timestamp);
   #else
-    EXPECT_EQ(0u, message_info.source_timestamp.sec);
-    EXPECT_EQ(0u, message_info.source_timestamp.nsec);
-    EXPECT_EQ(0u, message_info.received_timestamp.sec);
-    EXPECT_EQ(0u, message_info.received_timestamp.nsec);
+    EXPECT_EQ(0u, message_info.source_timestamp);
+    EXPECT_EQ(0u, message_info.received_timestamp);
   #endif
   }
 }
