@@ -315,7 +315,7 @@ TEST_F(
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg, nullptr);
     ret = rcl_publish(&publisher, &msg, nullptr);
     ret = rcl_publish(&publisher, &msg, nullptr);
@@ -325,13 +325,14 @@ TEST_F(
   bool success;
   wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
   ASSERT_TRUE(success);
+  auto allocator = rcutils_get_default_allocator();
   {
     size_t size = 1;
     rmw_message_info_sequence_t message_infos;
-    rmw_message_info_sequence_init(&message_infos, size);
+    rmw_message_info_sequence_init(&message_infos, size, &allocator);
 
     rmw_message_sequence_t messages;
-    rmw_message_sequence_init(&messages, size);
+    rmw_message_sequence_init(&messages, size, &allocator);
 
     auto seq = test_msgs__msg__Strings__Sequence__create(size);
 
@@ -357,10 +358,10 @@ TEST_F(
   {
     size_t size = 5;
     rmw_message_info_sequence_t message_infos;
-    rmw_message_info_sequence_init(&message_infos, size);
+    rmw_message_info_sequence_init(&message_infos, size, &allocator);
 
     rmw_message_sequence_t messages;
-    rmw_message_sequence_init(&messages, size);
+    rmw_message_sequence_init(&messages, size, &allocator);
 
     auto seq = test_msgs__msg__Strings__Sequence__create(size);
 
@@ -384,7 +385,7 @@ TEST_F(
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_generator_c__String__assign(&msg.string_value, test_string));
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
     ret = rcl_publish(&publisher, &msg, nullptr);
     ret = rcl_publish(&publisher, &msg, nullptr);
     ret = rcl_publish(&publisher, &msg, nullptr);
@@ -400,10 +401,10 @@ TEST_F(
   {
     size_t size = 3;
     rmw_message_info_sequence_t message_infos;
-    rmw_message_info_sequence_init(&message_infos, size);
+    rmw_message_info_sequence_init(&message_infos, size, &allocator);
 
     rmw_message_sequence_t messages;
-    rmw_message_sequence_init(&messages, size);
+    rmw_message_sequence_init(&messages, size, &allocator);
 
     auto seq = test_msgs__msg__Strings__Sequence__create(size);
 

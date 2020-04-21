@@ -319,11 +319,7 @@ rcl_take_sequence(
     allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-
-    if (RMW_RET_BAD_ALLOC == ret) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Subscription took %zu messages", taken);

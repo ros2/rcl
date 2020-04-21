@@ -26,6 +26,8 @@ extern "C"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
 
+#include "rmw/message_sequence.h"
+
 /// Internal rcl implementation struct.
 struct rcl_subscription_impl_t;
 
@@ -203,7 +205,7 @@ rcl_subscription_get_default_options(void);
 /// Take a ROS message from a topic using a rcl subscription.
 /**
  * It is the job of the caller to ensure that the type of the ros_message
- * argument and the type associate with the subscription, via the type
+ * argument and the type associated with the subscription, via the type
  * support, match.
  * Passing a different type to rcl_take produces undefined behavior and cannot
  * be checked by this function and therefore no deliberate error will occur.
@@ -227,7 +229,7 @@ rcl_subscription_get_default_options(void);
  * be allocated for a dynamically sized array in the target message, then the
  * allocator given in the subscription options is used.
  *
- * The rmw message_info struct contains meta information about this particular
+ * The rmw_message_info struct contains meta information about this particular
  * message instance, like what the GUID of the publisher which published it
  * originally or whether or not the message received from within the same
  * process.
@@ -265,6 +267,48 @@ rcl_take(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation
 );
+
+/// Take a sequence of messages from a topic using a rcl subscription.
+/**
+ * In contrast to `rcl_take`, this function can take multiple messages at
+ * the same time.
+ * It is the job of the caller to enusre that the type of the message_sequence
+ * argument and the type associated with the subscription, via the type
+ * support, match.
+ *
+ * The message_sequence pointer should point to an already allocated sequence
+ * of ROS messages of the correct type, into which the taken ROS messages will
+ * be copied if messages are available.
+ * The message_sequence `size` member will be set to the number of messages
+ * correctly taken.
+ *
+ * The rmw_message_info_sequence struct contains meta information about the
+ * corresponding message instance index.
+ * The message_info_sequence argument should be an already allocated
+ * rmw_message_info_sequence_t structure.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Maybe [1]
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] only if storage in the serialized_message is insufficient</i>
+ *
+ * \param[in] subscription the handle to the subscription from which to take.
+ * \param[in] count number of messages to attempt to take.
+ * \param[inout] message_sequence pointer to a (pre-allocated) message sequence.
+ * \param[inout] message_info_sequence pointer to a (pre-allocated) message info sequence .
+ * \param[in] allocation structure pointer used for memory preallocation (may be NULL)
+ * \return `RCL_RET_OK` if the message was published, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if the subscription is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_SUBSCRIPTION_TAKE_FAILED` if take failed but no error
+ *         occurred in the middleware, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
