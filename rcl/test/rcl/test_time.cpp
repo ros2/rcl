@@ -267,9 +267,7 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), specific_clock_instantiation) {
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     EXPECT_EQ(uninitialized_clock.type, RCL_CLOCK_UNINITIALIZED) <<
       "Expected time source of type RCL_CLOCK_UNINITIALIZED";
-    ret = rcl_clock_fini(&uninitialized_clock);
-    EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
-    rcl_reset_error();
+    EXPECT_TRUE(rcutils_allocator_is_valid(&(uninitialized_clock.allocator)));
   }
   {
     rcl_clock_t ros_clock;
