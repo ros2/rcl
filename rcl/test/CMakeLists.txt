@@ -205,9 +205,11 @@ function(test_target_function)
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
-  if(rmw_implementation STREQUAL "rmw_fastrtps_cpp")
+  if(rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR
+    rmw_implementation STREQUAL "rmw_fastrtps_dynamic_cpp")
     message(STATUS "Enabling message timestamp test for ${rmw_implementation}")
-    target_compile_definitions(test_subscription${target_suffix} PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1")
+    target_compile_definitions(test_subscription${target_suffix}
+      PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1")
   else()
     message(STATUS "Disabling message timestamp test for ${rmw_implementation}")
   endif()
