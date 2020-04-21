@@ -270,15 +270,6 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), specific_clock_instantiation) {
     ret = rcl_clock_fini(&uninitialized_clock);
     EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
     rcl_reset_error();
-    EXPECT_EQ(
-      rcl_ros_clock_fini(&uninitialized_clock), RCL_RET_ERROR) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(
-      rcl_steady_clock_fini(&uninitialized_clock), RCL_RET_ERROR) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(
-      rcl_system_clock_fini(&uninitialized_clock), RCL_RET_ERROR) << rcl_get_error_string().str;
-    rcl_reset_error();
   }
   {
     rcl_clock_t ros_clock;
@@ -306,12 +297,6 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), specific_clock_instantiation) {
       "Expected time source of type RCL_STEADY_TIME";
     ret = rcl_clock_fini(&steady_clock);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  }
-  {
-    rcl_clock_t fail_clock;
-    rcl_clock_type_t undefined_type = (rcl_clock_type_t) 130;
-    rcl_ret_t ret = rcl_clock_init(undefined_type, &fail_clock, &allocator);
-    EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   }
 }
 
