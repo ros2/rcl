@@ -158,7 +158,6 @@ rcl_ros_clock_init(
   storage->active = false;
   clock->get_now = rcl_get_ros_time;
   clock->type = RCL_ROS_TIME;
-  clock->allocator = *allocator;
   return RCL_RET_OK;
 }
 
@@ -190,7 +189,6 @@ rcl_steady_clock_init(
   rcl_init_generic_clock(clock, allocator);
   clock->get_now = rcl_get_steady_time;
   clock->type = RCL_STEADY_TIME;
-  clock->allocator = *allocator;
   return RCL_RET_OK;
 }
 
@@ -217,7 +215,6 @@ rcl_system_clock_init(
   rcl_init_generic_clock(clock, allocator);
   clock->get_now = rcl_get_system_time;
   clock->type = RCL_SYSTEM_TIME;
-  clock->allocator = *allocator;
   return RCL_RET_OK;
 }
 
