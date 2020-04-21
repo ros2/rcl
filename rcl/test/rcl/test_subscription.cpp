@@ -181,7 +181,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 #ifdef RMW_TIMESTAMPS_SUPPORTED
   rcl_time_point_value_t pre_publish_time;
-  EXPECT_EQ(0, rcutils_system_time_now(&pre_publish_time)) << " could not get system time failed";  
+  EXPECT_EQ(0, rcutils_system_time_now(&pre_publish_time)) << " could not get system time failed";
 #endif
   {
     test_msgs__msg__BasicTypes msg;
