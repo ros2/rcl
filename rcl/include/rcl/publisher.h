@@ -172,7 +172,7 @@ rcl_publisher_init(
  * Lock-Free          | Yes
  *
  * \param[inout] publisher handle to the publisher to be finalized
- * \param[in] node handle to the node used to create the publisher
+ * \param[in] node a valid (not finalized) handle to the node used to create the publisher
  * \return `RCL_RET_OK` if publisher was finalized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_PUBLISHER_INVALID` if the publisher is invalid, or

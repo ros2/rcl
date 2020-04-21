@@ -174,7 +174,7 @@ rcl_client_init(
  * Lock-Free          | Yes
  *
  * \param[inout] client handle to the client to be finalized
- * \param[in] node handle to the node used to create the client
+ * \param[in] node a valid (not finalized) handle to the node used to create the client
  * \return `RCL_RET_OK` if client was finalized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
