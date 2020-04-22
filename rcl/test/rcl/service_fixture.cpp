@@ -179,7 +179,7 @@ int main(int argc, char ** argv)
     {
       test_msgs__srv__BasicTypes_Request__fini(&service_request);
     });
-    rmw_service_info_t header;
+    rmw_request_id_t header;
     // TODO(jacquelinekay) May have to check for timeout error codes
     if (rcl_take_request(&service, &header, &service_request) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
@@ -189,7 +189,7 @@ int main(int argc, char ** argv)
 
     // Sum the request and send the response.
     service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
-    if (rcl_send_response(&service, &header.request_id, &service_response) != RCL_RET_OK) {
+    if (rcl_send_response(&service, &header, &service_response) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in send_response: %s", rcl_get_error_string().str);
       return -1;

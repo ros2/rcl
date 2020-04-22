@@ -206,7 +206,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     test_msgs__srv__BasicTypes_Request service_request;
     test_msgs__srv__BasicTypes_Request__init(&service_request);
     rmw_service_info_t header;
-    ret = rcl_take_request(&service, &header, &service_request);
+    ret = rcl_take_request_with_info(&service, &header, &service_request);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     EXPECT_EQ(1, service_request.uint8_value);
@@ -224,7 +224,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   test_msgs__srv__BasicTypes_Response__init(&client_response);
 
   rmw_service_info_t header;
-  ret = rcl_take_response(&client, &header, &client_response);
+  ret = rcl_take_response_with_info(&client, &header, &client_response);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(client_response.uint64_value, 3ULL);
   EXPECT_EQ(header.request_id.sequence_number, 1);

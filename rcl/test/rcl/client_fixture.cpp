@@ -219,7 +219,7 @@ int main(int argc, char ** argv)
       return -1;
     }
     rmw_service_info_t header;
-    if (rcl_take_response(&client, &header, &client_response) != RCL_RET_OK) {
+    if (rcl_take_response_with_info(&client, &header, &client_response) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in send response: %s", rcl_get_error_string().str);
       return -1;
