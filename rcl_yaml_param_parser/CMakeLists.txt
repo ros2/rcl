@@ -5,7 +5,6 @@ project(rcl_yaml_param_parser)
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(libyaml_vendor REQUIRED)
-find_package(yaml REQUIRED)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -26,7 +25,7 @@ add_library(
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-ament_target_dependencies(${PROJECT_NAME} "yaml" "rcutils")
+ament_target_dependencies(${PROJECT_NAME} "libyaml_vendor" "rcutils")
 
 # Set the visibility to hidden by default if possible
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -66,7 +65,7 @@ if(BUILD_TESTING)
 
 endif()
 
-ament_export_dependencies(ament_cmake)
+ament_export_dependencies(ament_cmake libyaml_vendor)
 ament_export_include_directories(include)
 install(
   DIRECTORY include/
