@@ -430,4 +430,3 @@ TEST_F(
       std::string(seq->data[0].string_value.data, seq->data[0].string_value.size));
   }
 }
-
