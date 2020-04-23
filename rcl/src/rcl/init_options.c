@@ -139,6 +139,14 @@ rcl_init_options_get_rmw_init_options(rcl_init_options_t * init_options)
   return &(init_options->impl->rmw_init_options);
 }
 
+const rcl_allocator_t *
+rcl_init_options_get_allocator(const rcl_init_options_t * init_options)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options, NULL);
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options->impl, NULL);
+  return &(init_options->impl->allocator);
+}
+
 #ifdef __cplusplus
 }
 #endif

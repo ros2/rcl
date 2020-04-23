@@ -131,16 +131,6 @@ rcl_init(
     goto fail;
   }
 
-  ret = rcl_logging_configure(&context->global_arguments, &allocator);
-  if (RCL_RET_OK != ret) {
-    fail_ret = ret;
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
-      "Failed to configure logging: %s",
-      rcutils_get_error_string().str);
-    goto fail;
-  }
-
   // Set the instance id.
   uint64_t next_instance_id = rcutils_atomic_fetch_add_uint64_t(&__rcl_next_unique_id, 1);
   if (0 == next_instance_id) {
@@ -259,13 +249,6 @@ rcl_shutdown(rcl_context_t * context)
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
-
-  rcl_ret_t rcl_ret = rcl_logging_fini();
-  RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
-    RCL_RET_OK != rcl_ret, ROS_PACKAGE_NAME,
-    "Failed to fini logging, rcl_ret_t: %i, rcl_error_str: %s", rcl_ret,
-    rcl_get_error_string().str);
-  rcl_reset_error();
 
   return RCL_RET_OK;
 }

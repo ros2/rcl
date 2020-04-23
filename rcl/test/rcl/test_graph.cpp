@@ -30,6 +30,7 @@
 
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
+#include "rcl/logging.h"
 #include "rcl/rcl.h"
 
 #include "rcutils/logging_macros.h"
@@ -66,6 +67,7 @@ public:
   void SetUp()
   {
     rcl_ret_t ret;
+    rcl_allocator_t allocator = rcl_get_default_allocator();
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -77,6 +79,10 @@ public:
     *this->old_context_ptr = rcl_get_zero_initialized_context();
     ret = rcl_init(0, nullptr, &init_options, this->old_context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_EQ(
+      RCL_RET_OK,
+      rcl_logging_configure(&this->old_context_ptr->global_arguments, &allocator)
+    ) << rcl_get_error_string().str;
     this->old_node_ptr = new rcl_node_t;
     *this->old_node_ptr = rcl_get_zero_initialized_node();
     const char * old_name = "old_node_name";
@@ -127,6 +133,7 @@ public:
     ret = rcl_context_fini(this->old_context_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     delete this->old_context_ptr;
+    EXPECT_EQ(RCL_RET_OK, rcl_logging_fini()) << rcl_get_error_string().str;
   }
 };
 
