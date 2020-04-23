@@ -263,6 +263,7 @@ rcl_take(
   // If message_info is NULL, use a place holder which can be discarded.
   rmw_message_info_t dummy_message_info;
   rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
+  *message_info_local = rmw_get_zero_initialized_message_info();
   // Call rmw_take_with_info.
   bool taken = false;
   rmw_ret_t ret = rmw_take_with_info(
@@ -298,6 +299,7 @@ rcl_take_serialized_message(
   // If message_info is NULL, use a place holder which can be discarded.
   rmw_message_info_t dummy_message_info;
   rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
+  *message_info_local = rmw_get_zero_initialized_message_info();
   // Call rmw_take_with_info.
   bool taken = false;
   rmw_ret_t ret = rmw_take_serialized_message_with_info(
@@ -335,6 +337,7 @@ rcl_take_loaned_message(
   // If message_info is NULL, use a place holder which can be discarded.
   rmw_message_info_t dummy_message_info;
   rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
+  *message_info_local = rmw_get_zero_initialized_message_info();
   // Call rmw_take_with_info.
   bool taken = false;
   rmw_ret_t ret = rmw_take_loaned_message_with_info(

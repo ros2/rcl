@@ -179,6 +179,12 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   //                probably using the count_subscriptions busy wait mechanism
   //                until then we will sleep for a short period of time
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+#ifdef RMW_TIMESTAMPS_SUPPORTED
+  rcl_time_point_value_t pre_publish_time;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_system_time_now(&pre_publish_time)) << " could not get system time failed";
+#endif
   {
     test_msgs__msg__BasicTypes msg;
     test_msgs__msg__BasicTypes__init(&msg);
@@ -197,9 +203,25 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     {
       test_msgs__msg__BasicTypes__fini(&msg);
     });
-    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+    rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+    ret = rcl_take(&subscription, &msg, &message_info, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(42, msg.int64_value);
+  #ifdef RMW_TIMESTAMPS_SUPPORTED
+    EXPECT_NE(0u, message_info.source_timestamp);
+    EXPECT_TRUE(pre_publish_time <= message_info.source_timestamp) <<
+      pre_publish_time << " > " << message_info.source_timestamp;
+  #ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
+    EXPECT_NE(0u, message_info.received_timestamp);
+    EXPECT_TRUE(pre_publish_time <= message_info.received_timestamp);
+    EXPECT_TRUE(message_info.source_timestamp <= message_info.received_timestamp);
+  #else
+    EXPECT_EQ(0u, message_info.received_timestamp);
+  #endif
+  #else
+    EXPECT_EQ(0u, message_info.source_timestamp);
+    EXPECT_EQ(0u, message_info.received_timestamp);
+  #endif
   }
 }
 
