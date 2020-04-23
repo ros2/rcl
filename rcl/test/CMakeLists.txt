@@ -206,13 +206,18 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
   if(rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR
-    rmw_implementation STREQUAL "rmw_fastrtps_dynamic_cpp" OR
-    rmw_implementation STREQUAL "rmw_cyclonedds_cpp")
+    rmw_implementation STREQUAL "rmw_fastrtps_dynamic_cpp")
     message(STATUS "Enabling message timestamp test for ${rmw_implementation}")
     target_compile_definitions(test_subscription${target_suffix}
-      PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1")
+      PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1" "RMW_RECEIVED_TIMESTAMP_SUPPORTED=1")
   else()
-    message(STATUS "Disabling message timestamp test for ${rmw_implementation}")
+    if(rmw_implementation STREQUAL "rmw_cyclonedds_cpp")
+      message(STATUS "Enabling only source timestamp test for ${rmw_implementation}")
+      target_compile_definitions(test_subscription${target_suffix}
+        PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1")
+    else()
+      message(STATUS "Disabling message timestamp test for ${rmw_implementation}")
+    endif()
   endif()
 
   rcl_add_custom_gtest(test_events${target_suffix}

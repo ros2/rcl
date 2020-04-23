@@ -211,9 +211,13 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     EXPECT_NE(0u, message_info.source_timestamp);
     EXPECT_TRUE(pre_publish_time <= message_info.source_timestamp) <<
       pre_publish_time << " > " << message_info.source_timestamp;
+  #ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
     EXPECT_NE(0u, message_info.received_timestamp);
     EXPECT_TRUE(pre_publish_time <= message_info.received_timestamp);
     EXPECT_TRUE(message_info.source_timestamp <= message_info.received_timestamp);
+  #else
+    EXPECT_EQ(0u, message_info.received_timestamp);
+  #endif
   #else
     EXPECT_EQ(0u, message_info.source_timestamp);
     EXPECT_EQ(0u, message_info.received_timestamp);
