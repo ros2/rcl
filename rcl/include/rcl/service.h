@@ -259,7 +259,6 @@ rcl_take_request(
   rmw_request_id_t * request_header,
   void * ros_request);
 
-
 /// Send a ROS response to a client using a service.
 /**
  * It is the job of the caller to ensure that the type of the `ros_response`

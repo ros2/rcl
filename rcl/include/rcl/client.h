@@ -299,7 +299,6 @@ rcl_take_response(
   rmw_request_id_t * request_header,
   void * ros_response);
 
-
 /// Get the name of the service that this client will request a response from.
 /**
  * This function returns the client's internal service name string.
