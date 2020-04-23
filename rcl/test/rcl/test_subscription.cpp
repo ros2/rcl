@@ -91,7 +91,7 @@ wait_for_established_subscription(
     ++iteration;
     ret = rcl_publisher_get_subscription_count(publisher, &subscription_count);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    if (subscription_count > 0) {
+    if (subscription_count == 1) {
       success = true;
       return;
     }
