@@ -228,5 +228,17 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(client_response.uint64_value, 3ULL);
   EXPECT_EQ(header.request_id.sequence_number, 1);
+#ifdef RMW_TIMESTAMPS_SUPPORTED
+  EXPECT_NE(0u, header.source_timestamp);
+#ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
+  EXPECT_NE(0u, header.received_timestamp);
+#else
+  EXPECT_EQ(0u, header.received_timestamp);
+#endif
+#else
+  EXPECT_EQ(0u, header.source_timestamp);
+  EXPECT_EQ(0u, header.received_timestamp);
+#endif
+
   test_msgs__srv__BasicTypes_Response__fini(&client_response);
 }
