@@ -78,6 +78,29 @@ public:
 };
 
 void
+wait_for_established_subscription(
+  const rcl_publisher_t * publisher,
+  size_t max_tries,
+  int64_t period_ms,
+  bool & success)
+{
+  size_t iteration = 0;
+  rcl_ret_t ret = RCL_RET_OK;
+  size_t subscription_count = 0;
+  do {
+    ++iteration;
+    ret = rcl_publisher_get_subscription_count(publisher, &subscription_count);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (subscription_count > 0) {
+      success = true;
+      return;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
+  } while (iteration < max_tries);
+  success = false;
+}
+
+void
 wait_for_subscription_to_be_ready(
   rcl_subscription_t * subscription,
   rcl_context_t * context,
@@ -175,10 +198,9 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   });
   rcl_reset_error();
 
-  // TODO(wjwwood): add logic to wait for the connection to be established
-  //                probably using the count_subscriptions busy wait mechanism
-  //                until then we will sleep for a short period of time
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  bool success;
+  wait_for_established_subscription(&publisher, 10, 100, success);
+  ASSERT_TRUE(success);
 #ifdef RMW_TIMESTAMPS_SUPPORTED
   rcl_time_point_value_t pre_publish_time;
   EXPECT_EQ(
@@ -193,7 +215,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__BasicTypes__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  bool success;
   wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
   ASSERT_TRUE(success);
   {
@@ -250,10 +271,9 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  // TODO(wjwwood): add logic to wait for the connection to be established
-  //                probably using the count_subscriptions busy wait mechanism
-  //                until then we will sleep for a short period of time
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  bool success;
+  wait_for_established_subscription(&publisher, 10, 100, success);
+  ASSERT_TRUE(success);
   const char * test_string = "testing";
   {
     test_msgs__msg__Strings msg;
@@ -263,7 +283,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__Strings__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  bool success;
   wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
   ASSERT_TRUE(success);
   {

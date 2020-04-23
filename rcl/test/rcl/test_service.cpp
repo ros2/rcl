@@ -18,6 +18,7 @@
 #include <string>
 #include <thread>
 
+#include "rcl/graph.h"
 #include "rcl/service.h"
 
 #include "rcl/rcl.h"
@@ -75,6 +76,30 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };
+
+void
+wait_for_server_to_be_available(
+  rcl_node_t * node,
+  rcl_client_t * client,
+  size_t max_tries,
+  int64_t period_ms,
+  bool & success)
+{
+  size_t iteration = 0;
+  bool is_ready = false;
+  rcl_ret_t ret = RCL_RET_OK;
+  do {
+    ++iteration;
+    ret = rcl_service_server_is_available(node, client, &is_ready);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (is_ready) {
+      success = true;
+      return;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
+  } while (iteration < max_tries);
+  success = false;
+}
 
 void
 wait_for_service_to_be_ready(
@@ -165,10 +190,9 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
-  // TODO(wjwwood): add logic to wait for the connection to be established
-  //                use count_services busy wait mechanism
-  //                until then we will sleep for a short period of time
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  bool success;
+  wait_for_server_to_be_available(this->node_ptr, &client, 10, 1000, success);
+  ASSERT_TRUE(success);
 
   // Initialize a request.
   test_msgs__srv__BasicTypes_Request client_request;
@@ -190,7 +214,6 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   test_msgs__srv__BasicTypes_Request__fini(&client_request);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  bool success;
   wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
   ASSERT_TRUE(success);
 
