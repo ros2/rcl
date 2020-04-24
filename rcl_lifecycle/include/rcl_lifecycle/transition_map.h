@@ -87,7 +87,7 @@ rcl_lifecycle_transition_map_fini(
   rcl_lifecycle_transition_map_t * transition_map,
   const rcl_allocator_t * allocator);
 
-/// Regiter a state
+/// Register a state
 /*
  * This function registers a new state in the transition map.
  *
@@ -99,9 +99,9 @@ rcl_lifecycle_transition_map_fini(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] map
+ * \param[in] map to be modified
  * \param[in] state the state to register
- * \param[in] allocator a valid allocator used to deinitialized the state machine
+ * \param[in] allocator a valid allocator used to register the state machine
  * \return `RCL_RET_OK` if the state was registered successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -126,9 +126,9 @@ rcl_lifecycle_register_state(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] transition_map
+ * \param[in] transition_map to be modified
  * \param[in] transition the transition to register
- * \param[in] allocator a valid allocator used to deinitialized the state machine
+ * \param[in] allocator a valid allocator used to register the state machine
  * \return `RCL_RET_OK` if the state was deinitialized successfully, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -176,7 +176,7 @@ rcl_lifecycle_get_state(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] transition_map
+ * \param[in] transition_map to be modified
  * \param[in] state_id used to get the label to search
  * \return pointer to a rcl_lifecycle_state_t or NULL if the state id doesn't exist
  */

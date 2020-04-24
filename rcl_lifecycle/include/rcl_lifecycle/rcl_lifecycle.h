@@ -103,8 +103,8 @@ rcl_lifecycle_state_init(
  * Lock-Free          | Yes
  *
  * \param[inout] state struct to be finalized
- * \param[in] allocator a valid allocator used to deinitialized the lifecycle state
- * \return `RCL_RET_OK` if the state was deinitialized successfully, or
+ * \param[in] allocator a valid allocator used to finalize the lifecycle state
+ * \return `RCL_RET_OK` if the state was finalized successfully, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -149,7 +149,7 @@ rcl_lifecycle_get_zero_initialized_transition();
  * \param[in] label label of the transition
  * \param[in] start the value where the transition is initialized
  * \param[in] goal the objetive of the transition
- * \param[in] allocator a valid allocator used to deinitialized the lifecycle state
+ * \param[in] allocator a valid allocator used to finalize the lifecycle state
  * \return `RCL_RET_OK` if the transition is initialized successfully, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
@@ -177,9 +177,9 @@ rcl_lifecycle_transition_init(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[inout] transition struct to be deinitialized
- * \param[in] allocator a valid allocator used to deinitialized the transition
- * \return `RCL_RET_OK` if the state was deinitialized successfully, or
+ * \param[inout] transition struct to be finalized
+ * \param[in] allocator a valid allocator used to finalize the transition
+ * \return `RCL_RET_OK` if the state was finalized successfully, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -257,10 +257,10 @@ rcl_lifecycle_state_machine_init(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[inout] state_machine struct to be deinitialized
+ * \param[inout] state_machine struct to be finalized
  * \param[in] node_handle valid (not finalized) handle to the node
- * \param[in] allocator a valid allocator used to deinitialized the state machine
- * \return `RCL_RET_OK` if the state was deinitialized successfully, or
+ * \param[in] allocator a valid allocator used to finalize the state machine
+ * \return `RCL_RET_OK` if the state was finalized successfully, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -345,7 +345,7 @@ rcl_lifecycle_get_transition_by_label(
 
 /// Trigger a state by id.
 /**
- * This function will trigger a transition base on the `id`. If the argument
+ * This function will trigger a transition based on the `id`. If the argument
  * `publish_notification` is `true` then a message will be published in the
  * ROS 2 network notifying the transition, if `false` no message will be published.
  *
@@ -361,7 +361,7 @@ rcl_lifecycle_get_transition_by_label(
  * \param[in] id identifier of the transition to be triggered
  * \param[in] publish_notification if the value is `true` a message will be published
  *    notifying the transition, otherwise no message will be published
- * \return `RCL_RET_OK` if the transition was trigger successfully, or
+ * \return `RCL_RET_OK` if the transition was triggered successfully, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -390,7 +390,7 @@ rcl_lifecycle_trigger_transition_by_id(
  * \param[in] label of the transition to be triggered
  * \param[in] publish_notification if the value is `true` a message will be published
  *    notifying the transition, otherwise no message will be published
- * \return `RCL_RET_OK` if the transition was trigger successfully, or
+ * \return `RCL_RET_OK` if the transition was triggered successfully, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
