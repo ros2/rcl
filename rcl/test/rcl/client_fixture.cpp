@@ -218,8 +218,8 @@ int main(int argc, char ** argv)
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Client never became ready");
       return -1;
     }
-    rmw_request_id_t header;
-    if (rcl_take_response(&client, &header, &client_response) != RCL_RET_OK) {
+    rmw_service_info_t header;
+    if (rcl_take_response_with_info(&client, &header, &client_response) != RCL_RET_OK) {
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME, "Error in send response: %s", rcl_get_error_string().str);
       return -1;

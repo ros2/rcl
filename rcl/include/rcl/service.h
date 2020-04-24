@@ -232,7 +232,7 @@ rcl_service_get_default_options(void);
  * <i>[1] only if required when filling the request, avoided for fixed sizes</i>
  *
  * \param[in] service the handle to the service from which to take
- * \param[inout] request_header ptr to the struct holding metadata about the request ID
+ * \param[inout] request_header ptr to the struct holding metadata about the request
  * \param[inout] ros_request type-erased ptr to an allocated ROS request message
  * \return `RCL_RET_OK` if the request was taken, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -242,6 +242,15 @@ rcl_service_get_default_options(void);
  *         in the middleware, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_take_request_with_info(
+  const rcl_service_t * service,
+  rmw_service_info_t * request_header,
+  void * ros_request);
+
+/// backwards compatibility version that takes a request_id only
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t

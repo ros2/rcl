@@ -276,9 +276,9 @@ rcl_service_get_rmw_handle(const rcl_service_t * service)
 }
 
 rcl_ret_t
-rcl_take_request(
+rcl_take_request_with_info(
   const rcl_service_t * service,
-  rmw_request_id_t * request_header,
+  rmw_service_info_t * request_header,
   void * ros_request)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service server taking service request");
@@ -306,6 +306,19 @@ rcl_take_request(
     return RCL_RET_SERVICE_TAKE_FAILED;
   }
   return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_take_request(
+  const rcl_service_t * service,
+  rmw_request_id_t * request_header,
+  void * ros_request)
+{
+  rmw_service_info_t header;
+  header.request_id = *request_header;
+  rcl_ret_t ret = rcl_take_request_with_info(service, &header, ros_request);
+  *request_header = header.request_id;
+  return ret;
 }
 
 rcl_ret_t

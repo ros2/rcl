@@ -205,15 +205,15 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     // Initialize a separate instance of the request and take the pending request.
     test_msgs__srv__BasicTypes_Request service_request;
     test_msgs__srv__BasicTypes_Request__init(&service_request);
-    rmw_request_id_t header;
-    ret = rcl_take_request(&service, &header, &service_request);
+    rmw_service_info_t header;
+    ret = rcl_take_request_with_info(&service, &header, &service_request);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     EXPECT_EQ(1, service_request.uint8_value);
     EXPECT_EQ(2UL, service_request.uint32_value);
     // Simulate a response callback by summing the request and send the response..
     service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
-    ret = rcl_send_response(&service, &header, &service_response);
+    ret = rcl_send_response(&service, &header.request_id, &service_response);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     test_msgs__srv__BasicTypes_Request__fini(&service_request);
   }
@@ -223,10 +223,22 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   test_msgs__srv__BasicTypes_Response client_response;
   test_msgs__srv__BasicTypes_Response__init(&client_response);
 
-  rmw_request_id_t header;
-  ret = rcl_take_response(&client, &header, &client_response);
+  rmw_service_info_t header;
+  ret = rcl_take_response_with_info(&client, &header, &client_response);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(client_response.uint64_value, 3ULL);
-  EXPECT_EQ(header.sequence_number, 1);
+  EXPECT_EQ(header.request_id.sequence_number, 1);
+#ifdef RMW_TIMESTAMPS_SUPPORTED
+  EXPECT_NE(0u, header.source_timestamp);
+#ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
+  EXPECT_NE(0u, header.received_timestamp);
+#else
+  EXPECT_EQ(0u, header.received_timestamp);
+#endif
+#else
+  EXPECT_EQ(0u, header.source_timestamp);
+  EXPECT_EQ(0u, header.received_timestamp);
+#endif
+
   test_msgs__srv__BasicTypes_Response__fini(&client_response);
 }
