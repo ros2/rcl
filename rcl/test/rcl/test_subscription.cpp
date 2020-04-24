@@ -779,14 +779,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     ret = rcl_take_serialized_message(&subscription, &serialized_msg_rcv, nullptr, nullptr);
     ASSERT_EQ(RMW_RET_OK, ret);
 
-    // Compare serialized version
-    for (size_t i = 0; i < serialized_msg_rcv.buffer_length; ++i) {
-      EXPECT_EQ(serialized_msg.buffer[i], serialized_msg_rcv.buffer[i]);
-    }
-
-    // This is the test that I'd like to get working
-    // The rcv decoded string does not match the original one
-    // And, in fact, is not the same for each rmw vendor
     test_msgs__msg__Strings msg_rcv;
     test_msgs__msg__Strings__init(&msg_rcv);
     ret = rmw_deserialize(&serialized_msg_rcv, ts, &msg_rcv);
