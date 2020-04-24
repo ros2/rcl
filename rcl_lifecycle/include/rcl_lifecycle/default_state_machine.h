@@ -39,31 +39,31 @@ RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_transition_error_label;
 /// Initialize a default state machine
 /*
  * This function initializes a default state machine. It registers all: primary states,
- * transition states, transtions and the initial state. The primary state is unconfigured.
+ * transition states, transitions and the initial state. The primary state is unconfigured.
  *
  * States: unknown, unconfigured, inactive, active and finalized.
  * Transition states: configuring, cleaningup, activating, deactivating, errorprocessing
  *                    and shuttingdown.
  * Transitions:
  *    - unconfigured to configuring
+ *    - unconfigured to shuttingdown
  *    - configuring to inactive
  *    - configuring to unconfigured
  *    - configuring to errorprocessing
+ *    - inactive to activating
  *    - inactive to cleaningup
+ *    - inactive to shuttingdown 
  *    - cleaningup to unconfigured
  *    - cleaningup to inactive
  *    - cleaniningup to errorprocessing
- *    - inactive to activating
  *    - activating to active
  *    - activating to inactive
  *    - activating to errorprocessing
  *    - active to deactivating
+ *    - active to shuttingdown
  *    - deactivating to inactive
  *    - deactivating to active
  *    - deactivating to errorprocessing
- *    - unconfigured to shuttingdown
- *    - inactive to shuttingdown
- *    - active to shuttingdown
  *    - shutting down to finalized
  *    - shutting down to finalized
  *    - shutting down to errorprocessing

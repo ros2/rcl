@@ -102,7 +102,7 @@ rcl_lifecycle_state_init(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[inout] state struct to be deinitialized
+ * \param[inout] state struct to be finalized
  * \param[in] allocator a valid allocator used to deinitialized the lifecycle state
  * \return `RCL_RET_OK` if the state was deinitialized successfully, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.

@@ -114,7 +114,7 @@ rcl_lifecycle_register_state(
   rcl_lifecycle_state_t state,
   const rcl_allocator_t * allocator);
 
-/// Regiter a transition
+/// Register a transition
 /*
  * This function registers a new transition in the transition map.
  *
@@ -177,7 +177,7 @@ rcl_lifecycle_get_state(
  * Lock-Free          | Yes
  *
  * \param[in] transition_map
- * \param[in] state_id
+ * \param[in] state_id used to get the label to search
  * \return pointer to a rcl_lifecycle_state_t or NULL if the state id doesn't exist
  */
 RCL_LIFECYCLE_PUBLIC
