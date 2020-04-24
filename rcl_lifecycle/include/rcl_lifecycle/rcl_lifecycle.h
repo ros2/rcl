@@ -92,7 +92,7 @@ rcl_lifecycle_state_init(
 /**
  *
  * Calling this will set the rcl_lifecycle_state_t struct into the an unitialized state that is
- * functionally the same as before rcl_lifecycle_state_init was called. This function make the 
+ * functionally the same as before rcl_lifecycle_state_init was called. This function make the
  * rcl_lifecycle_state_t invalid.
  *
  * <hr>
@@ -168,7 +168,7 @@ rcl_lifecycle_transition_init(
 /// Finalize a rcl_lifecycle_transition_t.
 /**
  * Calling this will set the rcl_lifecycle_transition_t struct into the an unitialized state that is
- * functionally the same as before rcl_lifecycle_transition_init was called. This function make the 
+ * functionally the same as before rcl_lifecycle_transition_init was called. This function make the
  * rcl_lifecycle_transition_t invalid.
  *
  * <hr>
@@ -249,7 +249,7 @@ rcl_lifecycle_state_machine_init(
 /// Finalize a rcl_lifecycle_state_machine_t.
 /**
  * Calling this will set the rcl_lifecycle_state_machine_t struct into the an unitialized state that is
- * functionally the same as before rcl_lifecycle_state_machine_init was called. This function make the 
+ * functionally the same as before rcl_lifecycle_state_machine_init was called. This function make the
  * rcl_lifecycle_state_machine_t invalid.
  *
  * <hr>

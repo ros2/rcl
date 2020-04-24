@@ -52,7 +52,7 @@ RCL_LIFECYCLE_PUBLIC extern const char * rcl_lifecycle_transition_error_label;
  *    - configuring to errorprocessing
  *    - inactive to activating
  *    - inactive to cleaningup
- *    - inactive to shuttingdown 
+ *    - inactive to shuttingdown
  *    - cleaningup to unconfigured
  *    - cleaningup to inactive
  *    - cleaniningup to errorprocessing
