@@ -65,7 +65,7 @@ rcl_lifecycle_transition_map_is_initialized(
 /*
  * Calling this will set the rcl_lifecycle_transition_map_t struct into the an unitialized state that is
  * functionally the same as before rcl_lifecycle_register_state or
- * rcl_lifecycle_register_transition was called.
+ * rcl_lifecycle_register_transition was called. This function make the rcl_lifecycle_transition_map_t invalid.
  *
  * <hr>
  * Attribute          | Adherence
