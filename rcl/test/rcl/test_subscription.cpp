@@ -290,7 +290,7 @@ TEST_F(
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   const char * topic = "rcl_test_subscription_nominal_string_sequence_chatter";
-    rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -300,7 +300,7 @@ TEST_F(
   });
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-    ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -320,7 +320,7 @@ TEST_F(
     ret = rcl_publish(&publisher, &msg, nullptr);
     ret = rcl_publish(&publisher, &msg, nullptr);
     test_msgs__msg__Strings__fini(&msg);
-        ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
   bool success;
   wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
@@ -507,7 +507,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   const char * topic = "rcl_loan";
-    rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
