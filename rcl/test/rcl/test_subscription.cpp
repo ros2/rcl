@@ -720,29 +720,6 @@ TEST_F(
   }
 }
 
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_get_options) {
-  rcl_ret_t ret;
-  const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic = "test_get_options";
-  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-
-  const rcl_subscription_options_t * get_sub_options = rcl_subscription_get_options(&subscription);
-  ASSERT_EQ(subscription_options.qos.history, get_sub_options->qos.history);
-  ASSERT_EQ(subscription_options.qos.depth, get_sub_options->qos.depth);
-  ASSERT_EQ(subscription_options.qos.durability, get_sub_options->qos.durability);
-
-  ASSERT_EQ(NULL, rcl_subscription_get_options(nullptr));
-}
-
 /* Basic nominal test of a subscription with take_serialize msg
  */
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_serialized) {
