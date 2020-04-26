@@ -10,8 +10,6 @@ find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 
-include_directories(include)
-
 # Default to C11
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 11)
@@ -41,6 +39,10 @@ add_library(
   ${PROJECT_NAME}
   ${rcl_lifecycle_sources})
 
+target_include_directories(${PROJECT_NAME} PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+
 # specific order: dependents before dependencies
 ament_target_dependencies(rcl_lifecycle
   "lifecycle_msgs"
@@ -54,7 +56,7 @@ rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(rcl_lifecycle PRIVATE "RCL_LIFECYCLE_BUILDING_DLL")
 
-install(TARGETS rcl_lifecycle
+install(TARGETS rcl_lifecycle EXPORT rcl_lifecycle
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
@@ -101,6 +103,7 @@ endif()
 # specific order: dependents before dependencies
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
+ament_export_targets(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(lifecycle_msgs)
 ament_export_dependencies(rcl)
