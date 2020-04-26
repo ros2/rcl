@@ -140,6 +140,7 @@ wait_for_subscription_to_be_ready(
     for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
       if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
         success = true;
+        ret = rcl_wait_set_fini(&wait_set);
         return ret;
       }
     }

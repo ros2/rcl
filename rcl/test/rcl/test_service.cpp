@@ -140,6 +140,7 @@ wait_for_service_to_be_ready(
     for (size_t i = 0; i < wait_set.size_of_services; ++i) {
       if (wait_set.services[i] && wait_set.services[i] == service) {
         success = true;
+        ret = rcl_wait_set_fini(&wait_set);
         return ret;
       }
     }
