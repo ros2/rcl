@@ -77,7 +77,7 @@ public:
   }
 };
 
-void
+rcl_ret_t
 wait_for_established_subscription(
   const rcl_publisher_t * publisher,
   size_t max_tries,
@@ -87,20 +87,24 @@ wait_for_established_subscription(
   size_t iteration = 0;
   rcl_ret_t ret = RCL_RET_OK;
   size_t subscription_count = 0;
-  do {
+  while (iteration < max_tries) {
     ++iteration;
     ret = rcl_publisher_get_subscription_count(publisher, &subscription_count);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      success = false;
+      return ret;
+    }
     if (subscription_count == 1) {
       success = true;
-      return;
+      return ret;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
-  } while (iteration < max_tries);
+  }
   success = false;
+  return ret;
 }
 
-void
+rcl_ret_t
 wait_for_subscription_to_be_ready(
   rcl_subscription_t * subscription,
   rcl_context_t * context,
@@ -111,32 +115,38 @@ wait_for_subscription_to_be_ready(
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
     rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, 0, context, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
+  if (ret != RCL_RET_OK) {
+    success = false;
+    return ret;
+  }
   size_t iteration = 0;
-  do {
+  while (iteration < max_tries) {
     ++iteration;
     ret = rcl_wait_set_clear(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      break;
+    }
     ret = rcl_wait_set_add_subscription(&wait_set, subscription, NULL);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      break;
+    }
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
     if (ret == RCL_RET_TIMEOUT) {
       continue;
     }
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      break;
+    }
     for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
       if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
         success = true;
-        return;
+        return ret;
       }
     }
-  } while (iteration < max_tries);
+  }
   success = false;
+  ret = rcl_wait_set_fini(&wait_set);
+  return ret;
 }
 
 /* Test subscription init, fini and is_valid functions
@@ -199,7 +209,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   rcl_reset_error();
 
   bool success;
-  wait_for_established_subscription(&publisher, 10, 100, success);
+  ret = wait_for_established_subscription(&publisher, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
 #ifdef RMW_TIMESTAMPS_SUPPORTED
   rcl_time_point_value_t pre_publish_time;
@@ -215,7 +226,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__BasicTypes__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ret = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
   {
     test_msgs__msg__BasicTypes msg;
@@ -272,7 +284,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   bool success;
-  wait_for_established_subscription(&publisher, 10, 100, success);
+  ret = wait_for_established_subscription(&publisher, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
   const char * test_string = "testing";
   {
@@ -283,7 +296,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__Strings__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ret = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
   {
     test_msgs__msg__Strings msg;
@@ -326,10 +340,10 @@ TEST_F(
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  // TODO(wjwwood): add logic to wait for the connection to be established
-  //                probably using the count_subscriptions busy wait mechanism
-  //                until then we will sleep for a short period of time
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  bool success;
+  ret = wait_for_established_subscription(&publisher, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_TRUE(success);
   const char * test_string = "testing";
   {
     test_msgs__msg__Strings msg;
@@ -341,8 +355,8 @@ TEST_F(
     test_msgs__msg__Strings__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  bool success;
-  wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ret = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
   auto allocator = rcutils_get_default_allocator();
   {
@@ -492,13 +506,16 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   });
   rcl_reset_error();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  bool success;
+  ret = wait_for_established_subscription(&publisher, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_TRUE(success);
   {
     ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  bool success;
-  wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ret = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
   {
     rcl_serialized_message_t serialized_msg_rcv = rmw_get_zero_initialized_serialized_message();
@@ -543,10 +560,10 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  // TODO(wjwwood): add logic to wait for the connection to be established
-  //                probably using the count_subscriptions busy wait mechanism
-  //                until then we will sleep for a short period of time
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  bool success;
+  ret = wait_for_established_subscription(&publisher, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_TRUE(success);
   const char * test_string = "testing";
   {
     test_msgs__msg__Strings msg;
@@ -556,8 +573,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     test_msgs__msg__Strings__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  bool success;
-  wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ret = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
   {
     test_msgs__msg__Strings msg;

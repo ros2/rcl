@@ -77,7 +77,7 @@ public:
   }
 };
 
-void
+rcl_ret_t
 wait_for_server_to_be_available(
   rcl_node_t * node,
   rcl_client_t * client,
@@ -88,20 +88,23 @@ wait_for_server_to_be_available(
   size_t iteration = 0;
   bool is_ready = false;
   rcl_ret_t ret = RCL_RET_OK;
-  do {
+  while (iteration < max_tries) {
     ++iteration;
     ret = rcl_service_server_is_available(node, client, &is_ready);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      break;
+    }
     if (is_ready) {
       success = true;
-      return;
+      return ret;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
-  } while (iteration < max_tries);
+  }
   success = false;
+  return ret;
 }
 
-void
+rcl_ret_t
 wait_for_service_to_be_ready(
   rcl_service_t * service,
   rcl_context_t * context,
@@ -112,32 +115,38 @@ wait_for_service_to_be_ready(
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
     rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, 0, context, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
+  if (ret != RCL_RET_OK) {
+    success = false;
+    return ret;
+  }
   size_t iteration = 0;
-  do {
+  while (iteration < max_tries) {
     ++iteration;
     ret = rcl_wait_set_clear(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      break;
+    }
     ret = rcl_wait_set_add_service(&wait_set, service, NULL);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      break;
+    }
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
     if (ret == RCL_RET_TIMEOUT) {
       continue;
     }
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      break;
+    }
     for (size_t i = 0; i < wait_set.size_of_services; ++i) {
       if (wait_set.services[i] && wait_set.services[i] == service) {
         success = true;
-        return;
+        return ret;
       }
     }
-  } while (iteration < max_tries);
+  }
   success = false;
+  ret = rcl_wait_set_fini(&wait_set);
+  return ret;
 }
 
 /* Basic nominal test of a service.
@@ -191,7 +200,8 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   });
 
   bool success;
-  wait_for_server_to_be_available(this->node_ptr, &client, 10, 1000, success);
+  ret = wait_for_server_to_be_available(this->node_ptr, &client, 10, 1000, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
 
   // Initialize a request.
@@ -214,7 +224,8 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   test_msgs__srv__BasicTypes_Request__fini(&client_request);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
+  ret = wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(success);
 
   // This scope simulates the service responding in a different context so that we can
@@ -257,7 +268,9 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     test_msgs__srv__BasicTypes_Request__fini(&service_request);
   }
-  wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
+  ret = wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_FALSE(success);
 
   // Initialize the response owned by the client and take the response.
   test_msgs__srv__BasicTypes_Response client_response;
