@@ -556,7 +556,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       ASSERT_EQ(
         std::string(test_string),
-        std::string(*msg_loaned->string_value.data, msg_loaned->string_value.size));
+        std::string(msg_loaned->string_value.data, msg_loaned->string_value.size));
     } else {
       ret = rcl_take(&subscription, &msg, nullptr, nullptr);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
