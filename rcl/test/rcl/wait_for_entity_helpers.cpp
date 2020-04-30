@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "common.hpp"
+#include "wait_for_entity_helpers.hpp"
 
 #include <chrono>
 #include <thread>
@@ -175,7 +175,7 @@ wait_for_established_subscription(
         rcl_get_error_string().str);
       return false;
     }
-    if (subscription_count == 1) {
+    if (subscription_count > 0) {
       return true;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));

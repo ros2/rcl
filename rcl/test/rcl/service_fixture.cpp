@@ -25,7 +25,7 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
-#include "common.hpp"
+#include "wait_for_entity_helpers.hpp"
 
 
 int main(int argc, char ** argv)

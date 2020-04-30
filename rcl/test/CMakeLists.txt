@@ -191,7 +191,7 @@ function(test_target_function)
   )
 
   rcl_add_custom_gtest(test_service${target_suffix}
-    SRCS rcl/test_service.cpp rcl/common.cpp
+    SRCS rcl/test_service.cpp rcl/wait_for_entity_helpers.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
@@ -199,7 +199,7 @@ function(test_target_function)
   )
 
   rcl_add_custom_gtest(test_subscription${target_suffix}
-    SRCS rcl/test_subscription.cpp rcl/common.cpp
+    SRCS rcl/test_subscription.cpp rcl/wait_for_entity_helpers.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
@@ -259,13 +259,13 @@ function(test_target_function)
   # Launch tests
 
   rcl_add_custom_executable(service_fixture${target_suffix}
-    SRCS rcl/service_fixture.cpp rcl/common.cpp
+    SRCS rcl/service_fixture.cpp rcl/wait_for_entity_helpers.cpp
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_executable(client_fixture${target_suffix}
-    SRCS rcl/client_fixture.cpp rcl/common.cpp
+    SRCS rcl/client_fixture.cpp rcl/wait_for_entity_helpers.cpp
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )

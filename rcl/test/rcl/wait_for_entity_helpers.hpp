@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__COMMON_HPP_
-#define RCL__COMMON_HPP_
+#ifndef RCL__WAIT_FOR_ENTITY_HELPERS_HPP_
+#define RCL__WAIT_FOR_ENTITY_HELPERS_HPP_
 
 #include "rcl/client.h"
 #include "rcl/service.h"
 #include "rcl/rcl.h"
 
+/// Wait a server to be available for a client with a node
+/// by a maximum trying times and a milliseconds period
 bool
 wait_for_server_to_be_available(
   rcl_node_t * node,
@@ -26,6 +28,8 @@ wait_for_server_to_be_available(
   size_t max_tries,
   int64_t period_ms);
 
+/// Wait a client to be ready with a context
+/// by a maximum trying times and a milliseconds period
 bool
 wait_for_client_to_be_ready(
   rcl_client_t * client,
@@ -33,6 +37,8 @@ wait_for_client_to_be_ready(
   size_t max_tries,
   int64_t period_ms);
 
+/// Wait a service to be ready with a context
+/// by a maximum trying times and a milliseconds period
 bool
 wait_for_service_to_be_ready(
   rcl_service_t * service,
@@ -40,12 +46,16 @@ wait_for_service_to_be_ready(
   size_t max_tries,
   int64_t period_ms);
 
+/// Wait a publisher to get one or more established subscriptions
+/// by a maximum trying times and a milliseconds period
 bool
 wait_for_established_subscription(
   const rcl_publisher_t * publisher,
   size_t max_tries,
   int64_t period_ms);
 
+/// Wait a subscription to be ready with a context
+/// by a maximum trying times and a milliseconds period
 bool
 wait_for_subscription_to_be_ready(
   rcl_subscription_t * subscription,
@@ -53,4 +63,4 @@ wait_for_subscription_to_be_ready(
   size_t max_tries,
   int64_t period_ms);
 
-#endif  // RCL__COMMON_HPP_
+#endif  // RCL__WAIT_FOR_ENTITY_HELPERS_HPP_
