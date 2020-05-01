@@ -46,11 +46,11 @@ This package uses DCO as its confirmation of contributor origin policy. More inf
 
 ### Peer Review Policy [2.iii]
 
-All pull request will be peer-reviewed, check [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#change-control-process) for additional information.
+All pull requests will be peer-reviewed, check [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#change-control-process) for additional information.
 
 ### Continuous Integration [2.iv]
 
-All pull request must pass CI on all [tier 1 platforms](https://www.ros.org/reps/rep-2000.html#support-tiers).
+All pull requests must pass CI on all [tier 1 platforms](https://www.ros.org/reps/rep-2000.html#support-tiers).
 
 Currently nightly results can be seen here:
 * [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl/)
@@ -94,7 +94,7 @@ Most features in `rcl` has corresponding tests which simulate typical usage, and
 New features are required to have tests before being added.
 Currently nightly test results can be seen here:
 * [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl/)
-* [linux-arm64_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl/)
+* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl/)
 * [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl/)
 * [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl/)
 
@@ -127,7 +127,7 @@ Current coverage statistics can be viewed (77%) [here](https://ci.ros2.org/job/c
 
 Currently nightly test results can be seen here:
 * [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl/)
-* [linux-arm64_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl/)
+* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl/)
 * [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl/)
 * [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl/)
 
