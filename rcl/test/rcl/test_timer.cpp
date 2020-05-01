@@ -117,11 +117,11 @@ TEST_F(TestTimerFixture, test_two_timers) {
   rcl_timer_t timer2 = rcl_get_zero_initialized_timer();
 
   ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(5), nullptr, rcl_get_default_allocator());
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(50), nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_timer_init(
-    &timer2, &clock, this->context_ptr, RCL_MS_TO_NS(20), nullptr, rcl_get_default_allocator());
+    &timer2, &clock, this->context_ptr, RCL_MS_TO_NS(1000), nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
@@ -141,7 +141,7 @@ TEST_F(TestTimerFixture, test_two_timers) {
     ret = rcl_wait_set_fini(&wait_set);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(10));
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   uint8_t nonnull_timers = 0;
   for (uint8_t i = 0; i < wait_set.size_of_timers; i++) {
@@ -174,11 +174,11 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
   rcl_timer_t timer2 = rcl_get_zero_initialized_timer();
 
   ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(5), nullptr, rcl_get_default_allocator());
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(50), nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_timer_init(
-    &timer2, &clock, this->context_ptr, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
+    &timer2, &clock, this->context_ptr, RCL_MS_TO_NS(1000), nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
@@ -198,7 +198,7 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
     ret = rcl_wait_set_fini(&wait_set);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(20));
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   uint8_t nonnull_timers = 0;
   for (uint8_t i = 0; i < wait_set.size_of_timers; i++) {
@@ -230,7 +230,7 @@ TEST_F(TestTimerFixture, test_timer_not_ready) {
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
 
   ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(5), nullptr, rcl_get_default_allocator());
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(1000), nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
@@ -247,7 +247,7 @@ TEST_F(TestTimerFixture, test_timer_not_ready) {
     ret = rcl_wait_set_fini(&wait_set);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(1));
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
   EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
   uint8_t nonnull_timers = 0;
   for (uint8_t i = 0; i < wait_set.size_of_timers; i++) {
