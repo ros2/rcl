@@ -28,7 +28,7 @@ All installed headers are in the [`include`](./include/rcl) directory of the pac
 
 ### ABI Stability Policy [1.v]
 
-`rcl` contains C++ code and therefore must be concerned with ABI stability, and will maintain ABI stability within a ROS distribution.
+`rcl` contains C code and therefore must be concerned with ABI stability, and will maintain ABI stability within a ROS distribution.
 
 ### ABI and ABI Stability Within a Released ROS Distribution [1.vi]
 
@@ -90,7 +90,7 @@ There is an automated test which runs a linter that ensures each file has at lea
 
 ### Feature Testing [4.i]
 
-Most features in `rcl` has corresponding tests which simulate typical usage, and they are located in the [`test`](./test) directory.
+Most features in `rcl` have corresponding tests which simulate typical usage, and they are located in the [`test`](./test) directory.
 New features are required to have tests before being added.
 Currently nightly test results can be seen here:
 * [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl/)
@@ -119,7 +119,7 @@ Current coverage statistics can be viewed (77%) [here](https://ci.ros2.org/job/c
 
 ### Performance [4.iv]
 
-`rcl` does not conduct performance tests. It is not yet defined if this package requires performance testing and how addresses this topic.
+`rcl` does not conduct performance tests.
 
 ### Linters and Static Analysis [4.v]
 
