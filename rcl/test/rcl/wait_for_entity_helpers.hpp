@@ -19,8 +19,8 @@
 #include "rcl/service.h"
 #include "rcl/rcl.h"
 
-/// Wait a server to be available for a client with a node
-/// by a maximum trying times and a milliseconds period
+/// Wait for a server to be available for `client`, by trying at most `max_tries` times
+/// with a `period_ms` period.
 bool
 wait_for_server_to_be_available(
   rcl_node_t * node,
@@ -28,8 +28,8 @@ wait_for_server_to_be_available(
   size_t max_tries,
   int64_t period_ms);
 
-/// Wait a client to be ready with a context
-/// by a maximum trying times and a milliseconds period
+/// Wait for `client` to be ready, i.e. a response is available to be handled.
+/// It's tried at most `max_tries` times with a period of `period_ms`.
 bool
 wait_for_client_to_be_ready(
   rcl_client_t * client,
@@ -37,8 +37,8 @@ wait_for_client_to_be_ready(
   size_t max_tries,
   int64_t period_ms);
 
-/// Wait a service to be ready with a context
-/// by a maximum trying times and a milliseconds period
+/// Wait for service to be ready, i.e. a request is available to be handled.
+/// It's tried at most `max_tries` times with a period of `period_ms`.
 bool
 wait_for_service_to_be_ready(
   rcl_service_t * service,
@@ -46,16 +46,16 @@ wait_for_service_to_be_ready(
   size_t max_tries,
   int64_t period_ms);
 
-/// Wait a publisher to get one or more established subscriptions
-/// by a maximum trying times and a milliseconds period
+/// Wait for a publisher to get one or more established subscriptions
+/// by trying at most `max_tries` times with a `period_ms` period.
 bool
 wait_for_established_subscription(
   const rcl_publisher_t * publisher,
   size_t max_tries,
   int64_t period_ms);
 
-/// Wait a subscription to be ready with a context
-/// by a maximum trying times and a milliseconds period
+/// Wait a subscription to be ready, i.e. a message is ready to be handled,
+/// by trying at least `max_tries` times with a `period_ms` period.
 bool
 wait_for_subscription_to_be_ready(
   rcl_subscription_t * subscription,
