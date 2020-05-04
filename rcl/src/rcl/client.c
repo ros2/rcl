@@ -303,6 +303,8 @@ rcl_take_response_with_info(
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_response, RCL_RET_INVALID_ARGUMENT);
 
   bool taken = false;
+  request_header->source_timestamp = 0;
+  request_header->received_timestamp = 0;
   if (rmw_take_response(
       client->impl->rmw_handle, request_header, ros_response, &taken) != RMW_RET_OK)
   {
