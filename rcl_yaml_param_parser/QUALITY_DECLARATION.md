@@ -48,7 +48,7 @@ Following the recommended guidelines for ROS Core packages, all pull requests mu
 
 ### Continuous Integration [2.iv]
 
-All pull requests must pass CI on all [tier 1 platforms](https://www.ros.org/reps/rep-2000.html#support-tiers)
+All pull requests must pass CI on all [tier 1 platforms](https://www.ros.org/reps/rep-2000.html#support-tiers).
 
 ### Documentation Policy [2.v]
 
@@ -70,7 +70,7 @@ The license for `rcl_yaml_param_parser` is Apache 2.0, and a summary is in each 
 
 There is an automated test which runs a linter that ensures each file has a license statement.
 
-Most recent test results can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_yaml_param_parser/copyright/)
+The most recent test results can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_yaml_param_parser/copyright/).
 
 ### Copyright Statements [3.iv]
 
@@ -134,4 +134,4 @@ Currently nightly results can be seen here:
 
 ## Vulnerability Disclosure Policy [7.i]
 
-This package does not yet have a Vulnerability Disclosure Policy
+This package does not yet have a Vulnerability Disclosure Policy.
