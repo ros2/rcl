@@ -66,7 +66,7 @@ All pull requests must resolve related documentation changes before merging.
 
 ### Feature Documentation [3.i]
 
-`rcl` does not have a documented feature list.
+`rcl` provides the main elements of its API listed using doxygen. Refer to the [ROS2 concepts](https://index.ros.org/doc/ros2/Concepts/) and [ROS2 Client Libraries](https://index.ros.org/doc/ros2/Concepts/ROS-2-Client-Libraries/) pages for reference of elements covered by this package.
 
 ### Public API Documentation [3.ii]
 
