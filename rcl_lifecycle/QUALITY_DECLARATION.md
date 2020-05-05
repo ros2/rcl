@@ -108,17 +108,44 @@ Results of the nightly linter tests can be found [here](https://ci.ros2.org/view
 
 ## Dependencies [5]
 
-### Direct Runtime ROS Dependencies [5.i]/[5.ii]
-
-`rcl_lifecycle` has the following runtime ROS dependencies:
-* `lifecycle_msgs`
-* `rcl`
-* `rcutils`
-* `rmw`
-* `rosidl_runtime_c`
+Below are evaluations of each of `rcl_lifecycle`'s run-time and build-time dependencies that have been determined to influence the quality.
 
 It has several "buildtool" dependencies, which do not affect the resulting quality of the package, because they do not contribute to the public library API.
 It also has several test dependencies, which do not affect the resulting quality of the package, because they are only used to build and run the test code.
+
+### Direct Runtime ROS Dependencies [5.i]/[5.ii]
+
+`rcl_lifecycle` has the following runtime ROS dependencies:
+
+#### `lifecycle_msgs`
+
+`lifecycle_msgs` provides the message interfaces for communication.
+
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/master/lifecycle_msgs/QUALITY_DECLARATION.md).
+
+#### `rcl`
+
+`rcl` is the ROS 2 client library in C.
+
+It is **Quality Level 4**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION).
+
+#### `rcutils`
+
+`rcutils` provides commonly used functionality in C.
+
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
+
+#### `rmw`
+
+`rmw` is the ROS 2 middleware library.
+
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md).
+
+#### `rosidl_runtime_c`
+
+`rosidl_runtime_c` provides runtime functionality for rosidl message and service interfaces.
+
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_c/QUALITY_DECLARATION.md).
 
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 

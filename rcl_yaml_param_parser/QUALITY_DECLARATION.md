@@ -106,19 +106,35 @@ Results of the nightly linter tests can be found [here](https://ci.ros2.org/view
 
 ## Dependencies [5]
 
-### Direct Runtime ROS Dependencies [5.i]/[5.ii]
-
-`rcl_yaml_param_parser` has the following runtime ROS dependencies:
-* `rcutils`
-* `libyaml_vendor`
+Below are evaluations of each of `rcl_yaml_param_parser`'s run-time and build-time dependencies that have been determined to influence the quality.
 
 It has several "buildtool" dependencies, which do not affect the resulting quality of the package, because they do not contribute to the public library API.
 It also has several test dependencies, which do not affect the resulting quality of the package, because they are only used to build and run the test code.
 
+### Direct Runtime ROS Dependencies [5.i]/[5.ii]
+
+#### `rcutils`
+
+`rcutils` provides commonly used functionality in C.
+
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
+
+#### `libyaml_vendor`
+
+`libyaml_vendor` is a vendor package for the libyaml C library.
+
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/libyaml_vendor/blob/master/QUALITY_DECLARATION.md).
+
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 
 `rcl_yaml_param_parser` has the following runtime non-ROS dependencies.
-* `libyaml`
+
+#### `libyaml`
+
+`libyaml` is a YAML parsing library written in C.
+
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/libyaml_vendor/blob/master/libyaml_q_declaration.md).
+
 
 ## Platform Support [6]
 
