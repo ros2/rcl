@@ -102,7 +102,6 @@ Currently nightly test results can be seen here:
 
 Most of the functionality of the declared API in this package is covered in its unit tests. Currently it has a line coverage of [77%](https://ci.ros2.org/job/ci_linux_coverage/85/cobertura/src_ros2_rcl_rcl_src_rcl/).
 
-
 ### Coverage [4.iii]
 
 `rcl` follows the recommendations for ROS Core packages in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#code-coverage), and opts to use line coverage instead of branch coverage.
@@ -115,7 +114,6 @@ This includes:
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
 Current coverage statistics can be viewed (77%) [here](https://ci.ros2.org/job/ci_linux_coverage/85/cobertura/src_ros2_rcl_rcl_src_rcl/). Current coverage statistics need to be improved to reach a higher quality level.
-
 
 ### Performance [4.iv]
 
@@ -140,49 +138,49 @@ It also has several test dependencies, which do not affect the resulting quality
 
 ### Direct Runtime ROS Dependencies [5.i]
 
-### `rmw`
+#### `rmw`
 
 The `rmw` package provides the API used by `rcl` to interact with the underlying middleware in an abstract way.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rmw/rmw/QUALITY_DECLARATION.md).
 
-### `rcl_interfaces`
+#### `rcl_interfaces`
 
 The `rcl_interfaces` package provides some common ROS Message and ROS Service types which are used to implement certain client library features.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/master/rcl_interfaces/QUALITY_DECLARATION.md).
 
-### `rcl_logging_spdlog`
+#### `rcl_logging_spdlog`
 
 The `rcl_logging_spdlog` package provides the default logging implementation by wrapping the `spdlog` library.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl_logging/rcl_logging_spdlog/Quality_Declaration.md).
 
-### `rcl_yaml_param_parser`
+#### `rcl_yaml_param_parser`
 
 The `rcl_yaml_param_parser` package provides an API that is used to parse YAML configuration files which may be used to configure ROS and specific nodes.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl/tree/master/rcl_yaml_param_parser/Quality_Declaration.md).
 
-### `rcutils`
+#### `rcutils`
 
 The `rcutils` package provides an API which contains common utilities and data structures needed when programming in C.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
 
-### `rmw_implementation`
+#### `rmw_implementation`
 
 The `rmw_implementation` package provides access to the default rmw implementation, and provides the ability to dynamically switch rmw implementations if more than one is available.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/master/QUALITY_DECLARATION.md).
 
-### `rosidl_runtime_c`
+#### `rosidl_runtime_c`
 
 The `rosidl_runtime_c` package provides runtime interfaces in C based on user defined ROS Messages and ROS Services, as well as associated support functions for those types.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rosidl/tree/master/rosidl_runtime_c/Quality_Declaration.md).
 
-### `tracetools`
+#### `tracetools`
 
 The `tracetools` package provides utilities for instrumenting the code in `rcl` so that it may be traced for debugging and performance analysis.
 
@@ -200,7 +198,9 @@ It is **Quality Level 4**, see its [Quality Declaration document](https://gitlab
 
 `rcl` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers), and tests each change against all of them.
 
-## Vulnerability Disclosure Policy [7.i]
+## Security [7]
+
+### Vulnerability Disclosure Policy [7.i]
 
 `rcl` does not have a Vulnerability Disclosure Policy.
 
@@ -208,7 +208,7 @@ It is **Quality Level 4**, see its [Quality Declaration document](https://gitlab
 
 The chart below compares the requirements in the REP-2004 with the current state of the `rcl` package.
 
-|Number|  Requirement| Current state |
+|Number| Requirement| Current state |
 |--|--|--|
 |1| **Version policy** |---|
 |1.i|Version Policy available | ✓ |
