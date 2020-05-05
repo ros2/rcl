@@ -1,2 +1,8 @@
-# rcl
-Library to support implementation of language specific ROS Client Libraries.
+This repository contains several packages which are all related to the `rcl` package.
+
+## Packages
+
+ - rcl
+ - rcl_action
+ - rcl_lifecycle
+ - rcl_yaml_parm_parser
