@@ -120,7 +120,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 #### `action_msgs`
 
-`action_msgs` provides the message interfaces for communication.
+`action_msgs` provides messages and services for ROS 2 actions.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/master/action_msgs/QUALITY_DECLARATION.md).
 

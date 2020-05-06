@@ -119,7 +119,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 #### `lifecycle_msgs`
 
-`lifecycle_msgs` provides the message interfaces for communication.
+`lifecycle_msgs` provides message and services for managing lifecycle nodes.
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/master/lifecycle_msgs/QUALITY_DECLARATION.md).
 

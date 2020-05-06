@@ -135,7 +135,6 @@ It is **Quality Level 4**, see its [Quality Declaration document](https://github
 
 It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/libyaml_vendor/blob/master/libyaml_q_declaration.md).
 
-
 ## Platform Support [6]
 
 `rcl_yaml_param_parser` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers), and tests each change against all of them.
