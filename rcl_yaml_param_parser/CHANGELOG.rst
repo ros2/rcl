@@ -2,6 +2,17 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.0 (2020-04-29)
+------------------
+* Added rcl yaml param parser doxyfile (`#634 <https://github.com/ros2/rcl/issues/634>`_)
+* Fixed rcl_yaml_param_parser package description (`#637 <https://github.com/ros2/rcl/issues/637>`_)
+* Fix usage to not expose underlying yaml (`#630 <https://github.com/ros2/rcl/issues/630>`_)
+* Export targets in a addition to include directories / libraries (`#621 <https://github.com/ros2/rcl/issues/621>`_)
+* Remove usage of undefined CMake variable (`#620 <https://github.com/ros2/rcl/issues/620>`_)
+* Fix memory leaks (`#564 <https://github.com/ros2/rcl/issues/564>`_)
+* Code style only: wrap after open parenthesis if not in one line (`#565 <https://github.com/ros2/rcl/issues/565>`_)
+* Contributors: Alejandro Hernández Cordero, Dirk Thomas, y-okumura-isp
+
 0.8.3 (2019-11-08)
 ------------------
 

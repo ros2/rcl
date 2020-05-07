@@ -1,5 +1,5 @@
 # rcl
-Library to support implementation of language specific ROS Client Libraries.
+This repository contains several packages which are all related to the `rcl` package.
 
  - [rcl](rcl/README.md)
  - [rcl_action](rcl_action/README.md)

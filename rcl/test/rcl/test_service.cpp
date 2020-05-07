@@ -182,6 +182,9 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   client_request.uint8_value = 1;
   client_request.uint32_value = 2;
   int64_t sequence_number;
+  rcutils_time_point_value_t start_timestamp;
+  // take timestamp before sending request
+  EXPECT_EQ(RCUTILS_RET_OK, rcutils_system_time_now(&start_timestamp));
   ret = rcl_send_request(&client, &client_request, &sequence_number);
   EXPECT_EQ(sequence_number, 1);
   test_msgs__srv__BasicTypes_Request__fini(&client_request);
@@ -211,8 +214,22 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
 
     EXPECT_EQ(1, service_request.uint8_value);
     EXPECT_EQ(2UL, service_request.uint32_value);
+#ifdef RMW_TIMESTAMPS_SUPPORTED
+    EXPECT_GE(header.source_timestamp, start_timestamp);
+#ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
+    EXPECT_GE(header.received_timestamp, start_timestamp);
+    EXPECT_GE(header.received_timestamp, header.source_timestamp);
+#else
+    EXPECT_EQ(0u, header.received_timestamp);
+#endif
+#else
+    EXPECT_EQ(0u, header.source_timestamp);
+    EXPECT_EQ(0u, header.received_timestamp);
+#endif
     // Simulate a response callback by summing the request and send the response..
     service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
+    // take new timestamp before sending response
+    EXPECT_EQ(RCUTILS_RET_OK, rcutils_system_time_now(&start_timestamp));
     ret = rcl_send_response(&service, &header.request_id, &service_response);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     test_msgs__srv__BasicTypes_Request__fini(&service_request);
@@ -229,9 +246,10 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   EXPECT_EQ(client_response.uint64_value, 3ULL);
   EXPECT_EQ(header.request_id.sequence_number, 1);
 #ifdef RMW_TIMESTAMPS_SUPPORTED
-  EXPECT_NE(0u, header.source_timestamp);
+  EXPECT_GE(header.source_timestamp, start_timestamp);
 #ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
-  EXPECT_NE(0u, header.received_timestamp);
+  EXPECT_GE(header.received_timestamp, start_timestamp);
+  EXPECT_GE(header.received_timestamp, header.source_timestamp);
 #else
   EXPECT_EQ(0u, header.received_timestamp);
 #endif
