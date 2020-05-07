@@ -2,14 +2,7 @@
 
 Parse a YAML parameter file and populate the C data structure.
 
-  - Parser
-    - [rcl/parser.h](include/rcl/types.h)
-
-Further still there are some useful abstractions and utilities:
-  - Return code types
-    - [rcl/types.h](include/rcl/types.h)
-  - Macros for controlling symbol visibility on the library
-    - [rcl/visibility_control.h](include/rcl/visibility_control.h)
+Features are described in detail at [http://docs.ros2.org](http://docs.ros2.org/latest/api/rcl_yaml_param_parser/index.html)
 
 The data structure params_st will then be used during node initialization
 
