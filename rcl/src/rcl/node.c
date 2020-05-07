@@ -492,19 +492,6 @@ rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
   return RCL_RET_OK;
 }
 
-rcl_ret_t
-rcl_node_assert_liveliness(const rcl_node_t * node)
-{
-  if (!rcl_node_is_valid(node)) {
-    return RCL_RET_NODE_INVALID;  // error already set
-  }
-  if (rmw_node_assert_liveliness(node->impl->rmw_node_handle) != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return RCL_RET_ERROR;
-  }
-  return RCL_RET_OK;
-}
-
 rmw_node_t *
 rcl_node_get_rmw_handle(const rcl_node_t * node)
 {
