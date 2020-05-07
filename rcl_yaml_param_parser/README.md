@@ -25,3 +25,7 @@ NOTE: It only supports canonical int and float types
 ```
 
 This package depends on C libyaml
+
+## Quality Declaration
+
+This package claims to be in the **Quality Level 4** category, see the [Quality Declaration](./QUALITY_DECLARATION.md) for more details.
