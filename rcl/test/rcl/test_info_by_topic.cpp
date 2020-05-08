@@ -18,8 +18,10 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <memory>
 #include <string>
+#include <thread>
 
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
@@ -357,6 +359,7 @@ TEST_F(
     &subscription_options);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   const std::string fqdn = std::string("/") + this->topic_name;
+  std::this_thread::sleep_for(std::chrono::milliseconds(250));
   // Get publishers info by topic
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array_pub =
     rmw_get_zero_initialized_topic_endpoint_info_array();
