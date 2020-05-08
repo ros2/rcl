@@ -2,6 +2,12 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)
+* Quality Declarations for rcl_action, rcl_lifecycle, yaml_parser (`#641 <https://github.com/ros2/rcl/issues/641>`_)
+* Contributors: Alejandro Hernández Cordero, brawner
+
 0.9.0 (2020-04-29)
 ------------------
 * Added rcl_lifecycle Doxyfile (`#633 <https://github.com/ros2/rcl/issues/633>`_)

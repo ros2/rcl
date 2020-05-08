@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)
+* Current state Quality Declaration (`#639 <https://github.com/ros2/rcl/issues/639>`_)
+* Initialize service timestamps to 0 and test. (`#642 <https://github.com/ros2/rcl/issues/642>`_)
+* Contributors: Alejandro Hernández Cordero, Ingo Lütkebohle, Jorge Perez
+
 0.9.0 (2020-04-29)
 ------------------
 * Fix std::string construction in test (`#636 <https://github.com/ros2/rcl/issues/636>`_)

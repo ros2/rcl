@@ -2,6 +2,12 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)
+* Quality Declarations for rcl_action, rcl_lifecycle, yaml_parser (`#641 <https://github.com/ros2/rcl/issues/641>`_)
+* Contributors: Alejandro Hernández Cordero, brawner
+
 0.9.0 (2020-04-29)
 ------------------
 * Export targets in a addition to include directories / libraries (`#632 <https://github.com/ros2/rcl/issues/632>`_)
