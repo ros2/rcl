@@ -12,6 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/** \mainpage rcl_yaml_param_parser: Parse a YAML parameter file and populate the C data structure
+ *
+ *  - Parser
+ *  - rcl/parser.h
+ *
+ * Some useful abstractions and utilities:
+ * - Return code types
+ *   - rcl/types.h
+ * - Macros for controlling symbol visibility on the library
+ *   - rcl/visibility_control.h
+ */
+
 #ifndef RCL_YAML_PARAM_PARSER__PARSER_H_
 #define RCL_YAML_PARAM_PARSER__PARSER_H_
 
