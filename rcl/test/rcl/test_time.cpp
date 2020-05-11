@@ -506,9 +506,13 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_clock_change_callbacks) {
 }
 
 TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_fail_set_jump_callbacks) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_clock_t fail_clock;
   rcl_time_jump_t time_jump;
   rcl_jump_threshold_t threshold;
+  rcl_ret_t ret = rcl_clock_init(RCL_CLOCK_UNINITIALIZED, &fail_clock, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
   threshold.on_clock_change = NULL;
   threshold.min_forward.nanoseconds = -1;
   threshold.min_backward.nanoseconds = 0;

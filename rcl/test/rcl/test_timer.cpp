@@ -570,13 +570,14 @@ TEST_F(TestPreInitTimer, test_timer_get_allocator) {
 }
 
 TEST_F(TestPreInitTimer, test_timer_clock) {
-  rcl_clock_t * clock_impl;
+  rcl_clock_t * clock_impl = nullptr;
   EXPECT_EQ(RCL_RET_OK, rcl_timer_clock(&timer, &clock_impl)) << rcl_get_error_string().str;
   EXPECT_EQ(clock_impl, &clock);
 }
 
 TEST_F(TestPreInitTimer, test_timer_call) {
-  int64_t next_call_start, next_call_end;
+  int64_t next_call_start = 0;
+  int64_t next_call_end = 0;
   int64_t old_period = 0;
   times_called = 0;
 
@@ -608,7 +609,8 @@ TEST_F(TestPreInitTimer, test_get_callback) {
 }
 
 TEST_F(TestPreInitTimer, test_timer_reset) {
-  int64_t next_call_start, next_call_end;
+  int64_t next_call_start = 0;
+  int64_t next_call_end = 0;
   times_called = 0;
 
   ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
@@ -646,14 +648,13 @@ TEST_F(TestPreInitTimer, test_invalid_get_guard) {
 
 TEST_F(TestPreInitTimer, test_invalid_init_fini) {
   rcl_allocator_t bad_allocator = get_failing_allocator();
-  rcl_timer_t timer_fail;
+  rcl_timer_t timer_fail = rcl_get_zero_initialized_timer();
 
   EXPECT_EQ(
     RCL_RET_ALREADY_INIT, rcl_timer_init(
       &timer, &clock, this->context_ptr, 500, nullptr,
       rcl_get_default_allocator())) << rcl_get_error_string().str;
 
-  timer_fail = rcl_get_zero_initialized_timer();
   ASSERT_EQ(
     RCL_RET_BAD_ALLOC, rcl_timer_init(
       &timer_fail, &clock, this->context_ptr, RCL_S_TO_NS(1), timer_callback_test,
@@ -663,7 +664,7 @@ TEST_F(TestPreInitTimer, test_invalid_init_fini) {
 }
 
 TEST_F(TestPreInitTimer, test_timer_get_period) {
-  int64_t period;
+  int64_t period = 0;
   ASSERT_EQ(RCL_RET_OK, rcl_timer_get_period(&timer, &period));
   EXPECT_EQ(RCL_S_TO_NS(1), period);
 
@@ -672,7 +673,8 @@ TEST_F(TestPreInitTimer, test_timer_get_period) {
 }
 
 TEST_F(TestPreInitTimer, test_time_since_last_call) {
-  rcl_time_point_value_t time_sice_next_call_start, time_sice_next_call_end;
+  rcl_time_point_value_t time_sice_next_call_start = 0u;
+  rcl_time_point_value_t time_sice_next_call_end = 0u;
 
   ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_since_last_call(&timer, &time_sice_next_call_start));
   ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_since_last_call(&timer, &time_sice_next_call_end));
