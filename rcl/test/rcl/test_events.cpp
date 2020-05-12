@@ -726,7 +726,7 @@ get_test_pubsub_incompatible_qos_inputs()
   inputs[2].testcase_name = "IncompatibleQoS_LivelinessPolicy";
   inputs[2].qos_policy_kind = RMW_QOS_POLICY_LIVELINESS;
   inputs[2].publisher_qos_profile = TestEventFixture::default_qos_profile;
-  inputs[2].publisher_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE;
+  inputs[2].publisher_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
   inputs[2].subscription_qos_profile = TestEventFixture::default_qos_profile;
   inputs[2].subscription_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
   inputs[2].error_msg = "Incompatible qos liveliness policy";
