@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2020-05-12)
+------------------
+* Remove MANUAL_BY_NODE liveliness API (`#645 <https://github.com/ros2/rcl/issues/645>`_)
+* Make test_two_timers* more reliable (`#640 <https://github.com/ros2/rcl/issues/640>`_)
+* Contributors: Ivan Santiago Paunovic
+
 0.9.1 (2020-05-08)
 ------------------
 * Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)

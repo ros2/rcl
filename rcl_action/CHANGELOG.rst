@@ -2,11 +2,14 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2020-05-12)
+------------------
+
 0.9.1 (2020-05-08)
 ------------------
 * Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)
 * Quality Declarations for rcl_action, rcl_lifecycle, yaml_parser (`#641 <https://github.com/ros2/rcl/issues/641>`_)
-* Contributors: Alejandro Hernández Cordero, brawner
+* Contributors: Alejandro Hernández Cordero, Stephen Brawner
 
 0.9.0 (2020-04-29)
 ------------------

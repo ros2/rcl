@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2020-05-12)
+------------------
+
 0.9.1 (2020-05-08)
 ------------------
 * Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)
