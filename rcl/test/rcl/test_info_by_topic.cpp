@@ -362,31 +362,6 @@ TEST_F(
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   const std::string fqdn = std::string("/") + this->topic_name;
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
-  //size_t max_tries = 10;
-  //size_t iteration = 0;
-  //size_t publisher_count = 0;
-  //do {
-  //      	ret = rcl_count_publishers(&this->node, fqdn.c_str(), &publisher_count);
-  //      	if (publisher_count >= 1) {
-  //      		break;
-  //      	}
-  //      	++iteration;
-  //      	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  //} while (iteration < max_tries || publisher_count < 1);
-  //      ASSERT_EQ(publisher_count, 1u) << "Unexpected publisher count";
-  //max_tries = 10;
-  //iteration = 0;
-  //size_t subscriber_count = 0;
-  //do {
-  //      	ret = rcl_count_subscribers(&this->node, fqdn.c_str(), &subscriber_count);
-  //      	if (subscriber_count >= 1) {
-  //      		break;
-  //      	}
-  //      	++iteration;
-  //      	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  //} while (iteration < max_tries);
-  //      ASSERT_EQ(subscriber_count, 1u) << "Unexpected subscriber count";
-  //ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, &this->context, 10, 100));
   // Get publishers info by topic
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array_pub =
