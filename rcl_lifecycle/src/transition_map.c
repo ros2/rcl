@@ -53,6 +53,11 @@ rcl_lifecycle_transition_map_fini(
   rcl_lifecycle_transition_map_t * transition_map,
   const rcutils_allocator_t * allocator)
 {
+  if (!allocator) {
+    RCL_SET_ERROR_MSG("can't free transition map, no allocator given\n");
+    return RCL_RET_ERROR;
+  }
+
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
   // free valid transitions for all states
@@ -117,6 +122,11 @@ rcl_lifecycle_register_transition(
     return RCL_RET_ERROR;
   }
 
+  rcl_lifecycle_state_t * goal = rcl_lifecycle_get_state(transition_map, transition.goal->id);
+  if (!goal) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("state %u is not registered\n", transition.goal->id);
+    return RCL_RET_ERROR;
+  }
   // we add a new transition, so increase the size
   transition_map->transitions_size += 1;
   rcl_lifecycle_transition_t * new_transitions = allocator->reallocate(

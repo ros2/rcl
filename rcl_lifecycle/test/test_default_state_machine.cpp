@@ -113,7 +113,11 @@ TEST_F(TestDefaultStateMachine, zero_init) {
 TEST_F(TestDefaultStateMachine, default_init) {
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
-  auto ret = rcl_lifecycle_init_default_state_machine(&state_machine, this->allocator);
+  auto ret = rcl_lifecycle_init_default_state_machine(&state_machine, nullptr);
+  EXPECT_EQ(RCL_RET_ERROR, ret);
+  rcutils_reset_error();
+
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine, this->allocator);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr, this->allocator);

@@ -650,7 +650,7 @@ _register_transitions(
   return ret;
 }
 
-// default implementation as despicted on
+// default implementation as depicted on
 // design.ros2.org
 rcl_ret_t
 rcl_lifecycle_init_default_state_machine(

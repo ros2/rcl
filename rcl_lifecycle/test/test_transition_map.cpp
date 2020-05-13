@@ -58,9 +58,12 @@ TEST_F(TestTransitionMap, initialized) {
 
   ret = rcl_lifecycle_register_state(&transition_map, state0, &allocator);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcutils_reset_error();
 
   rcl_lifecycle_state_t state1 = {"my_state_1", 1, NULL, 0};
   ret = rcl_lifecycle_register_state(&transition_map, state1, &allocator);
+
+  rcl_lifecycle_state_t unregistered = {"my_state_2", 2, NULL, 0};
 
   rcl_lifecycle_state_t * start_state =
     rcl_lifecycle_get_state(&transition_map, state0.id);
@@ -81,15 +84,37 @@ TEST_F(TestTransitionMap, initialized) {
     &transition_map, transition10, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
 
+  rcl_lifecycle_transition_t transition_bad1 = {"from0tobad", 2,
+    start_state, &unregistered};
+  ret = rcl_lifecycle_register_transition(
+    &transition_map, transition_bad1, &allocator);
+  EXPECT_EQ(RCL_RET_ERROR, ret);
+  rcutils_reset_error();
+
+  rcl_lifecycle_transition_t transition_bad2 = {"frombadto1", 3,
+    &unregistered, goal_state};
+  ret = rcl_lifecycle_register_transition(
+    &transition_map, transition_bad2, &allocator);
+  EXPECT_EQ(RCL_RET_ERROR, ret);
+  rcutils_reset_error();
+
   const rcl_lifecycle_transition_t * trans =
     rcl_lifecycle_get_transition_by_id(start_state, 0);
+  EXPECT_EQ(0u, trans->id);
+  trans = rcl_lifecycle_get_transitions(&transition_map, 0);
   EXPECT_EQ(0u, trans->id);
   trans = rcl_lifecycle_get_transition_by_label(start_state, "from0to1");
   EXPECT_EQ(0u, trans->id);
   trans = rcl_lifecycle_get_transition_by_id(goal_state, 1);
   EXPECT_EQ(1u, trans->id);
+  trans = rcl_lifecycle_get_transitions(&transition_map, 1);
+  EXPECT_EQ(1u, trans->id);
   trans = rcl_lifecycle_get_transition_by_label(goal_state, "from1to0");
   EXPECT_EQ(1u, trans->id);
+  // Check nonexistent transition
+  trans = rcl_lifecycle_get_transitions(&transition_map, 2);
+  EXPECT_EQ(nullptr, trans);
+  rcutils_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_fini(&transition_map, &allocator));
 }
