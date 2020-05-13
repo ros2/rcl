@@ -219,6 +219,9 @@ function(test_target_function)
         PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1")
       target_compile_definitions(test_service${target_suffix}
         PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1")
+      # TODO(tfoote) Disable this tests on CI as it's being flakey
+      # This should be removed when https://github.com/ros2/rmw_cyclonedds/issues/185 is resolved.
+      ament_add_test_label(test_service${target_suffix} xfail)
     else()
       message(STATUS "Disabling message timestamp test for ${rmw_implementation}")
     endif()
