@@ -23,6 +23,8 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
+#include "./allocator_testing_utils.h"
+
 class TestTimerFixture : public ::testing::Test
 {
 public:
@@ -72,6 +74,12 @@ static void callback_function(rcl_timer_t * timer, int64_t last_call)
   (void) last_call;
   times_called++;
 }
+static void callback_function_changed(rcl_timer_t * timer, int64_t last_call)
+{
+  (void) timer;
+  (void) last_call;
+  times_called--;
+}
 
 class TestPreInitTimer : public TestTimerFixture
 {
@@ -80,6 +88,7 @@ public:
   rcl_allocator_t allocator;
   rcl_timer_t timer;
   rcl_timer_callback_t timer_callback_test = &callback_function;
+  rcl_timer_callback_t timer_callback_changed = &callback_function_changed;
 
   void SetUp() override
   {
@@ -558,4 +567,116 @@ TEST_F(TestPreInitTimer, test_timer_get_allocator) {
   EXPECT_TRUE(rcutils_allocator_is_valid(allocator_returned));
 
   EXPECT_EQ(NULL, rcl_timer_get_allocator(nullptr));
+}
+
+TEST_F(TestPreInitTimer, test_timer_clock) {
+  rcl_clock_t * clock_impl = nullptr;
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_clock(&timer, &clock_impl)) << rcl_get_error_string().str;
+  EXPECT_EQ(clock_impl, &clock);
+}
+
+TEST_F(TestPreInitTimer, test_timer_call) {
+  int64_t next_call_start = 0;
+  int64_t next_call_end = 0;
+  int64_t old_period = 0;
+  times_called = 0;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_start));
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 1);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 3);
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_end));
+  EXPECT_GT(next_call_end, next_call_start);
+
+  next_call_start = next_call_end;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_exchange_period(&timer, 0, &old_period));
+  EXPECT_EQ(RCL_S_TO_NS(1), old_period);
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 4);
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_end));
+  EXPECT_GT(next_call_start, next_call_end);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_cancel(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_TIMER_CANCELED, rcl_timer_call(&timer));
+  EXPECT_EQ(times_called, 4);
+}
+
+TEST_F(TestPreInitTimer, test_get_callback) {
+  ASSERT_EQ(timer_callback_test, rcl_timer_get_callback(&timer)) << rcl_get_error_string().str;
+}
+
+TEST_F(TestPreInitTimer, test_timer_reset) {
+  int64_t next_call_start = 0;
+  int64_t next_call_end = 0;
+  times_called = 0;
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 2);
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_start));
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_end));
+  EXPECT_GT(next_call_start, next_call_end);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_cancel(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_TIMER_CANCELED, rcl_timer_call(&timer));
+  EXPECT_EQ(times_called, 2);
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 3);
+}
+
+TEST_F(TestPreInitTimer, test_timer_exchange_callback) {
+  times_called = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 1);
+  ASSERT_EQ(
+    timer_callback_test, rcl_timer_exchange_callback(
+      &timer, timer_callback_changed)) << rcl_get_error_string().str;
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 0);
+}
+
+TEST_F(TestPreInitTimer, test_invalid_get_guard) {
+  ASSERT_EQ(NULL, rcl_timer_get_guard_condition(nullptr));
+}
+
+TEST_F(TestPreInitTimer, test_invalid_init_fini) {
+  rcl_allocator_t bad_allocator = get_failing_allocator();
+  rcl_timer_t timer_fail = rcl_get_zero_initialized_timer();
+
+  EXPECT_EQ(
+    RCL_RET_ALREADY_INIT, rcl_timer_init(
+      &timer, &clock, this->context_ptr, 500, nullptr,
+      rcl_get_default_allocator())) << rcl_get_error_string().str;
+
+  ASSERT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_timer_init(
+      &timer_fail, &clock, this->context_ptr, RCL_S_TO_NS(1), timer_callback_test,
+      bad_allocator)) << rcl_get_error_string().str;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(nullptr));
+}
+
+TEST_F(TestPreInitTimer, test_timer_get_period) {
+  int64_t period = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_period(&timer, &period));
+  EXPECT_EQ(RCL_S_TO_NS(1), period);
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_timer_get_period(nullptr, &period));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_timer_get_period(&timer, nullptr));
+}
+
+TEST_F(TestPreInitTimer, test_time_since_last_call) {
+  rcl_time_point_value_t time_sice_next_call_start = 0u;
+  rcl_time_point_value_t time_sice_next_call_end = 0u;
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_since_last_call(&timer, &time_sice_next_call_start));
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_since_last_call(&timer, &time_sice_next_call_end));
+  EXPECT_GT(time_sice_next_call_end, time_sice_next_call_start);
 }
