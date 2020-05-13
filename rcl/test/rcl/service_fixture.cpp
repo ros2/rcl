@@ -164,7 +164,7 @@ int main(int argc, char ** argv)
 
     // Block until a client request comes in.
 
-    if (!wait_for_service_to_be_ready(&service, &context, 1000, 100)) {
+    if (!wait_for_service_to_be_ready(&service, &context, 10, 100)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Service never became ready");
       return -1;
     }
