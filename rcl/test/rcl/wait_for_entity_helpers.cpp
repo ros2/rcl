@@ -15,6 +15,7 @@
 #include "wait_for_entity_helpers.hpp"
 
 #include <chrono>
+#include <stdexcept>
 #include <thread>
 
 #include "rcutils/logging_macros.h"
