@@ -28,6 +28,16 @@
 #include "lifecycle_msgs/srv/get_available_transitions.h"
 #include "lifecycle_msgs/srv/get_state.h"
 
+static void * bad_malloc(size_t, void *)
+{
+  return nullptr;
+}
+
+static void * bad_realloc(void *, size_t, void *)
+{
+  return nullptr;
+}
+
 TEST(TestRclLifecycle, lifecycle_state) {
   rcl_lifecycle_state_t state = rcl_lifecycle_get_zero_initialized_state();
   EXPECT_EQ(state.id, 0u);
@@ -45,6 +55,13 @@ TEST(TestRclLifecycle, lifecycle_state) {
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_init(nullptr, expected_id, &expected_label[0], &allocator);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcutils_reset_error();
+
+  rcl_allocator_t bad_allocator = rcl_get_default_allocator();
+  bad_allocator.allocate = bad_malloc;
+  bad_allocator.reallocate = bad_realloc;
+  ret = rcl_lifecycle_state_init(&state, expected_id, &expected_label[0], &bad_allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
 
@@ -124,6 +141,14 @@ TEST(TestRclLifecycle, lifecycle_transition) {
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
 
+  rcl_allocator_t bad_allocator = rcl_get_default_allocator();
+  bad_allocator.allocate = bad_malloc;
+  bad_allocator.reallocate = bad_realloc;
+  ret = rcl_lifecycle_transition_init(
+    &transition, expected_id, &expected_label[0], start, end, &bad_allocator);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcutils_reset_error();
+
   ret = rcl_lifecycle_transition_init(
     &transition, expected_id, &expected_label[0], start, end, &allocator);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -187,26 +212,25 @@ TEST(TestRclLifecycle, state_machine) {
   const rosidl_service_type_support_t * gtg =
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions);
 
+  // Check various arguments are null
   ret = rcl_lifecycle_state_machine_init(
     nullptr, &node, pn, cs, gs, gas, gat, gtg, false, &allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcutils_reset_error();
+
   ret = rcl_lifecycle_state_machine_init(
     &state_machine, nullptr, pn, cs, gs, gas, gat, gtg, false, &allocator);
-
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcutils_reset_error();
+
   ret = rcl_lifecycle_state_machine_init(
     &state_machine, &node, nullptr, cs, gs, gas, gat, gtg, false, &allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcutils_reset_error();
 
@@ -214,14 +238,13 @@ TEST(TestRclLifecycle, state_machine) {
     &state_machine, &node, pn, nullptr, gs, gas, gat, gtg, false, &allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcutils_reset_error();
+
   ret = rcl_lifecycle_state_machine_init(
     &state_machine, &node, pn, cs, nullptr, gas, gat, gtg, false, &allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcutils_reset_error();
 
@@ -229,7 +252,6 @@ TEST(TestRclLifecycle, state_machine) {
     &state_machine, &node, pn, cs, gs, nullptr, gat, gtg, false, &allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcutils_reset_error();
 
@@ -237,7 +259,6 @@ TEST(TestRclLifecycle, state_machine) {
     &state_machine, &node, pn, cs, gs, gas, nullptr, gtg, false, &allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcutils_reset_error();
 
@@ -245,17 +266,33 @@ TEST(TestRclLifecycle, state_machine) {
     &state_machine, &node, pn, cs, gs, gas, gat, nullptr, false, &allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
   rcutils_reset_error();
+
   ret = rcl_lifecycle_state_machine_init(
     &state_machine, &node, pn, cs, gs, gas, gat, gtg, false, nullptr);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
+  EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
+  rcutils_reset_error();
 
+
+  // Everything should be good
   ret = rcl_lifecycle_state_machine_init(
     &state_machine, &node, pn, cs, gs, gas, gat, gtg, false, &allocator);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Transition_map is not initialized
+  EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
+  rcutils_reset_error();
+
+  void * temp_function = state_machine.com_interface.srv_change_state.impl;
+  state_machine.com_interface.srv_change_state.impl = nullptr;
+  // get_state service is valid, but not change_state service
+  EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_ERROR);
+  rcutils_reset_error();
+  state_machine.com_interface.srv_change_state.impl =
+    reinterpret_cast<rcl_service_impl_t *>(temp_function);
 
   // Allocate some memory and initialize states and transitions so is_initialized will pass
   state_machine.transition_map.states_size = 1u;
@@ -276,12 +313,20 @@ TEST(TestRclLifecycle, state_machine) {
 
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_OK);
 
+  // allocator is nullptr
   ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, nullptr);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+
+  // Node is null
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, nullptr, &allocator);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  std::cout << "state_machine: " << __LINE__ << std::endl;
 }
 
 TEST(TestRclLifecycle, state_transitions) {
@@ -327,39 +372,8 @@ TEST(TestRclLifecycle, state_transitions) {
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions);
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, gtg, false, &allocator);
+    &state_machine, &node, pn, cs, gs, gas, gat, gtg, true, &allocator);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-  // Allocate some memory and initialize states and transitions so is_initialized will pass
-  state_machine.transition_map.states_size = 1u;
-  state_machine.transition_map.states = reinterpret_cast<rcl_lifecycle_state_t *>(
-    allocator.allocate(
-      state_machine.transition_map.states_size * sizeof(rcl_lifecycle_state_t),
-      allocator.state));
-  ASSERT_NE(state_machine.transition_map.states, nullptr);
-  state_machine.transition_map.states[0] = rcl_lifecycle_get_zero_initialized_state();
-  ret = rcl_lifecycle_state_init(&state_machine.transition_map.states[0], 0, "START", &allocator);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_lifecycle_state_t * start = &state_machine.transition_map.states[0];
-
-  state_machine.transition_map.transitions_size = 1u;
-  state_machine.transition_map.transitions =
-    reinterpret_cast<rcl_lifecycle_transition_t *>(allocator.allocate(
-      state_machine.transition_map.transitions_size * sizeof(rcl_lifecycle_transition_t),
-      allocator.state));
-  ASSERT_NE(state_machine.transition_map.transitions, nullptr);
-  state_machine.transition_map.transitions[0] = rcl_lifecycle_get_zero_initialized_transition();
-  ret = rcl_lifecycle_transition_init(
-    &state_machine.transition_map.transitions[0], 0, "TRANSITION", start, start, &allocator);
-  rcl_lifecycle_transition_t * expected_transition = &state_machine.transition_map.transitions[0];
-
-  start->valid_transition_size = 1;
-  start->valid_transitions = reinterpret_cast<rcl_lifecycle_transition_t *>(
-    allocator.allocate(
-      start->valid_transition_size * sizeof(rcl_lifecycle_transition_t),
-      allocator.state));
-  EXPECT_NE(start->valid_transitions, nullptr) << rcl_get_error_string().str;
-  start->valid_transitions[0] = *expected_transition;
 
   ret = rcl_lifecycle_state_machine_is_initialized(&state_machine);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -368,16 +382,17 @@ TEST(TestRclLifecycle, state_transitions) {
   EXPECT_EQ(transition, nullptr) << rcl_get_error_string().str;
   rcutils_reset_error();
 
-  state_machine.current_state = start;
-  transition = rcl_lifecycle_get_transition_by_id(state_machine.current_state, 0);
-  EXPECT_EQ(transition, &start->valid_transitions[0]);
+  transition = rcl_lifecycle_get_transition_by_id(
+    state_machine.current_state, lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE);
+  EXPECT_EQ(transition->id, lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE);
 
+  // Update this test with a new invalid number if 42 ever becomes a valid state id
   transition = rcl_lifecycle_get_transition_by_id(state_machine.current_state, 42);
   EXPECT_EQ(transition, nullptr) << rcl_get_error_string().str;
   rcutils_reset_error();
 
-  transition = rcl_lifecycle_get_transition_by_label(state_machine.current_state, "TRANSITION");
-  EXPECT_EQ(transition, &start->valid_transitions[0]);
+  transition = rcl_lifecycle_get_transition_by_label(state_machine.current_state, "configure");
+  EXPECT_STREQ(transition->label, "configure");
 
   transition = rcl_lifecycle_get_transition_by_label(state_machine.current_state, "NOT A LABEL");
   EXPECT_EQ(transition, nullptr) << rcl_get_error_string().str;
@@ -387,12 +402,26 @@ TEST(TestRclLifecycle, state_transitions) {
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
 
-  ret = rcl_lifecycle_trigger_transition_by_id(&state_machine, 0, false);
+  ret = rcl_lifecycle_trigger_transition_by_id(
+    &state_machine, lifecycle_msgs__msg__Transition__TRANSITION_CONFIGURE, false);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  ret = rcl_lifecycle_trigger_transition_by_label(&state_machine, "TRANSITION", true);
+  ret = rcl_lifecycle_trigger_transition_by_label(nullptr, "transition_success", true);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcutils_reset_error();
+
+  ret = rcl_lifecycle_trigger_transition_by_label(&state_machine, "transition_success", true);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // If using the public interface to register transitions, this case should already be checked.
+  state_machine.current_state->valid_transitions[0].goal = nullptr;
+  ret = rcl_lifecycle_trigger_transition_by_label(&state_machine, "transition_success", true);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcutils_reset_error();
 
   rcl_print_state_machine(&state_machine);
   EXPECT_FALSE(rcutils_error_is_set());
+
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 }

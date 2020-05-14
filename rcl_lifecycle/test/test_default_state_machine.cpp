@@ -113,6 +113,8 @@ TEST_F(TestDefaultStateMachine, zero_init) {
 TEST_F(TestDefaultStateMachine, default_init) {
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
+  // Because this init method is so complex, the succession of failures caused by a null
+  // allocator will result in several error messages overwriting themselves.
   auto ret = rcl_lifecycle_init_default_state_machine(&state_machine, nullptr);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();

@@ -236,15 +236,12 @@ rcl_lifecycle_state_machine_init(
   }
 
   if (default_states) {
-    rcl_ret_t ret =
-      rcl_lifecycle_init_default_state_machine(state_machine, allocator);
+    ret = rcl_lifecycle_init_default_state_machine(state_machine, allocator);
     if (ret != RCL_RET_OK) {
       // init default state machine might have allocated memory,
       // so we have to call fini
-      if (rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator) != RCL_RET_OK) {
-        // error already set
-        return RCL_RET_ERROR;
-      }
+      ret = rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator);
+      return RCL_RET_ERROR;
     }
   }
 

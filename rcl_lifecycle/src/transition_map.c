@@ -92,15 +92,16 @@ rcl_lifecycle_register_state(
     allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT)
 
   // add new primary state memory
-  transition_map->states_size += 1;
+  unsigned int new_states_size = transition_map->states_size + 1;
   rcl_lifecycle_state_t * new_states = allocator->reallocate(
     transition_map->states,
-    transition_map->states_size * sizeof(rcl_lifecycle_state_t),
+    new_states_size * sizeof(rcl_lifecycle_state_t),
     allocator->state);
   if (!new_states) {
     RCL_SET_ERROR_MSG("failed to reallocate memory for new states");
     return RCL_RET_ERROR;
   }
+  transition_map->states_size = new_states_size;
   transition_map->states = new_states;
   transition_map->states[transition_map->states_size - 1] = state;
 
@@ -127,16 +128,17 @@ rcl_lifecycle_register_transition(
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("state %u is not registered\n", transition.goal->id);
     return RCL_RET_ERROR;
   }
-  // we add a new transition, so increase the size
-  transition_map->transitions_size += 1;
+  // Attempt to add new transition, don't update map if it fails
+  unsigned int new_transitions_size = transition_map->transitions_size + 1;
   rcl_lifecycle_transition_t * new_transitions = allocator->reallocate(
     transition_map->transitions,
-    transition_map->transitions_size * sizeof(rcl_lifecycle_transition_t),
+    new_transitions_size * sizeof(rcl_lifecycle_transition_t),
     allocator->state);
   if (!new_transitions) {
     RCL_SET_ERROR_MSG("failed to reallocate memory for new transitions");
     return RCL_RET_BAD_ALLOC;
   }
+  transition_map->transitions_size = new_transitions_size;
   transition_map->transitions = new_transitions;
   // finally set the new transition to the end of the array
   transition_map->transitions[transition_map->transitions_size - 1] = transition;
@@ -144,15 +146,16 @@ rcl_lifecycle_register_transition(
   // we have to copy the transitons here once more to the actual state
   // as we can't assign only the pointer. This pointer gets invalidated whenever
   // we add a new transition and re-shuffle/re-allocate new memory for it.
-  state->valid_transition_size += 1;
+  unsigned int new_valid_transitions_size = state->valid_transition_size + 1;
   rcl_lifecycle_transition_t * new_valid_transitions = allocator->reallocate(
     state->valid_transitions,
-    state->valid_transition_size * sizeof(rcl_lifecycle_transition_t),
+    new_valid_transitions_size * sizeof(rcl_lifecycle_transition_t),
     allocator->state);
   if (!new_valid_transitions) {
     RCL_SET_ERROR_MSG("failed to reallocate memory for new transitions on state");
     return RCL_RET_ERROR;
   }
+  state->valid_transition_size = new_valid_transitions_size;
   state->valid_transitions = new_valid_transitions;
 
   state->valid_transitions[state->valid_transition_size - 1] = transition;
