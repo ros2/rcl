@@ -14,18 +14,14 @@
 
 #include <gtest/gtest.h>
 
-#include <chrono>
-#include <string>
-#include <thread>
-
 #include "rcl/service.h"
-
 #include "rcl/rcl.h"
 
 #include "test_msgs/srv/basic_types.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "wait_for_entity_helpers.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -75,45 +71,6 @@ public:
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };
-
-void
-wait_for_service_to_be_ready(
-  rcl_service_t * service,
-  rcl_context_t * context,
-  size_t max_tries,
-  int64_t period_ms,
-  bool & success)
-{
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, 0, context, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  size_t iteration = 0;
-  do {
-    ++iteration;
-    ret = rcl_wait_set_clear(&wait_set);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_service(&wait_set, service, NULL);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
-    if (ret == RCL_RET_TIMEOUT) {
-      continue;
-    }
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    for (size_t i = 0; i < wait_set.size_of_services; ++i) {
-      if (wait_set.services[i] && wait_set.services[i] == service) {
-        success = true;
-        return;
-      }
-    }
-  } while (iteration < max_tries);
-  success = false;
-}
 
 /* Basic nominal test of a service.
  */
@@ -165,10 +122,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
-  // TODO(wjwwood): add logic to wait for the connection to be established
-  //                use count_services busy wait mechanism
-  //                until then we will sleep for a short period of time
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  ASSERT_TRUE(wait_for_server_to_be_available(this->node_ptr, &client, 10, 1000));
 
   // Initialize a request.
   test_msgs__srv__BasicTypes_Request client_request;
@@ -190,9 +144,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   test_msgs__srv__BasicTypes_Request__fini(&client_request);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  bool success;
-  wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
-  ASSERT_TRUE(success);
+  ASSERT_TRUE(wait_for_service_to_be_ready(&service, context_ptr, 10, 100));
 
   // This scope simulates the service responding in a different context so that we can
   // test take_request/send_response in a single-threaded, deterministic execution.
@@ -234,7 +186,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     test_msgs__srv__BasicTypes_Request__fini(&service_request);
   }
-  wait_for_service_to_be_ready(&service, context_ptr, 10, 100, success);
+  ASSERT_FALSE(wait_for_service_to_be_ready(&service, context_ptr, 10, 100));
 
   // Initialize the response owned by the client and take the response.
   test_msgs__srv__BasicTypes_Response client_response;
