@@ -23,7 +23,7 @@ extern "C"
 /// Ignored return values of functions with this macro will emit a warning.
 #define RCL_WARN_UNUSED RCUTILS_WARN_UNUSED
 
-#define RCL_UNUSED(x) RCUTILS_UNUSED(x)
+#define RCL_UNUSED(x) (void)(x)
 
 #ifdef __cplusplus
 }
