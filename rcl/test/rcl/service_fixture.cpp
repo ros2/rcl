@@ -13,8 +13,6 @@
 // limitations under the License.
 
 #include <chrono>
-#include <stdexcept>
-#include <string>
 #include <thread>
 
 #include "rcutils/logging_macros.h"
@@ -27,59 +25,8 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "wait_for_entity_helpers.hpp"
 
-bool
-wait_for_service_to_be_ready(
-  rcl_service_t * service,
-  rcl_context_t * context,
-  size_t max_tries,
-  int64_t period_ms)
-{
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 1, 0, context, rcl_get_default_allocator());
-  if (ret != RCL_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string().str);
-    return false;
-  }
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string().str);
-      throw std::runtime_error("error waiting for service to be ready");
-    }
-  });
-  size_t iteration = 0;
-  do {
-    ++iteration;
-    if (rcl_wait_set_clear(&wait_set) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait_set_clear: %s", rcl_get_error_string().str);
-      return false;
-    }
-    if (rcl_wait_set_add_service(&wait_set, service, NULL) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait_set_add_service: %s", rcl_get_error_string().str);
-      return false;
-    }
-    ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
-    if (ret == RCL_RET_TIMEOUT) {
-      continue;
-    }
-    if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error in wait: %s", rcl_get_error_string().str);
-      return false;
-    }
-    for (size_t i = 0; i < wait_set.size_of_services; ++i) {
-      if (wait_set.services[i] && wait_set.services[i] == service) {
-        return true;
-      }
-    }
-  } while (iteration < max_tries);
-  return false;
-}
 
 int main(int argc, char ** argv)
 {
@@ -164,7 +111,7 @@ int main(int argc, char ** argv)
 
     // Block until a client request comes in.
 
-    if (!wait_for_service_to_be_ready(&service, &context, 1000, 100)) {
+    if (!wait_for_service_to_be_ready(&service, &context, 10, 100)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Service never became ready");
       return -1;
     }

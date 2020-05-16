@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>
-#include <stdexcept>
-#include <string>
-#include <thread>
-
 #include "rcutils/logging_macros.h"
 
 #include "rcl/client.h"
@@ -26,87 +21,7 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
-#include "rcl/graph.h"
-
-bool
-wait_for_server_to_be_available(
-  rcl_node_t * node,
-  rcl_client_t * client,
-  size_t max_tries,
-  int64_t period_ms)
-{
-  size_t iteration = 0;
-  do {
-    ++iteration;
-    bool is_ready;
-    rcl_ret_t ret = rcl_service_server_is_available(node, client, &is_ready);
-    if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME,
-        "Error in rcl_service_server_is_available: %s",
-        rcl_get_error_string().str);
-      return false;
-    }
-    if (is_ready) {
-      return true;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
-  } while (iteration < max_tries);
-  return false;
-}
-
-bool
-wait_for_client_to_be_ready(
-  rcl_client_t * client,
-  rcl_context_t * context,
-  size_t max_tries,
-  int64_t period_ms)
-{
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret =
-    rcl_wait_set_init(&wait_set, 0, 0, 0, 1, 0, 0, context, rcl_get_default_allocator());
-  if (ret != RCL_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string().str);
-    return false;
-  }
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string().str);
-      throw std::runtime_error("error while waiting for client");
-    }
-  });
-  size_t iteration = 0;
-  do {
-    ++iteration;
-    if (rcl_wait_set_clear(&wait_set) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait_set_clear: %s", rcl_get_error_string().str);
-      return false;
-    }
-    if (rcl_wait_set_add_client(&wait_set, client, NULL) != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME, "Error in wait_set_add_client: %s", rcl_get_error_string().str);
-      return false;
-    }
-    ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
-    if (ret == RCL_RET_TIMEOUT) {
-      continue;
-    }
-    if (ret != RCL_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error in wait: %s", rcl_get_error_string().str);
-      return false;
-    }
-    for (size_t i = 0; i < wait_set.size_of_clients; ++i) {
-      if (wait_set.clients[i] && wait_set.clients[i] == client) {
-        return true;
-      }
-    }
-  } while (iteration < max_tries);
-  return false;
-}
+#include "wait_for_entity_helpers.hpp"
 
 int main(int argc, char ** argv)
 {
@@ -179,7 +94,7 @@ int main(int argc, char ** argv)
     });
 
     // Wait until server is available
-    if (!wait_for_server_to_be_available(&node, &client, 1000, 100)) {
+    if (!wait_for_server_to_be_available(&node, &client, 10, 100)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Server never became available");
       return -1;
     }
@@ -214,7 +129,7 @@ int main(int argc, char ** argv)
     memset(&client_response, 0, sizeof(test_msgs__srv__BasicTypes_Response));
     test_msgs__srv__BasicTypes_Response__init(&client_response);
 
-    if (!wait_for_client_to_be_ready(&client, &context, 1000, 100)) {
+    if (!wait_for_client_to_be_ready(&client, &context, 10, 100)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Client never became ready");
       return -1;
     }
