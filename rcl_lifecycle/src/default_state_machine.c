@@ -690,11 +690,25 @@ rcl_lifecycle_init_default_state_machine(
 
   return ret;
 
-fail:
-  // if rcl_lifecycle_transition_map_fini() fails, it will clobber the error string here, twice
+// Semicolon handles the "a label can only be part of a statement..." error
+fail:;
+  // If rcl_lifecycle_transition_map_fini() fails, it will clobber the error string here, twice
+  // Here, we concatenate the error strings if that happens
+  const char * current_error = (rcl_error_is_set()) ? rcl_get_error_string().str : "";
+  rcl_reset_error();
+
   if (rcl_lifecycle_transition_map_fini(&state_machine->transition_map, allocator) != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("could not free lifecycle transition map. Leaking memory!\n");
+    const char * fini_error = (rcl_error_is_set()) ? rcl_get_error_string().str : "";
+    rcl_reset_error();
+
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Freeing transition map failed while handling a previous error. Leaking memory!"
+      "\nOriginal error:\n\t%s\nError encountered in rcl_lifecycle_transition_map_fini():\n\t%s\n",
+      current_error, fini_error);
+  } else {
+    RCL_SET_ERROR_MSG(current_error);
   }
+
   return RCL_RET_ERROR;
 }
 
