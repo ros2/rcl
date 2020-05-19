@@ -306,19 +306,19 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan)
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
-  test_msgs__msg__Strings * msg_loaned;
+  test_msgs__msg__Strings * msg_loaned = nullptr;
   test_msgs__msg__Strings ** msg_loaned_ptr = &msg_loaned;
   if (rcl_publisher_can_loan_messages(&publisher)) {
     EXPECT_EQ(
       RCL_RET_OK, rcl_borrow_loaned_message(
         &publisher,
         ts,
-        reinterpret_cast<void **>(&msg_loaned_ptr)));
+        reinterpret_cast<void **>(msg_loaned_ptr)));
     ASSERT_TRUE(rosidl_runtime_c__String__assign(&(msg_loaned->string_value), "testing"));
     EXPECT_EQ(
       RCL_RET_OK, rcl_publish_loaned_message(
         &publisher,
-        &msg_loaned,
+        msg_loaned,
         nullptr));
   }
 }
