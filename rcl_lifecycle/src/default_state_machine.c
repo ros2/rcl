@@ -705,8 +705,10 @@ fail:;
       "Freeing transition map failed while handling a previous error. Leaking memory!"
       "\nOriginal error:\n\t%s\nError encountered in rcl_lifecycle_transition_map_fini():\n\t%s\n",
       current_error, fini_error);
-  } else {
+  } else if (strcmp(current_error, "") != 0) {
     RCL_SET_ERROR_MSG(current_error);
+  } else {
+    RCL_SET_ERROR_MSG("Unspecified in default_state_machine _register_transitions()");
   }
 
   return RCL_RET_ERROR;
