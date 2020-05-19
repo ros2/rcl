@@ -292,13 +292,13 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
 }
 
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan) {
-  rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   const char * topic_name = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  rcl_ret_t ret =
+    rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -306,30 +306,31 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan)
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
-  test_msgs__msg__Strings msg_loaned;
+  test_msgs__msg__Strings * msg_loaned;
+  test_msgs__msg__Strings ** msg_loaned_ptr = &msg_loaned;
   if (rcl_publisher_can_loan_messages(&publisher)) {
     EXPECT_EQ(
       RCL_RET_OK, rcl_borrow_loaned_message(
         &publisher,
         ts,
-        reinterpret_cast<void **>(&msg_loaned)));
-    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg_loaned.string_value, "testing"));
+        reinterpret_cast<void **>(&msg_loaned_ptr)));
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&(msg_loaned->string_value), "testing"));
     EXPECT_EQ(
       RCL_RET_OK, rcl_publish_loaned_message(
         &publisher,
-        reinterpret_cast<void *>(&msg_loaned),
+        &msg_loaned,
         nullptr));
   }
 }
 
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_access_functions) {
-  rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   const char * topic_name = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  rcl_ret_t ret =
+    rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -337,8 +338,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
-  const rcl_publisher_options_t * publisher_options_rcv;
-  publisher_options_rcv = rcl_publisher_get_options(&publisher);
+  const rcl_publisher_options_t * publisher_options_rcv = rcl_publisher_get_options(&publisher);
+  ASSERT_NE(nullptr, publisher_options_rcv);
   EXPECT_EQ(rmw_qos_profile_default.reliability, publisher_options_rcv->qos.reliability);
   EXPECT_EQ(rmw_qos_profile_default.history, publisher_options_rcv->qos.history);
   EXPECT_EQ(rmw_qos_profile_default.depth, publisher_options_rcv->qos.depth);
@@ -363,13 +364,13 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
 }
 
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_assert_lieveliness) {
-  rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   const char * topic_name = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  rcl_ret_t ret =
+    rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {

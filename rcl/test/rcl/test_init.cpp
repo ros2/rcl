@@ -273,12 +273,12 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_get_instance_id) 
 }
 
 TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_access) {
-  rcl_ret_t ret;
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rmw_init_options_t * options = rcl_init_options_get_rmw_init_options(&init_options);
+  ASSERT_NE(nullptr, options);
   EXPECT_EQ(0u, options->instance_id);
   EXPECT_EQ(nullptr, options->impl);
 
