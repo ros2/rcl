@@ -224,42 +224,6 @@ _rcl_parse_disabling_flag(
   const char * key,
   bool * value);
 
-/// Parse a bool argument that may or may not be for the provided key rule.
-/**
- * \param[in] arg the argument to parse
- * \param[in] key the key for the argument to parse. Should be a null terminated string
- * \param[in,out] value parsed boolean value
- * \return RCL_RET_OK if the bool argument was parsed successfully, or
- * \return RLC_RET_ERROR if an unspecified error occurred.
- * \deprecated to be removed in F-Turtle
- */
-RCL_LOCAL
-rcl_ret_t
-_rcl_parse_bool_arg(
-  const char * arg,
-  const char * key,
-  bool * value);
-
-/// Parse a null terminated string to a boolean value.
-/**
- * The case sensitive values: "T", "t", "True", "true", "Y", "y", "Yes", "yes",
- * and "1" will all map to true.
- * The case sensitive values: "F", "f", "False", "false", "N", "n", "No", "no",
- * and "0" will all map to false.
- *
- * \param[in] str a null terminated string to be parsed into a boolean
- * \param[in,out] val the boolean value parsed from the string.
- *   Left unchanged if string cannot be parsed to a valid bool.
- * \return RCL_RET_OK if a valid boolean parsed, or
- * \return RLC_RET_ERROR if an unspecified error occurred.
- * \deprecated to be removed in F-Turtle
- */
-RCL_LOCAL
-rcl_ret_t
-_atob(
-  const char * str,
-  bool * val);
-
 /// Allocate and zero initialize arguments impl and.
 /**
  * \param[out] args target arguments to set impl
@@ -1855,50 +1819,6 @@ _rcl_parse_disabling_flag(
     "Argument is not a %s%s nor a %s%s flag.",
     RCL_ENABLE_FLAG_PREFIX, suffix,
     RCL_DISABLE_FLAG_PREFIX, suffix);
-  return RCL_RET_ERROR;
-}
-
-rcl_ret_t
-_rcl_parse_bool_arg(
-  const char * arg,
-  const char * key,
-  bool * value)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(key, RCL_RET_INVALID_ARGUMENT);
-
-  const size_t param_prefix_len = strlen(key);
-  if (strncmp(key, arg, param_prefix_len) == 0) {
-    return _atob(arg + param_prefix_len, value);
-  }
-
-  RCL_SET_ERROR_MSG("Argument does not start with key");
-  return RCL_RET_INVALID_PARAM_RULE;
-}
-
-rcl_ret_t
-_atob(
-  const char * str,
-  bool * val)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(str, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(val, RCL_RET_INVALID_ARGUMENT);
-  const char * true_values[] = {"y", "Y", "yes", "Yes", "t", "T", "true", "True", "1"};
-  const char * false_values[] = {"n", "N", "no", "No", "f", "F", "false", "False", "0"};
-
-  for (size_t idx = 0; idx < sizeof(true_values) / sizeof(char *); idx++) {
-    if (0 == strncmp(true_values[idx], str, strlen(true_values[idx]))) {
-      *val = true;
-      return RCL_RET_OK;
-    }
-  }
-
-  for (size_t idx = 0; idx < sizeof(false_values) / sizeof(char *); idx++) {
-    if (0 == strncmp(false_values[idx], str, strlen(false_values[idx]))) {
-      *val = false;
-      return RCL_RET_OK;
-    }
-  }
   return RCL_RET_ERROR;
 }
 
