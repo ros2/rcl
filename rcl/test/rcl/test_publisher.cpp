@@ -351,6 +351,15 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
   rcl_context_t * pub_context = rcl_publisher_get_context(&publisher);
   EXPECT_TRUE(rcl_context_is_valid(pub_context));
   EXPECT_EQ(rcl_context_get_instance_id(context_ptr), rcl_context_get_instance_id(pub_context));
+
+  EXPECT_EQ(nullptr, rcl_publisher_get_options(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_context(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_actual_qos(nullptr));
+  EXPECT_EQ(false, rcl_publisher_can_loan_messages(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_topic_name(nullptr));
+  size_t count_size;
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(nullptr, &count_size));
 }
 
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_assert_lieveliness) {
