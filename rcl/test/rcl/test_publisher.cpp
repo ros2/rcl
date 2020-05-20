@@ -353,6 +353,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
   EXPECT_TRUE(rcl_context_is_valid(pub_context));
   EXPECT_EQ(rcl_context_get_instance_id(context_ptr), rcl_context_get_instance_id(pub_context));
 
+  struct rcl_publisher_impl_t * impl_pub = publisher.impl;
+  publisher.impl = nullptr;
+  EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
+  publisher.impl = impl_pub;
+
   EXPECT_EQ(nullptr, rcl_publisher_get_options(nullptr));
   EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(nullptr));
   EXPECT_EQ(nullptr, rcl_publisher_get_context(nullptr));
