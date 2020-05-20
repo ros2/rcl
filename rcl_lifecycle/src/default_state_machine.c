@@ -708,7 +708,7 @@ fail:;
   } else if (strcmp(current_error, "") != 0) {
     RCL_SET_ERROR_MSG(current_error);
   } else {
-    RCL_SET_ERROR_MSG("Unspecified in default_state_machine _register_transitions()");
+    RCL_SET_ERROR_MSG("Unspecified error in default_state_machine _register_transitions()");
   }
 
   return RCL_RET_ERROR;
