@@ -371,70 +371,114 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   EXPECT_NE(nullptr, rcl_publisher_get_rmw_handle(&publisher));
   EXPECT_NE(nullptr, rcl_publisher_get_actual_qos(&publisher));
   EXPECT_NE(nullptr, rcl_publisher_get_options(&publisher));
+  rcl_reset_error();
   EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
     rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+  rcl_reset_error();
   publisher.impl->context = saved_context;
 
   // Change internal rmw_handle to nullptr
   publisher.impl->rmw_handle = nullptr;
   EXPECT_FALSE(rcl_publisher_is_valid_except_context(&publisher));
+  rcl_reset_error();
   EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_topic_name(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_actual_qos(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_options(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
     rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+  rcl_reset_error();
   publisher.impl->rmw_handle = saved_rmw_handle;
 
   // Change internal implementation to nullptr
   publisher.impl = nullptr;
   EXPECT_FALSE(rcl_publisher_is_valid_except_context(&publisher));
+  rcl_reset_error();
   EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_topic_name(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_actual_qos(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_options(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
     rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+  rcl_reset_error();
   publisher.impl = saved_impl;
 
   // Null tests
   EXPECT_FALSE(rcl_publisher_is_valid_except_context(nullptr));
+  rcl_reset_error();
   EXPECT_FALSE(rcl_publisher_is_valid(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_topic_name(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_actual_qos(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_options(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(false, rcl_publisher_can_loan_messages(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(nullptr, &count_size));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(nullptr, &msg, nullptr));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
     rcl_publish_serialized_message(nullptr, &serialized_msg, nullptr));
+  rcl_reset_error();
 }
