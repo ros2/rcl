@@ -124,8 +124,8 @@ bool rcl_logging_rosout_enabled();
 /// Default output handler used by rcl.
 /**
  * This function can be wrapped in a language specific client library,
- * adding the necessary mutual exclusion protection there, and then used
- * by calling `rcl_logging_configure_with_output_handler` instead of
+ * adding the necessary mutual exclusion protection there, and then use
+ * `rcl_logging_configure_with_output_handler` instead of
  * `rcl_logging_configure`.
  *
  * <hr>
@@ -135,9 +135,6 @@ bool rcl_logging_rosout_enabled();
  * Thread-Safe        | Yes
  * Uses Atomics       | No
  * Lock-Free          | Yes
- *
- * \return `TRUE` if logging rosout is enabled, or
- * \return `FALSE` if logging rosout is disabled.
  */
 RCL_PUBLIC
 void
