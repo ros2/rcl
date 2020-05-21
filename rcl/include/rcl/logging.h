@@ -44,6 +44,7 @@ extern "C"
  * \param allocator Used to allocate memory used by the logging system
  * \return `RCL_RET_OK` if successful, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERR` if a general error occurs
  */
 RCL_PUBLIC

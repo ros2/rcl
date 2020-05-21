@@ -168,6 +168,7 @@ rcl_get_zero_initialized_context(void);
  * Lock-Free          | Yes [1]
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
+ * \param[inout] context object to be deinitialized.
  * \return `RCL_RET_OK` if the shutdown was completed successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occur.

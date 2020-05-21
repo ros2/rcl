@@ -142,6 +142,7 @@ rcl_get_zero_initialized_subscription(void);
  * \param[in] options subscription options, including quality of service settings
  * \return `RCL_RET_OK` if subscription was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ALREADY_INIT` if the subcription is already initialized, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid, or
@@ -193,9 +194,9 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node);
 /**
  * The defaults are:
  *
- * - ignore_local_publications = false
  * - qos = rmw_qos_profile_default
  * - allocator = rcl_get_default_allocator()
+ * - rmw_subscription_options = rmw_get_default_subscription_options();
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

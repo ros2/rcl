@@ -71,6 +71,7 @@ typedef struct rcl_node_options_t
  * - domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID
  * - allocator = rcl_get_default_allocator()
  * - use_global_arguments = true
+ * - enable_rosout = true
  * - arguments = rcl_get_zero_initialized_arguments()
  */
 RCL_PUBLIC
