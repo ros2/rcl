@@ -25,6 +25,8 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
+#include "./publisher_impl.h"
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -353,19 +355,64 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
   EXPECT_TRUE(rcl_context_is_valid(pub_context));
   EXPECT_EQ(rcl_context_get_instance_id(context_ptr), rcl_context_get_instance_id(pub_context));
 
-  struct rcl_publisher_impl_t * impl_pub = publisher.impl;
-  publisher.impl = nullptr;
-  EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
-  publisher.impl = impl_pub;
-
-  EXPECT_EQ(nullptr, rcl_publisher_get_options(nullptr));
-  EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(nullptr));
-  EXPECT_EQ(nullptr, rcl_publisher_get_context(nullptr));
-  EXPECT_EQ(nullptr, rcl_publisher_get_actual_qos(nullptr));
-  EXPECT_EQ(false, rcl_publisher_can_loan_messages(nullptr));
-  EXPECT_EQ(nullptr, rcl_publisher_get_topic_name(nullptr));
   size_t count_size;
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(nullptr, &count_size));
+  rcl_publisher_impl_t * saved_impl = (&publisher)->impl;
+  rcl_context_t * saved_context = (&publisher)->impl->context;
+  rmw_publisher_t * saved_rmw_handle = (&publisher)->impl->rmw_handle;
+
+  // Change internal context to nullptr
+  publisher.impl->context = nullptr;
+  EXPECT_TRUE(rcl_publisher_is_valid_except_context(&publisher));
+  EXPECT_NE(nullptr, rcl_publisher_get_topic_name(&publisher));
+  EXPECT_NE(nullptr, rcl_publisher_get_rmw_handle(&publisher));
+  EXPECT_NE(nullptr, rcl_publisher_get_actual_qos(&publisher));
+  EXPECT_NE(nullptr, rcl_publisher_get_options(&publisher));
+  EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
+  EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  EXPECT_EQ(
+    RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  publisher.impl->context = saved_context;
+
+  // Change internal rmw_handle to nullptr
+  publisher.impl->rmw_handle = nullptr;
+  EXPECT_FALSE(rcl_publisher_is_valid_except_context(&publisher));
+  EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_topic_name(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_actual_qos(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_options(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
+  EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  EXPECT_EQ(
+    RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  publisher.impl->rmw_handle = saved_rmw_handle;
+
+  // Change internal implementation to nullptr
+  publisher.impl = nullptr;
+  EXPECT_FALSE(rcl_publisher_is_valid_except_context(&publisher));
+  EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_topic_name(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_actual_qos(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_options(&publisher));
+  EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
+  EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  EXPECT_EQ(
+    RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  publisher.impl = saved_impl;
+
+  // Null tests
+  EXPECT_FALSE(rcl_publisher_is_valid_except_context(nullptr));
+  EXPECT_FALSE(rcl_publisher_is_valid(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_topic_name(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_rmw_handle(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_actual_qos(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_options(nullptr));
+  EXPECT_EQ(nullptr, rcl_publisher_get_context(nullptr));
+  EXPECT_EQ(false, rcl_publisher_can_loan_messages(nullptr));
+  EXPECT_EQ(
+    RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(nullptr, &count_size));
 }
 
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_assert_lieveliness) {
