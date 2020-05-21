@@ -325,7 +325,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan)
   }
 }
 
-TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_access_functions) {
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publisher) {
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
@@ -355,7 +355,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
   EXPECT_TRUE(rcl_context_is_valid(pub_context));
   EXPECT_EQ(rcl_context_get_instance_id(context_ptr), rcl_context_get_instance_id(pub_context));
 
+  EXPECT_EQ(RCL_RET_OK, rcl_publisher_assert_liveliness(&publisher));
+
   size_t count_size;
+  test_msgs__msg__BasicTypes msg;
+  rcl_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
   rcl_publisher_impl_t * saved_impl = (&publisher)->impl;
   rcl_context_t * saved_context = (&publisher)->impl->context;
   rmw_publisher_t * saved_rmw_handle = (&publisher)->impl->rmw_handle;
@@ -372,6 +376,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
   EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(
+    RCL_RET_PUBLISHER_INVALID,
+    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
   publisher.impl->context = saved_context;
 
   // Change internal rmw_handle to nullptr
@@ -386,6 +395,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
   EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(
+    RCL_RET_PUBLISHER_INVALID,
+    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
   publisher.impl->rmw_handle = saved_rmw_handle;
 
   // Change internal implementation to nullptr
@@ -400,6 +414,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
   EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(
+    RCL_RET_PUBLISHER_INVALID,
+    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
   publisher.impl = saved_impl;
 
   // Null tests
@@ -413,23 +432,9 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_acces
   EXPECT_EQ(false, rcl_publisher_can_loan_messages(nullptr));
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(nullptr, &count_size));
-}
-
-TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_assert_lieveliness) {
-  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
-  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  rcl_ret_t ret =
-    rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-
-  EXPECT_EQ(RCL_RET_OK, rcl_publisher_assert_liveliness(&publisher));
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(nullptr, &msg, nullptr));
+  EXPECT_EQ(
+    RCL_RET_PUBLISHER_INVALID,
+    rcl_publish_serialized_message(nullptr, &serialized_msg, nullptr));
 }
