@@ -2,6 +2,18 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Expose rcl default logging output handler (`#660 <https://github.com/ros2/rcl/issues/660>`_)
+* Remove deprecated functions (`#658 <https://github.com/ros2/rcl/issues/658>`_)
+* Warn about unused return value for set_logger_level (`#652 <https://github.com/ros2/rcl/issues/652>`_)
+* Mark cyclonedds test_service test as flakey (`#648 <https://github.com/ros2/rcl/issues/648>`_)
+* Convert sleep_for into appropriate logic in tests(`#631 <https://github.com/ros2/rcl/issues/631>`_)
+* Reduce timeouts in tests(`#613 <https://github.com/ros2/rcl/issues/613>`_)
+* Add tests for time.c and timer.c (`#599 <https://github.com/ros2/rcl/issues/599>`_)
+* Update Quality Declaration for 1.0 (`#647 <https://github.com/ros2/rcl/issues/647>`_)
+* Contributors: Barry Xu, Dirk Thomas, Ivan Santiago Paunovic, Jorge Perez, Tully Foote, brawner
+
 1.0.0 (2020-05-12)
 ------------------
 * Remove MANUAL_BY_NODE liveliness API (`#645 <https://github.com/ros2/rcl/issues/645>`_)
