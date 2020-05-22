@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2020-05-22)
+------------------
 * Expose rcl default logging output handler (`#660 <https://github.com/ros2/rcl/issues/660>`_)
 * Remove deprecated functions (`#658 <https://github.com/ros2/rcl/issues/658>`_)
 * Warn about unused return value for set_logger_level (`#652 <https://github.com/ros2/rcl/issues/652>`_)

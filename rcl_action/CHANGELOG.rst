@@ -2,8 +2,8 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2020-05-22)
+------------------
 * Update Quality Declaration for 1.0 (`#647 <https://github.com/ros2/rcl/issues/647>`_)
 * Contributors: brawner
 
