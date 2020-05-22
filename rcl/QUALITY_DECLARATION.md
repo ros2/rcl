@@ -203,7 +203,7 @@ It is **Quality Level 4**, see its [Quality Declaration document](https://gitlab
 
 ### Vulnerability Disclosure Policy [7.i]
 
-`rcl` does not have a Vulnerability Disclosure Policy.
+This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://www.ros.org/reps/rep-2006.html).
 
 # Current status Summary
 
