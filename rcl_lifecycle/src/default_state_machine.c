@@ -692,25 +692,25 @@ rcl_lifecycle_init_default_state_machine(
 
 // Semicolon handles the "a label can only be part of a statement..." error
 fail:;
-  // If rcl_lifecycle_transition_map_fini() fails, it will clobber the error string here, twice
-  // Here, we concatenate the error strings if that happens
+  // If rcl_lifecycle_transition_map_fini() fails, it will clobber the error string here.
+  // Concatenate the error strings if that happens
   const char * current_error = (rcl_error_is_set()) ? rcl_get_error_string().str : "";
-  rcl_reset_error();
 
   if (rcl_lifecycle_transition_map_fini(&state_machine->transition_map, allocator) != RCL_RET_OK) {
-    const char * fini_error = (rcl_error_is_set()) ? rcl_get_error_string().str : "";
-    rcl_reset_error();
-
+    const char * fini_error = "";
+    if (rcl_error_is_set()) {
+      fini_error = rcl_get_error_string().str;
+      rcl_reset_error();
+    }
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Freeing transition map failed while handling a previous error. Leaking memory!"
       "\nOriginal error:\n\t%s\nError encountered in rcl_lifecycle_transition_map_fini():\n\t%s\n",
       current_error, fini_error);
-  } else if (strcmp(current_error, "") != 0) {
-    RCL_SET_ERROR_MSG(current_error);
-  } else {
-    RCL_SET_ERROR_MSG("Unspecified error in default_state_machine _register_transitions()");
   }
 
+  if (!rcl_error_is_set()) {
+    RCL_SET_ERROR_MSG("Unspecified error in default_state_machine _register_transitions()");
+  }
   return RCL_RET_ERROR;
 }
 
