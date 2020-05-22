@@ -204,8 +204,16 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &default_publisher_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_publisher_is_valid(&publisher));
+  // Try init a publisher already init
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &default_publisher_options);
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Pass invalid node to fini
+  ret = rcl_publisher_fini(&publisher, nullptr);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing null for publisher in init.
