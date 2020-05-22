@@ -40,6 +40,8 @@ rcl_lifecycle_get_zero_initialized_state()
   rcl_lifecycle_state_t state;
   state.id = 0;
   state.label = NULL;
+  state.valid_transitions = NULL;
+  state.valid_transition_size = 0;
   return state;
 }
 
@@ -56,6 +58,10 @@ rcl_lifecycle_state_init(
   }
   if (!state) {
     RCL_SET_ERROR_MSG("state pointer is null\n");
+    return RCL_RET_ERROR;
+  }
+  if (!label) {
+    RCL_SET_ERROR_MSG("State label is null\n");
     return RCL_RET_ERROR;
   }
 
@@ -118,7 +124,22 @@ rcl_lifecycle_transition_init(
 
   if (!transition) {
     RCL_SET_ERROR_MSG("transition pointer is null\n");
-    return RCL_RET_OK;
+    return RCL_RET_ERROR;
+  }
+
+  if (!label) {
+    RCL_SET_ERROR_MSG("label pointer is null\n");
+    return RCL_RET_ERROR;
+  }
+
+  if (!start) {
+    RCL_SET_ERROR_MSG("start state pointer is null\n");
+    return RCL_RET_ERROR;
+  }
+
+  if (!goal) {
+    RCL_SET_ERROR_MSG("goal state pointer is null\n");
+    return RCL_RET_ERROR;
   }
 
   transition->start = start;
@@ -140,7 +161,7 @@ rcl_lifecycle_transition_fini(
   const rcl_allocator_t * allocator)
 {
   if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n");
+    RCL_SET_ERROR_MSG("can't finalize transition, no allocator given\n");
     return RCL_RET_ERROR;
   }
   // it is already NULL
@@ -192,6 +213,14 @@ rcl_lifecycle_state_machine_init(
   bool default_states,
   const rcl_allocator_t * allocator)
 {
+  if (!state_machine) {
+    RCL_SET_ERROR_MSG("State machine is null\n");
+    return RCL_RET_ERROR;
+  }
+  if (!node_handle) {
+    RCL_SET_ERROR_MSG("Node handle is null\n");
+    return RCL_RET_ERROR;
+  }
   if (!allocator) {
     RCL_SET_ERROR_MSG("can't initialize state machine, no allocator given\n");
     return RCL_RET_ERROR;
@@ -207,15 +236,12 @@ rcl_lifecycle_state_machine_init(
   }
 
   if (default_states) {
-    rcl_ret_t ret =
-      rcl_lifecycle_init_default_state_machine(state_machine, allocator);
+    ret = rcl_lifecycle_init_default_state_machine(state_machine, allocator);
     if (ret != RCL_RET_OK) {
       // init default state machine might have allocated memory,
       // so we have to call fini
-      if (rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator) != RCL_RET_OK) {
-        // error already set
-        return RCL_RET_ERROR;
-      }
+      ret = rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator);
+      return RCL_RET_ERROR;
     }
   }
 

@@ -89,6 +89,16 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test_multiple_instances ${PROJECT_NAME})
   endif()
+  ament_add_gtest(test_rcl_lifecycle
+    test/test_rcl_lifecycle.cpp
+  )
+  if(TARGET test_rcl_lifecycle)
+    ament_target_dependencies(test_rcl_lifecycle
+      "rcl"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_rcl_lifecycle ${PROJECT_NAME})
+  endif()
   ament_add_gtest(test_transition_map
     test/test_transition_map.cpp
   )
