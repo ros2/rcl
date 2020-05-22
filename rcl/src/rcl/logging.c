@@ -44,16 +44,6 @@ static bool g_rcl_logging_rosout_enabled = false;
 static bool g_rcl_logging_ext_lib_enabled = false;
 
 /**
- * An output function that sends to multiple output appenders.
- */
-static
-void
-rcl_logging_multiple_output_handler(
-  const rcutils_log_location_t * location,
-  int severity, const char * name, rcutils_time_point_value_t timestamp,
-  const char * format, va_list * args);
-
-/**
  * An output function that sends to the external logger library.
  */
 static
@@ -64,7 +54,10 @@ rcl_logging_ext_lib_output_handler(
   const char * format, va_list * args);
 
 rcl_ret_t
-rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t * allocator)
+rcl_logging_configure_with_output_handler(
+  const rcl_arguments_t * global_args,
+  const rcl_allocator_t * allocator,
+  rcl_logging_output_handler_t output_handler)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
@@ -106,8 +99,15 @@ rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t
         rcl_logging_ext_lib_output_handler;
     }
   }
-  rcutils_logging_set_output_handler(rcl_logging_multiple_output_handler);
+  rcutils_logging_set_output_handler(output_handler);
   return status;
+}
+
+rcl_ret_t
+rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t * allocator)
+{
+  return rcl_logging_configure_with_output_handler(
+    global_args, allocator, &rcl_logging_multiple_output_handler);
 }
 
 rcl_ret_t rcl_logging_fini()
@@ -130,7 +130,6 @@ bool rcl_logging_rosout_enabled()
   return g_rcl_logging_rosout_enabled;
 }
 
-static
 void
 rcl_logging_multiple_output_handler(
   const rcutils_log_location_t * location,
