@@ -657,6 +657,8 @@ rcl_lifecycle_init_default_state_machine(
   rcl_lifecycle_state_machine_t * state_machine, const rcutils_allocator_t * allocator)
 {
   rcl_ret_t ret = RCL_RET_ERROR;
+  // Used for concatenating error messages in the fail: block.
+  const char * fail_error_message = "";
 
   // ***************************
   // register all primary states
@@ -690,11 +692,12 @@ rcl_lifecycle_init_default_state_machine(
 
   return ret;
 
-// Semicolon handles the "a label can only be part of a statement..." error
-fail:;
+fail:
   // If rcl_lifecycle_transition_map_fini() fails, it will clobber the error string here.
   // Concatenate the error strings if that happens
-  const char * current_error = (rcl_error_is_set()) ? rcl_get_error_string().str : "";
+  if (rcl_error_is_set()) {
+    fail_error_message = rcl_get_error_string().str;
+  }
 
   if (rcl_lifecycle_transition_map_fini(&state_machine->transition_map, allocator) != RCL_RET_OK) {
     const char * fini_error = "";
@@ -705,7 +708,7 @@ fail:;
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Freeing transition map failed while handling a previous error. Leaking memory!"
       "\nOriginal error:\n\t%s\nError encountered in rcl_lifecycle_transition_map_fini():\n\t%s\n",
-      current_error, fini_error);
+      fail_error_message, fini_error);
   }
 
   if (!rcl_error_is_set()) {
