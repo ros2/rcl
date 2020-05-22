@@ -78,8 +78,6 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->bool_value);
     EXPECT_TRUE(*param_value->bool_value);
-    allocator.deallocate(param_value->bool_value, allocator.state);
-    param_value->bool_value = nullptr;
     res = rcl_parse_yaml_value("lidar_ns/lidar_2", "is_back", "false", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->bool_value);
@@ -89,8 +87,6 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->integer_value);
     EXPECT_EQ(11, *param_value->integer_value);
-    allocator.deallocate(param_value->integer_value, allocator.state);
-    param_value->integer_value = nullptr;
     res = rcl_parse_yaml_value("lidar_ns/lidar_2", "id", "12", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->integer_value);
@@ -100,8 +96,6 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->string_value);
     EXPECT_STREQ("back", param_value->string_value);
-    allocator.deallocate(param_value->string_value, allocator.state);
-    param_value->string_value = nullptr;
     res = rcl_parse_yaml_value("camera", "loc", "front", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->string_value);
@@ -111,8 +105,6 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->double_value);
     EXPECT_DOUBLE_EQ(2.34, *param_value->double_value);
-    allocator.deallocate(param_value->double_value, allocator.state);
-    param_value->double_value = nullptr;
     res = rcl_parse_yaml_value("camera", "cam_spec.angle", "2.2", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->double_value);
@@ -122,8 +114,6 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->integer_value);
     EXPECT_EQ(12, *param_value->integer_value);
-    allocator.deallocate(param_value->integer_value, allocator.state);
-    param_value->integer_value = nullptr;
     res = rcl_parse_yaml_value("intel", "num_cores", "8", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->integer_value);
@@ -133,8 +123,6 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->string_value);
     EXPECT_STREQ("x86_64", param_value->string_value);
-    allocator.deallocate(param_value->string_value, allocator.state);
-    param_value->string_value = nullptr;
     res = rcl_parse_yaml_value("intel", "arch", "x86", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->string_value);
@@ -150,9 +138,6 @@ TEST(test_parser, correct_syntax) {
     EXPECT_TRUE(param_value->bool_array_value->values[3]);
     EXPECT_FALSE(param_value->bool_array_value->values[4]);
     EXPECT_FALSE(param_value->bool_array_value->values[5]);
-    allocator.deallocate(param_value->bool_array_value->values, allocator.state);
-    allocator.deallocate(param_value->bool_array_value, allocator.state);
-    param_value->bool_array_value = nullptr;
     res = rcl_parse_yaml_value("new_camera_ns/new_camera1", "is_cam_on", "[false, true]", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->bool_array_value);
@@ -167,9 +152,6 @@ TEST(test_parser, correct_syntax) {
     EXPECT_EQ(2438, param_value->integer_array_value->values[0]);
     EXPECT_EQ(2439, param_value->integer_array_value->values[1]);
     EXPECT_EQ(2440, param_value->integer_array_value->values[2]);
-    allocator.deallocate(param_value->integer_array_value->values, allocator.state);
-    allocator.deallocate(param_value->integer_array_value, allocator.state);
-    param_value->integer_array_value = nullptr;
     res = rcl_parse_yaml_value("lidar_ns/lidar_1", "ports", "[8080]", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->integer_array_value);
@@ -185,9 +167,6 @@ TEST(test_parser, correct_syntax) {
     EXPECT_DOUBLE_EQ(-2.3, param_value->double_array_value->values[1]);
     EXPECT_DOUBLE_EQ(5.2, param_value->double_array_value->values[2]);
     EXPECT_DOUBLE_EQ(9.0, param_value->double_array_value->values[3]);
-    allocator.deallocate(param_value->double_array_value->values, allocator.state);
-    allocator.deallocate(param_value->double_array_value, allocator.state);
-    param_value->double_array_value = nullptr;
     res = rcl_parse_yaml_value("lidar_ns/lidar_1", "driver1.bk_sensor_specs", "[1.0]", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->double_array_value);
@@ -201,9 +180,6 @@ TEST(test_parser, correct_syntax) {
     EXPECT_STREQ("Bosch", param_value->string_array_value->data[0]);
     EXPECT_STREQ("Novatek", param_value->string_array_value->data[1]);
     EXPECT_STREQ("Mobius", param_value->string_array_value->data[2]);
-    EXPECT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(param_value->string_array_value));
-    allocator.deallocate(param_value->string_array_value, allocator.state);
-    param_value->string_array_value = nullptr;
     res = rcl_parse_yaml_value(
       "camera", "cam_spec.supported_brands", "[Mobius]", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;

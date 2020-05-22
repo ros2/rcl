@@ -1200,6 +1200,11 @@ static rcutils_ret_t parse_value(
       } else {
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
           *seq_data_type = val_type;
+          if (NULL != param_value->bool_array_value) {
+            allocator.deallocate(param_value->bool_array_value->values, allocator.state);
+            allocator.deallocate(param_value->bool_array_value, allocator.state);
+            param_value->bool_array_value = NULL;
+          }
           param_value->bool_array_value =
             allocator.zero_allocate(1U, sizeof(rcl_bool_array_t), allocator.state);
           if (NULL == param_value->bool_array_value) {
@@ -1235,6 +1240,11 @@ static rcutils_ret_t parse_value(
         param_value->integer_value = (int64_t *)ret_val;
       } else {
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
+          if (NULL != param_value->integer_array_value) {
+            allocator.deallocate(param_value->integer_array_value->values, allocator.state);
+            allocator.deallocate(param_value->integer_array_value, allocator.state);
+            param_value->integer_array_value = NULL;
+          }
           *seq_data_type = val_type;
           param_value->integer_array_value =
             allocator.zero_allocate(1U, sizeof(rcl_int64_array_t), allocator.state);
@@ -1271,6 +1281,11 @@ static rcutils_ret_t parse_value(
         param_value->double_value = (double *)ret_val;
       } else {
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
+          if (NULL != param_value->double_array_value) {
+            allocator.deallocate(param_value->double_array_value->values, allocator.state);
+            allocator.deallocate(param_value->double_array_value, allocator.state);
+            param_value->double_array_value = NULL;
+          }
           *seq_data_type = val_type;
           param_value->double_array_value =
             allocator.zero_allocate(1U, sizeof(rcl_double_array_t), allocator.state);
@@ -1307,6 +1322,14 @@ static rcutils_ret_t parse_value(
         param_value->string_value = (char *)ret_val;
       } else {
         if (DATA_TYPE_UNKNOWN == *seq_data_type) {
+          if (NULL != param_value->string_array_value) {
+            if (RCUTILS_RET_OK != rcutils_string_array_fini(param_value->string_array_value)) {
+              // Log and continue ...
+              RCUTILS_SAFE_FWRITE_TO_STDERR("Error deallocating string array");
+            }
+            allocator.deallocate(param_value->string_array_value, allocator.state);
+            param_value->string_array_value = NULL;
+          }
           *seq_data_type = val_type;
           param_value->string_array_value =
             allocator.zero_allocate(1U, sizeof(rcutils_string_array_t), allocator.state);
