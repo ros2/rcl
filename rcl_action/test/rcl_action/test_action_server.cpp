@@ -28,6 +28,39 @@
 
 #include "test_msgs/action/fibonacci.h"
 
+void * bad_malloc(size_t, void *)
+{
+  return nullptr;
+}
+
+void * bad_realloc(void *, size_t, void *)
+{
+  return nullptr;
+}
+
+/// This is fully defined in action_server.c, reproducing here for testing.
+typedef struct rcl_action_server_impl_t
+{
+  rcl_service_t goal_service;
+  rcl_service_t cancel_service;
+  rcl_service_t result_service;
+  rcl_publisher_t feedback_publisher;
+  rcl_publisher_t status_publisher;
+  rcl_timer_t expire_timer;
+  char * action_name;
+  rcl_action_server_options_t options;
+  // Array of goal handles
+  rcl_action_goal_handle_t ** goal_handles;
+  size_t num_goal_handles;
+  // Clock
+  rcl_clock_t clock;
+  // Wait set records
+  size_t wait_set_goal_service_index;
+  size_t wait_set_cancel_service_index;
+  size_t wait_set_result_service_index;
+  size_t wait_set_expire_timer_index;
+} rcl_action_server_impl_t;
+
 TEST(TestActionServerInitFini, test_action_server_init_fini)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -132,6 +165,14 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   rcl_reset_error();
 
   // Finalize with valid arguments
+  ret = rcl_action_server_fini(&action_server, &node);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Setup again for other finalize checks
+  action_server = rcl_action_get_zero_initialized_server();
+  ret = rcl_action_server_init(&action_server, &node, &clock, ts, action_name, &options);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
   ret = rcl_action_server_fini(&action_server, &node);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
@@ -242,6 +283,24 @@ TEST_F(TestActionServer, test_action_server_is_valid)
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
 }
 
+TEST_F(TestActionServer, test_action_server_is_valid_except_context)
+{
+  // Check with null pointer
+  bool is_valid = rcl_action_server_is_valid_except_context(nullptr);
+  EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check with uninitialized action server
+  rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
+  is_valid = rcl_action_server_is_valid_except_context(&invalid_action_server);
+  EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check valid action server
+  is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
+  EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
+}
+
 TEST_F(TestActionServer, test_action_accept_new_goal)
 {
   // Initialize a goal info
@@ -264,6 +323,22 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   EXPECT_EQ(goal_handle, nullptr);
   rcl_reset_error();
 
+  // Check failing allocation of goal_handle
+  this->action_server.impl->options.allocator.allocate = bad_malloc;
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  EXPECT_EQ(goal_handle, nullptr);
+  this->action_server.impl->options.allocator.allocate =
+    rcl_get_default_allocator().allocate;
+  rcl_reset_error();
+
+  // Check failing reallocate of goal_handles
+  this->action_server.impl->options.allocator.reallocate = bad_realloc;
+  goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  EXPECT_EQ(goal_handle, nullptr);
+  this->action_server.impl->options.allocator.reallocate =
+    rcl_get_default_allocator().reallocate;
+  rcl_reset_error();
+
   std::vector<rcl_action_goal_handle_t> handles;
 
   // Accept with valid arguments
@@ -276,6 +351,12 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   EXPECT_TRUE(uuidcmp(goal_info_out.goal_id.uuid, goal_info_in.goal_id.uuid));
   size_t num_goals = 0u;
   rcl_action_goal_handle_t ** goal_handle_array = {nullptr};
+
+  // Check invalid action server
+  ret = rcl_action_server_get_goal_handles(nullptr, &goal_handle_array, &num_goals);
+  EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  rcl_reset_error();
+
   ret = rcl_action_server_get_goal_handles(&this->action_server, &goal_handle_array, &num_goals);
   ASSERT_EQ(ret, RCL_RET_OK);
   EXPECT_EQ(num_goals, 1u);
@@ -306,6 +387,74 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   for (auto & handle : handles) {
     EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
   }
+}
+
+TEST_F(TestActionServer, test_action_server_goal_exists) {
+  rcl_action_goal_info_t goal_info_out = rcl_action_get_zero_initialized_goal_info();
+  EXPECT_FALSE(rcl_action_server_goal_exists(nullptr, &goal_info_out));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  EXPECT_FALSE(rcl_action_server_goal_exists(&this->action_server, nullptr));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  // Initialize a goal info
+  rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
+  init_test_uuid0(goal_info_in.goal_id.uuid);
+
+  // Add new goal
+  rcl_action_goal_handle_t * goal_handle =
+    rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+
+  // Check exists
+  EXPECT_TRUE(rcl_action_server_goal_exists(&this->action_server, &goal_info_in));
+
+  rcl_action_goal_info_t different_goal = rcl_action_get_zero_initialized_goal_info();
+  init_test_uuid1(goal_info_in.goal_id.uuid);
+
+  // Check doesn't exist
+  EXPECT_FALSE(rcl_action_server_goal_exists(&this->action_server, &different_goal));
+
+  // Check corrupted goal_handles
+  rcl_get_default_allocator().deallocate(goal_handle, rcl_get_default_allocator().state);
+  this->action_server.impl->goal_handles[this->action_server.impl->num_goal_handles - 1] = nullptr;
+  EXPECT_FALSE(rcl_action_server_goal_exists(&this->action_server, &different_goal));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  // Reset for teardown
+  this->action_server.impl->num_goal_handles--;
+}
+
+TEST_F(TestActionServer, test_action_server_notify_goal_done) {
+  // Invalid action server
+  EXPECT_EQ(RCL_RET_ACTION_SERVER_INVALID, rcl_action_notify_goal_done(nullptr));
+  rcl_reset_error();
+
+  // No goals yet, should be ok
+  EXPECT_EQ(RCL_RET_OK, rcl_action_notify_goal_done(&action_server));
+
+  rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
+  init_test_uuid0(goal_info_in.goal_id.uuid);
+
+  // Add new goal
+  rcl_action_goal_handle_t * goal_handle =
+    rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
+  EXPECT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
+
+  // One goal, should be able to notify
+  EXPECT_EQ(RCL_RET_OK, rcl_action_notify_goal_done(&action_server));
+
+  // Invalid goal handle
+  rcl_get_default_allocator().deallocate(goal_handle, rcl_get_default_allocator().state);
+  this->action_server.impl->goal_handles[this->action_server.impl->num_goal_handles - 1] = nullptr;
+  EXPECT_EQ(RCL_RET_ERROR, rcl_action_notify_goal_done(&action_server));
+  rcl_reset_error();
+
+  // Reset for teardown
+  this->action_server.impl->num_goal_handles--;
 }
 
 TEST_F(TestActionServer, test_action_clear_expired_goals)
@@ -339,6 +488,7 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   // Set ROS time
   ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&this->clock));
   ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&this->clock, RCUTILS_S_TO_NS(1)));
+
   // Accept a goal to create a new handle
   rcl_action_goal_info_t goal_info_in = rcl_action_get_zero_initialized_goal_info();
   init_test_uuid1(goal_info_in.goal_id.uuid);
@@ -346,11 +496,14 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
     rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   ASSERT_NE(goal_handle, nullptr) << rcl_get_error_string().str;
   handles.push_back(*goal_handle);
+
   // Transition executing to aborted
   ASSERT_EQ(RCL_RET_OK, rcl_action_update_goal_state(goal_handle, GOAL_EVENT_EXECUTE));
   ASSERT_EQ(RCL_RET_OK, rcl_action_update_goal_state(goal_handle, GOAL_EVENT_ABORT));
+
   // Set time to something far in the future
   ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&this->clock, RCUTILS_S_TO_NS(99999)));
+
   // Clear with valid arguments
   ret = rcl_action_expire_goals(&this->action_server, expired_goals, capacity, &num_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;

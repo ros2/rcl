@@ -175,7 +175,7 @@ if(BUILD_TESTING)
     target_link_libraries(test_goal_state_machine
       ${PROJECT_NAME}
     )
-    ament_target_dependencies(test_action_server "rcl")
+    ament_target_dependencies(test_goal_state_machine  "osrf_testing_tools_cpp" "rcl")
   endif()
   ament_add_gtest(test_types
     test/rcl_action/test_types.cpp
@@ -187,7 +187,7 @@ if(BUILD_TESTING)
     target_link_libraries(test_types
       ${PROJECT_NAME}
     )
-    ament_target_dependencies(test_action_server "rcl")
+    ament_target_dependencies(test_types "rcl")
   endif()
   ament_add_gtest(test_names
     test/rcl_action/test_names.cpp
@@ -196,7 +196,20 @@ if(BUILD_TESTING)
     target_link_libraries(test_names
       ${PROJECT_NAME}
     )
-    ament_target_dependencies(test_action_server "rcl")
+    ament_target_dependencies(test_names "rcl")
+  endif()
+  ament_add_gtest(test_wait
+    test/rcl_action/test_wait.cpp
+  )
+  if(TARGET test_wait)
+    target_link_libraries(test_wait
+      ${PROJECT_NAME}
+    )
+    ament_target_dependencies(test_wait
+      "osrf_testing_tools_cpp"
+      "rcl"
+      "test_msgs"
+    )
   endif()
 endif()
 
