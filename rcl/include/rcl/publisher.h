@@ -320,8 +320,7 @@ rcl_ret_t
 rcl_publish(
   const rcl_publisher_t * publisher,
   const void * ros_message,
-  rmw_publisher_allocation_t * allocation
-);
+  rmw_publisher_allocation_t * allocation);
 
 /// Publish a serialized message on a topic using a publisher.
 /**
@@ -361,8 +360,7 @@ rcl_ret_t
 rcl_publish_serialized_message(
   const rcl_publisher_t * publisher,
   const rcl_serialized_message_t * serialized_message,
-  rmw_publisher_allocation_t * allocation
-);
+  rmw_publisher_allocation_t * allocation);
 
 /// Publish a loaned message on a topic using a publisher.
 /**
@@ -403,8 +401,7 @@ rcl_ret_t
 rcl_publish_loaned_message(
   const rcl_publisher_t * publisher,
   void * ros_message,
-  rmw_publisher_allocation_t * allocation
-);
+  rmw_publisher_allocation_t * allocation);
 
 /// Manually assert that this Publisher is alive (for RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC)
 /**

@@ -100,9 +100,6 @@ rcl_validate_topic_name(
  * \param[in] topic_name_length The number of characters in topic_name.
  *
  * \sa rcl_validate_topic_name(const char *, int *, size_t *)
- *
- * \param[in] topic_name_length The number of characters in topic name.
- *
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

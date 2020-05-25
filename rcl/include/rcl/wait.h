@@ -117,7 +117,7 @@ rcl_get_zero_initialized_wait_set(void);
  * \return `RCL_RET_NOT_INIT` if the given context is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is invalid, or
+ * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is not destroyed properly, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -157,7 +157,7 @@ rcl_wait_set_init(
  * \param[inout] wait_set the wait set struct to be finalized.
  * \return `RCL_RET_OK` if the finalization was successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is invalid, or
+ * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is not destroyed properly, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
