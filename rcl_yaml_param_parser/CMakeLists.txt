@@ -63,6 +63,18 @@ if(BUILD_TESTING)
       PRIVATE ${osrf_testing_tools_cpp_INCLUDE_DIRS})
   endif()
 
+  ament_add_gtest(test_parser
+    test/test_parser.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_parser)
+    ament_target_dependencies(test_parser
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_parser ${PROJECT_NAME})
+  endif()
+
 endif()
 
 ament_export_dependencies(ament_cmake libyaml_vendor)
