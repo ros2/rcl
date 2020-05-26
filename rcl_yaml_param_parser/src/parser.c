@@ -1509,7 +1509,7 @@ static rcutils_ret_t parse_key(
           memmove((param_name + params_ns_len + 1U), value, param_name_len);
           param_name[tot_len - 1U] = '\0';
 
-          if (params_st->params[*node_idx].parameter_names[*parameter_idx] != NULL) {
+          if (NULL != params_st->params[*node_idx].parameter_names[*parameter_idx]) {
             // This memory was allocated in find_parameter(), and its pointer is being overwritten
             allocator.deallocate(
               params_st->params[*node_idx].parameter_names[*parameter_idx], allocator.state);
