@@ -55,6 +55,9 @@ extern "C"
  * \param[in] allocator used to do allocations.
  * \param[out] security_options security options that will be configured according to
  *  the environment.
+ * \return `RCL_RET_OK` If the security options are returned properly, or
+ * \returns RCL_RET_INVALID_ARGUMENT if an argument is not valid, or
+ * \returns RCL_RET_ERROR if an unexpected error happened
  */
 RCL_PUBLIC
 rcl_ret_t

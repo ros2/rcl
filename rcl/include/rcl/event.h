@@ -72,6 +72,7 @@ rcl_get_zero_initialized_event(void);
  * \param[in] event_type to listen for
  * \return `RCL_RET_OK` if the rcl_event_t is filled, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory fails, or
  * \return `RCL_RET_UNSUPPORTED` if event_type is not supported, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
@@ -92,6 +93,7 @@ rcl_publisher_event_init(
  * \param[in] event_type to listen for
  * \return `RCL_RET_OK` if the rcl_event_t is filled, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory fails, or
  * \return `RCL_RET_UNSUPPORTED` if event_type is not supported, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
@@ -109,9 +111,10 @@ rcl_subscription_event_init(
  *
  * \param[in] event_handle event object to take from
  * \param[in, out] event_info event info object to write taken data into
- * \param[in, out] taken boolean flag indicating if an event was taken or not
  * \return `RCL_RET_OK` if successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if memory allocation failed, or
+ * \return `RCL_RET_EVENT_TAKE_FAILED` if the take event failed, or
  * \return `RCL_RET_ERROR` if an unexpected error occurs.
  */
 RCL_PUBLIC

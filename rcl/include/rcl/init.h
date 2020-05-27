@@ -100,6 +100,7 @@ rcl_init(
  * Lock-Free          | Yes [1]
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
+ * \param[inout] context object to shutdown
  * \return `RCL_RET_OK` if the shutdown was completed successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ALREADY_SHUTDOWN` if the context is not currently valid, or

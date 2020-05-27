@@ -259,6 +259,7 @@ rcl_clock_fini(
  * \param[in] allocator The allocator to use for allocations
  * \return `RCL_RET_OK` if the time source was successfully initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
  */
 RCL_PUBLIC
@@ -671,7 +672,6 @@ rcl_clock_add_jump_callback(
  *        `clock` object.</i>
  *
  * \param[in] clock The clock to remove a jump callback from.
- * \param[in] threshold Criteria indicating when to call callback.
  * \param[in] callback The callback to call.
  * \param[in] user_data A pointer to be passed to the callback.
  * \return `RCL_RET_OK` if the callback was added successfully, or
