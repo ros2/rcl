@@ -745,3 +745,36 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names) {
     EXPECT_EQ(RCL_RET_OK, ret);
   }
 }
+
+/* Tests the node_options functionality
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
+  rcl_node_options_t default_options = rcl_node_get_default_options();
+  rcl_node_options_t not_ini_options = rcl_node_get_default_options();
+  EXPECT_TRUE(default_options.use_global_arguments);
+  EXPECT_TRUE(default_options.enable_rosout);
+  EXPECT_EQ(RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, default_options.domain_id);
+  EXPECT_TRUE(rcutils_allocator_is_valid(&(default_options.allocator)));
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(nullptr, &default_options));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, nullptr));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, &default_options));
+
+  default_options.domain_id = 42u;
+  default_options.use_global_arguments = false;
+  default_options.enable_rosout = false;
+  EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
+  EXPECT_EQ(42u, not_ini_options.domain_id);
+  EXPECT_FALSE(default_options.use_global_arguments);
+  EXPECT_FALSE(default_options.enable_rosout);
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_fini(nullptr));
+  EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&default_options));
+  EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&not_ini_options));
+
+  // This causes the test suite to fail:
+  // rcl_node_options_t default_options = rcl_node_get_default_options();
+  // rcl_node_options_t not_ini_options;
+  // EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
+  // EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&not_ini_options)); <-- code fails, returns -11
+}
