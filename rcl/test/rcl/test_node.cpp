@@ -751,6 +751,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names) {
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
   rcl_node_options_t default_options = rcl_node_get_default_options();
   rcl_node_options_t not_ini_options = rcl_node_get_default_options();
+
   EXPECT_TRUE(default_options.use_global_arguments);
   EXPECT_TRUE(default_options.enable_rosout);
   EXPECT_EQ(RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, default_options.domain_id);
@@ -760,13 +761,24 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, nullptr));
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, &default_options));
 
+  const char * argv[] = {"--ros-args", "--loglevel", "foo"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_parse_arguments(argc, argv, default_options.allocator, &(default_options.arguments)));
   default_options.domain_id = 42u;
   default_options.use_global_arguments = false;
   default_options.enable_rosout = false;
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
   EXPECT_EQ(42u, not_ini_options.domain_id);
-  EXPECT_FALSE(default_options.use_global_arguments);
-  EXPECT_FALSE(default_options.enable_rosout);
+  EXPECT_FALSE(not_ini_options.use_global_arguments);
+  EXPECT_FALSE(not_ini_options.enable_rosout);
+  EXPECT_EQ(
+    rcl_arguments_get_count_unparsed(&(default_options.arguments)),
+    rcl_arguments_get_count_unparsed(&(not_ini_options.arguments)));
+  EXPECT_EQ(
+    rcl_arguments_get_count_unparsed_ros(&(default_options.arguments)),
+    rcl_arguments_get_count_unparsed_ros(&(not_ini_options.arguments)));
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_fini(nullptr));
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&default_options));
