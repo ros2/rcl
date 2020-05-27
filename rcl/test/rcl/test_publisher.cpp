@@ -368,9 +368,9 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   size_t count_size;
   test_msgs__msg__BasicTypes msg;
   rcl_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
-  rcl_publisher_impl_t * saved_impl = (&publisher)->impl;
-  rcl_context_t * saved_context = (&publisher)->impl->context;
-  rmw_publisher_t * saved_rmw_handle = (&publisher)->impl->rmw_handle;
+  rcl_publisher_impl_t * saved_impl = publisher.impl;
+  rcl_context_t * saved_context = publisher.impl->context;
+  rmw_publisher_t * saved_rmw_handle = publisher.impl->rmw_handle;
 
   // Change internal context to nullptr
   publisher.impl->context = nullptr;
@@ -384,7 +384,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  EXPECT_FALSE(rcl_publisher_can_loan_messages(&publisher));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
@@ -415,7 +415,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  EXPECT_FALSE(rcl_publisher_can_loan_messages(&publisher));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
@@ -446,7 +446,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(false, rcl_publisher_can_loan_messages(&publisher));
+  EXPECT_FALSE(rcl_publisher_can_loan_messages(&publisher));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(&publisher, &count_size));
@@ -476,7 +476,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(nullptr));
   rcl_reset_error();
-  EXPECT_EQ(false, rcl_publisher_can_loan_messages(nullptr));
+  EXPECT_FALSE(rcl_publisher_can_loan_messages(nullptr));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID, rcl_publisher_get_subscription_count(nullptr, &count_size));
