@@ -297,4 +297,7 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_acce
   rcl_init_options_t init_options_dst = rcl_get_zero_initialized_init_options();
   EXPECT_EQ(RCL_RET_OK, rcl_init_options_copy(&init_options, &init_options_dst));
   EXPECT_EQ(RCL_RET_ALREADY_INIT, rcl_init_options_copy(&init_options, &init_options_dst));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
+  EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst));
 }
