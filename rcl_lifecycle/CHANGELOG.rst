@@ -2,6 +2,11 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (2020-05-26)
+------------------
+* Increase rcl_lifecycle test coverage and add more safety checks (`#649 <https://github.com/ros2/rcl/issues/649>`_)
+* Contributors: Stephen Brawner
+
 1.1.0 (2020-05-22)
 ------------------
 * Update Quality Declaration for 1.0 (`#647 <https://github.com/ros2/rcl/issues/647>`_)

@@ -2,6 +2,9 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (2020-05-26)
+------------------
+
 1.1.0 (2020-05-22)
 ------------------
 * Expose rcl default logging output handler (`#660 <https://github.com/ros2/rcl/issues/660>`_)
