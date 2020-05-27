@@ -133,12 +133,12 @@ TEST(TestRclLifecycle, lifecycle_transition) {
 
   ret = rcl_lifecycle_transition_init(
     &transition, expected_id, &expected_label[0], nullptr, nullptr, &allocator);
-  EXPECT_EQ(ret, RCL_RET_ERROR);
+  EXPECT_EQ(ret, RCL_RET_OK);
   rcutils_reset_error();
 
   ret = rcl_lifecycle_transition_init(
     &transition, expected_id, &expected_label[0], start, nullptr, &allocator);
-  EXPECT_EQ(ret, RCL_RET_ERROR);
+  EXPECT_EQ(ret, RCL_RET_OK);
   rcutils_reset_error();
 
   rcl_allocator_t bad_allocator = rcl_get_default_allocator();

@@ -132,16 +132,6 @@ rcl_lifecycle_transition_init(
     return RCL_RET_ERROR;
   }
 
-  if (!start) {
-    RCL_SET_ERROR_MSG("start state pointer is null\n");
-    return RCL_RET_ERROR;
-  }
-
-  if (!goal) {
-    RCL_SET_ERROR_MSG("goal state pointer is null\n");
-    return RCL_RET_ERROR;
-  }
-
   transition->start = start;
   transition->goal = goal;
 
