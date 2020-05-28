@@ -88,11 +88,13 @@ rcl_logging_configure_with_output_handler(
   if (g_rcl_logging_ext_lib_enabled) {
     status = rcl_logging_external_initialize(config_file, g_logging_allocator);
     if (RCL_RET_OK == status) {
-      status = rcl_logging_external_set_logger_level(NULL, default_level);
-      if (RCL_RET_OK == status) {
-        g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =
-          rcl_logging_ext_lib_output_handler;
+      rcl_ret_t logging_status = rcl_logging_external_set_logger_level(
+        NULL, default_level);
+      if (logging_status != RCL_RET_OK) {
+        status = RCL_RET_ERROR;
       }
+      g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =
+        rcl_logging_ext_lib_output_handler;
     }
   }
   rcutils_logging_set_output_handler(output_handler);
