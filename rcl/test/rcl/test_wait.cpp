@@ -553,3 +553,29 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), add_with_index) {
     EXPECT_EQ(&guard_conditions[i], wait_set.guard_conditions[i]);
   }
 }
+
+// Extra invalid arguments not tested
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_valid_arguments) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_WAIT_SET_EMPTY, rcl_wait(&wait_set, RCL_MS_TO_NS(1000)));
+  EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_wait(nullptr, RCL_MS_TO_NS(1000)));
+  EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, rcl_wait(&wait_set, RCL_MS_TO_NS(1000)));
+
+  rcl_context_t not_init_context = rcl_get_zero_initialized_context();
+  ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, &not_init_context, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_NOT_INIT, ret) << rcl_get_error_string().str;
+  ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
