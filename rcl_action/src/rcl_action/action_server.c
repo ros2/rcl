@@ -18,6 +18,7 @@ extern "C"
 #endif
 
 #include "rcl_action/action_server.h"
+#include "rcl_action/impl/action_server.h"
 
 #include "rcl_action/default_qos.h"
 #include "rcl_action/goal_handle.h"
@@ -34,28 +35,6 @@ extern "C"
 
 #include "rmw/rmw.h"
 
-/// Internal rcl_action implementation struct.
-typedef struct rcl_action_server_impl_t
-{
-  rcl_service_t goal_service;
-  rcl_service_t cancel_service;
-  rcl_service_t result_service;
-  rcl_publisher_t feedback_publisher;
-  rcl_publisher_t status_publisher;
-  rcl_timer_t expire_timer;
-  char * action_name;
-  rcl_action_server_options_t options;
-  // Array of goal handles
-  rcl_action_goal_handle_t ** goal_handles;
-  size_t num_goal_handles;
-  // Clock
-  rcl_clock_t clock;
-  // Wait set records
-  size_t wait_set_goal_service_index;
-  size_t wait_set_cancel_service_index;
-  size_t wait_set_result_service_index;
-  size_t wait_set_expire_timer_index;
-} rcl_action_server_impl_t;
 
 rcl_action_server_t
 rcl_action_get_zero_initialized_server(void)

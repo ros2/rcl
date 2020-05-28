@@ -18,6 +18,7 @@ extern "C"
 #endif
 
 #include "rcl_action/action_client.h"
+#include "rcl_action/impl/action_client.h"
 
 #include "rcl_action/default_qos.h"
 #include "rcl_action/names.h"
@@ -37,23 +38,6 @@ extern "C"
 #include "rmw/qos_profiles.h"
 #include "rmw/types.h"
 
-
-typedef struct rcl_action_client_impl_t
-{
-  rcl_client_t goal_client;
-  rcl_client_t cancel_client;
-  rcl_client_t result_client;
-  rcl_subscription_t feedback_subscription;
-  rcl_subscription_t status_subscription;
-  rcl_action_client_options_t options;
-  char * action_name;
-  // Wait set records
-  size_t wait_set_goal_client_index;
-  size_t wait_set_cancel_client_index;
-  size_t wait_set_result_client_index;
-  size_t wait_set_feedback_subscription_index;
-  size_t wait_set_status_subscription_index;
-} rcl_action_client_impl_t;
 
 rcl_action_client_t
 rcl_action_get_zero_initialized_client(void)
