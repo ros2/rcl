@@ -16,53 +16,14 @@
 #include "rcl_action/action_client.h"
 #include "rcl_action/action_server.h"
 #include "rcl_action/wait.h"
+#include "rcl_action/impl/action_client.h"
+#include "rcl_action/impl/action_server.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "test_msgs/action/fibonacci.h"
-
-/// This is fully defined in action_server.c, reproducing here for testing.
-typedef struct rcl_action_server_impl_t
-{
-  rcl_service_t goal_service;
-  rcl_service_t cancel_service;
-  rcl_service_t result_service;
-  rcl_publisher_t feedback_publisher;
-  rcl_publisher_t status_publisher;
-  rcl_timer_t expire_timer;
-  char * action_name;
-  rcl_action_server_options_t options;
-  // Array of goal handles
-  rcl_action_goal_handle_t ** goal_handles;
-  size_t num_goal_handles;
-  // Clock
-  rcl_clock_t clock;
-  // Wait set records
-  size_t wait_set_goal_service_index;
-  size_t wait_set_cancel_service_index;
-  size_t wait_set_result_service_index;
-  size_t wait_set_expire_timer_index;
-} rcl_action_server_impl_t;
-
-/// This is fully defined in action_client.c, reproducing here for testing.
-typedef struct rcl_action_client_impl_t
-{
-  rcl_client_t goal_client;
-  rcl_client_t cancel_client;
-  rcl_client_t result_client;
-  rcl_subscription_t feedback_subscription;
-  rcl_subscription_t status_subscription;
-  rcl_action_client_options_t options;
-  char * action_name;
-  // Wait set records
-  size_t wait_set_goal_client_index;
-  size_t wait_set_cancel_client_index;
-  size_t wait_set_result_client_index;
-  size_t wait_set_feedback_subscription_index;
-  size_t wait_set_status_subscription_index;
-} rcl_action_client_impl_t;
 
 class TestActionClientWait : public ::testing::Test
 {
@@ -88,10 +49,25 @@ protected:
     ret = rcl_node_init(&this->node, node_name, "", &this->context, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_FALSE(rcl_error_is_set()) << rcl_get_error_string().str;
+
+    const char * action_name = "test_action_client_name";
+    const rosidl_action_type_support_t * action_typesupport =
+      ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+    const rcl_action_client_options_t action_client_options =
+      rcl_action_client_get_default_options();
+
+    action_client = rcl_action_get_zero_initialized_client();
+    ret = rcl_action_client_init(
+      &this->action_client, &this->node, action_typesupport,
+      action_name, &action_client_options);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_FALSE(rcl_error_is_set()) << rcl_get_error_string().str;
   }
 
   void TearDown() override
   {
+    rcl_ret_t fini_ret = rcl_action_client_fini(&action_client, &this->node);
+    EXPECT_EQ(RCL_RET_OK, fini_ret) << rcl_get_error_string().str;
     rcl_ret_t ret = rcl_node_fini(&this->node);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(&this->context);
@@ -102,6 +78,7 @@ protected:
 
   rcl_context_t context;
   rcl_node_t node;
+  rcl_action_client_t action_client;
 };
 
 class TestActionServerWait : public ::testing::Test
@@ -174,29 +151,10 @@ protected:
 };  // class TestActionServer
 
 TEST_F(TestActionClientWait, test_wait_set_add_action_client) {
-  const char * action_name = "test_action_client_name";
-  const rosidl_action_type_support_t * action_typesupport =
-    ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
-  const rcl_action_client_options_t action_client_options =
-    rcl_action_client_get_default_options();
-
-  rcl_action_client_t action_client = rcl_action_get_zero_initialized_client();
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t fini_ret = rcl_action_client_fini(&action_client, &this->node);
-    EXPECT_EQ(RCL_RET_OK, fini_ret) << rcl_get_error_string().str;
-  });
-
-  rcl_ret_t ret = rcl_action_client_init(
-    &action_client, &this->node, action_typesupport,
-    action_name, &action_client_options);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  rcl_reset_error();
-
   // Check wait_set is null
   size_t client_index = 42;
   size_t subscription_index = 42;
-  ret = rcl_action_wait_set_add_action_client(
+  rcl_ret_t ret = rcl_action_wait_set_add_action_client(
     nullptr, &action_client, &client_index, &subscription_index);
   EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, ret);
   EXPECT_EQ(42u, client_index);

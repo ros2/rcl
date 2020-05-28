@@ -15,12 +15,31 @@
 #include <gtest/gtest.h>
 
 #include "rcl_action/action_client.h"
+#include "rcl_action/impl/action_client.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "test_msgs/action/fibonacci.h"
+
+struct __time_bomb_allocator_state
+{
+  int malloc_count_until_failure;
+};
+
+void * time_bomb_malloc(size_t size, void * state)
+{
+  __time_bomb_allocator_state * time_bomb_state =
+    reinterpret_cast<__time_bomb_allocator_state *>(state);
+  if (time_bomb_state->malloc_count_until_failure >= 0 &&
+    time_bomb_state->malloc_count_until_failure-- == 0)
+  {
+    printf("Malloc time bomb countdown reached 0, returning nullptr\n");
+    return nullptr;
+  }
+  return rcutils_get_default_allocator().allocate(size, rcutils_get_default_allocator().state);
+}
 
 class TestActionClientBaseFixture : public ::testing::Test
 {
@@ -122,6 +141,33 @@ TEST_F(TestActionClientBaseFixture, test_action_client_init_fini) {
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  // Fail allocating for implement struct
+  invalid_action_client_options.allocator =
+    rcl_get_default_allocator();
+  __time_bomb_allocator_state time_bomb_state = {0};
+  invalid_action_client_options.allocator.state =
+    reinterpret_cast<void *>(&time_bomb_state);
+  invalid_action_client_options.allocator.allocate = time_bomb_malloc;
+  ret = rcl_action_client_init(
+    &action_client, &this->node, action_typesupport,
+    action_name, &invalid_action_client_options);
+  EXPECT_EQ(ret, RCL_RET_BAD_ALLOC) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Fail copying action_name string, this will also fail to cleanup and will return generic error
+  time_bomb_state.malloc_count_until_failure = 1;
+  invalid_action_client_options.allocator.state = &time_bomb_state;
+  ret = rcl_action_client_init(
+    &action_client, &this->node, action_typesupport,
+    action_name, &invalid_action_client_options);
+  EXPECT_EQ(ret, RCL_RET_ERROR) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Manually cleanup to setup for next test
+  action_client_options.allocator.deallocate(
+    action_client.impl, action_client_options.allocator.state);
+  action_client.impl = NULL;
+
   ret = rcl_action_client_init(
     &action_client, &this->node, action_typesupport,
     action_name, &action_client_options);
@@ -185,6 +231,28 @@ protected:
   rcl_action_client_t action_client;
 };
 
+TEST_F(TestActionClientFixture, test_action_server_is_available) {
+  bool is_available = false;
+  rcl_ret_t ret = rcl_action_server_is_available(nullptr, &this->action_client, &is_available);
+  EXPECT_EQ(ret, RCL_RET_NODE_INVALID);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  ret = rcl_action_server_is_available(&this->node, nullptr, &is_available);
+  EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  ret = rcl_action_server_is_available(&this->node, &this->action_client, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  ret = rcl_action_server_is_available(&this->node, &this->action_client, &is_available);
+  EXPECT_EQ(ret, RCL_RET_OK);
+  EXPECT_FALSE(is_available);
+}
+
 TEST_F(TestActionClientFixture, test_action_client_is_valid) {
   bool is_valid = rcl_action_client_is_valid(nullptr);
   EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
@@ -193,6 +261,47 @@ TEST_F(TestActionClientFixture, test_action_client_is_valid) {
   is_valid = rcl_action_client_is_valid(&this->invalid_action_client);
   EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  rcl_client_impl_t * tmp_client = this->action_client.impl->goal_client.impl;
+  this->action_client.impl->goal_client.impl = nullptr;
+  is_valid = rcl_action_client_is_valid(&this->action_client);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_client.impl->goal_client.impl = tmp_client;
+
+  tmp_client = this->action_client.impl->cancel_client.impl;
+  this->action_client.impl->cancel_client.impl = nullptr;
+  is_valid = rcl_action_client_is_valid(&this->action_client);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_client.impl->cancel_client.impl = tmp_client;
+
+  tmp_client = this->action_client.impl->result_client.impl;
+  this->action_client.impl->result_client.impl = nullptr;
+  is_valid = rcl_action_client_is_valid(&this->action_client);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_client.impl->result_client.impl = tmp_client;
+
+  rcl_subscription_impl_t * tmp_subscription =
+    this->action_client.impl->feedback_subscription.impl;
+  this->action_client.impl->feedback_subscription.impl = nullptr;
+  is_valid = rcl_action_client_is_valid(&this->action_client);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_client.impl->feedback_subscription.impl = tmp_subscription;
+
+  tmp_subscription = this->action_client.impl->status_subscription.impl;
+  this->action_client.impl->status_subscription.impl = nullptr;
+  is_valid = rcl_action_client_is_valid(&this->action_client);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_client.impl->status_subscription.impl = tmp_subscription;
 
   is_valid = rcl_action_client_is_valid(&this->action_client);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;

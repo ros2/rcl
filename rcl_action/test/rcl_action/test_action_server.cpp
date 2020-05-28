@@ -22,6 +22,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 #include "rcl_action/action_server.h"
+#include "rcl_action/impl/action_server.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
@@ -38,28 +39,11 @@ void * bad_realloc(void *, size_t, void *)
   return nullptr;
 }
 
-/// This is fully defined in action_server.c, reproducing here for testing.
-typedef struct rcl_action_server_impl_t
+void * bad_calloc(size_t, size_t, void *)
 {
-  rcl_service_t goal_service;
-  rcl_service_t cancel_service;
-  rcl_service_t result_service;
-  rcl_publisher_t feedback_publisher;
-  rcl_publisher_t status_publisher;
-  rcl_timer_t expire_timer;
-  char * action_name;
-  rcl_action_server_options_t options;
-  // Array of goal handles
-  rcl_action_goal_handle_t ** goal_handles;
-  size_t num_goal_handles;
-  // Clock
-  rcl_clock_t clock;
-  // Wait set records
-  size_t wait_set_goal_service_index;
-  size_t wait_set_cancel_service_index;
-  size_t wait_set_result_service_index;
-  size_t wait_set_expire_timer_index;
-} rcl_action_server_impl_t;
+  printf("Returning null ptr\n");
+  return nullptr;
+}
 
 TEST(TestActionServerInitFini, test_action_server_init_fini)
 {
@@ -87,6 +71,7 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   // Initialize with a null action server
   ret = rcl_action_server_init(nullptr, &node, &clock, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Initialize with a null node
@@ -139,6 +124,13 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  // Initialize with an invalid timeout
+  rcl_action_server_options_t bad_options = rcl_action_server_get_default_options();
+  bad_options.result_timeout.nanoseconds = -1;
+  ret = rcl_action_server_init(&action_server, &node, &clock, ts, action_name, &bad_options);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  rcl_reset_error();
+
   // Initialize with valid arguments
   ret = rcl_action_server_init(&action_server, &node, &clock, ts, action_name, &options);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -165,14 +157,6 @@ TEST(TestActionServerInitFini, test_action_server_init_fini)
   rcl_reset_error();
 
   // Finalize with valid arguments
-  ret = rcl_action_server_fini(&action_server, &node);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-  // Setup again for other finalize checks
-  action_server = rcl_action_get_zero_initialized_server();
-  ret = rcl_action_server_init(&action_server, &node, &clock, ts, action_name, &options);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
   ret = rcl_action_server_fini(&action_server, &node);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
@@ -281,6 +265,38 @@ TEST_F(TestActionServer, test_action_server_is_valid)
   // Check valid action server
   is_valid = rcl_action_server_is_valid(&this->action_server);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
+
+  rcl_service_impl_t * tmp_service = this->action_server.impl->goal_service.impl;
+  this->action_server.impl->goal_service.impl = nullptr;
+  is_valid = rcl_action_server_is_valid(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->goal_service.impl = tmp_service;
+
+  tmp_service = this->action_server.impl->cancel_service.impl;
+  this->action_server.impl->cancel_service.impl = nullptr;
+  is_valid = rcl_action_server_is_valid(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->cancel_service.impl = tmp_service;
+
+  tmp_service = this->action_server.impl->result_service.impl;
+  this->action_server.impl->result_service.impl = nullptr;
+  is_valid = rcl_action_server_is_valid(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->result_service.impl = tmp_service;
+
+  rcl_publisher_impl_t * tmp_publisher = this->action_server.impl->status_publisher.impl;
+  this->action_server.impl->status_publisher.impl = nullptr;
+  is_valid = rcl_action_server_is_valid(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->status_publisher.impl = tmp_publisher;
 }
 
 TEST_F(TestActionServer, test_action_server_is_valid_except_context)
@@ -299,6 +315,38 @@ TEST_F(TestActionServer, test_action_server_is_valid_except_context)
   // Check valid action server
   is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
+
+  rcl_service_impl_t * tmp_service = this->action_server.impl->goal_service.impl;
+  this->action_server.impl->goal_service.impl = nullptr;
+  is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->goal_service.impl = tmp_service;
+
+  tmp_service = this->action_server.impl->cancel_service.impl;
+  this->action_server.impl->cancel_service.impl = nullptr;
+  is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->cancel_service.impl = tmp_service;
+
+  tmp_service = this->action_server.impl->result_service.impl;
+  this->action_server.impl->result_service.impl = nullptr;
+  is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->result_service.impl = tmp_service;
+
+  rcl_publisher_impl_t * tmp_publisher = this->action_server.impl->status_publisher.impl;
+  this->action_server.impl->status_publisher.impl = nullptr;
+  is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->status_publisher.impl = tmp_publisher;
 }
 
 TEST_F(TestActionServer, test_action_accept_new_goal)
@@ -310,17 +358,20 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   // Accept goal with a null action server
   rcl_action_goal_handle_t * goal_handle = rcl_action_accept_new_goal(nullptr, &goal_info_in);
   EXPECT_EQ(goal_handle, nullptr);
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Accept goal with null goal info
   goal_handle = rcl_action_accept_new_goal(&this->action_server, nullptr);
   EXPECT_EQ(goal_handle, nullptr);
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Accept goal with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
   goal_handle = rcl_action_accept_new_goal(&invalid_action_server, &goal_info_in);
   EXPECT_EQ(goal_handle, nullptr);
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Check failing allocation of goal_handle
@@ -329,6 +380,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   EXPECT_EQ(goal_handle, nullptr);
   this->action_server.impl->options.allocator.allocate =
     rcl_get_default_allocator().allocate;
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Check failing reallocate of goal_handles
@@ -337,6 +389,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   EXPECT_EQ(goal_handle, nullptr);
   this->action_server.impl->options.allocator.reallocate =
     rcl_get_default_allocator().reallocate;
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   std::vector<rcl_action_goal_handle_t> handles;
@@ -355,6 +408,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   // Check invalid action server
   ret = rcl_action_server_get_goal_handles(nullptr, &goal_handle_array, &num_goals);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   ret = rcl_action_server_get_goal_handles(&this->action_server, &goal_handle_array, &num_goals);
@@ -366,6 +420,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   // Accept with the same goal ID
   goal_handle = rcl_action_accept_new_goal(&this->action_server, &goal_info_in);
   EXPECT_EQ(goal_handle, nullptr);
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Accept a different goal
@@ -386,6 +441,7 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
 
   for (auto & handle : handles) {
     EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&handle));
+    EXPECT_FALSE(rcl_error_is_set()) << rcl_get_error_string().str;
   }
 }
 
@@ -416,6 +472,7 @@ TEST_F(TestActionServer, test_action_server_goal_exists) {
 
   // Check doesn't exist
   EXPECT_FALSE(rcl_action_server_goal_exists(&this->action_server, &different_goal));
+  EXPECT_FALSE(rcl_error_is_set()) << rcl_get_error_string().str;
 
   // Check corrupted goal_handles
   rcl_get_default_allocator().deallocate(goal_handle, rcl_get_default_allocator().state);
@@ -461,7 +518,7 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
 {
   const size_t capacity = 1u;
   rcl_action_goal_info_t expired_goals[1u];
-  size_t num_expired = 1u;
+  size_t num_expired = 42u;
   // Clear expired goals with null action server
   rcl_ret_t ret = rcl_action_expire_goals(nullptr, expired_goals, capacity, &num_expired);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
@@ -471,6 +528,24 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
   ret = rcl_action_expire_goals(&invalid_action_server, expired_goals, capacity, &num_expired);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Clear with invalid arguments
+  ret = rcl_action_expire_goals(&this->action_server, nullptr, capacity, &num_expired);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  EXPECT_EQ(num_expired, 42u);
+  rcl_reset_error();
+
+  // Clear with invalid arguments
+  ret = rcl_action_expire_goals(&this->action_server, expired_goals, 0u, &num_expired);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  EXPECT_EQ(num_expired, 42u);
+  rcl_reset_error();
+
+  // Clear with invalid arguments
+  ret = rcl_action_expire_goals(&this->action_server, expired_goals, capacity, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  EXPECT_EQ(num_expired, 42u);
   rcl_reset_error();
 
   // Clear with valid arguments
@@ -535,6 +610,13 @@ TEST_F(TestActionServer, test_action_process_cancel_request)
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
   rcl_reset_error();
 
+  this->action_server.impl->options.allocator.allocate = bad_malloc;
+  // Process cancel request with bad allocator
+  ret = rcl_action_process_cancel_request(&this->action_server, &cancel_request, &cancel_response);
+  EXPECT_EQ(ret, RCL_RET_BAD_ALLOC);
+  rcl_reset_error();
+  this->action_server.impl->options.allocator = rcl_get_default_allocator();
+
   // Process cancel request with invalid action server
   rcl_action_server_t invalid_action_server = rcl_action_get_zero_initialized_server();
   ret = rcl_action_process_cancel_request(
@@ -571,6 +653,23 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   ret = rcl_action_get_goal_status_array(&invalid_action_server, nullptr);
   EXPECT_EQ(ret, RCL_RET_ACTION_SERVER_INVALID);
   rcl_reset_error();
+
+  // Check goal_status_array_init fails
+  this->action_server.impl->num_goal_handles = 1u;
+  this->action_server.impl->options.allocator.zero_allocate = bad_calloc;
+  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_BAD_ALLOC);
+  rcl_reset_error();
+  this->action_server.impl->options.allocator = rcl_get_default_allocator();
+
+  // Check status_message is already inited
+  this->action_server.impl->num_goal_handles = 1u;
+  status_array.msg.status_list.size = 1;
+  ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcl_reset_error();
+  status_array.msg.status_list.size = 0;
+  this->action_server.impl->num_goal_handles = 0u;
 
   // Get with valid arguments (but not goals being tracked)
   ret = rcl_action_get_goal_status_array(&this->action_server, &status_array);
