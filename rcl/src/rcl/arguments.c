@@ -139,6 +139,32 @@ rcl_arguments_get_param_overrides(
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_arguments_get_log_level(
+  const rcl_arguments_t * arguments,
+  rcl_log_level_t ** log_level)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT);
+
+  if (NULL != *log_level) {
+    RCL_SET_ERROR_MSG("Output log level pointer is not null. May leak memory.");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  *log_level = NULL;
+  if (NULL != arguments->impl->log_level) {
+    *log_level = rcl_log_level_copy(arguments->impl->log_level);
+    if (NULL == *log_level) {
+      return RCL_RET_BAD_ALLOC;
+    }
+  }
+  return RCL_RET_OK;
+}
+
+#define RCL_LOG_LEVEL_FLAG_COMMA ","
+#define RCL_LOG_LEVEL_FLAG_SEPERATOR "="
+
 /// Parse an argument that may or may not be a log level rule.
 /**
  * \param[in] arg the argument to parse
@@ -154,7 +180,7 @@ rcl_ret_t
 _rcl_parse_log_level(
   const char * arg,
   rcl_allocator_t allocator,
-  int * log_level);
+  rcl_log_level_t * log_level);
 
 /// Parse an argument that may or may not be a log configuration file.
 /**
@@ -298,6 +324,11 @@ rcl_parse_arguments(
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
+  args_impl->log_level = rcl_log_level_init(allocator);
+  if (NULL == args_impl->log_level) {
+    ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
 
   bool parsing_ros_args = false;
   for (int i = 0; i < argc; ++i) {
@@ -405,10 +436,8 @@ rcl_parse_arguments(
       // Attempt to parse argument as log level configuration
       if (strcmp(RCL_LOG_LEVEL_FLAG, argv[i]) == 0) {
         if (i + 1 < argc) {
-          int log_level;
-          if (RCL_RET_OK == _rcl_parse_log_level(argv[i + 1], allocator, &log_level)) {
+          if (RCL_RET_OK == _rcl_parse_log_level(argv[i + 1], allocator, args_impl->log_level)) {
             RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Got log level: %s\n", argv[i + 1]);
-            args_impl->log_level = log_level;
             ++i;  // Skip flag here, for loop will skip value.
             continue;
           }
@@ -637,6 +666,12 @@ rcl_parse_arguments(
       ret = RCL_RET_BAD_ALLOC;
       goto fail;
     }
+  }
+
+  // Drop logger log level if none was found
+  if (0U == args_impl->log_level->num_loggers && args_impl->log_level->logger_settings) {
+    allocator.deallocate(args_impl->log_level->logger_settings, allocator.state);
+    args_impl->log_level->logger_settings = NULL;
   }
 
   return RCL_RET_OK;
@@ -918,6 +953,11 @@ rcl_arguments_fini(
       args->impl->allocator.deallocate(args->impl->remap_rules, args->impl->allocator.state);
       args->impl->remap_rules = NULL;
       args->impl->num_remap_rules = 0;
+    }
+
+    if (args->impl->log_level) {
+      rcl_log_level_fini(args->impl->log_level);
+      args->impl->log_level = NULL;
     }
 
     args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
@@ -1597,17 +1637,58 @@ rcl_ret_t
 _rcl_parse_log_level(
   const char * arg,
   rcl_allocator_t allocator,
-  int * log_level)
+  rcl_log_level_t * log_level)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT);
 
-  rcutils_ret_t ret = rcutils_logging_severity_level_from_string(arg, allocator, log_level);
-  if (RCUTILS_RET_OK == ret) {
-    return RCL_RET_OK;
-  }
-  RCL_SET_ERROR_MSG("Argument does not use a valid severity level");
-  return RCL_RET_ERROR;
+  size_t colon_len = strlen(RCL_LOG_LEVEL_FLAG_COMMA);
+  size_t seperator_len = strlen(RCL_LOG_LEVEL_FLAG_SEPERATOR);
+  rcutils_ret_t ret = RCUTILS_RET_OK;
+  const char * p = arg;
+
+  do {
+    char * colon = strstr(p, RCL_LOG_LEVEL_FLAG_COMMA);
+    char * item;
+    if (colon == NULL) {
+      item = rcutils_strdup(p, allocator);
+    } else {
+      item = rcutils_strndup(p, colon - p, allocator);
+    }
+
+    char * seperator = strstr(item, RCL_LOG_LEVEL_FLAG_SEPERATOR);
+    if (seperator) {
+      struct rcl_logger_setting_t * logger_log_level =
+        &log_level->logger_settings[log_level->num_loggers];
+      logger_log_level->name = rcutils_strndup(item, seperator - item, allocator);
+      char * value = rcutils_strdup(seperator + seperator_len, allocator);
+      ret = rcutils_logging_severity_level_from_string(
+        value,
+        allocator,
+        &logger_log_level->level);
+      allocator.deallocate(value, allocator.state);
+      if (RCUTILS_RET_OK == ret) {
+        log_level->num_loggers += 1;
+      }
+    } else {
+      ret = rcutils_logging_severity_level_from_string(
+        item, allocator, &log_level->default_log_level);
+    }
+
+    allocator.deallocate(item, allocator.state);
+    if (RCUTILS_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Argument does not use a valid severity level");
+      return RCL_RET_ERROR;
+    }
+
+    if (colon == NULL) {
+      p = colon;
+    } else {
+      p = colon + colon_len;
+    }
+  } while (p != NULL);
+
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
@@ -1834,7 +1915,7 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
   rcl_arguments_impl_t * args_impl = args->impl;
   args_impl->num_remap_rules = 0;
   args_impl->remap_rules = NULL;
-  args_impl->log_level = -1;
+  args_impl->log_level = NULL;
   args_impl->external_log_config_file = NULL;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;

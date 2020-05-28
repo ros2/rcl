@@ -48,6 +48,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/localhost.c
   src/rcl/logging_rosout.c
   src/rcl/logging.c
+  src/rcl/log_level.c
   src/rcl/node.c
   src/rcl/node_options.c
   src/rcl/publisher.c

@@ -16,6 +16,7 @@
 #define RCL__ARGUMENTS_H_
 
 #include "rcl/allocator.h"
+#include "rcl/log_level.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
@@ -342,6 +343,34 @@ rcl_remove_ros_arguments(
   rcl_allocator_t allocator,
   int * nonros_argc,
   const char ** nonros_argv[]);
+
+/// Return log level parsed from the command line.
+/**
+ * Log level are parsed directly from command line arguments.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] arguments An arguments structure that has been parsed.
+ * \param[out] log_level Log level settings as parsed from command line arguments.
+ *   This structure must be finalized by the caller.
+ *   The output is NULL if no log were parsed.
+ * \return `RCL_RET_OK` if everything goes correctly, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_arguments_get_log_level(
+  const rcl_arguments_t * arguments,
+  rcl_log_level_t ** log_level);
 
 /// Copy one arguments structure into another.
 /**

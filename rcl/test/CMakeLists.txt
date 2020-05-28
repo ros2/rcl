@@ -4,6 +4,7 @@ find_package(launch_testing_ament_cmake REQUIRED)
 find_package(test_msgs REQUIRED)
 
 find_package(rcpputils REQUIRED)
+find_package(rcutils REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 
 find_package(osrf_testing_tools_cpp REQUIRED)
@@ -277,6 +278,14 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+  )
+
+  rcl_add_custom_gtest(test_log_level${target_suffix}
+    SRCS rcl/test_log_level.cpp
+    ENV ${rmw_implementation_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}
+    AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
   )
 
   # Launch tests

@@ -63,17 +63,33 @@ rcl_logging_configure_with_output_handler(
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOGGING_AUTOINIT
     g_logging_allocator = *allocator;
-  int default_level = global_args->impl->log_level;
+  int default_level = -1;
+
+  rcl_log_level_t * log_level = global_args->impl->log_level;
   const char * config_file = global_args->impl->external_log_config_file;
   g_rcl_logging_stdout_enabled = !global_args->impl->log_stdout_disabled;
   g_rcl_logging_rosout_enabled = !global_args->impl->log_rosout_disabled;
   g_rcl_logging_ext_lib_enabled = !global_args->impl->log_ext_lib_disabled;
+
   rcl_ret_t status = RCL_RET_OK;
   g_rcl_logging_num_out_handlers = 0;
 
-  if (default_level >= 0) {
-    rcutils_logging_set_default_logger_level(default_level);
+  if (log_level) {
+    default_level = log_level->default_log_level;
+    if (default_level >= 0) {
+      rcutils_logging_set_default_logger_level(default_level);
+    }
+
+    for (size_t i = 0; i < log_level->num_loggers; ++i) {
+      status = rcutils_logging_set_logger_level(
+        log_level->logger_settings[i].name,
+        log_level->logger_settings[i].level);
+      if (RCL_RET_OK != status) {
+        return status;
+      }
+    }
   }
+
   if (g_rcl_logging_stdout_enabled) {
     g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =
       rcutils_logging_console_output_handler;
