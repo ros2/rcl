@@ -36,6 +36,11 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+void * bad_malloc(size_t, void *)
+{
+  return NULL;
+}
+
 class CLASSNAME (TestActionGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
@@ -144,6 +149,15 @@ TEST_F(
     &this->node, &this->allocator, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  // Failing allocator
+  rcl_allocator_t bad_allocator = rcl_get_default_allocator();
+  bad_allocator.allocate = bad_malloc;
+  ret = rcl_action_get_client_names_and_types_by_node(
+    &this->node, &bad_allocator, this->test_graph_node_name, "", nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
   // Valid call
   ret = rcl_action_get_client_names_and_types_by_node(
     &this->node, &this->allocator, this->test_graph_node_name, "", &nat);
