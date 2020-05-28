@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_ACTION__IMPL__ACTION_SERVER_H_
-#define RCL_ACTION__IMPL__ACTION_SERVER_H_
+#ifndef RCL_ACTION__ACTION_SERVER_IMPL_H_
+#define RCL_ACTION__ACTION_SERVER_IMPL_H_
 
 #include "rcl_action/types.h"
 #include "rcl/rcl.h"
@@ -42,4 +42,4 @@ typedef struct rcl_action_server_impl_t
 } rcl_action_server_impl_t;
 
 
-#endif  // RCL_ACTION__IMPL__ACTION_SERVER_H_
+#endif  // RCL_ACTION__ACTION_SERVER_IMPL_H_

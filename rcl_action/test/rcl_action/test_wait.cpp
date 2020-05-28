@@ -16,8 +16,8 @@
 #include "rcl_action/action_client.h"
 #include "rcl_action/action_server.h"
 #include "rcl_action/wait.h"
-#include "rcl_action/impl/action_client.h"
-#include "rcl_action/impl/action_server.h"
+#include "rcl_action/action_client_impl.h"
+#include "rcl_action/action_server_impl.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
@@ -790,6 +790,14 @@ TEST_F(TestActionServerWait, test_server_wait_set_get_entities_ready) {
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
 
   ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 3, 0, &this->context, rcl_get_default_allocator());
+  wait_set.services[0] = &this->action_server.impl->goal_service;
+  this->action_server.impl->wait_set_goal_service_index = 0;
+  wait_set.services[1] = &this->action_server.impl->cancel_service;
+  this->action_server.impl->wait_set_cancel_service_index = 1;
+  wait_set.services[2] = &this->action_server.impl->result_service;
+  this->action_server.impl->wait_set_result_service_index = 2;
+  wait_set.timers[0] = &this->action_server.impl->expire_timer;
+  this->action_server.impl->wait_set_expire_timer_index = 0;
   ret = rcl_action_server_wait_set_get_entities_ready(
     &wait_set,
     &this->action_server,
@@ -798,8 +806,8 @@ TEST_F(TestActionServerWait, test_server_wait_set_get_entities_ready) {
     &is_result_request_ready,
     &is_goal_expired);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  EXPECT_FALSE(is_goal_request_ready);
-  EXPECT_FALSE(is_cancel_request_ready);
-  EXPECT_FALSE(is_result_request_ready);
-  EXPECT_FALSE(is_goal_expired);
+  EXPECT_TRUE(is_goal_request_ready);
+  EXPECT_TRUE(is_cancel_request_ready);
+  EXPECT_TRUE(is_result_request_ready);
+  EXPECT_TRUE(is_goal_expired);
 }

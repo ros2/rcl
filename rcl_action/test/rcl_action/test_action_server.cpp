@@ -22,7 +22,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 #include "rcl_action/action_server.h"
-#include "rcl_action/impl/action_server.h"
+#include "rcl_action/action_server_impl.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
@@ -290,7 +290,15 @@ TEST_F(TestActionServer, test_action_server_is_valid)
   rcl_reset_error();
   this->action_server.impl->result_service.impl = tmp_service;
 
-  rcl_publisher_impl_t * tmp_publisher = this->action_server.impl->status_publisher.impl;
+  rcl_publisher_impl_t * tmp_publisher = this->action_server.impl->feedback_publisher.impl;
+  this->action_server.impl->feedback_publisher.impl = nullptr;
+  is_valid = rcl_action_server_is_valid(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->feedback_publisher.impl = tmp_publisher;
+
+  tmp_publisher = this->action_server.impl->status_publisher.impl;
   this->action_server.impl->status_publisher.impl = nullptr;
   is_valid = rcl_action_server_is_valid(&this->action_server);
   EXPECT_FALSE(is_valid);
@@ -340,7 +348,15 @@ TEST_F(TestActionServer, test_action_server_is_valid_except_context)
   rcl_reset_error();
   this->action_server.impl->result_service.impl = tmp_service;
 
-  rcl_publisher_impl_t * tmp_publisher = this->action_server.impl->status_publisher.impl;
+  rcl_publisher_impl_t * tmp_publisher = this->action_server.impl->feedback_publisher.impl;
+  this->action_server.impl->feedback_publisher.impl = nullptr;
+  is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
+  EXPECT_FALSE(is_valid);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  this->action_server.impl->feedback_publisher.impl = tmp_publisher;
+
+  tmp_publisher = this->action_server.impl->status_publisher.impl;
   this->action_server.impl->status_publisher.impl = nullptr;
   is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
   EXPECT_FALSE(is_valid);
@@ -632,6 +648,24 @@ TEST_F(TestActionServer, test_action_process_cancel_request)
   EXPECT_EQ(cancel_response.msg.goals_canceling.size, 0u);
   // A zero request means "cancel all goals", which succeeds if there's nothing to cancel
   EXPECT_EQ(cancel_response.msg.return_code, action_msgs__srv__CancelGoal_Response__ERROR_NONE);
+
+  // Number of goals is not 0, but goal handle is null, for case with request_nanosec == 0
+  size_t num_goal_handles = 1u;
+  rcl_allocator_t allocator = this->action_server.impl->options.allocator;
+  this->action_server.impl->num_goal_handles = num_goal_handles;
+  this->action_server.impl->goal_handles = reinterpret_cast<rcl_action_goal_handle_t **>(
+    allocator.zero_allocate(num_goal_handles, sizeof(rcl_action_goal_handle_t *), allocator.state));
+  ret = rcl_action_process_cancel_request(
+    &this->action_server, &cancel_request, &cancel_response);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcl_reset_error();
+
+  // Number of goals is not 0, but goal handle is null, for case with request_nanosec > 0
+  cancel_request.goal_info.stamp.nanosec = 1;
+  ret = rcl_action_process_cancel_request(
+    &this->action_server, &cancel_request, &cancel_response);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcl_reset_error();
 }
 
 TEST_F(TestActionServer, test_action_server_get_goal_status_array)

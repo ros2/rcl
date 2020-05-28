@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 #include "rcl_action/action_client.h"
-#include "rcl_action/impl/action_client.h"
+#include "rcl_action/action_client_impl.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"

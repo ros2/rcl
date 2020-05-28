@@ -18,7 +18,7 @@ extern "C"
 #endif
 
 #include "rcl_action/action_server.h"
-#include "rcl_action/impl/action_server.h"
+#include "./action_server_impl.h"
 
 #include "rcl_action/default_qos.h"
 #include "rcl_action/goal_handle.h"
