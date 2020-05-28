@@ -111,6 +111,10 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_shutdown
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
   ASSERT_FALSE(rcl_context_is_valid(&context));
+  // Already init
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   // If argc is not 0, but argv is, it should be an invalid argument.
   ret = rcl_init(42, nullptr, &init_options, &context);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
@@ -119,6 +123,11 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_shutdown
   // If argc is not 0, argv is not null but contains one, it should be an invalid argument.
   const char * invalid_args[] = {"some-arg", nullptr};
   ret = rcl_init(2, invalid_args, &init_options, &context);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  ASSERT_FALSE(rcl_context_is_valid(&context));
+  // If argc is less than 1, argv is not null, it should be an invalid argument.
+  ret = rcl_init(0, invalid_args, &init_options, &context);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
   ASSERT_FALSE(rcl_context_is_valid(&context));
@@ -270,4 +279,27 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_get_instance_id) 
   ASSERT_FALSE(rcl_context_is_valid(&context));
   ret = rcl_context_fini(&context);
   EXPECT_EQ(ret, RCL_RET_OK);
+}
+
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_access) {
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+
+  rmw_init_options_t * options = rcl_init_options_get_rmw_init_options(&init_options);
+  ASSERT_NE(nullptr, options);
+  EXPECT_EQ(0u, options->instance_id);
+  EXPECT_EQ(nullptr, options->impl);
+
+  const rcl_allocator_t * options_allocator = rcl_init_options_get_allocator(&init_options);
+  EXPECT_TRUE(rcutils_allocator_is_valid(options_allocator));
+
+  rcl_init_options_t init_options_dst = rcl_get_zero_initialized_init_options();
+  EXPECT_EQ(RCL_RET_OK, rcl_init_options_copy(&init_options, &init_options_dst));
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, rcl_init_options_copy(&init_options, &init_options_dst));
+  EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst));
 }
