@@ -693,6 +693,9 @@ rcl_ret_t
 rcl_action_notify_goal_done(
   const rcl_action_server_t * action_server)
 {
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
   return _recalculate_expire_timer(
     &action_server->impl->expire_timer,
     action_server->impl->options.result_timeout.nanoseconds,
