@@ -2,6 +2,11 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Allow transition start and goal states to be null (`#662 <https://github.com/ros2/rcl/issues/662>`_)
+* Contributors: Karsten Knese
+
 1.1.1 (2020-05-26)
 ------------------
 * Increase rcl_lifecycle test coverage and add more safety checks (`#649 <https://github.com/ros2/rcl/issues/649>`_)

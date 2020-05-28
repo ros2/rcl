@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.1.1 (2020-05-26)
 ------------------
 * Increase rcl_yaml_param_parser test coverage (`#656 <https://github.com/ros2/rcl/issues/656>`_)

@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Improve docblocks (`#659 <https://github.com/ros2/rcl/issues/659>`_)
+* Contributors: Alejandro Hernández Cordero
+
 1.1.1 (2020-05-26)
 ------------------
 
