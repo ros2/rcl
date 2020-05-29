@@ -28,6 +28,9 @@ _execute_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t ev
 {
   assert(GOAL_STATE_ACCEPTED == state);
   assert(GOAL_EVENT_EXECUTE == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_EXECUTING;
 }
 
@@ -36,6 +39,9 @@ _cancel_goal_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_
 {
   assert(GOAL_STATE_ACCEPTED == state || GOAL_STATE_EXECUTING == state);
   assert(GOAL_EVENT_CANCEL_GOAL == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_CANCELING;
 }
 
@@ -44,6 +50,9 @@ _succeed_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t ev
 {
   assert(GOAL_STATE_EXECUTING == state || GOAL_STATE_CANCELING == state);
   assert(GOAL_EVENT_SUCCEED == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_SUCCEEDED;
 }
 
@@ -52,6 +61,9 @@ _abort_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t even
 {
   assert(GOAL_STATE_EXECUTING == state || GOAL_STATE_CANCELING == state);
   assert(GOAL_EVENT_ABORT == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_ABORTED;
 }
 
@@ -60,6 +72,9 @@ _canceled_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t e
 {
   assert(GOAL_STATE_CANCELING == state);
   assert(GOAL_EVENT_CANCELED == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_CANCELED;
 }
 
