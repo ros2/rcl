@@ -579,3 +579,22 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_valid_argumen
   ret = rcl_wait_set_fini(&wait_set);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
+
+// Test get allocator function
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_get_allocator) {
+  rcl_allocator_t allocator_returned;
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_wait_set_get_allocator(nullptr, &allocator_returned));
+  EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, rcl_wait_set_get_allocator(&wait_set, &allocator_returned));
+
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_wait_set_get_allocator(&wait_set, nullptr));
+  EXPECT_EQ(RCL_RET_OK, rcl_wait_set_get_allocator(&wait_set, &allocator_returned));
+  EXPECT_TRUE(rcutils_allocator_is_valid(&allocator_returned));
+
+  ret = rcl_wait_set_fini(&wait_set);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
