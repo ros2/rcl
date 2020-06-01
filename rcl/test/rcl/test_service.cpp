@@ -22,6 +22,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 #include "wait_for_entity_helpers.hpp"
+#include "./allocator_testing_utils.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -401,4 +402,10 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_bad_arguments) {
     RCL_RET_SERVICE_INVALID, rcl_send_response(&service, &header.request_id, &service_response));
   EXPECT_EQ(
     RCL_RET_SERVICE_INVALID, rcl_take_request(&service, &(header.request_id), &service_request));
+
+  service_options_bad_alloc.allocator = get_failing_allocator();
+  EXPECT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_service_init(
+      &service, this->node_ptr, ts,
+      topic, &service_options_bad_alloc)) << rcl_get_error_string().str;
 }
