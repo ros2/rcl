@@ -212,7 +212,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   test_msgs__srv__BasicTypes_Response__fini(&client_response);
 }
 
-/* Basic nominal test of a service with rcl_take_responsee
+/* Basic nominal test of a service with rcl_take_response
  */
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_info) {
   rcl_ret_t ret;
@@ -301,23 +301,11 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
     test_msgs__srv__BasicTypes_Request service_request;
     test_msgs__srv__BasicTypes_Request__init(&service_request);
     rmw_service_info_t header;
-    ret = rcl_take_request_with_info(&service, &header, &service_request);
+    ret = rcl_take_request(&service, &(header.request_id), &service_request);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     EXPECT_EQ(1, service_request.uint8_value);
     EXPECT_EQ(2UL, service_request.uint32_value);
-#ifdef RMW_TIMESTAMPS_SUPPORTED
-    EXPECT_GE(header.source_timestamp, start_timestamp);
-#ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
-    EXPECT_GE(header.received_timestamp, start_timestamp);
-    EXPECT_GE(header.received_timestamp, header.source_timestamp);
-#else
-    EXPECT_EQ(0u, header.received_timestamp);
-#endif
-#else
-    EXPECT_EQ(0u, header.source_timestamp);
-    EXPECT_EQ(0u, header.received_timestamp);
-#endif
     // Simulate a response callback by summing the request and send the response..
     service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
     // take new timestamp before sending response
