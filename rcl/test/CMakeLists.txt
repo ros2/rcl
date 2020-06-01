@@ -358,6 +358,13 @@ rcl_add_custom_gtest(test_security
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
+rcl_add_custom_gtest(test_common
+  SRCS rcl/test_common.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/common.c
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
+  LIBRARIES ${PROJECT_NAME}
+)
+
 # Install test resources
 install(DIRECTORY ${test_resources_dir_name}
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
