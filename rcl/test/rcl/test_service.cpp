@@ -85,6 +85,10 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   rcl_service_options_t service_options = rcl_service_get_default_options();
   ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
+
   ret = rcl_service_fini(&service, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -318,4 +322,83 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
   EXPECT_EQ(RCL_RET_CLIENT_TAKE_FAILED, ret) << rcl_get_error_string().str;
 
   test_msgs__srv__BasicTypes_Response__fini(&client_response);
+}
+
+/* Passing bad/invalid arguments to service functions
+ */
+TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_bad_arguments) {
+  // rcl_ret_t ret;
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+  const char * topic = "primitives";
+  // const char * expected_topic = "/primitives";
+
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+
+  rcl_service_options_t service_options_bad_alloc = rcl_service_get_default_options();
+  service_options_bad_alloc.allocator.allocate = nullptr;
+  rcl_node_t invalid_node = rcl_get_zero_initialized_node();
+
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID, rcl_service_init(
+      &service, nullptr, ts, topic, &service_options)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID, rcl_service_init(
+      &service, &invalid_node, ts, topic, &service_options)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_service_init(
+      nullptr, this->node_ptr, ts, topic, &service_options)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_service_init(
+      &service, this->node_ptr, nullptr, topic, &service_options)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_service_init(
+      &service, this->node_ptr, ts, nullptr, &service_options)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_service_init(
+      &service, this->node_ptr, ts, topic, nullptr)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_service_init(
+      &service, this->node_ptr, ts, topic,
+      &service_options_bad_alloc)) << rcl_get_error_string().str;
+
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID, rcl_service_fini(&service, nullptr)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID, rcl_service_fini(&service, &invalid_node)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_SERVICE_INVALID, rcl_service_fini(
+      nullptr, this->node_ptr)) << rcl_get_error_string().str;
+
+  test_msgs__srv__BasicTypes_Request service_request;
+  test_msgs__srv__BasicTypes_Response service_response;
+  test_msgs__srv__BasicTypes_Request__init(&service_request);
+  test_msgs__srv__BasicTypes_Response__init(&service_response);
+  rmw_service_info_t header;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    test_msgs__srv__BasicTypes_Request__fini(&service_request);
+    test_msgs__srv__BasicTypes_Response__fini(&service_response);
+  });
+
+  EXPECT_EQ(nullptr, rcl_service_get_service_name(nullptr));
+  EXPECT_EQ(nullptr, rcl_service_get_options(nullptr));
+  EXPECT_EQ(nullptr, rcl_service_get_rmw_handle(nullptr));
+  EXPECT_EQ(
+    RCL_RET_SERVICE_INVALID, rcl_take_request_with_info(nullptr, &header, &service_request));
+  EXPECT_EQ(
+    RCL_RET_SERVICE_INVALID, rcl_send_response(nullptr, &header.request_id, &service_response));
+  EXPECT_EQ(
+    RCL_RET_SERVICE_INVALID, rcl_take_request(nullptr, &(header.request_id), &service_request));
+
+  EXPECT_EQ(nullptr, rcl_service_get_service_name(&service));
+  EXPECT_EQ(nullptr, rcl_service_get_options(&service));
+  EXPECT_EQ(nullptr, rcl_service_get_rmw_handle(&service));
+  EXPECT_EQ(
+    RCL_RET_SERVICE_INVALID, rcl_take_request_with_info(&service, &header, &service_request));
+  EXPECT_EQ(
+    RCL_RET_SERVICE_INVALID, rcl_send_response(&service, &header.request_id, &service_response));
+  EXPECT_EQ(
+    RCL_RET_SERVICE_INVALID, rcl_take_request(&service, &(header.request_id), &service_request));
 }
