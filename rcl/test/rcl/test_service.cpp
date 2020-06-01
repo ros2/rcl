@@ -228,22 +228,6 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
   ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_service_fini(&service, this->node_ptr);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-  // Check if null service is valid
-  EXPECT_FALSE(rcl_service_is_valid(nullptr));
-  rcl_reset_error();
-
-  // Check if zero initialized client is valid
-  service = rcl_get_zero_initialized_service();
-  EXPECT_FALSE(rcl_service_is_valid(&service));
-  rcl_reset_error();
-
-  // Check that a valid service is valid
-  service = rcl_get_zero_initialized_service();
-  ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_service_is_valid(&service));
   rcl_reset_error();
