@@ -82,6 +82,14 @@ TEST_F(TestClientFixture, test_client_nominal) {
     test_msgs, srv, BasicTypes);
   ret = rcl_client_init(&client, this->node_ptr, ts, topic_name, &client_options);
 
+  // Test access to client options
+  const rcl_client_options_t * client_internal_options = rcl_client_get_options(&client);
+  EXPECT_TRUE(rcutils_allocator_is_valid(&(client_internal_options->allocator)));
+  EXPECT_EQ(rmw_qos_profile_services_default.reliability, client_internal_options->qos.reliability);
+  EXPECT_EQ(rmw_qos_profile_services_default.history, client_internal_options->qos.history);
+  EXPECT_EQ(rmw_qos_profile_services_default.depth, client_internal_options->qos.depth);
+  EXPECT_EQ(rmw_qos_profile_services_default.durability, client_internal_options->qos.durability);
+
   // Check the return code of initialization and that the service name matches what's expected
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(strcmp(rcl_client_get_service_name(&client), expected_topic_name), 0);
