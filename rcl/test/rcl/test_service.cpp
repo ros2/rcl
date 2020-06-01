@@ -209,6 +209,10 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   EXPECT_EQ(0u, header.source_timestamp);
   EXPECT_EQ(0u, header.received_timestamp);
 #endif
+
+  ret = rcl_take_response_with_info(&client, &header, &client_response);
+  EXPECT_EQ(RCL_RET_CLIENT_TAKE_FAILED, ret) << rcl_get_error_string().str;
+
   test_msgs__srv__BasicTypes_Response__fini(&client_response);
 }
 
@@ -325,5 +329,9 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(client_response.uint64_value, 3ULL);
   EXPECT_NE(header.request_id.sequence_number, 0);
+
+  ret = rcl_take_response(&client, &(header.request_id), &client_response);
+  EXPECT_EQ(RCL_RET_CLIENT_TAKE_FAILED, ret) << rcl_get_error_string().str;
+
   test_msgs__srv__BasicTypes_Response__fini(&client_response);
 }
