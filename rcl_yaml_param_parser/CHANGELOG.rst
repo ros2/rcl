@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2020-06-01)
+------------------
+* Add Security Vulnerability Policy pointing to REP-2006 (`#661 <https://github.com/ros2/rcl/issues/661>`_)
+* Contributors: Chris Lalancette
+
 1.1.2 (2020-05-28)
 ------------------
 

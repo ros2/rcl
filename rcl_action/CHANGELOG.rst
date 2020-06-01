@@ -2,6 +2,13 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.3 (2020-06-01)
+------------------
+* Add Security Vulnerability Policy pointing to REP-2006 (`#661 <https://github.com/ros2/rcl/issues/661>`_)
+* Address unused parameter warnings (`#666 <https://github.com/ros2/rcl/issues/666>`_)
+* Increase test coverage of rcl_action (`#663 <https://github.com/ros2/rcl/issues/663>`_)
+* Contributors: Chris Lalancette, Stephen Brawner
+
 1.1.2 (2020-05-28)
 ------------------
 
