@@ -198,6 +198,7 @@ rcl_publisher_init(
 fail:
   if (publisher->impl) {
     allocator->deallocate(publisher->impl, allocator->state);
+    publisher->impl = NULL;
   }
 
   ret = fail_ret;
