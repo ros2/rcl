@@ -152,6 +152,8 @@ TEST_F(TestClientFixture, test_client_init_fini) {
   ret = rcl_client_init(&client, this->node_ptr, ts, topic_name, &default_client_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_client_is_valid(&client));
+  ret = rcl_client_init(&client, this->node_ptr, ts, topic_name, &default_client_options);
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
   ret = rcl_client_fini(&client, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
