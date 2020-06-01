@@ -326,6 +326,12 @@ rcl_add_custom_gtest(test_validate_enclave_name
   LIBRARIES ${PROJECT_NAME}
 )
 
+rcl_add_custom_gtest(test_domain_id
+  SRCS rcl/test_domain_id.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+)
+
 rcl_add_custom_gtest(test_validate_topic_name
   SRCS rcl/test_validate_topic_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
