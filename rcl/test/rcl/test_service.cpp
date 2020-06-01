@@ -280,7 +280,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
   // take timestamp before sending request
   EXPECT_EQ(RCUTILS_RET_OK, rcutils_system_time_now(&start_timestamp));
   ret = rcl_send_request(&client, &client_request, &sequence_number);
-  EXPECT_EQ(sequence_number, 1);
+  EXPECT_NE(sequence_number, 0);
   test_msgs__srv__BasicTypes_Request__fini(&client_request);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -324,6 +324,6 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
   ret = rcl_take_response(&client, &(header.request_id), &client_response);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(client_response.uint64_value, 3ULL);
-  EXPECT_EQ(header.request_id.sequence_number, 1);
+  EXPECT_NE(header.request_id.sequence_number, 0);
   test_msgs__srv__BasicTypes_Response__fini(&client_response);
 }
