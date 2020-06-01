@@ -332,6 +332,12 @@ rcl_add_custom_gtest(test_domain_id
   LIBRARIES ${PROJECT_NAME}
 )
 
+rcl_add_custom_gtest(test_localhost
+  SRCS rcl/test_localhost.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+)
+
 rcl_add_custom_gtest(test_validate_topic_name
   SRCS rcl/test_validate_topic_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
