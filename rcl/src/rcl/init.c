@@ -162,10 +162,6 @@ rcl_init(
       fail_ret = ret;
       goto fail;
     }
-  } else if (RMW_LOCALHOST_ONLY_DISABLED == *localhost_only) {
-    // If the user sets the rmw init option to RMW_LOCALHOST_ONLY_DISABLED
-    // manually, save the boolean variable as 0
-    *localhost_only = 0;
   }
 
   if (context->global_arguments.impl->enclave) {
