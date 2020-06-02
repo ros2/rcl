@@ -15,7 +15,9 @@
 #include <gtest/gtest.h>
 
 #include "rcl/rcl.h"
+
 #include "rcl/domain_id.h"
+#include "rcl/error_handling.h"
 #include "rcutils/env.h"
 
 TEST(TestGetDomainId, test_nominal) {
@@ -23,6 +25,12 @@ TEST(TestGetDomainId, test_nominal) {
   size_t domain_id = 0u;
   EXPECT_EQ(RCL_RET_OK, rcl_get_default_domain_id(&domain_id));
   EXPECT_EQ(42u, domain_id);
+
+  ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "998446744073709551615"));
+  domain_id = 0u;
+  EXPECT_EQ(RCL_RET_ERROR, rcl_get_default_domain_id(&domain_id));
+  rcl_reset_error();
+  EXPECT_EQ(0u, domain_id);
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_default_domain_id(nullptr));
 }
