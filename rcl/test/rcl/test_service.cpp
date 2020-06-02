@@ -238,7 +238,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
   rcl_reset_error();
 
   // Check that the service name matches what we assigned.
-  EXPECT_EQ(strcmp(rcl_service_get_service_name(&service), expected_topic), 0);
+  EXPECT_STREQ(rcl_service_get_service_name(&service), expected_topic);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
@@ -268,10 +268,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
   client_request.bool_value = false;
   client_request.uint8_value = 1;
   client_request.uint32_value = 2;
-  int64_t sequence_number;
-  rcutils_time_point_value_t start_timestamp;
-  // take timestamp before sending request
-  EXPECT_EQ(RCUTILS_RET_OK, rcutils_system_time_now(&start_timestamp));
+  int64_t sequence_number = 0;
   ret = rcl_send_request(&client, &client_request, &sequence_number);
   EXPECT_NE(sequence_number, 0);
   test_msgs__srv__BasicTypes_Request__fini(&client_request);
@@ -301,8 +298,6 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
     EXPECT_EQ(2UL, service_request.uint32_value);
     // Simulate a response callback by summing the request and send the response..
     service_response.uint64_value = service_request.uint8_value + service_request.uint32_value;
-    // take new timestamp before sending response
-    EXPECT_EQ(RCUTILS_RET_OK, rcutils_system_time_now(&start_timestamp));
     ret = rcl_send_response(&service, &header.request_id, &service_response);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     test_msgs__srv__BasicTypes_Request__fini(&service_request);
@@ -328,11 +323,9 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_without_i
 /* Passing bad/invalid arguments to service functions
  */
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_bad_arguments) {
-  // rcl_ret_t ret;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     test_msgs, srv, BasicTypes);
   const char * topic = "primitives";
-  // const char * expected_topic = "/primitives";
 
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
@@ -399,7 +392,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_bad_arguments) {
   EXPECT_EQ(
     RCL_RET_SERVICE_INVALID, rcl_take_request_with_info(&service, &header, &service_request));
   EXPECT_EQ(
-    RCL_RET_SERVICE_INVALID, rcl_send_response(&service, &header.request_id, &service_response));
+    RCL_RET_SERVICE_INVALID, rcl_send_response(&service, &(header.request_id), &service_response));
   EXPECT_EQ(
     RCL_RET_SERVICE_INVALID, rcl_take_request(&service, &(header.request_id), &service_request));
 
