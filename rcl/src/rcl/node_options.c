@@ -50,6 +50,10 @@ rcl_node_options_copy(
     RCL_SET_ERROR_MSG("Attempted to copy options into itself");
     return RCL_RET_INVALID_ARGUMENT;
   }
+  if (NULL != options_out->arguments.impl) {
+    RCL_SET_ERROR_MSG("Options out must be zero initialized");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   options_out->domain_id = options->domain_id;
   options_out->allocator = options->allocator;
   options_out->use_global_arguments = options->use_global_arguments;
@@ -57,8 +61,6 @@ rcl_node_options_copy(
   if (NULL != options->arguments.impl) {
     rcl_ret_t ret = rcl_arguments_copy(&(options->arguments), &(options_out->arguments));
     return ret;
-  } else {
-    options_out->arguments.impl = NULL;
   }
   return RCL_RET_OK;
 }
