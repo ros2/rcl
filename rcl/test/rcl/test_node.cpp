@@ -792,3 +792,12 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
   // EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
   // EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&not_ini_options)); <-- code fails, returns -11
 }
+
+/* Tests special case node_options
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options_fail) {
+  rcl_node_options_t not_ini_options;
+  rcl_node_options_t default_options = rcl_node_get_default_options();
+  EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
+  EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&not_ini_options));
+}
