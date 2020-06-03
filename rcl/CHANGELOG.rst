@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.4 (2020-06-02)
+------------------
+* Ensure rcl_publisher_init() fails safely (`#667 <https://github.com/ros2/rcl/issues/667>`_)
+* Contributors: Michel Hidalgo
+
 1.1.3 (2020-06-01)
 ------------------
 * Add Security Vulnerability Policy pointing to REP-2006 (`#661 <https://github.com/ros2/rcl/issues/661>`_)
