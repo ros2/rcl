@@ -263,15 +263,12 @@ rcl_node_init(
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
   node->impl->actual_domain_id = domain_id;
 
-  if (RMW_LOCALHOST_ONLY_DEFAULT == localhost_only) {
-    if (RMW_RET_OK != rcl_get_localhost_only(&localhost_only)) {
-      goto fail;
-    }
-  }
+  localhost_only = context->impl->init_options.impl->rmw_init_options.localhost_only;
 
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
-    name, local_namespace_, domain_id, localhost_only);
+    name, local_namespace_, domain_id,
+    localhost_only == RMW_LOCALHOST_ONLY_ENABLED);
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
