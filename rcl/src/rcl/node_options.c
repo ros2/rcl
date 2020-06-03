@@ -57,6 +57,8 @@ rcl_node_options_copy(
   if (NULL != options->arguments.impl) {
     rcl_ret_t ret = rcl_arguments_copy(&(options->arguments), &(options_out->arguments));
     return ret;
+  } else {
+    options_out->arguments.impl = NULL;
   }
   return RCL_RET_OK;
 }
