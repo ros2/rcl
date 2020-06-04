@@ -37,7 +37,7 @@ rcl_get_localhost_only(rmw_localhost_only_t * localhost_only)
   get_env_error_str = rcutils_get_env(RCL_LOCALHOST_ENV_VAR, &ros_local_host_env_val);
   if (NULL != get_env_error_str) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Error getting env var '" RCUTILS_STRINGIFY(RCL_DOMAIN_ID_ENV_VAR) "': %s\n",
+      "Error getting env var '" RCUTILS_STRINGIFY(RCL_LOCALHOST_ENV_VAR) "': %s\n",
       get_env_error_str);
     return RCL_RET_ERROR;
   }
