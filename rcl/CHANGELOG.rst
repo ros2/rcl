@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.5 (2020-06-03)
+------------------
+* Fix conversions between rmw_localhost_only_t and bool (`#670 <https://github.com/ros2/rcl/issues/670>`_)
+* Contributors: Jorge Perez
+
 1.1.4 (2020-06-02)
 ------------------
 * Ensure rcl_publisher_init() fails safely (`#667 <https://github.com/ros2/rcl/issues/667>`_)
