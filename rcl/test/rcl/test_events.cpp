@@ -31,6 +31,8 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
+#include "./wait_for_entity_helpers.hpp"
+
 using namespace std::chrono_literals;
 using std::chrono::seconds;
 using std::chrono::duration_cast;
@@ -88,7 +90,7 @@ public:
     ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   }
 
-  rcl_ret_t setup_publisher(const rmw_qos_profile_t qos_profile)
+  rcl_ret_t setup_publisher(const rmw_qos_profile_t qos_profile = default_qos_profile)
   {
     // init publisher
     publisher = rcl_get_zero_initialized_publisher();
@@ -102,7 +104,7 @@ public:
       &publisher_options);
   }
 
-  rcl_ret_t setup_subscriber(const rmw_qos_profile_t qos_profile)
+  rcl_ret_t setup_subscriber(const rmw_qos_profile_t qos_profile = default_qos_profile)
   {
     // init publisher
     subscription = rcl_get_zero_initialized_subscription();
@@ -117,8 +119,8 @@ public:
   }
 
   void setup_publisher_subscriber(
-    const rmw_qos_profile_t pub_qos_profile,
-    const rmw_qos_profile_t sub_qos_profile)
+    const rmw_qos_profile_t pub_qos_profile = default_qos_profile,
+    const rmw_qos_profile_t sub_qos_profile = default_qos_profile)
   {
     rcl_ret_t ret;
 
@@ -131,30 +133,31 @@ public:
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
+  void setup_publisher_event(const rcl_publisher_event_type_t & pub_event_type)
+  {
+    // init publisher events
+    publisher_event = rcl_get_zero_initialized_event();
+    rcl_ret_t ret = rcl_publisher_event_init(&publisher_event, &publisher, pub_event_type);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  }
+
+  void setup_subscriber_event(const rcl_subscription_event_type_t & sub_event_type)
+  {
+    // init subscription event
+    subscription_event = rcl_get_zero_initialized_event();
+    rcl_ret_t ret = rcl_subscription_event_init(&subscription_event, &subscription, sub_event_type);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  }
+
   void setup_publisher_subscriber_events(
     const rcl_publisher_event_type_t & pub_event_type,
     const rcl_subscription_event_type_t & sub_event_type)
   {
-    rcl_ret_t ret;
-
-    // init publisher events
-    publisher_event = rcl_get_zero_initialized_event();
-    ret = rcl_publisher_event_init(&publisher_event, &publisher, pub_event_type);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
-    // init subscription event
-    subscription_event = rcl_get_zero_initialized_event();
-    ret = rcl_subscription_event_init(&subscription_event, &subscription, sub_event_type);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    setup_publisher_event(pub_event_type);
+    setup_subscriber_event(sub_event_type);
   }
 
-  void setup_publisher_subscriber_and_events_and_assert_discovery(
-    const rcl_publisher_event_type_t & pub_event_type,
-    const rcl_subscription_event_type_t & sub_event_type)
-  {
-    setup_publisher_subscriber(default_qos_profile, default_qos_profile);
-    setup_publisher_subscriber_events(pub_event_type, sub_event_type);
-
+  void assert_discovery() {
     rcl_ret_t ret;
     // wait for discovery, time out after 10s
     static const size_t max_iterations = 1000;
@@ -174,6 +177,15 @@ public:
       std::this_thread::sleep_for(wait_period);
     }
     ASSERT_TRUE(subscribe_success) << "Publisher/Subscription discovery timed out";
+  }
+
+  void setup_publisher_subscriber_and_events_and_assert_discovery(
+    const rcl_publisher_event_type_t & pub_event_type,
+    const rcl_subscription_event_type_t & sub_event_type)
+  {
+    setup_publisher_subscriber();
+    setup_publisher_subscriber_events(pub_event_type, sub_event_type);
+    assert_discovery();
   }
 
   void tear_down_publisher_subscriber()
@@ -305,7 +317,6 @@ wait_for_msgs_and_events(
     return ret;
   }
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-
   for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
     if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
       *msg_ready = true;
@@ -345,6 +356,7 @@ using WaitConditionPredicate = std::function<
 rcl_ret_t
 conditional_wait_for_msgs_and_events(
   rcl_context_t * context,
+  seconds timeout,
   seconds timeout,
   const WaitConditionPredicate & events_ready,
   rcl_subscription_t * subscription,
@@ -598,6 +610,112 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
 
   // clean up
   tear_down_publisher_subscriber_events();
+  tear_down_publisher_subscriber();
+}
+
+/*
+ * Basic test of subscription message lost event
+ */
+TEST_F(TestEventFixture, test_sub_message_lost_event)
+{
+  if (0 != strcmp(rmw_get_implementation_identifier(), "rmw_connext_cpp")) {
+    GTEST_SKIP();
+  }
+
+  rmw_qos_profile_t qos_profile = rmw_qos_profile_default;
+  qos_profile.depth = 1;
+  qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  setup_publisher_subscriber(qos_profile, qos_profile);
+  setup_subscriber_event(RCL_SUBSCRIPTION_MESSAGE_LOST);
+  assert_discovery();
+
+  sleep(3);
+
+  // test subscriber message lost status
+  {
+    rmw_message_lost_status_t message_lost_status;
+    rcl_ret_t ret = rcl_take_event(&subscription_event, &message_lost_status);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(message_lost_status.total_count, 0u);
+    EXPECT_EQ(message_lost_status.total_count_change, 0u);
+  }
+
+  const char * test_string = "testing";
+  {
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings__init(&msg);
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, "test1"));
+    rcl_ret_t ret = rcl_publish(&publisher, &msg, nullptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    test_msgs__msg__Strings__fini(&msg);
+  }
+
+  WaitConditionPredicate msg_ready_predicate = [](
+    const bool & msg_persist_ready,
+    const bool & subscription_persist_ready,
+    const bool & publisher_persist_ready) {
+      (void)subscription_persist_ready;
+      (void)publisher_persist_ready;
+      return msg_persist_ready;
+    };
+  bool msg_persist_ready, subscription_persist_ready, publisher_persist_ready;
+  rcl_ret_t ret = conditional_wait_for_msgs_and_events(
+    context_ptr, MAX_WAIT_PER_TESTCASE, msg_ready_predicate,
+    &subscription, &subscription_event, nullptr,
+    &msg_persist_ready, &subscription_persist_ready, &publisher_persist_ready);
+  EXPECT_EQ(ret, RCL_RET_OK);
+
+  // Publish a second message without reading the first.
+  // As the history depth is one, one will be lost.
+  {
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings__init(&msg);
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+    rcl_ret_t ret = rcl_publish(&publisher, &msg, nullptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    test_msgs__msg__Strings__fini(&msg);
+  }
+
+  WaitConditionPredicate ready_predicate = [](
+  const bool & msg_persist_ready,
+  const bool & subscription_persist_ready,
+  const bool & publisher_persist_ready) {
+    (void)publisher_persist_ready;
+    return msg_persist_ready && subscription_persist_ready;
+  };
+  ret = conditional_wait_for_msgs_and_events(
+    context_ptr, MAX_WAIT_PER_TESTCASE, ready_predicate,
+    &subscription, &subscription_event, nullptr,
+    &msg_persist_ready, &subscription_persist_ready, &publisher_persist_ready);
+  EXPECT_EQ(ret, RCL_RET_OK);
+
+  // test that the message published to topic is as expected
+  ASSERT_TRUE(msg_persist_ready);
+  test_msgs__msg__Strings msg;
+  test_msgs__msg__Strings__init(&msg);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    test_msgs__msg__Strings__fini(&msg);
+  });
+  ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    std::string(msg.string_value.data, msg.string_value.size),
+    std::string(test_string));
+
+  // test subscriber message lost status
+  {
+    EXPECT_TRUE(subscription_persist_ready);
+    rmw_message_lost_status_t message_lost_status;
+    rcl_ret_t ret = rcl_take_event(&subscription_event, &message_lost_status);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    EXPECT_EQ(message_lost_status.total_count, 1u);
+    EXPECT_EQ(message_lost_status.total_count_change, 1u);
+  }
+
+  // clean up
+  ret = rcl_event_fini(&subscription_event);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   tear_down_publisher_subscriber();
 }
 
