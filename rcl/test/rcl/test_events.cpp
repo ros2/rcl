@@ -31,8 +31,6 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
-#include "./wait_for_entity_helpers.hpp"
-
 using namespace std::chrono_literals;
 using std::chrono::seconds;
 using std::chrono::duration_cast;
@@ -357,7 +355,6 @@ rcl_ret_t
 conditional_wait_for_msgs_and_events(
   rcl_context_t * context,
   seconds timeout,
-  seconds timeout,
   const WaitConditionPredicate & events_ready,
   rcl_subscription_t * subscription,
   rcl_event_t * subscription_event,
@@ -618,7 +615,10 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
  */
 TEST_F(TestEventFixture, test_sub_message_lost_event)
 {
-  if (0 != strcmp(rmw_get_implementation_identifier(), "rmw_connext_cpp")) {
+  if (
+    0 != strcmp(rmw_get_implementation_identifier(), "rmw_connext_cpp") &&
+    0 != strcmp(rmw_get_implementation_identifier(), "rmw_cyclonedds_cpp"))
+  {
     GTEST_SKIP();
   }
 
@@ -628,8 +628,6 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
   setup_publisher_subscriber(qos_profile, qos_profile);
   setup_subscriber_event(RCL_SUBSCRIPTION_MESSAGE_LOST);
   assert_discovery();
-
-  sleep(3);
 
   // test subscriber message lost status
   {
@@ -691,6 +689,7 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
 
   // test that the message published to topic is as expected
   ASSERT_TRUE(msg_persist_ready);
+  EXPECT_TRUE(subscription_persist_ready);
   test_msgs__msg__Strings msg;
   test_msgs__msg__Strings__init(&msg);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
