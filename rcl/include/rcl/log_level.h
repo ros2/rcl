@@ -53,7 +53,7 @@ RCL_WARN_UNUSED
 rcl_log_level_t *
 rcl_log_level_init(const rcutils_allocator_t allocator);
 
-/// \brief Copy log level structure
+/// \brief Copy log level structure, allocate memory by using allocator of rcl_log_level_t
 /// \param[in] log_level points to the log level struct to be copied
 /// \return a pointer to the copied log level structure on success or NULL on failure
 RCL_PUBLIC

@@ -40,6 +40,11 @@ extern "C"
 {
 #endif
 
+#define RCL_ENABLE_FLAG_PREFIX "--enable-"
+#define RCL_DISABLE_FLAG_PREFIX "--disable-"
+#define RCL_LOG_LEVEL_FLAG_COMMA ","
+#define RCL_LOG_LEVEL_FLAG_SEPERATOR "="
+
 /// Parse an argument that may or may not be a remap rule.
 /**
  * \param[in] arg the argument to parse
@@ -152,7 +157,6 @@ rcl_arguments_get_log_level(
     RCL_SET_ERROR_MSG("Output log level pointer is not null. May leak memory.");
     return RCL_RET_INVALID_ARGUMENT;
   }
-  *log_level = NULL;
   if (NULL != arguments->impl->log_level) {
     *log_level = rcl_log_level_copy(arguments->impl->log_level);
     if (NULL == *log_level) {
@@ -161,9 +165,6 @@ rcl_arguments_get_log_level(
   }
   return RCL_RET_OK;
 }
-
-#define RCL_LOG_LEVEL_FLAG_COMMA ","
-#define RCL_LOG_LEVEL_FLAG_SEPERATOR "="
 
 /// Parse an argument that may or may not be a log level rule.
 /**
@@ -232,9 +233,6 @@ _rcl_parse_enclave(
   const char * arg,
   rcl_allocator_t allocator,
   char ** enclave);
-
-#define RCL_ENABLE_FLAG_PREFIX "--enable-"
-#define RCL_DISABLE_FLAG_PREFIX "--disable-"
 
 /// Parse a bool argument that may or may not be for the provided key rule.
 /**
@@ -1642,18 +1640,18 @@ _rcl_parse_log_level(
   RCL_CHECK_ARGUMENT_FOR_NULL(arg, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT);
 
-  size_t colon_len = strlen(RCL_LOG_LEVEL_FLAG_COMMA);
+  size_t comma_len = strlen(RCL_LOG_LEVEL_FLAG_COMMA);
   size_t seperator_len = strlen(RCL_LOG_LEVEL_FLAG_SEPERATOR);
   rcutils_ret_t ret = RCUTILS_RET_OK;
   const char * p = arg;
 
   do {
-    char * colon = strstr(p, RCL_LOG_LEVEL_FLAG_COMMA);
+    char * comma = strstr(p, RCL_LOG_LEVEL_FLAG_COMMA);
     char * item;
-    if (colon == NULL) {
+    if (comma == NULL) {
       item = rcutils_strdup(p, allocator);
     } else {
-      item = rcutils_strndup(p, colon - p, allocator);
+      item = rcutils_strndup(p, comma - p, allocator);
     }
 
     char * seperator = strstr(item, RCL_LOG_LEVEL_FLAG_SEPERATOR);
@@ -1681,10 +1679,10 @@ _rcl_parse_log_level(
       return RCL_RET_ERROR;
     }
 
-    if (colon == NULL) {
-      p = colon;
+    if (comma == NULL) {
+      p = comma;
     } else {
-      p = colon + colon_len;
+      p = comma + comma_len;
     }
   } while (p != NULL);
 
