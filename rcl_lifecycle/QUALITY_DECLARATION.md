@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_lifecycle` packa
 
 # `rcl_lifecycle` Quality Declaration
 
-The package `rcl_lifecycle` claims to be in the **Quality Level 4** category.
+The package `rcl_lifecycle` claims to be in the **Quality Level 2** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 4 in REP-2004](https://www.ros.org/reps/rep-2004.html).
 
@@ -88,14 +88,30 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 
 `rcl_lifecycle` has feature tests, which test for proper node state transitions.
 The tests are located in the [test](test) subdirectory.
+New features are required to have tests before being added.
+Currently nightly test results can be seen here:
+* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl_lifecycle/)
+* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_lifecycle/)
+* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl_lifecycle/)
+* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl_lifecycle/)
+
 
 ### Public API Testing [4.ii]
 
-Much of the API in `rcl_lifecycle` is tested in the aforementioned feature tests, but it is not tested explicitly.
+Most of the functionality of the declared API in this package is covered in its unit tests. Currently it has a line coverage of [86%](https://ci.ros2.org/job/ci_linux_coverage/lastBuild/cobertura/src_ros2_rcl_rcl_lifecycle_src/).
 
 ### Coverage [4.iii]
 
-`rcl_lifecycle` does not currently track test coverage.
+`rcl_lifecycle` follows the recommendations for ROS Core packages in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#code-coverage), and opts to use line coverage instead of branch coverage.
+
+This includes:
+
+- tracking and reporting line coverage statistics
+- no lines are manually skipped in coverage calculations
+
+Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
+
+Current coverage statistics can be viewed (86%) [here](https://ci.ros2.org/job/ci_linux_coverage/lastBuild/cobertura/src_ros2_rcl_rcl_lifecycle_src/). Current coverage statistics need to be improved to reach a higher quality level.
 
 ### Performance [4.iv]
 

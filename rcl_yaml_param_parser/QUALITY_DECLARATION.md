@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_yaml_param_parse
 
 # `rcl_yaml_param_parser` Quality Declaration
 
-The package `rcl_yaml_param_parser` claims to be in the **Quality Level 4** category.
+The package `rcl_yaml_param_parser` claims to be in the **Quality Level 2** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 4 in REP-2004](https://www.ros.org/reps/rep-2004.html).
 
@@ -59,9 +59,11 @@ All pull requests must resolve related documentation changes before merging.
 
 ### Feature Documentation [3.i]
 
-`rcl_yaml_param_parser` does not have feature documentation.
+`rcl_yaml_param_parser` provides the main elements of its API listed using doxygen and its foxy version is hosted [here](http://docs.ros2.org/foxy/api/rcl_yaml_param_parser/index.html).
 
 ### Public API Documentation [3.ii]
+
+`rcl_yaml_param_parser` has embedded API documentation and it is generated using doxygen. Currently, its foxy version is hosted [here](http://docs.ros2.org/foxy/api/rcl_yaml_param_parser/index.html). Latest version has to be generated before considering this item fully resolved.
 
 All of `rcl_yaml_param_parser` has embedded API documentation. It is not yet hosted publicly.
 
@@ -85,15 +87,30 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 
 ### Feature Testing [4.i]
 
-`rcl_yaml_param_parser` has feature tests, which ensure that a wide variety of yaml files are checked for parsing.
+Most features in `rcl_yaml_param_parser` have corresponding tests which simulate typical usage, and they are located in the [`test`](./test) directory.
+New features are required to have tests before being added.
+Currently nightly test results can be seen here:
+* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl_yaml_param_parser/)
+* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_yaml_param_parser/)
+* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl_yaml_param_parser/)
+* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl_yaml_param_parser/)
 
 ### Public API Testing [4.ii]
 
-Much of the API in `rcl_yaml_param_parser` is tested in the aforementioned feature tests, but it is not tested explicitly.
+Most of the functionality of the declared API in this package is covered in its unit tests. Currently it has a line coverage of [88%](https://ci.ros2.org/job/ci_linux_coverage/lastBuild/cobertura/src_ros2_rcl_rcl_yaml_param_parser_src/).
 
 ### Coverage [4.iii]
 
-`rcl_yaml_param_parser` does not currently track test coverage.
+`rcl_yaml_param_parser` follows the recommendations for ROS Core packages in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#code-coverage), and opts to use line coverage instead of branch coverage.
+
+This includes:
+
+- tracking and reporting line coverage statistics
+- no lines are manually skipped in coverage calculations
+
+Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
+
+Current coverage statistics can be viewed (88%) [here](https://ci.ros2.org/job/ci_linux_coverage/lastBuild/cobertura/src_ros2_rcl_rcl_yaml_param_parser_src/). Current coverage statistics need to be improved to reach a higher quality level.
 
 ### Performance [4.iv]
 
@@ -118,7 +135,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `rcutils` provides commonly used functionality in C.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
 
 #### `libyaml_vendor`
 
