@@ -20,11 +20,10 @@
 #include "rcutils/env.h"
 
 TEST(TestLocalhost, test_get_localhost_only) {
-  // TODO(Blast545): return value matching parsed value https://github.com/ros2/rcl/issues/669
   ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "0"));
   rmw_localhost_only_t localhost_var;
   EXPECT_EQ(RCL_RET_OK, rcl_get_localhost_only(&localhost_var));
-  EXPECT_EQ(RMW_LOCALHOST_ONLY_DEFAULT, localhost_var);
+  EXPECT_EQ(RMW_LOCALHOST_ONLY_DISABLED, localhost_var);
 
   ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "1"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_localhost_only(&localhost_var));
@@ -32,7 +31,7 @@ TEST(TestLocalhost, test_get_localhost_only) {
 
   ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "2"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_localhost_only(&localhost_var));
-  EXPECT_EQ(RMW_LOCALHOST_ONLY_DEFAULT, localhost_var);
+  EXPECT_EQ(RMW_LOCALHOST_ONLY_DISABLED, localhost_var);
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_localhost_only(nullptr));
 }
