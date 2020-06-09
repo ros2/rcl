@@ -101,7 +101,9 @@ Currently nightly test results can be seen here:
 
 ### Public API Testing [4.ii]
 
-Most of the functionality of the declared API in this package is covered in its unit tests. Currently it has a line coverage of [80%](https://ci.ros2.org/job/ci_linux_coverage/lastBuild/cobertura/src_ros2_rcl_rcl_src_rcl/).
+Each part of the public API has tests, and new additions or changes to the public API require tests before being added. The tests aim to cover both typical usage and corner cases, but are quantified by contributing to code coverage.
+
+The following functions are partially supported: `rcl_take_loaned_message`, `rcl_return_loaned_message_from_subscription`, `rcl_borrow_loaned_message`, `rcl_return_loaned_message_from_publisher` and `rcl_publish_loaned_message` because they are not currently supported on Tier 1 RMW providers.
 
 ### Coverage [4.iii]
 
@@ -114,7 +116,7 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed (80%) [here](https://ci.ros2.org/job/ci_linux_coverage/lastBuild/cobertura/src_ros2_rcl_rcl_src_rcl/). Current coverage statistics need to be improved to reach a higher quality level.
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_src_rcl/). A description of how coverage statistics are summarized from this page, can be found in the []"ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
 ### Performance [4.iv]
 

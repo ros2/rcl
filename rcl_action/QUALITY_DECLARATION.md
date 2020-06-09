@@ -4,7 +4,7 @@ This document is a declaration of software quality for the `rcl_action` package,
 
 The package `rcl_action` claims to be in the **Quality Level 2** category.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 4 in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
 ## Version Policy [1]
 
@@ -97,7 +97,7 @@ Currently nightly test results can be seen here:
 
 ### Public API Testing [4.ii]
 
-Most of the functionality of the declared API in this package is covered in its unit tests. Currently it has a line coverage of [94%](https://ci.ros2.org/job/ci_linux_coverage/lastBuild/cobertura/src_ros2_rcl_rcl_action_src_rcl_action/).
+Each part of the public API has tests, and new additions or changes to the public API require tests before being added. The tests aim to cover both typical usage and corner cases, but are quantified by contributing to code coverage.
 
 ### Coverage [4.iii]
 
@@ -110,7 +110,7 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed (94%) [here](https://ci.ros2.org/job/ci_linux_coverage/lastBuild/cobertura/src_ros2_rcl_rcl_action_src_rcl_action/). Current coverage statistics need to be improved to reach a higher quality level.
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_action_src_rcl_action/). A description of how coverage statistics are summarized from this page, can be found in the []"ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
 ### Performance [4.iv]
 
