@@ -326,6 +326,18 @@ rcl_add_custom_gtest(test_validate_enclave_name
   LIBRARIES ${PROJECT_NAME}
 )
 
+rcl_add_custom_gtest(test_domain_id
+  SRCS rcl/test_domain_id.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+)
+
+rcl_add_custom_gtest(test_localhost
+  SRCS rcl/test_localhost.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+)
+
 rcl_add_custom_gtest(test_validate_topic_name
   SRCS rcl/test_validate_topic_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
@@ -350,6 +362,13 @@ rcl_add_custom_gtest(test_security
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
+)
+
+rcl_add_custom_gtest(test_common
+  SRCS rcl/test_common.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/common.c
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
+  LIBRARIES ${PROJECT_NAME}
 )
 
 # Install test resources

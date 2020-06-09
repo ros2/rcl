@@ -67,7 +67,7 @@ public:
   }
 };
 
-/* Basic nominal test of a client.
+/* Basic nominal test of a client. Complete functionality tested at test_service.cpp
  */
 TEST_F(TestClientFixture, test_client_nominal) {
   rcl_ret_t ret;
@@ -81,6 +81,14 @@ TEST_F(TestClientFixture, test_client_nominal) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     test_msgs, srv, BasicTypes);
   ret = rcl_client_init(&client, this->node_ptr, ts, topic_name, &client_options);
+
+  // Test access to client options
+  const rcl_client_options_t * client_internal_options = rcl_client_get_options(&client);
+  EXPECT_TRUE(rcutils_allocator_is_valid(&(client_internal_options->allocator)));
+  EXPECT_EQ(rmw_qos_profile_services_default.reliability, client_internal_options->qos.reliability);
+  EXPECT_EQ(rmw_qos_profile_services_default.history, client_internal_options->qos.history);
+  EXPECT_EQ(rmw_qos_profile_services_default.depth, client_internal_options->qos.depth);
+  EXPECT_EQ(rmw_qos_profile_services_default.durability, client_internal_options->qos.durability);
 
   // Check the return code of initialization and that the service name matches what's expected
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -144,6 +152,8 @@ TEST_F(TestClientFixture, test_client_init_fini) {
   ret = rcl_client_init(&client, this->node_ptr, ts, topic_name, &default_client_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_client_is_valid(&client));
+  ret = rcl_client_init(&client, this->node_ptr, ts, topic_name, &default_client_options);
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
   ret = rcl_client_fini(&client, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -205,4 +215,65 @@ TEST_F(TestClientFixture, test_client_init_fini) {
     &client, this->node_ptr, ts, topic_name, &client_options_with_failing_allocator);
   EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+}
+
+/* Passing bad/invalid arguments to the functions
+ */
+TEST_F(TestClientFixture, test_client_bad_arguments) {
+  rcl_client_t client = rcl_get_zero_initialized_client();
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+  rcl_client_options_t default_client_options = rcl_client_get_default_options();
+
+  EXPECT_EQ(
+    RCL_RET_SERVICE_NAME_INVALID, rcl_client_init(
+      &client, this->node_ptr, ts,
+      "invalid name", &default_client_options)) << rcl_get_error_string().str;
+
+  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_client_fini(&client, nullptr));
+  rcl_node_t not_valid_node = rcl_get_zero_initialized_node();
+  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_client_fini(&client, &not_valid_node));
+
+  rmw_service_info_t header;
+  int64_t sequence_number = 24;
+  test_msgs__srv__BasicTypes_Response client_response;
+  test_msgs__srv__BasicTypes_Request client_request;
+  test_msgs__srv__BasicTypes_Request__init(&client_request);
+  test_msgs__srv__BasicTypes_Response__init(&client_response);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    test_msgs__srv__BasicTypes_Response__fini(&client_response);
+    test_msgs__srv__BasicTypes_Request__fini(&client_request);
+  });
+
+  EXPECT_EQ(nullptr, rcl_client_get_rmw_handle(nullptr));
+  EXPECT_EQ(nullptr, rcl_client_get_service_name(nullptr));
+  EXPECT_EQ(nullptr, rcl_client_get_service_name(nullptr));
+  EXPECT_EQ(nullptr, rcl_client_get_options(nullptr));
+  EXPECT_EQ(
+    RCL_RET_CLIENT_INVALID, rcl_take_response_with_info(
+      nullptr, &header, &client_response)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_CLIENT_INVALID, rcl_take_response(
+      nullptr, &(header.request_id), &client_response)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_CLIENT_INVALID, rcl_send_request(
+      nullptr, &client_request, &sequence_number)) << rcl_get_error_string().str;
+  EXPECT_EQ(24, sequence_number);
+
+  // Not init client
+  EXPECT_EQ(nullptr, rcl_client_get_rmw_handle(&client));
+  EXPECT_EQ(nullptr, rcl_client_get_service_name(&client));
+  EXPECT_EQ(nullptr, rcl_client_get_service_name(&client));
+  EXPECT_EQ(nullptr, rcl_client_get_options(&client));
+  EXPECT_EQ(
+    RCL_RET_CLIENT_INVALID, rcl_take_response_with_info(
+      &client, &header, &client_response)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_CLIENT_INVALID, rcl_take_response(
+      &client, &(header.request_id), &client_response)) << rcl_get_error_string().str;
+  EXPECT_EQ(
+    RCL_RET_CLIENT_INVALID, rcl_send_request(
+      &client, &client_request, &sequence_number)) << rcl_get_error_string().str;
+  EXPECT_EQ(24, sequence_number);
 }
