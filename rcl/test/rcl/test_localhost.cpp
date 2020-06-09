@@ -33,5 +33,9 @@ TEST(TestLocalhost, test_get_localhost_only) {
   EXPECT_EQ(RCL_RET_OK, rcl_get_localhost_only(&localhost_var));
   EXPECT_EQ(RMW_LOCALHOST_ONLY_DISABLED, localhost_var);
 
+  ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "Unexpected"));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_localhost_only(&localhost_var));
+  EXPECT_EQ(RMW_LOCALHOST_ONLY_DISABLED, localhost_var);
+
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_localhost_only(nullptr));
 }
