@@ -257,7 +257,7 @@ rcl_remap_node_namespace(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] args The structure to be deallocated.
+ * \param[in] remap The structure to be deallocated.
  * \return `RCL_RET_OK` if the memory was successfully freed, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
