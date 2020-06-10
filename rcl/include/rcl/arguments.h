@@ -212,7 +212,7 @@ rcl_arguments_get_count_unparsed_ros(
  *
  * \param[in] args An arguments structure that has been parsed.
  * \param[in] allocator A valid allocator.
- * \param[out] output_unparsed_indices An allocated array of indices into the original argv array.
+ * \param[out] output_unparsed_ros_indices An allocated array of indices into the original argv array.
  *   This array must be deallocated by the caller using the given allocator.
  *   If there are no unparsed ROS specific arguments then the output will be set to NULL.
  * \return `RCL_RET_OK` if everything goes correctly, or

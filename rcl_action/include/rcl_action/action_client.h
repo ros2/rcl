@@ -548,7 +548,7 @@ rcl_action_send_result_request(
  *
  * \param[in] action_client handle to the client that will take the result response
  * \param[out] response_header pointer to the result response header
- * \param[out] ros_result_response preallocated, zero-initialized, struct where the ROS
+ * \param[out] ros_result preallocated, zero-initialized, struct where the ROS
  *   result message is copied.
  * \return `RCL_RET_OK` if the response was taken successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -639,7 +639,7 @@ rcl_action_send_cancel_request(
  * Lock-Free          | Yes
  *
  * \param[in] action_client handle to the client that will take the cancel response
- * \param[out] request_header pointer to the cancel response header
+ * \param[out] response_header pointer to the cancel response header
  * \param[out] ros_cancel_response a zero-initialized ROS cancel response message where
  *   the cancel response is copied.
  * \return `RCL_RET_OK` if the response was taken successfully, or

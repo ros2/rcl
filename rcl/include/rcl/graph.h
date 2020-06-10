@@ -427,7 +427,7 @@ rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] allocator used to control allocation and deallocation of names
  * \param[out] node_names struct storing discovered node names
- * \param[out] node_namesspaces struct storing discovered node namespaces
+ * \param[out] node_namespaces struct storing discovered node namespaces
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_BAD_ALLOC` if an error occurred while allocating memory, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
@@ -459,7 +459,7 @@ rcl_get_node_names(
  * \param[in] node the handle to the node being used to query the ROS graph
  * \param[in] allocator used to control allocation and deallocation of names
  * \param[out] node_names struct storing discovered node names
- * \param[out] node_namesspaces struct storing discovered node namespaces
+ * \param[out] node_namespaces struct storing discovered node namespaces
  * \param[out] enclaves struct storing discovered node enclaves
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_BAD_ALLOC` if an error occurred while allocating memory, or
