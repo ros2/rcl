@@ -134,10 +134,10 @@ rcl_action_cancel_response_fini(rcl_action_cancel_response_t * cancel_response)
 
 /// Values should be changed if enum values change
 const char * goal_state_descriptions[] =
-{"UNKNOWN", "ACCEPTED", "EXECUTING", "CANCELING", "SUCCEEDED", "CANCELED", "ABORTED"};
+{"UNKNOWN", "ACCEPTED", "EXECUTING", "CANCELING", "SUCCEEDED", "CANCELED", "ABORTED", "PREEMPTED"};
 
 const char * goal_event_descriptions[] =
-{"EXECUTE", "CANCEL_GOAL", "SUCCEED", "ABORT", "CANCELED", "NUM_EVENTS"};
+{"EXECUTE", "CANCEL_GOAL", "SUCCEED", "ABORT", "PREEMPT", "CANCELED", "NUM_EVENTS"};
 
 #ifdef __cplusplus
 }
