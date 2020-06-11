@@ -528,3 +528,140 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_get_options)
 
   ASSERT_EQ(NULL, rcl_subscription_get_options(nullptr));
 }
+
+/* Using bad arguments subscription methods
+ */
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_bad_argument) {
+  rcl_ret_t ret = RCL_RET_OK;
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic = "/chatter";
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  rcl_node_t invalid_node = rcl_get_zero_initialized_node();
+
+  size_t pub_count = 0;
+  test_msgs__msg__BasicTypes msg;
+  test_msgs__msg__BasicTypes__init(&msg);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    test_msgs__msg__BasicTypes__fini(&msg);
+  });
+  rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  size_t seq_size = 3u;
+  rmw_message_sequence_t messages;
+  rmw_message_sequence_init(&messages, seq_size, &allocator);
+  rmw_message_info_sequence_t message_infos_short;
+  rmw_message_info_sequence_init(&message_infos_short, seq_size - 1u, &allocator);
+  rmw_message_info_sequence_t message_infos;
+  rmw_message_info_sequence_init(&message_infos, seq_size, &allocator);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rmw_message_info_sequence_fini(&message_infos);
+    rmw_message_info_sequence_fini(&message_infos_short);
+    rmw_message_sequence_fini(&messages);
+  });
+
+  rcl_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
+  size_t initial_capacity_ser = 0u;
+  ASSERT_EQ(
+    RCL_RET_OK, rmw_serialized_message_init(
+      &serialized_msg, initial_capacity_ser, &allocator)) << rcl_get_error_string().str;
+
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID, rcl_subscription_get_publisher_count(nullptr, &pub_count));
+  rcl_reset_error();
+  EXPECT_EQ(NULL, rcl_subscription_get_actual_qos(nullptr));
+  rcl_reset_error();
+  EXPECT_FALSE(rcl_subscription_can_loan_messages(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(NULL, rcl_subscription_get_rmw_handle(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(NULL, rcl_subscription_get_topic_name(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(NULL, rcl_subscription_get_options(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_SUBSCRIPTION_INVALID, rcl_take(nullptr, &msg, &message_info, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID,
+    rcl_take_sequence(nullptr, seq_size, &messages, &message_infos, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID,
+    rcl_take_serialized_message(nullptr, &serialized_msg, nullptr, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID, rcl_subscription_get_publisher_count(&subscription, &pub_count));
+  rcl_reset_error();
+  EXPECT_EQ(NULL, rcl_subscription_get_actual_qos(&subscription));
+  rcl_reset_error();
+  EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
+  rcl_reset_error();
+  EXPECT_EQ(NULL, rcl_subscription_get_rmw_handle(&subscription));
+  rcl_reset_error();
+  EXPECT_EQ(NULL, rcl_subscription_get_topic_name(&subscription));
+  rcl_reset_error();
+  EXPECT_EQ(NULL, rcl_subscription_get_options(&subscription));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_SUBSCRIPTION_INVALID, rcl_take(&subscription, &msg, &message_info, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID,
+    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID,
+    rcl_take_serialized_message(&subscription, &serialized_msg, nullptr, nullptr));
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_subscription_init(&subscription, nullptr, ts, topic, &subscription_options));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_subscription_init(&subscription, &invalid_node, ts, topic, &subscription_options));
+  rcl_reset_error();
+
+  ret = rcl_subscription_init(
+    &subscription, this->node_ptr, ts, "spaced name", &subscription_options);
+  EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+  ret = rcl_subscription_init(
+    &subscription, this->node_ptr, ts, "sub{ros_not_match}", &subscription_options);
+  EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_take_sequence(&subscription, seq_size + 1, &messages, &message_infos, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos_short, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_TAKE_FAILED,
+    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_TAKE_FAILED, rcl_take(&subscription, &msg, &message_info, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_TAKE_FAILED,
+    rcl_take_serialized_message(&subscription, &serialized_msg, nullptr, nullptr));
+  rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_subscription_fini(&subscription, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_subscription_fini(&subscription, &invalid_node));
+  rcl_reset_error();
+
+  ret = rcl_subscription_fini(&subscription, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
