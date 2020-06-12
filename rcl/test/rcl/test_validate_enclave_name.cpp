@@ -42,6 +42,7 @@ TEST(TestValidateEnclaveName, test_validate) {
     RCL_RET_OK,
     rcl_validate_enclave_name("/foo", &validation_result, &invalid_index));
   EXPECT_EQ(RCL_ENCLAVE_NAME_VALID, validation_result);
+  EXPECT_EQ(NULL, rcl_enclave_name_validation_result_string(validation_result));
 
   EXPECT_EQ(
     RCL_RET_OK,
@@ -56,15 +57,20 @@ TEST(TestValidateEnclaveName, test_validation_string) {
     int expected_validation_result;
     size_t expected_invalid_index;
   };
+  std::string longString = "/looooooooooooooooooooooooooooooooooooooooooooooooo"
+    "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+    "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+    "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+    "ooooooooooooooooooooooooooooongString";
   std::vector<enclave_case> enclave_cases_that_should_fail = {
-    // TODO(blast_545): Look for naming conventions doc for enclave_names
     {"", RCL_ENCLAVE_NAME_INVALID_IS_EMPTY_STRING, 0},
     {"~/foo", RCL_ENCLAVE_NAME_INVALID_NOT_ABSOLUTE, 0},
     {"/foo/", RCL_ENCLAVE_NAME_INVALID_ENDS_WITH_FORWARD_SLASH, 4},
     {"/foo/$", RCL_ENCLAVE_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS, 5},
     {"/bar#", RCL_ENCLAVE_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS, 4},
     {"/foo//bar", RCL_ENCLAVE_NAME_INVALID_CONTAINS_REPEATED_FORWARD_SLASH, 5},
-    {"/1bar", RCL_ENCLAVE_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER, 1}
+    {"/1bar", RCL_ENCLAVE_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER, 1},
+    {longString, RCL_ENCLAVE_NAME_INVALID_TOO_LONG, RCL_ENCLAVE_NAME_MAX_LENGTH - 1}
   };
   for (const auto & case_tuple : enclave_cases_that_should_fail) {
     std::string enclave = case_tuple.enclave;
