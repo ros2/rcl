@@ -50,6 +50,19 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+  set(timer_test_timeout 60)
+  if(rmw_implementation STREQUAL "rmw_connext_cpp")
+    set(timer_test_timeout 90)  # Bump timeout for RTI Connext
+  endif()
+  rcl_add_custom_gtest(test_timer${target_suffix}
+    SRCS rcl/test_timer.cpp
+    ENV ${rmw_implementation_env_var}
+    TIMEOUT ${timer_test_timeout}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
+    AMENT_DEPENDENCIES ${rmw_implementation}
+  )
+
   rcl_add_custom_gtest(test_context${target_suffix}
     SRCS rcl/test_context.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
@@ -348,13 +361,6 @@ rcl_add_custom_gtest(test_expand_topic_name
   SRCS rcl/test_expand_topic_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
-)
-
-rcl_add_custom_gtest(test_timer${target_suffix}
-  SRCS rcl/test_timer.cpp
-  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME}
-  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
 rcl_add_custom_gtest(test_security
