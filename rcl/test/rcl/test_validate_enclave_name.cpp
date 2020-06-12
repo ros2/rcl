@@ -65,6 +65,9 @@ TEST(TestValidateEnclaveName, test_validation_string) {
     {"/bar#", RCL_ENCLAVE_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS, 4},
     {"/foo//bar", RCL_ENCLAVE_NAME_INVALID_CONTAINS_REPEATED_FORWARD_SLASH, 5},
     {"/1bar", RCL_ENCLAVE_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER, 1}
+    {"/" + std::string(RCL_ENCLAVE_NAME_MAX_LENGTH, 'o'),
+      RCL_ENCLAVE_NAME_INVALID_TOO_LONG,
+      RCL_ENCLAVE_NAME_MAX_LENGTH - 1}
   };
   for (const auto & case_tuple : enclave_cases_that_should_fail) {
     std::string enclave = case_tuple.enclave;
@@ -82,4 +85,6 @@ TEST(TestValidateEnclaveName, test_validation_string) {
       "Enclave '" << enclave << "' failed with '" << validation_result << "'.";
     EXPECT_NE(nullptr, rcl_enclave_name_validation_result_string(validation_result)) << enclave;
   }
+  EXPECT_NE(nullptr, rcl_enclave_name_validation_result_string(-1));  // invalid result
+  EXPECT_EQ(nullptr, rcl_enclave_name_validation_result_string(RCL_ENCLAVE_NAME_VALID));
 }
