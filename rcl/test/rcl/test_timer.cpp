@@ -183,7 +183,7 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
   rcl_timer_t timer2 = rcl_get_zero_initialized_timer();
 
   ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(50), nullptr, rcl_get_default_allocator());
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_timer_init(
@@ -288,7 +288,7 @@ TEST_F(TestTimerFixture, test_timer_overrun) {
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
   ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(100), nullptr, rcl_get_default_allocator());
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(200), nullptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -326,7 +326,7 @@ TEST_F(TestTimerFixture, test_timer_overrun) {
   rcl_reset_error();
 
   // Ensure period is re-aligned.
-  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(50));
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(10));
   EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
