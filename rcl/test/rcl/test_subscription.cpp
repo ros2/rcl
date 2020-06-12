@@ -628,9 +628,11 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   ret = rcl_subscription_init(
     &subscription, this->node_ptr, ts, "spaced name", &subscription_options);
   EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   ret = rcl_subscription_init(
     &subscription, this->node_ptr, ts, "sub{ros_not_match}", &subscription_options);
   EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
