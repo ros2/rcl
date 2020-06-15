@@ -14,12 +14,14 @@
 
 #include <gtest/gtest.h>
 
-#include "rcl/rcl.h"
-
 #include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rcl/arguments.h"
 #include "rcl/error_handling.h"
+#include "rcl/rcl.h"
+#include "rcl/security.h"
+#include "rcutils/env.h"
 #include "rcutils/format_string.h"
 #include "rcutils/snprintf.h"
 
@@ -98,65 +100,147 @@ private:
   FakeTestArgv(const FakeTestArgv &) = delete;
 };
 
-/* Tests the rcl_init() and rcl_shutdown() functions.
+/* Tests rcl_init_options_init() and rcl_init_options_fini() functions.
  */
-TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_shutdown) {
-  rcl_ret_t ret;
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_init) {
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_context_t context = rcl_get_zero_initialized_context();
-  // A shutdown before any init has been called should fail.
-  ret = rcl_shutdown(&context);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcl_reset_error();
-  ASSERT_FALSE(rcl_context_is_valid(&context));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
   // Already init
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // If argc is not 0, but argv is, it should be an invalid argument.
-  ret = rcl_init(42, nullptr, &init_options, &context);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcl_reset_error();
-  ASSERT_FALSE(rcl_context_is_valid(&context));
-  // If argc is not 0, argv is not null but contains one, it should be an invalid argument.
-  const char * invalid_args[] = {"some-arg", nullptr};
-  ret = rcl_init(2, invalid_args, &init_options, &context);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcl_reset_error();
-  ASSERT_FALSE(rcl_context_is_valid(&context));
-  // If argc is less than 1, argv is not null, it should be an invalid argument.
-  ret = rcl_init(0, invalid_args, &init_options, &context);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcl_reset_error();
-  ASSERT_FALSE(rcl_context_is_valid(&context));
-  // If either the allocate or deallocate function pointers are not set, it should be invalid arg.
-  init_options.impl->allocator.allocate = nullptr;
-  ret = rcl_init(0, nullptr, &init_options, &context);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcl_reset_error();
-  ASSERT_FALSE(rcl_context_is_valid(&context));
-  init_options.impl->allocator.allocate = rcl_get_default_allocator().allocate;
-  init_options.impl->allocator.deallocate = nullptr;
-  ret = rcl_init(0, nullptr, &init_options, &context);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcl_reset_error();
-  ASSERT_FALSE(rcl_context_is_valid(&context));
-  // If the malloc call fails (with some valid arguments to copy), it should be a bad alloc.
+}
+
+/* Tests calling rcl_init() with invalid arguments fails.
+ */
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_invalid_arguments) {
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+
   {
+    // If argc is not 0, but argv is, it should be an invalid argument.
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    ret = rcl_init(42, nullptr, &init_options, &context);
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+    rcl_reset_error();
+    ASSERT_FALSE(rcl_context_is_valid(&context));
+  }
+  {
+    // If argc is not 0, argv is not null but contains one, it should be an invalid argument.
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    const char * null_args[] = {"some-arg", nullptr};
+    ret = rcl_init(2, null_args, &init_options, &context);
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+    rcl_reset_error();
+    ASSERT_FALSE(rcl_context_is_valid(&context));
+  }
+  {
+    // If argc is less than 1, argv is not null, it should be an invalid argument.
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    const char * some_args[] = {"some-arg"};
+    ret = rcl_init(0, some_args, &init_options, &context);
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+    rcl_reset_error();
+    ASSERT_FALSE(rcl_context_is_valid(&context));
+  }
+  {
+    // If an invalid ROS arg is given, init should fail.
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    const char * bad_remap_args[] = {
+      "some-arg", RCL_ROS_ARGS_FLAG, RCL_REMAP_FLAG, "name:="};
+    const size_t argc = sizeof(bad_remap_args) / sizeof(const char *);
+    ret = rcl_init(argc, bad_remap_args, &init_options, &context);
+    EXPECT_EQ(RCL_RET_INVALID_ROS_ARGS, ret);
+    rcl_reset_error();
+    ASSERT_FALSE(rcl_context_is_valid(&context));
+  }
+  {
+    // If an invalid enclave is given, init should fail.
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    const char * bad_enclave_args[] = {
+      "some-arg", RCL_ROS_ARGS_FLAG, RCL_ENCLAVE_FLAG, "1foo"};
+    const size_t argc = sizeof(bad_enclave_args) / sizeof(const char *);
+    ret = rcl_init(argc, bad_enclave_args, &init_options, &context);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
+    ASSERT_FALSE(rcl_context_is_valid(&context));
+  }
+  {
+    // If security keystore is invalid, init should fail.
+    ASSERT_TRUE(rcutils_set_env(ROS_SECURITY_ENABLE_VAR_NAME, "true"));
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      EXPECT_TRUE(rcutils_set_env(ROS_SECURITY_ENABLE_VAR_NAME, ""));
+    });
+    ASSERT_TRUE(rcutils_set_env(ROS_SECURITY_STRATEGY_VAR_NAME, "Enforce"));
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      EXPECT_TRUE(rcutils_set_env(ROS_SECURITY_STRATEGY_VAR_NAME, ""));
+    });
+    ASSERT_TRUE(rcutils_set_env(ROS_SECURITY_KEYSTORE_VAR_NAME, "/not/a/real/secure/root"));
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+      EXPECT_TRUE(rcutils_set_env(ROS_SECURITY_KEYSTORE_VAR_NAME, ""));
+    });
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    ret = rcl_init(0, nullptr, &init_options, &context);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
+    ASSERT_FALSE(rcl_context_is_valid(&context));
+  }
+  {
+    // If either the allocate or deallocate function pointers are not set,
+    // it should be invalid arg.
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    init_options.impl->allocator.allocate = nullptr;
+    ret = rcl_init(0, nullptr, &init_options, &context);
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+    rcl_reset_error();
+    ASSERT_FALSE(rcl_context_is_valid(&context));
+    init_options.impl->allocator.allocate = rcl_get_default_allocator().allocate;
+    init_options.impl->allocator.deallocate = nullptr;
+    ret = rcl_init(0, nullptr, &init_options, &context);
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+    rcl_reset_error();
+    ASSERT_FALSE(rcl_context_is_valid(&context));
+  }
+  {
+    // If the malloc call fails (with some valid arguments to copy),
+    // it should be a bad alloc.
     FakeTestArgv test_args;
     rcl_allocator_t failing_allocator = rcl_get_default_allocator();
     failing_allocator.allocate = failing_malloc;
     failing_allocator.reallocate = failing_realloc;
     failing_allocator.zero_allocate = failing_calloc;
     init_options.impl->allocator = failing_allocator;
+    rcl_context_t context = rcl_get_zero_initialized_context();
     ret = rcl_init(test_args.argc, test_args.argv, &init_options, &context);
     EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
     rcl_reset_error();
     ASSERT_FALSE(rcl_context_is_valid(&context));
   }
-  init_options.impl->allocator = rcl_get_default_allocator();
+}
+
+/* Tests the rcl_init() and rcl_shutdown() functions.
+ */
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_shutdown) {
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  // A shutdown before an init should fail.
+  ret = rcl_shutdown(&context);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  ASSERT_FALSE(rcl_context_is_valid(&context));
   // If argc is 0 and argv is nullptr and the allocator is valid, it should succeed.
   ret = rcl_init(0, nullptr, &init_options, &context);
   EXPECT_EQ(RCL_RET_OK, ret);
@@ -210,10 +294,6 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_shutdown
   ret = rcl_context_fini(&context);
   EXPECT_EQ(ret, RCL_RET_OK);
   context = rcl_get_zero_initialized_context();
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
-  });
 }
 
 /* Tests the rcl_get_instance_id() function.
