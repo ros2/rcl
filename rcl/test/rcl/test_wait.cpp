@@ -282,7 +282,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_triggered
   EXPECT_LE(diff, TOLERANCE);
 }
 
-// Test rcl_wait with a negative timeout value (blocking ferver) and an overrun timer
+// Test rcl_wait with a negative timeout value (blocking forever) and an overrun timer
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_overrun_timer) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
