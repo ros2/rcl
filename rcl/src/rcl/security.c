@@ -42,7 +42,7 @@ rcl_get_security_options_from_environment(
 
   if (!use_security) {
     security_options->enforce_security = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
-    return RMW_RET_OK;
+    return RCL_RET_OK;
   }
 
   ret = rcl_get_enforcement_policy(&security_options->enforce_security);

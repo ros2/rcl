@@ -69,6 +69,7 @@ extern "C"
  * \return `RCL_RET_OK` if initialization is successful, or
  * \return `RCL_RET_ALREADY_INIT` if rcl_init has already been called, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_INVALID_ROS_ARGS` if an invalid ROS argument is found, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
