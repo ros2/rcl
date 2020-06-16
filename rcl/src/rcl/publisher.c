@@ -311,7 +311,7 @@ rcl_publish_serialized_message(
     if (ret == RMW_RET_BAD_ALLOC) {
       return RCL_RET_BAD_ALLOC;
     }
-    return RMW_RET_ERROR;
+    return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
 }
