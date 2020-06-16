@@ -151,7 +151,16 @@ TEST_F(TestTimerFixture, test_timer_init_with_invalid_arguments) {
 TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  rcl_ret_t ret = rcl_clock_init(RCL_CLOCK_UNINITIALIZED, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init(
+    &timer, &clock, this->context_ptr, 0, nullptr, allocator);
+  EXPECT_EQ(RCL_RET_ERROR, ret);
+  rcl_reset_error();
+
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -160,7 +169,6 @@ TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
     rcl_reset_error();
   });
 
-  rcl_timer_t timer = rcl_get_zero_initialized_timer();
   ret = rcl_timer_init(
     &timer, &clock, this->context_ptr, 0, nullptr, allocator);
   ASSERT_EQ(RCL_RET_OK, ret);
@@ -175,6 +183,11 @@ TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
   ret = rcl_timer_clock(&timer, &timer_clock);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   timer_clock->get_now = nullptr;
+
+  // Trigger clock jump callbacks
+  ret = rcl_enable_ros_time_override(timer_clock);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
 
   ret = rcl_timer_call(&timer);
   EXPECT_EQ(RCL_RET_ERROR, ret);
@@ -192,6 +205,10 @@ TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
 
   rcl_time_point_value_t time_since_last_call;
   ret = rcl_timer_get_time_since_last_call(&timer, &time_since_last_call);
+  EXPECT_EQ(RCL_RET_ERROR, ret);
+  rcl_reset_error();
+
+  ret = rcl_timer_reset(&timer);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcl_reset_error();
 }
