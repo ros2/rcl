@@ -153,7 +153,8 @@ TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     rcl_ret_t ret = rcl_clock_fini(&clock);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     rcl_reset_error();
@@ -163,7 +164,8 @@ TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
   ret = rcl_timer_init(
     &timer, &clock, this->context_ptr, 0, nullptr, allocator);
   ASSERT_EQ(RCL_RET_OK, ret);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     rcl_ret_t ret = rcl_timer_fini(&timer);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     rcl_reset_error();
