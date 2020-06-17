@@ -118,6 +118,9 @@ rcl_subscription_event_init(
     case RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS:
       rmw_event_type = RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE;
       break;
+    case RCL_SUBSCRIPTION_MESSAGE_LOST:
+      rmw_event_type = RMW_EVENT_MESSAGE_LOST;
+      break;
     default:
       RCL_SET_ERROR_MSG("Event type for subscription not supported");
       return RCL_RET_INVALID_ARGUMENT;
