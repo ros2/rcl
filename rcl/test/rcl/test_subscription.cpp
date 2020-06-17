@@ -661,16 +661,24 @@ TEST_F(
 {
   size_t seq_size = 3u;
   rmw_message_sequence_t messages;
-  rmw_message_sequence_init(&messages, seq_size, &allocator);
-  rmw_message_info_sequence_t message_infos_short;
-  rmw_message_info_sequence_init(&message_infos_short, seq_size - 1u, &allocator);
-  rmw_message_info_sequence_t message_infos;
-  rmw_message_info_sequence_init(&message_infos, seq_size, &allocator);
+  ASSERT_EQ(RMW_RET_OK, rmw_message_sequence_init(&messages, seq_size, &allocator));
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rmw_message_info_sequence_fini(&message_infos);
-    rmw_message_info_sequence_fini(&message_infos_short);
-    rmw_message_sequence_fini(&messages);
+    EXPECT_EQ(RMW_RET_OK, rmw_message_sequence_fini(&messages));
+  });
+  rmw_message_info_sequence_t message_infos_short;
+  ASSERT_EQ(
+    RMW_RET_OK, rmw_message_info_sequence_init(&message_infos_short, seq_size - 1u, &allocator));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RMW_RET_OK, rmw_message_info_sequence_fini(&message_infos_short));
+  });
+  rmw_message_info_sequence_t message_infos;
+  ASSERT_EQ(
+    RMW_RET_OK, rmw_message_info_sequence_init(&message_infos, seq_size, &allocator));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RMW_RET_OK, rmw_message_info_sequence_fini(&message_infos));
   });
 
   EXPECT_EQ(
