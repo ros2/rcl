@@ -612,7 +612,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_get_options)
 TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscription_bad_take) {
   test_msgs__msg__BasicTypes msg;
   rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
-  test_msgs__msg__BasicTypes__init(&msg);
+  ASSERT_TRUE(test_msgs__msg__BasicTypes__init(&msg));
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     test_msgs__msg__BasicTypes__fini(&msg);
