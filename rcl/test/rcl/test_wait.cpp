@@ -282,7 +282,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_triggered
   EXPECT_LE(diff, TOLERANCE);
 }
 
-// Test rcl_wait with a negative timeout value (blocking forever) and an overrun timer
+// Test rcl_wait with a timeout value and an overrun timer
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_overrun_timer) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
@@ -315,15 +315,14 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_overrun_t
   ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  // Time spent during wait should be negligible.
-  int64_t timeout = -1;
+  // Time spent during wait should be negligible, definitely less than the given timeout
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
-  ret = rcl_wait(&wait_set, timeout);
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
   std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
   // We don't expect a timeout here (since the guard condition had already been triggered)
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
-  EXPECT_LE(diff, TOLERANCE);
+  EXPECT_LE(diff, RCL_MS_TO_NS(50));
 }
 
 // Check that a canceled timer doesn't wake up rcl_wait
