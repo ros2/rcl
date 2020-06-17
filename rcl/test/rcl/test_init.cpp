@@ -14,7 +14,6 @@
 
 #include <gtest/gtest.h>
 
-#include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/arguments.h"
@@ -25,6 +24,7 @@
 #include "rcutils/format_string.h"
 #include "rcutils/snprintf.h"
 
+#include "./allocator_testing_utils.h"
 #include "../src/rcl/init_options_impl.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -106,7 +106,8 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_init
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   // Already init
@@ -121,7 +122,8 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_invalid_argu
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
 
@@ -176,15 +178,18 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_invalid_argu
   {
     // If security keystore is invalid, init should fail.
     ASSERT_TRUE(rcutils_set_env(ROS_SECURITY_ENABLE_VAR_NAME, "true"));
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       EXPECT_TRUE(rcutils_set_env(ROS_SECURITY_ENABLE_VAR_NAME, ""));
     });
     ASSERT_TRUE(rcutils_set_env(ROS_SECURITY_STRATEGY_VAR_NAME, "Enforce"));
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       EXPECT_TRUE(rcutils_set_env(ROS_SECURITY_STRATEGY_VAR_NAME, ""));
     });
     ASSERT_TRUE(rcutils_set_env(ROS_SECURITY_KEYSTORE_VAR_NAME, "/not/a/real/secure/root"));
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
       EXPECT_TRUE(rcutils_set_env(ROS_SECURITY_KEYSTORE_VAR_NAME, ""));
     });
     rcl_context_t context = rcl_get_zero_initialized_context();
@@ -197,31 +202,26 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_invalid_argu
     // If either the allocate or deallocate function pointers are not set,
     // it should be invalid arg.
     rcl_context_t context = rcl_get_zero_initialized_context();
-    init_options.impl->allocator.allocate = nullptr;
+    rcl_allocator_t allocator = init_options.impl->allocator;
+    init_options.impl->allocator =
+      (rcl_allocator_t)rcutils_get_zero_initialized_allocator();
     ret = rcl_init(0, nullptr, &init_options, &context);
     EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
     rcl_reset_error();
-    ASSERT_FALSE(rcl_context_is_valid(&context));
-    init_options.impl->allocator.allocate = rcl_get_default_allocator().allocate;
-    init_options.impl->allocator.deallocate = nullptr;
-    ret = rcl_init(0, nullptr, &init_options, &context);
-    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-    rcl_reset_error();
+    init_options.impl->allocator = allocator;
     ASSERT_FALSE(rcl_context_is_valid(&context));
   }
   {
     // If the malloc call fails (with some valid arguments to copy),
     // it should be a bad alloc.
     FakeTestArgv test_args;
-    rcl_allocator_t failing_allocator = rcl_get_default_allocator();
-    failing_allocator.allocate = failing_malloc;
-    failing_allocator.reallocate = failing_realloc;
-    failing_allocator.zero_allocate = failing_calloc;
-    init_options.impl->allocator = failing_allocator;
+    rcl_allocator_t allocator = init_options.impl->allocator;
+    init_options.impl->allocator = get_failing_allocator();
     rcl_context_t context = rcl_get_zero_initialized_context();
     ret = rcl_init(test_args.argc, test_args.argv, &init_options, &context);
     EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
     rcl_reset_error();
+    init_options.impl->allocator = allocator;
     ASSERT_FALSE(rcl_context_is_valid(&context));
   }
 }
@@ -232,7 +232,8 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_shutdown
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
