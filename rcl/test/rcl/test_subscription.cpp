@@ -700,6 +700,7 @@ TEST_F(
   rcl_reset_error();
 
   // This test fails for rmw_cyclonedds_cpp function rmw_take_sequence
+  // Tracked here: https://github.com/ros2/rmw_cyclonedds/issues/193
   /*
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_TAKE_FAILED,
