@@ -39,6 +39,7 @@ typedef enum rcl_subscription_event_type_t
   RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED,
   RCL_SUBSCRIPTION_LIVELINESS_CHANGED,
   RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS,
+  RCL_SUBSCRIPTION_MESSAGE_LOST,
 } rcl_subscription_event_type_t;
 
 /// rmw struct.
