@@ -109,6 +109,52 @@ TEST_F(
   rcl_reset_error();
 }
 
+// Bad arguments for init and fini
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_bad_init) {
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic = "/chatter";
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  rcl_node_t invalid_node = rcl_get_zero_initialized_node();
+
+  ASSERT_FALSE(rcl_node_is_valid_except_context(&invalid_node));
+  EXPECT_EQ(nullptr, rcl_node_get_rmw_handle(&invalid_node));
+
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_subscription_init(&subscription, nullptr, ts, topic, &subscription_options));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_subscription_init(&subscription, &invalid_node, ts, topic, &subscription_options));
+  rcl_reset_error();
+
+  rcl_ret_t ret = rcl_subscription_init(
+    &subscription, this->node_ptr, ts, "spaced name", &subscription_options);
+  EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_subscription_init(
+    &subscription, this->node_ptr, ts, "sub{ros_not_match}", &subscription_options);
+  EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_TRUE(rcl_subscription_is_valid(&subscription));
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_subscription_fini(&subscription, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_subscription_fini(&subscription, &invalid_node));
+  rcl_reset_error();
+
+  ret = rcl_subscription_fini(&subscription, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
 /* Basic nominal test of a subscription
  */
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal) {
@@ -538,7 +584,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   const char * topic = "/chatter";
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-  rcl_node_t invalid_node = rcl_get_zero_initialized_node();
 
   size_t pub_count = 0;
   test_msgs__msg__BasicTypes msg;
@@ -616,28 +661,9 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     rcl_take_serialized_message(&subscription, &serialized_msg, nullptr, nullptr));
   rcl_reset_error();
 
-  EXPECT_EQ(
-    RCL_RET_NODE_INVALID,
-    rcl_subscription_init(&subscription, nullptr, ts, topic, &subscription_options));
-  rcl_reset_error();
-  EXPECT_EQ(
-    RCL_RET_NODE_INVALID,
-    rcl_subscription_init(&subscription, &invalid_node, ts, topic, &subscription_options));
-  rcl_reset_error();
-
-  ret = rcl_subscription_init(
-    &subscription, this->node_ptr, ts, "spaced name", &subscription_options);
-  EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
-  ret = rcl_subscription_init(
-    &subscription, this->node_ptr, ts, "sub{ros_not_match}", &subscription_options);
-  EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
-  EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
+
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_take_sequence(&subscription, seq_size + 1, &messages, &message_infos, nullptr));
@@ -661,15 +687,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_TAKE_FAILED,
     rcl_take_serialized_message(&subscription, &serialized_msg, nullptr, nullptr));
-  rcl_reset_error();
-
-  ASSERT_TRUE(rcl_subscription_is_valid(&subscription));
-  ASSERT_FALSE(rcl_node_is_valid_except_context(&invalid_node));
-  EXPECT_EQ(nullptr, rcl_node_get_rmw_handle(&invalid_node));
-
-  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_subscription_fini(&subscription, nullptr));
-  rcl_reset_error();
-  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_subscription_fini(&subscription, &invalid_node));
   rcl_reset_error();
 
   ret = rcl_subscription_fini(&subscription, this->node_ptr);
