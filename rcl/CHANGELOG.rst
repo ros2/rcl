@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.0 (2020-06-18)
+------------------
 * Improve rcl init test coverage. (`#684 <https://github.com/ros2/rcl/issues/684>`_)
 * Improve clock test coverage. (`#685 <https://github.com/ros2/rcl/issues/685>`_)
 * Add message lost event (`#673 <https://github.com/ros2/rcl/issues/673>`_)
