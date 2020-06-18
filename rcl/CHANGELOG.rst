@@ -2,6 +2,20 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Improve rcl init test coverage. (`#684 <https://github.com/ros2/rcl/issues/684>`_)
+* Improve clock test coverage. (`#685 <https://github.com/ros2/rcl/issues/685>`_)
+* Add message lost event (`#673 <https://github.com/ros2/rcl/issues/673>`_)
+* Minor fixes to rcl clock implementation. (`#688 <https://github.com/ros2/rcl/issues/688>`_)
+* Improve enclave validation test coverage. (`#682 <https://github.com/ros2/rcl/issues/682>`_)
+* Use RCL_RET\_* codes only. (`#686 <https://github.com/ros2/rcl/issues/686>`_)
+* Fixed doxygen warnings (`#677 <https://github.com/ros2/rcl/issues/677>`_)
+* Add tests for rcl package (`#668 <https://github.com/ros2/rcl/issues/668>`_)
+* Remove logging_external_interface.h, provided by rcl_logging_interface package now (`#676 <https://github.com/ros2/rcl/issues/676>`_)
+* Print RCL_LOCALHOST_ENV_VAR if error happens via rcutils_get_env. (`#672 <https://github.com/ros2/rcl/issues/672>`_)
+* Contributors: Alejandro Hernández Cordero, Chris Lalancette, Ivan Santiago Paunovic, Jorge Perez, Michel Hidalgo, tomoya
+
 1.1.5 (2020-06-03)
 ------------------
 * Fix conversions between rmw_localhost_only_t and bool (`#670 <https://github.com/ros2/rcl/issues/670>`_)

@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed doxygen warnings (`#677 <https://github.com/ros2/rcl/issues/677>`_)
+* Contributors: Alejandro Hernández Cordero
+
 1.1.5 (2020-06-03)
 ------------------
 
