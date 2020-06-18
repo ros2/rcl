@@ -43,7 +43,7 @@ extern "C"
 #define RCL_ENABLE_FLAG_PREFIX "--enable-"
 #define RCL_DISABLE_FLAG_PREFIX "--disable-"
 #define RCL_LOG_LEVEL_FLAG_COMMA ","
-#define RCL_LOG_LEVEL_FLAG_SEPERATOR "="
+#define RCL_LOG_LEVEL_FLAG_SEPARATOR "="
 
 /// Parse an argument that may or may not be a remap rule.
 /**
@@ -151,18 +151,19 @@ rcl_arguments_get_log_level(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl->log_level, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT);
 
   if (NULL != *log_level) {
-    RCL_SET_ERROR_MSG("Output log level pointer is not null. May leak memory.");
+    RCL_SET_ERROR_MSG("Output log level pointer is not null.");
     return RCL_RET_INVALID_ARGUMENT;
   }
-  if (NULL != arguments->impl->log_level) {
-    *log_level = rcl_log_level_copy(arguments->impl->log_level);
-    if (NULL == *log_level) {
-      return RCL_RET_BAD_ALLOC;
-    }
+
+  *log_level = rcl_log_level_copy(arguments->impl->log_level);
+  if (NULL == *log_level) {
+    return RCL_RET_BAD_ALLOC;
   }
+
   return RCL_RET_OK;
 }
 
@@ -1641,7 +1642,7 @@ _rcl_parse_log_level(
   RCL_CHECK_ARGUMENT_FOR_NULL(log_level, RCL_RET_INVALID_ARGUMENT);
 
   size_t comma_len = strlen(RCL_LOG_LEVEL_FLAG_COMMA);
-  size_t seperator_len = strlen(RCL_LOG_LEVEL_FLAG_SEPERATOR);
+  size_t separator_len = strlen(RCL_LOG_LEVEL_FLAG_SEPARATOR);
   rcutils_ret_t ret = RCUTILS_RET_OK;
   const char * p = arg;
 
@@ -1654,12 +1655,37 @@ _rcl_parse_log_level(
       item = rcutils_strndup(p, comma - p, allocator);
     }
 
-    char * seperator = strstr(item, RCL_LOG_LEVEL_FLAG_SEPERATOR);
+    if (item == NULL) {
+      RCL_SET_ERROR_MSG("failed to allocate memory for logger item");
+      return RCL_RET_BAD_ALLOC;
+    }
+    if (strlen(item) == 0) {
+      RCL_SET_ERROR_MSG("Argument has a empty logger item");
+      return RCL_RET_ERROR;
+    }
+
+    char * seperator = strstr(item, RCL_LOG_LEVEL_FLAG_SEPARATOR);
     if (seperator) {
       struct rcl_logger_setting_t * logger_log_level =
         &log_level->logger_settings[log_level->num_loggers];
       logger_log_level->name = rcutils_strndup(item, seperator - item, allocator);
-      char * value = rcutils_strdup(seperator + seperator_len, allocator);
+      if (logger_log_level->name == NULL) {
+        RCL_SET_ERROR_MSG("failed to allocate memory for logger name");
+        return RCL_RET_BAD_ALLOC;
+      }
+      if (strlen(logger_log_level->name) == 0) {
+        RCL_SET_ERROR_MSG("Argument has an invalid logger item that name is empty");
+        return RCL_RET_ERROR;
+      }
+      char * value = rcutils_strdup(seperator + separator_len, allocator);
+      if (value == NULL) {
+        RCL_SET_ERROR_MSG("failed to allocate memory for logger level");
+        return RCL_RET_BAD_ALLOC;
+      }
+      if (strlen(value) == 0) {
+        RCL_SET_ERROR_MSG("Argument has an invalid logger item that level is empty");
+        return RCL_RET_ERROR;
+      }
       ret = rcutils_logging_severity_level_from_string(
         value,
         allocator,
