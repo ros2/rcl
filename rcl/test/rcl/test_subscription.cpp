@@ -29,6 +29,8 @@
 #include "rcl/error_handling.h"
 #include "wait_for_entity_helpers.hpp"
 
+#include "./allocator_testing_utils.h"
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -170,6 +172,10 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     &subscription, this->node_ptr, ts, "sub{ros_not_match}", &subscription_options);
   EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  rcl_subscription_options_t bad_subscription_options = rcl_subscription_get_default_options();
+  bad_subscription_options.allocator = get_failing_allocator();
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &bad_subscription_options);
 
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
