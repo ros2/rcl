@@ -95,11 +95,6 @@ rcl_context_get_rmw_context(rcl_context_t * context)
 void
 __cleanup_context(rcl_context_t * context)
 {
-  // if null, nothing can be done
-  if (NULL == context) {
-    return;
-  }
-
   // reset the instance id to 0 to indicate "invalid" (should already be 0, but this is defensive)
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), 0);
 
