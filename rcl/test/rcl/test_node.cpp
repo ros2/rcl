@@ -784,11 +784,18 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_fini(nullptr));
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&default_options));
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&not_ini_options));
+}
 
-  // (TODO: blast545) will be fixed with: https://github.com/ros2/rcl/pull/671
-  // This causes the test suite to fail:
-  // rcl_node_options_t default_options = rcl_node_get_default_options();
-  // rcl_node_options_t not_ini_options;
-  // EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
-  // EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&not_ini_options)); <-- code fails, returns -11
+/* Tests special case node_options
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options_fail) {
+  rcl_node_options_t prev_ini_options = rcl_node_get_default_options();
+  const char * argv[] = {"--ros-args"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &prev_ini_options.arguments));
+
+  rcl_node_options_t default_options = rcl_node_get_default_options();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, &prev_ini_options));
 }
