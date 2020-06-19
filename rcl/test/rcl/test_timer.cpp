@@ -166,7 +166,6 @@ TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
   {
     rcl_ret_t ret = rcl_clock_fini(&clock);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
   });
 
   ret = rcl_timer_init(
@@ -176,7 +175,6 @@ TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
   {
     rcl_ret_t ret = rcl_timer_fini(&timer);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
   });
 
   rcl_clock_t * timer_clock;
@@ -187,7 +185,6 @@ TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
   // Trigger clock jump callbacks
   ret = rcl_enable_ros_time_override(timer_clock);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_timer_call(&timer);
   EXPECT_EQ(RCL_RET_ERROR, ret);
@@ -383,7 +380,6 @@ TEST_F(TestTimerFixture, test_timer_overrun) {
   {
     rcl_ret_t ret = rcl_clock_fini(&clock);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
   });
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
@@ -394,7 +390,6 @@ TEST_F(TestTimerFixture, test_timer_overrun) {
   {
     rcl_ret_t ret = rcl_timer_fini(&timer);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
   });
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
@@ -404,7 +399,6 @@ TEST_F(TestTimerFixture, test_timer_overrun) {
   {
     rcl_ret_t ret = rcl_wait_set_fini(&wait_set);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
   });
 
   // Force multiple timer timeouts.
@@ -416,14 +410,11 @@ TEST_F(TestTimerFixture, test_timer_overrun) {
   ret = rcl_timer_is_ready(&timer, &is_ready);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(is_ready);
-  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Ensure period is re-aligned.
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(10));
@@ -433,7 +424,6 @@ TEST_F(TestTimerFixture, test_timer_overrun) {
   ret = rcl_timer_is_ready(&timer, &is_ready);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_FALSE(is_ready);
-  rcl_reset_error();
 }
 
 TEST_F(TestTimerFixture, test_timer_with_zero_period) {
@@ -459,17 +449,15 @@ TEST_F(TestTimerFixture, test_timer_with_zero_period) {
 
   bool is_ready = false;
   ret = rcl_timer_is_ready(&timer, &is_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(is_ready) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   int64_t time_until_next_call = 0;
   ret = rcl_timer_get_time_until_next_call(&timer, &time_until_next_call);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_LE(time_until_next_call, 0);
-  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
-  rcl_reset_error();
 }
 
 TEST_F(TestTimerFixture, test_canceled_timer) {
@@ -856,7 +844,6 @@ TEST_F(TestPreInitTimer, test_invalid_init_fini) {
   rcl_allocator_t bad_allocator = get_failing_allocator();
   rcl_timer_t timer_fail = rcl_get_zero_initialized_timer();
 
-  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_ALREADY_INIT, rcl_timer_init(
       &timer, &clock, this->context_ptr, 500, nullptr,
@@ -869,8 +856,7 @@ TEST_F(TestPreInitTimer, test_invalid_init_fini) {
       bad_allocator)) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(nullptr));
-  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(nullptr)) << rcl_get_error_string().str;
 }
 
 TEST_F(TestPreInitTimer, test_timer_get_period) {
