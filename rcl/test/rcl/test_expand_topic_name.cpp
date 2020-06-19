@@ -23,6 +23,8 @@
 
 #include "rcl/error_handling.h"
 
+#include "./allocator_testing_utils.h"
+
 using namespace std::string_literals;
 
 TEST(test_expand_topic_name, normal) {
@@ -118,6 +120,16 @@ TEST(test_expand_topic_name, invalid_arguments) {
   {
     ret = rcl_expand_topic_name(topic, node, "white space", &subs, allocator, &expanded_topic);
     EXPECT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
+    rcl_reset_error();
+  }
+
+  // pass failing allocator
+  {
+    rcl_allocator_t bad_allocator = get_failing_allocator();
+    EXPECT_EQ(
+      RCL_RET_BAD_ALLOC,
+      rcl_expand_topic_name("/absolute", node, ns, &subs, bad_allocator, &expanded_topic));
+    EXPECT_STREQ(NULL, expanded_topic);
     rcl_reset_error();
   }
 
