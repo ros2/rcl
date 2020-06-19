@@ -50,6 +50,23 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+  # TODO(hidmic): re-enable timer tests against RTI Connext once
+  #               https://github.com/ros2/rcl/issues/687 is resolved
+  set(AMENT_GTEST_ARGS "")
+  if(rmw_implementation STREQUAL "rmw_connext_cpp")
+    message(STATUS "Skipping test_timer${target_suffix} test.")
+    set(AMENT_GTEST_ARGS "SKIP_TEST")
+  endif()
+
+  rcl_add_custom_gtest(test_timer${target_suffix}
+    SRCS rcl/test_timer.cpp
+    ENV ${rmw_implementation_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
+    AMENT_DEPENDENCIES ${rmw_implementation}
+    ${AMENT_GTEST_ARGS}
+  )
+
   rcl_add_custom_gtest(test_context${target_suffix}
     SRCS rcl/test_context.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
@@ -348,13 +365,6 @@ rcl_add_custom_gtest(test_expand_topic_name
   SRCS rcl/test_expand_topic_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
-)
-
-rcl_add_custom_gtest(test_timer${target_suffix}
-  SRCS rcl/test_timer.cpp
-  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME}
-  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
 rcl_add_custom_gtest(test_security
