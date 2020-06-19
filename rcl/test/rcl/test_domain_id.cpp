@@ -22,15 +22,31 @@
 
 TEST(TestGetDomainId, test_nominal) {
   ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "42"));
-  size_t domain_id = 0u;
+  size_t domain_id = RCL_DEFAULT_DOMAIN_ID;
   EXPECT_EQ(RCL_RET_OK, rcl_get_default_domain_id(&domain_id));
   EXPECT_EQ(42u, domain_id);
 
-  ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "998446744073709551615"));
-  domain_id = 0u;
+  ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", ""));
+  domain_id = RCL_DEFAULT_DOMAIN_ID;
+  EXPECT_EQ(RCL_RET_OK, rcl_get_default_domain_id(&domain_id));
+  EXPECT_EQ(RCL_DEFAULT_DOMAIN_ID, domain_id);
+
+  ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "0000"));
+  domain_id = RCL_DEFAULT_DOMAIN_ID;
+  EXPECT_EQ(RCL_RET_OK, rcl_get_default_domain_id(&domain_id));
+  EXPECT_EQ(0u, domain_id);
+
+  ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "0   not really"));
+  domain_id = RCL_DEFAULT_DOMAIN_ID;
   EXPECT_EQ(RCL_RET_ERROR, rcl_get_default_domain_id(&domain_id));
   rcl_reset_error();
-  EXPECT_EQ(0u, domain_id);
+  EXPECT_EQ(RCL_DEFAULT_DOMAIN_ID, domain_id);
+
+  ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "998446744073709551615"));
+  domain_id = RCL_DEFAULT_DOMAIN_ID;
+  EXPECT_EQ(RCL_RET_ERROR, rcl_get_default_domain_id(&domain_id));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_DEFAULT_DOMAIN_ID, domain_id);
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_default_domain_id(nullptr));
 }
