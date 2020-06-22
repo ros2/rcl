@@ -14,6 +14,7 @@
 
 #include "rcl/domain_id.h"
 
+#include <errno.h>
 #include <limits.h>
 
 #include "rcutils/get_env.h"
@@ -40,10 +41,15 @@ rcl_get_default_domain_id(size_t * domain_id)
       get_env_error_str);
     return RCL_RET_ERROR;
   }
-  if (ros_domain_id) {
-    unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
-    if (number == ULONG_MAX) {
-      RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number");
+  if (ros_domain_id && strcmp(ros_domain_id, "") != 0) {
+    char * end = NULL;
+    unsigned long number = strtoul(ros_domain_id, &end, 0);  // NOLINT(runtime/int)
+    if (number == 0UL && *end != '\0') {
+      RCL_SET_ERROR_MSG("ROS_DOMAIN_ID is not an integral number");
+      return RCL_RET_ERROR;
+    }
+    if ((number == ULONG_MAX && errno == ERANGE) || number > SIZE_MAX) {
+      RCL_SET_ERROR_MSG("ROS_DOMAIN_ID is out of range");
       return RCL_RET_ERROR;
     }
     *domain_id = (size_t)number;
