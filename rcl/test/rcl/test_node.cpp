@@ -22,10 +22,10 @@
 #include "rcl/node.h"
 #include "rmw/rmw.h"  // For rmw_get_implementation_identifier.
 
-#include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "./allocator_testing_utils.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
