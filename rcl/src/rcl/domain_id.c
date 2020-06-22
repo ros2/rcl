@@ -44,7 +44,7 @@ rcl_get_default_domain_id(size_t * domain_id)
   if (ros_domain_id && strcmp(ros_domain_id, "") != 0) {
     char * end = NULL;
     unsigned long number = strtoul(ros_domain_id, &end, 0);  // NOLINT(runtime/int)
-    if (number == 0UL && *end != NULL) {
+    if (number == 0UL && *end != '\0') {
       RCL_SET_ERROR_MSG("ROS_DOMAIN_ID is not an integral number");
       return RCL_RET_ERROR;
     }
