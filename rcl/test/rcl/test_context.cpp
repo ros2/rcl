@@ -124,3 +124,8 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), nominal) {
   ret = rcl_init_options_fini(&init_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
+
+TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), bad_fini) {
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_context_fini(nullptr));
+  rcl_reset_error();
+}
