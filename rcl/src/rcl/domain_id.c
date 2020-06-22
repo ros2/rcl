@@ -42,12 +42,13 @@ rcl_get_default_domain_id(size_t * domain_id)
     return RCL_RET_ERROR;
   }
   if (ros_domain_id && strcmp(ros_domain_id, "") != 0) {
-    unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
-    if (number == 0UL && strspn(ros_domain_id, "0") != strlen(ros_domain_id)) {
+    char * end = NULL;
+    unsigned long number = strtoul(ros_domain_id, &end, 0);  // NOLINT(runtime/int)
+    if (number == 0UL && *end != NULL) {
       RCL_SET_ERROR_MSG("ROS_DOMAIN_ID is not an integral number");
       return RCL_RET_ERROR;
     }
-    if (number == ULONG_MAX && errno == ERANGE) {
+    if ((number == ULONG_MAX && errno == ERANGE) || number > SIZE_MAX) {
       RCL_SET_ERROR_MSG("ROS_DOMAIN_ID is out of range");
       return RCL_RET_ERROR;
     }
