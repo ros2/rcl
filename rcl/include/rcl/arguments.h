@@ -359,7 +359,7 @@ rcl_remove_ros_arguments(
  * \param[in] arguments An arguments structure that has been parsed.
  * \param[out] log_level Log level settings as parsed from command line arguments.
  *   This structure must be finalized by the caller.
- *   The output is NULL if no log were parsed.
+ *   The output is NULL if no logs were parsed.
  * \return `RCL_RET_OK` if everything goes correctly, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or

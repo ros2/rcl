@@ -30,14 +30,6 @@
 
 class CLASSNAME (TestLogLevelFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
-public:
-  void SetUp()
-  {
-  }
-
-  void TearDown()
-  {
-  }
 };
 
 #define EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(...) \
@@ -51,7 +43,7 @@ public:
     ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, ret); \
   }
 
-TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), error_log_level) {
+TEST(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), error_log_level) {
   EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(
     "process_name", "--ros-args", "--log-level",
     "=debug");
@@ -95,7 +87,7 @@ TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), error_log_level) {
     }); \
   }
 
-TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), no_log_level) {
+TEST(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), no_log_level) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(log_level, "process_name");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -103,10 +95,10 @@ TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), no_log_level) {
     rcl_log_level_fini(log_level);
   });
   EXPECT_EQ(-1, log_level->default_log_level);
-  EXPECT_EQ((size_t)0, log_level->num_loggers);
+  EXPECT_EQ(static_cast<size_t>(0), log_level->num_loggers);
 }
 
-TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), default_log_level) {
+TEST(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), default_log_level) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
@@ -115,11 +107,11 @@ TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), default_log_level) {
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_log_level);
-  EXPECT_EQ((size_t)0, log_level->num_loggers);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
+  EXPECT_EQ(static_cast<size_t>(0), log_level->num_loggers);
 }
 
-TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_log_level_debug) {
+TEST(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_log_level_debug) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
@@ -129,12 +121,12 @@ TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_log_level_debu
     rcl_log_level_fini(log_level);
   });
   EXPECT_EQ(-1, log_level->default_log_level);
-  EXPECT_EQ((size_t)1, log_level->num_loggers);
+  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
 }
 
-TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_log_level_info) {
+TEST(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_log_level_info) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
@@ -144,12 +136,12 @@ TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_log_level_info
     rcl_log_level_fini(log_level);
   });
   EXPECT_EQ(-1, log_level->default_log_level);
-  EXPECT_EQ((size_t)1, log_level->num_loggers);
+  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_INFO, log_level->logger_settings[0].level);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_INFO), log_level->logger_settings[0].level);
 }
 
-TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), default_log_level_with_logger) {
+TEST(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), default_log_level_with_logger) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
@@ -158,13 +150,13 @@ TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), default_log_level_wit
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_log_level);
-  EXPECT_EQ((size_t)1, log_level->num_loggers);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
+  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
 }
 
-TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_with_default_log_level) {
+TEST(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_with_default_log_level) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
@@ -173,13 +165,13 @@ TEST_F(CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION), logger_with_default_l
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_log_level);
-  EXPECT_EQ((size_t)1, log_level->num_loggers);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
+  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
 }
 
-TEST_F(
+TEST(
   CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION),
   multiple_log_level_with_default_at_front) {
   rcl_log_level_t * log_level = NULL;
@@ -190,13 +182,13 @@ TEST_F(
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_log_level);
-  EXPECT_EQ((size_t)1, log_level->num_loggers);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
+  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
 }
 
-TEST_F(
+TEST(
   CLASSNAME(TestLogLevelFixture, RMW_IMPLEMENTATION),
   multiple_log_level_with_default_at_back) {
   rcl_log_level_t * log_level = NULL;
@@ -207,8 +199,8 @@ TEST_F(
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_log_level);
-  EXPECT_EQ((size_t)1, log_level->num_loggers);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
+  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ((int)RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
+  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
 }
