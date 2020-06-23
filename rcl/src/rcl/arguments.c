@@ -177,6 +177,7 @@ _rcl_parse_external_log_config_file(
  * The syntax of the file name is not validated.
  * \param[in] arg the argument to parse
  * \param[in] allocator an allocator to use
+ * \param[in] params points to the populated parameter struct
  * \param[in,out] param_file string that could be a parameter file name
  * \return RCL_RET_OK if the rule was parsed correctly, or
  * \return RCL_RET_BAD_ALLOC if an allocation failed, or
