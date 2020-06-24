@@ -127,11 +127,6 @@ TEST_F(
     gc_handle = rcl_guard_condition_get_rmw_handle(&guard_condition);
   });
   EXPECT_NE(nullptr, gc_handle);
-  // Test failed rcl_trigger_guard_condition
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_trigger_guard_condition(nullptr));
-  rcl_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_trigger_guard_condition(&zero_guard_condition));
-  rcl_reset_error();
 }
 
 /* Tests the guard condition life cycle, including rcl_guard_condition_init/fini().
@@ -219,5 +214,16 @@ TEST_F(
   rcl_reset_error();
   ret = rcl_guard_condition_fini(&guard_condition);
   EXPECT_EQ(RCL_RET_OK, ret);
+  rcl_reset_error();
+}
+
+/* Tests trigger_guard_condition with bad arguments
+ */
+TEST_F(
+  CLASSNAME(TestGuardConditionFixture, RMW_IMPLEMENTATION), test_rcl_guard_condition_bad_arg) {
+  rcl_guard_condition_t zero_guard_condition = rcl_get_zero_initialized_guard_condition();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_trigger_guard_condition(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_trigger_guard_condition(&zero_guard_condition));
   rcl_reset_error();
 }

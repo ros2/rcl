@@ -415,7 +415,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_fail_name
   EXPECT_EQ(RCL_RET_SERVICE_NAME_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  const char * topic2 = "{doesnotexist}";
+  const char * topic2 = "{invalidbecausecurlybraces}";
   ret = rcl_service_init(&service, this->node_ptr, ts, topic2, &service_options);
   EXPECT_EQ(RCL_RET_SERVICE_NAME_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
