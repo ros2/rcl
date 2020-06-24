@@ -149,7 +149,7 @@ TEST_F(
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
     rcutils_get_zero_initialized_allocator());
-  rcl_names_and_types_t tnat {};
+  rcl_names_and_types_t tnat = rcl_get_zero_initialized_names_and_types();
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // invalid node
   ret = rcl_get_topic_names_and_types(nullptr, &allocator, false, &tnat);
@@ -172,6 +172,11 @@ TEST_F(
   ret = rcl_get_topic_names_and_types(this->node_ptr, &allocator, false, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  tnat.names.size = 1;
+  ret = rcl_get_topic_names_and_types(this->node_ptr, &allocator, false, &tnat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  tnat.names.size = 0;
   // invalid argument to rcl_destroy_topic_names_and_types
   ret = rcl_names_and_types_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
@@ -195,7 +200,7 @@ TEST_F(
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
     rcutils_get_zero_initialized_allocator());
-  rcl_names_and_types_t tnat {};
+  rcl_names_and_types_t tnat = rcl_get_zero_initialized_names_and_types();
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // invalid node
   ret = rcl_get_service_names_and_types(nullptr, &allocator, &tnat);
@@ -218,6 +223,11 @@ TEST_F(
   ret = rcl_get_service_names_and_types(this->node_ptr, &allocator, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  tnat.names.size = 1;
+  ret = rcl_get_service_names_and_types(this->node_ptr, &allocator, &tnat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  tnat.names.size = 0;
   // invalid argument to rcl_destroy_service_names_and_types
   ret = rcl_names_and_types_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
@@ -334,6 +344,12 @@ TEST_F(
     this->node_ptr, &allocator, false, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  nat.names.size = 1;
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  nat.names.size = 0;
   // unknown node name
   ret = rcl_get_publisher_names_and_types_by_node(
     this->node_ptr, &allocator, false, unknown_node_name, "", &nat);
@@ -419,6 +435,12 @@ TEST_F(
     this->node_ptr, &allocator, false, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  nat.names.size = 1;
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  nat.names.size = 0;
   // unknown node name
   ret = rcl_get_subscriber_names_and_types_by_node(
     this->node_ptr, &allocator, false, unknown_node_name, "", &nat);
@@ -501,6 +523,12 @@ TEST_F(
     this->node_ptr, &allocator, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  nat.names.size = 1;
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  nat.names.size = 0;
   // unknown node name
   ret = rcl_get_service_names_and_types_by_node(
     this->node_ptr, &allocator, unknown_node_name, "", &nat);
@@ -584,6 +612,12 @@ TEST_F(
     this->node_ptr, &allocator, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  nat.names.size = 1;
+  ret = rcl_get_client_names_and_types_by_node(
+    this->node_ptr, &allocator, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  nat.names.size = 0;
   // unknown node name
   ret = rcl_get_client_names_and_types_by_node(
     this->node_ptr, &allocator, unknown_node_name, "", &nat);
