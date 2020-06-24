@@ -188,13 +188,13 @@ rcl_init(
       "Enclave name is not valid: '%s'. Invalid index: %zu",
       rcl_enclave_name_validation_result_string(validation_result),
       invalid_index);
-    fail_ret = RMW_RET_ERROR;
+    fail_ret = RCL_RET_ERROR;
     goto fail;
   }
 
   if (!context->impl->init_options.impl->rmw_init_options.enclave) {
     RCL_SET_ERROR_MSG("failed to set context name");
-    fail_ret = RMW_RET_BAD_ALLOC;
+    fail_ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
 
@@ -204,7 +204,7 @@ rcl_init(
     context->impl->init_options.impl->rmw_init_options.enclave,
     &context->impl->allocator,
     security_options);
-  if (RMW_RET_OK != ret) {
+  if (RCL_RET_OK != ret) {
     fail_ret = ret;
     goto fail;
   }
