@@ -1690,6 +1690,7 @@ _rcl_parse_log_level(
       }
       if (strlen(value) == 0) {
         RCL_SET_ERROR_MSG("Argument has an invalid logger item that level is empty");
+        allocator.deallocate(value, allocator.state);
         allocator.deallocate(logger_log_level->name, allocator.state);
         allocator.deallocate(item, allocator.state);
         return RCL_RET_ERROR;
