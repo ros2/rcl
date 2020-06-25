@@ -280,14 +280,6 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
-  rcl_add_custom_gtest(test_log_level${target_suffix}
-    SRCS rcl/test_log_level.cpp
-    ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
-  )
-
   # Launch tests
 
   rcl_add_custom_executable(service_fixture${target_suffix}
@@ -390,6 +382,13 @@ rcl_add_custom_gtest(test_common
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
   LIBRARIES ${PROJECT_NAME}
+)
+
+rcl_add_custom_gtest(test_log_level
+  SRCS rcl/test_log_level.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
 # Install test resources
