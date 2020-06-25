@@ -1664,11 +1664,11 @@ _rcl_parse_log_level(
       return RCL_RET_ERROR;
     }
 
-    char * seperator = strstr(item, RCL_LOG_LEVEL_FLAG_SEPARATOR);
-    if (seperator) {
+    char * separator = strstr(item, RCL_LOG_LEVEL_FLAG_SEPARATOR);
+    if (separator) {
       struct rcl_logger_setting_t * logger_log_level =
         &log_level->logger_settings[log_level->num_loggers];
-      logger_log_level->name = rcutils_strndup(item, seperator - item, allocator);
+      logger_log_level->name = rcutils_strndup(item, separator - item, allocator);
       if (logger_log_level->name == NULL) {
         RCL_SET_ERROR_MSG("failed to allocate memory for logger name");
         return RCL_RET_BAD_ALLOC;
@@ -1677,7 +1677,7 @@ _rcl_parse_log_level(
         RCL_SET_ERROR_MSG("Argument has an invalid logger item that name is empty");
         return RCL_RET_ERROR;
       }
-      char * value = rcutils_strdup(seperator + separator_len, allocator);
+      char * value = rcutils_strdup(separator + separator_len, allocator);
       if (value == NULL) {
         RCL_SET_ERROR_MSG("failed to allocate memory for logger level");
         return RCL_RET_BAD_ALLOC;
