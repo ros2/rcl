@@ -170,3 +170,15 @@ TEST(TestLogLevel, multiple_log_level_with_default_at_back) {
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
   EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
 }
+
+int main(int argc, char ** argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  int ret = RUN_ALL_TESTS();
+  // We need to do rcutils_logging_shutdown() since the tests above may
+  // have initialized logging.
+  if (rcutils_logging_shutdown() != RCUTILS_RET_OK) {
+    fprintf(stderr, "Failed shutting down rcutils logging\n");
+  }
+  return ret;
+}
