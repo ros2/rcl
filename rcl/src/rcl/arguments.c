@@ -1661,6 +1661,7 @@ _rcl_parse_log_level(
     }
     if (strlen(item) == 0) {
       RCL_SET_ERROR_MSG("Argument has a empty logger item");
+      allocator.deallocate(item, allocator.state);
       return RCL_RET_ERROR;
     }
 
@@ -1671,19 +1672,23 @@ _rcl_parse_log_level(
       logger_log_level->name = rcutils_strndup(item, separator - item, allocator);
       if (logger_log_level->name == NULL) {
         RCL_SET_ERROR_MSG("failed to allocate memory for logger name");
+        allocator.deallocate(item, allocator.state);
         return RCL_RET_BAD_ALLOC;
       }
       if (strlen(logger_log_level->name) == 0) {
         RCL_SET_ERROR_MSG("Argument has an invalid logger item that name is empty");
+        allocator.deallocate(item, allocator.state);
         return RCL_RET_ERROR;
       }
       char * value = rcutils_strdup(separator + separator_len, allocator);
       if (value == NULL) {
         RCL_SET_ERROR_MSG("failed to allocate memory for logger level");
+        allocator.deallocate(item, allocator.state);
         return RCL_RET_BAD_ALLOC;
       }
       if (strlen(value) == 0) {
         RCL_SET_ERROR_MSG("Argument has an invalid logger item that level is empty");
+        allocator.deallocate(item, allocator.state);
         return RCL_RET_ERROR;
       }
       ret = rcutils_logging_severity_level_from_string(
