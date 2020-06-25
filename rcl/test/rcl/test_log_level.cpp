@@ -21,41 +21,22 @@
 
 #include "./arg_macros.hpp"
 
-#define EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(...) \
-  { \
-    rcl_ret_t ret; \
-    rcl_arguments_t local_arguments = rcl_get_zero_initialized_arguments(); \
-    const char * local_argv[] = {__VA_ARGS__}; \
-    unsigned int local_argc = (sizeof(local_argv) / sizeof(const char *)); \
-    ret = rcl_parse_arguments( \
-      local_argc, local_argv, rcl_get_default_allocator(), &local_arguments); \
-    ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, ret); \
-  }
+int setup_and_parse_log_level_args(const char * log_level_string)
+{
+  rcl_arguments_t local_arguments = rcl_get_zero_initialized_arguments();
+  const char * local_argv[] = {"process_name", "--ros-args", "--log-level", log_level_string};
+  unsigned int local_argc = (sizeof(local_argv) / sizeof(const char *));
+  return rcl_parse_arguments(
+    local_argc, local_argv, rcl_get_default_allocator(), &local_arguments);
+}
 
 TEST(TestLogLevel, error_log_level) {
-  EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(
-    "process_name", "--ros-args", "--log-level",
-    "=debug");
-
-  EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(
-    "process_name", "--ros-args", "--log-level",
-    "debug,");
-
-  EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(
-    "process_name", "--ros-args", "--log-level",
-    "rcl=debug,");
-
-  EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(
-    "process_name", "--ros-args", "--log-level",
-    "rcl=debug,,");
-
-  EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(
-    "process_name", "--ros-args", "--log-level",
-    "rcl=");
-
-  EXPECT_INVALID_RET_FOR_ARGUMENTS_LOG_LEVEL(
-    "process_name", "--ros-args", "--log-level",
-    "rcl=,");
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("=debug"));
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("debug,"));
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl=debug,"));
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl=debug,,"));
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl="));
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl=,"));
 }
 
 #define GET_LOG_LEVEL_FROM_ARGUMENTS(log_level, ...) \
