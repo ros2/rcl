@@ -580,3 +580,38 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), internal_remap_use) {
   // Bad fini
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remap_fini(nullptr));
 }
+
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), _rcl_remap_name_bad_arg) {
+  rcl_arguments_t global_arguments;
+  SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "__node:=global_name");
+  rcl_arguments_t local_arguments;
+  SCOPE_ARGS(local_arguments, "process_name", "--ros-args", "-r", "__node:=local_name");
+  rcl_arguments_t zero_init_global_arguments = rcl_get_zero_initialized_arguments();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_allocator_t bad_allocator = get_failing_allocator();
+  char * output = NULL;
+
+  // Expected usage local_args, global not init is OK
+  rcl_ret_t ret = rcl_remap_node_name(
+    &local_arguments, &zero_init_global_arguments, "NodeName", allocator, &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_STREQ("local_name", output);
+  allocator.deallocate(output, allocator.state);
+
+  // Expected usage global_args, local not null is OK
+  ret = rcl_remap_node_name(nullptr, &global_arguments, "NodeName", allocator, &output);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_STREQ("global_name", output);
+  allocator.deallocate(output, allocator.state);
+
+  // Both local and global arguments, not valid
+  ret = rcl_remap_node_name(nullptr, nullptr, "NodeName", allocator, &output);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  // Bad allocator
+  ret = rcl_remap_node_name(nullptr, &global_arguments, "NodeName", bad_allocator, &output);
+  EXPECT_EQ(RCL_RET_ERROR, ret);
+  rcl_reset_error();
+}
