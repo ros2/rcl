@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_yaml_param_parse
 
 # `rcl_yaml_param_parser` Quality Declaration
 
-The package `rcl_yaml_param_parser` claims to be in the **Quality Level 2** category.
+The package `rcl_yaml_param_parser` claims to be in the **Quality Level 3** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -63,7 +63,7 @@ All pull requests must resolve related documentation changes before merging.
 
 ### Public API Documentation [3.ii]
 
-`rcl_yaml_param_parser` has embedded API documentation and it is generated using doxygen. Currently, its foxy version is hosted [here](http://docs.ros2.org/foxy/api/rcl_yaml_param_parser/index.html). Latest version has to be generated before considering this item fully resolved.
+`rcl_yaml_param_parser` has embedded API documentation and it is generated using doxygen. Currently, its latest version is hosted [here](http://docs.ros2.org/latest/api/rcl_yaml_param_parser/index.html). Latest version has to be generated before considering this item fully resolved.
 
 All of `rcl_yaml_param_parser` has embedded API documentation. It is not yet hosted publicly.
 
@@ -110,7 +110,7 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_yaml_param_parser_src/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_yaml_param_parser_src/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
 ### Performance [4.iv]
 
@@ -135,7 +135,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `rcutils` provides commonly used functionality in C.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
+It is **Quality Level 3**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
 
 #### `libyaml_vendor`
 

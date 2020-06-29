@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_action` package,
 
 # `rcl_action` Quality Declaration
 
-The package `rcl_action` claims to be in the **Quality Level 2** category.
+The package `rcl_action` claims to be in the **Quality Level 3** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -110,7 +110,7 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_action_src_rcl_action/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_action_src_rcl_action/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
 ### Performance [4.iv]
 
@@ -143,7 +143,7 @@ It is **Quality Level 4**, see its [Quality Declaration document](https://github
 
 `rcl` is the ROS 2 client library in C.
 
-It is **Quality Level 2**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION).
+It is **Quality Level 3**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION).
 
 #### `rcutils`
 
