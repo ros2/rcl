@@ -453,8 +453,34 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_acce
   const rcl_allocator_t * options_allocator = rcl_init_options_get_allocator(&init_options);
   EXPECT_TRUE(rcutils_allocator_is_valid(options_allocator));
 
+  size_t domain_id;
+  ret = rcl_init_options_get_domain_id(NULL, &domain_id);
+  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_init_options_get_domain_id(&init_options, NULL);
+  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_init_options_get_domain_id(NULL, NULL);
+  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_init_options_set_domain_id(NULL, domain_id);
+  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_init_options_get_domain_id(&init_options, &domain_id);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_DEFAULT_DOMAIN_ID, domain_id);
+  ret = rcl_init_options_set_domain_id(&init_options, static_cast<size_t>(0u));
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_init_options_get_domain_id(&init_options, &domain_id);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0U, domain_id);
+
   rcl_init_options_t init_options_dst = rcl_get_zero_initialized_init_options();
-  EXPECT_EQ(RCL_RET_OK, rcl_init_options_copy(&init_options, &init_options_dst));
+  ASSERT_EQ(RCL_RET_OK, rcl_init_options_copy(&init_options, &init_options_dst));
+  ret = rcl_init_options_get_domain_id(&init_options_dst, &domain_id);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0U, domain_id);
   EXPECT_EQ(RCL_RET_ALREADY_INIT, rcl_init_options_copy(&init_options, &init_options_dst));
   EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst));
 }

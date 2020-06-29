@@ -142,6 +142,25 @@ rcl_init_options_fini(rcl_init_options_t * init_options)
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_init_options_get_domain_id(rcl_init_options_t * init_options, size_t * domain_id)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
+  *domain_id = init_options->impl->rmw_init_options.domain_id;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_init_options_set_domain_id(rcl_init_options_t * init_options, size_t domain_id)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(init_options->impl, RCL_RET_INVALID_ARGUMENT);
+  init_options->impl->rmw_init_options.domain_id = domain_id;
+  return RCL_RET_OK;
+}
+
 rmw_init_options_t *
 rcl_init_options_get_rmw_init_options(rcl_init_options_t * init_options)
 {
