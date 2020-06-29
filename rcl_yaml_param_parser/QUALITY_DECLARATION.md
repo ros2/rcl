@@ -2,9 +2,9 @@ This document is a declaration of software quality for the `rcl_yaml_param_parse
 
 # `rcl_yaml_param_parser` Quality Declaration
 
-The package `rcl_yaml_param_parser` claims to be in the **Quality Level 4** category.
+The package `rcl_yaml_param_parser` claims to be in the **Quality Level 3** category.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 4 in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
 ## Version Policy [1]
 
@@ -59,9 +59,11 @@ All pull requests must resolve related documentation changes before merging.
 
 ### Feature Documentation [3.i]
 
-`rcl_yaml_param_parser` does not have feature documentation.
+`rcl_yaml_param_parser` provides the main elements of its API listed using doxygen and is hosted [here](http://docs.ros2.org/latest/api/rcl_yaml_param_parser/index.html).
 
 ### Public API Documentation [3.ii]
+
+`rcl_yaml_param_parser` has embedded API documentation and it is generated using doxygen. Currently, its latest version is hosted [here](http://docs.ros2.org/latest/api/rcl_yaml_param_parser/index.html). Latest version has to be generated before considering this item fully resolved.
 
 All of `rcl_yaml_param_parser` has embedded API documentation. It is not yet hosted publicly.
 
@@ -85,15 +87,30 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 
 ### Feature Testing [4.i]
 
-`rcl_yaml_param_parser` has feature tests, which ensure that a wide variety of yaml files are checked for parsing.
+Most features in `rcl_yaml_param_parser` have corresponding tests which simulate typical usage, and they are located in the [`test`](./test) directory.
+New features are required to have tests before being added.
+Currently nightly test results can be seen here:
+* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl_yaml_param_parser/)
+* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_yaml_param_parser/)
+* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl_yaml_param_parser/)
+* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl_yaml_param_parser/)
 
 ### Public API Testing [4.ii]
 
-Much of the API in `rcl_yaml_param_parser` is tested in the aforementioned feature tests, but it is not tested explicitly.
+Each part of the public API has tests, and new additions or changes to the public API require tests before being added. The tests aim to cover both typical usage and corner cases, but are quantified by contributing to code coverage.
 
 ### Coverage [4.iii]
 
-`rcl_yaml_param_parser` does not currently track test coverage.
+`rcl_yaml_param_parser` follows the recommendations for ROS Core packages in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#code-coverage), and opts to use line coverage instead of branch coverage.
+
+This includes:
+
+- tracking and reporting line coverage statistics
+- no lines are manually skipped in coverage calculations
+
+Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
+
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_yaml_param_parser_src/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
 ### Performance [4.iv]
 
@@ -118,7 +135,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `rcutils` provides commonly used functionality in C.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
+It is **Quality Level 3**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
 
 #### `libyaml_vendor`
 
