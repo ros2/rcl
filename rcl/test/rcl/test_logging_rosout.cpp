@@ -65,7 +65,7 @@ std::ostream & operator<<(
   return out;
 }
 
-class CLASSNAME (TestLoggingRosoutFixtureNotParam, RMW_IMPLEMENTATION) : public ::testing::Test {};
+class CLASSNAME (TestLogRosoutFixtureNotParam, RMW_IMPLEMENTATION) : public ::testing::Test {};
 
 class TEST_FIXTURE_P_RMW (TestLoggingRosoutFixture)
   : public ::testing::TestWithParam<TestParameters>
@@ -280,7 +280,8 @@ INSTANTIATE_TEST_CASE_P_RMW(
 /* Testing twice init logging_rosout
  */
 TEST_F(
-  CLASSNAME(TestLoggingRosoutFixtureNotParam, RMW_IMPLEMENTATION), test_twice_init_logging_rosout) {
+  CLASSNAME(TestLogRosoutFixtureNotParam, RMW_IMPLEMENTATION), test_twice_init_logging_rosout)
+{
   rcl_allocator_t allocator = rcl_get_default_allocator();
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_init(&allocator));
 
@@ -294,8 +295,9 @@ TEST_F(
  */
 TEST_F(
   CLASSNAME(
-    TestLoggingRosoutFixtureNotParam, RMW_IMPLEMENTATION),
-  test_bad_params_init_fini_node_publisher) {
+    TestLogRosoutFixtureNotParam, RMW_IMPLEMENTATION),
+  test_bad_params_init_fini_node_publisher)
+{
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_node_t not_init_node = rcl_get_zero_initialized_node();
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_init(&allocator));
