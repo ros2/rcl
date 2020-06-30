@@ -114,4 +114,7 @@ typedef rmw_ret_t rcl_ret_t;
 /// typedef for rmw_serialized_message_t;
 typedef rmw_serialized_message_t rcl_serialized_message_t;
 
+/// typedef for RCUTILS_LOG_SEVERITY;
+typedef enum RCUTILS_LOG_SEVERITY rcl_log_severity_t;
+
 #endif  // RCL__TYPES_H_

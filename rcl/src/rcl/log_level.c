@@ -26,7 +26,7 @@ extern "C"
 #define MAX_NUM_LOGGER_SETTING_ENTRIES 256U
 
 rcl_log_level_t *
-rcl_log_level_init(const rcutils_allocator_t allocator)
+rcl_log_level_init(const rcl_allocator_t allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return NULL);
   rcl_log_level_t * log_level = allocator.allocate(sizeof(rcl_log_level_t), allocator.state);
@@ -43,8 +43,8 @@ rcl_log_level_init(const rcutils_allocator_t allocator)
     return NULL;
   }
 
-  log_level->default_log_level = -1;
-  log_level->num_loggers = 0;
+  log_level->default_logger_level = RCUTILS_LOG_SEVERITY_UNSET;
+  log_level->num_logger_settings = 0;
   log_level->allocator = allocator;
   return log_level;
 }
@@ -62,8 +62,8 @@ rcl_log_level_t * rcl_log_level_copy(
     return NULL;
   }
 
-  out_log_level->default_log_level = log_level->default_log_level;
-  for (size_t i = 0; i < log_level->num_loggers; ++i) {
+  out_log_level->default_logger_level = log_level->default_logger_level;
+  for (size_t i = 0; i < log_level->num_logger_settings; ++i) {
     out_log_level->logger_settings[i].name =
       rcutils_strdup(log_level->logger_settings[i].name, allocator);
     if (NULL == out_log_level->logger_settings[i].name) {
@@ -72,7 +72,7 @@ rcl_log_level_t * rcl_log_level_copy(
     }
     out_log_level->logger_settings[i].level =
       log_level->logger_settings[i].level;
-    out_log_level->num_loggers++;
+    out_log_level->num_logger_settings++;
   }
 
   return out_log_level;
@@ -88,10 +88,10 @@ rcl_log_level_fini(
 {
   rcutils_allocator_t allocator = log_level->allocator;
   if (log_level->logger_settings) {
-    for (size_t i = 0; i < log_level->num_loggers; ++i) {
+    for (size_t i = 0; i < log_level->num_logger_settings; ++i) {
       allocator.deallocate(log_level->logger_settings[i].name, allocator.state);
     }
-    log_level->num_loggers = 0;
+    log_level->num_logger_settings = 0;
 
     allocator.deallocate(log_level->logger_settings, allocator.state);
     log_level->logger_settings = NULL;

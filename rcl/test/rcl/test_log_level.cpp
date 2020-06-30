@@ -31,12 +31,18 @@ int setup_and_parse_log_level_args(const char * log_level_string)
 }
 
 TEST(TestLogLevel, error_log_level) {
-  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("=debug"));
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args(":=debug"));
+  rcutils_reset_error();
   ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("debug,"));
-  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl=debug,"));
-  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl=debug,,"));
-  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl="));
-  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl=,"));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl:=debug,"));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl:=debug,,"));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl:="));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl:=,"));
+  rcutils_reset_error();
 }
 
 #define GET_LOG_LEVEL_FROM_ARGUMENTS(log_level, ...) \
@@ -64,8 +70,8 @@ TEST(TestLogLevel, no_log_level) {
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ(-1, log_level->default_log_level);
-  EXPECT_EQ(static_cast<size_t>(0), log_level->num_loggers);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_level->default_logger_level);
+  EXPECT_EQ(0ul, log_level->num_logger_settings);
 }
 
 TEST(TestLogLevel, default_log_level) {
@@ -77,98 +83,68 @@ TEST(TestLogLevel, default_log_level) {
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
-  EXPECT_EQ(static_cast<size_t>(0), log_level->num_loggers);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_logger_level);
+  EXPECT_EQ(0ul, log_level->num_logger_settings);
 }
 
 TEST(TestLogLevel, logger_log_level_debug) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
-    "--log-level", "rcl=debug");
+    "--log-level", "rcl:=debug");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ(-1, log_level->default_log_level);
-  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_level->default_logger_level);
+  EXPECT_EQ(1ul, log_level->num_logger_settings);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
 }
 
 TEST(TestLogLevel, logger_log_level_info) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
-    "--log-level", "rcl=info");
+    "--log-level", "rcl:=info");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ(-1, log_level->default_log_level);
-  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_level->default_logger_level);
+  EXPECT_EQ(1ul, log_level->num_logger_settings);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_INFO), log_level->logger_settings[0].level);
-}
-
-TEST(TestLogLevel, default_log_level_with_logger) {
-  rcl_log_level_t * log_level = NULL;
-  GET_LOG_LEVEL_FROM_ARGUMENTS(
-    log_level, "process_name", "--ros-args",
-    "--log-level", "debug,rcl=debug");
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_log_level_fini(log_level);
-  });
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
-  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
-  EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
-}
-
-TEST(TestLogLevel, logger_with_default_log_level) {
-  rcl_log_level_t * log_level = NULL;
-  GET_LOG_LEVEL_FROM_ARGUMENTS(
-    log_level, "process_name", "--ros-args",
-    "--log-level", "rcl=debug,debug");
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_log_level_fini(log_level);
-  });
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
-  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
-  EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_level->logger_settings[0].level);
 }
 
 TEST(TestLogLevel, multiple_log_level_with_default_at_front) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
-    "--log-level", "debug", "--log-level", "rcl=debug");
+    "--log-level", "debug", "--log-level", "rcl:=debug");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
-  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_logger_level);
+  EXPECT_EQ(1ul, log_level->num_logger_settings);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
 }
 
 TEST(TestLogLevel, multiple_log_level_with_default_at_back) {
   rcl_log_level_t * log_level = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
     log_level, "process_name", "--ros-args",
-    "--log-level", "rcl=debug", "--log-level", "debug");
+    "--log-level", "rcl:=debug", "--log-level", "debug");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_log_level_fini(log_level);
   });
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->default_log_level);
-  EXPECT_EQ(static_cast<size_t>(1), log_level->num_loggers);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_logger_level);
+  EXPECT_EQ(1ul, log_level->num_logger_settings);
   EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(static_cast<int>(RCUTILS_LOG_SEVERITY_DEBUG), log_level->logger_settings[0].level);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
 }
 
 int main(int argc, char ** argv)

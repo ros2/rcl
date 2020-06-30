@@ -25,22 +25,25 @@ extern "C"
 {
 #endif
 
-/// A logger item to specify a name and log_level
+/// A logger item to specify a name and a log level
 typedef struct rcl_logger_setting_t
 {
   /// name for the logger.
   char * name;
   /// level for the logger.
-  int level;
+  rcl_log_severity_t level;
 } rcl_logger_setting_t;
 
-/// Hold log_level.
+/// Hold default logger level and other logger setting.
 typedef struct rcl_log_level_t
 {
-  /// Default log level (represented by `RCUTILS_LOG_SEVERITY` enum) or -1 if not specified.
-  int default_log_level;
-  struct rcl_logger_setting_t * logger_settings;   ///<  Array of logger
-  size_t num_loggers;       ///< Number of loggers
+  /// Default logger level
+  rcl_log_severity_t default_logger_level;
+  /// Array of logger setting
+  struct rcl_logger_setting_t * logger_settings;
+  /// Number of logger settings
+  size_t num_logger_settings;
+  /// Allocator used to allocate objects in this struct
   rcl_allocator_t allocator;
 } rcl_log_level_t;
 
@@ -51,7 +54,7 @@ typedef struct rcl_log_level_t
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_log_level_t *
-rcl_log_level_init(const rcutils_allocator_t allocator);
+rcl_log_level_init(const rcl_allocator_t allocator);
 
 /// \brief Copy log level structure, allocate memory by using allocator of rcl_log_level_t
 /// \param[in] log_level points to the log level struct to be copied
@@ -62,7 +65,7 @@ rcl_log_level_t * rcl_log_level_copy(const rcl_log_level_t * log_level);
 
 
 /// \brief Free log level structure
-/// \param[in] log_level points to the populated log level structure
+/// \param[in] log_level points to the log level structure to be freed
 RCL_PUBLIC
 void
 rcl_log_level_fini(rcl_log_level_t * log_level);
