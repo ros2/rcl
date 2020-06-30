@@ -176,7 +176,7 @@ function(test_target_function)
   )
 
   rcl_add_custom_gtest(test_remap${target_suffix}
-    SRCS rcl/test_remap.cpp
+    SRCS rcl/test_remap.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/remap.c
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
