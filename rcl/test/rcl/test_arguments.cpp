@@ -649,6 +649,12 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_remove_ros_
       argv, &parsed_args, zero_initialized_allocator, &nonros_argc, &nonros_argv));
   rcl_reset_error();
 
+  rcl_allocator_t bad_alloc = get_failing_allocator();
+  EXPECT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_remove_ros_arguments(
+      argv, &parsed_args, bad_alloc, &nonros_argc, &nonros_argv));
+  rcl_reset_error();
+
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_remove_ros_arguments(
       argv, &parsed_args, default_allocator, NULL, &nonros_argv));
