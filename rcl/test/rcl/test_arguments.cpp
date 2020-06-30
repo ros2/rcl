@@ -26,6 +26,9 @@
 
 #include "rcl_yaml_param_parser/parser.h"
 
+#include "./allocator_testing_utils.h"
+#include "./arguments_impl.h"
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -281,6 +284,61 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args) {
   rcl_reset_error();
 }
 
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_negative_args) {
+  int argc = -1;
+  const char * argv[] = {"process_name"};
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_parse_args) {
+  const char * argv[] = {"process_name"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_allocator_t bad_alloc = get_failing_allocator();
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, bad_alloc, &parsed_args);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_unparse_args) {
+  const char * argv[] = {
+    "process_name", "--ros-args", "/foo/bar:=", "-r", "bar:=/fiz/buz", "}bar:=fiz", "--", "arg"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_allocator_t bad_alloc = get_failing_allocator();
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(2, rcl_arguments_get_count_unparsed(&parsed_args));
+
+  int * actual_unparsed = NULL;
+  EXPECT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_arguments_get_unparsed(&parsed_args, bad_alloc, &actual_unparsed));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_arguments_get_unparsed_ros(&parsed_args, bad_alloc, &actual_unparsed));
+  rcl_reset_error();
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_params_get_counts) {
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  EXPECT_EQ(-1, rcl_arguments_get_count_unparsed(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(-1, rcl_arguments_get_count_unparsed_ros(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(-1, rcl_arguments_get_param_files_count(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(-1, rcl_arguments_get_count_unparsed(&parsed_args));
+  rcl_reset_error();
+  EXPECT_EQ(-1, rcl_arguments_get_count_unparsed_ros(&parsed_args));
+  rcl_reset_error();
+  EXPECT_EQ(-1, rcl_arguments_get_param_files_count(&parsed_args));
+  rcl_reset_error();
+  rcl_reset_error();
+}
+
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args_output) {
   const char * argv[] = {"process_name"};
   int argc = sizeof(argv) / sizeof(const char *);
@@ -402,6 +460,11 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy) {
   ret = rcl_arguments_copy(&parsed_args, &copied_args);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
+  // Can't copy to non empty
+  ret = rcl_arguments_copy(&parsed_args, &copied_args);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
   EXPECT_UNPARSED(parsed_args, 0, 8);
   EXPECT_UNPARSED_ROS(parsed_args, 2);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
@@ -409,6 +472,27 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy) {
   EXPECT_UNPARSED(copied_args, 0, 8);
   EXPECT_UNPARSED_ROS(copied_args, 2);
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_bad_alloc) {
+  const char * argv[] = {"process_name", "--ros-args", "/foo/bar:="};
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret;
+
+  ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
+  rcl_allocator_t bad_alloc = get_failing_allocator();
+  rcl_allocator_t * saved_alloc = &parsed_args.impl->allocator;
+  parsed_args.impl->allocator = bad_alloc;
+  ret = rcl_arguments_copy(&parsed_args, &copied_args);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  parsed_args.impl->allocator = *saved_alloc;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_no_ros_args) {
