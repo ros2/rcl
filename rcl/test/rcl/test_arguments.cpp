@@ -336,7 +336,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_params_get_
   rcl_reset_error();
   EXPECT_EQ(-1, rcl_arguments_get_param_files_count(&parsed_args));
   rcl_reset_error();
-  rcl_reset_error();
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_args_output) {
