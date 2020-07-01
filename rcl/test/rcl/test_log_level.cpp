@@ -43,6 +43,22 @@ TEST(TestLogLevel, error_log_level) {
   rcutils_reset_error();
   ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl:=,"));
   rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args(":"));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args(":="));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl:"));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl="));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl=debug"));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl:=:="));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl=debug,"));
+  rcutils_reset_error();
+  ASSERT_EQ(RCL_RET_INVALID_ROS_ARGS, setup_and_parse_log_level_args("rcl:,"));
+  rcutils_reset_error();
 }
 
 #define GET_LOG_LEVEL_FROM_ARGUMENTS(log_level, ...) \
