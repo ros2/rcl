@@ -287,6 +287,30 @@ TEST_F(
 
   // Init twice returns RCL_RET_OK
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_init(&allocator));
+  
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_fini());
+}
+
+/* Bad params
+ */
+TEST_F(
+  CLASSNAME(
+    TestLogRosoutFixtureNotParam, RMW_IMPLEMENTATION),
+  test_bad_params_init_fini_node_publisher)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_node_t not_init_node = rcl_get_zero_initialized_node();
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_init(&allocator));
+
+  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_logging_rosout_init_publisher_for_node(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_ERROR, rcl_logging_rosout_init_publisher_for_node(&not_init_node));
+  rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_logging_rosout_fini_publisher_for_node(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_ERROR, rcl_logging_rosout_fini_publisher_for_node(&not_init_node));
+  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_fini());
 }
