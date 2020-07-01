@@ -264,7 +264,7 @@ function(test_target_function)
   )
 
   rcl_add_custom_gtest(test_logging_rosout${target_suffix}
-    SRCS rcl/test_logging_rosout.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/logging_rosout.c
+    SRCS rcl/test_logging_rosout.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
