@@ -727,6 +727,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   rcl_reset_error();
   EXPECT_FALSE(rcl_subscription_can_loan_messages(nullptr));
   rcl_reset_error();
+  EXPECT_FALSE(rcl_subscription_is_cft_supported(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(NULL, rcl_subscription_get_rmw_handle(nullptr));
   rcl_reset_error();
   EXPECT_EQ(NULL, rcl_subscription_get_topic_name(nullptr));
@@ -741,6 +743,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   EXPECT_EQ(NULL, rcl_subscription_get_actual_qos(&subscription_zero_init));
   rcl_reset_error();
   EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription_zero_init));
+  rcl_reset_error();
+  EXPECT_FALSE(rcl_subscription_is_cft_supported(&subscription_zero_init));
   rcl_reset_error();
   EXPECT_EQ(NULL, rcl_subscription_get_rmw_handle(&subscription_zero_init));
   rcl_reset_error();

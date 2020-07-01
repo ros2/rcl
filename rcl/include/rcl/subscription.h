@@ -603,6 +603,15 @@ RCL_PUBLIC
 bool
 rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
 
+/// Check if subscription instance support ContentFilteredTopic.
+/**
+ * Depending on the middleware.
+ * this will return true if the middleware can support ContentFilteredTopic.
+ */
+RCL_PUBLIC
+bool
+rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription);
+
 #ifdef __cplusplus
 }
 #endif
