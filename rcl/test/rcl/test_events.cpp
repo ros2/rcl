@@ -721,7 +721,7 @@ TEST_F(TestEventFixture, test_bad_event_ini)
     &subscription,
     unknown_sub_type);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-
+  
   tear_down_publisher_subscriber();
 }
 
@@ -771,6 +771,74 @@ TEST_F(TestEventFixture, test_event_is_valid)
   ret = rcl_event_fini(&publisher_event_test);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   tear_down_publisher_subscriber();
+}
+
+/*
+ * Basic test subscriber event message lost
+ */
+TEST_P(TestEventFixture, test_sub_message_lost_event)
+{
+  const auto & input = GetParam();
+  const auto & subscription_qos_profile = input.subscription_qos_profile;
+  const auto & error_msg = input.error_msg;
+
+  rcl_ret_t ret = setup_subscriber(subscription_qos_profile);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check if supported
+  subscription_event = rcl_get_zero_initialized_event();
+  ret = rcl_subscription_event_init(
+    &subscription_event,
+    &subscription,
+    RCL_SUBSCRIPTION_MESSAGE_LOST);
+  EXPECT_TRUE(ret == RCL_RET_OK || ret == RCL_RET_UNSUPPORTED);
+
+  if (ret == RCL_RET_UNSUPPORTED) {
+    // clean up and exit test early
+    ret = rcl_event_fini(&subscription_event);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    return;
+  }
+
+  // (TODO blast545): Check reason test, timeout failing
+  // conditional_wait_for_msgs_and_events returns Timeout for rmw_cyclonedds_cpp
+
+  WaitConditionPredicate events_ready = [](
+    const bool & /*msg_persist_ready*/,
+    const bool & subscription_persist_ready,
+    const bool & /*publisher_persist_ready*/) {
+      return subscription_persist_ready;
+    };
+  bool msg_persist_ready, subscription_persist_ready, publisher_persist_ready;
+  rcl_ret_t wait_res = conditional_wait_for_msgs_and_events(
+    context_ptr, MAX_WAIT_PER_TESTCASE, events_ready,
+    &subscription, &subscription_event, nullptr,
+    &msg_persist_ready, &subscription_persist_ready, &publisher_persist_ready);
+  EXPECT_EQ(wait_res, RCL_RET_OK);
+
+  // test that the subscriber/datareader discovered a lost message event
+  EXPECT_TRUE(subscription_persist_ready);
+  if (subscription_persist_ready) {
+    rmw_message_lost_status_t message_lost_status;
+    rcl_ret_t ret = rcl_take_event(&subscription_event, &message_lost_status);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    const auto & sub_total_count = message_lost_status.total_count;
+    const auto & sub_total_count_change = message_lost_status.total_count_change;
+    if (sub_total_count != 0 && sub_total_count_change != 0) {
+      EXPECT_EQ(sub_total_count, 1u) << error_msg;
+      EXPECT_EQ(sub_total_count_change, 1u) << error_msg;
+    } else {
+      ADD_FAILURE() << "Subscription incompatible message lost event timed out for: " << error_msg;
+    }
+  }
+
+  // clean up
+  ret = rcl_event_fini(&subscription_event);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  ret = rcl_subscription_fini(&subscription, this->node_ptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 }
 
 static
