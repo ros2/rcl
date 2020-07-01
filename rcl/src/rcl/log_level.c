@@ -85,15 +85,13 @@ rcl_log_levels_fini(rcl_log_levels_t * log_levels)
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
   rcutils_allocator_t allocator = log_levels->allocator;
   if (log_levels->logger_settings) {
-    if (log_levels->logger_settings) {
-      for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
-        allocator.deallocate(log_levels->logger_settings[i].name, allocator.state);
-      }
-      log_levels->num_logger_settings = 0;
-
-      allocator.deallocate(log_levels->logger_settings, allocator.state);
-      log_levels->logger_settings = NULL;
+    for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
+      allocator.deallocate(log_levels->logger_settings[i].name, allocator.state);
     }
+    log_levels->num_logger_settings = 0;
+
+    allocator.deallocate(log_levels->logger_settings, allocator.state);
+    log_levels->logger_settings = NULL;
   }
   allocator.deallocate(log_levels, allocator.state);
   return RCL_RET_OK;
