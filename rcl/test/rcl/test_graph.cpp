@@ -1432,11 +1432,11 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     ret = rcutils_string_array_fini(&node_names);
-    ASSERT_EQ(RCUTILS_RET_OK, ret);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
     ret = rcutils_string_array_fini(&node_namespaces);
-    ASSERT_EQ(RCUTILS_RET_OK, ret);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
     ret = rcutils_string_array_fini(&node_enclaves);
-    ASSERT_EQ(RCUTILS_RET_OK, ret);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
