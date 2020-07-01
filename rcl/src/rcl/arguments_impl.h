@@ -51,8 +51,8 @@ typedef struct rcl_arguments_impl_t
   /// Length of remap_rules.
   int num_remap_rules;
 
-  /// Log level parsed from arguments.
-  rcl_log_level_t * log_level_settings;
+  /// Log levels parsed from arguments.
+  rcl_log_levels_t * log_levels;
   /// A file used to configure the external logging library
   char * external_log_config_file;
   /// A boolean value indicating if the standard out handler should be used for log output

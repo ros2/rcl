@@ -35,7 +35,7 @@ typedef struct rcl_logger_setting_t
 } rcl_logger_setting_t;
 
 /// Hold default logger level and other logger setting.
-typedef struct rcl_log_level_t
+typedef struct rcl_log_levels_t
 {
   /// Default logger level
   rcl_log_severity_t default_logger_level;
@@ -45,30 +45,66 @@ typedef struct rcl_log_level_t
   size_t num_logger_settings;
   /// Allocator used to allocate objects in this struct
   rcl_allocator_t allocator;
-} rcl_log_level_t;
+} rcl_log_levels_t;
 
-
-/// \brief Initialize log level structure
-/// \param[in] allocator memory allocator to be used
-/// \return a pointer to log level structure on success or NULL on failure
+/// Initialize a log levels structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] allocator memory allocator to be used.
+ * \param[in] logger_count to allocate the logger setting count of log levels.
+ * \return a pointer to log level structure on success or NULL on failure.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_log_level_t *
-rcl_log_level_init(const rcl_allocator_t allocator);
+rcl_log_levels_t *
+rcl_log_levels_init(const rcl_allocator_t allocator, size_t logger_count);
 
-/// \brief Copy log level structure, allocate memory by using allocator of rcl_log_level_t
-/// \param[in] log_level points to the log level struct to be copied
-/// \return a pointer to the copied log level structure on success or NULL on failure
+/// Copy one log levels structure into another.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] log_levels The structure to be copied.
+ *  Its allocator is used to copy memory into the new structure.
+ * \param[out] log_levels_out A zero-initialized log levels structure to be copied into.
+ * \return `RCL_RET_OK` if the structure was copied successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if log_levels or log_levels_out are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_log_level_t * rcl_log_level_copy(const rcl_log_level_t * log_level);
+rcl_ret_t
+rcl_log_levels_copy(const rcl_log_levels_t * log_levels, rcl_log_levels_t * log_levels_out);
 
-
-/// \brief Free log level structure
-/// \param[in] log_level points to the log level structure to be freed
+/// Free log levels structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] log_levels The structure to be deallocated.
+ * \return `RCL_RET_OK` if the memory was successfully freed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is invalid.
+ */
 RCL_PUBLIC
-void
-rcl_log_level_fini(rcl_log_level_t * log_level);
+rcl_ret_t
+rcl_log_levels_fini(rcl_log_levels_t * log_levels);
 
 #ifdef __cplusplus
 }

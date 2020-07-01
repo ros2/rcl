@@ -54,7 +54,7 @@ TEST(TestLogLevel, error_log_level) {
     ret = rcl_parse_arguments( \
       local_argc, local_argv, rcl_get_default_allocator(), &local_arguments); \
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
-    ret = rcl_arguments_get_log_level(&local_arguments, &log_level); \
+    ret = rcl_arguments_get_log_levels(&local_arguments, &log_level); \
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
     EXPECT_TRUE(log_level != NULL); \
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT( \
@@ -64,87 +64,87 @@ TEST(TestLogLevel, error_log_level) {
   }
 
 TEST(TestLogLevel, no_log_level) {
-  rcl_log_level_t * log_level = NULL;
-  GET_LOG_LEVEL_FROM_ARGUMENTS(log_level, "process_name");
+  rcl_log_levels_t * log_levels = NULL;
+  GET_LOG_LEVEL_FROM_ARGUMENTS(log_levels, "process_name");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rcl_log_level_fini(log_level);
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(log_levels));
   });
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_level->default_logger_level);
-  EXPECT_EQ(0ul, log_level->num_logger_settings);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels->default_logger_level);
+  EXPECT_EQ(0ul, log_levels->num_logger_settings);
 }
 
 TEST(TestLogLevel, default_log_level) {
-  rcl_log_level_t * log_level = NULL;
+  rcl_log_levels_t * log_levels = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
-    log_level, "process_name", "--ros-args",
+    log_levels, "process_name", "--ros-args",
     "--log-level", "debug");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rcl_log_level_fini(log_level);
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(log_levels));
   });
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_logger_level);
-  EXPECT_EQ(0ul, log_level->num_logger_settings);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels->default_logger_level);
+  EXPECT_EQ(0ul, log_levels->num_logger_settings);
 }
 
 TEST(TestLogLevel, logger_log_level_debug) {
-  rcl_log_level_t * log_level = NULL;
+  rcl_log_levels_t * log_levels = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
-    log_level, "process_name", "--ros-args",
+    log_levels, "process_name", "--ros-args",
     "--log-level", "rcl:=debug");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rcl_log_level_fini(log_level);
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(log_levels));
   });
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_level->default_logger_level);
-  EXPECT_EQ(1ul, log_level->num_logger_settings);
-  EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels->default_logger_level);
+  EXPECT_EQ(1ul, log_levels->num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels->logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels->logger_settings[0].level);
 }
 
 TEST(TestLogLevel, logger_log_level_info) {
-  rcl_log_level_t * log_level = NULL;
+  rcl_log_levels_t * log_levels = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
-    log_level, "process_name", "--ros-args",
+    log_levels, "process_name", "--ros-args",
     "--log-level", "rcl:=info");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rcl_log_level_fini(log_level);
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(log_levels));
   });
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_level->default_logger_level);
-  EXPECT_EQ(1ul, log_level->num_logger_settings);
-  EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_level->logger_settings[0].level);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels->default_logger_level);
+  EXPECT_EQ(1ul, log_levels->num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels->logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels->logger_settings[0].level);
 }
 
 TEST(TestLogLevel, multiple_log_level_with_default_at_front) {
-  rcl_log_level_t * log_level = NULL;
+  rcl_log_levels_t * log_levels = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
-    log_level, "process_name", "--ros-args",
+    log_levels, "process_name", "--ros-args",
     "--log-level", "debug", "--log-level", "rcl:=debug");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rcl_log_level_fini(log_level);
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(log_levels));
   });
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_logger_level);
-  EXPECT_EQ(1ul, log_level->num_logger_settings);
-  EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels->default_logger_level);
+  EXPECT_EQ(1ul, log_levels->num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels->logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels->logger_settings[0].level);
 }
 
 TEST(TestLogLevel, multiple_log_level_with_default_at_back) {
-  rcl_log_level_t * log_level = NULL;
+  rcl_log_levels_t * log_levels = NULL;
   GET_LOG_LEVEL_FROM_ARGUMENTS(
-    log_level, "process_name", "--ros-args",
+    log_levels, "process_name", "--ros-args",
     "--log-level", "rcl:=debug", "--log-level", "debug");
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rcl_log_level_fini(log_level);
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(log_levels));
   });
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->default_logger_level);
-  EXPECT_EQ(1ul, log_level->num_logger_settings);
-  EXPECT_STREQ("rcl", log_level->logger_settings[0].name);
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_level->logger_settings[0].level);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels->default_logger_level);
+  EXPECT_EQ(1ul, log_levels->num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels->logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels->logger_settings[0].level);
 }
 
 int main(int argc, char ** argv)

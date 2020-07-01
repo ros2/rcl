@@ -23,81 +23,80 @@ extern "C"
 {
 #endif
 
-#define MAX_NUM_LOGGER_SETTING_ENTRIES 256U
-
-rcl_log_level_t *
-rcl_log_level_init(const rcl_allocator_t allocator)
+rcl_log_levels_t *
+rcl_log_levels_init(const rcl_allocator_t allocator, size_t logger_count)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return NULL);
-  rcl_log_level_t * log_level = allocator.allocate(sizeof(rcl_log_level_t), allocator.state);
-  if (NULL == log_level) {
+  rcl_log_levels_t * log_levels = allocator.allocate(sizeof(rcl_log_levels_t), allocator.state);
+  if (NULL == log_levels) {
     RCL_SET_ERROR_MSG("Error allocating mem");
     return NULL;
   }
 
-  log_level->logger_settings = allocator.allocate(
-    sizeof(rcl_logger_setting_t) * MAX_NUM_LOGGER_SETTING_ENTRIES, allocator.state);
-  if (NULL == log_level->logger_settings) {
-    RCL_SET_ERROR_MSG("Error allocating mem");
-    rcl_log_level_fini(log_level);
-    return NULL;
-  }
+  log_levels->default_logger_level = RCUTILS_LOG_SEVERITY_UNSET;
+  log_levels->logger_settings = NULL;
+  log_levels->num_logger_settings = 0;
+  log_levels->allocator = allocator;
 
-  log_level->default_logger_level = RCUTILS_LOG_SEVERITY_UNSET;
-  log_level->num_logger_settings = 0;
-  log_level->allocator = allocator;
-  return log_level;
-}
-
-rcl_log_level_t * rcl_log_level_copy(
-  const rcl_log_level_t * log_level)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(log_level, NULL);
-
-  rcutils_allocator_t allocator = log_level->allocator;
-  rcl_log_level_t * out_log_level = rcl_log_level_init(allocator);
-
-  if (NULL == out_log_level) {
-    RCL_SET_ERROR_MSG("Error allocating mem");
-    return NULL;
-  }
-
-  out_log_level->default_logger_level = log_level->default_logger_level;
-  for (size_t i = 0; i < log_level->num_logger_settings; ++i) {
-    out_log_level->logger_settings[i].name =
-      rcutils_strdup(log_level->logger_settings[i].name, allocator);
-    if (NULL == out_log_level->logger_settings[i].name) {
+  if (logger_count > 0) {
+    log_levels->logger_settings = allocator.allocate(
+      sizeof(rcl_logger_setting_t) * logger_count, allocator.state);
+    if (NULL == log_levels->logger_settings) {
       RCL_SET_ERROR_MSG("Error allocating mem");
-      goto fail;
+      if (RCL_RET_OK != rcl_log_levels_fini(log_levels)) {
+        RCL_SET_ERROR_MSG("Error while finalizing log levels due to another error");
+      }
+      return NULL;
     }
-    out_log_level->logger_settings[i].level =
-      log_level->logger_settings[i].level;
-    out_log_level->num_logger_settings++;
   }
 
-  return out_log_level;
-
-fail:
-  rcl_log_level_fini(out_log_level);
-  return NULL;
+  return log_levels;
 }
 
-void
-rcl_log_level_fini(
-  rcl_log_level_t * log_level)
+rcl_ret_t
+rcl_log_levels_copy(const rcl_log_levels_t * log_levels, rcl_log_levels_t * log_levels_out)
 {
-  rcutils_allocator_t allocator = log_level->allocator;
-  if (log_level->logger_settings) {
-    for (size_t i = 0; i < log_level->num_logger_settings; ++i) {
-      allocator.deallocate(log_level->logger_settings[i].name, allocator.state);
-    }
-    log_level->num_logger_settings = 0;
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_levels_out, RCL_RET_INVALID_ARGUMENT);
 
-    allocator.deallocate(log_level->logger_settings, allocator.state);
-    log_level->logger_settings = NULL;
+  rcutils_allocator_t allocator = log_levels->allocator;
+
+  log_levels_out->default_logger_level = log_levels->default_logger_level;
+  for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
+    log_levels_out->logger_settings[i].name =
+      rcutils_strdup(log_levels->logger_settings[i].name, allocator);
+    if (NULL == log_levels_out->logger_settings[i].name) {
+      if (RCL_RET_OK != rcl_log_levels_fini(log_levels_out)) {
+        RCL_SET_ERROR_MSG("Error while finalizing log levels due to another error");
+      }
+      return RCL_RET_BAD_ALLOC;
+    }
+    log_levels_out->logger_settings[i].level =
+      log_levels->logger_settings[i].level;
+    log_levels_out->num_logger_settings++;
   }
 
-  allocator.deallocate(log_level, allocator.state);
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_log_levels_fini(rcl_log_levels_t * log_levels)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
+  rcutils_allocator_t allocator = log_levels->allocator;
+  if (log_levels->logger_settings) {
+    if (log_levels->logger_settings) {
+      for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
+        allocator.deallocate(log_levels->logger_settings[i].name, allocator.state);
+      }
+      log_levels->num_logger_settings = 0;
+
+      allocator.deallocate(log_levels->logger_settings, allocator.state);
+      log_levels->logger_settings = NULL;
+    }
+  }
+  allocator.deallocate(log_levels, allocator.state);
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus
