@@ -69,7 +69,6 @@ rcl_logging_configure_with_output_handler(
   g_rcl_logging_stdout_enabled = !global_args->impl->log_stdout_disabled;
   g_rcl_logging_rosout_enabled = !global_args->impl->log_rosout_disabled;
   g_rcl_logging_ext_lib_enabled = !global_args->impl->log_ext_lib_disabled;
-
   rcl_ret_t status = RCL_RET_OK;
   g_rcl_logging_num_out_handlers = 0;
 
@@ -86,7 +85,6 @@ rcl_logging_configure_with_output_handler(
       }
     }
   }
-
   if (g_rcl_logging_stdout_enabled) {
     g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =
       rcutils_logging_console_output_handler;
