@@ -699,7 +699,7 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
 /*
  * Passing bad param subscriber/publisher event ini
  */
-TEST_P(TestEventFixture, test_bad_event_ini)
+TEST_F(TestEventFixture, test_bad_event_ini)
 {
   setup_publisher_subscriber(default_qos_profile, default_qos_profile);
   const rcl_subscription_event_type_t unknown_sub_type = (rcl_subscription_event_type_t) 5432;
@@ -725,7 +725,7 @@ TEST_P(TestEventFixture, test_bad_event_ini)
 /*
  * Passing bad argument to get_rmw_handle
  */
-TEST_P(TestEventFixture, test_bad_get_handle)
+TEST_F(TestEventFixture, test_bad_get_handle)
 {
   EXPECT_EQ(NULL, rcl_event_get_rmw_handle(nullptr));
 }
