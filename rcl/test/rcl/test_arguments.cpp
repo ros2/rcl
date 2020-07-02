@@ -493,7 +493,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_bad_alloc)
   rcl_reset_error();
   parsed_args.impl->allocator = *saved_alloc;
 
-  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args)) << rcl_get_error_string().str;
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_no_ros_args) {
