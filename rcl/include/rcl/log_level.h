@@ -25,25 +25,30 @@ extern "C"
 {
 #endif
 
-/// A logger item to specify a name and a log level
+/// typedef for RCUTILS_LOG_SEVERITY;
+typedef enum RCUTILS_LOG_SEVERITY rcl_log_severity_t;
+
+/// A logger item to specify a name and a log level.
 typedef struct rcl_logger_setting_t
 {
-  /// name for the logger.
-  char * name;
-  /// level for the logger.
+  /// Name for the logger.
+  const char * name;
+  /// Minimum log level severity of the logger.
   rcl_log_severity_t level;
 } rcl_logger_setting_t;
 
 /// Hold default logger level and other logger setting.
 typedef struct rcl_log_levels_t
 {
-  /// Default logger level
+  /// Minimum default logger level severity.
   rcl_log_severity_t default_logger_level;
-  /// Array of logger setting
+  /// Array of logger setting.
   struct rcl_logger_setting_t * logger_settings;
-  /// Number of logger settings
+  /// Number of logger settings.
   size_t num_logger_settings;
-  /// Allocator used to allocate objects in this struct
+  /// Capacity of logger settings.
+  size_t capacity_logger_settings;
+  /// Allocator used to allocate objects in this struct.
   rcl_allocator_t allocator;
 } rcl_log_levels_t;
 
@@ -53,18 +58,18 @@ typedef struct rcl_log_levels_t
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | No
+ * Thread-Safe        | Yes
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] allocator memory allocator to be used.
- * \param[in] logger_count to allocate the logger setting count of log levels.
- * \return a pointer to log level structure on success or NULL on failure.
+ * \param[in] allocator Memory allocator to be used.
+ * \param[in] logger_count Number of logger settings to be allocated.
+ * \return a pointer to the allocated log levels structure on success or NULL on failure.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_log_levels_t *
-rcl_log_levels_init(const rcl_allocator_t allocator, size_t logger_count);
+rcl_log_levels_init(const rcl_allocator_t * allocator, size_t logger_count);
 
 /// Copy one log levels structure into another.
 /**
@@ -76,9 +81,9 @@ rcl_log_levels_init(const rcl_allocator_t allocator, size_t logger_count);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] log_levels The structure to be copied.
+ * \param[in] src The structure to be copied.
  *  Its allocator is used to copy memory into the new structure.
- * \param[out] log_levels_out A zero-initialized log levels structure to be copied into.
+ * \param[out] dst A zero-initialized log levels structure to be copied into.
  * \return `RCL_RET_OK` if the structure was copied successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if log_levels or log_levels_out are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
@@ -86,7 +91,7 @@ rcl_log_levels_init(const rcl_allocator_t allocator, size_t logger_count);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_log_levels_copy(const rcl_log_levels_t * log_levels, rcl_log_levels_t * log_levels_out);
+rcl_log_levels_copy(const rcl_log_levels_t * src, rcl_log_levels_t * dst);
 
 /// Free log levels structure.
 /**
@@ -105,6 +110,46 @@ rcl_log_levels_copy(const rcl_log_levels_t * log_levels, rcl_log_levels_t * log_
 RCL_PUBLIC
 rcl_ret_t
 rcl_log_levels_fini(rcl_log_levels_t * log_levels);
+
+/// Shrink log levels structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] log_levels The structure to be shrunk.
+ * \return `RCL_RET_OK` if the memory was successfully shrunk, or
+ * \return `RCL_RET_BAD_ALLOC` if reallocating memory failed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is invalid.
+ */
+RCL_PUBLIC
+rcl_ret_t
+rcl_log_levels_shrink_to_size(rcl_log_levels_t * log_levels);
+
+/// Add logger setting with a name and a level.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] log_levels The structure to be added.
+ * \param[in] logger_name Name for the logger.
+ * \param[in] log_level Minimum log level severity.
+ * \return `RCL_RET_OK` if add logger setting successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is invalid.
+ */
+RCL_PUBLIC
+rcl_ret_t
+rcl_log_levels_add_logger_setting(
+  rcl_log_levels_t * log_levels, const char * logger_name, rcl_log_severity_t log_level);
 
 #ifdef __cplusplus
 }
