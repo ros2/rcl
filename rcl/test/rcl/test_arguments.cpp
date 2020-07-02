@@ -310,7 +310,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_unpar
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_allocator_t bad_alloc = get_failing_allocator();
   rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(2, rcl_arguments_get_count_unparsed(&parsed_args));
 
   int * actual_unparsed = NULL;
@@ -320,6 +320,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_unpar
   EXPECT_EQ(
     RCL_RET_BAD_ALLOC, rcl_arguments_get_unparsed_ros(&parsed_args, bad_alloc, &actual_unparsed));
   rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_params_get_counts) {
