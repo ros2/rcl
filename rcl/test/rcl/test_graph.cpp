@@ -1440,6 +1440,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   });
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
+  // Invalid nullptr as node
   ret = rcl_get_node_names(nullptr, allocator, &node_names, &node_namespaces);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
   rcl_reset_error();
@@ -1448,6 +1449,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
   rcl_reset_error();
 
+  // Invalid not init node
   rcl_node_t not_init_node = rcl_get_zero_initialized_node();
   ret = rcl_get_node_names(&not_init_node, allocator, &node_names, &node_namespaces);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
@@ -1457,6 +1459,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
   rcl_reset_error();
 
+  // Invalid nullptr as node names output
   ret = rcl_get_node_names(this->node_ptr, allocator, nullptr, &node_namespaces);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   ret = rcl_get_node_names_with_enclaves(
@@ -1464,6 +1467,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
 
+  // Invalid nullptr as node_namespaces output
   ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   ret = rcl_get_node_names_with_enclaves(
@@ -1471,11 +1475,13 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
 
+  // Invalid nullptr as node_enclaves output
   ret = rcl_get_node_names_with_enclaves(
     this->node_ptr, allocator, &node_names, &node_namespaces, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
 
+  // Invalid node_names previously init (size is set)
   node_names.size = 1;
   ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, &node_namespaces);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
@@ -1485,6 +1491,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   rcl_reset_error();
   node_names.size = 0;
 
+  // Invalid node_names previously init (size is zero, but internal structure size is 1)
   ret = rcutils_string_array_init(&node_names, 1, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
   node_names.size = 0;
@@ -1498,6 +1505,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   ret = rcutils_string_array_fini(&node_names);
   EXPECT_EQ(RCL_RET_OK, ret);
 
+  // Invalid node_namespaces previously init (size is set)
   node_namespaces.size = 1;
   ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, &node_namespaces);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
@@ -1507,6 +1515,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   rcl_reset_error();
   node_namespaces.size = 0;
 
+  // Invalid node_namespaces previously init (size is zero, but internal structure size is 1)
   ret = rcutils_string_array_init(&node_namespaces, 1, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
   node_namespaces.size = 0;
@@ -1520,6 +1529,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   ret = rcutils_string_array_fini(&node_namespaces);
   EXPECT_EQ(RCL_RET_OK, ret);
 
+  // Invalid node_enclaves previously init (size is set)
   node_enclaves.size = 1;
   ret = rcl_get_node_names_with_enclaves(
     this->node_ptr, allocator, &node_names, &node_namespaces, &node_enclaves);
@@ -1527,6 +1537,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
   rcl_reset_error();
   node_enclaves.size = 0;
 
+  // Invalid node_enclave previously init (size is zero, but internal structure size is 1)
   ret = rcutils_string_array_init(&node_enclaves, 1, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
   node_enclaves.size = 0;
