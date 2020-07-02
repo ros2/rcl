@@ -727,7 +727,7 @@ TEST_F(TestEventFixture, test_bad_event_ini)
  */
 TEST_F(TestEventFixture, test_bad_get_handle)
 {
-  EXPECT_EQ(NULL, rcl_event_get_rmw_handle(nullptr));
+  EXPECT_EQ(NULL, rcl_event_get_rmw_handle(NULL));
 }
 
 static
