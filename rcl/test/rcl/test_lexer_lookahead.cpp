@@ -195,6 +195,47 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_accept)
   EXPECT_EQ(RCL_LEXEME_EOF, lexeme);
 }
 
+TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_accept_bad_arg)
+{
+  rcl_lexer_lookahead2_t buffer;
+  rcl_lexer_lookahead2_t buffer_not_ini = rcl_get_zero_initialized_lexer_lookahead2();
+  SCOPE_LOOKAHEAD2(buffer, "foobar/");
+
+  rcl_lexeme_t lexeme = RCL_LEXEME_NONE;
+  const char * lexeme_text;
+  size_t lexeme_text_length = 0;
+
+  // Can't accept without peek first
+  rcl_ret_t ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, &lexeme_text_length);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Expected usage
+  ret = rcl_lexer_lookahead2_peek(&buffer, &lexeme);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_LEXEME_TOKEN, lexeme);
+
+  // Invalid nullptr parameter
+  ret = rcl_lexer_lookahead2_accept(nullptr, &lexeme_text, &lexeme_text_length);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Invalid not ini parameter
+  ret = rcl_lexer_lookahead2_accept(&buffer_not_ini, &lexeme_text, &lexeme_text_length);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Invalid nullptr as lexeme_text_length
+  ret = rcl_lexer_lookahead2_accept(&buffer, &lexeme_text, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Invalid nullptr as lexeme_text
+  ret = rcl_lexer_lookahead2_accept(&buffer, nullptr, &lexeme_text_length);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
 TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_expect)
 {
   rcl_ret_t ret;
