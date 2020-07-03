@@ -397,7 +397,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remap) {
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap_two_ros_args) {
   const char * const argv[] =
-    {"process_name", "--ros-args", "--ros-args", "-r", "/foo/bar:=/fiz/buz"};
+  {"process_name", "--ros-args", "--ros-args", "-r", "/foo/bar:=/fiz/buz"};
   const int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
@@ -422,7 +422,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap_w_tra
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_one_remap_w_two_trailing_dashes) {
   const char * const argv[] =
-    {"process_name", "--ros-args", "-r", "/foo/bar:=/fiz/buz", "--", "--"};
+  {"process_name", "--ros-args", "-r", "/foo/bar:=/fiz/buz", "--", "--"};
   const int argc = sizeof(argv) / sizeof(const char *);
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret;
@@ -807,7 +807,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_remove_ros_args
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_zero) {
   const char * const argv[] =
-    {"process_name", "--ros-args", "-r", "__ns:=/namespace", "random:=arg"};
+  {"process_name", "--ros-args", "-r", "__ns:=/namespace", "random:=arg"};
   const int argc = sizeof(argv) / sizeof(const char *);
 
   rcl_allocator_t alloc = rcl_get_default_allocator();
