@@ -55,7 +55,7 @@ function(test_target_function)
   set(AMENT_GTEST_ARGS "")
   if(rmw_implementation STREQUAL "rmw_connext_cpp")
     message(STATUS "Skipping test_timer${target_suffix} test.")
-    set(AMENT_GTEST_ARGS "SKIP_TEST")
+    set(AMENT_GTEST_ARGS TIMEOUT 120)
   endif()
 
   rcl_add_custom_gtest(test_timer${target_suffix}

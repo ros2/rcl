@@ -696,6 +696,40 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
   tear_down_publisher_subscriber();
 }
 
+/*
+ * Passing bad param subscriber/publisher event ini
+ */
+TEST_F(TestEventFixture, test_bad_event_ini)
+{
+  setup_publisher_subscriber(default_qos_profile, default_qos_profile);
+  const rcl_subscription_event_type_t unknown_sub_type = (rcl_subscription_event_type_t) 5432;
+  const rcl_publisher_event_type_t unknown_pub_type = (rcl_publisher_event_type_t) 5432;
+
+  publisher_event = rcl_get_zero_initialized_event();
+  rcl_ret_t ret = rcl_publisher_event_init(
+    &publisher_event,
+    &publisher,
+    unknown_pub_type);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+
+  subscription_event = rcl_get_zero_initialized_event();
+  ret = rcl_subscription_event_init(
+    &subscription_event,
+    &subscription,
+    unknown_sub_type);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+
+  tear_down_publisher_subscriber();
+}
+
+/*
+ * Passing bad argument to get_rmw_handle
+ */
+TEST_F(TestEventFixture, test_bad_get_handle)
+{
+  EXPECT_EQ(NULL, rcl_event_get_rmw_handle(NULL));
+}
+
 static
 std::array<TestIncompatibleQosEventParams, 5>
 get_test_pubsub_incompatible_qos_inputs()

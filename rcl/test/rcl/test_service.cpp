@@ -402,3 +402,21 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_bad_arguments) {
       &service, this->node_ptr, ts,
       topic, &service_options_bad_alloc)) << rcl_get_error_string().str;
 }
+
+/* Name failed tests
+ */
+TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_fail_name) {
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+  const char * topic = "white space";
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  rcl_ret_t ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+  EXPECT_EQ(RCL_RET_SERVICE_NAME_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  const char * topic2 = "{invalidbecausecurlybraces}";
+  ret = rcl_service_init(&service, this->node_ptr, ts, topic2, &service_options);
+  EXPECT_EQ(RCL_RET_SERVICE_NAME_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
