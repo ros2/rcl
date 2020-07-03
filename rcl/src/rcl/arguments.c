@@ -148,24 +148,22 @@ rcl_arguments_get_log_levels(
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl->log_levels, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &arguments->impl->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   if (NULL != *log_levels) {
     RCL_SET_ERROR_MSG("Output log level pointer is not null.");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  *log_levels = rcl_log_levels_init(
-    &arguments->impl->allocator, arguments->impl->log_levels->num_logger_settings);
+  *log_levels = allocator->zero_allocate(1, sizeof(rcl_log_levels_t), allocator->state);
   if (NULL == *log_levels) {
+    RCL_SET_ERROR_MSG("Error allocating memory");
     return RCL_RET_BAD_ALLOC;
   }
   rcl_ret_t ret = rcl_log_levels_copy(arguments->impl->log_levels, *log_levels);
   if (RCL_RET_OK != ret) {
-    rcl_ret_t log_levels_ret = rcl_log_levels_fini(*log_levels);
-    if (RCL_RET_OK != log_levels_ret) {
-      ret = log_levels_ret;
-      RCL_SET_ERROR_MSG("Error while finalizing log levels due to another error");
-    }
+    allocator->deallocate(*log_levels, allocator->state);
     *log_levels = NULL;
     return ret;
   }
@@ -971,6 +969,7 @@ rcl_arguments_fini(
           ROS_PACKAGE_NAME,
           "Failed to finalize log level while finalizing arguments. Continuing...");
       }
+      args->impl->allocator.deallocate(args->impl->log_levels, args->impl->allocator.state);
       args->impl->log_levels = NULL;
     }
 
@@ -1711,7 +1710,7 @@ _rcl_parse_log_level(
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels->logger_settings, RCL_RET_INVALID_ARGUMENT);
   rcl_allocator_t * allocator = &log_levels->allocator;
-  RCUTILS_CHECK_ALLOCATOR(allocator, return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t ret = RCL_RET_OK;
   int logger_level = 0;
@@ -1760,6 +1759,13 @@ _rcl_parse_log_level(
     rcutils_ret = rcutils_logging_severity_level_from_string(
       arg, *allocator, &logger_level);
     if (RCUTILS_RET_OK == rcutils_ret) {
+      if (log_levels->default_logger_level != RCUTILS_LOG_SEVERITY_UNSET
+        && log_levels->default_logger_level != (rcl_log_severity_t)logger_level)
+      {
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME, "Minimum default log level will be replaced from %d to %d",
+          log_levels->default_logger_level, logger_level);
+      }
       log_levels->default_logger_level = (rcl_log_severity_t)logger_level;
       ret = RCL_RET_OK;
     }
