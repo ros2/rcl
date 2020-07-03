@@ -16,6 +16,7 @@
 
 #include "rcl/error_handling.h"
 #include "rcutils/allocator.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
 rcl_log_levels_t *
@@ -115,15 +116,33 @@ rcl_log_levels_add_logger_setting(
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels->logger_settings, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(logger_name, RCL_RET_INVALID_ARGUMENT);
-  if (log_levels->num_logger_settings >= log_levels->capacity_logger_settings) {
-    RCL_SET_ERROR_MSG("No capacity to store a logger setting");
-    return RCL_RET_ERROR;
+
+  // check if there exists a same name logger setting
+  rcl_logger_setting_t * logger_setting = NULL;
+  for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
+    if (strcmp(log_levels->logger_settings[i].name, logger_name) == 0) {
+      logger_setting = &log_levels->logger_settings[i];
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME, "Minimum log level of logger [%s] will be replaced from %d to %d",
+        logger_name, logger_setting->level, log_level);
+      log_levels->allocator.deallocate((void *)logger_setting->name, log_levels->allocator.state);
+      break;
+    }
   }
 
-  rcl_logger_setting_t * logger_setting =
-    &log_levels->logger_settings[log_levels->num_logger_settings];
+  if (logger_setting == NULL) {
+    if (log_levels->num_logger_settings >= log_levels->capacity_logger_settings) {
+      RCL_SET_ERROR_MSG("No capacity to store a logger setting");
+      return RCL_RET_ERROR;
+    }
+
+    logger_setting =
+      &log_levels->logger_settings[log_levels->num_logger_settings];
+    log_levels->num_logger_settings += 1;
+  }
+
   logger_setting->name = logger_name;
   logger_setting->level = (rcl_log_severity_t)log_level;
-  log_levels->num_logger_settings += 1;
+
   return RCL_RET_OK;
 }
