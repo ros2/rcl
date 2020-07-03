@@ -216,3 +216,14 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, ret);
   rcl_reset_error();
 }
+
+/* Tests trigger_guard_condition with bad arguments
+ */
+TEST_F(
+  CLASSNAME(TestGuardConditionFixture, RMW_IMPLEMENTATION), test_rcl_guard_condition_bad_arg) {
+  rcl_guard_condition_t zero_guard_condition = rcl_get_zero_initialized_guard_condition();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_trigger_guard_condition(nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_trigger_guard_condition(&zero_guard_condition));
+  rcl_reset_error();
+}
