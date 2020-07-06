@@ -29,7 +29,6 @@ rcl_node_get_default_options()
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_node_options_t default_options = {
-    .domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID,
     .use_global_arguments = true,
     .enable_rosout = true,
   };
@@ -54,7 +53,6 @@ rcl_node_options_copy(
     RCL_SET_ERROR_MSG("Options out must be zero initialized");
     return RCL_RET_INVALID_ARGUMENT;
   }
-  options_out->domain_id = options->domain_id;
   options_out->allocator = options->allocator;
   options_out->use_global_arguments = options->use_global_arguments;
   options_out->enable_rosout = options->enable_rosout;
