@@ -63,7 +63,7 @@ rcl_context_fini(rcl_context_t * context)
 // See `rcl_shutdown()` for invalidation of the context.
 
 const rcl_init_options_t *
-rcl_context_get_init_options(rcl_context_t * context)
+rcl_context_get_init_options(const rcl_context_t * context)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(context, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(context->impl, "context is zero-initialized", return NULL);

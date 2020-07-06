@@ -147,7 +147,7 @@ rcl_init_options_fini(rcl_init_options_t * init_options);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_init_options_get_domain_id(rcl_init_options_t * init_options, size_t * domain_id);
+rcl_init_options_get_domain_id(const rcl_init_options_t * init_options, size_t * domain_id);
 
 /// Set a domain id in the init options provided.
 /**

@@ -210,7 +210,7 @@ rcl_context_fini(rcl_context_t * context);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 const rcl_init_options_t *
-rcl_context_get_init_options(rcl_context_t * context);
+rcl_context_get_init_options(const rcl_context_t * context);
 
 /// Returns an unsigned integer that is unique to the given context, or `0` if invalid.
 /**
