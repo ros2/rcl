@@ -38,19 +38,6 @@ typedef struct rcl_node_options_t
   /// If true, no parameter infrastructure will be setup.
   // bool no_parameters;
 
-  /// If set, then this value overrides the ROS_DOMAIN_ID environment variable.
-  /**
-   * It defaults to RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, which will cause the
-   * node to use the ROS domain ID set in the ROS_DOMAIN_ID environment
-   * variable, or on some systems 0 if the environment variable is not set.
-   *
-   * \todo TODO(wjwwood):
-   *   Should we put a limit on the ROS_DOMAIN_ID value, that way we can have
-   *   a safe value for the default RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID?
-   *   (currently max size_t)
-   */
-  size_t domain_id;
-
   /// Custom allocator used for internal allocations.
   rcl_allocator_t allocator;
 
