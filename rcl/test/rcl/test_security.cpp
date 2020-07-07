@@ -122,6 +122,11 @@ protected:
 
 TEST_F(TestGetSecureRoot, failureScenarios) {
   EXPECT_EQ(
+    rcl_get_secure_root(nullptr, &allocator),
+    (char *) NULL);
+  rcl_reset_error();
+
+  EXPECT_EQ(
     rcl_get_secure_root(TEST_ENCLAVE_ABSOLUTE, &allocator),
     (char *) NULL);
   rcl_reset_error();

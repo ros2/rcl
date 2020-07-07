@@ -25,6 +25,8 @@
 #include "rcl_interfaces/msg/log.h"
 #include "rcutils/logging_macros.h"
 
+#include "rcl/logging_rosout.h"
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -62,6 +64,8 @@ std::ostream & operator<<(
   out << params.description;
   return out;
 }
+
+class CLASSNAME (TestLogRosoutFixtureNotParam, RMW_IMPLEMENTATION) : public ::testing::Test {};
 
 class TEST_FIXTURE_P_RMW (TestLoggingRosoutFixture)
   : public ::testing::TestWithParam<TestParameters>
@@ -272,3 +276,17 @@ INSTANTIATE_TEST_CASE_P_RMW(
   TestLoggingRosoutFixture,
   ::testing::ValuesIn(get_parameters()),
   ::testing::PrintToStringParamName());
+
+/* Testing twice init logging_rosout
+ */
+TEST_F(
+  CLASSNAME(TestLogRosoutFixtureNotParam, RMW_IMPLEMENTATION), test_twice_init_logging_rosout)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_init(&allocator));
+
+  // Init twice returns RCL_RET_OK
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_init(&allocator));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_fini());
+}
