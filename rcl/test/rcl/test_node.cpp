@@ -105,7 +105,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   const char * fq_name = "/ns/test_rcl_node_accessors_node";
   rcl_node_options_t default_options = rcl_node_get_default_options();
   ret = rcl_node_init(&invalid_node, name, namespace_, &invalid_context, &default_options);
-  ASSERT_EQ(RCL_RET_OK, ret);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
