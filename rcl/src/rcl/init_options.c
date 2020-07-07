@@ -132,7 +132,7 @@ rcl_init_options_fini(rcl_init_options_t * init_options)
 }
 
 rcl_ret_t
-rcl_init_options_get_domain_id(rcl_init_options_t * init_options, size_t * domain_id)
+rcl_init_options_get_domain_id(const rcl_init_options_t * init_options, size_t * domain_id)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(init_options, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(init_options->impl, RCL_RET_INVALID_ARGUMENT);
