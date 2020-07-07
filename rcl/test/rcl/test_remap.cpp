@@ -574,3 +574,43 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), _rcl_remap_name_bad_arg)
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcl_reset_error();
 }
+
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), internal_remap_use) {
+  // Easiest way to init a rcl_remap is through the arguments API
+  const char * argv[] = {
+    "process_name", "--ros-args", "-r", "__ns:=/namespace", "random:=arg"
+  };
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
+
+  // Bad alloc
+  rcl_remap_t remap_dst = rcl_get_zero_initialized_remap();
+  parsed_args.impl->remap_rules->impl->allocator = get_failing_allocator();
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, rcl_remap_copy(parsed_args.impl->remap_rules, &remap_dst));
+  parsed_args.impl->remap_rules->impl->allocator = alloc;
+
+  // Expected usage
+  EXPECT_EQ(RCL_RET_OK, rcl_remap_copy(parsed_args.impl->remap_rules, &remap_dst));
+
+  // Copy twice
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remap_copy(parsed_args.impl->remap_rules, &remap_dst));
+  rcl_reset_error();
+
+  // Fini
+  EXPECT_EQ(RCL_RET_OK, rcl_remap_fini(&remap_dst));
+
+  // Fini twice
+  EXPECT_EQ(RCL_RET_ERROR, rcl_remap_fini(&remap_dst));
+  rcl_reset_error();
+
+  // Bad fini
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remap_fini(nullptr));
+}
