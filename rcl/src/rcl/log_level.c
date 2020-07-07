@@ -19,15 +19,25 @@
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
-rcl_log_levels_t *
-rcl_log_levels_init(const rcl_allocator_t * allocator, size_t logger_count)
+rcl_log_levels_t
+rcl_get_zero_initialized_log_levels()
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return NULL);
-  rcl_log_levels_t * log_levels = allocator->allocate(sizeof(rcl_log_levels_t), allocator->state);
-  if (NULL == log_levels) {
-    RCL_SET_ERROR_MSG("Error allocating memory");
-    return NULL;
-  }
+  static rcl_log_levels_t log_levels = {
+    .default_logger_level = RCUTILS_LOG_SEVERITY_UNSET,
+    .logger_settings = NULL,
+    .num_logger_settings = 0,
+    .capacity_logger_settings = 0,
+    .allocator = {NULL},
+  };
+  return log_levels;
+}
+
+rcl_ret_t
+rcl_log_levels_init(
+  rcl_log_levels_t * log_levels, const rcl_allocator_t * allocator, size_t logger_count)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   log_levels->default_logger_level = RCUTILS_LOG_SEVERITY_UNSET;
   log_levels->logger_settings = NULL;
@@ -40,14 +50,10 @@ rcl_log_levels_init(const rcl_allocator_t * allocator, size_t logger_count)
       sizeof(rcl_logger_setting_t) * logger_count, allocator->state);
     if (NULL == log_levels->logger_settings) {
       RCL_SET_ERROR_MSG("Error allocating memory");
-      if (RCL_RET_OK != rcl_log_levels_fini(log_levels)) {
-        RCL_SET_ERROR_MSG("Error while finalizing log levels due to another error");
-      }
-      return NULL;
+      return RCL_RET_BAD_ALLOC;
     }
   }
-
-  return log_levels;
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
@@ -57,6 +63,9 @@ rcl_log_levels_copy(const rcl_log_levels_t * src, rcl_log_levels_t * dst)
   RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &src->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  if (dst->logger_settings != NULL) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
 
   dst->logger_settings = allocator->allocate(
     sizeof(rcl_logger_setting_t) * (src->num_logger_settings), allocator->state);
@@ -66,22 +75,21 @@ rcl_log_levels_copy(const rcl_log_levels_t * src, rcl_log_levels_t * dst)
   }
 
   dst->default_logger_level = src->default_logger_level;
-  dst->num_logger_settings = src->num_logger_settings;
   dst->capacity_logger_settings = src->capacity_logger_settings;
   dst->allocator = src->allocator;
   for (size_t i = 0; i < src->num_logger_settings; ++i) {
     dst->logger_settings[i].name =
       rcutils_strdup(src->logger_settings[i].name, *allocator);
     if (NULL == dst->logger_settings[i].name) {
+      dst->num_logger_settings = i;
       if (RCL_RET_OK != rcl_log_levels_fini(dst)) {
         RCL_SET_ERROR_MSG("Error while finalizing log levels due to another error");
       }
       return RCL_RET_BAD_ALLOC;
     }
-    dst->logger_settings[i].level =
-      src->logger_settings[i].level;
+    dst->logger_settings[i].level = src->logger_settings[i].level;
   }
-
+  dst->num_logger_settings = src->num_logger_settings;
   return RCL_RET_OK;
 }
 
@@ -114,12 +122,14 @@ rcl_log_levels_shrink_to_size(rcl_log_levels_t * log_levels)
     log_levels->logger_settings = NULL;
     log_levels->capacity_logger_settings = 0;
   } else if (log_levels->num_logger_settings < log_levels->capacity_logger_settings) {
-    log_levels->logger_settings = rcutils_reallocf(
+    rcl_logger_setting_t * new_logger_settings = allocator->reallocate(
       log_levels->logger_settings,
-      sizeof(rcl_logger_setting_t) * log_levels->num_logger_settings, allocator);
-    if (NULL == log_levels->logger_settings) {
+      sizeof(rcl_logger_setting_t) * log_levels->num_logger_settings,
+      allocator->state);
+    if (NULL == new_logger_settings) {
       return RCL_RET_BAD_ALLOC;
     }
+    log_levels->logger_settings = new_logger_settings;
     log_levels->capacity_logger_settings = log_levels->num_logger_settings;
   }
   return RCL_RET_OK;
@@ -132,35 +142,38 @@ rcl_log_levels_add_logger_setting(
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels->logger_settings, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(logger_name, RCL_RET_INVALID_ARGUMENT);
+  rcl_allocator_t * allocator = &log_levels->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
-  // check if there exists a same name logger setting
+  // check if there exists a logger with the same name
   rcl_logger_setting_t * logger_setting = NULL;
   for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
     if (strcmp(log_levels->logger_settings[i].name, logger_name) == 0) {
       logger_setting = &log_levels->logger_settings[i];
-      if (log_levels->logger_settings[i].level != log_level) {
-        RCUTILS_LOG_WARN_NAMED(
+      if (logger_setting->level != log_level) {
+        RCUTILS_LOG_DEBUG_NAMED(
           ROS_PACKAGE_NAME, "Minimum log level of logger [%s] will be replaced from %d to %d",
           logger_name, logger_setting->level, log_level);
       }
-      log_levels->allocator.deallocate((void *)logger_setting->name, log_levels->allocator.state);
-      break;
+      logger_setting->level = log_level;
+      return RCL_RET_OK;
     }
   }
 
-  if (logger_setting == NULL) {
-    if (log_levels->num_logger_settings >= log_levels->capacity_logger_settings) {
-      RCL_SET_ERROR_MSG("No capacity to store a logger setting");
-      return RCL_RET_ERROR;
-    }
-
-    logger_setting =
-      &log_levels->logger_settings[log_levels->num_logger_settings];
-    log_levels->num_logger_settings += 1;
+  if (log_levels->num_logger_settings >= log_levels->capacity_logger_settings) {
+    RCL_SET_ERROR_MSG("No capacity to store a logger setting");
+    return RCL_RET_ERROR;
   }
 
-  logger_setting->name = logger_name;
-  logger_setting->level = (rcl_log_severity_t)log_level;
+  char * name = rcutils_strdup(logger_name, *allocator);
+  if (NULL == name) {
+    RCL_SET_ERROR_MSG("failed to copy logger name");
+    return RCL_RET_BAD_ALLOC;
+  }
 
+  logger_setting = &log_levels->logger_settings[log_levels->num_logger_settings];
+  logger_setting->name = name;
+  logger_setting->level = log_level;
+  log_levels->num_logger_settings += 1;
   return RCL_RET_OK;
 }

@@ -328,11 +328,16 @@ rcl_parse_arguments(
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
-  args_impl->log_levels = rcl_log_levels_init(&allocator, argc);
-  if (NULL == args_impl->log_levels) {
+  rcl_log_levels_t * log_levels = allocator.allocate(sizeof(rcl_log_levels_t), allocator.state);
+  if (NULL == log_levels) {
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
+  ret = rcl_log_levels_init(log_levels, &allocator, argc);
+  if (ret != RCL_RET_OK) {
+    goto fail;
+  }
+  args_impl->log_levels = log_levels;
 
   bool parsing_ros_args = false;
   for (int i = 0; i < argc; ++i) {
@@ -1713,8 +1718,9 @@ _rcl_parse_log_level(
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t ret = RCL_RET_OK;
-  int logger_level = 0;
   char * logger_name = NULL;
+  char * logger_level = NULL;
+  int level = 0;
   rcutils_ret_t rcutils_ret = RCUTILS_RET_OK;
 
   rcl_lexer_lookahead2_t lex_lookahead = rcl_get_zero_initialized_lexer_lookahead2();
@@ -1738,35 +1744,48 @@ _rcl_parse_log_level(
       goto cleanup;
     }
 
-    const char * level = rcl_lexer_lookahead2_get_text(&lex_lookahead);
-    if (strlen(level) == 0) {
-      RCL_SET_ERROR_MSG("Argument has an invalid logger item that level is empty");
+    const char * level_token;
+    size_t level_token_length;
+    ret = rcl_lexer_lookahead2_expect(
+      &lex_lookahead, RCL_LEXEME_TOKEN, &level_token, &level_token_length);
+    if (RCL_RET_WRONG_LEXEME == ret) {
       ret = RCL_RET_INVALID_LOG_LEVEL_RULE;
       goto cleanup;
     }
+
+    ret = rcl_lexer_lookahead2_expect(&lex_lookahead, RCL_LEXEME_EOF, NULL, NULL);
+    if (RCL_RET_OK != ret) {
+      ret = RCL_RET_INVALID_LOG_LEVEL_RULE;
+      goto cleanup;
+    }
+
+    logger_level = rcutils_strndup(level_token, level_token_length, *allocator);
+    if (NULL == logger_level) {
+      RCL_SET_ERROR_MSG("failed to copy logger level");
+      ret = RCL_RET_BAD_ALLOC;
+      goto cleanup;
+    }
     rcutils_ret = rcutils_logging_severity_level_from_string(
-      level,
-      *allocator,
-      &logger_level);
+      logger_level, *allocator, &level);
     if (RCUTILS_RET_OK == rcutils_ret) {
       ret = rcl_log_levels_add_logger_setting(
-        log_levels, logger_name, (rcl_log_severity_t)logger_level);
+        log_levels, logger_name, (rcl_log_severity_t)level);
       if (ret != RCL_RET_OK) {
         goto cleanup;
       }
     }
   } else {
     rcutils_ret = rcutils_logging_severity_level_from_string(
-      arg, *allocator, &logger_level);
+      arg, *allocator, &level);
     if (RCUTILS_RET_OK == rcutils_ret) {
       if (log_levels->default_logger_level != RCUTILS_LOG_SEVERITY_UNSET &&
-        log_levels->default_logger_level != (rcl_log_severity_t)logger_level)
+        log_levels->default_logger_level != (rcl_log_severity_t)level)
       {
-        RCUTILS_LOG_WARN_NAMED(
+        RCUTILS_LOG_DEBUG_NAMED(
           ROS_PACKAGE_NAME, "Minimum default log level will be replaced from %d to %d",
-          log_levels->default_logger_level, logger_level);
+          log_levels->default_logger_level, level);
       }
-      log_levels->default_logger_level = (rcl_log_severity_t)logger_level;
+      log_levels->default_logger_level = (rcl_log_severity_t)level;
       ret = RCL_RET_OK;
     }
   }
@@ -1777,10 +1796,13 @@ _rcl_parse_log_level(
   }
 
 cleanup:
+  if (logger_name) {
+    allocator->deallocate(logger_name, allocator->state);
+  }
+  if (logger_level) {
+    allocator->deallocate(logger_level, allocator->state);
+  }
   if (RCL_RET_OK != ret) {
-    if (logger_name) {
-      allocator->deallocate(logger_name, allocator->state);
-    }
     if (RCL_RET_OK != rcl_lexer_lookahead2_fini(&lex_lookahead)) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini lookahead2 after error occurred");
     }

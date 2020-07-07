@@ -179,6 +179,21 @@ TEST(TestLogLevel, multiple_log_level_rightmost_prevail) {
   EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels->logger_settings[0].level);
 }
 
+TEST(TestLogLevel, log_level_dot_logger_name) {
+  rcl_log_levels_t * log_levels = NULL;
+  GET_LOG_LEVEL_FROM_ARGUMENTS(
+    log_levels, "process_name", "--ros-args",
+    "--log-level", "test.abc:=info");
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(log_levels));
+  });
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels->default_logger_level);
+  EXPECT_EQ(1ul, log_levels->num_logger_settings);
+  EXPECT_STREQ("test.abc", log_levels->logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels->logger_settings[0].level);
+}
+
 int main(int argc, char ** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

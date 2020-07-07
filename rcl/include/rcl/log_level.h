@@ -52,6 +52,12 @@ typedef struct rcl_log_levels_t
   rcl_allocator_t allocator;
 } rcl_log_levels_t;
 
+/// Return a rcl_log_levels_t struct with members initialized to zero value.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_log_levels_t
+rcl_get_zero_initialized_log_levels();
+
 /// Initialize a log levels structure.
 /**
  * <hr>
@@ -62,14 +68,19 @@ typedef struct rcl_log_levels_t
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] allocator Memory allocator to be used.
+ * \param[in] log_levels The structure to be initialized.
+ * \param[in] allocator Memory allocator to be used and assigned into log_levels.
  * \param[in] logger_count Number of logger settings to be allocated.
- * \return a pointer to the allocated log levels structure on success or NULL on failure.
+ *  This reserves memory for logger_settings, but doesn't initialize it.
+ * \return `RCL_RET_OK` if the structure was initialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if log_levels or allocator are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_log_levels_t *
-rcl_log_levels_init(const rcl_allocator_t * allocator, size_t logger_count);
+rcl_ret_t
+rcl_log_levels_init(
+  rcl_log_levels_t * log_levels, const rcl_allocator_t * allocator, size_t logger_count);
 
 /// Copy one log levels structure into another.
 /**
@@ -85,7 +96,7 @@ rcl_log_levels_init(const rcl_allocator_t * allocator, size_t logger_count);
  *  Its allocator is used to copy memory into the new structure.
  * \param[out] dst A zero-initialized log levels structure to be copied into.
  * \return `RCL_RET_OK` if the structure was copied successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if log_levels or log_levels_out are invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if src or dst are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
  */
 RCL_PUBLIC
@@ -93,7 +104,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_log_levels_copy(const rcl_log_levels_t * src, rcl_log_levels_t * dst);
 
-/// Free log levels structure.
+/// Reclaim resources held inside rcl_log_levels_t structure.
 /**
  * <hr>
  * Attribute          | Adherence
@@ -103,7 +114,7 @@ rcl_log_levels_copy(const rcl_log_levels_t * src, rcl_log_levels_t * dst);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] log_levels The structure to be deallocated.
+ * \param[in] log_levels The members of structure to be deallocated.
  * \return `RCL_RET_OK` if the memory was successfully freed, or
  * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is invalid.
  */
@@ -123,8 +134,8 @@ rcl_log_levels_fini(rcl_log_levels_t * log_levels);
  *
  * \param[in] log_levels The structure to be shrunk.
  * \return `RCL_RET_OK` if the memory was successfully shrunk, or
- * \return `RCL_RET_BAD_ALLOC` if reallocating memory failed, or
- * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is invalid.
+ * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if reallocating memory failed.
  */
 RCL_PUBLIC
 rcl_ret_t
@@ -135,7 +146,7 @@ rcl_log_levels_shrink_to_size(rcl_log_levels_t * log_levels);
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | No
+ * Allocates Memory   | Yes
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
@@ -144,7 +155,8 @@ rcl_log_levels_shrink_to_size(rcl_log_levels_t * log_levels);
  * \param[in] logger_name Name for the logger.
  * \param[in] log_level Minimum log level severity.
  * \return `RCL_RET_OK` if add logger setting successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is invalid.
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if log_levels or logger_name are invalid.
  */
 RCL_PUBLIC
 rcl_ret_t
