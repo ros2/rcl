@@ -1765,8 +1765,7 @@ _rcl_parse_log_level(
     rcutils_ret = rcutils_logging_severity_level_from_string(
       arg, *allocator, &level);
     if (RCUTILS_RET_OK == rcutils_ret) {
-      if (log_levels->default_logger_level != (rcl_log_severity_t)level)
-      {
+      if (log_levels->default_logger_level != (rcl_log_severity_t)level) {
         if (log_levels->default_logger_level != RCUTILS_LOG_SEVERITY_UNSET) {
           RCUTILS_LOG_DEBUG_NAMED(
             ROS_PACKAGE_NAME, "Minimum default log level will be replaced from %d to %d",
