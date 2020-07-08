@@ -64,7 +64,7 @@ rcl_logging_configure_with_output_handler(
   RCUTILS_LOGGING_AUTOINIT
     g_logging_allocator = *allocator;
   int default_level = -1;
-  rcl_log_levels_t * log_levels = global_args->impl->log_levels;
+  rcl_log_levels_t * log_levels = &global_args->impl->log_levels;
   const char * config_file = global_args->impl->external_log_config_file;
   g_rcl_logging_stdout_enabled = !global_args->impl->log_stdout_disabled;
   g_rcl_logging_rosout_enabled = !global_args->impl->log_rosout_disabled;

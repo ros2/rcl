@@ -53,6 +53,17 @@ typedef struct rcl_log_levels_t
 } rcl_log_levels_t;
 
 /// Return a rcl_log_levels_t struct with members initialized to zero value.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \return a rcl_log_levels_t struct with members initialized to zero value.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_log_levels_t
@@ -64,7 +75,7 @@ rcl_get_zero_initialized_log_levels();
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | Yes
+ * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
@@ -114,7 +125,7 @@ rcl_log_levels_copy(const rcl_log_levels_t * src, rcl_log_levels_t * dst);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] log_levels The members of structure to be deallocated.
+ * \param[in] log_levels The structure which its resources have to be deallocated.
  * \return `RCL_RET_OK` if the memory was successfully freed, or
  * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is invalid.
  */
@@ -127,7 +138,7 @@ rcl_log_levels_fini(rcl_log_levels_t * log_levels);
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | No
+ * Allocates Memory   | Yes
  * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes

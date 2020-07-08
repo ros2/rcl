@@ -78,9 +78,9 @@ rcl_get_zero_initialized_arguments(void);
  * Parameter override rule parsing is supported via `-p/--param` flags e.g. `--param name:=value`
  * or `-p name:=value`.
  *
- * The default log level will be parsed as `--log-level level`, where `level` is a name
- * representing one of the log levels in the `RCUTILS_LOG_SEVERITY` enum, e.g. `info`, `debug`,
- * `warn`, not case sensitive.
+ * The default log level will be parsed as `--log-level level` and logger levels will be parsed as
+ * multiple `--log-level name:=level`, where `level` is a name representing one of the log levels
+ * in the `RCUTILS_LOG_SEVERITY` enum, e.g. `info`, `debug`, `warn`, not case sensitive.
  * If multiple of these rules are found, the last one parsed will be used.
  *
  * If an argument does not appear to be a valid ROS argument e.g. a `-r/--remap` flag followed by

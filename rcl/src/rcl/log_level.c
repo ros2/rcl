@@ -38,6 +38,10 @@ rcl_log_levels_init(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  if (log_levels->logger_settings != NULL) {
+    RCL_SET_ERROR_MSG("invalid logger settings");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
 
   log_levels->default_logger_level = RCUTILS_LOG_SEVERITY_UNSET;
   log_levels->logger_settings = NULL;
@@ -64,6 +68,7 @@ rcl_log_levels_copy(const rcl_log_levels_t * src, rcl_log_levels_t * dst)
   const rcl_allocator_t * allocator = &src->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   if (dst->logger_settings != NULL) {
+    RCL_SET_ERROR_MSG("invalid logger settings");
     return RCL_RET_INVALID_ARGUMENT;
   }
 

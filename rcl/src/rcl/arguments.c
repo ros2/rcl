@@ -146,22 +146,22 @@ rcl_arguments_get_log_levels(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl->log_levels, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &arguments->impl->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   if (NULL != *log_levels) {
-    RCL_SET_ERROR_MSG("Output log level pointer is not null.");
+    RCL_SET_ERROR_MSG("Output log levels pointer is not null.");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  *log_levels = allocator->zero_allocate(1, sizeof(rcl_log_levels_t), allocator->state);
+  *log_levels = allocator->allocate(sizeof(rcl_log_levels_t), allocator->state);
   if (NULL == *log_levels) {
     RCL_SET_ERROR_MSG("Error allocating memory");
     return RCL_RET_BAD_ALLOC;
   }
-  rcl_ret_t ret = rcl_log_levels_copy(arguments->impl->log_levels, *log_levels);
+  **log_levels = rcl_get_zero_initialized_log_levels();
+  rcl_ret_t ret = rcl_log_levels_copy(&arguments->impl->log_levels, *log_levels);
   if (RCL_RET_OK != ret) {
     allocator->deallocate(*log_levels, allocator->state);
     *log_levels = NULL;
@@ -328,12 +328,8 @@ rcl_parse_arguments(
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
-  rcl_log_levels_t * log_levels = allocator.allocate(sizeof(rcl_log_levels_t), allocator.state);
-  if (NULL == log_levels) {
-    ret = RCL_RET_BAD_ALLOC;
-    goto fail;
-  }
-  ret = rcl_log_levels_init(log_levels, &allocator, argc);
+  rcl_log_levels_t log_levels = rcl_get_zero_initialized_log_levels();
+  ret = rcl_log_levels_init(&log_levels, &allocator, argc);
   if (ret != RCL_RET_OK) {
     goto fail;
   }
@@ -446,7 +442,7 @@ rcl_parse_arguments(
       if (strcmp(RCL_LOG_LEVEL_FLAG, argv[i]) == 0) {
         if (i + 1 < argc) {
           if (RCL_RET_OK ==
-            _rcl_parse_log_level(argv[i + 1], args_impl->log_levels))
+            _rcl_parse_log_level(argv[i + 1], &args_impl->log_levels))
           {
             RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Got log level: %s\n", argv[i + 1]);
             ++i;  // Skip flag here, for loop will skip value.
@@ -680,7 +676,7 @@ rcl_parse_arguments(
   }
 
   // Shrink logger settings of log levels
-  ret = rcl_log_levels_shrink_to_size(args_impl->log_levels);
+  ret = rcl_log_levels_shrink_to_size(&args_impl->log_levels);
   if (ret != RCL_RET_OK) {
     goto fail;
   }
@@ -966,16 +962,14 @@ rcl_arguments_fini(
       args->impl->num_remap_rules = 0;
     }
 
-    if (args->impl->log_levels) {
-      rcl_ret_t log_levels_ret = rcl_log_levels_fini(args->impl->log_levels);
+    if (args->impl->log_levels.logger_settings) {
+      rcl_ret_t log_levels_ret = rcl_log_levels_fini(&args->impl->log_levels);
       if (log_levels_ret != RCL_RET_OK) {
         ret = log_levels_ret;
         RCUTILS_LOG_ERROR_NAMED(
           ROS_PACKAGE_NAME,
-          "Failed to finalize log level while finalizing arguments. Continuing...");
+          "Failed to finalize log levels while finalizing arguments. Continuing...");
       }
-      args->impl->allocator.deallocate(args->impl->log_levels, args->impl->allocator.state);
-      args->impl->log_levels = NULL;
     }
 
     args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
@@ -1719,7 +1713,6 @@ _rcl_parse_log_level(
 
   rcl_ret_t ret = RCL_RET_OK;
   char * logger_name = NULL;
-  char * logger_level = NULL;
   int level = 0;
   rcutils_ret_t rcutils_ret = RCUTILS_RET_OK;
 
@@ -1759,14 +1752,8 @@ _rcl_parse_log_level(
       goto cleanup;
     }
 
-    logger_level = rcutils_strndup(level_token, level_token_length, *allocator);
-    if (NULL == logger_level) {
-      RCL_SET_ERROR_MSG("failed to copy logger level");
-      ret = RCL_RET_BAD_ALLOC;
-      goto cleanup;
-    }
     rcutils_ret = rcutils_logging_severity_level_from_string(
-      logger_level, *allocator, &level);
+      level_token, *allocator, &level);
     if (RCUTILS_RET_OK == rcutils_ret) {
       ret = rcl_log_levels_add_logger_setting(
         log_levels, logger_name, (rcl_log_severity_t)level);
@@ -1799,15 +1786,13 @@ cleanup:
   if (logger_name) {
     allocator->deallocate(logger_name, allocator->state);
   }
-  if (logger_level) {
-    allocator->deallocate(logger_level, allocator->state);
-  }
-  if (RCL_RET_OK != ret) {
-    if (RCL_RET_OK != rcl_lexer_lookahead2_fini(&lex_lookahead)) {
+  rcl_ret_t rv = rcl_lexer_lookahead2_fini(&lex_lookahead);
+  if (RCL_RET_OK != rv) {
+    if (RCL_RET_OK != ret) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini lookahead2 after error occurred");
+    } else {
+      ret = rv;
     }
-  } else {
-    ret = rcl_lexer_lookahead2_fini(&lex_lookahead);
   }
 
   return ret;
@@ -2037,7 +2022,7 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
   rcl_arguments_impl_t * args_impl = args->impl;
   args_impl->num_remap_rules = 0;
   args_impl->remap_rules = NULL;
-  args_impl->log_levels = NULL;
+  args_impl->log_levels = rcl_get_zero_initialized_log_levels();
   args_impl->external_log_config_file = NULL;
   args_impl->unparsed_args = NULL;
   args_impl->num_unparsed_args = 0;
