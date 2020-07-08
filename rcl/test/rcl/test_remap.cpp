@@ -19,9 +19,9 @@
 #include "rcl/remap.h"
 #include "rcl/error_handling.h"
 
+#include "./allocator_testing_utils.h"
 #include "./arg_macros.hpp"
 #include "./arguments_impl.h"
-#include "./allocator_testing_utils.h"
 #include "./remap_impl.h"
 
 #ifdef RMW_IMPLEMENTATION
