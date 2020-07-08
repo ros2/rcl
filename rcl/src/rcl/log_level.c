@@ -22,7 +22,7 @@
 rcl_log_levels_t
 rcl_get_zero_initialized_log_levels()
 {
-  static rcl_log_levels_t log_levels = {
+  const rcl_log_levels_t log_levels = {
     .default_logger_level = RCUTILS_LOG_SEVERITY_UNSET,
     .logger_settings = NULL,
     .num_logger_settings = 0,
