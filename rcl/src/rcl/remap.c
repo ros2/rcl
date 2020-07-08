@@ -43,6 +43,7 @@ rcl_remap_copy(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(rule, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(rule_out, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(rule->impl, RCL_RET_INVALID_ARGUMENT);
 
   if (NULL != rule_out->impl) {
     RCL_SET_ERROR_MSG("rule_out must be zero initialized");
