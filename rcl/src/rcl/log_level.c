@@ -27,7 +27,7 @@ rcl_get_zero_initialized_log_levels()
     .logger_settings = NULL,
     .num_logger_settings = 0,
     .capacity_logger_settings = 0,
-    .allocator = {NULL},
+    .allocator = {NULL, NULL, NULL, NULL, NULL},
   };
   return log_levels;
 }
