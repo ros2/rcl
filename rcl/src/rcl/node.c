@@ -26,7 +26,7 @@ extern "C"
 
 #include "rcl/arguments.h"
 #include "rcl/error_handling.h"
-#include "rcl/domain_id.h"
+#include "rcl/init_options.h"
 #include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
@@ -121,7 +121,6 @@ rcl_node_init(
   const rcl_node_options_t * options)
 {
   size_t domain_id = 0;
-  rmw_localhost_only_t localhost_only = RMW_LOCALHOST_ONLY_DEFAULT;
   const rmw_guard_condition_t * rmw_graph_guard_condition = NULL;
   rcl_guard_condition_options_t graph_guard_condition_options =
     rcl_guard_condition_get_default_options();
@@ -254,21 +253,16 @@ rcl_node_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->logger_name, "creating logger name failed", goto fail);
 
-  domain_id = node->impl->options.domain_id;
-  if (RCL_DEFAULT_DOMAIN_ID == domain_id) {
-    if (RCL_RET_OK != rcl_get_default_domain_id(&domain_id)) {
-      goto fail;
-    }
+  ret = rcl_init_options_get_domain_id(rcl_context_get_init_options(context), &domain_id);
+  if (RCL_RET_OK != ret) {
+    goto fail;
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
   node->impl->actual_domain_id = domain_id;
 
-  localhost_only = context->impl->init_options.impl->rmw_init_options.localhost_only;
-
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
-    name, local_namespace_, domain_id,
-    localhost_only == RMW_LOCALHOST_ONLY_ENABLED);
+    name, local_namespace_);
 
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);

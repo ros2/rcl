@@ -94,6 +94,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
+  EXPECT_EQ(RCL_RET_OK, rcl_init_options_set_domain_id(&init_options, 42));
   rcl_context_t invalid_context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &invalid_context);
   ASSERT_EQ(RCL_RET_OK, ret);  // Shutdown later after invalid node.
@@ -103,19 +104,8 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   const char * namespace_ = "/ns";
   const char * fq_name = "/ns/test_rcl_node_accessors_node";
   rcl_node_options_t default_options = rcl_node_get_default_options();
-  default_options.domain_id = 42;  // Set the domain id to something explicit.
   ret = rcl_node_init(&invalid_node, name, namespace_, &invalid_context, &default_options);
-  if (is_windows && is_opensplice) {
-    // On Windows with OpenSplice, setting the domain id is not expected to work.
-    ASSERT_NE(RCL_RET_OK, ret);
-    // So retry with the default domain id setting (uses the environment as is).
-    default_options.domain_id = rcl_node_get_default_options().domain_id;
-    ret = rcl_node_init(&invalid_node, name, namespace_, &invalid_context, &default_options);
-    ASSERT_EQ(RCL_RET_OK, ret);
-  } else {
-    // This is the normal check (not windows and windows if not opensplice)
-    ASSERT_EQ(RCL_RET_OK, ret);
-  }
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
@@ -251,7 +241,6 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_NE(nullptr, actual_options);
   if (actual_options) {
     EXPECT_EQ(default_options.allocator.allocate, actual_options->allocator.allocate);
-    EXPECT_EQ(default_options.domain_id, actual_options->domain_id);
   }
   rcl_reset_error();
   EXPECT_NO_MEMORY_OPERATIONS(
@@ -261,7 +250,6 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   EXPECT_NE(nullptr, actual_options);
   if (actual_options) {
     EXPECT_EQ(default_options.allocator.allocate, actual_options->allocator.allocate);
-    EXPECT_EQ(default_options.domain_id, actual_options->domain_id);
   }
   // Test rcl_node_get_domain_id().
   size_t actual_domain_id;
@@ -281,10 +269,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
     ret = rcl_node_get_domain_id(&node, &actual_domain_id);
   });
   EXPECT_EQ(RCL_RET_OK, ret);
-  if (RCL_RET_OK == ret && (!is_windows || !is_opensplice)) {
-    // Can only expect the domain id to be 42 if not windows or not opensplice.
-    EXPECT_EQ(42u, actual_domain_id);
-  }
+  EXPECT_EQ(42u, actual_domain_id);
   // Test rcl_node_get_rmw_handle().
   rmw_node_t * node_handle;
   node_handle = rcl_node_get_rmw_handle(nullptr);
@@ -427,19 +412,6 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   EXPECT_EQ(RCL_RET_OK, ret);
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret);
-  // Try with a specific domain id.
-  rcl_node_options_t options_with_custom_domain_id = rcl_node_get_default_options();
-  options_with_custom_domain_id.domain_id = 42;
-  ret = rcl_node_init(&node, name, namespace_, &context, &options_with_custom_domain_id);
-  if (is_windows && is_opensplice) {
-    // A custom domain id is not expected to work on Windows with Opensplice.
-    EXPECT_NE(RCL_RET_OK, ret);
-  } else {
-    // This is the normal check.
-    EXPECT_EQ(RCL_RET_OK, ret);
-    ret = rcl_node_fini(&node);
-    EXPECT_EQ(RCL_RET_OK, ret);
-  }
 }
 
 /* Tests the node name restrictions enforcement.
@@ -754,7 +726,6 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
 
   EXPECT_TRUE(default_options.use_global_arguments);
   EXPECT_TRUE(default_options.enable_rosout);
-  EXPECT_EQ(RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID, default_options.domain_id);
   EXPECT_TRUE(rcutils_allocator_is_valid(&(default_options.allocator)));
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(nullptr, &default_options));
@@ -767,11 +738,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_parse_arguments(argc, argv, default_options.allocator, &(default_options.arguments)));
-  default_options.domain_id = 42u;
   default_options.use_global_arguments = false;
   default_options.enable_rosout = false;
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
-  EXPECT_EQ(42u, not_ini_options.domain_id);
   EXPECT_FALSE(not_ini_options.use_global_arguments);
   EXPECT_FALSE(not_ini_options.enable_rosout);
   EXPECT_EQ(
