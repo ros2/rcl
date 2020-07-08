@@ -2,6 +2,16 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.6 (2020-07-07)
+------------------
+* Keep domain id if ROS_DOMAIN_ID is invalid (`#689 <https://github.com/ros2/rcl/issues/689>`_) (`#694 <https://github.com/ros2/rcl/issues/694>`_)
+* Use RCL_RET\_* codes only (`#686 <https://github.com/ros2/rcl/issues/686>`_) (`#693 <https://github.com/ros2/rcl/issues/693>`_)
+* Add check for invalid output in rcl_node_options_copy (`#671 <https://github.com/ros2/rcl/issues/671>`_)
+* Add tests for rcl package (`#668 <https://github.com/ros2/rcl/issues/668>`_)
+* Fixed doxygen warnings (`#677 <https://github.com/ros2/rcl/issues/677>`_) (`#696 <https://github.com/ros2/rcl/issues/696>`_)
+* Print RCL_LOCALHOST_ENV_VAR if error happens via rcutils_get_env (`#672 <https://github.com/ros2/rcl/issues/672>`_)
+* Contributors: Alejandro Hernández Cordero, Jorge Perez, Michel Hidalgo, tomoya
+
 1.1.5 (2020-06-03)
 ------------------
 * Fix conversions between rmw_localhost_only_t and bool (`#670 <https://github.com/ros2/rcl/issues/670>`_)
