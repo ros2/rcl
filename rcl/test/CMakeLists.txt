@@ -7,6 +7,7 @@ find_package(test_msgs REQUIRED)
 find_package(mimick_vendor REQUIRED)
 
 find_package(rcpputils REQUIRED)
+find_package(rcutils REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 
 find_package(osrf_testing_tools_cpp REQUIRED)
@@ -392,6 +393,13 @@ rcl_add_custom_gtest(test_common
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
   LIBRARIES ${PROJECT_NAME}
+)
+
+rcl_add_custom_gtest(test_log_level
+  SRCS rcl/test_log_level.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
 # Install test resources
