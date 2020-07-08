@@ -103,8 +103,9 @@ rcl_log_levels_fini(rcl_log_levels_t * log_levels)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(log_levels, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &log_levels->allocator;
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   if (log_levels->logger_settings) {
+    // check allocator here, so it's safe to finish a zero initialized rcl_log_levels_t
+    RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
     for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
       allocator->deallocate((void *)log_levels->logger_settings[i].name, allocator->state);
     }

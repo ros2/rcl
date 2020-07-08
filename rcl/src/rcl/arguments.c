@@ -150,8 +150,7 @@ rcl_arguments_get_log_levels(
   const rcl_allocator_t * allocator = &arguments->impl->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret = rcl_log_levels_copy(&arguments->impl->log_levels, log_levels);
-  return RCL_RET_OK;
+  return rcl_log_levels_copy(&arguments->impl->log_levels, log_levels);
 }
 
 /// Parse an argument that may or may not be a log level rule.
@@ -945,14 +944,12 @@ rcl_arguments_fini(
       args->impl->num_remap_rules = 0;
     }
 
-    if (args->impl->log_levels.logger_settings) {
-      rcl_ret_t log_levels_ret = rcl_log_levels_fini(&args->impl->log_levels);
-      if (log_levels_ret != RCL_RET_OK) {
-        ret = log_levels_ret;
-        RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME,
-          "Failed to finalize log levels while finalizing arguments. Continuing...");
-      }
+    rcl_ret_t log_levels_ret = rcl_log_levels_fini(&args->impl->log_levels);
+    if (log_levels_ret != RCL_RET_OK) {
+      ret = log_levels_ret;
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
+        "Failed to finalize log levels while finalizing arguments. Continuing...");
     }
 
     args->impl->allocator.deallocate(args->impl->unparsed_args, args->impl->allocator.state);
