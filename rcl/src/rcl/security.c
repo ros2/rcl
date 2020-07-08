@@ -146,9 +146,6 @@ char * rcl_get_secure_root(
     RCUTILS_LOG_ERROR("rcutils_get_env failed: %s\n", get_env_error_str);
     return NULL;
   }
-  if (!env_buf) {
-    return NULL;
-  }
   if (0 == strcmp("", env_buf)) {
     ros_secure_enclave_override = false;
   }
