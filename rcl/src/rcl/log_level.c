@@ -159,8 +159,8 @@ rcl_log_levels_add_logger_setting(
         RCUTILS_LOG_DEBUG_NAMED(
           ROS_PACKAGE_NAME, "Minimum log level of logger [%s] will be replaced from %d to %d",
           logger_name, logger_setting->level, log_level);
+        logger_setting->level = log_level;
       }
-      logger_setting->level = log_level;
       return RCL_RET_OK;
     }
   }
