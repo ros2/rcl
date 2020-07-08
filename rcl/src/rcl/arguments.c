@@ -142,7 +142,7 @@ rcl_arguments_get_param_overrides(
 rcl_ret_t
 rcl_arguments_get_log_levels(
   const rcl_arguments_t * arguments,
-  rcl_log_levels_t ** log_levels)
+  rcl_log_levels_t * log_levels)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);
@@ -150,24 +150,7 @@ rcl_arguments_get_log_levels(
   const rcl_allocator_t * allocator = &arguments->impl->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
-  if (NULL != *log_levels) {
-    RCL_SET_ERROR_MSG("Output log levels pointer is not null.");
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-
-  *log_levels = allocator->allocate(sizeof(rcl_log_levels_t), allocator->state);
-  if (NULL == *log_levels) {
-    RCL_SET_ERROR_MSG("Error allocating memory");
-    return RCL_RET_BAD_ALLOC;
-  }
-  **log_levels = rcl_get_zero_initialized_log_levels();
-  rcl_ret_t ret = rcl_log_levels_copy(&arguments->impl->log_levels, *log_levels);
-  if (RCL_RET_OK != ret) {
-    allocator->deallocate(*log_levels, allocator->state);
-    *log_levels = NULL;
-    return ret;
-  }
-
+  rcl_ret_t ret = rcl_log_levels_copy(&arguments->impl->log_levels, log_levels);
   return RCL_RET_OK;
 }
 
