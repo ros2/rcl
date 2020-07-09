@@ -2,6 +2,26 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.0 (2020-07-09)
+------------------
+* Implement a generic way to change logging levels (`#664 <https://github.com/ros2/rcl/issues/664>`_)
+* Remove domain_id and localhost_only from node_options (`#708 <https://github.com/ros2/rcl/issues/708>`_)
+* Add coverage tests (`#703 <https://github.com/ros2/rcl/issues/703>`_)
+* Add bad arguments tests for coverage (`#698 <https://github.com/ros2/rcl/issues/698>`_)
+* Remove unused internal prototypes (`#699 <https://github.com/ros2/rcl/issues/699>`_)
+* Update quality declaration and coverage (`#674 <https://github.com/ros2/rcl/issues/674>`_)
+* Add setter and getter for domain_id in rcl_init_options_t (`#678 <https://github.com/ros2/rcl/issues/678>`_)
+* Remove unused pytest dependency from rcl. (`#695 <https://github.com/ros2/rcl/issues/695>`_)
+* Fix link to latest API docs (`#692 <https://github.com/ros2/rcl/issues/692>`_)
+* Keep domain id if ROS_DOMAIN_ID is invalid. (`#689 <https://github.com/ros2/rcl/issues/689>`_)
+* Remove unused check context.c (`#691 <https://github.com/ros2/rcl/issues/691>`_)
+* Add check rcl_node_options_copy invalid out (`#671 <https://github.com/ros2/rcl/issues/671>`_)
+* Update tracetools' QL to 2 in rcl's QD (`#690 <https://github.com/ros2/rcl/issues/690>`_)
+* Improve subscription coverage (`#681 <https://github.com/ros2/rcl/issues/681>`_)
+* Improve rcl timer test coverage (`#680 <https://github.com/ros2/rcl/issues/680>`_)
+* Improve wait sets test coverage (`#683 <https://github.com/ros2/rcl/issues/683>`_)
+* Contributors: Alejandro Hernández Cordero, Chen Lihui, Chris Lalancette, Christophe Bedard, Ivan Santiago Paunovic, Jorge Perez, Michel Hidalgo, tomoya
+
 1.2.0 (2020-06-18)
 ------------------
 * Improve rcl init test coverage. (`#684 <https://github.com/ros2/rcl/issues/684>`_)
