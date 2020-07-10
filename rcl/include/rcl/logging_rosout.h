@@ -152,7 +152,8 @@ rcl_logging_rosout_fini_publisher_for_node(
  * \param[in] severity The severity level
  * \param[in] name The name of the logger, must be null terminated c string
  * \param[in] timestamp The timestamp for when the log message was made
- * \param[in] log_str The string to be logged
+ * \param[in] format The list of arguments to insert into the formatted log message
+ * \param[in] args argument for the string format
  */
 RCL_PUBLIC
 void rcl_logging_rosout_output_handler(

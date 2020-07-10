@@ -110,7 +110,7 @@ rcl_node_options_copy(
  * Uses Atomics       | Yes
  * Lock-Free          | Yes
  *
- * \param[inout] node_options object to be finalized
+ * \param[inout] options object to be finalized
  * \return `RCL_RET_OK` if setup is successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.

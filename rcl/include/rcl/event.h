@@ -103,7 +103,7 @@ rcl_subscription_event_init(
 /**
  * Take an event from the event handle.
  *
- * \param[in] event_handle event object to take from
+ * \param[in] event event object to take from
  * \param[in, out] event_info event info object to write taken data into
  * \param[in, out] taken boolean flag indicating if an event was taken or not
  * \return `RCL_RET_OK` if successful, or
