@@ -32,6 +32,7 @@ struct rcl_service_impl_t;
 /// Structure which encapsulates a ROS Service.
 typedef struct rcl_service_t
 {
+  /// Pointer to the service implementation
   struct rcl_service_impl_t * impl;
 } rcl_service_t;
 

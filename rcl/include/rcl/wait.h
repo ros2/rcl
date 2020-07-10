@@ -40,21 +40,27 @@ typedef struct rcl_wait_set_t
 {
   /// Storage for subscription pointers.
   const rcl_subscription_t ** subscriptions;
+  /// Number of subscriptions
   size_t size_of_subscriptions;
   /// Storage for guard condition pointers.
   const rcl_guard_condition_t ** guard_conditions;
+  /// Number of guard_conditions
   size_t size_of_guard_conditions;
   /// Storage for timer pointers.
   const rcl_timer_t ** timers;
+  /// Number of timers
   size_t size_of_timers;
   /// Storage for client pointers.
   const rcl_client_t ** clients;
+  /// Number of clients
   size_t size_of_clients;
   /// Storage for service pointers.
   const rcl_service_t ** services;
+  /// Number of services
   size_t size_of_services;
   /// Storage for event pointers.
   const rcl_event_t ** events;
+  /// Number of events
   size_t size_of_events;
   /// Implementation specific storage.
   struct rcl_wait_set_impl_t * impl;

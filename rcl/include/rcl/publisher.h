@@ -32,6 +32,7 @@ struct rcl_publisher_impl_t;
 /// Structure which encapsulates a ROS Publisher.
 typedef struct rcl_publisher_t
 {
+  /// Pointer to the publisher implementation
   struct rcl_publisher_impl_t * impl;
 } rcl_publisher_t;
 
