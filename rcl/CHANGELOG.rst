@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.9 (2020-07-10)
+------------------
+* Fixed doxygen warnings. (`#702 <https://github.com/ros2/rcl/issues/702>`_)
+* Allow get_node_names to return result in any order. (`#592 <https://github.com/ros2/rcl/issues/592>`_)
+* Don't check history depth if RMW_QOS_POLICY_HISTORY_KEEP_ALL. (`#595 <https://github.com/ros2/rcl/issues/595>`_)
+* Contributors: Alejandro Hernández Cordero, Dan Rose
+
 0.7.8 (2019-12-10)
 ------------------
 * Set allocator before goto fail. (`#540 <https://github.com/ros2/rcl/issues/540>`_)

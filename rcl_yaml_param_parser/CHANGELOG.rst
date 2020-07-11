@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.9 (2020-07-10)
+------------------
+* Added rcl yaml param parser Doxyfile. (`#701 <https://github.com/ros2/rcl/issues/701>`_)
+* Contributors: Alejandro Hernández Cordero
+
 0.7.8 (2019-12-10)
 ------------------
 * Avoid C4703 error on UWP. (`#282 <https://github.com/ros2/rcl/issues/282>`_) (`#536 <https://github.com/ros2/rcl/issues/536>`_)
