@@ -8,6 +8,7 @@ find_package(rcutils REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 
 find_package(osrf_testing_tools_cpp REQUIRED)
+find_package(mimick_vendor REQUIRED)
 
 get_target_property(memory_tools_ld_preload_env_var
   osrf_testing_tools_cpp::memory_tools LIBRARY_PRELOAD_ENVIRONMENT_VARIABLE)
@@ -223,7 +224,7 @@ function(test_target_function)
     SRCS rcl/test_subscription.cpp rcl/wait_for_entity_helpers.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}
+    LIBRARIES ${PROJECT_NAME} mimick
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
   if(rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR

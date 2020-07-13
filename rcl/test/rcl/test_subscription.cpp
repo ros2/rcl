@@ -30,6 +30,8 @@
 #include "wait_for_entity_helpers.hpp"
 
 #include "./allocator_testing_utils.h"
+#include "./mimick.h"
+#include "rcl/expand_topic_name.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -748,4 +750,40 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   rcl_reset_error();
   EXPECT_EQ(NULL, rcl_subscription_get_options(&subscription_zero_init));
   rcl_reset_error();
+}
+
+/*
+   Define the blueprint of a mock identified by `rcl_get_default_topic_name_substitutions_proto`
+   rcl_get_default_topic_name_substitutions signature:
+   rcutils_ret_t rcl_get_default_topic_name_substitutions(rcutils_string_map_t * string_map)
+*/
+mmk_mock_define(
+  rcl_get_default_topic_name_substitutions_mock, rcutils_ret_t, rcutils_string_map_t *);
+
+/* Mocking test example */
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_mock_map_fini) {
+  /* Mock the rcl_get_default_topic_name_substitutions_mock function in the current module using
+     the `rcl_get_default_topic_name_substitutions_mock_mock` blueprint. */
+  mmk_mock(
+    "rcl_get_default_topic_name_substitutions@lib:rcl",
+    rcl_get_default_topic_name_substitutions_mock);
+
+  /* Tell the mock to return RCUTILS_RET_ERROR (unknown error)
+     whatever the input parameter is. */
+  mmk_when(
+    rcl_get_default_topic_name_substitutions(mmk_any(rcutils_string_map_t *)),
+    .then_return = mmk_val(rcutils_ret_t, RCUTILS_RET_ERROR));
+
+  // Now normal usage of the function returning unexpected RCUTILS_RET_ERROR
+  // error for the internal rcl_get_default_topic_name_substitutions
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  const char * topic = "test_get_options";
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  rcutils_ret_t ret =
+    rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+
+  mmk_reset(rcl_get_default_topic_name_substitutions);
 }
