@@ -40,6 +40,34 @@ typedef struct rcl_timer_t
   struct rcl_timer_impl_t * impl;
 } rcl_timer_t;
 
+/// Options available for an rcl timer.
+typedef struct rcl_timer_options_t
+{
+  int64_t initial_period_jitter;
+
+  int64_t (*estimate_period_jitter)(
+   int64_t jitter_estimate,
+   int64_t expected_period,
+   int64_t measured_period,
+   void * state);
+
+  int64_t initial_period_correction;
+
+  int64_t (*update_period_correction)(
+    int64_t period_correction,
+    int64_t target_period,
+    int64_t measured_period,
+    void * state);
+
+  void * state;
+} rcl_timer_options_t;
+
+/// Return default timer options.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_timer_options_t
+rcl_get_default_timer_options(void);
+
 /// User callback signature for timers.
 /**
  * The first argument the callback gets is a pointer to the timer.
@@ -156,6 +184,7 @@ rcl_timer_init(
   rcl_context_t * context,
   int64_t period,
   const rcl_timer_callback_t callback,
+  rcl_timer_options_t options,
   rcl_allocator_t allocator);
 
 /// Finalize a timer.
