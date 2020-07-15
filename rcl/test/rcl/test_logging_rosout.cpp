@@ -287,7 +287,7 @@ TEST_F(
 
   // Init twice returns RCL_RET_OK
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_init(&allocator));
-  
+
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_fini());
 }
 
