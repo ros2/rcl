@@ -22,7 +22,6 @@
 #include "./allocator_testing_utils.h"
 #include "./arg_macros.hpp"
 #include "./arguments_impl.h"
-#include "./remap_impl.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
