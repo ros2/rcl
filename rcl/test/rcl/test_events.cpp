@@ -721,7 +721,7 @@ TEST_F(TestEventFixture, test_bad_event_ini)
     &subscription,
     unknown_sub_type);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
-  
+
   tear_down_publisher_subscriber();
 }
 
