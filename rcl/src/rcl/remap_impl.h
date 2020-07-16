@@ -51,57 +51,6 @@ typedef struct rcl_remap_impl_t
   rcl_allocator_t allocator;
 } rcl_remap_impl_t;
 
-/// Get an rcl_remap_t structure initialized with NULL.
-rcl_remap_t
-rcl_remap_get_zero_initialized();
-
-/// Copy one remap structure into another.
-/**
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] rule The structure to be copied.
- *  Its allocator is used to copy memory into the new structure.
- * \param[out] rule_out A zero-initialized rcl_remap_t structure to be copied into.
- * \return `RCL_RET_OK` if the structure was copied successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
- * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_remap_copy(
-  const rcl_remap_t * rule,
-  rcl_remap_t * rule_out);
-
-/// Reclaim resources used in an rcl_remap_t structure.
-/**
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | Yes
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] rule A rule to deallocate back to a zero initialized state.
- * \return `RCL_RET_OK` if the structure was free'd, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
- * \return `RCL_RET_NODE_INVALID_NAME` if the name is invalid, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
- */
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_remap_fini(
-  rcl_remap_t * rule);
-
 #ifdef __cplusplus
 }
 #endif
