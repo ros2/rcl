@@ -240,6 +240,31 @@ RCL_WARN_UNUSED
 rcl_context_instance_id_t
 rcl_context_get_instance_id(rcl_context_t * context);
 
+/// Returns the context domain id.
+/**
+ * The given context must be non-`NULL` and be valid.
+ * If context is `NULL`, then `0` will be returned.
+ * If context is uninitialized, then it is undefined behavior.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] context object from which the domain id should be retrieved.
+ * \param[out] domain_id output variable where the domain id will be returned.
+ * \return RCL_RET_INVALID_ARGUMENT if `context` is invalid, or
+ *  RCL_RET_INVALID_ARGUMENT if `domain_id` is `NULL`, or
+ *  RCL_RET_OK if the domain id was correctly retrieved.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_context_get_domain_id(rcl_context_t * context, size_t * domain_id);
+
 /// Return `true` if the given context is currently valid, otherwise `false`.
 /**
  * If context is `NULL`, then `false` is returned.

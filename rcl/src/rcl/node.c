@@ -56,7 +56,6 @@ extern "C"
 typedef struct rcl_node_impl_t
 {
   rcl_node_options_t options;
-  size_t actual_domain_id;
   rmw_node_t * rmw_node_handle;
   rcl_guard_condition_t * graph_guard_condition;
   const char * logger_name;
@@ -120,7 +119,6 @@ rcl_node_init(
   rcl_context_t * context,
   const rcl_node_options_t * options)
 {
-  size_t domain_id = 0;
   const rmw_guard_condition_t * rmw_graph_guard_condition = NULL;
   rcl_guard_condition_options_t graph_guard_condition_options =
     rcl_guard_condition_get_default_options();
@@ -253,12 +251,8 @@ rcl_node_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->logger_name, "creating logger name failed", goto fail);
 
-  ret = rcl_init_options_get_domain_id(rcl_context_get_init_options(context), &domain_id);
-  if (RCL_RET_OK != ret) {
-    goto fail;
-  }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
-  node->impl->actual_domain_id = domain_id;
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Using domain ID of '%zu'", context->impl->rmw_context.actual_domain_id);
 
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
@@ -474,12 +468,10 @@ rcl_node_get_options(const rcl_node_t * node)
 rcl_ret_t
 rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
 {
-  const rcl_node_options_t * node_options = rcl_node_get_options(node);
-  if (!node_options) {
-    return RCL_RET_NODE_INVALID;  // error already set
-  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
   RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
-  *domain_id = node->impl->actual_domain_id;
+  RCL_CHECK_FOR_NULL_WITH_MSG(node->context, "invalid node", return RCL_RET_NODE_INVALID);
+  *domain_id = node->context->impl->rmw_context.actual_domain_id;
   return RCL_RET_OK;
 }
 
