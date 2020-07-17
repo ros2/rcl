@@ -84,7 +84,8 @@ rcl_context_get_domain_id(rcl_context_t * context, size_t * domain_id)
     return RCL_RET_INVALID_ARGUMENT;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
-  return context->impl->rmw_context.actual_domain_id;
+  *domain_id = context->impl->rmw_context.actual_domain_id;
+  return RCL_RET_OK;
 }
 
 bool
