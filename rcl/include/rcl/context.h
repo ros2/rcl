@@ -248,9 +248,12 @@ rcl_context_get_instance_id(rcl_context_t * context);
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | No
- * Thread-Safe        | No
+ * Thread-Safe        | Yes [1]
  * Uses Atomics       | No
  * Lock-Free          | No
+ *
+ * <i>[1] Calling the function asynchronously with `rcl_init` or `rcl_shutdown` can result
+ *  in the function sometimes succeeding and sometimes returning `RCL_RET_INVALID_ARGUMENT`.
  *
  * \param[in] context object from which the domain id should be retrieved.
  * \param[out] domain_id output variable where the domain id will be returned.
