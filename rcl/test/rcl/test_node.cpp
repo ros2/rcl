@@ -262,7 +262,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_accessors) 
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   ret = rcl_node_get_domain_id(&invalid_node, &actual_domain_id);
-  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
   rcl_reset_error();
   EXPECT_NO_MEMORY_OPERATIONS(
   {

@@ -468,9 +468,10 @@ rcl_node_get_options(const rcl_node_t * node)
 rcl_ret_t
 rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->context, "invalid node", return RCL_RET_NODE_INVALID);
   rcl_ret_t ret = rcl_context_get_domain_id(node->context, domain_id);
   if (RCL_RET_OK != ret) {
     return ret;
