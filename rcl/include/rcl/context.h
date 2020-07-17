@@ -242,8 +242,7 @@ rcl_context_get_instance_id(rcl_context_t * context);
 
 /// Returns the context domain id.
 /**
- * The given context must be non-`NULL` and be valid.
- * If context is `NULL`, then `0` will be returned.
+ * The given context must be non-`NULL` and valid.
  * If context is uninitialized, then it is undefined behavior.
  *
  * <hr>
