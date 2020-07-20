@@ -783,21 +783,28 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
   rcl_ret_t ret = setup_subscriber(subscription_qos_profile);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  // Check if supported
-  subscription_event = rcl_get_zero_initialized_event();
-  ret = rcl_subscription_event_init(
-    &subscription_event,
-    &subscription,
-    RCL_SUBSCRIPTION_MESSAGE_LOST);
-  EXPECT_TRUE(ret == RCL_RET_OK || ret == RCL_RET_UNSUPPORTED);
+  if (is_fastrtps) {
+    // Check not supported
+    subscription_event = rcl_get_zero_initialized_event();
+    ret = rcl_subscription_event_init(
+      &subscription_event,
+      &subscription,
+      RCL_SUBSCRIPTION_MESSAGE_LOST);
+    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
 
-  if (ret == RCL_RET_UNSUPPORTED) {
     // clean up and exit test early
     ret = rcl_event_fini(&subscription_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     return;
+  } else {
+    subscription_event = rcl_get_zero_initialized_event();
+    ret = rcl_subscription_event_init(
+      &subscription_event,
+      &subscription,
+      RCL_SUBSCRIPTION_MESSAGE_LOST);
+    EXPECT_EQ(ret, RCL_RET_OK);
   }
 
   // Can't reproduce reliably this event
