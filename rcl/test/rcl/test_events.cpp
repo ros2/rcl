@@ -739,10 +739,12 @@ TEST_F(TestEventFixture, test_bad_get_handle)
 TEST_F(TestEventFixture, test_event_is_valid)
 {
   EXPECT_FALSE(rcl_event_is_valid(nullptr));
+  rcl_reset_error();
 
   setup_publisher_subscriber(default_qos_profile, default_qos_profile);
   rcl_event_t publisher_event_test = rcl_get_zero_initialized_event();
   EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
+  rcl_reset_error();
 
   rcl_ret_t ret = rcl_publisher_event_init(
     &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
@@ -752,6 +754,7 @@ TEST_F(TestEventFixture, test_event_is_valid)
   rmw_event_type_t saved_event_type = publisher_event_test.impl->rmw_handle.event_type;
   publisher_event_test.impl->rmw_handle.event_type = RMW_EVENT_INVALID;
   EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
+  rcl_reset_error();
   publisher_event_test.impl->rmw_handle.event_type = saved_event_type;
 
   ret = rcl_event_fini(&publisher_event_test);
