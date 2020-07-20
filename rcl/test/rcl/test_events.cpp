@@ -25,11 +25,14 @@
 #include "rcl/subscription.h"
 #include "rcl/error_handling.h"
 #include "rmw/incompatible_qos_events_statuses.h"
+#include "rmw/event.h"
 
 #include "test_msgs/msg/strings.h"
 #include "rosidl_runtime_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+
+#include "./event_impl.h"
 
 using namespace std::chrono_literals;
 using std::chrono::seconds;
@@ -745,6 +748,11 @@ TEST_F(TestEventFixture, test_event_is_valid)
     &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_event_is_valid(&publisher_event_test));
+
+  rmw_event_type_t saved_event_type = publisher_event_test.impl->rmw_handle.event_type;
+  publisher_event_test.impl->rmw_handle.event_type = RMW_EVENT_INVALID;
+  EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
+  publisher_event_test.impl->rmw_handle.event_type = saved_event_type;
 
   ret = rcl_event_fini(&publisher_event_test);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
