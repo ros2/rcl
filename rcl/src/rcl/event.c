@@ -190,6 +190,20 @@ rcl_event_get_rmw_handle(const rcl_event_t * event)
   }
 }
 
+bool
+rcl_event_is_valid(const rcl_event_t * event)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(event, "event pointer is invalid", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(event->impl, "event's implementation is invalid", return false);
+  /*
+  if (event->impl->rmw_handle.event_type == RMW_EVENT_INVALID) {
+    RCUTILS_SET_ERROR_MSG("event's implementation not init");
+    return false;
+  }
+  */
+  return true;
+}
+
 #ifdef __cplusplus
 }
 #endif
