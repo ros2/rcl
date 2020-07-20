@@ -596,6 +596,17 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), internal_remap_use) {
   EXPECT_EQ(RCL_RET_BAD_ALLOC, rcl_remap_copy(parsed_args.impl->remap_rules, &remap_dst));
   parsed_args.impl->remap_rules->impl->allocator = alloc;
 
+  // Not valid null ptrs
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remap_copy(nullptr, &remap_dst));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remap_copy(parsed_args.impl->remap_rules, nullptr));
+  rcl_reset_error();
+
+  // Not valid empty source
+  rcl_remap_t remap_empty = rcl_get_zero_initialized_remap();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_remap_copy(&remap_empty, &remap_dst));
+  rcl_reset_error();
+
   // Expected usage
   EXPECT_EQ(RCL_RET_OK, rcl_remap_copy(parsed_args.impl->remap_rules, &remap_dst));
 
