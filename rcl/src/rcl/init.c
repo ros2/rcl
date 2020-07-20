@@ -152,6 +152,9 @@ rcl_init(
       goto fail;
     }
   }
+  if (RMW_DEFAULT_DOMAIN_ID == *domain_id) {
+    *domain_id = 0u;
+  }
 
   rmw_localhost_only_t * localhost_only =
     &context->impl->init_options.impl->rmw_init_options.localhost_only;

@@ -260,6 +260,9 @@ rcl_node_init(
       goto fail;
     }
   }
+  if (RMW_DEFAULT_DOMAIN_ID == domain_id) {
+    domain_id = 0u;
+  }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using domain ID of '%zu'", domain_id);
   node->impl->actual_domain_id = domain_id;
 
