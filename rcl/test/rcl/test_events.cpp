@@ -812,6 +812,8 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
   rmw_message_lost_status_t message_lost_status;
   ret = rcl_take_event(&subscription_event, &message_lost_status);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_EQ(message_lost_status.total_count, 0u);
+  EXPECT_EQ(message_lost_status.total_count_change, 0u);
 
   // clean up
   ret = rcl_event_fini(&subscription_event);
