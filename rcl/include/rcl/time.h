@@ -119,9 +119,9 @@ typedef struct rcl_jump_threshold_t
 /// Struct to describe an added callback.
 typedef struct rcl_jump_callback_info_t
 {
-  /// Callback to call.
+  /// Callback to fucntion.
   rcl_jump_callback_t callback;
-  /// Criteria indicating when to call the callback.
+  /// Threshold to decide when to call the callback.
   rcl_jump_threshold_t threshold;
   /// Pointer passed to the callback.
   void * user_data;
@@ -138,7 +138,8 @@ typedef struct rcl_clock_t
   size_t num_jump_callbacks;
   /// Pointer to get_now function
   rcl_ret_t (* get_now)(void * data, rcl_time_point_value_t * now);
-  /// void (*set_now) (rcl_time_point_value_t);
+  // void (*set_now) (rcl_time_point_value_t);
+  /// Clock storage
   void * data;
   /// Custom allocator used for internal allocations.
   rcl_allocator_t allocator;

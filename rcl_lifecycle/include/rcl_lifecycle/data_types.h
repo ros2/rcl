@@ -29,7 +29,7 @@ typedef struct rcl_lifecycle_transition_t rcl_lifecycle_transition_t;
 /// It contains the state of the lifecycle state machine
 typedef struct rcl_lifecycle_state_t
 {
-  /// String with state name: Unconfigured, Inactive, Active and Finalized
+  /// String with state name: Unconfigured, Inactive, Active or Finalized
   const char * label;
   /// Identifier of the state
   unsigned int id;
@@ -44,7 +44,7 @@ typedef struct rcl_lifecycle_state_t
 typedef struct rcl_lifecycle_transition_t
 {
   /// String with transition name: configuring, cleaningup, activating, deactivating,
-  /// errorprocessing and shuttingdown.
+  /// errorprocessing or shuttingdown.
   const char * label;
   /// Identifier of the transition
   unsigned int id;
@@ -72,7 +72,7 @@ typedef struct rcl_lifecycle_com_interface_t
 {
   /// Handle to the node used to create the publisher and the services
   rcl_node_t * node_handle;
-  /// It used to publish the transitions
+  /// Event used to publish the transitions
   rcl_publisher_t pub_transition_event;
   /// Service that allows to trigger changes on the state
   rcl_service_t srv_change_state;
