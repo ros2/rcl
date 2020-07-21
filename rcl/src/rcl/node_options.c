@@ -28,9 +28,10 @@ rcl_node_options_t
 rcl_node_get_default_options()
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
-  static rcl_node_options_t default_options = {
+  rcl_node_options_t default_options = {
     .use_global_arguments = true,
     .enable_rosout = true,
+    .rosout_qos = rcl_qos_profile_rosout_default,
   };
   // Must set the allocator after because it is not a compile time constant.
   default_options.allocator = rcl_get_default_allocator();
@@ -56,6 +57,7 @@ rcl_node_options_copy(
   options_out->allocator = options->allocator;
   options_out->use_global_arguments = options->use_global_arguments;
   options_out->enable_rosout = options->enable_rosout;
+  options_out->rosout_qos = options->rosout_qos;
   if (NULL != options->arguments.impl) {
     rcl_ret_t ret = rcl_arguments_copy(&(options->arguments), &(options_out->arguments));
     return ret;
