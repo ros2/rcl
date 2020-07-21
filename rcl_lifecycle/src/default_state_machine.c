@@ -23,6 +23,7 @@
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
+#include "rcutils/strdup.h"
 
 #include "rcl_lifecycle/transition_map.h"
 
@@ -659,6 +660,9 @@ rcl_lifecycle_init_default_state_machine(
   rcl_ret_t ret = RCL_RET_ERROR;
   // Used for concatenating error messages in the fail: block.
   const char * fail_error_message = "";
+  char * init_error_string = "";
+  char * fini_error_string = "";
+  rcl_allocator_t default_allocator;
 
   // ***************************
   // register all primary states
@@ -695,14 +699,27 @@ rcl_lifecycle_init_default_state_machine(
 fail:
   // If rcl_lifecycle_transition_map_fini() fails, it will clobber the error string here.
   // Concatenate the error strings if that happens
+  default_allocator = rcl_get_default_allocator();
+
   if (rcl_error_is_set()) {
-    fail_error_message = rcl_get_error_string().str;
+    init_error_string = rcutils_strdup(rcl_get_error_string().str, default_allocator);
+    if (init_error_string != NULL) {
+      fail_error_message = init_error_string;
+    } else {
+      fail_error_message = "Error while duplicating strings by rcutils_strdup() !";
+    }
+    rcl_reset_error();
   }
 
   if (rcl_lifecycle_transition_map_fini(&state_machine->transition_map, allocator) != RCL_RET_OK) {
     const char * fini_error = "";
     if (rcl_error_is_set()) {
-      fini_error = rcl_get_error_string().str;
+      fini_error_string = rcutils_strdup(rcl_get_error_string().str, default_allocator);
+      if (fini_error_string != NULL) {
+        fini_error = rcl_get_error_string().str;
+      } else {
+        fini_error = "Error while duplicating strings by rcutils_strdup() !";
+      }
       rcl_reset_error();
     }
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -712,8 +729,20 @@ fail:
   }
 
   if (!rcl_error_is_set()) {
-    RCL_SET_ERROR_MSG("Unspecified error in default_state_machine _register_transitions()");
+    if (strlen(fail_error_message) == 0) {
+      RCL_SET_ERROR_MSG("Unspecified error in rcl_lifecycle_init_default_state_machine() !");
+    } else {
+      RCL_SET_ERROR_MSG(fail_error_message);
+    }
   }
+
+  if (init_error_string) {
+    default_allocator.deallocate(init_error_string, default_allocator.state);
+  }
+  if (fini_error_string) {
+    default_allocator.deallocate(fini_error_string, default_allocator.state);
+  }
+
   return RCL_RET_ERROR;
 }
 
