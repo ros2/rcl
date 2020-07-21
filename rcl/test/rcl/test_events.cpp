@@ -784,10 +784,10 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   subscription_event = rcl_get_zero_initialized_event();
-    ret = rcl_subscription_event_init(
-      &subscription_event,
-      &subscription,
-      RCL_SUBSCRIPTION_MESSAGE_LOST);
+  ret = rcl_subscription_event_init(
+    &subscription_event,
+    &subscription,
+    RCL_SUBSCRIPTION_MESSAGE_LOST);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     ret = rcl_event_fini(&subscription_event);
