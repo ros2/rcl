@@ -257,7 +257,7 @@ rcl_context_get_instance_id(rcl_context_t * context);
  *
  * \param[in] context from which the domain id should be retrieved.
  * \param[out] domain_id output variable where the domain id will be returned.
- * \return RCL_RET_INVALID_ARGUMENT if `context` is invalid, or
+ * \return RCL_RET_INVALID_ARGUMENT if `context` is invalid \ref `rcl_context_is_valid`, or
  * \return RCL_RET_INVALID_ARGUMENT if `domain_id` is `NULL`, or
  * \return RCL_RET_OK if the domain id was correctly retrieved.
  */
