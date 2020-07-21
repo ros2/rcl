@@ -783,27 +783,26 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
   rcl_ret_t ret = setup_subscriber(subscription_qos_profile);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  if (is_fastrtps) {
-    // Check not supported
-    subscription_event = rcl_get_zero_initialized_event();
+  subscription_event = rcl_get_zero_initialized_event();
     ret = rcl_subscription_event_init(
       &subscription_event,
       &subscription,
       RCL_SUBSCRIPTION_MESSAGE_LOST);
-    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
-
-    // clean up and exit test early
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
     ret = rcl_event_fini(&subscription_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  if (is_fastrtps) {
+    // Check not supported
+    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
+
+    // clean up and exit test early
     return;
   } else {
-    subscription_event = rcl_get_zero_initialized_event();
-    ret = rcl_subscription_event_init(
-      &subscription_event,
-      &subscription,
-      RCL_SUBSCRIPTION_MESSAGE_LOST);
     EXPECT_EQ(ret, RCL_RET_OK);
   }
 
@@ -814,12 +813,6 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_EQ(message_lost_status.total_count, 0u);
   EXPECT_EQ(message_lost_status.total_count_change, 0u);
-
-  // clean up
-  ret = rcl_event_fini(&subscription_event);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  ret = rcl_subscription_fini(&subscription, this->node_ptr);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 }
 
 static
