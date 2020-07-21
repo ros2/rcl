@@ -767,4 +767,6 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options_fai
 
   rcl_node_options_t default_options = rcl_node_get_default_options();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, &prev_ini_options));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&prev_ini_options.arguments));
 }
