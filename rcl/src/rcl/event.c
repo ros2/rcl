@@ -30,9 +30,9 @@ extern "C"
 #include "rmw/event.h"
 
 #include "./common.h"
+#include "./event_impl.h"
 #include "./publisher_impl.h"
 #include "./subscription_impl.h"
-#include "./event_impl.h"
 
 rcl_event_t
 rcl_get_zero_initialized_event()
