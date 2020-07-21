@@ -757,6 +757,13 @@ TEST_F(TestEventFixture, test_event_is_valid)
   rcl_reset_error();
   publisher_event_test.impl->rmw_handle.event_type = saved_event_type;
 
+  rcl_allocator_t saved_alloc = publisher_event_test.impl->allocator;
+  rcl_allocator_t bad_alloc = rcutils_get_zero_initialized_allocator();
+  publisher_event_test.impl->allocator = bad_alloc;
+  EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
+  rcl_reset_error();
+  publisher_event_test.impl->allocator = saved_alloc;
+
   ret = rcl_event_fini(&publisher_event_test);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   tear_down_publisher_subscriber();

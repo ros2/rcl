@@ -24,6 +24,7 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
+#include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
@@ -194,6 +195,8 @@ rcl_event_is_valid(const rcl_event_t * event)
     RCUTILS_SET_ERROR_MSG("event's implementation not init");
     return false;
   }
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    &event->impl->allocator, "not valid allocator", return false);
   return true;
 }
 
