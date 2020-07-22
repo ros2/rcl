@@ -2,6 +2,12 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Topic fix rcl lifecycle test issue (`#715 <https://github.com/ros2/rcl/issues/715>`_)
+* Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_)
+* Contributors: Alejandro Hernández Cordero, Barry Xu
+
 2.0.0 (2020-07-09)
 ------------------
 * Update quality declaration and coverage (`#674 <https://github.com/ros2/rcl/issues/674>`_)

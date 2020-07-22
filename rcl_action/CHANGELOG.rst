@@ -2,6 +2,12 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_)
+* Address issue 716 by zero initializing pointers and freeing memory (`#717 <https://github.com/ros2/rcl/issues/717>`_)
+* Contributors: Alejandro Hernández Cordero, brawner
+
 2.0.0 (2020-07-09)
 ------------------
 * Update quality declaration and coverage (`#674 <https://github.com/ros2/rcl/issues/674>`_)

@@ -2,6 +2,19 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add test for subscription message lost event (`#705 <https://github.com/ros2/rcl/issues/705>`_)
+* Add function rcl_event_is_valid (`#720 <https://github.com/ros2/rcl/issues/720>`_)
+* Move actual domain id from node to context (`#718 <https://github.com/ros2/rcl/issues/718>`_)
+* Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_)
+* Remove some dead code.
+* Make sure to call rcl_arguments_fini at the end of the test.
+* Add remap needed null check (`#711 <https://github.com/ros2/rcl/issues/711>`_)
+* Make public init/fini rosout publisher (`#704 <https://github.com/ros2/rcl/issues/704>`_)
+* Move rcl_remap_copy to public header (`#709 <https://github.com/ros2/rcl/issues/709>`_)
+* Contributors: Alejandro Hernández Cordero, Chris Lalancette, Ivan Santiago Paunovic, Jorge Perez
+
 2.0.0 (2020-07-09)
 ------------------
 * Implement a generic way to change logging levels (`#664 <https://github.com/ros2/rcl/issues/664>`_)
