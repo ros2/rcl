@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/** \mainpage rcl_yaml_param_parser: Parse a YAML parameter file and populate the C data structure
+/** rcl_yaml_param_parser: Parse a YAML parameter file and populate the C data structure
  *
  *  - Parser
  *  - rcl/parser.h

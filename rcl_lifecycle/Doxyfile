@@ -8,7 +8,6 @@ INPUT                  = ./include
 RECURSIVE              = YES
 OUTPUT_DIRECTORY       = doc_output
 
-EXTRACT_ALL            = YES
 SORT_MEMBER_DOCS       = NO
 
 GENERATE_LATEX         = NO

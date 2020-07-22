@@ -50,6 +50,7 @@ struct rcl_event_impl_t;
 /// Structure which encapsulates a ROS QoS event handle.
 typedef struct rcl_event_t
 {
+  /// Pointer to the event implementation
   struct rcl_event_impl_t * impl;
 } rcl_event_t;
 
