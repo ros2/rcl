@@ -8,7 +8,6 @@ INPUT                  = ./include
 RECURSIVE              = YES
 OUTPUT_DIRECTORY       = doc_output
 
-EXTRACT_ALL            = YES
 SORT_MEMBER_DOCS       = NO
 
 GENERATE_LATEX         = NO
@@ -21,7 +20,6 @@ PREDEFINED             += RCL_WARN_UNUSED=
 
 # Uncomment to generate internal documentation.
 ENABLED_SECTIONS       = INTERNAL
-INPUT                  += ./src/rcl/arguments.c
 
 # Tag files that do not exist will produce a warning and cross-project linking will not work.
 TAGFILES += "../../../../doxygen_tag_files/cppreference-doxygen-web.tag.xml=http://en.cppreference.com/w/"

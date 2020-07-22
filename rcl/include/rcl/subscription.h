@@ -34,6 +34,7 @@ struct rcl_subscription_impl_t;
 /// Structure which encapsulates a ROS Subscription.
 typedef struct rcl_subscription_t
 {
+  /// Pointer to the subscription implementation
   struct rcl_subscription_impl_t * impl;
 } rcl_subscription_t;
 
