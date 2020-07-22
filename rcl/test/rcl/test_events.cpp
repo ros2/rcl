@@ -25,11 +25,14 @@
 #include "rcl/subscription.h"
 #include "rcl/error_handling.h"
 #include "rmw/incompatible_qos_events_statuses.h"
+#include "rmw/event.h"
 
 #include "test_msgs/msg/strings.h"
 #include "rosidl_runtime_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+
+#include "./event_impl.h"
 
 using namespace std::chrono_literals;
 using std::chrono::seconds;
@@ -728,6 +731,46 @@ TEST_F(TestEventFixture, test_bad_event_ini)
 TEST_F(TestEventFixture, test_bad_get_handle)
 {
   EXPECT_EQ(NULL, rcl_event_get_rmw_handle(NULL));
+}
+
+/*
+ * Test cases for the event_is_valid function
+ */
+TEST_F(TestEventFixture, test_event_is_valid)
+{
+  EXPECT_FALSE(rcl_event_is_valid(nullptr));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  setup_publisher_subscriber(default_qos_profile, default_qos_profile);
+  rcl_event_t publisher_event_test = rcl_get_zero_initialized_event();
+  EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  rcl_ret_t ret = rcl_publisher_event_init(
+    &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_event_is_valid(&publisher_event_test));
+
+  rmw_event_type_t saved_event_type = publisher_event_test.impl->rmw_handle.event_type;
+  publisher_event_test.impl->rmw_handle.event_type = RMW_EVENT_INVALID;
+  EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  publisher_event_test.impl->rmw_handle.event_type = saved_event_type;
+
+  rcl_allocator_t saved_alloc = publisher_event_test.impl->allocator;
+  rcl_allocator_t bad_alloc = rcutils_get_zero_initialized_allocator();
+  publisher_event_test.impl->allocator = bad_alloc;
+  EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  publisher_event_test.impl->allocator = saved_alloc;
+
+  ret = rcl_event_fini(&publisher_event_test);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  tear_down_publisher_subscriber();
 }
 
 static

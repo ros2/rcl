@@ -24,20 +24,16 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
+#include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
 #include "rmw/event.h"
 
 #include "./common.h"
+#include "./event_impl.h"
 #include "./publisher_impl.h"
 #include "./subscription_impl.h"
-
-typedef struct rcl_event_impl_t
-{
-  rmw_event_t rmw_handle;
-  rcl_allocator_t allocator;
-} rcl_event_impl_t;
 
 rcl_event_t
 rcl_get_zero_initialized_event()
@@ -185,6 +181,20 @@ rcl_event_get_rmw_handle(const rcl_event_t * event)
   } else {
     return &event->impl->rmw_handle;
   }
+}
+
+bool
+rcl_event_is_valid(const rcl_event_t * event)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(event, "event pointer is invalid", return false);
+  RCL_CHECK_FOR_NULL_WITH_MSG(event->impl, "event's implementation is invalid", return false);
+  if (event->impl->rmw_handle.event_type == RMW_EVENT_INVALID) {
+    RCUTILS_SET_ERROR_MSG("event's implementation not init");
+    return false;
+  }
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    &event->impl->allocator, "not valid allocator", return false);
+  return true;
 }
 
 #ifdef __cplusplus
