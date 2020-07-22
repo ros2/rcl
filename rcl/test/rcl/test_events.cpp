@@ -773,6 +773,48 @@ TEST_F(TestEventFixture, test_event_is_valid)
   tear_down_publisher_subscriber();
 }
 
+/*
+ * Basic test subscriber event message lost
+ */
+TEST_F(TestEventFixture, test_sub_message_lost_event)
+{
+  const rmw_qos_profile_t subscription_qos_profile = default_qos_profile;
+
+  rcl_ret_t ret = setup_subscriber(subscription_qos_profile);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  subscription_event = rcl_get_zero_initialized_event();
+  ret = rcl_subscription_event_init(
+    &subscription_event,
+    &subscription,
+    RCL_SUBSCRIPTION_MESSAGE_LOST);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_event_fini(&subscription_event);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  if (is_fastrtps) {
+    // Check not supported
+    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
+
+    // clean up and exit test early
+    return;
+  } else {
+    EXPECT_EQ(ret, RCL_RET_OK);
+  }
+
+  // Can't reproduce reliably this event
+  // Test that take_event is able to read the configured event
+  rmw_message_lost_status_t message_lost_status;
+  ret = rcl_take_event(&subscription_event, &message_lost_status);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_EQ(message_lost_status.total_count, 0u);
+  EXPECT_EQ(message_lost_status.total_count_change, 0u);
+}
+
 static
 std::array<TestIncompatibleQosEventParams, 5>
 get_test_pubsub_incompatible_qos_inputs()
