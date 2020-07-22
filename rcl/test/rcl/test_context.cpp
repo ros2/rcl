@@ -87,6 +87,28 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), nominal) {
   EXPECT_NE(instance_id, 0UL) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  // test rcl_context_get_domain_id
+  size_t domain_id;
+
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_context_get_domain_id(&context, nullptr));
+  });
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_context_get_domain_id(nullptr, &domain_id));
+  });
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_context_get_domain_id(&context, &domain_id));
+  });
+
   // test rcl_context_is_valid
   bool is_valid;
   EXPECT_NO_MEMORY_OPERATIONS(

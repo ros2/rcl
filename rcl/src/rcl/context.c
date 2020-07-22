@@ -77,6 +77,17 @@ rcl_context_get_instance_id(rcl_context_t * context)
   return rcutils_atomic_load_uint64_t((atomic_uint_least64_t *)(&context->instance_id_storage));
 }
 
+rcl_ret_t
+rcl_context_get_domain_id(rcl_context_t * context, size_t * domain_id)
+{
+  if (!rcl_context_is_valid(context)) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
+  *domain_id = context->impl->rmw_context.actual_domain_id;
+  return RCL_RET_OK;
+}
+
 bool
 rcl_context_is_valid(rcl_context_t * context)
 {
