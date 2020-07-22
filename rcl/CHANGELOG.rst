@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2020-07-22)
+------------------
 * Add test for subscription message lost event (`#705 <https://github.com/ros2/rcl/issues/705>`_)
 * Add function rcl_event_is_valid (`#720 <https://github.com/ros2/rcl/issues/720>`_)
 * Move actual domain id from node to context (`#718 <https://github.com/ros2/rcl/issues/718>`_)
