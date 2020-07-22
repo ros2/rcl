@@ -659,9 +659,10 @@ rcl_lifecycle_init_default_state_machine(
 {
   rcl_ret_t ret = RCL_RET_ERROR;
   // Used for concatenating error messages in the fail: block.
-  const char * fail_error_message = "";
-  char * init_error_string = "";
-  char * fini_error_string = "";
+  // The cause or error which leads to jump to fail:
+  char * fail_error_message = NULL;
+  // The error happens in fail:
+  char * fini_error_message = NULL;
   rcl_allocator_t default_allocator;
 
   // ***************************
@@ -702,45 +703,35 @@ fail:
   default_allocator = rcl_get_default_allocator();
 
   if (rcl_error_is_set()) {
-    init_error_string = rcutils_strdup(rcl_get_error_string().str, default_allocator);
-    if (init_error_string != NULL) {
-      fail_error_message = init_error_string;
-    } else {
-      fail_error_message = "Error while duplicating strings by rcutils_strdup() !";
-    }
+    fail_error_message = rcutils_strdup(rcl_get_error_string().str, default_allocator);
     rcl_reset_error();
   }
 
   if (rcl_lifecycle_transition_map_fini(&state_machine->transition_map, allocator) != RCL_RET_OK) {
-    const char * fini_error = "";
     if (rcl_error_is_set()) {
-      fini_error_string = rcutils_strdup(rcl_get_error_string().str, default_allocator);
-      if (fini_error_string != NULL) {
-        fini_error = rcl_get_error_string().str;
-      } else {
-        fini_error = "Error while duplicating strings by rcutils_strdup() !";
-      }
+      fini_error_message = rcutils_strdup(rcl_get_error_string().str, default_allocator);
       rcl_reset_error();
     }
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Freeing transition map failed while handling a previous error. Leaking memory!"
       "\nOriginal error:\n\t%s\nError encountered in rcl_lifecycle_transition_map_fini():\n\t%s\n",
-      fail_error_message, fini_error);
+      fail_error_message != NULL ?
+      fail_error_message : "Failed to duplicate error while init state machine !",
+      fini_error_message != NULL ?
+      fini_error_message : "Failed to duplicate error while fini transition map !");
   }
 
   if (!rcl_error_is_set()) {
-    if (strlen(fail_error_message) == 0) {
-      RCL_SET_ERROR_MSG("Unspecified error in rcl_lifecycle_init_default_state_machine() !");
-    } else {
-      RCL_SET_ERROR_MSG(fail_error_message);
-    }
+    RCL_SET_ERROR_MSG(
+      (fail_error_message != NULL) ?
+      fail_error_message : "Unspecified error in rcl_lifecycle_init_default_state_machine() !");
   }
 
-  if (init_error_string) {
-    default_allocator.deallocate(init_error_string, default_allocator.state);
+  if (fail_error_message != NULL) {
+    default_allocator.deallocate(fail_error_message, default_allocator.state);
   }
-  if (fini_error_string) {
-    default_allocator.deallocate(fini_error_string, default_allocator.state);
+  if (fini_error_message != NULL) {
+    default_allocator.deallocate(fini_error_message, default_allocator.state);
   }
 
   return RCL_RET_ERROR;
