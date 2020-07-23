@@ -32,9 +32,6 @@ extern "C"
 
 #include "rcl/rmw_implementation_identifier_check.h"
 
-#define RMW_IMPLEMENTATION_ENV_VAR_NAME "RMW_IMPLEMENTATION"
-#define RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME "RCL_ASSERT_RMW_ID_MATCHES"
-
 // Extracted this portable method of doing a "shared library constructor" from SO:
 //   http://stackoverflow.com/a/2390626/671658
 // Initializer/finalizer sample for MSVC and GCC/Clang.

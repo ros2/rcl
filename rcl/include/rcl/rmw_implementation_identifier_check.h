@@ -22,6 +22,9 @@ extern "C"
 
 #include "rcl/visibility_control.h"
 
+#define RMW_IMPLEMENTATION_ENV_VAR_NAME "RMW_IMPLEMENTATION"
+#define RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME "RCL_ASSERT_RMW_ID_MATCHES"
+
 RCL_PUBLIC
 rcl_ret_t rcl_rmw_implementation_check(void);
 
