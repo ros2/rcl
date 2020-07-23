@@ -30,6 +30,8 @@ extern "C"
 
 #include "rcl/types.h"
 
+#include "rcl/rmw_implementation_identifier_check.h"
+
 #define RMW_IMPLEMENTATION_ENV_VAR_NAME "RMW_IMPLEMENTATION"
 #define RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME "RCL_ASSERT_RMW_ID_MATCHES"
 
@@ -55,7 +57,7 @@ extern "C"
   static void f(void)
 #endif
 
-rcl_ret_t _internal_rmw_check(void)
+rcl_ret_t rcl_rmw_implementation_check(void)
 {
   // If the environment variable RMW_IMPLEMENTATION is set, or
   // the environment variable RCL_ASSERT_RMW_ID_MATCHES is set,
@@ -160,8 +162,8 @@ rcl_ret_t _internal_rmw_check(void)
 }
 
 INITIALIZER(initialize) {
-  rcl_ret_t check_status = _internal_rmw_check();
-  if (check_status != RCL_RET_OK) {exit(check_status);}
+  rcl_ret_t ret = rcl_rmw_implementation_check();
+  if (ret != RCL_RET_OK) {exit(ret);}
 }
 
 #ifdef __cplusplus
