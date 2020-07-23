@@ -163,7 +163,9 @@ rcl_ret_t rcl_rmw_implementation_check(void)
 
 INITIALIZER(initialize) {
   rcl_ret_t ret = rcl_rmw_implementation_check();
-  if (ret != RCL_RET_OK) {exit(ret);}
+  if (ret != RCL_RET_OK) {
+    exit(ret);
+  }
 }
 
 #ifdef __cplusplus
