@@ -66,8 +66,7 @@ rcl_ret_t rcl_rmw_implementation_check(void)
     RMW_IMPLEMENTATION_ENV_VAR_NAME,
     &expected_rmw_impl_env);
   if (NULL != get_env_error_str) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Error getting env var '" RCUTILS_STRINGIFY(RMW_IMPLEMENTATION_ENV_VAR_NAME) "': %s\n",
       get_env_error_str);
     return RCL_RET_ERROR;
@@ -76,7 +75,7 @@ rcl_ret_t rcl_rmw_implementation_check(void)
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
     expected_rmw_impl = rcutils_strdup(expected_rmw_impl_env, allocator);
     if (!expected_rmw_impl) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "allocation failed");
+      RCL_SET_ERROR_MSG("allocation failed");
       return RCL_RET_BAD_ALLOC;
     }
   }
@@ -86,8 +85,7 @@ rcl_ret_t rcl_rmw_implementation_check(void)
   get_env_error_str = rcutils_get_env(
     RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, &asserted_rmw_impl_env);
   if (NULL != get_env_error_str) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Error getting env var '"
       RCUTILS_STRINGIFY(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME) "': %s\n",
       get_env_error_str);
@@ -97,15 +95,14 @@ rcl_ret_t rcl_rmw_implementation_check(void)
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
     asserted_rmw_impl = rcutils_strdup(asserted_rmw_impl_env, allocator);
     if (!asserted_rmw_impl) {
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "allocation failed");
+      RCL_SET_ERROR_MSG("allocation failed");
       return RCL_RET_BAD_ALLOC;
     }
   }
 
   // If both environment variables are set, and they do not match, print an error and exit.
   if (expected_rmw_impl && asserted_rmw_impl && strcmp(expected_rmw_impl, asserted_rmw_impl) != 0) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Values of RMW_IMPLEMENTATION ('%s') and RCL_ASSERT_RMW_ID_MATCHES ('%s') environment "
       "variables do not match, exiting with %d.",
       expected_rmw_impl, asserted_rmw_impl, RCL_RET_ERROR
@@ -131,20 +128,17 @@ rcl_ret_t rcl_rmw_implementation_check(void)
   if (expected_rmw_impl) {
     const char * actual_rmw_impl_id = rmw_get_implementation_identifier();
     if (!actual_rmw_impl_id) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME,
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Error getting RMW implementation identifier / RMW implementation not installed "
         "(expected identifier of '%s'), with error message '%s', exiting with %d.",
         expected_rmw_impl,
         rcl_get_error_string().str,
         RCL_RET_ERROR
       );
-      rcl_reset_error();
       return RCL_RET_ERROR;
     }
     if (strcmp(actual_rmw_impl_id, expected_rmw_impl) != 0) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME,
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Expected RMW implementation identifier of '%s' but instead found '%s', exiting with %d.",
         expected_rmw_impl,
         actual_rmw_impl_id,
@@ -161,6 +155,7 @@ rcl_ret_t rcl_rmw_implementation_check(void)
 INITIALIZER(initialize) {
   rcl_ret_t ret = rcl_rmw_implementation_check();
   if (ret != RCL_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, rcl_get_error_string().str);
     exit(ret);
   }
 }
