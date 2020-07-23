@@ -726,14 +726,6 @@ TEST_F(TestEventFixture, test_bad_event_ini)
 }
 
 /*
- * Passing bad argument to get_rmw_handle
- */
-TEST_F(TestEventFixture, test_bad_get_handle)
-{
-  EXPECT_EQ(NULL, rcl_event_get_rmw_handle(NULL));
-}
-
-/*
  * Test cases for the event_is_valid function
  */
 TEST_F(TestEventFixture, test_event_is_valid)
@@ -771,6 +763,21 @@ TEST_F(TestEventFixture, test_event_is_valid)
   ret = rcl_event_fini(&publisher_event_test);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   tear_down_publisher_subscriber();
+}
+
+/*
+ * Test passing not init to take_event/get_handle
+ */
+TEST_F(TestEventFixture, test_invalid_to_take_event){
+  // nullptr
+  rmw_offered_deadline_missed_status_t deadline_status;
+  EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(NULL, &deadline_status));
+  EXPECT_EQ(NULL, rcl_event_get_rmw_handle(NULL));
+
+  // Zero Init, invalid
+  rcl_event_t publisher_event_test = rcl_get_zero_initialized_event();
+  EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(&publisher_event_test, &deadline_status));
+  EXPECT_EQ(NULL, rcl_event_get_rmw_handle(&publisher_event_test));
 }
 
 /*
