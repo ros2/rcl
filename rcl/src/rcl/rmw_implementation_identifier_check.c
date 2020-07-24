@@ -155,7 +155,7 @@ rcl_ret_t rcl_rmw_implementation_check(void)
 INITIALIZER(initialize) {
   rcl_ret_t ret = rcl_rmw_implementation_check();
   if (ret != RCL_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, rcl_get_error_string().str);
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "%s\n", rcl_get_error_string().str);
     exit(ret);
   }
 }
