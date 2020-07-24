@@ -765,7 +765,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_mock_map_fin
   /* Mock the rcl_get_default_topic_name_substitutions_mock function in the current module using
      the `rcl_get_default_topic_name_substitutions_mock_mock` blueprint. */
   mmk_mock(
-    "rcl_get_default_topic_name_substitutions@lib:rcl",
+    RCUTILS_STRINGIFY(rcl_get_default_topic_name_substitutions) "@lib:rcl",
     rcl_get_default_topic_name_substitutions_mock);
 
   /* Tell the mock to return RCUTILS_RET_ERROR (unknown error)
