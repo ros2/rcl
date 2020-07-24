@@ -137,8 +137,9 @@ rcl_take_event(
   void * event_info)
 {
   bool taken = false;
-  RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_EVENT_INVALID);
-  // if (!rcl_event_is_valid(event). RCL_RET_EVENT_INVALID);
+  if (!rcl_event_is_valid(event)) {
+    return RCL_RET_EVENT_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(event_info, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t ret = rmw_take_event(&event->impl->rmw_handle, event_info, &taken);
   if (RMW_RET_OK != ret) {
@@ -180,8 +181,7 @@ rcl_event_fini(rcl_event_t * event)
 rmw_event_t *
 rcl_event_get_rmw_handle(const rcl_event_t * event)
 {
-  // if (!rcl_event_is_valid(event)) {
-  if (NULL == event) {
+  if (!rcl_event_is_valid(event)) {
     return NULL;  // error already set
   } else {
     return &event->impl->rmw_handle;

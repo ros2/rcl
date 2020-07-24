@@ -768,7 +768,7 @@ TEST_F(TestEventFixture, test_event_is_valid)
 /*
  * Test passing not init to take_event/get_handle
  */
-TEST_F(TestEventFixture, test_invalid_to_take_event){
+TEST_F(TestEventFixture, test_invalid_to_take_event) {
   // nullptr
   rmw_offered_deadline_missed_status_t deadline_status;
   EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(NULL, &deadline_status));
