@@ -21,7 +21,7 @@
 #include "rcl/rmw_implementation_identifier_check.h"
 
 TEST(TestRmwCheck, test_rmw_check_id_impl) {
-  EXPECT_EQ(RCL_RET_OK, rcl_rmw_implementation_check());
+  EXPECT_EQ(RCL_RET_OK, rcl_rmw_implementation_identifier_check());
 }
 
 TEST(TestRmwCheck, test_failing_configuration) {
@@ -39,28 +39,28 @@ TEST(TestRmwCheck, test_failing_configuration) {
   // Fail test case, reason: RMW_IMPLEMENTATION_ENV_VAR_NAME set, not matching rmw impl
   EXPECT_TRUE(rcutils_set_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, "some_random_name"));
   EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, ""));
-  EXPECT_EQ(RCL_RET_MISMATCHED_RMW_ID, rcl_rmw_implementation_check());
+  EXPECT_EQ(RCL_RET_MISMATCHED_RMW_ID, rcl_rmw_implementation_identifier_check());
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Fail test case, reason: RMW_IMPLEMENTATION_ENV_VAR_NAME set, not matching rmw impl
   EXPECT_TRUE(rcutils_set_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, ""));
   EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, "some_random_name"));
-  EXPECT_EQ(RCL_RET_MISMATCHED_RMW_ID, rcl_rmw_implementation_check());
+  EXPECT_EQ(RCL_RET_MISMATCHED_RMW_ID, rcl_rmw_implementation_identifier_check());
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Fail test case, reason: env variables not equal
   EXPECT_TRUE(rcutils_set_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, "some_random_name"));
   EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, "diff_random"));
-  EXPECT_EQ(RCL_RET_ERROR, rcl_rmw_implementation_check());
+  EXPECT_EQ(RCL_RET_ERROR, rcl_rmw_implementation_identifier_check());
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   // Fail test case, reason: equal env variables do not match rmw impl
   EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, "some_random_name"));
   EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, "some_random_name"));
-  EXPECT_EQ(RCL_RET_MISMATCHED_RMW_ID, rcl_rmw_implementation_check());
+  EXPECT_EQ(RCL_RET_MISMATCHED_RMW_ID, rcl_rmw_implementation_identifier_check());
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 

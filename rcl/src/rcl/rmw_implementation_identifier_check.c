@@ -54,7 +54,7 @@ extern "C"
   static void f(void)
 #endif
 
-rcl_ret_t rcl_rmw_implementation_check(void)
+rcl_ret_t rcl_rmw_implementation_identifier_check(void)
 {
   // If the environment variable RMW_IMPLEMENTATION is set, or
   // the environment variable RCL_ASSERT_RMW_ID_MATCHES is set,
@@ -153,7 +153,7 @@ rcl_ret_t rcl_rmw_implementation_check(void)
 }
 
 INITIALIZER(initialize) {
-  rcl_ret_t ret = rcl_rmw_implementation_check();
+  rcl_ret_t ret = rcl_rmw_implementation_identifier_check();
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "%s\n", rcl_get_error_string().str);
     exit(ret);

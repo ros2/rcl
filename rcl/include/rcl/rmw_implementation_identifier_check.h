@@ -26,7 +26,7 @@ extern "C"
 #define RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME "RCL_ASSERT_RMW_ID_MATCHES"
 
 RCL_PUBLIC
-rcl_ret_t rcl_rmw_implementation_check(void);
+rcl_ret_t rcl_rmw_implementation_identifier_check(void);
 
 #ifdef __cplusplus
 }
