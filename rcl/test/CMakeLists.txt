@@ -279,6 +279,14 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
+  rcl_add_custom_gtest(test_rmw_impl_id_check_func${target_suffix}
+    SRCS rcl/test_rmw_impl_id_check_func.cpp
+    ENV ${rmw_implementation_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME}
+    AMENT_DEPENDENCIES ${rmw_implementation}
+  )
+
   # Launch tests
 
   rcl_add_custom_executable(service_fixture${target_suffix}
