@@ -127,12 +127,14 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
   // If either environment variable is set, and it does not match, print an error and exit.
   if (expected_rmw_impl) {
     const char * actual_rmw_impl_id = rmw_get_implementation_identifier();
+    const rcutils_error_string_t rmw_error_msg = rcl_get_error_string();
+    rcl_reset_error();
     if (!actual_rmw_impl_id) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Error getting RMW implementation identifier / RMW implementation not installed "
         "(expected identifier of '%s'), with error message '%s', exiting with %d.",
         expected_rmw_impl,
-        rcl_get_error_string().str,
+        rmw_error_msg.str,
         RCL_RET_ERROR
       );
       return RCL_RET_ERROR;
