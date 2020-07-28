@@ -24,6 +24,7 @@
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
+#include "rcutils/testing/fault_injection.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
@@ -592,4 +593,76 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_get_client_names_and_types_b
 
   ret = rcl_names_and_types_fini(&nat);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
+TEST_F(TestActionGraphMultiNodeFixture, get_names_and_types_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
+    rcl_ret_t ret = rcl_action_get_names_and_types(&this->node, &this->allocator, &nat);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_names_and_types_fini(&nat);
+      if (ret != RCL_RET_OK) {
+        EXPECT_TRUE(rcutils_error_is_set());
+        rcutils_reset_error();
+      }
+    }
+  });
+}
+
+TEST_F(TestActionGraphMultiNodeFixture, action_client_init_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    const rosidl_action_type_support_t * action_typesupport = ROSIDL_GET_ACTION_TYPE_SUPPORT(
+      test_msgs, Fibonacci);
+
+    rcl_action_client_t action_client = rcl_action_get_zero_initialized_client();
+    rcl_action_client_options_t action_client_options = rcl_action_client_get_default_options();
+    rcl_ret_t ret = rcl_action_client_init(
+      &action_client,
+      &this->remote_node,
+      action_typesupport,
+      this->action_name,
+      &action_client_options);
+
+    if (RCL_RET_OK == ret) {
+      ret = rcl_action_client_fini(&action_client, &this->remote_node);
+    }
+  });
+}
+
+TEST_F(TestActionGraphMultiNodeFixture, rcl_get_client_names_and_types_by_node_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
+    rcl_ret_t ret = rcl_action_get_client_names_and_types_by_node(
+      &this->node, &this->allocator, this->test_graph_node_name, "", &nat);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_names_and_types_fini(&nat);
+      if (ret != RCL_RET_OK) {
+        EXPECT_TRUE(rcutils_error_is_set());
+        rcutils_reset_error();
+      }
+    }
+  });
+}
+
+TEST_F(TestActionGraphMultiNodeFixture, rcl_get_server_names_and_types_by_node_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
+    rcl_ret_t ret = rcl_action_get_server_names_and_types_by_node(
+      &this->node, &this->allocator, this->test_graph_node_name, "", &nat);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_names_and_types_fini(&nat);
+      if (ret != RCL_RET_OK) {
+        EXPECT_TRUE(rcutils_error_is_set());
+        rcutils_reset_error();
+      }
+    }
+  });
 }
