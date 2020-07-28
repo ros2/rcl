@@ -28,6 +28,7 @@
 #include "rcl/rcl.h"
 
 #include "rcutils/logging_macros.h"
+#include "rcutils/testing/fault_injection.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/default_state_machine.h"
@@ -832,4 +833,17 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_unresolved) {
       RCL_RET_OK,
       rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr, this->allocator));
   }
+}
+
+TEST_F(TestDefaultStateMachine, init_fini_maybe_fail) {
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    // If this in zero initialized outside of this loop, there is potential for a segfault
+    // when attempting to init a second time
+    rcl_lifecycle_state_machine_t sm = rcl_lifecycle_get_zero_initialized_state_machine();
+    rcl_ret_t ret = rcl_lifecycle_init_default_state_machine(&sm, this->allocator);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_lifecycle_state_machine_fini(&sm, this->node_ptr, this->allocator);
+    }
+  });
 }
