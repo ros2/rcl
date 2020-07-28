@@ -29,13 +29,12 @@ rcl_node_get_default_options()
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   rcl_node_options_t default_options = {
+    .allocator = rcl_get_default_allocator(),
     .use_global_arguments = true,
+    .arguments = rcl_get_zero_initialized_arguments(),
     .enable_rosout = true,
     .rosout_qos = rcl_qos_profile_rosout_default,
   };
-  // Must set the allocator after because it is not a compile time constant.
-  default_options.allocator = rcl_get_default_allocator();
-  default_options.arguments = rcl_get_zero_initialized_arguments();
   return default_options;
 }
 
