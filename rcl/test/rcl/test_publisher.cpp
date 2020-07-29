@@ -25,6 +25,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
+#include "./mimick.h"
 #include "./publisher_impl.h"
 
 #ifdef RMW_IMPLEMENTATION
@@ -489,4 +490,48 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
     RCL_RET_PUBLISHER_INVALID,
     rcl_publish_serialized_message(nullptr, &serialized_msg, nullptr));
   rcl_reset_error();
+}
+
+//  rmw_publisher_count_matched_subscriptions signature:
+//  rmw_ret_t rmw_publisher_count_matched_subscriptions (
+//  const rmw_publisher_t *publisher, size_t *subscription_count)
+mmk_mock_define(
+  rmw_publisher_count_matched_subscriptions,
+  rmw_ret_t,
+  const rmw_publisher_t *,
+  size_t *);
+
+// Mocking test example
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_count) {
+  mmk_mock(
+    RCUTILS_STRINGIFY(rmw_publisher_count_matched_subscriptions) "@lib:rmw",
+    rmw_publisher_count_matched_subscriptions_mock);
+
+  mmk_when(
+    rmw_publisher_count_matched_subscriptions(mmk_any(const rmw_publisher_t *), mmk_any(size_t *)),
+    .then_return = mmk_val(rmw_ret_t, RMW_RET_BAD_ALLOC));
+
+  // Now normal usage of the function rcl_publisher_get_subscription_count returning
+  // unexpected RMW_RET_BAD_ALLOC
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic_name = "chatter";
+  const char * expected_topic_name = "/chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  size_t count_size;
+    EXPECT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  rcl_reset_error();
+
+  mmk_reset(rmw_publisher_count_matched_subscriptions);
 }
