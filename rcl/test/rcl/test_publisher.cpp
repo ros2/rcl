@@ -504,8 +504,7 @@ mmk_mock_define(
 // Mocking test example
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_count) {
   mmk_mock(
-    // RCUTILS_STRINGIFY(rmw_publisher_count_matched_subscriptions) "@lib:rmw",
-    "rmw_publisher_count_ma@lib:rmw",
+    RCUTILS_STRINGIFY(rmw_publisher_count_matched_subscriptions) "@lib:rcl",
     rmw_publisher_count_matched_subscriptions_mock);
 
   mmk_when(
