@@ -498,7 +498,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
 mmk_mock_define(
   rmw_publisher_count_matched_subscriptions,
   rmw_ret_t,
-  const rmw_publisher_t *,
+  rmw_publisher_t *,
   size_t *);
 
 // Mocking test example
@@ -508,7 +508,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
     rmw_publisher_count_matched_subscriptions_mock);
 
   mmk_when(
-    rmw_publisher_count_matched_subscriptions(mmk_any(const rmw_publisher_t *), mmk_any(size_t *)),
+    rmw_publisher_count_matched_subscriptions(mmk_any(rmw_publisher_t *), mmk_any(size_t *)),
     .then_return = mmk_val(rmw_ret_t, RMW_RET_BAD_ALLOC));
 
   // Now normal usage of the function rcl_publisher_get_subscription_count returning
