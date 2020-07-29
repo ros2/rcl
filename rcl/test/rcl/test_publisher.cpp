@@ -496,7 +496,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
 //  rmw_ret_t rmw_publisher_count_matched_subscriptions (
 //  const rmw_publisher_t *publisher, size_t *subscription_count)
 mmk_mock_define(
-  rmw_publisher_count_matched_subscriptions,
+  rmw_publisher_count_matched_subscriptions_mock,
   rmw_ret_t,
   rmw_publisher_t *,
   size_t *);
