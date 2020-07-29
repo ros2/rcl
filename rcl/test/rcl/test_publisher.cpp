@@ -504,7 +504,8 @@ mmk_mock_define(
 // Mocking test example
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_count) {
   mmk_mock(
-    RCUTILS_STRINGIFY(rmw_publisher_count_matched_subscriptions) "@lib:rmw",
+    // RCUTILS_STRINGIFY(rmw_publisher_count_matched_subscriptions) "@lib:rmw",
+    "rmw_publisher_count_ma@lib:rmw",
     rmw_publisher_count_matched_subscriptions_mock);
 
   mmk_when(
@@ -528,7 +529,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
   });
 
   size_t count_size;
-    EXPECT_EQ(
+  EXPECT_EQ(
     RCL_RET_BAD_ALLOC, rcl_publisher_get_subscription_count(&publisher, &count_size));
   rcl_reset_error();
 
