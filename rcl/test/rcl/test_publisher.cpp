@@ -77,6 +77,34 @@ public:
   }
 };
 
+class CLASSNAME (TestPublisherFixtureInit, RMW_IMPLEMENTATION)
+  : public CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION)
+{
+public:
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic_name = "chatter";
+  rcl_ret_t ret;
+  rcl_publisher_t publisher;
+  rcl_publisher_options_t publisher_options;
+
+  void SetUp() override
+  {
+    CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION) ::SetUp();
+    publisher = rcl_get_zero_initialized_publisher();
+    publisher_options = rcl_publisher_get_default_options();
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  void TearDown() override
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION) ::TearDown();
+  }
+};
+
 /* Basic nominal test of a publisher.
  */
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nominal) {
@@ -503,7 +531,7 @@ mmk_mock_define(
 
 // Mocking rmw_publisher_count_matched_subscriptions to make
 // rcl_publisher_get_subscription_count fail
-TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_count) {
+TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publisher_count) {
   mmk_mock(
     RCUTILS_STRINGIFY(rmw_publisher_count_matched_subscriptions) "@lib:rcl",
     rmw_publisher_count_matched_subscriptions_mock);
@@ -514,20 +542,6 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
 
   // Now normal usage of the function rcl_publisher_get_subscription_count returning
   // unexpected RMW_RET_BAD_ALLOC
-  rcl_ret_t ret;
-  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic_name = "chatter";
-  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-
   size_t count_size;
   EXPECT_EQ(
     RCL_RET_BAD_ALLOC, rcl_publisher_get_subscription_count(&publisher, &count_size));
@@ -545,7 +559,7 @@ mmk_mock_define(
 
 // Mocking rmw_publisher_assert_liveliness to make
 // rcl_publisher_assert_liveliness fail
-TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_assert_liveliness) {
+TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_assert_liveliness) {
   mmk_mock(
     RCUTILS_STRINGIFY(rmw_publisher_assert_liveliness) "@lib:rcl",
     rmw_publisher_assert_liveliness_mock);
@@ -556,20 +570,6 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_assert_liv
 
   // Now normal usage of the function rcl_publisher_assert_liveliness returning
   // unexpected RMW_RET_ERROR
-  rcl_ret_t ret;
-  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic_name = "chatter";
-  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-
   EXPECT_EQ(
     RCL_RET_ERROR, rcl_publisher_assert_liveliness(&publisher));
   EXPECT_TRUE(rcl_error_is_set());
