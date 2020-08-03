@@ -25,7 +25,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
-#include "./mimick.h"
+#include "mimick/mimick.h"
 #include "./publisher_impl.h"
 
 #ifdef RMW_IMPLEMENTATION
