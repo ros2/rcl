@@ -577,3 +577,39 @@ TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_assert
 
   mmk_reset(rmw_publisher_assert_liveliness);
 }
+
+//  rmw_publish signature:
+//  rmw_ret_t rmw_publish(
+//    const rmw_publisher_t *publisher,
+//    const void * ros_message,
+//    rmw_publisher_allocation_t * allocation)
+mmk_mock_define(
+  rmw_publish_mock,
+  rmw_ret_t,
+  rmw_publisher_t *,
+  void *,
+  rmw_publisher_allocation_t *);
+
+// Mocking rmw_publish to make rcl_publish fail
+TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publish) {
+  mmk_mock(
+    RCUTILS_STRINGIFY(rmw_publish) "@lib:rcl",
+    rmw_publish_mock);
+
+  mmk_when(
+    rmw_publish(
+      mmk_any(rmw_publisher_t *), mmk_any(void *), mmk_any(rmw_publisher_allocation_t *)),
+    .then_return = mmk_val(rmw_ret_t, RMW_RET_ERROR));
+
+  // Test normal usage of the function rcl_publish returning unexpected RMW_RET_ERROR
+  test_msgs__msg__BasicTypes msg;
+  test_msgs__msg__BasicTypes__init(&msg);
+  msg.int64_value = 42;
+  ret = rcl_publish(&publisher, &msg, nullptr);
+  test_msgs__msg__BasicTypes__fini(&msg);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  mmk_reset(rmw_publish);
+}
