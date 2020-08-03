@@ -613,3 +613,69 @@ TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publis
 
   mmk_reset(rmw_publish);
 }
+
+//  rmw_publish_serialized_message signature:
+//  rmw_ret_t rmw_publish_serialized_message(
+//    const rmw_publisher_t *publisher,
+//    const rmw_serialized_message_t * ros_message,
+//    rmw_publisher_allocation_t * allocation)
+mmk_mock_define(
+  rmw_publish_serialized_message_mock,
+  rmw_ret_t,
+  rmw_publisher_t *,
+  rmw_serialized_message_t *,
+  rmw_publisher_allocation_t *);
+
+// Mocking rmw_publish_serialized_message to make rcl_publish_serialized_message fail
+TEST_F(
+  CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publish_serialized_message)
+{
+  mmk_mock(
+    RCUTILS_STRINGIFY(rmw_publish_serialized_message) "@lib:rcl",
+    rmw_publish_serialized_message_mock);
+
+  mmk_when(
+    rmw_publish_serialized_message(
+      mmk_any(rmw_publisher_t *),
+      mmk_any(rmw_serialized_message_t *),
+      mmk_any(rmw_publisher_allocation_t *)),
+    .then_return = mmk_val(rmw_ret_t, RMW_RET_ERROR));
+
+  // Test normal usage of the function rcl_publish_serialized_message
+  // returning unexpected RMW_RET_ERROR
+  rcl_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
+  size_t initial_capacity_ser = 0u;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ASSERT_EQ(
+    RCL_RET_OK, rmw_serialized_message_init(
+      &serialized_msg, initial_capacity_ser, &allocator)) << rcl_get_error_string().str;
+  const char * test_string = "testing";
+  test_msgs__msg__Strings msg;
+  test_msgs__msg__Strings__init(&msg);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    test_msgs__msg__Strings__fini(&msg);
+  });
+  ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+  ASSERT_STREQ(msg.string_value.data, test_string);
+  ret = rmw_serialize(&msg, ts, &serialized_msg);
+  ASSERT_EQ(RMW_RET_OK, ret);
+  ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  // Repeat, but now returning BAD_ALLOC
+  mmk_when(
+    rmw_publish_serialized_message(
+      mmk_any(rmw_publisher_t *),
+      mmk_any(rmw_serialized_message_t *),
+      mmk_any(rmw_publisher_allocation_t *)),
+    .then_return = mmk_val(rmw_ret_t, RMW_RET_BAD_ALLOC));
+  ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  mmk_reset(rmw_publish_serialized_message);
+}
