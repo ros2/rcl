@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.7 (2020-08-03)
+------------------
+* Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_) (`#724 <https://github.com/ros2/rcl/issues/724>`_)
+* Set domain id to 0 if it is RMW_DEFAULT_DOMAIN_ID (`#719 <https://github.com/ros2/rcl/issues/719>`_)
+* Contributors: Alejandro Hernández Cordero, Ivan Santiago Paunovic
+
 1.1.6 (2020-07-07)
 ------------------
 * Keep domain id if ROS_DOMAIN_ID is invalid (`#689 <https://github.com/ros2/rcl/issues/689>`_) (`#694 <https://github.com/ros2/rcl/issues/694>`_)
