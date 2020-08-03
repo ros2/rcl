@@ -535,3 +535,45 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
 
   mmk_reset(rmw_publisher_count_matched_subscriptions);
 }
+
+//  rmw_publisher_assert_liveliness signature:
+//  rmw_ret_t rmw_publisher_assert_liveliness(const rmw_publisher_t *publisher)
+mmk_mock_define(
+  rmw_publisher_assert_liveliness_mock,
+  rmw_ret_t,
+  rmw_publisher_t *);
+
+// Mocking rmw_publisher_assert_liveliness to make
+// rcl_publisher_assert_liveliness fail
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_assert_liveliness) {
+  mmk_mock(
+    RCUTILS_STRINGIFY(rmw_publisher_assert_liveliness) "@lib:rcl",
+    rmw_publisher_assert_liveliness_mock);
+
+  mmk_when(
+    rmw_publisher_assert_liveliness(mmk_any(rmw_publisher_t *)),
+    .then_return = mmk_val(rmw_ret_t, RMW_RET_ERROR));
+
+  // Now normal usage of the function rcl_publisher_assert_liveliness returning
+  // unexpected RMW_RET_ERROR
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic_name = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  EXPECT_EQ(
+    RCL_RET_ERROR, rcl_publisher_assert_liveliness(&publisher));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  mmk_reset(rmw_publisher_assert_liveliness);
+}
