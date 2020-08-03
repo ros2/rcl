@@ -501,7 +501,8 @@ mmk_mock_define(
   rmw_publisher_t *,
   size_t *);
 
-// Mocking test example
+// Mocking rmw_publisher_count_matched_subscriptions to make
+// rcl_publisher_get_subscription_count fail
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_count) {
   mmk_mock(
     RCUTILS_STRINGIFY(rmw_publisher_count_matched_subscriptions) "@lib:rcl",
