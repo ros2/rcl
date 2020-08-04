@@ -679,3 +679,65 @@ TEST_F(
 
   mmk_reset(rmw_publish_serialized_message);
 }
+
+/*
+//  rcutils_string_map_init signature:
+//  rcutils_ret_t rcutils_string_map_init(
+//    rcutils_string_map_t * string_map,
+//    size_t initial_capacity,
+//    rcutils_allocator_t allocator);
+mmk_mock_define(
+  rcutils_string_map_init_mock,
+  rcutils_ret_t,
+  rcutils_string_map_t *,
+  size_t,
+  rcutils_allocator_t);
+
+rcutils_ret_t mocked_rcutils_string_map_init(
+  rcutils_string_map_t * string_map,
+  size_t initial_capacity,
+  rcutils_allocator_t allocator)
+{
+  (void) errnum;
+  (void) initial_capacity;
+  string_map = nullptr;
+  return RCL_RET_OK;
+}
+
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rcutils_string_map_init) {
+  mmk_mock(
+    RCUTILS_STRINGIFY(rcutils_string_map_init) "@lib:rcl",
+    rcutils_string_map_init_mock);
+
+  mmk_when(
+    rcutils_string_map_init(
+      mmk_any(rcutils_string_map_t *),
+      mmk_any(size_t),
+      mmk_any(rcutils_allocator_t)),
+    .then_return = mmk_val(rmw_ret_t, RCL_RET_ERROR));
+
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  const char * topic_name = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_ret_t ret =
+    rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Mock the function to return RCL_RET_OK, but actually setting the string map to null
+  mmk_when(
+    rcutils_string_map_init(
+      mmk_any(rcutils_string_map_t *),
+      mmk_any(size_t),
+      mmk_any(rcutils_allocator_t)),
+    .then_call = (mmk_fn) mocked_rcutils_string_map_init)
+
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  mmk_reset(rcutils_string_map_init);
+}
+*/
