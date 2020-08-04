@@ -26,6 +26,7 @@
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rcl/logging_rosout.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -38,6 +39,28 @@ using osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc;
 using osrf_testing_tools_cpp::memory_tools::on_unexpected_realloc;
 using osrf_testing_tools_cpp::memory_tools::on_unexpected_calloc;
 using osrf_testing_tools_cpp::memory_tools::on_unexpected_free;
+
+bool operator==(
+  const rmw_time_t & lhs,
+  const rmw_time_t & rhs)
+{
+  return lhs.sec == rhs.sec && lhs.nsec == rhs.nsec;
+}
+
+bool operator==(
+  const rmw_qos_profile_t & lhs,
+  const rmw_qos_profile_t & rhs)
+{
+  return lhs.history == rhs.history &&
+         lhs.depth == rhs.depth &&
+         lhs.reliability == rhs.reliability &&
+         lhs.durability == rhs.durability &&
+         lhs.deadline == rhs.deadline &&
+         lhs.lifespan == rhs.lifespan &&
+         lhs.liveliness == rhs.liveliness &&
+         lhs.liveliness_lease_duration == rhs.liveliness_lease_duration &&
+         lhs.avoid_ros_namespace_conventions == rhs.avoid_ros_namespace_conventions;
+}
 
 class CLASSNAME (TestNodeFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
@@ -723,9 +746,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_names) {
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
   rcl_node_options_t default_options = rcl_node_get_default_options();
   rcl_node_options_t not_ini_options = rcl_node_get_default_options();
+  memset(&not_ini_options.rosout_qos, 0, sizeof(rmw_qos_profile_t));
 
   EXPECT_TRUE(default_options.use_global_arguments);
   EXPECT_TRUE(default_options.enable_rosout);
+  EXPECT_EQ(rcl_qos_profile_rosout_default, default_options.rosout_qos);
   EXPECT_TRUE(rcutils_allocator_is_valid(&(default_options.allocator)));
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(nullptr, &default_options));
@@ -740,9 +765,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
     rcl_parse_arguments(argc, argv, default_options.allocator, &(default_options.arguments)));
   default_options.use_global_arguments = false;
   default_options.enable_rosout = false;
+  default_options.rosout_qos = rmw_qos_profile_default;
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
   EXPECT_FALSE(not_ini_options.use_global_arguments);
   EXPECT_FALSE(not_ini_options.enable_rosout);
+  EXPECT_EQ(default_options.rosout_qos, not_ini_options.rosout_qos);
   EXPECT_EQ(
     rcl_arguments_get_count_unparsed(&(default_options.arguments)),
     rcl_arguments_get_count_unparsed(&(not_ini_options.arguments)));

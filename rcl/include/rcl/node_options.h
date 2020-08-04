@@ -49,17 +49,20 @@ typedef struct rcl_node_options_t
 
   /// Flag to enable rosout for this node
   bool enable_rosout;
+
+  /// Middleware quality of service settings for /rosout.
+  rmw_qos_profile_t rosout_qos;
 } rcl_node_options_t;
 
 /// Return the default node options in a rcl_node_options_t.
 /**
  * The default values are:
  *
- * - domain_id = RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID
  * - allocator = rcl_get_default_allocator()
  * - use_global_arguments = true
  * - enable_rosout = true
  * - arguments = rcl_get_zero_initialized_arguments()
+ * - rosout_qos = rcl_qos_profile_rosout_default
  */
 RCL_PUBLIC
 rcl_node_options_t
