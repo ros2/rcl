@@ -750,9 +750,9 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
 
   EXPECT_TRUE(default_options.use_global_arguments);
   EXPECT_TRUE(default_options.enable_rosout);
+  EXPECT_EQ(rcl_qos_profile_rosout_default, default_options.rosout_qos);
   EXPECT_TRUE(rcutils_allocator_is_valid(&(default_options.allocator)));
 
-  EXPECT_EQ(rcl_qos_profile_rosout_default, default_options.rosout_qos);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(nullptr, &default_options));
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, nullptr));
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, &default_options));
@@ -765,11 +765,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
     rcl_parse_arguments(argc, argv, default_options.allocator, &(default_options.arguments)));
   default_options.use_global_arguments = false;
   default_options.enable_rosout = false;
-  default_options.rosout_qos = rcl_qos_profile_rosout_default;
+  default_options.rosout_qos = rmw_qos_profile_default;
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_copy(&default_options, &not_ini_options));
   EXPECT_FALSE(not_ini_options.use_global_arguments);
   EXPECT_FALSE(not_ini_options.enable_rosout);
-  EXPECT_EQ(rcl_qos_profile_rosout_default, not_ini_options.rosout_qos);
+  EXPECT_EQ(default_options.rosout_qos, not_ini_options.rosout_qos);
   EXPECT_EQ(
     rcl_arguments_get_count_unparsed(&(default_options.arguments)),
     rcl_arguments_get_count_unparsed(&(not_ini_options.arguments)));
