@@ -741,3 +741,40 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rcutils_st
   mmk_reset(rcutils_string_map_init);
 }
 */
+
+//  rmw_publisher_get_actual_qos signature:
+//  rmw_ret_t rmw_publisher_get_actual_qos(
+//    const rmw_publisher_t * publisher,
+//    rmw_qos_profile_t * qos)
+
+mmk_mock_define(
+  rmw_publisher_get_actual_qos_mock,
+  rmw_ret_t,
+  rmw_publisher_t *,
+  rmw_qos_profile_t *);
+
+TEST_F(
+  CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rmw_publisher_get_actual_qos)
+{
+  mmk_mock(
+    RCUTILS_STRINGIFY(rmw_publisher_get_actual_qos) "@lib:rcl",
+    rmw_publisher_get_actual_qos_mock);
+
+  mmk_when(
+    rmw_publisher_get_actual_qos(
+      mmk_any(rmw_publisher_t *),
+      mmk_any(rmw_qos_profile_t *)),
+    .then_return = mmk_val(rmw_ret_t, RMW_RET_ERROR));
+
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  const char * topic_name = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_ret_t ret =
+    rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  mmk_reset(rmw_publisher_get_actual_qos);
+}
