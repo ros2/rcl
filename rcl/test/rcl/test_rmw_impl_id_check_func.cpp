@@ -31,10 +31,12 @@ TEST(TestRmwCheck, test_failing_configuration) {
   const char * get_env_var_name = rcutils_get_env(
     RMW_IMPLEMENTATION_ENV_VAR_NAME,
     &expected_rmw_impl_env);
+  EXPECT_FALSE(get_env_var_name);
 
   const char * get_env_id_matches_name = rcutils_get_env(
     RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME,
     &expected_rmw_id_matches);
+  EXPECT_FALSE(get_env_id_matches_name);
 
   // Fail test case, reason: RMW_IMPLEMENTATION_ENV_VAR_NAME set, not matching rmw impl
   EXPECT_TRUE(rcutils_set_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, "some_random_name"));
@@ -65,6 +67,6 @@ TEST(TestRmwCheck, test_failing_configuration) {
   rcl_reset_error();
 
   // Restore env variables set in the test
-  EXPECT_TRUE(rcutils_set_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, get_env_var_name));
-  EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, get_env_id_matches_name));
+  EXPECT_TRUE(rcutils_set_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, expected_rmw_impl_env));
+  EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, expected_rmw_id_matches));
 }
