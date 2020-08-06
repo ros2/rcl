@@ -759,13 +759,14 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_init
   {
     auto mock = mocking_utils::patch(
       "lib:rcl", rcutils_string_map_init, [](auto...) {
-	static int counter = 1;
-	if(counter==1) {
-	  counter++;
-	  return RCUTILS_RET_OK;
-	}
-	// This makes rcl_remap_topic_name fail
-	else {return RCUTILS_RET_ERROR;}
+        static int counter = 1;
+        if (counter == 1) {
+          counter++;
+          return RCUTILS_RET_OK;
+        } else {
+          // This makes rcl_remap_topic_name fail
+          return RCUTILS_RET_ERROR;
+        }
       });
     ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
@@ -788,11 +789,35 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_init
   {
     auto mock = mocking_utils::patch(
       "lib:rcl", rmw_validate_full_topic_name, [](auto, int * result, auto) {
-	*result = RMW_TOPIC_INVALID_NOT_ABSOLUTE;
-	return RMW_RET_OK;
+        *result = RMW_TOPIC_INVALID_NOT_ABSOLUTE;
+        return RMW_RET_OK;
       });
     ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
     rcl_reset_error();
+  }
+}
+
+// Test mocked fail fini publisher
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_fail_publisher) {
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic_name = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // Leaving the scope finishing the publisher should work
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_destroy_publisher, [](auto...) {return RMW_RET_ERROR;});
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   }
 }
