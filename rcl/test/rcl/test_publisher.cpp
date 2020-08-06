@@ -749,15 +749,6 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_init
     EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
     rcl_reset_error();
   }
-  /*
-  {
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rcutils_string_map_getn, [](auto...) {return NULL;});
-    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
-    EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-  }
-  */
   {
     auto mock = mocking_utils::patch(
       "lib:rcl", rcutils_string_map_fini, [](auto...) {return RCUTILS_RET_ERROR;});
