@@ -21,11 +21,13 @@
 #include "test_msgs/msg/strings.h"
 #include "rosidl_runtime_c/string_functions.h"
 
-#include "./failing_allocator_functions.hpp"
+#include "mimick/mimick.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rmw/validate_full_topic_name.h"
+#include "rmw/validate_node_name.h"
 
-#include "mimick/mimick.h"
+#include "./failing_allocator_functions.hpp"
 #include "./publisher_impl.h"
 #include "../mocking_utils/patch.hpp"
 
@@ -723,4 +725,83 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_loaned_f
 
   test_msgs__msg__BasicTypes__fini(&msg);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_init) {
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  const char * topic_name = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_ret_t ret = RCL_RET_OK;
+
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_node_name, [](auto...) {return RMW_RET_ERROR;});
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_node_name, [](auto...) {return RMW_RET_INVALID_ARGUMENT;});
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  /*
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rcutils_string_map_getn, [](auto...) {return NULL;});
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  */
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rcutils_string_map_fini, [](auto...) {return RCUTILS_RET_ERROR;});
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rcutils_string_map_init, [](auto...) {
+	static int counter = 1;
+	if(counter==1) {
+	  counter++;
+	  return RCUTILS_RET_OK;
+	}
+	// This makes rcl_remap_topic_name fail
+	else {return RCUTILS_RET_ERROR;}
+      });
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_full_topic_name, [](auto...) {return RMW_RET_ERROR;});
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_full_topic_name, [](auto...) {return RMW_RET_ERROR;});
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_full_topic_name, [](auto, int * result, auto) {
+	*result = RMW_TOPIC_INVALID_NOT_ABSOLUTE;
+	return RMW_RET_OK;
+      });
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
 }
