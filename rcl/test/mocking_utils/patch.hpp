@@ -15,6 +15,18 @@
 #ifndef MOCKING_UTILS__PATCH_HPP_
 #define MOCKING_UTILS__PATCH_HPP_
 
+#define MOCKING_UTILS_SUPPORT_VA_LIST
+#if (defined(__aarch64__) || defined(__arm__) || defined(_M_ARM) || defined(__thumb__))
+// In ARM machines, va_list does not define comparison operators
+// nor the compiler allows defining them via operator overloads.
+// Thus, Mimick argument matching code will not compile.
+#undef MOCKING_UTILS_SUPPORT_VA_LIST
+#endif
+
+#ifdef MOCKING_UTILS_SUPPORT_VA_LIST
+#include <cstdarg>
+#endif
+
 #include <functional>
 #include <string>
 #include <type_traits>
@@ -288,9 +300,11 @@ auto make_patch(const std::string & target, std::function<SignatureT> proxy)
 /**
  * Useful to enable patching functions that take arguments whose types
  * do not define basic comparison operators, as required by Mimick.
- */
-#define MOCKING_UTILS_DEFINE_DUMMY_OPERATOR(type, op) \
-  bool operator op(const type &, const type &) { \
+*/
+#define MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(type_, op) \
+  template<typename T> \
+  typename std::enable_if<std::is_same<T, type_>::value, bool>::type \
+  operator op(const T &, const T &) { \
     return false; \
   }
 
@@ -322,5 +336,13 @@ auto make_patch(const std::string & target, std::function<SignatureT> proxy)
   ).then_call(replacement)
 
 }  // namespace mocking_utils
+
+#ifdef MOCKING_UTILS_SUPPORT_VA_LIST
+// Define dummy comparison operators for C standard va_list type
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, ==)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, !=)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, <)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, >)
+#endif
 
 #endif  // MOCKING_UTILS__PATCH_HPP_

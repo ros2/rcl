@@ -623,10 +623,10 @@ TEST_F(
   }
 }
 
-MOCKING_UTILS_DEFINE_DUMMY_OPERATOR(rcutils_allocator_t, ==)
-MOCKING_UTILS_DEFINE_DUMMY_OPERATOR(rcutils_allocator_t, <)
-MOCKING_UTILS_DEFINE_DUMMY_OPERATOR(rcutils_allocator_t, >)
-MOCKING_UTILS_DEFINE_DUMMY_OPERATOR(rcutils_allocator_t, !=)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rcutils_string_map_init) {
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
@@ -821,13 +821,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_fail_pub
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  {
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_destroy_publisher, [](auto...) {return RMW_RET_ERROR;});
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-  }
-  // Leaving the scope finishing the publisher should work
+  auto mock = mocking_utils::patch(
+    "lib:rcl", rmw_destroy_publisher, [](auto...) {return RMW_RET_ERROR;});
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
 }
