@@ -248,6 +248,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  // Pass nullptr publisher to fini
+  ret = rcl_publisher_fini(nullptr, this->node_ptr);
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
   // Try passing null for publisher in init.
   ret = rcl_publisher_init(nullptr, this->node_ptr, ts, topic_name, &default_publisher_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
@@ -430,6 +435,14 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
     rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
   rcl_reset_error();
   publisher.impl->context = saved_context;
+
+  // nullptr arguments
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_publish(&publisher, nullptr, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_publish_serialized_message(&publisher, nullptr, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_publisher_get_subscription_count(&publisher, nullptr));
+  rcl_reset_error();
 
   // Change internal rmw_handle to nullptr
   publisher.impl->rmw_handle = nullptr;
