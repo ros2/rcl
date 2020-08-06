@@ -644,3 +644,83 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 }
+
+// Tests for loaned msgs functions. Mocked as the rmw tier1 vendors don't support it
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_loaned_functions) {
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  rcl_publisher_t not_init_publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic_name = "chatter";
+  const char * expected_topic_name = "/chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), expected_topic_name), 0);
+  test_msgs__msg__BasicTypes msg;
+  test_msgs__msg__BasicTypes__init(&msg);
+  msg.int64_value = 42;
+  void * msg_pointer = &msg;
+
+  {
+    // mocked, publish nominal usage
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_publish_loaned_message, [](auto...) {return RMW_RET_OK;});
+    EXPECT_EQ(RCL_RET_OK, rcl_publish_loaned_message(&publisher, &msg, nullptr));
+  }
+  {
+    // bad params publish
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID, rcl_publish_loaned_message(nullptr, &msg, nullptr));
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID, rcl_publish_loaned_message(&not_init_publisher, &msg, nullptr));
+    EXPECT_EQ(
+      RCL_RET_INVALID_ARGUMENT, rcl_publish_loaned_message(&publisher, nullptr, nullptr));
+  }
+  {
+    // mocked, failure publish
+    // NOTE: open a PR to convert rmw_loaned function returns from rmw_ret to rcl_ret type
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_publish_loaned_message, [](auto...) {return RMW_RET_ERROR;});
+    EXPECT_EQ(RCL_RET_ERROR, rcl_publish_loaned_message(&publisher, &msg, nullptr));
+  }
+  {
+    // mocked, borrow loaned nominal usage
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_borrow_loaned_message, [](auto...) {return RMW_RET_OK;});
+    EXPECT_EQ(RCL_RET_OK, rcl_borrow_loaned_message(&publisher, ts, &msg_pointer));
+  }
+  {
+    // bad params borrow loaned
+    EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_borrow_loaned_message(nullptr, ts, &msg_pointer));
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID, rcl_borrow_loaned_message(&not_init_publisher, ts, &msg_pointer));
+  }
+  {
+    // mocked, nominal return loaned message
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_return_loaned_message_from_publisher, [](auto...) {return RMW_RET_OK;});
+    EXPECT_EQ(RCL_RET_OK, rcl_return_loaned_message_from_publisher(&publisher, &msg));
+  }
+  {
+    // bad params return loaned message
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID,
+      rcl_return_loaned_message_from_publisher(nullptr, &msg));
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID,
+      rcl_return_loaned_message_from_publisher(&not_init_publisher, &msg));
+    EXPECT_EQ(
+      RCL_RET_INVALID_ARGUMENT,
+      rcl_return_loaned_message_from_publisher(&publisher, nullptr));
+  }
+
+  test_msgs__msg__BasicTypes__fini(&msg);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
