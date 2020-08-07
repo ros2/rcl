@@ -87,7 +87,6 @@ public:
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   const char * topic_name = "chatter";
-  rcl_ret_t ret;
   rcl_publisher_t publisher;
   rcl_publisher_options_t publisher_options;
 
@@ -96,7 +95,8 @@ public:
     CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION) ::SetUp();
     publisher = rcl_get_zero_initialized_publisher();
     publisher_options = rcl_publisher_get_default_options();
-    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    rcl_ret_t ret = rcl_publisher_init(
+      &publisher, this->node_ptr, ts, topic_name, &publisher_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
@@ -575,7 +575,7 @@ TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publis
   test_msgs__msg__BasicTypes msg;
   test_msgs__msg__BasicTypes__init(&msg);
   msg.int64_value = 42;
-  ret = rcl_publish(&publisher, &msg, nullptr);
+  rcl_ret_t ret = rcl_publish(&publisher, &msg, nullptr);
   test_msgs__msg__BasicTypes__fini(&msg);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_error_is_set());
@@ -602,7 +602,7 @@ TEST_F(
 
   ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
   ASSERT_STREQ(msg.string_value.data, test_string);
-  ret = rmw_serialize(&msg, ts, &serialized_msg);
+  rcl_ret_t ret = rmw_serialize(&msg, ts, &serialized_msg);
   ASSERT_EQ(RMW_RET_OK, ret);
 
   rmw_ret_t rmw_publish_serialized_return = RMW_RET_ERROR;
@@ -666,7 +666,6 @@ TEST_F(
 
 // Tests for loaned msgs functions. Mocked as the rmw tier1 vendors don't support it
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_functions) {
-  rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   rcl_publisher_t not_init_publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -675,11 +674,12 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
   const char * expected_topic_name = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
 
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  rcl_ret_t ret = rcl_publisher_init(
+    &publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    ret = rcl_publisher_fini(&publisher, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
@@ -816,13 +816,13 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_publ
 
 // Test mocked fail fini publisher
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_fini_fail) {
-  rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   const char * topic_name = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  rcl_ret_t ret = rcl_publisher_init(
+    &publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Internal rmw failure destroying publisher
