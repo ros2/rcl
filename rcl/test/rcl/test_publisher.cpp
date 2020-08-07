@@ -538,7 +538,10 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
 
 // Mocking rmw_publisher_count_matched_subscriptions to make
 // rcl_publisher_get_subscription_count fail
-TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publisher_count) {
+TEST_F(
+  CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION),
+  test_mock_publisher_get_subscription_count)
+{
   auto mock = mocking_utils::patch_and_return(
     "lib:rcl", rmw_publisher_count_matched_subscriptions, RMW_RET_BAD_ALLOC);
 
@@ -626,7 +629,7 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 
-TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rcutils_string_map_init) {
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_init) {
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
@@ -642,7 +645,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rcutils_st
 }
 
 TEST_F(
-  CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rmw_publisher_get_actual_qos)
+  CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_init_fail_qos)
 {
   auto mock = mocking_utils::patch_and_return(
     "lib:rcl", rmw_publisher_get_actual_qos, RMW_RET_ERROR);
@@ -659,7 +662,7 @@ TEST_F(
 }
 
 // Tests for loaned msgs functions. Mocked as the rmw tier1 vendors don't support it
-TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_loaned_functions) {
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_functions) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   rcl_publisher_t not_init_publisher = rcl_get_zero_initialized_publisher();
@@ -736,7 +739,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_loaned_f
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_init) {
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_publisher_init) {
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
@@ -807,7 +810,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_init
 }
 
 // Test mocked fail fini publisher
-TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_fail_publisher) {
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_fini_fail) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
