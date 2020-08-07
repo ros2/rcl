@@ -408,6 +408,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_publisher_impl_t * saved_impl = publisher.impl;
   rcl_context_t * saved_context = publisher.impl->context;
   rmw_publisher_t * saved_rmw_handle = publisher.impl->rmw_handle;
+  rmw_publisher_allocation_t * null_allocation_is_valid_arg = nullptr;
 
   // Change internal context to nullptr
   publisher.impl->context = nullptr;
@@ -428,18 +429,21 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
-    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+    rcl_publish_serialized_message(&publisher, &serialized_msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   publisher.impl->context = saved_context;
 
   // nullptr arguments
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_publish(&publisher, nullptr, nullptr));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_publish(&publisher, nullptr, null_allocation_is_valid_arg));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_publish_serialized_message(&publisher, nullptr, nullptr));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_publish_serialized_message(&publisher, nullptr, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_publisher_get_subscription_count(&publisher, nullptr));
   rcl_reset_error();
@@ -467,11 +471,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
-    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+    rcl_publish_serialized_message(&publisher, &serialized_msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   publisher.impl->rmw_handle = saved_rmw_handle;
 
@@ -498,11 +502,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
-    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+    rcl_publish_serialized_message(&publisher, &serialized_msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   publisher.impl = saved_impl;
 
@@ -528,11 +532,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(nullptr));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(nullptr, &msg, nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(nullptr, &msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
-    rcl_publish_serialized_message(nullptr, &serialized_msg, nullptr));
+    rcl_publish_serialized_message(nullptr, &serialized_msg, null_allocation_is_valid_arg));
   rcl_reset_error();
 }
 
@@ -691,6 +695,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
   test_msgs__msg__BasicTypes__init(&msg);
   msg.int64_value = 42;
   void * msg_pointer = &msg;
+  rmw_publisher_allocation_t * null_allocation_is_valid_arg = nullptr;
 
   {
     // mocked, publish nominal usage
@@ -700,11 +705,14 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
   {
     // bad params publish
     EXPECT_EQ(
-      RCL_RET_PUBLISHER_INVALID, rcl_publish_loaned_message(nullptr, &msg, nullptr));
+      RCL_RET_PUBLISHER_INVALID,
+      rcl_publish_loaned_message(nullptr, &msg, null_allocation_is_valid_arg));
     EXPECT_EQ(
-      RCL_RET_PUBLISHER_INVALID, rcl_publish_loaned_message(&not_init_publisher, &msg, nullptr));
+      RCL_RET_PUBLISHER_INVALID,
+      rcl_publish_loaned_message(&not_init_publisher, &msg, null_allocation_is_valid_arg));
     EXPECT_EQ(
-      RCL_RET_INVALID_ARGUMENT, rcl_publish_loaned_message(&publisher, nullptr, nullptr));
+      RCL_RET_INVALID_ARGUMENT,
+      rcl_publish_loaned_message(&publisher, nullptr, null_allocation_is_valid_arg));
   }
   {
     // mocked, failure publish
