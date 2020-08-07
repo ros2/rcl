@@ -335,6 +335,10 @@ auto make_patch(const std::string & target, std::function<SignatureT> proxy)
     MOCKING_UTILS_PATCH_TARGET(scope, function), MOCKING_UTILS_PATCH_PROXY(function) \
   ).then_call(replacement)
 
+/// Patch a function with a function that only returns a value
+#define patch_and_return(scope, function, return_value) \
+  patch(scope, function, [&](auto && ...) {return return_value;})
+
 }  // namespace mocking_utils
 
 #ifdef MOCKING_UTILS_SUPPORT_VA_LIST

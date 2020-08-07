@@ -539,8 +539,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
 // Mocking rmw_publisher_count_matched_subscriptions to make
 // rcl_publisher_get_subscription_count fail
 TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publisher_count) {
-  auto mock = mocking_utils::patch(
-    "lib:rcl", rmw_publisher_count_matched_subscriptions, [](auto...) {return RMW_RET_BAD_ALLOC;});
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_publisher_count_matched_subscriptions, RMW_RET_BAD_ALLOC);
 
   // Now normal usage of the function rcl_publisher_get_subscription_count returning
   // unexpected RMW_RET_BAD_ALLOC
@@ -553,8 +553,8 @@ TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publis
 // Mocking rmw_publisher_assert_liveliness to make
 // rcl_publisher_assert_liveliness fail
 TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_assert_liveliness) {
-  auto mock = mocking_utils::patch(
-    "lib:rcl", rmw_publisher_assert_liveliness, [](auto...) {return RMW_RET_ERROR;});
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_publisher_assert_liveliness, RMW_RET_ERROR);
 
   // Now normal usage of the function rcl_publisher_assert_liveliness returning
   // unexpected RMW_RET_ERROR
@@ -566,8 +566,7 @@ TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_assert
 
 // Mocking rmw_publish to make rcl_publish fail
 TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publish) {
-  auto mock = mocking_utils::patch(
-    "lib:rcl", rmw_publish, [](auto...) {return RMW_RET_ERROR;});
+  auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_publish, RMW_RET_ERROR);
 
   // Test normal usage of the function rcl_publish returning unexpected RMW_RET_ERROR
   test_msgs__msg__BasicTypes msg;
@@ -601,12 +600,12 @@ TEST_F(
   ASSERT_STREQ(msg.string_value.data, test_string);
   ret = rmw_serialize(&msg, ts, &serialized_msg);
   ASSERT_EQ(RMW_RET_OK, ret);
-
+  rmw_ret_t rmw_publish_serialized_return = RMW_RET_ERROR;
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_publish_serialized_message, rmw_publish_serialized_return);
   {
     // Test normal usage of the function rcl_publish_serialized_message
     // returning unexpected RMW_RET_ERROR
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_publish_serialized_message, [](auto...) {return RMW_RET_ERROR;});
     ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
     EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
     EXPECT_TRUE(rcl_error_is_set());
@@ -614,8 +613,7 @@ TEST_F(
   }
   {
     // Repeat, but now returning BAD_ALLOC
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_publish_serialized_message, [](auto...) {return RMW_RET_BAD_ALLOC;});
+    rmw_publish_serialized_return = RMW_RET_BAD_ALLOC;
     ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
     EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
     EXPECT_TRUE(rcl_error_is_set());
@@ -636,8 +634,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rcutils_st
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   rcl_ret_t ret = RCL_RET_OK;
 
-  auto mock = mocking_utils::patch(
-    "lib:rcl", rcutils_string_map_init, [](auto...) {return RCUTILS_RET_ERROR;});
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rcutils_string_map_init, RCUTILS_RET_ERROR);
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcl_reset_error();
@@ -646,8 +644,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rcutils_st
 TEST_F(
   CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_rmw_publisher_get_actual_qos)
 {
-  auto mock = mocking_utils::patch(
-    "lib:rcl", rmw_publisher_get_actual_qos, [](auto...) {return RMW_RET_ERROR;});
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_publisher_get_actual_qos, RMW_RET_ERROR);
 
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -685,8 +683,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_loaned_f
 
   {
     // mocked, publish nominal usage
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_publish_loaned_message, [](auto...) {return RMW_RET_OK;});
+    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_publish_loaned_message, RMW_RET_OK);
     EXPECT_EQ(RCL_RET_OK, rcl_publish_loaned_message(&publisher, &msg, nullptr));
   }
   {
@@ -701,14 +698,13 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_loaned_f
   {
     // mocked, failure publish
     // NOTE: open a PR to convert rmw_loaned function returns from rmw_ret to rcl_ret type
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_publish_loaned_message, [](auto...) {return RMW_RET_ERROR;});
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_publish_loaned_message, RMW_RET_ERROR);
     EXPECT_EQ(RCL_RET_ERROR, rcl_publish_loaned_message(&publisher, &msg, nullptr));
   }
   {
     // mocked, borrow loaned nominal usage
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_borrow_loaned_message, [](auto...) {return RMW_RET_OK;});
+    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_borrow_loaned_message, RMW_RET_OK);
     EXPECT_EQ(RCL_RET_OK, rcl_borrow_loaned_message(&publisher, ts, &msg_pointer));
   }
   {
@@ -719,8 +715,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_loaned_f
   }
   {
     // mocked, nominal return loaned message
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_return_loaned_message_from_publisher, [](auto...) {return RMW_RET_OK;});
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_return_loaned_message_from_publisher, RMW_RET_OK);
     EXPECT_EQ(RCL_RET_OK, rcl_return_loaned_message_from_publisher(&publisher, &msg));
   }
   {
@@ -749,22 +745,21 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_init
   rcl_ret_t ret = RCL_RET_OK;
 
   {
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_validate_node_name, [](auto...) {return RMW_RET_ERROR;});
+    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_validate_node_name, RMW_RET_ERROR);
     ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
     rcl_reset_error();
   }
   {
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_validate_node_name, [](auto...) {return RMW_RET_INVALID_ARGUMENT;});
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_node_name, RMW_RET_INVALID_ARGUMENT);
     ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
     rcl_reset_error();
   }
   {
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rcutils_string_map_fini, [](auto...) {return RCUTILS_RET_ERROR;});
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_string_map_fini, RCUTILS_RET_ERROR);
     ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
     rcl_reset_error();
@@ -786,15 +781,15 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_init
     rcl_reset_error();
   }
   {
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_validate_full_topic_name, [](auto...) {return RMW_RET_ERROR;});
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_full_topic_name, RMW_RET_ERROR);
     ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
     rcl_reset_error();
   }
   {
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rmw_validate_full_topic_name, [](auto...) {return RMW_RET_ERROR;});
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_full_topic_name, RMW_RET_ERROR);
     ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
     rcl_reset_error();
@@ -821,8 +816,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocked_fail_pub
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  auto mock = mocking_utils::patch(
-    "lib:rcl", rmw_destroy_publisher, [](auto...) {return RMW_RET_ERROR;});
+  auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_destroy_publisher, RMW_RET_ERROR);
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
 }
