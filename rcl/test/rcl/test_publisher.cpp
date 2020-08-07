@@ -547,9 +547,10 @@ TEST_F(
 
   // Now normal usage of the function rcl_publisher_get_subscription_count returning
   // unexpected RMW_RET_BAD_ALLOC
-  size_t count_size;
+  size_t count_size = 2u;
   EXPECT_EQ(
     RCL_RET_BAD_ALLOC, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  EXPECT_EQ(2u, count_size);
   rcl_reset_error();
 }
 
