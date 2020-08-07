@@ -61,7 +61,7 @@ public:
     }
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
-    const char * name = "test_publisher_node";
+    constexpr char name[] = "test_publisher_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -115,8 +115,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic_name = "chatter";
-  const char * expected_topic_name = "/chatter";
+  constexpr char topic_name[] = "chatter";
+  constexpr char expected_topic_name[] = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -141,7 +141,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -219,7 +219,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   rcl_publisher_t publisher;
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t default_publisher_options = rcl_publisher_get_default_options();
 
   // Check if null publisher is valid
@@ -342,7 +342,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan)
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   rcl_ret_t ret =
     rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
@@ -374,7 +374,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   rcl_ret_t ret =
     rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
@@ -593,7 +593,7 @@ TEST_F(
   ASSERT_EQ(
     RCL_RET_OK, rmw_serialized_message_init(
       &serialized_msg, initial_size_serialized, &allocator)) << rcl_get_error_string().str;
-  const char * test_string = "testing";
+  constexpr char test_string[] = "testing";
   test_msgs__msg__Strings msg;
   test_msgs__msg__Strings__init(&msg);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -636,7 +636,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   rcl_ret_t ret = RCL_RET_OK;
 
@@ -656,7 +656,7 @@ TEST_F(
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
 
   rcl_ret_t ret =
@@ -671,8 +671,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
   rcl_publisher_t not_init_publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic_name = "chatter";
-  const char * expected_topic_name = "/chatter";
+  constexpr char topic_name[] = "chatter";
+  constexpr char expected_topic_name[] = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
 
   rcl_ret_t ret = rcl_publisher_init(
@@ -750,7 +750,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_publ
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   rcl_ret_t ret = RCL_RET_OK;
 
@@ -820,7 +820,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   rcl_ret_t ret = rcl_publisher_init(
     &publisher, this->node_ptr, ts, topic_name, &publisher_options);
