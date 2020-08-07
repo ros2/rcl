@@ -399,7 +399,7 @@ rcl_add_custom_gtest(test_common
 rcl_add_custom_gtest(test_log_level
   SRCS rcl/test_log_level.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} mimick
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
