@@ -716,7 +716,6 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
   }
   {
     // mocked, failure publish
-    // NOTE: open a PR to convert rmw_loaned function returns from rmw_ret to rcl_ret type
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_publish_loaned_message, RMW_RET_ERROR);
     EXPECT_EQ(RCL_RET_ERROR, rcl_publish_loaned_message(&publisher, &msg, nullptr));
