@@ -221,10 +221,7 @@ TEST(TestLogLevel, log_level_init_fini) {
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
-  EXPECT_EQ(1ul, log_levels.num_logger_settings);
-  EXPECT_STREQ("test.abc", log_levels.logger_settings[0].name);
-  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels.logger_settings[0].level);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_fini(nullptr));
 }
 
 int main(int argc, char ** argv)
