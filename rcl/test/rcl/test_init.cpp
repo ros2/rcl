@@ -467,10 +467,15 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_copy
   rcl_init_options_t init_options_dst = rcl_get_zero_initialized_init_options();
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst)) << rcl_get_error_string().str;
+    // dst is in a invalid state after failed copy
+    EXPECT_EQ(
+      RCL_RET_INVALID_ARGUMENT,
+      rcl_init_options_fini(&init_options_dst)) << rcl_get_error_string().str;
+    rcl_reset_error();
   });
 
+  // rmw_init_options_copy error is logged
   auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_init_options_copy, RMW_RET_ERROR);
-  EXPECT_EQ(RCL_RET_ERROR, rcl_init_options_copy(&init_options, &init_options_dst));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_init_options_copy(&init_options, &init_options_dst));
   rcl_reset_error();
 }
