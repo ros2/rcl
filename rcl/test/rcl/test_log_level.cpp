@@ -14,12 +14,14 @@
 
 #include <gtest/gtest.h>
 
+#include "rcl/allocator.h"
 #include "rcl/rcl.h"
 #include "rcl/log_level.h"
 #include "rcl/error_handling.h"
 #include "rcutils/logging.h"
 
 #include "./arg_macros.hpp"
+#include "../mocking_utils/patch.hpp"
 
 int setup_and_parse_log_level_args(const char * log_level_string)
 {
@@ -187,6 +189,38 @@ TEST(TestLogLevel, log_level_dot_logger_name) {
   {
     EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(&log_levels));
   });
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
+  EXPECT_EQ(1ul, log_levels.num_logger_settings);
+  EXPECT_STREQ("test.abc", log_levels.logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels.logger_settings[0].level);
+}
+
+TEST(TestLogLevel, log_level_init_fini) {
+  rcl_log_levels_t log_levels = rcl_get_zero_initialized_log_levels();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const size_t capacity_count = 1;
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_log_levels_init(&log_levels, &allocator, capacity_count));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(&log_levels));
+  });
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_log_levels_init(nullptr, &allocator, capacity_count));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_log_levels_init(&log_levels, nullptr, capacity_count));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_log_levels_init(&log_levels, &allocator, capacity_count));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
   EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
   EXPECT_EQ(1ul, log_levels.num_logger_settings);
   EXPECT_STREQ("test.abc", log_levels.logger_settings[0].name);
