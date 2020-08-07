@@ -599,10 +599,12 @@ TEST_F(
   {
     test_msgs__msg__Strings__fini(&msg);
   });
+
   ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
   ASSERT_STREQ(msg.string_value.data, test_string);
   ret = rmw_serialize(&msg, ts, &serialized_msg);
   ASSERT_EQ(RMW_RET_OK, ret);
+
   rmw_ret_t rmw_publish_serialized_return = RMW_RET_ERROR;
   auto mock = mocking_utils::patch_and_return(
     "lib:rcl", rmw_publish_serialized_message, rmw_publish_serialized_return);
@@ -655,6 +657,7 @@ TEST_F(
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   const char * topic_name = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+
   rcl_ret_t ret =
     rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
@@ -671,6 +674,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
   const char * topic_name = "chatter";
   const char * expected_topic_name = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -678,6 +682,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
+
   EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), expected_topic_name), 0);
   test_msgs__msg__BasicTypes msg;
   test_msgs__msg__BasicTypes__init(&msg);
@@ -819,6 +824,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
   // Internal rmw failure destroying publisher
   auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_destroy_publisher, RMW_RET_ERROR);
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
