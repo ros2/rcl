@@ -585,11 +585,11 @@ TEST_F(
   CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publish_serialized_message)
 {
   rcl_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
-  size_t initial_capacity_ser = 0u;
+  size_t initial_size_serialized = 0u;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   ASSERT_EQ(
     RCL_RET_OK, rmw_serialized_message_init(
-      &serialized_msg, initial_capacity_ser, &allocator)) << rcl_get_error_string().str;
+      &serialized_msg, initial_size_serialized, &allocator)) << rcl_get_error_string().str;
   const char * test_string = "testing";
   test_msgs__msg__Strings msg;
   test_msgs__msg__Strings__init(&msg);
