@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Original file taken from:
+// https://github.com/ros2/rcutils/blob/master/test/mocking_utils/patch.hpp
+
 #ifndef MOCKING_UTILS__PATCH_HPP_
 #define MOCKING_UTILS__PATCH_HPP_
 
