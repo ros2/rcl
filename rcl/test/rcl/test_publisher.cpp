@@ -21,11 +21,15 @@
 #include "test_msgs/msg/strings.h"
 #include "rosidl_runtime_c/string_functions.h"
 
-#include "./failing_allocator_functions.hpp"
+#include "mimick/mimick.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rmw/validate_full_topic_name.h"
+#include "rmw/validate_node_name.h"
 
+#include "./failing_allocator_functions.hpp"
 #include "./publisher_impl.h"
+#include "../mocking_utils/patch.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -57,7 +61,7 @@ public:
     }
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
-    const char * name = "test_publisher_node";
+    constexpr char name[] = "test_publisher_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -76,6 +80,34 @@ public:
   }
 };
 
+class CLASSNAME (TestPublisherFixtureInit, RMW_IMPLEMENTATION)
+  : public CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION)
+{
+public:
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  const char * topic_name = "chatter";
+  rcl_publisher_t publisher;
+  rcl_publisher_options_t publisher_options;
+
+  void SetUp() override
+  {
+    CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION) ::SetUp();
+    publisher = rcl_get_zero_initialized_publisher();
+    publisher_options = rcl_publisher_get_default_options();
+    rcl_ret_t ret = rcl_publisher_init(
+      &publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  void TearDown() override
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION) ::TearDown();
+  }
+};
+
 /* Basic nominal test of a publisher.
  */
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nominal) {
@@ -83,8 +115,8 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic_name = "chatter";
-  const char * expected_topic_name = "/chatter";
+  constexpr char topic_name[] = "chatter";
+  constexpr char expected_topic_name[] = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -109,7 +141,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_nomin
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -187,7 +219,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   rcl_publisher_t publisher;
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t default_publisher_options = rcl_publisher_get_default_options();
 
   // Check if null publisher is valid
@@ -214,6 +246,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   // Pass invalid node to fini
   ret = rcl_publisher_fini(&publisher, nullptr);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Pass nullptr publisher to fini
+  ret = rcl_publisher_fini(nullptr, this->node_ptr);
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing null for publisher in init.
@@ -305,7 +342,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan)
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   rcl_ret_t ret =
     rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
@@ -337,7 +374,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic_name = "chatter";
+  constexpr char topic_name[] = "chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   rcl_ret_t ret =
     rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
@@ -371,6 +408,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_publisher_impl_t * saved_impl = publisher.impl;
   rcl_context_t * saved_context = publisher.impl->context;
   rmw_publisher_t * saved_rmw_handle = publisher.impl->rmw_handle;
+  rmw_publisher_allocation_t * null_allocation_is_valid_arg = nullptr;
 
   // Change internal context to nullptr
   publisher.impl->context = nullptr;
@@ -391,13 +429,24 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
-    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+    rcl_publish_serialized_message(&publisher, &serialized_msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   publisher.impl->context = saved_context;
+
+  // nullptr arguments
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT, rcl_publish(&publisher, nullptr, null_allocation_is_valid_arg));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_publish_serialized_message(&publisher, nullptr, null_allocation_is_valid_arg));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_publisher_get_subscription_count(&publisher, nullptr));
+  rcl_reset_error();
 
   // Change internal rmw_handle to nullptr
   publisher.impl->rmw_handle = nullptr;
@@ -422,11 +471,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
-    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+    rcl_publish_serialized_message(&publisher, &serialized_msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   publisher.impl->rmw_handle = saved_rmw_handle;
 
@@ -453,11 +502,11 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(&publisher));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(&publisher, &msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
-    rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr));
+    rcl_publish_serialized_message(&publisher, &serialized_msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   publisher.impl = saved_impl;
 
@@ -483,10 +532,310 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publisher_assert_liveliness(nullptr));
   rcl_reset_error();
-  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(nullptr, &msg, nullptr));
+  EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_publish(nullptr, &msg, null_allocation_is_valid_arg));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_PUBLISHER_INVALID,
-    rcl_publish_serialized_message(nullptr, &serialized_msg, nullptr));
+    rcl_publish_serialized_message(nullptr, &serialized_msg, null_allocation_is_valid_arg));
   rcl_reset_error();
+}
+
+// Mocking rmw_publisher_count_matched_subscriptions to make
+// rcl_publisher_get_subscription_count fail
+TEST_F(
+  CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION),
+  test_mock_publisher_get_subscription_count)
+{
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_publisher_count_matched_subscriptions, RMW_RET_BAD_ALLOC);
+
+  // Now normal usage of the function rcl_publisher_get_subscription_count returning
+  // unexpected RMW_RET_BAD_ALLOC
+  size_t count_size = 2u;
+  EXPECT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_publisher_get_subscription_count(&publisher, &count_size));
+  EXPECT_EQ(2u, count_size);
+  rcl_reset_error();
+}
+
+// Mocking rmw_publisher_assert_liveliness to make
+// rcl_publisher_assert_liveliness fail
+TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_assert_liveliness) {
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_publisher_assert_liveliness, RMW_RET_ERROR);
+
+  // Now normal usage of the function rcl_publisher_assert_liveliness returning
+  // unexpected RMW_RET_ERROR
+  EXPECT_EQ(
+    RCL_RET_ERROR, rcl_publisher_assert_liveliness(&publisher));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+}
+
+// Mocking rmw_publish to make rcl_publish fail
+TEST_F(CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publish) {
+  auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_publish, RMW_RET_ERROR);
+
+  // Test normal usage of the function rcl_publish returning unexpected RMW_RET_ERROR
+  test_msgs__msg__BasicTypes msg;
+  test_msgs__msg__BasicTypes__init(&msg);
+  msg.int64_value = 42;
+  rcl_ret_t ret = rcl_publish(&publisher, &msg, nullptr);
+  test_msgs__msg__BasicTypes__fini(&msg);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+}
+
+// Mocking rmw_publish_serialized_message to make rcl_publish_serialized_message fail
+TEST_F(
+  CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION), test_mock_publish_serialized_message)
+{
+  rcl_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
+  size_t initial_size_serialized = 0u;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ASSERT_EQ(
+    RCL_RET_OK, rmw_serialized_message_init(
+      &serialized_msg, initial_size_serialized, &allocator)) << rcl_get_error_string().str;
+  constexpr char test_string[] = "testing";
+  test_msgs__msg__Strings msg;
+  test_msgs__msg__Strings__init(&msg);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    test_msgs__msg__Strings__fini(&msg);
+  });
+
+  ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+  ASSERT_STREQ(msg.string_value.data, test_string);
+  rcl_ret_t ret = rmw_serialize(&msg, ts, &serialized_msg);
+  ASSERT_EQ(RMW_RET_OK, ret);
+
+  rmw_ret_t rmw_publish_serialized_return = RMW_RET_ERROR;
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_publish_serialized_message, rmw_publish_serialized_return);
+  {
+    // Test normal usage of the function rcl_publish_serialized_message
+    // returning unexpected RMW_RET_ERROR
+    ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    // Repeat, but now returning BAD_ALLOC
+    rmw_publish_serialized_return = RMW_RET_BAD_ALLOC;
+    ret = rcl_publish_serialized_message(&publisher, &serialized_msg, nullptr);
+    EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+}
+
+// Define dummy comparison operators for rcutils_allocator_t type for use with the Mimick Library
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
+
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_init) {
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  constexpr char topic_name[] = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_ret_t ret = RCL_RET_OK;
+
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rcutils_string_map_init, RCUTILS_RET_ERROR);
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+TEST_F(
+  CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_init_fail_qos)
+{
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_publisher_get_actual_qos, RMW_RET_ERROR);
+
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  constexpr char topic_name[] = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+
+  rcl_ret_t ret =
+    rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+// Tests for loaned msgs functions. Mocked as the rmw tier1 vendors don't support it
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_functions) {
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  rcl_publisher_t not_init_publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  constexpr char topic_name[] = "chatter";
+  constexpr char expected_topic_name[] = "/chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+
+  rcl_ret_t ret = rcl_publisher_init(
+    &publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  EXPECT_EQ(strcmp(rcl_publisher_get_topic_name(&publisher), expected_topic_name), 0);
+  test_msgs__msg__BasicTypes msg;
+  test_msgs__msg__BasicTypes__init(&msg);
+  msg.int64_value = 42;
+  void * msg_pointer = &msg;
+  rmw_publisher_allocation_t * null_allocation_is_valid_arg = nullptr;
+
+  {
+    // mocked, publish nominal usage
+    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_publish_loaned_message, RMW_RET_OK);
+    EXPECT_EQ(RCL_RET_OK, rcl_publish_loaned_message(&publisher, &msg, nullptr));
+  }
+  {
+    // bad params publish
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID,
+      rcl_publish_loaned_message(nullptr, &msg, null_allocation_is_valid_arg));
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID,
+      rcl_publish_loaned_message(&not_init_publisher, &msg, null_allocation_is_valid_arg));
+    EXPECT_EQ(
+      RCL_RET_INVALID_ARGUMENT,
+      rcl_publish_loaned_message(&publisher, nullptr, null_allocation_is_valid_arg));
+  }
+  {
+    // mocked, failure publish
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_publish_loaned_message, RMW_RET_ERROR);
+    EXPECT_EQ(RCL_RET_ERROR, rcl_publish_loaned_message(&publisher, &msg, nullptr));
+  }
+  {
+    // mocked, borrow loaned nominal usage
+    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_borrow_loaned_message, RMW_RET_OK);
+    EXPECT_EQ(RCL_RET_OK, rcl_borrow_loaned_message(&publisher, ts, &msg_pointer));
+  }
+  {
+    // bad params borrow loaned
+    EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_borrow_loaned_message(nullptr, ts, &msg_pointer));
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID, rcl_borrow_loaned_message(&not_init_publisher, ts, &msg_pointer));
+  }
+  {
+    // mocked, nominal return loaned message
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_return_loaned_message_from_publisher, RMW_RET_OK);
+    EXPECT_EQ(RCL_RET_OK, rcl_return_loaned_message_from_publisher(&publisher, &msg));
+  }
+  {
+    // bad params return loaned message
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID,
+      rcl_return_loaned_message_from_publisher(nullptr, &msg));
+    EXPECT_EQ(
+      RCL_RET_PUBLISHER_INVALID,
+      rcl_return_loaned_message_from_publisher(&not_init_publisher, &msg));
+    EXPECT_EQ(
+      RCL_RET_INVALID_ARGUMENT,
+      rcl_return_loaned_message_from_publisher(&publisher, nullptr));
+  }
+
+  test_msgs__msg__BasicTypes__fini(&msg);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
+// Tests mocking ini/fini functions for specific failures
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_publisher_init) {
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  constexpr char topic_name[] = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_ret_t ret = RCL_RET_OK;
+
+  {
+    // Internal rmw failure validating node name
+    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_validate_node_name, RMW_RET_ERROR);
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    // Internal rmw failure validating node name
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_node_name, RMW_RET_INVALID_ARGUMENT);
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    // Internal failure when fini rcutils_string_map returns error, targets substitution_map fini
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_string_map_fini, RCUTILS_RET_ERROR);
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    // Internal failure when fini rcutils_string_map returns error, targets rcl_remap_topic_name
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rcutils_string_map_init, [](auto...) {
+        static int counter = 1;
+        if (counter == 1) {
+          counter++;
+          return RCUTILS_RET_OK;
+        } else {
+          // This makes rcl_remap_topic_name fail
+          return RCUTILS_RET_ERROR;
+        }
+      });
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    // Internal rmw failure validating topic name
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_full_topic_name, RMW_RET_ERROR);
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+  {
+    // Internal rmw failure validating node name, returns OK but the result is set to error
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_full_topic_name, [](auto, int * result, auto) {
+        *result = RMW_TOPIC_INVALID_NOT_ABSOLUTE;
+        return RMW_RET_OK;
+      });
+    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+}
+
+// Test mocked fail fini publisher
+TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_fini_fail) {
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  constexpr char topic_name[] = "chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_ret_t ret = rcl_publisher_init(
+    &publisher, this->node_ptr, ts, topic_name, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Internal rmw failure destroying publisher
+  auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_destroy_publisher, RMW_RET_ERROR);
+  ret = rcl_publisher_fini(&publisher, this->node_ptr);
+  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
 }
