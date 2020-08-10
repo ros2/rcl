@@ -3,6 +3,8 @@ find_package(launch_testing_ament_cmake REQUIRED)
 
 find_package(test_msgs REQUIRED)
 
+find_package(mimick_vendor REQUIRED)
+
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
@@ -207,7 +209,7 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME}
+    LIBRARIES ${PROJECT_NAME} mimick
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
