@@ -1295,6 +1295,32 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   ASSERT_GE(graph_changes_count, 4ul);
 }
 
+/* Test the graph when guard condition is triggered.
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_condition_triggered) {
+  rcl_ret_t ret;
+  int64_t wait_time_out = -1;
+  const rcl_guard_condition_t * graph_guard_condition =
+    rcl_node_get_graph_guard_condition(this->node_ptr);
+  ASSERT_NE(nullptr, graph_guard_condition) << rcl_get_error_string().str;
+  ret = rcl_wait_set_clear(this->wait_set_ptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  std::thread trigger_thread(
+    [ = ]() {
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      rcl_ret_t ret =
+      rcl_trigger_guard_condition(const_cast<rcl_guard_condition_t *>(graph_guard_condition));
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    });
+
+  ret = rcl_wait(this->wait_set_ptr, wait_time_out);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  trigger_thread.join();
+}
+
 /* Test the rcl_service_server_is_available function.
  */
 TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_is_available) {
