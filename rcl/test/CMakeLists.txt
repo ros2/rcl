@@ -288,7 +288,7 @@ function(test_target_function)
     SRCS rcl/test_rmw_impl_id_check_func.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}
+    LIBRARIES ${PROJECT_NAME} mimick
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 

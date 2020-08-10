@@ -15,10 +15,14 @@
 #include <gtest/gtest.h>
 
 #include "rcutils/env.h"
+#include "rcutils/strdup.h"
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 #include "rcl/rmw_implementation_identifier_check.h"
+
+#include "../mocking_utils/patch.hpp"
 
 TEST(TestRmwCheck, test_rmw_check_id_impl) {
   EXPECT_EQ(RCL_RET_OK, rcl_rmw_implementation_identifier_check());
@@ -69,4 +73,88 @@ TEST(TestRmwCheck, test_failing_configuration) {
   // Restore env variables set in the test
   EXPECT_TRUE(rcutils_set_env(RMW_IMPLEMENTATION_ENV_VAR_NAME, expected_rmw_impl_env));
   EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, expected_rmw_id_matches));
+}
+
+// Define dummy comparison operators for rcutils_allocator_t type for use with the Mimick Library
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
+
+// Mock internal calls to external libraries to fail
+TEST(TestRmwCheck, test_mock_rmw_impl_check) {
+  {
+    // Fail reading RMW_IMPLEMENTATION_ENV_VAR_NAME
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_get_env, "invalid arg");
+    EXPECT_EQ(RCL_RET_ERROR, rcl_rmw_implementation_identifier_check());
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    // Fail copying RMW_IMPLEMENTATION_ENV_VAR_NAME env result
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_strdup, static_cast<char *>(NULL));
+    EXPECT_EQ(RCL_RET_BAD_ALLOC, rcl_rmw_implementation_identifier_check());
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    // Fail reading RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rcutils_get_env, [](auto, const char ** env_value) {
+        static int counter = 1;
+        *env_value = "";
+        if (counter == 1) {
+          counter++;
+          return static_cast<const char *>(NULL);
+        } else {
+          return "argument env_value is null";
+        }
+      });
+    EXPECT_EQ(RCL_RET_ERROR, rcl_rmw_implementation_identifier_check());
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    // Fail copying RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME env result
+    // Set the variable, as is not set by default
+    const char * expected_rmw_id_matches = NULL;
+    const char * get_env_id_matches_name = rcutils_get_env(
+      RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME,
+      &expected_rmw_id_matches);
+    EXPECT_FALSE(get_env_id_matches_name);
+    EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, "some_random_name"));
+
+    // Return an allocated string as strdup would do for the first case
+    // calling the function
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    size_t dummy_str_size = 3u;
+    char * new_string = static_cast<char *>(allocator.allocate(dummy_str_size, allocator.state));
+    memset(new_string, '\0', dummy_str_size);
+
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rcutils_strdup, [&new_string](auto...) {
+        static int counter = 1;
+        if (counter == 1) {
+          counter++;
+          return new_string;
+        } else {
+          return static_cast<char *>(NULL);
+        }
+      });
+    EXPECT_EQ(RCL_RET_BAD_ALLOC, rcl_rmw_implementation_identifier_check());
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+    EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, expected_rmw_id_matches));
+    allocator.deallocate(new_string, allocator.state);
+  }
+  {
+    // Fail reading rmw_impl_identifier
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_get_implementation_identifier, static_cast<char *>(NULL));
+    EXPECT_EQ(RCL_RET_ERROR, rcl_rmw_implementation_identifier_check());
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
 }
