@@ -62,6 +62,7 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
   rcl_ret_t fail_state = RCL_RET_OK;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   char * expected_rmw_impl = NULL;
+  bool expected_rmw_requires_free = false;
   const char * expected_rmw_impl_env = NULL;
   const char * get_env_error_str = rcutils_get_env(
     RMW_IMPLEMENTATION_ENV_VAR_NAME,
@@ -70,21 +71,21 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Error getting env var '" RCUTILS_STRINGIFY(RMW_IMPLEMENTATION_ENV_VAR_NAME) "': %s\n",
       get_env_error_str);
-    fail_state = RCL_RET_ERROR;
-    goto fail_cleanup;
+    return RCL_RET_ERROR;
   }
   if (strlen(expected_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
     expected_rmw_impl = rcutils_strdup(expected_rmw_impl_env, allocator);
     if (!expected_rmw_impl) {
       RCL_SET_ERROR_MSG("allocation failed");
-      fail_state = RCL_RET_BAD_ALLOC;
-      goto fail_cleanup;
+      return RCL_RET_BAD_ALLOC;
     }
+    expected_rmw_requires_free = true;
   }
 
   char * asserted_rmw_impl = NULL;
   const char * asserted_rmw_impl_env = NULL;
+  bool asserted_rmw_requires_free = false;
   get_env_error_str = rcutils_get_env(
     RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, &asserted_rmw_impl_env);
   if (NULL != get_env_error_str) {
@@ -103,6 +104,7 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
       fail_state = RCL_RET_BAD_ALLOC;
       goto fail_cleanup;
     }
+    asserted_rmw_requires_free = true;
   }
 
   // If both environment variables are set, and they do not match, print an error and exit.
@@ -122,6 +124,7 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
     // The strings at this point must be equal.
     // No need for asserted_rmw_impl anymore, free the memory.
     allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
+    asserted_rmw_requires_free = false;
   } else {
     // One or none are set.
     // If asserted_rmw_impl has contents, move it over to expected_rmw_impl.
@@ -162,8 +165,12 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
   return RCL_RET_OK;
 
 fail_cleanup:
-  allocator.deallocate((char *)expected_rmw_impl, allocator.state);
-  allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
+  if (expected_rmw_requires_free) {
+    allocator.deallocate((char *)expected_rmw_impl, allocator.state);
+  }
+  if (asserted_rmw_requires_free) {
+    allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
+  }
   return fail_state;
 }
 
