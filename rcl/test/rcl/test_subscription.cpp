@@ -771,8 +771,10 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       mocking_utils::prepare_patch("lib:rcl", rmw_take_loaned_message_with_info);
     auto patch_return =
       mocking_utils::prepare_patch("lib:rcl", rmw_return_loaned_message_from_subscription);
-    // Only if rmw supports the functionality
+
     if (!rcl_subscription_can_loan_messages(&subscription)) {
+      // If rcl (and ultimately rmw) does not support message loaning,
+      // mock it so that a unit test can still be constructed.
       patch_take.then_call(
         [](const rmw_subscription_t * subscription,
         void ** loaned_message, bool * taken,
