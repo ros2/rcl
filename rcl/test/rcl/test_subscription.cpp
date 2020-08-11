@@ -610,21 +610,23 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loa
 
   test_msgs__msg__Strings * loaned_message = nullptr;
   void ** type_erased_loaned_message_pointer = reinterpret_cast<void **>(&loaned_message);
+  rmw_message_info_t * message_info = nullptr;  // is a valid argument
+  rmw_subscription_allocation_t * allocation = nullptr;  // is a valid argument
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID, rcl_take_loaned_message(
-      nullptr, type_erased_loaned_message_pointer, nullptr, nullptr));
+      nullptr, type_erased_loaned_message_pointer, message_info, allocation));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_take_loaned_message(&subscription, nullptr, nullptr, nullptr));
+    rcl_take_loaned_message(&subscription, nullptr, message_info, allocation));
   rcl_reset_error();
 
   test_msgs__msg__Strings dummy_message;
   loaned_message = &dummy_message;
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_take_loaned_message(
-      &subscription, type_erased_loaned_message_pointer, nullptr, nullptr));
+      &subscription, type_erased_loaned_message_pointer, message_info, allocation));
   rcl_reset_error();
   loaned_message = nullptr;
 
@@ -639,25 +641,25 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loa
 
     EXPECT_EQ(
       RCL_RET_SUBSCRIPTION_TAKE_FAILED, rcl_take_loaned_message(
-        &subscription, type_erased_loaned_message_pointer, nullptr, nullptr));
+        &subscription, type_erased_loaned_message_pointer, message_info, allocation));
     rcl_reset_error();
 
     rmw_take_loaned_message_with_info_returns = RMW_RET_BAD_ALLOC;
     EXPECT_EQ(
       RCL_RET_BAD_ALLOC, rcl_take_loaned_message(
-        &subscription, type_erased_loaned_message_pointer, nullptr, nullptr));
+        &subscription, type_erased_loaned_message_pointer, message_info, allocation));
     rcl_reset_error();
 
     rmw_take_loaned_message_with_info_returns = RMW_RET_UNSUPPORTED;
     EXPECT_EQ(
       RCL_RET_UNSUPPORTED, rcl_take_loaned_message(
-        &subscription, type_erased_loaned_message_pointer, nullptr, nullptr));
+        &subscription, type_erased_loaned_message_pointer, message_info, allocation));
     rcl_reset_error();
 
     rmw_take_loaned_message_with_info_returns = RMW_RET_ERROR;
     EXPECT_EQ(
       RCL_RET_ERROR, rcl_take_loaned_message(
-        &subscription, type_erased_loaned_message_pointer, nullptr, nullptr));
+        &subscription, type_erased_loaned_message_pointer, message_info, allocation));
     rcl_reset_error();
   }
 
@@ -890,18 +892,22 @@ TEST_F(
       &serialized_msg, initial_serialization_capacity, &allocator)) <<
     rcl_get_error_string().str;
 
+  rmw_message_info_t * message_info = nullptr;  // is a valid argument
+  rmw_subscription_allocation_t * allocation = nullptr;  // is a valid argument
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
-    rcl_take_serialized_message(nullptr, &serialized_msg, nullptr, nullptr));
+    rcl_take_serialized_message(nullptr, &serialized_msg, message_info, allocation));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
-    rcl_take_serialized_message(&subscription_zero_init, &serialized_msg, nullptr, nullptr));
+    rcl_take_serialized_message(
+      &subscription_zero_init, &serialized_msg,
+      message_info, allocation));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_take_serialized_message(&subscription, nullptr, nullptr, nullptr));
+    rcl_take_serialized_message(&subscription, nullptr, message_info, allocation));
   rcl_reset_error();
 
   rmw_ret_t rmw_take_serialized_message_with_info_returns = RMW_RET_OK;
@@ -914,19 +920,19 @@ TEST_F(
 
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_TAKE_FAILED,
-    rcl_take_serialized_message(&subscription, &serialized_msg, nullptr, nullptr));
+    rcl_take_serialized_message(&subscription, &serialized_msg, message_info, allocation));
   rcl_reset_error();
 
   rmw_take_serialized_message_with_info_returns = RMW_RET_BAD_ALLOC;
   EXPECT_EQ(
     RCL_RET_BAD_ALLOC,
-    rcl_take_serialized_message(&subscription, &serialized_msg, nullptr, nullptr));
+    rcl_take_serialized_message(&subscription, &serialized_msg, message_info, allocation));
   rcl_reset_error();
 
   rmw_take_serialized_message_with_info_returns = RMW_RET_ERROR;
   EXPECT_EQ(
     RCL_RET_ERROR,
-    rcl_take_serialized_message(&subscription, &serialized_msg, nullptr, nullptr));
+    rcl_take_serialized_message(&subscription, &serialized_msg, message_info, allocation));
   rcl_reset_error();
 }
 
