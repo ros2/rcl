@@ -96,7 +96,7 @@ void * time_bomb_malloc(size_t size, void * state)
 {
   __time_bomb_allocator_state * time_bomb_state = (__time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
-      time_bomb_state->count_until_failure-- == 0)
+    time_bomb_state->count_until_failure-- == 0)
   {
     return nullptr;
   }
@@ -108,7 +108,7 @@ time_bomb_realloc(void * pointer, size_t size, void * state)
 {
   __time_bomb_allocator_state * time_bomb_state = (__time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
-      time_bomb_state->count_until_failure-- == 0)
+    time_bomb_state->count_until_failure-- == 0)
   {
     return nullptr;
   }
@@ -117,11 +117,11 @@ time_bomb_realloc(void * pointer, size_t size, void * state)
 }
 
 void
-time_bomb_free(void * pointer, size_t size, void * state)
+time_bomb_free(void * pointer, void * state)
 {
   __time_bomb_allocator_state * time_bomb_state = (__time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
-      time_bomb_state->count_until_failure-- == 0)
+    time_bomb_state->count_until_failure-- == 0)
   {
     return;
   }
@@ -133,7 +133,7 @@ time_bomb_calloc(size_t number_of_elements, size_t size_of_element, void * state
 {
   __time_bomb_allocator_state * time_bomb_state = (__time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
-      time_bomb_state->count_until_failure-- == 0)
+    time_bomb_state->count_until_failure-- == 0)
   {
     return nullptr;
   }
