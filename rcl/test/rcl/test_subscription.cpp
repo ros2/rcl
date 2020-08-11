@@ -32,7 +32,7 @@
 #include "wait_for_entity_helpers.hpp"
 
 #include "./allocator_testing_utils.h"
-#include "./mocking_utils/patch.hpp"
+#include "../mocking_utils/patch.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
