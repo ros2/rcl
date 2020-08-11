@@ -119,7 +119,7 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
   if (expected_rmw_impl && asserted_rmw_impl) {
     // The strings at this point must be equal.
     // No need for asserted_rmw_impl anymore, free the memory.
-    allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
+    allocator.deallocate(asserted_rmw_impl, allocator.state);
     asserted_rmw_impl = NULL;
   } else {
     // One or none are set.
@@ -160,12 +160,8 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
   ret = RCL_RET_OK;
 // fallthrough
 cleanup:
-  if (expected_rmw_impl) {
-    allocator.deallocate((char *)expected_rmw_impl, allocator.state);
-  }
-  if (asserted_rmw_impl) {
-    allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
-  }
+  allocator.deallocate(expected_rmw_impl, allocator.state);
+  allocator.deallocate(asserted_rmw_impl, allocator.state);
   return ret;
 }
 
