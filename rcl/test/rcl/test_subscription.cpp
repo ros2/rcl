@@ -597,6 +597,96 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   }
 }
 
+/* Basic test for subscription loan functions
+ */
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loaned) {
+  rcl_ret_t ret;
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  constexpr char topic[] = "rcl_loan";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
+  const char * test_string = "testing";
+  {
+    test_msgs__msg__Strings msg;
+    test_msgs__msg__Strings__init(&msg);
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+    ret = rcl_publish(&publisher, &msg, nullptr);
+    test_msgs__msg__Strings__fini(&msg);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
+  {
+    auto patch_take =
+      mocking_utils::prepare_patch("lib:rcl", rmw_take_loaned_message_with_info);
+    auto patch_return =
+      mocking_utils::prepare_patch("lib:rcl", rmw_return_loaned_message_from_subscription);
+
+    if (!rcl_subscription_can_loan_messages(&subscription)) {
+      // If rcl (and ultimately rmw) does not support message loaning,
+      // mock it so that a unit test can still be constructed.
+      patch_take.then_call(
+        [](const rmw_subscription_t * subscription,
+        void ** loaned_message, bool * taken,
+        rmw_message_info_t * message_info,
+        rmw_subscription_allocation_t * allocation)
+        {
+          auto msg = new(std::nothrow) test_msgs__msg__Strings{};
+          if (!msg) {
+            return RMW_RET_BAD_ALLOC;
+          }
+          test_msgs__msg__Strings__init(msg);
+          *loaned_message = static_cast<void *>(msg);
+          rmw_ret_t ret = rmw_take_with_info(
+            subscription,
+            *loaned_message,
+            taken,
+            message_info,
+            allocation);
+          if (RMW_RET_OK != ret) {
+            delete msg;
+          }
+          return ret;
+        });
+      patch_return.then_call(
+        [](auto, void * loaned_message) {
+          auto msg = reinterpret_cast<test_msgs__msg__Strings *>(loaned_message);
+          test_msgs__msg__Strings__fini(msg);
+          delete msg;
+
+          return RMW_RET_OK;
+        });
+    }
+
+    test_msgs__msg__Strings * msg_loaned = nullptr;
+    ret = rcl_take_loaned_message(
+      &subscription, reinterpret_cast<void **>(&msg_loaned), nullptr, nullptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_EQ(
+      std::string(test_string),
+      std::string(msg_loaned->string_value.data, msg_loaned->string_value.size));
+    ret = rcl_return_loaned_message_from_subscription(&subscription, msg_loaned);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+}
+
 /* Test for all failure modes in subscription take with loaned messages function.
  */
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loaned_message) {
@@ -730,96 +820,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_return_l
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_subscription_fini(&subscription, this->node_ptr)) << rcl_get_error_string().str;
-}
-
-/* Basic test for subscription loan functions
- */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loaned) {
-  rcl_ret_t ret;
-  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  constexpr char topic[] = "rcl_loan";
-  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
-  const char * test_string = "testing";
-  {
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg, nullptr);
-    test_msgs__msg__Strings__fini(&msg);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  }
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
-  {
-    auto patch_take =
-      mocking_utils::prepare_patch("lib:rcl", rmw_take_loaned_message_with_info);
-    auto patch_return =
-      mocking_utils::prepare_patch("lib:rcl", rmw_return_loaned_message_from_subscription);
-
-    if (!rcl_subscription_can_loan_messages(&subscription)) {
-      // If rcl (and ultimately rmw) does not support message loaning,
-      // mock it so that a unit test can still be constructed.
-      patch_take.then_call(
-        [](const rmw_subscription_t * subscription,
-        void ** loaned_message, bool * taken,
-        rmw_message_info_t * message_info,
-        rmw_subscription_allocation_t * allocation)
-        {
-          auto msg = new(std::nothrow) test_msgs__msg__Strings{};
-          if (!msg) {
-            return RMW_RET_BAD_ALLOC;
-          }
-          test_msgs__msg__Strings__init(msg);
-          *loaned_message = static_cast<void *>(msg);
-          rmw_ret_t ret = rmw_take_with_info(
-            subscription,
-            *loaned_message,
-            taken,
-            message_info,
-            allocation);
-          if (RMW_RET_OK != ret) {
-            delete msg;
-          }
-          return ret;
-        });
-      patch_return.then_call(
-        [](auto, void * loaned_message) {
-          auto msg = reinterpret_cast<test_msgs__msg__Strings *>(loaned_message);
-          test_msgs__msg__Strings__fini(msg);
-          delete msg;
-
-          return RMW_RET_OK;
-        });
-    }
-
-    test_msgs__msg__Strings * msg_loaned = nullptr;
-    ret = rcl_take_loaned_message(
-      &subscription, reinterpret_cast<void **>(&msg_loaned), nullptr, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    EXPECT_EQ(
-      std::string(test_string),
-      std::string(msg_loaned->string_value.data, msg_loaned->string_value.size));
-    ret = rcl_return_loaned_message_from_subscription(&subscription, msg_loaned);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  }
 }
 
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_get_options) {
