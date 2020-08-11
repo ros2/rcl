@@ -59,6 +59,7 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
   // If the environment variable RMW_IMPLEMENTATION is set, or
   // the environment variable RCL_ASSERT_RMW_ID_MATCHES is set,
   // check that the result of `rmw_get_implementation_identifier` matches.
+  rcl_ret_t ret = RCL_RET_OK;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   char * expected_rmw_impl = NULL;
   const char * expected_rmw_impl_env = NULL;
@@ -89,14 +90,16 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
       "Error getting env var '"
       RCUTILS_STRINGIFY(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME) "': %s\n",
       get_env_error_str);
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
+    goto cleanup;
   }
   if (strlen(asserted_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
     asserted_rmw_impl = rcutils_strdup(asserted_rmw_impl_env, allocator);
     if (!asserted_rmw_impl) {
       RCL_SET_ERROR_MSG("allocation failed");
-      return RCL_RET_BAD_ALLOC;
+      ret = RCL_RET_BAD_ALLOC;
+      goto cleanup;
     }
   }
 
@@ -107,7 +110,8 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
       "variables do not match, exiting with %d.",
       expected_rmw_impl, asserted_rmw_impl, RCL_RET_ERROR
     );
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
+    goto cleanup;
   }
 
   // Collapse the expected_rmw_impl and asserted_rmw_impl variables so only expected_rmw_impl needs
@@ -115,12 +119,14 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
   if (expected_rmw_impl && asserted_rmw_impl) {
     // The strings at this point must be equal.
     // No need for asserted_rmw_impl anymore, free the memory.
-    allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
+    allocator.deallocate(asserted_rmw_impl, allocator.state);
+    asserted_rmw_impl = NULL;
   } else {
     // One or none are set.
     // If asserted_rmw_impl has contents, move it over to expected_rmw_impl.
     if (asserted_rmw_impl) {
       expected_rmw_impl = asserted_rmw_impl;
+      asserted_rmw_impl = NULL;
     }
   }
 
@@ -137,7 +143,8 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
         rmw_error_msg.str,
         RCL_RET_ERROR
       );
-      return RCL_RET_ERROR;
+      ret = RCL_RET_ERROR;
+      goto cleanup;
     }
     if (strcmp(actual_rmw_impl_id, expected_rmw_impl) != 0) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -146,12 +153,16 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
         actual_rmw_impl_id,
         RCL_RET_MISMATCHED_RMW_ID
       );
-      return RCL_RET_MISMATCHED_RMW_ID;
+      ret = RCL_RET_MISMATCHED_RMW_ID;
+      goto cleanup;
     }
-    // Free the memory now that all checking has passed.
-    allocator.deallocate((char *)expected_rmw_impl, allocator.state);
   }
-  return RCL_RET_OK;
+  ret = RCL_RET_OK;
+// fallthrough
+cleanup:
+  allocator.deallocate(expected_rmw_impl, allocator.state);
+  allocator.deallocate(asserted_rmw_impl, allocator.state);
+  return ret;
 }
 
 INITIALIZER(initialize) {
