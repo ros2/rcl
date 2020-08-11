@@ -643,23 +643,14 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       // If rcl (and ultimately rmw) does not support message loaning,
       // mock it so that a unit test can still be constructed.
       patch_take.then_call(
-        [](const rmw_subscription_t * subscription,
-        void ** loaned_message, bool * taken,
-        rmw_message_info_t * message_info,
-        rmw_subscription_allocation_t * allocation)
-        {
+        [](auto sub, void ** loaned_message, auto taken, auto msg_info, auto allocation) {
           auto msg = new(std::nothrow) test_msgs__msg__Strings{};
           if (!msg) {
             return RMW_RET_BAD_ALLOC;
           }
           test_msgs__msg__Strings__init(msg);
           *loaned_message = static_cast<void *>(msg);
-          rmw_ret_t ret = rmw_take_with_info(
-            subscription,
-            *loaned_message,
-            taken,
-            message_info,
-            allocation);
+          rmw_ret_t ret = rmw_take_with_info(sub, *loaned_message, taken, msg_info, allocation);
           if (RMW_RET_OK != ret) {
             delete msg;
           }
