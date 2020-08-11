@@ -59,10 +59,9 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
   // If the environment variable RMW_IMPLEMENTATION is set, or
   // the environment variable RCL_ASSERT_RMW_ID_MATCHES is set,
   // check that the result of `rmw_get_implementation_identifier` matches.
-  rcl_ret_t fail_state = RCL_RET_OK;
+  rcl_ret_t ret = RCL_RET_OK;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   char * expected_rmw_impl = NULL;
-  bool expected_rmw_requires_free = false;
   const char * expected_rmw_impl_env = NULL;
   const char * get_env_error_str = rcutils_get_env(
     RMW_IMPLEMENTATION_ENV_VAR_NAME,
@@ -80,12 +79,10 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
       RCL_SET_ERROR_MSG("allocation failed");
       return RCL_RET_BAD_ALLOC;
     }
-    expected_rmw_requires_free = true;
   }
 
   char * asserted_rmw_impl = NULL;
   const char * asserted_rmw_impl_env = NULL;
-  bool asserted_rmw_requires_free = false;
   get_env_error_str = rcutils_get_env(
     RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, &asserted_rmw_impl_env);
   if (NULL != get_env_error_str) {
@@ -93,18 +90,17 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
       "Error getting env var '"
       RCUTILS_STRINGIFY(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME) "': %s\n",
       get_env_error_str);
-    fail_state = RCL_RET_ERROR;
-    goto fail_cleanup;
+    ret = RCL_RET_ERROR;
+    goto cleanup;
   }
   if (strlen(asserted_rmw_impl_env) > 0) {
     // Copy the environment variable so it doesn't get over-written by the next getenv call.
     asserted_rmw_impl = rcutils_strdup(asserted_rmw_impl_env, allocator);
     if (!asserted_rmw_impl) {
       RCL_SET_ERROR_MSG("allocation failed");
-      fail_state = RCL_RET_BAD_ALLOC;
-      goto fail_cleanup;
+      ret = RCL_RET_BAD_ALLOC;
+      goto cleanup;
     }
-    asserted_rmw_requires_free = true;
   }
 
   // If both environment variables are set, and they do not match, print an error and exit.
@@ -114,8 +110,8 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
       "variables do not match, exiting with %d.",
       expected_rmw_impl, asserted_rmw_impl, RCL_RET_ERROR
     );
-    fail_state = RCL_RET_ERROR;
-    goto fail_cleanup;
+    ret = RCL_RET_ERROR;
+    goto cleanup;
   }
 
   // Collapse the expected_rmw_impl and asserted_rmw_impl variables so only expected_rmw_impl needs
@@ -124,12 +120,13 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
     // The strings at this point must be equal.
     // No need for asserted_rmw_impl anymore, free the memory.
     allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
-    asserted_rmw_requires_free = false;
+    asserted_rmw_impl = NULL;
   } else {
     // One or none are set.
     // If asserted_rmw_impl has contents, move it over to expected_rmw_impl.
     if (asserted_rmw_impl) {
       expected_rmw_impl = asserted_rmw_impl;
+      asserted_rmw_impl = NULL;
     }
   }
 
@@ -146,8 +143,8 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
         rmw_error_msg.str,
         RCL_RET_ERROR
       );
-      fail_state = RCL_RET_ERROR;
-      goto fail_cleanup;
+      ret = RCL_RET_ERROR;
+      goto cleanup;
     }
     if (strcmp(actual_rmw_impl_id, expected_rmw_impl) != 0) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -156,22 +153,20 @@ rcl_ret_t rcl_rmw_implementation_identifier_check(void)
         actual_rmw_impl_id,
         RCL_RET_MISMATCHED_RMW_ID
       );
-      fail_state = RCL_RET_MISMATCHED_RMW_ID;
-      goto fail_cleanup;
+      ret = RCL_RET_MISMATCHED_RMW_ID;
+      goto cleanup;
     }
-    // Free the memory now that all checking has passed.
+  }
+  ret = RCL_RET_OK;
+// fallthrough
+cleanup:
+  if (expected_rmw_impl) {
     allocator.deallocate((char *)expected_rmw_impl, allocator.state);
   }
-  return RCL_RET_OK;
-
-fail_cleanup:
-  if (expected_rmw_requires_free) {
-    allocator.deallocate((char *)expected_rmw_impl, allocator.state);
-  }
-  if (asserted_rmw_requires_free) {
+  if (asserted_rmw_impl) {
     allocator.deallocate((char *)asserted_rmw_impl, allocator.state);
   }
-  return fail_state;
+  return ret;
 }
 
 INITIALIZER(initialize) {
