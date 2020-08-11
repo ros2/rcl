@@ -286,10 +286,7 @@ rcl_take(
     subscription->impl->rmw_handle, ros_message, &taken, message_info_local, allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    if (RMW_RET_BAD_ALLOC == ret) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Subscription take succeeded: %s", taken ? "true" : "false");
@@ -368,10 +365,7 @@ rcl_take_serialized_message(
     subscription->impl->rmw_handle, serialized_message, &taken, message_info_local, allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    if (RMW_RET_BAD_ALLOC == ret) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Subscription serialized take succeeded: %s", taken ? "true" : "false");
@@ -407,10 +401,7 @@ rcl_take_loaned_message(
     subscription->impl->rmw_handle, loaned_message, &taken, message_info_local, allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    if (RMW_RET_BAD_ALLOC == ret) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Subscription loaned take succeeded: %s", taken ? "true" : "false");
@@ -430,8 +421,9 @@ rcl_return_loaned_message_from_subscription(
     return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
-  return rmw_return_loaned_message_from_subscription(
-    subscription->impl->rmw_handle, loaned_message);
+  return rcl_convert_rmw_ret_to_rcl_ret(
+    rmw_return_loaned_message_from_subscription(
+      subscription->impl->rmw_handle, loaned_message));
 }
 
 const char *
