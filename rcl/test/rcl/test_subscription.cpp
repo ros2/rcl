@@ -957,33 +957,34 @@ TEST_F(
   {
     EXPECT_EQ(RMW_RET_OK, rmw_message_info_sequence_fini(&message_infos));
   });
+  rmw_subscription_allocation_t * allocation = nullptr;  // is a valid argument
 
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
-    rcl_take_sequence(nullptr, seq_size, &messages, &message_infos, nullptr));
+    rcl_take_sequence(nullptr, seq_size, &messages, &message_infos, allocation));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
-    rcl_take_sequence(&subscription_zero_init, seq_size, &messages, &message_infos, nullptr));
+    rcl_take_sequence(&subscription_zero_init, seq_size, &messages, &message_infos, allocation));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_take_sequence(&subscription, seq_size + 1, &messages, &message_infos, nullptr));
+    rcl_take_sequence(&subscription, seq_size + 1, &messages, &message_infos, allocation));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos_short, nullptr));
-  rcl_reset_error();
-
-  EXPECT_EQ(
-    RCL_RET_INVALID_ARGUMENT,
-    rcl_take_sequence(&subscription, seq_size, nullptr, &message_infos, nullptr));
+    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos_short, allocation));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_take_sequence(&subscription, seq_size, &messages, nullptr, nullptr));
+    rcl_take_sequence(&subscription, seq_size, nullptr, &message_infos, allocation));
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_take_sequence(&subscription, seq_size, &messages, nullptr, allocation));
   rcl_reset_error();
 
   rmw_ret_t rmw_take_sequence_returns = RMW_RET_OK;
@@ -996,19 +997,19 @@ TEST_F(
 
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_TAKE_FAILED,
-    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, nullptr));
+    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, allocation));
   rcl_reset_error();
 
   rmw_take_sequence_returns = RMW_RET_BAD_ALLOC;
   EXPECT_EQ(
     RCL_RET_BAD_ALLOC,
-    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, nullptr));
+    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, allocation));
   rcl_reset_error();
 
   rmw_take_sequence_returns = RMW_RET_ERROR;
   EXPECT_EQ(
     RCL_RET_ERROR,
-    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, nullptr));
+    rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, allocation));
   rcl_reset_error();
 }
 
