@@ -194,6 +194,7 @@ rcl_subscription_init(
 fail:
   if (subscription->impl) {
     allocator->deallocate(subscription->impl, allocator->state);
+    subscription->impl = NULL;
   }
   ret = fail_ret;
   // Fall through to cleanup
@@ -229,6 +230,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
     allocator.deallocate(subscription->impl, allocator.state);
+    subscription->impl = NULL;
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription finalized");
   return result;
@@ -289,10 +291,6 @@ rcl_take_sequence(
   rmw_subscription_allocation_t * allocation
 )
 {
-  // Set the sizes to zero to indicate that there are no valid messages
-  message_sequence->size = 0u;
-  message_info_sequence->size = 0u;
-
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking %zu messages", count);
   if (!rcl_subscription_is_valid(subscription)) {
     return RCL_RET_SUBSCRIPTION_INVALID;  // error message already set
@@ -309,6 +307,10 @@ rcl_take_sequence(
     RCL_SET_ERROR_MSG("Insufficient message info sequence capacity for requested count");
     return RCL_RET_INVALID_ARGUMENT;
   }
+
+  // Set the sizes to zero to indicate that there are no valid messages
+  message_sequence->size = 0u;
+  message_info_sequence->size = 0u;
 
   size_t taken = 0u;
   rmw_ret_t ret = rmw_take_sequence(
@@ -370,6 +372,7 @@ rcl_take_loaned_message(
   if (!rcl_subscription_is_valid(subscription)) {
     return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
   }
+  RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
   if (*loaned_message) {
     RCL_SET_ERROR_MSG("loaned message is already initialized");
     return RCL_RET_INVALID_ARGUMENT;
