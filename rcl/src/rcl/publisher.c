@@ -272,7 +272,8 @@ rcl_borrow_loaned_message(
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
-  return rmw_borrow_loaned_message(publisher->impl->rmw_handle, type_support, ros_message);
+  return rcl_convert_rmw_ret_to_rcl_ret(
+    rmw_borrow_loaned_message(publisher->impl->rmw_handle, type_support, ros_message));
 }
 
 rcl_ret_t
@@ -284,7 +285,8 @@ rcl_return_loaned_message_from_publisher(
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
-  return rmw_return_loaned_message_from_publisher(publisher->impl->rmw_handle, loaned_message);
+  return rcl_convert_rmw_ret_to_rcl_ret(
+    rmw_return_loaned_message_from_publisher(publisher->impl->rmw_handle, loaned_message));
 }
 
 rcl_ret_t
