@@ -146,6 +146,8 @@ TEST_F(
   rcl_reset_error();
 }
 
+// Define dummy comparison operators for rcutils_allocator_t type
+// to use with the Mimick mocking library
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
