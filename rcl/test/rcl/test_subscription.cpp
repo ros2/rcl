@@ -64,7 +64,7 @@ public:
     }
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
-    const char * name = "test_subscription_node";
+    constexpr char name[] = "test_subscription_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -125,8 +125,8 @@ TEST_F(
 
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic = "chatter";
-  const char * expected_topic = "/chatter";
+  constexpr char topic[] = "chatter";
+  constexpr char expected_topic[] = "/chatter";
 
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
@@ -157,7 +157,7 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_bad_init) {
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic = "/chatter";
+  constexpr char topic[] = "/chatter";
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   rcl_node_t invalid_node = rcl_get_zero_initialized_node();
@@ -269,7 +269,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  const char * topic = "/chatter";
+  constexpr char topic[] = "/chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -342,7 +342,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic = "rcl_test_subscription_nominal_string_chatter";
+  constexpr char topic[] = "rcl_test_subscription_nominal_string_chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -361,7 +361,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
-  const char * test_string = "testing";
+  constexpr char test_string[] = "testing";
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
@@ -394,7 +394,7 @@ TEST_F(
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic = "rcl_test_subscription_nominal_string_sequence_chatter";
+  constexpr char topic[] = "rcl_test_subscription_nominal_string_sequence_chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -413,7 +413,7 @@ TEST_F(
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
-  const char * test_string = "testing";
+  constexpr char test_string[] = "testing";
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
@@ -539,7 +539,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   rcutils_allocator_t allocator = rcl_get_default_allocator();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic = "/chatterSer";
+  constexpr char topic[] = "/chatterSer";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -554,7 +554,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   ASSERT_EQ(
     RCL_RET_OK, rmw_serialized_message_init(
       &serialized_msg, initial_capacity_ser, &allocator)) << rcl_get_error_string().str;
-  const char * test_string = "testing";
+  constexpr char test_string[] = "testing";
   test_msgs__msg__Strings msg;
   test_msgs__msg__Strings__init(&msg);
   ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
@@ -600,7 +600,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 /* Test for all failure modes in subscription take with loaned messages function.
  */
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loaned_message) {
-  const char * topic = "rcl_loan";
+  constexpr char topic[] = "rcl_loan";
   const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
 
@@ -673,7 +673,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loa
 /* Test for all failure modes in subscription return loaned messages function.
  */
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_return_loaned_message) {
-  const char * topic = "rcl_loan";
+  constexpr char topic[] = "rcl_loan";
   const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
@@ -739,7 +739,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic = "rcl_loan";
+  constexpr char topic[] = "rcl_loan";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -826,7 +826,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_get_options)
   rcl_ret_t ret;
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const char * topic = "test_get_options";
+  constexpr char topic[] = "test_get_options";
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
