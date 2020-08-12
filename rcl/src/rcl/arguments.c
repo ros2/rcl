@@ -94,7 +94,7 @@ rcl_arguments_get_param_files(
       // deallocate allocated memory
       for (int r = i; r >= 0; --r) {
         if (NULL == (*parameter_files)[r]) {
-          break;
+          continue;
         }
         allocator.deallocate((*parameter_files)[r], allocator.state);
       }
