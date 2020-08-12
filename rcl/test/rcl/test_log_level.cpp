@@ -21,6 +21,7 @@
 #include "rcutils/logging.h"
 
 #include "./arg_macros.hpp"
+#include "./allocator_testing_utils.h"
 #include "../mocking_utils/patch.hpp"
 
 int setup_and_parse_log_level_args(const char * log_level_string)
@@ -222,6 +223,59 @@ TEST(TestLogLevel, log_level_init_fini) {
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_fini(nullptr));
+}
+
+TEST(TestLogLevel, logger_log_level_copy) {
+  // Init to debug level to test before copy
+  rcl_log_levels_t log_levels = rcl_get_zero_initialized_log_levels();
+  GET_LOG_LEVEL_FROM_ARGUMENTS(
+    log_levels, "process_name", "--ros-args",
+    "--log-level", "rcl:=debug");
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(&log_levels));
+  });
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
+  EXPECT_EQ(1ul, log_levels.num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels.logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels.logger_settings[0].level);
+
+  // Expected usage
+  rcl_log_levels_t copied_log_levels = rcl_get_zero_initialized_log_levels();
+  EXPECT_EQ(RCL_RET_OK, rcl_log_levels_copy(&log_levels, &copied_log_levels));
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, copied_log_levels.default_logger_level);
+  EXPECT_EQ(log_levels.default_logger_level, copied_log_levels.default_logger_level);
+  EXPECT_EQ(1ul, copied_log_levels.num_logger_settings);
+  EXPECT_EQ(log_levels.num_logger_settings, copied_log_levels.num_logger_settings);
+  EXPECT_STREQ("rcl", copied_log_levels.logger_settings[0].name);
+  EXPECT_STREQ(log_levels.logger_settings[0].name, copied_log_levels.logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, copied_log_levels.logger_settings[0].level);
+  EXPECT_EQ(log_levels.logger_settings[0].level, copied_log_levels.logger_settings[0].level);
+
+  // Bad usage
+  rcl_log_levels_t empty_log_levels = rcl_get_zero_initialized_log_levels();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_copy(nullptr, &empty_log_levels));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_copy(&log_levels, nullptr));
+  // Already copied
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_copy(&log_levels, &copied_log_levels));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  // null alloc
+  rcl_allocator_t saved_allocator = log_levels.allocator;
+  log_levels.allocator = {NULL, NULL, NULL, NULL, NULL};
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_copy(&log_levels, &empty_log_levels));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  // bad allocation
+  rcl_allocator_t bad_allocator = get_failing_allocator();
+  log_levels.allocator = bad_allocator;
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, rcl_log_levels_copy(&log_levels, &empty_log_levels));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  log_levels.allocator = saved_allocator;
 }
 
 int main(int argc, char ** argv)
