@@ -222,6 +222,11 @@ TEST(TestLogLevel, log_level_init_fini) {
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
+  rcl_allocator_t bad_allocator = get_failing_allocator();
+  rcl_log_levels_t empty_log_levels = rcl_get_zero_initialized_log_levels();
+  EXPECT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_log_levels_init(&empty_log_levels, &bad_allocator, capacity_count));
+
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_fini(nullptr));
 }
 
