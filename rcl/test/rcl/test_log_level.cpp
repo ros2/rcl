@@ -199,6 +199,14 @@ TEST(TestLogLevel, log_level_dot_logger_name) {
 TEST(TestLogLevel, log_level_init_fini) {
   rcl_log_levels_t log_levels = rcl_get_zero_initialized_log_levels();
   rcl_allocator_t allocator = rcl_get_default_allocator();
+
+  // Test zero size ini/fini
+  const size_t zero_count = 0;
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_log_levels_init(&log_levels, &allocator, &zero_count));
+  EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(&log_levels));
+
   const size_t capacity_count = 1;
   EXPECT_EQ(
     RCL_RET_OK,
