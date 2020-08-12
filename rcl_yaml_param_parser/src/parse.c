@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <ctype.h>
 #include <errno.h>
 
 #include "rcutils/allocator.h"
@@ -116,7 +117,30 @@ void * get_value(
   {
     errno = 0;
     endptr = NULL;
-    dval = strtod(value, &endptr);
+    const char * iter_ptr = NULL;
+    if ((0 == strcmp(value, ".nan")) ||
+      (0 == strcmp(value, ".NaN")) ||
+      (0 == strcmp(value, ".NAN")) ||
+      (0 == strcmp(value, ".inf")) ||
+      (0 == strcmp(value, ".Inf")) ||
+      (0 == strcmp(value, ".INF")) ||
+      (0 == strcmp(value, "+.inf")) ||
+      (0 == strcmp(value, "+.Inf")) ||
+      (0 == strcmp(value, "+.INF")) ||
+      (0 == strcmp(value, "-.inf")) ||
+      (0 == strcmp(value, "-.Inf")) ||
+      (0 == strcmp(value, "-.INF")))
+    {
+      for (iter_ptr = value; !isalpha(*iter_ptr); ) {
+        iter_ptr += 1;
+      }
+      dval = strtod(iter_ptr, &endptr);
+      if (*value == '-') {
+        dval = -dval;
+      }
+    } else {
+      dval = strtod(value, &endptr);
+    }
     if ((0 == errno) && (NULL != endptr)) {
       if ((NULL != endptr) && (endptr != value)) {
         if (('\0' != *value) && ('\0' == *endptr)) {
