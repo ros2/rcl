@@ -1,6 +1,7 @@
 find_package(ament_cmake_gtest REQUIRED)
 find_package(launch_testing_ament_cmake REQUIRED)
 
+find_package(mimick_vendor REQUIRED)
 find_package(test_msgs REQUIRED)
 
 find_package(mimick_vendor REQUIRED)
@@ -224,7 +225,7 @@ function(test_target_function)
     SRCS rcl/test_subscription.cpp rcl/wait_for_entity_helpers.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}
+    LIBRARIES ${PROJECT_NAME} mimick
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
   if(rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR
