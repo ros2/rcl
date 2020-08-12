@@ -77,6 +77,7 @@ rcl_lifecycle_get_zero_initialized_state();
  * \param[in] label label of the state
  * \param[in] allocator a valid allocator used to initialized the lifecycle state
  * \return `RCL_RET_OK` if state was initialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -106,6 +107,7 @@ rcl_lifecycle_state_init(
  * \param[inout] state struct to be finalized
  * \param[in] allocator a valid allocator used to finalize the lifecycle state
  * \return `RCL_RET_OK` if the state was finalized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -152,6 +154,7 @@ rcl_lifecycle_get_zero_initialized_transition();
  * \param[in] goal the objetive of the transition
  * \param[in] allocator a valid allocator used to finalize the lifecycle state
  * \return `RCL_RET_OK` if the transition is initialized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -182,6 +185,7 @@ rcl_lifecycle_transition_init(
  * \param[inout] transition struct to be finalized
  * \param[in] allocator a valid allocator used to finalize the transition
  * \return `RCL_RET_OK` if the state was finalized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -229,6 +233,7 @@ rcl_lifecycle_get_zero_initialized_state_machine();
  *    the state_machine pointer is only used to initialize the interfaces
  * \param[in] allocator a valid allocator used to initialized the state machine
  * \return `RCL_RET_OK` if the state machine was initialized successfully, or
+ * \return ` RCL_RET_INVALID_ARGUMENT` if input params is NULL, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -264,6 +269,7 @@ rcl_lifecycle_state_machine_init(
  * \param[in] node_handle valid (not finalized) handle to the node
  * \param[in] allocator a valid allocator used to finalize the state machine
  * \return `RCL_RET_OK` if the state was finalized successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -365,6 +371,7 @@ rcl_lifecycle_get_transition_by_label(
  * \param[in] publish_notification if the value is `true` a message will be published
  *    notifying the transition, otherwise no message will be published
  * \return `RCL_RET_OK` if the transition was triggered successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
@@ -394,6 +401,7 @@ rcl_lifecycle_trigger_transition_by_id(
  * \param[in] publish_notification if the value is `true` a message will be published
  *    notifying the transition, otherwise no message will be published
  * \return `RCL_RET_OK` if the transition was triggered successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
