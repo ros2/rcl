@@ -87,14 +87,14 @@ set_failing_allocator_is_failing(rcutils_allocator_t & failing_allocator, bool s
   ((__failing_allocator_state *)failing_allocator.state)->is_failing = state;
 }
 
-typedef struct __time_bomb_allocator_state
+typedef struct time_bomb_allocator_state
 {
   int count_until_failure;
-} __time_bomb_allocator_state;
+} time_bomb_allocator_state;
 
 void * time_bomb_malloc(size_t size, void * state)
 {
-  __time_bomb_allocator_state * time_bomb_state = (__time_bomb_allocator_state *)state;
+  time_bomb_allocator_state * time_bomb_state = (time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
     time_bomb_state->count_until_failure-- == 0)
   {
@@ -106,7 +106,7 @@ void * time_bomb_malloc(size_t size, void * state)
 void *
 time_bomb_realloc(void * pointer, size_t size, void * state)
 {
-  __time_bomb_allocator_state * time_bomb_state = (__time_bomb_allocator_state *)state;
+  time_bomb_allocator_state * time_bomb_state = (time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
     time_bomb_state->count_until_failure-- == 0)
   {
@@ -119,7 +119,7 @@ time_bomb_realloc(void * pointer, size_t size, void * state)
 void
 time_bomb_free(void * pointer, void * state)
 {
-  __time_bomb_allocator_state * time_bomb_state = (__time_bomb_allocator_state *)state;
+  time_bomb_allocator_state * time_bomb_state = (time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
     time_bomb_state->count_until_failure-- == 0)
   {
@@ -131,7 +131,7 @@ time_bomb_free(void * pointer, void * state)
 void *
 time_bomb_calloc(size_t number_of_elements, size_t size_of_element, void * state)
 {
-  __time_bomb_allocator_state * time_bomb_state = (__time_bomb_allocator_state *)state;
+  time_bomb_allocator_state * time_bomb_state = (time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
     time_bomb_state->count_until_failure-- == 0)
   {
@@ -144,7 +144,7 @@ time_bomb_calloc(size_t number_of_elements, size_t size_of_element, void * state
 static inline rcutils_allocator_t
 get_time_bombed_allocator(void)
 {
-  static __time_bomb_allocator_state state;
+  time_bomb_allocator_state state;
   state.count_until_failure = 1;
   auto time_bombed_allocator = rcutils_get_default_allocator();
   time_bombed_allocator.allocate = time_bomb_malloc;
@@ -158,7 +158,7 @@ get_time_bombed_allocator(void)
 static inline void
 set_time_bombed_allocator_count(rcutils_allocator_t & time_bombed_allocator, int count)
 {
-  ((__time_bomb_allocator_state *)time_bombed_allocator.state)->count_until_failure = count;
+  ((time_bomb_allocator_state *)time_bombed_allocator.state)->count_until_failure = count;
 }
 
 #ifdef __cplusplus
