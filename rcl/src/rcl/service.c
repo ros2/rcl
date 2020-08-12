@@ -193,6 +193,7 @@ rcl_service_init(
 fail:
   if (service->impl) {
     allocator->deallocate(service->impl, allocator->state);
+    service->impl = NULL;
   }
   ret = fail_ret;
   // Fall through to clean up
@@ -228,6 +229,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
     allocator.deallocate(service->impl, allocator.state);
+    service->impl = NULL;
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service finalized");
   return result;

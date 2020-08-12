@@ -189,6 +189,7 @@ rcl_client_init(
 fail:
   if (client->impl) {
     allocator->deallocate(client->impl, allocator->state);
+    client->impl = NULL;
   }
   ret = fail_ret;
   // Fall through to cleanup
@@ -223,6 +224,7 @@ rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
     allocator.deallocate(client->impl, allocator.state);
+    client->impl = NULL;
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client finalized");
   return result;
