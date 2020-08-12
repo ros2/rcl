@@ -92,7 +92,7 @@ typedef struct time_bomb_allocator_state
   int count_until_failure;
 } time_bomb_allocator_state;
 
-void * time_bomb_malloc(size_t size, void * state)
+static void * time_bomb_malloc(size_t size, void * state)
 {
   time_bomb_allocator_state * time_bomb_state = (time_bomb_allocator_state *)state;
   if (time_bomb_state->count_until_failure >= 0 &&
@@ -103,7 +103,7 @@ void * time_bomb_malloc(size_t size, void * state)
   return rcutils_get_default_allocator().allocate(size, rcutils_get_default_allocator().state);
 }
 
-void *
+static void *
 time_bomb_realloc(void * pointer, size_t size, void * state)
 {
   time_bomb_allocator_state * time_bomb_state = (time_bomb_allocator_state *)state;
@@ -116,7 +116,7 @@ time_bomb_realloc(void * pointer, size_t size, void * state)
     pointer, size, rcutils_get_default_allocator().state);
 }
 
-void
+static void
 time_bomb_free(void * pointer, void * state)
 {
   time_bomb_allocator_state * time_bomb_state = (time_bomb_allocator_state *)state;
@@ -128,7 +128,7 @@ time_bomb_free(void * pointer, void * state)
   rcutils_get_default_allocator().deallocate(pointer, rcutils_get_default_allocator().state);
 }
 
-void *
+static void *
 time_bomb_calloc(size_t number_of_elements, size_t size_of_element, void * state)
 {
   time_bomb_allocator_state * time_bomb_state = (time_bomb_allocator_state *)state;
