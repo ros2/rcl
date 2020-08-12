@@ -1105,6 +1105,10 @@ static void * get_value(
   {
     errno = 0;
     endptr = NULL;
+    if(strcasecmp(value, ".nan") == 0) {
+      char *tmp_value = (char *)value;
+      strcpy(tmp_value, "nan");
+    }
     dval = strtod(value, &endptr);
     if ((0 == errno) && (NULL != endptr)) {
       if ((NULL != endptr) && (endptr != value)) {
