@@ -144,7 +144,7 @@ time_bomb_calloc(size_t number_of_elements, size_t size_of_element, void * state
 static inline rcutils_allocator_t
 get_time_bombed_allocator(void)
 {
-  time_bomb_allocator_state state;
+  static time_bomb_allocator_state state;
   state.count_until_failure = 1;
   auto time_bombed_allocator = rcutils_get_default_allocator();
   time_bombed_allocator.allocate = time_bomb_malloc;
