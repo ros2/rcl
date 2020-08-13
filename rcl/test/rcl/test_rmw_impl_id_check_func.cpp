@@ -123,15 +123,15 @@ TEST(TestRmwCheck, test_mock_rmw_impl_check) {
     const char * get_env_id_matches_name = rcutils_get_env(
       RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME,
       &expected_rmw_id_matches);
-    EXPECT_FALSE(get_env_id_matches_name);
+    EXPECT_EQ(NULL, get_env_id_matches_name);
     EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, "some_random_name"));
 
     // Return an allocated string as strdup would do for the first case
     // calling the function
     rcl_allocator_t allocator = rcl_get_default_allocator();
     size_t dummy_str_size = 3u;
-    char * new_string = static_cast<char *>(allocator.allocate(dummy_str_size, allocator.state));
-    memset(new_string, '\0', dummy_str_size);
+    char * new_string = static_cast<char *>(allocator.zero_allocate(
+        dummy_str_size, 1u, allocator.state));
 
     auto mock = mocking_utils::patch(
       "lib:rcl", rcutils_strdup, [&new_string](auto...) {
