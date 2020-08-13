@@ -1029,3 +1029,39 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
   ASSERT_TRUE(NULL != param_value->string_value);
   EXPECT_STREQ("foo", param_value->string_value);
 }
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_get_param_files) {
+  const std::string parameters_filepath1 = (test_path / "test_parameters.1.yaml").string();
+  const std::string parameters_filepath2 = (test_path / "test_parameters.2.yaml").string();
+  const char * const argv[] = {
+    "process_name", "--ros-args", "--params-file", parameters_filepath1.c_str(),
+    "-r", "__ns:=/namespace", "random:=arg", "--params-file", parameters_filepath2.c_str()
+  };
+  const int argc = sizeof(argv) / sizeof(const char *);
+
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
+
+  int parameter_filecount = rcl_arguments_get_param_files_count(&parsed_args);
+  EXPECT_EQ(2, parameter_filecount);
+
+  // Configure allocator to fail at different points of the code
+  rcl_allocator_t bomb_alloc = get_time_bombed_allocator();
+  set_time_bombed_allocator_count(bomb_alloc, 0);
+  char ** parameter_files = NULL;
+  ret = rcl_arguments_get_param_files(&parsed_args, bomb_alloc, &parameter_files);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+
+  set_time_bombed_allocator_count(bomb_alloc, 1);
+  ret = rcl_arguments_get_param_files(&parsed_args, bomb_alloc, &parameter_files);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+
+  set_time_bombed_allocator_count(bomb_alloc, 2);
+  ret = rcl_arguments_get_param_files(&parsed_args, bomb_alloc, &parameter_files);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+}
