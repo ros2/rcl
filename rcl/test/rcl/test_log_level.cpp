@@ -322,6 +322,38 @@ TEST(TestLogLevel, test_add_logger_setting) {
   EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
   EXPECT_EQ(0ul, log_levels.num_logger_settings);
 
+  // Invalid arguments
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_log_levels_add_logger_setting(nullptr, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
+
+  rcl_log_levels_t not_ini_log_levels = rcl_get_zero_initialized_log_levels();
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_log_levels_add_logger_setting(&not_ini_log_levels, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_log_levels_add_logger_setting(&log_levels, nullptr, RCUTILS_LOG_SEVERITY_DEBUG));
+
+  rcl_allocator_t saved_allocator = log_levels.allocator;
+  log_levels.allocator = {NULL, NULL, NULL, NULL, NULL};
+    EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_log_levels_add_logger_setting(&log_levels, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  rcl_allocator_t bad_allocator = get_failing_allocator();
+  log_levels.allocator = bad_allocator;
+  EXPECT_EQ(
+    RCL_RET_BAD_ALLOC,
+    rcl_log_levels_add_logger_setting(&log_levels, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  log_levels.allocator = saved_allocator;
+
+  // Expected usage
   EXPECT_EQ(
     RCL_RET_OK, rcl_log_levels_add_logger_setting(&log_levels, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
   EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
@@ -346,6 +378,17 @@ TEST(TestLogLevel, test_add_logger_setting) {
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   EXPECT_EQ(2ul, log_levels.num_logger_settings);
+
+  // Replacing saved logger
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_log_levels_add_logger_setting(&log_levels, "rcl", RCUTILS_LOG_SEVERITY_INFO));
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
+  EXPECT_EQ(2ul, log_levels.num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels.logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels.logger_settings[0].level);
+  EXPECT_STREQ("rcutils", log_levels.logger_settings[1].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels.logger_settings[1].level);
 }
 
 int main(int argc, char ** argv)
