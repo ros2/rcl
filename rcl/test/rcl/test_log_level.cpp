@@ -338,7 +338,7 @@ TEST(TestLogLevel, test_add_logger_setting) {
 
   rcl_allocator_t saved_allocator = log_levels.allocator;
   log_levels.allocator = {NULL, NULL, NULL, NULL, NULL};
-    EXPECT_EQ(
+  EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_log_levels_add_logger_setting(&log_levels, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
   EXPECT_TRUE(rcl_error_is_set());
