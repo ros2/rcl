@@ -147,8 +147,6 @@ TEST(TestRmwCheck, test_mock_rmw_impl_check) {
     EXPECT_TRUE(rcl_error_is_set());
     rcl_reset_error();
     EXPECT_TRUE(rcutils_set_env(RCL_ASSERT_RMW_ID_MATCHES_ENV_VAR_NAME, expected_rmw_id_matches));
-    // Deallocated on internal cleaunp
-    EXPECT_EQ(NULL, new_string);
   }
   {
     // Fail reading rmw_impl_identifier
