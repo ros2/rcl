@@ -449,6 +449,7 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_acce
   EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst));
 }
 
+// Define dummy comparison operators for rcutils_allocator_t type for use with the Mimick Library
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
