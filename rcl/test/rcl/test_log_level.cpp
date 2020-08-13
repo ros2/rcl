@@ -181,6 +181,24 @@ TEST(TestLogLevel, multiple_log_level_rightmost_prevail) {
   EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels.logger_settings[0].level);
 }
 
+TEST(TestLogLevel, multiple_log_level_names) {
+  rcl_log_levels_t log_levels = rcl_get_zero_initialized_log_levels();
+  GET_LOG_LEVEL_FROM_ARGUMENTS(
+    log_levels, "process_name", "--ros-args",
+    "--log-level", "debug", "--log-level", "rcl:=debug",
+    "--log-level", "test:=info");
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(&log_levels));
+  });
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels.default_logger_level);
+  EXPECT_EQ(2ul, log_levels.num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels.logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels.logger_settings[0].level);
+  EXPECT_STREQ("test", log_levels.logger_settings[1].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels.logger_settings[1].level);
+}
+
 TEST(TestLogLevel, log_level_dot_logger_name) {
   rcl_log_levels_t log_levels = rcl_get_zero_initialized_log_levels();
   GET_LOG_LEVEL_FROM_ARGUMENTS(
@@ -204,7 +222,7 @@ TEST(TestLogLevel, log_level_init_fini) {
   const size_t zero_count = 0;
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_log_levels_init(&log_levels, &allocator, &zero_count));
+    rcl_log_levels_init(&log_levels, &allocator, zero_count));
   EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(&log_levels));
 
   const size_t capacity_count = 1;
@@ -289,6 +307,45 @@ TEST(TestLogLevel, logger_log_level_copy) {
   rcl_reset_error();
 
   log_levels.allocator = saved_allocator;
+}
+
+TEST(TestLogLevel, test_add_logger_setting) {
+  rcl_log_levels_t log_levels = rcl_get_zero_initialized_log_levels();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  size_t logger_count = 2u;
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_log_levels_init(&log_levels, &allocator, logger_count));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(&log_levels));
+  });
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
+  EXPECT_EQ(0ul, log_levels.num_logger_settings);
+
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_log_levels_add_logger_setting(&log_levels, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
+  EXPECT_EQ(1ul, log_levels.num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels.logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels.logger_settings[0].level);
+
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_log_levels_add_logger_setting(&log_levels, "rcutils", RCUTILS_LOG_SEVERITY_INFO));
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, log_levels.default_logger_level);
+  EXPECT_EQ(2ul, log_levels.num_logger_settings);
+  EXPECT_STREQ("rcl", log_levels.logger_settings[0].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_DEBUG, log_levels.logger_settings[0].level);
+  EXPECT_STREQ("rcutils", log_levels.logger_settings[1].name);
+  EXPECT_EQ(RCUTILS_LOG_SEVERITY_INFO, log_levels.logger_settings[1].level);
+
+  // Can't add more than logger_count
+  EXPECT_EQ(
+    RCL_RET_ERROR,
+    rcl_log_levels_add_logger_setting(&log_levels, "rmw", RCUTILS_LOG_SEVERITY_DEBUG));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  EXPECT_EQ(2ul, log_levels.num_logger_settings);
 }
 
 int main(int argc, char ** argv)
