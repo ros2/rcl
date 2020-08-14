@@ -25,8 +25,8 @@
 #include "rcutils/snprintf.h"
 
 #include "./allocator_testing_utils.h"
-#include "../src/rcl/init_options_impl.h"
 #include "../mocking_utils/patch.hpp"
+#include "../src/rcl/init_options_impl.h"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
