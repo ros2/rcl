@@ -60,7 +60,8 @@ rcl_logging_configure_with_output_handler(
   rcl_logging_output_handler_t output_handler)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(output_handler, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOGGING_AUTOINIT
     g_logging_allocator = *allocator;
   int default_level = -1;
