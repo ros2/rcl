@@ -324,11 +324,8 @@ _trigger_transition(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     transition, "Transition is not registered.", return RCL_RET_INVALID_ARGUMENT);
 
-  if (!transition->goal) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME, "No valid goal is set");
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    transition->goal, "No valid goal is set.", return RCL_RET_INVALID_ARGUMENT);
   state_machine->current_state = transition->goal;
 
   if (publish_notification) {
@@ -351,10 +348,8 @@ rcl_lifecycle_trigger_transition_by_id(
   uint8_t id,
   bool publish_notification)
 {
-  if (!state_machine) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null");
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state_machine, "state machine pointer is null.", return RCL_RET_INVALID_ARGUMENT);
 
   const rcl_lifecycle_transition_t * transition =
     rcl_lifecycle_get_transition_by_id(state_machine->current_state, id);
@@ -368,10 +363,8 @@ rcl_lifecycle_trigger_transition_by_label(
   const char * label,
   bool publish_notification)
 {
-  if (!state_machine) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null");
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state_machine, "state machine pointer is null.", return RCL_RET_INVALID_ARGUMENT);
 
   const rcl_lifecycle_transition_t * transition =
     rcl_lifecycle_get_transition_by_label(state_machine->current_state, label);

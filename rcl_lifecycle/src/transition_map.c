@@ -109,10 +109,8 @@ rcl_lifecycle_register_state(
     transition_map->states,
     new_states_size * sizeof(rcl_lifecycle_state_t),
     allocator->state);
-  if (!new_states) {
-    RCL_SET_ERROR_MSG("failed to reallocate memory for new states");
-    return RCL_RET_BAD_ALLOC;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    new_states, "failed to reallocate memory for new states\n", return RCL_RET_BAD_ALLOC);
   transition_map->states_size = new_states_size;
   transition_map->states = new_states;
   transition_map->states[transition_map->states_size - 1] = state;
