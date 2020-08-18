@@ -158,7 +158,7 @@ function(test_target_function)
     SRCS rcl/test_init.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
+    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -288,7 +288,7 @@ function(test_target_function)
     SRCS rcl/test_rmw_impl_id_check_func.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}
+    LIBRARIES ${PROJECT_NAME} mimick
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -361,7 +361,7 @@ rcl_add_custom_gtest(test_validate_enclave_name
 rcl_add_custom_gtest(test_domain_id
   SRCS rcl/test_domain_id.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} mimick
 )
 
 rcl_add_custom_gtest(test_localhost
@@ -399,7 +399,7 @@ rcl_add_custom_gtest(test_common
 rcl_add_custom_gtest(test_log_level
   SRCS rcl/test_log_level.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} mimick
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 

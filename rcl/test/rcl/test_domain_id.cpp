@@ -20,6 +20,8 @@
 #include "rcl/error_handling.h"
 #include "rcutils/env.h"
 
+#include "../mocking_utils/patch.hpp"
+
 TEST(TestGetDomainId, test_nominal) {
   ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "42"));
   size_t domain_id = RCL_DEFAULT_DOMAIN_ID;
@@ -49,4 +51,14 @@ TEST(TestGetDomainId, test_nominal) {
   EXPECT_EQ(RCL_DEFAULT_DOMAIN_ID, domain_id);
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_default_domain_id(nullptr));
+}
+
+TEST(TestGetDomainId, test_mock_get_default_domain_id) {
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rcutils_get_env, "argument env_name is null");
+  size_t domain_id = RCL_DEFAULT_DOMAIN_ID;
+  EXPECT_EQ(RCL_RET_ERROR, rcl_get_default_domain_id(&domain_id));
+  EXPECT_EQ(RCL_DEFAULT_DOMAIN_ID, domain_id);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 }
