@@ -128,12 +128,15 @@ TEST(TestRmwCheck, test_mock_rmw_impl_check) {
 
     auto mock = mocking_utils::patch(
       "lib:rcl", rcutils_strdup,
-      [base = rcutils_strdup](const char * str, auto allocator)
+      [](const char * str, auto allocator)
       {
         static int counter = 1;
         if (counter == 1) {
           counter++;
-          return base(str, allocator);
+          char * dup = static_cast<char *>(
+            allocator.allocate(strlen(str) + 1, allocator.state));
+          memcpy(dup, str, strlen(str) + 1);
+          return dup;
         } else {
           return static_cast<char *>(NULL);
         }

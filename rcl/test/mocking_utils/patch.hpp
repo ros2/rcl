@@ -473,10 +473,22 @@ auto make_patch(const std::string & target, std::function<SignatureT> proxy)
 
 /// Patch a `function` to execute normally but always yield a given `return_code`
 /// in a given `scope`.
+/**
+ * \warning On some Linux distributions (e.g. CentOS), pointers to function
+ *   reference their PLT trampolines. In such cases, it is not possible to
+ *   call `function` from within the mock.
+ */
 #define inject_on_return(scope, function, return_code) \
   patch( \
     scope, function, ([&, base = function](auto && ... __args) { \
-      static_cast<void>(base(std::forward<decltype(__args)>(__args)...)); \
+      if (base != function) { \
+        static_cast<void>(base(std::forward<decltype(__args)>(__args)...)); \
+      } else { \
+        RCUTILS_SAFE_FWRITE_TO_STDERR( \
+          "[WARNING] mocking_utils::inject_on_return() cannot forward call to " \
+          "original '" RCUTILS_STRINGIFY(function) "' function before injection\n" \
+          "    at " __FILE__ ":" RCUTILS_STRINGIFY(__LINE__) "\n"); \
+      } \
       return return_code; \
     }))
 
