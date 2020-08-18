@@ -1,0 +1,8 @@
+# config/test_yaml
+---
+
+lidar_ns:
+  lidar_1:
+    ros__parameters:
+      test_nan: [1.1, 2.2, nananana]
+      test_nan2: [3.3, nanananan]

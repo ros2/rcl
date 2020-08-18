@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <yaml.h>
+#include <ctype.h>
 
 #include "rcl_yaml_param_parser/parser.h"
 #include "rcl_yaml_param_parser/types.h"
@@ -1105,11 +1106,23 @@ static void * get_value(
   {
     errno = 0;
     endptr = NULL;
-    if (strcasecmp(value, ".nan") == 0) {
-      char * tmp_value = (char *)value;
-      snprintf(tmp_value, strlen(tmp_value), "%s", "nan");
+    char * tmp_value = NULL;
+    if ((0 == strcasecmp(value, ".nan")) ||
+      (0 == strcasecmp(value, ".inf")) ||
+      (0 == strcasecmp(value, "+.inf")) ||
+      (0 == strcasecmp(value, "-.inf")) ||
+      (0 == strcasecmp(value, ".infinity")) ||
+      (0 == strcasecmp(value, "+.infinity")) ||
+      (0 == strcasecmp(value, "-.infinity")))
+    {
+      tmp_value = rcutils_strdup(value, allocator);
+      for ( ; !isalpha(*tmp_value); ) {
+        tmp_value += 1;
+      }
+      dval = strtod(tmp_value, &endptr);
+    } else {
+      dval = strtod(value, &endptr);
     }
-    dval = strtod(value, &endptr);
     if ((0 == errno) && (NULL != endptr)) {
       if ((NULL != endptr) && (endptr != value)) {
         if (('\0' != *value) && ('\0' == *endptr)) {
