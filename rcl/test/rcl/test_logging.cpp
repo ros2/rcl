@@ -242,14 +242,13 @@ TEST(TestLogging, test_failing_external_logging) {
   std::stringstream stderr_sstream;
   auto fwrite_mock = mocking_utils::patch(
     "lib:rcl", fwrite,
-    ([&, base = fwrite](const void * ptr, size_t size,
-    size_t count, FILE * stream)
+    [&](const void * ptr, size_t size, size_t count, FILE * stream)
     {
       if (sizeof(char) == size && stderr == stream) {
         stderr_sstream << std::string(reinterpret_cast<const char *>(ptr), count);
       }
-      return base(ptr, size, count, stream);
-    }));
+      return count;
+    });
 
   constexpr char stderr_message[] = "internal error";
 #ifdef MOCKING_UTILS_SUPPORT_VA_LIST
