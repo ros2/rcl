@@ -1168,7 +1168,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_allocs_copy
   {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
   });
-  
+
   rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
   rcl_allocator_t bomb_alloc = get_time_bombed_allocator();
   rcl_allocator_t saved_alloc = parsed_args.impl->allocator;
