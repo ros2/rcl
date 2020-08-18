@@ -369,6 +369,13 @@ rcl_add_custom_gtest(test_localhost
   LIBRARIES ${PROJECT_NAME}
 )
 
+rcl_add_custom_gtest(test_logging
+  SRCS rcl/test_logging.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME} mimick
+  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
+)
+
 rcl_add_custom_gtest(test_validate_topic_name
   SRCS rcl/test_validate_topic_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
