@@ -22,6 +22,7 @@ The current version can be found in its [package.xml](package.xml), and its chan
 All symbols in the installed headers are considered part of the public API.
 
 All installed headers are in the `include` directory of the package, headers in any other folders are not installed and considered private.
+Headers in the `include/rcl_yaml_param_parser/impl` directory should also be considered private.
 
 ### API Stability Within a Released ROS Distribution [1.iv]/[1.vi]
 
