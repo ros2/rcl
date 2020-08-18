@@ -1226,38 +1226,3 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_parse
     EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
   }
 }
-
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_allocs_copy) {
-  const std::string parameters_filepath1 = (test_path / "test_parameters.1.yaml").string();
-  const std::string parameters_filepath2 = (test_path / "test_parameters.2.yaml").string();
-  const char * const argv[] = {
-    "process_name", "--ros-args", "--params-file", parameters_filepath1.c_str(),
-    "-r", "__ns:=/namespace", "random:=arg", "--params-file", parameters_filepath2.c_str(),
-    "-r", "/foo/bar:=/fiz/buz", "--remap", "foo:=/baz",
-    "-e", "/foo", "--", "foo"
-  };
-  const int argc = sizeof(argv) / sizeof(const char *);
-  rcl_ret_t ret;
-
-  rcl_allocator_t alloc = rcl_get_default_allocator();
-  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
-
-  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
-  });
-
-  rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
-  rcl_allocator_t bomb_alloc = get_time_bombed_allocator();
-  rcl_allocator_t saved_alloc = parsed_args.impl->allocator;
-  parsed_args.impl->allocator = bomb_alloc;
-  for (int i = 0; i < 8; i++) {
-    set_time_bombed_allocator_count(bomb_alloc, i);
-    ret = rcl_arguments_copy(&parsed_args, &copied_args);
-    EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-  }
-  parsed_args.impl->allocator = saved_alloc;
-}
