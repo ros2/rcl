@@ -862,8 +862,8 @@ rcl_arguments_copy(
 
   // Copy parameter files
   if (args->impl->num_param_files_args) {
-    args_out->impl->parameter_files = allocator.allocate(
-      sizeof(char *) * args->impl->num_param_files_args, allocator.state);
+    args_out->impl->parameter_files = allocator.zero_allocate(
+      args->impl->num_param_files_args, sizeof(char *), allocator.state);
     if (NULL == args_out->impl->parameter_files) {
       if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
         RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
