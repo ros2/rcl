@@ -65,6 +65,8 @@ TEST(TestValidateEnclaveName, test_validate) {
         return RMW_RET_OK;
       });
 
+    // When applying RMW namespace validation rules, an enclave name may be too
+    // long for an RMW namespace but not necessarily for an enclave name.
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_validate_enclave_name("/foo/baz", &validation_result, &invalid_index));
