@@ -36,6 +36,8 @@
 #include <utility>
 
 #include "mimick/mimick.h"
+
+#include "rcutils/error_handling.h"
 #include "rcutils/macros.h"
 
 namespace mocking_utils
@@ -60,6 +62,19 @@ struct PatchTraits<ID, ReturnT(void)>
   mmk_mock_define(mock_type, ReturnT);
 };
 
+/// Traits specialization for void(void) free functions.
+/**
+ * Necessary for Mimick macros to adjust accordingly when the return
+ * type is `void`.
+ *
+ * \tparam ID Numerical identifier of the patch. Ought to be unique.
+ */
+template<size_t ID>
+struct PatchTraits<ID, void(void)>
+{
+  mmk_mock_define(mock_type, void);
+};
+
 /// Traits specialization for ReturnT(ArgT0) free functions.
 /**
  * \tparam ID Numerical identifier of the patch. Ought to be unique.
@@ -70,6 +85,20 @@ template<size_t ID, typename ReturnT, typename ArgT0>
 struct PatchTraits<ID, ReturnT(ArgT0)>
 {
   mmk_mock_define(mock_type, ReturnT, ArgT0);
+};
+
+/// Traits specialization for void(ArgT0) free functions.
+/**
+ * Necessary for Mimick macros to adjust accordingly when the return
+ * type is `void`.
+ *
+ * \tparam ID Numerical identifier of the patch. Ought to be unique.
+ * \tparam ArgT0 Argument type.
+ */
+template<size_t ID, typename ArgT0>
+struct PatchTraits<ID, void(ArgT0)>
+{
+  mmk_mock_define(mock_type, void, ArgT0);
 };
 
 /// Traits specialization for ReturnT(ArgT0, ArgT1) free functions.
@@ -85,6 +114,20 @@ struct PatchTraits<ID, ReturnT(ArgT0, ArgT1)>
   mmk_mock_define(mock_type, ReturnT, ArgT0, ArgT1);
 };
 
+/// Traits specialization for void(ArgT0, ArgT1) free functions.
+/**
+ * Necessary for Mimick macros to adjust accordingly when the return
+ * type is `void`.
+ *
+ * \tparam ID Numerical identifier of the patch. Ought to be unique.
+ * \tparam ArgTx Argument types.
+ */
+template<size_t ID, typename ArgT0, typename ArgT1>
+struct PatchTraits<ID, void(ArgT0, ArgT1)>
+{
+  mmk_mock_define(mock_type, void, ArgT0, ArgT1);
+};
+
 /// Traits specialization for ReturnT(ArgT0, ArgT1, ArgT2) free functions.
 /**
  * \tparam ID Numerical identifier of the patch. Ought to be unique.
@@ -96,6 +139,20 @@ template<size_t ID, typename ReturnT,
 struct PatchTraits<ID, ReturnT(ArgT0, ArgT1, ArgT2)>
 {
   mmk_mock_define(mock_type, ReturnT, ArgT0, ArgT1, ArgT2);
+};
+
+/// Traits specialization for void(ArgT0, ArgT1, ArgT2) free functions.
+/**
+ * Necessary for Mimick macros to adjust accordingly when the return
+ * type is `void`.
+ *
+ * \tparam ID Numerical identifier of the patch. Ought to be unique.
+ * \tparam ArgTx Argument types.
+ */
+template<size_t ID, typename ArgT0, typename ArgT1, typename ArgT2>
+struct PatchTraits<ID, void(ArgT0, ArgT1, ArgT2)>
+{
+  mmk_mock_define(mock_type, void, ArgT0, ArgT1, ArgT2);
 };
 
 /// Traits specialization for ReturnT(ArgT0, ArgT1, ArgT2, ArgT3) free functions.
@@ -110,6 +167,22 @@ template<size_t ID, typename ReturnT,
 struct PatchTraits<ID, ReturnT(ArgT0, ArgT1, ArgT2, ArgT3)>
 {
   mmk_mock_define(mock_type, ReturnT, ArgT0, ArgT1, ArgT2, ArgT3);
+};
+
+/// Traits specialization for void(ArgT0, ArgT1, ArgT2, ArgT3) free functions.
+/**
+ * Necessary for Mimick macros to adjust accordingly when the return
+ * type is `void`.
+ *
+ * \tparam ID Numerical identifier of the patch. Ought to be unique.
+ * \tparam ArgTx Argument types.
+ */
+template<size_t ID,
+  typename ArgT0, typename ArgT1,
+  typename ArgT2, typename ArgT3>
+struct PatchTraits<ID, void(ArgT0, ArgT1, ArgT2, ArgT3)>
+{
+  mmk_mock_define(mock_type, void, ArgT0, ArgT1, ArgT2, ArgT3);
 };
 
 /// Traits specialization for ReturnT(ArgT0, ArgT1, ArgT2, ArgT3, ArgT4)
@@ -127,6 +200,23 @@ struct PatchTraits<ID, ReturnT(ArgT0, ArgT1, ArgT2, ArgT3, ArgT4)>
   mmk_mock_define(mock_type, ReturnT, ArgT0, ArgT1, ArgT2, ArgT3, ArgT4);
 };
 
+/// Traits specialization for void(ArgT0, ArgT1, ArgT2, ArgT3, ArgT4)
+/// free functions.
+/**
+ * Necessary for Mimick macros to adjust accordingly when the return
+ * type is `void`.
+ *
+ * \tparam ID Numerical identifier of the patch. Ought to be unique.
+ * \tparam ArgTx Argument types.
+ */
+template<size_t ID,
+  typename ArgT0, typename ArgT1,
+  typename ArgT2, typename ArgT3, typename ArgT4>
+struct PatchTraits<ID, void(ArgT0, ArgT1, ArgT2, ArgT3, ArgT4)>
+{
+  mmk_mock_define(mock_type, void, ArgT0, ArgT1, ArgT2, ArgT3, ArgT4);
+};
+
 /// Traits specialization for ReturnT(ArgT0, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5)
 /// free functions.
 /**
@@ -142,6 +232,25 @@ struct PatchTraits<ID, ReturnT(ArgT0, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5)>
 {
   mmk_mock_define(
     mock_type, ReturnT, ArgT0, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5);
+};
+
+/// Traits specialization for void(ArgT0, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5)
+/// free functions.
+/**
+ * Necessary for Mimick macros to adjust accordingly when the return
+ * type is `void`.
+ *
+ * \tparam ID Numerical identifier of the patch. Ought to be unique.
+ * \tparam ArgTx Argument types.
+ */
+template<size_t ID,
+  typename ArgT0, typename ArgT1,
+  typename ArgT2, typename ArgT3,
+  typename ArgT4, typename ArgT5>
+struct PatchTraits<ID, void(ArgT0, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5)>
+{
+  mmk_mock_define(
+    mock_type, void, ArgT0, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5);
 };
 
 /// Generic trampoline to wrap generalized callables in plain functions.
@@ -353,6 +462,14 @@ auto make_patch(const std::string & target, std::function<SignatureT> proxy)
 /// Patch a `function` to always yield a given `return_code` in a given `scope`.
 #define patch_and_return(scope, function, return_code) \
   patch(scope, function, [&](auto && ...) {return return_code;})
+
+/// Patch a `function` to always yield a given `return_code` in a given `scope`.
+#define patch_to_fail(scope, function, error_message, return_code) \
+  patch( \
+    scope, function, [&](auto && ...) { \
+      RCUTILS_SET_ERROR_MSG(error_message); \
+      return return_code; \
+    })
 
 /// Patch a `function` to execute normally but always yield a given `return_code`
 /// in a given `scope`.
