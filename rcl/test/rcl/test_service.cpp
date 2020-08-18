@@ -21,8 +21,11 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rmw/validate_namespace.h"
+
 #include "wait_for_entity_helpers.hpp"
 #include "./allocator_testing_utils.h"
+#include "../mocking_utils/patch.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -419,4 +422,95 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_fail_name
   ret = rcl_service_init(&service, this->node_ptr, ts, topic2, &service_options);
   EXPECT_EQ(RCL_RET_SERVICE_NAME_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+}
+
+// Define dummy comparison operators for rcutils_allocator_t type for use with the Mimick Library
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
+
+/* Mock init failed tests
+ */
+TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_ini_mocked) {
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+  const char * topic = "topic";
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  service_options.qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  rcl_ret_t ret = RCL_RET_OK;
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_string_map_init, RCUTILS_RET_ERROR);
+    ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    // Mocking this function causes rcl_expand_topic_name to return RCL_RET_ERROR
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_namespace, RMW_RET_ERROR);
+    ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::inject_on_return(
+      "lib:rcl", rcutils_string_map_fini, RCUTILS_RET_ERROR);
+    ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+  }
+  {
+    // Making rcutils_string_map_init fail the second time causes rcl_remap_service_name
+    // to fail
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rcutils_string_map_init,
+      [base = rcutils_string_map_init](
+        rcutils_string_map_t * string_map, size_t initial_capacity, rcutils_allocator_t allocator)
+      {
+        static int counter = 1;
+        if (counter == 1) {
+          counter++;
+          return base(string_map, initial_capacity, allocator);
+        } else {
+          return RCUTILS_RET_BAD_ALLOC;
+        }
+      });
+    ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_full_topic_name, RMW_RET_ERROR);
+    ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_full_topic_name,
+      [](auto, int * result, auto) {
+        *result = RMW_TOPIC_INVALID_IS_EMPTY_STRING;
+        return RMW_RET_OK;
+      });
+    ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+    EXPECT_EQ(RCL_RET_SERVICE_NAME_INVALID, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_create_service, nullptr);
+    ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
 }
