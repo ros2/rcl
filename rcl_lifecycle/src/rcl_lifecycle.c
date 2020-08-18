@@ -265,11 +265,7 @@ rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t *
     state_machine->com_interface.srv_change_state.impl, "change_state service is null\n",
     return RCL_RET_INVALID_ARGUMENT);
 
-  if (rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map) != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("transition map is null");
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-  return RCL_RET_OK;
+  return rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map);
 }
 
 const rcl_lifecycle_transition_t *

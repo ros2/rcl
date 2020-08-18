@@ -296,6 +296,7 @@ rcl_lifecycle_state_machine_fini(
  *
  * \param[in] state_machine pointer to the state machine struct
  * \return `RCL_RET_OK` if the state is initialized, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC

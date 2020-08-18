@@ -59,11 +59,12 @@ rcl_lifecycle_transition_map_fini(
   RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
   RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t fcn_ret = RCL_RET_OK;
   RCL_CHECK_FOR_NULL_WITH_MSG(
     transition_map, "transition_map pointer is null\n", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(
     allocator, "can't free transition map, no allocator given\n", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t fcn_ret = RCL_RET_OK;
 
   // free valid transitions for all states
   for (unsigned int i = 0; i < transition_map->states_size; ++i) {
