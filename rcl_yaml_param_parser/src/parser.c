@@ -288,6 +288,110 @@ void rcl_yaml_node_struct_fini(
   allocator.deallocate(params_st, allocator.state);
 }
 
+///
+/// TODO (anup.pemmaiah): Support Mutiple yaml files
+///
+///
+/// Parse the YAML file and populate params_st
+///
+bool rcl_parse_yaml_file(
+  const char * file_path,
+  rcl_params_t * params_st)
+{
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    file_path, "YAML file path is NULL", return false);
+
+  if (NULL == params_st) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized parameter structure");
+    return false;
+  }
+
+  yaml_parser_t parser;
+  int success = yaml_parser_initialize(&parser);
+  if (0 == success) {
+    RCUTILS_SET_ERROR_MSG("Could not initialize the parser");
+    return false;
+  }
+
+  FILE * yaml_file = fopen(file_path, "r");
+  if (NULL == yaml_file) {
+    yaml_parser_delete(&parser);
+    RCUTILS_SET_ERROR_MSG("Error opening YAML file");
+    return false;
+  }
+
+  yaml_parser_set_input_file(&parser, yaml_file);
+
+  namespace_tracker_t ns_tracker;
+  memset(&ns_tracker, 0, sizeof(namespace_tracker_t));
+  rcutils_ret_t ret = parse_file_events(&parser, &ns_tracker, params_st);
+
+  fclose(yaml_file);
+
+  yaml_parser_delete(&parser);
+
+  rcutils_allocator_t allocator = params_st->allocator;
+  if (NULL != ns_tracker.node_ns) {
+    allocator.deallocate(ns_tracker.node_ns, allocator.state);
+  }
+  if (NULL != ns_tracker.parameter_ns) {
+    allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
+  }
+
+  return RCUTILS_RET_OK == ret;
+}
+
+///
+/// Parse a YAML string and populate params_st
+///
+bool rcl_parse_yaml_value(
+  const char * node_name,
+  const char * param_name,
+  const char * yaml_value,
+  rcl_params_t * params_st)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_name, false);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_name, false);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(yaml_value, false);
+
+  if (0U == strlen(node_name) || 0U == strlen(param_name) || 0U == strlen(yaml_value)) {
+    return false;
+  }
+
+  if (NULL == params_st) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized parameter structure");
+    return false;
+  }
+
+  size_t node_idx = 0U;
+  rcutils_ret_t ret = find_node(node_name, params_st, &node_idx);
+  if (RCUTILS_RET_OK != ret) {
+    return false;
+  }
+
+  size_t parameter_idx = 0U;
+  ret = find_parameter(node_idx, param_name, params_st, &parameter_idx);
+  if (RCUTILS_RET_OK != ret) {
+    return false;
+  }
+
+  yaml_parser_t parser;
+  int success = yaml_parser_initialize(&parser);
+  if (0 == success) {
+    RCUTILS_SET_ERROR_MSG("Could not initialize the parser");
+    return false;
+  }
+
+  yaml_parser_set_input_string(
+    &parser, (const unsigned char *)yaml_value, strlen(yaml_value));
+
+  ret = parse_value_events(&parser, node_idx, parameter_idx, params_st);
+
+  yaml_parser_delete(&parser);
+
+  return RCUTILS_RET_OK == ret;
+}
+
 rcl_variant_t * rcl_yaml_node_struct_get(
   const char * node_name,
   const char * param_name,
@@ -391,108 +495,4 @@ void rcl_yaml_node_struct_print(
       }
     }
   }
-}
-
-///
-/// TODO (anup.pemmaiah): Support Mutiple yaml files
-///
-///
-/// Parse the YAML file and populate params_st
-///
-bool rcl_parse_yaml_file(
-  const char * file_path,
-  rcl_params_t * params_st)
-{
-  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-    file_path, "YAML file path is NULL", return false);
-
-  if (NULL == params_st) {
-    RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized parameter structure");
-    return false;
-  }
-
-  yaml_parser_t parser;
-  int success = yaml_parser_initialize(&parser);
-  if (0 == success) {
-    RCUTILS_SET_ERROR_MSG("Could not initialize the parser");
-    return false;
-  }
-
-  FILE * yaml_file = fopen(file_path, "r");
-  if (NULL == yaml_file) {
-    yaml_parser_delete(&parser);
-    RCUTILS_SET_ERROR_MSG("Error opening YAML file");
-    return false;
-  }
-
-  yaml_parser_set_input_file(&parser, yaml_file);
-
-  namespace_tracker_t ns_tracker;
-  memset(&ns_tracker, 0, sizeof(namespace_tracker_t));
-  rcutils_ret_t ret = parse_file_events(&parser, &ns_tracker, params_st);
-
-  fclose(yaml_file);
-
-  yaml_parser_delete(&parser);
-
-  rcutils_allocator_t allocator = params_st->allocator;
-  if (NULL != ns_tracker.node_ns) {
-    allocator.deallocate(ns_tracker.node_ns, allocator.state);
-  }
-  if (NULL != ns_tracker.parameter_ns) {
-    allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
-  }
-
-  return RCUTILS_RET_OK == ret;
-}
-
-///
-/// Parse a YAML string and populate params_st
-///
-bool rcl_parse_yaml_value(
-  const char * node_name,
-  const char * param_name,
-  const char * yaml_value,
-  rcl_params_t * params_st)
-{
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_name, false);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_name, false);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(yaml_value, false);
-
-  if (0U == strlen(node_name) || 0U == strlen(param_name) || 0U == strlen(yaml_value)) {
-    return false;
-  }
-
-  if (NULL == params_st) {
-    RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized parameter structure");
-    return false;
-  }
-
-  size_t node_idx = 0U;
-  rcutils_ret_t ret = find_node(node_name, params_st, &node_idx);
-  if (RCUTILS_RET_OK != ret) {
-    return false;
-  }
-
-  size_t parameter_idx = 0U;
-  ret = find_parameter(node_idx, param_name, params_st, &parameter_idx);
-  if (RCUTILS_RET_OK != ret) {
-    return false;
-  }
-
-  yaml_parser_t parser;
-  int success = yaml_parser_initialize(&parser);
-  if (0 == success) {
-    RCUTILS_SET_ERROR_MSG("Could not initialize the parser");
-    return false;
-  }
-
-  yaml_parser_set_input_string(
-    &parser, (const unsigned char *)yaml_value, strlen(yaml_value));
-
-  ret = parse_value_events(&parser, node_idx, parameter_idx, params_st);
-
-  yaml_parser_delete(&parser);
-
-  return RCUTILS_RET_OK == ret;
 }
