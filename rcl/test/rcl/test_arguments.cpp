@@ -1235,9 +1235,14 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_parse
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_allocator_t bomb_alloc = get_time_bombed_allocator();
 
-  for (int i = 0; i < 9; i++) {
+  for (int i = 0; i < 100; i++) {
     set_time_bombed_allocator_count(bomb_alloc, i);
     rcl_ret_t ret = rcl_parse_arguments(argc, argv, bomb_alloc, &parsed_args);
-    EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+    if (RCL_RET_OK == ret) {
+      EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+      break;
+    } else {
+      EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
+    }
   }
 }
