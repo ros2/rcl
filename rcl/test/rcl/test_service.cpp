@@ -538,3 +538,67 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_fini_mocked)
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 }
+
+/* Mock take_request_with_info failed tests
+ */
+TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request_with_info) {
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+  const char * topic = "primitives";
+
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  rcl_ret_t ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  test_msgs__srv__BasicTypes_Request service_request;
+  test_msgs__srv__BasicTypes_Request__init(&service_request);
+  rmw_service_info_t header;
+
+  ret = rcl_take_request_with_info(nullptr, &header, &service_request);
+  EXPECT_EQ(RCL_RET_SERVICE_INVALID, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  ret = rcl_take_request_with_info(&service, nullptr, &service_request);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  ret = rcl_take_request_with_info(&service, &header, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_take_request, RMW_RET_ERROR);
+    ret = rcl_take_request_with_info(&service, &header, &service_request);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_take_request, RMW_RET_BAD_ALLOC);
+    ret = rcl_take_request_with_info(&service, &header, &service_request);
+    EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_take_request,
+      [](auto, auto, auto, bool * taken) {
+        *taken = false;
+        return RMW_RET_OK;
+      });
+    ret = rcl_take_request_with_info(&service, &header, &service_request);
+    EXPECT_EQ(RCL_RET_SERVICE_TAKE_FAILED, ret);
+  }
+}
