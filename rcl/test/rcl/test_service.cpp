@@ -602,3 +602,48 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request
     EXPECT_EQ(RCL_RET_SERVICE_TAKE_FAILED, ret);
   }
 }
+
+/* Mock send_response failed tests
+ */
+TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_send_response) {
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+  const char * topic = "primitives";
+
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  rcl_ret_t ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // Init dummy response.
+  test_msgs__srv__BasicTypes_Response service_response;
+  test_msgs__srv__BasicTypes_Response__init(&service_response);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    test_msgs__srv__BasicTypes_Response__fini(&service_response);
+  });
+  rmw_service_info_t header;
+
+  ret = rcl_send_response(nullptr, &header.request_id, &service_response);
+  EXPECT_EQ(RCL_RET_SERVICE_INVALID, ret);
+
+  ret = rcl_send_response(&service, nullptr, &service_response);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+
+  ret = rcl_send_response(&service, &header.request_id, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_send_response, RMW_RET_ERROR);
+    ret = rcl_send_response(&service, &header.request_id, &service_response);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+}
