@@ -435,7 +435,7 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_ini_mocked) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     test_msgs, srv, BasicTypes);
-  const char * topic = "topic";
+  constexpr char topic[] = "topic";
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
   service_options.qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
@@ -520,7 +520,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_ini_mocked) 
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_fini_mocked) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     test_msgs, srv, BasicTypes);
-  const char * topic = "primitives";
+  constexpr char topic[] = "primitives";
 
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
@@ -544,7 +544,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_fini_mocked)
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request_with_info) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     test_msgs, srv, BasicTypes);
-  const char * topic = "primitives";
+  constexpr char topic[] = "primitives";
 
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
@@ -608,7 +608,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_send_response) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     test_msgs, srv, BasicTypes);
-  const char * topic = "primitives";
+  constexpr char topic[] = "primitives";
 
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
