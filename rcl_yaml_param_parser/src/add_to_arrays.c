@@ -14,9 +14,30 @@
 
 #include "rcl_yaml_param_parser/impl/add_to_arrays.h"
 
-///
-/// Add a value to a bool array. Create the array if it does not exist
-///
+#define ADD_VALUE_TO_SIMPLE_ARRAY(val_array, value, value_type, allocator) \
+  do { \
+    if (NULL == val_array->values) { \
+      val_array->values = value; \
+      val_array->size = 1; \
+    } else { \
+      /* Increase the array size by one and add the new value */ \
+      value_type * tmp_arr = val_array->values; \
+      val_array->values = allocator.zero_allocate( \
+        val_array->size + 1U, sizeof(value_type), allocator.state); \
+      if (NULL == val_array->values) { \
+        val_array->values = tmp_arr; \
+        RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n"); \
+        return RCUTILS_RET_BAD_ALLOC; \
+      } \
+      memmove(val_array->values, tmp_arr, (val_array->size * sizeof(value_type))); \
+      val_array->values[val_array->size] = *value; \
+      val_array->size++; \
+      allocator.deallocate(value, allocator.state); \
+      allocator.deallocate(tmp_arr, allocator.state); \
+    } \
+    return RCUTILS_RET_OK; \
+  } while (0)
+
 rcutils_ret_t add_val_to_bool_arr(
   rcl_bool_array_t * const val_array,
   bool * value,
@@ -27,26 +48,7 @@ rcutils_ret_t add_val_to_bool_arr(
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
 
-  if (NULL == val_array->values) {
-    val_array->values = value;
-    val_array->size = 1;
-  } else {
-    /// Increase the array size by one and add the new value
-    bool * tmp_arr = val_array->values;
-    val_array->values = allocator.zero_allocate(
-      val_array->size + 1U, sizeof(bool), allocator.state);
-    if (NULL == val_array->values) {
-      val_array->values = tmp_arr;
-      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-    memmove(val_array->values, tmp_arr, (val_array->size * sizeof(bool)));
-    val_array->values[val_array->size] = *value;
-    val_array->size++;
-    allocator.deallocate(value, allocator.state);
-    allocator.deallocate(tmp_arr, allocator.state);
-  }
-  return RCUTILS_RET_OK;
+  ADD_VALUE_TO_SIMPLE_ARRAY(val_array, value, bool, allocator);
 }
 
 ///
@@ -62,26 +64,7 @@ rcutils_ret_t add_val_to_int_arr(
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
 
-  if (NULL == val_array->values) {
-    val_array->values = value;
-    val_array->size++;
-  } else {
-    /// Increase the array size by one and add the new value
-    int64_t * tmp_arr = val_array->values;
-    val_array->values = allocator.zero_allocate(
-      val_array->size + 1U, sizeof(int64_t), allocator.state);
-    if (NULL == val_array->values) {
-      val_array->values = tmp_arr;
-      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-    memmove(val_array->values, tmp_arr, (val_array->size * sizeof(int64_t)));
-    val_array->values[val_array->size] = *value;
-    val_array->size++;
-    allocator.deallocate(value, allocator.state);
-    allocator.deallocate(tmp_arr, allocator.state);
-  }
-  return RCUTILS_RET_OK;
+  ADD_VALUE_TO_SIMPLE_ARRAY(val_array, value, int64_t, allocator);
 }
 
 ///
@@ -97,26 +80,7 @@ rcutils_ret_t add_val_to_double_arr(
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
 
-  if (NULL == val_array->values) {
-    val_array->values = value;
-    val_array->size++;
-  } else {
-    /// Increase the array size by one and add the new value
-    double * tmp_arr = val_array->values;
-    val_array->values = allocator.zero_allocate(
-      val_array->size + 1U, sizeof(double), allocator.state);
-    if (NULL == val_array->values) {
-      val_array->values = tmp_arr;
-      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-    memmove(val_array->values, tmp_arr, (val_array->size * sizeof(double)));
-    val_array->values[val_array->size] = *value;
-    val_array->size++;
-    allocator.deallocate(value, allocator.state);
-    allocator.deallocate(tmp_arr, allocator.state);
-  }
-  return RCUTILS_RET_OK;
+  ADD_VALUE_TO_SIMPLE_ARRAY(val_array, value, double, allocator);
 }
 
 ///
