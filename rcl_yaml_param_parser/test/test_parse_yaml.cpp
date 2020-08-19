@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <stdio.h>
+#include <math.h>
 #include <gtest/gtest.h>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -497,6 +498,7 @@ TEST(test_file_parser, maximum_number_parameters) {
   // No cleanup, rcl_parse_yaml_file takes care of that if it fails.
 }
 
+// Test special float point(https://github.com/ros2/rcl/issues/555).
 TEST(test_file_parser, special_float_point) {
   rcutils_reset_error();
   EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024)) << rcutils_get_error_string().str;
@@ -507,42 +509,38 @@ TEST(test_file_parser, special_float_point) {
   {
     allocator.deallocate(test_path, allocator.state);
   });
-
-  // Test special float point with correct value.
+  char * path = rcutils_join_path(test_path, "special_float.yaml", allocator);
+  ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    char * path = rcutils_join_path(test_path, "special_float1.yaml", allocator);
-    ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-    {
-      allocator.deallocate(path, allocator.state);
-    });
-    ASSERT_TRUE(rcutils_exists(path)) << "No test YAML file found at " << path;
-    rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
-    ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-    {
-      rcl_yaml_node_struct_fini(params_hdl);
-    });
-    bool res = rcl_parse_yaml_file(path, params_hdl);
-    EXPECT_TRUE(res) << rcutils_get_error_string().str;
-  }
-
-  // Test special float point with improperly value.
+    allocator.deallocate(path, allocator.state);
+  });
+  ASSERT_TRUE(rcutils_exists(path)) << "No test YAML file found at " << path;
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    char * path = rcutils_join_path(test_path, "special_float2.yaml", allocator);
-    ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-    {
-      allocator.deallocate(path, allocator.state);
-    });
-    ASSERT_TRUE(rcutils_exists(path)) << "No test YAML file found at " << path;
-    rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
-    ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
-    bool res = rcl_parse_yaml_file(path, params_hdl);
-    fprintf(stderr, "%s\n", rcutils_get_error_string().str);
-    EXPECT_FALSE(res);
-    // No cleanup, rcl_parse_yaml_file takes care of that if it fails.
-  }
+    rcl_yaml_node_struct_fini(params_hdl);
+  });
+
+  bool res = rcl_parse_yaml_file(path, params_hdl);
+  EXPECT_TRUE(res) << rcutils_get_error_string().str;
+  rcl_variant_t * param_value = rcl_yaml_node_struct_get("test_node", "isstring", params_hdl);
+  ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+  ASSERT_TRUE(NULL != param_value->string_array_value);
+  EXPECT_STREQ(".nananan", param_value->string_array_value->data[1]);
+  EXPECT_STREQ(".infinf", param_value->string_array_value->data[2]);
+  param_value = rcl_yaml_node_struct_get(
+    "test_node", "nan_inf", params_hdl);
+  ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+  ASSERT_TRUE(NULL != param_value->double_array_value);
+  ASSERT_EQ(9U, param_value->double_array_value->size);
+  EXPECT_TRUE(isnan(param_value->double_array_value->values[2]));
+  EXPECT_TRUE(isnan(param_value->double_array_value->values[3]));
+  EXPECT_TRUE(isinf(param_value->double_array_value->values[4]));
+  EXPECT_TRUE(isinf(param_value->double_array_value->values[5]));
+
+  rcl_yaml_node_struct_print(params_hdl);
 }
 
 int32_t main(int32_t argc, char ** argv)

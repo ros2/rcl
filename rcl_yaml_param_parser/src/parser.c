@@ -1106,7 +1106,7 @@ static void * get_value(
   {
     errno = 0;
     endptr = NULL;
-    char * tmp_value = NULL;
+    const char * vernier_ptr = NULL;
     if ((0 == strcasecmp(value, ".nan")) ||
       (0 == strcasecmp(value, ".inf")) ||
       (0 == strcasecmp(value, "+.inf")) ||
@@ -1115,11 +1115,10 @@ static void * get_value(
       (0 == strcasecmp(value, "+.infinity")) ||
       (0 == strcasecmp(value, "-.infinity")))
     {
-      tmp_value = rcutils_strdup(value, allocator);
-      for ( ; !isalpha(*tmp_value); ) {
-        tmp_value += 1;
+      for (vernier_ptr = value; !isalpha(*vernier_ptr); ) {
+        vernier_ptr += 1;
       }
-      dval = strtod(tmp_value, &endptr);
+      dval = strtod(vernier_ptr, &endptr);
     } else {
       dval = strtod(value, &endptr);
     }
