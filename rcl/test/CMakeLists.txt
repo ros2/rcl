@@ -386,7 +386,7 @@ rcl_add_custom_gtest(test_validate_topic_name
 rcl_add_custom_gtest(test_expand_topic_name
   SRCS rcl/test_expand_topic_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} mimick
 )
 
 rcl_add_custom_gtest(test_security
