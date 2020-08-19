@@ -430,7 +430,7 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 
-/* Mock init failed tests
+/* Test failed service initialization using mocks
  */
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_ini_mocked) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
@@ -515,7 +515,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_ini_mocked) 
   }
 }
 
-/* Mock fini failed tests
+/* Test failed service finalization using mocks
  */
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_fini_mocked) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
@@ -539,7 +539,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_fini_mocked)
   rcl_reset_error();
 }
 
-/* Mock take_request_with_info failed tests
+/* Test failed service take_request_with_info using mocks and nullptrs
  */
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request_with_info) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
@@ -603,7 +603,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request
   }
 }
 
-/* Mock send_response failed tests
+/* Test failed service send_response using mocks and nullptrs
  */
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_send_response) {
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
