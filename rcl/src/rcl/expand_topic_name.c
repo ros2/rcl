@@ -71,14 +71,7 @@ rcl_expand_topic_name(
   rmw_ret = rmw_validate_node_name(node_name, &validation_result, NULL);
   if (rmw_ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    switch (rmw_ret) {
-      case RMW_RET_INVALID_ARGUMENT:
-        return RCL_RET_INVALID_ARGUMENT;
-      case RMW_RET_ERROR:
-      // fall through on purpose
-      default:
-        return RCL_RET_ERROR;
-    }
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
   if (validation_result != RMW_NODE_NAME_VALID) {
     RCL_SET_ERROR_MSG("node name is invalid");
@@ -88,14 +81,7 @@ rcl_expand_topic_name(
   rmw_ret = rmw_validate_namespace(node_namespace, &validation_result, NULL);
   if (rmw_ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    switch (rmw_ret) {
-      case RMW_RET_INVALID_ARGUMENT:
-        return RCL_RET_INVALID_ARGUMENT;
-      case RMW_RET_ERROR:
-      // fall through on purpose
-      default:
-        return RCL_RET_ERROR;
-    }
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
   if (validation_result != RMW_NODE_NAME_VALID) {
     RCL_SET_ERROR_MSG("node namespace is invalid");
@@ -214,15 +200,6 @@ rcl_expand_topic_name(
     if (original_local_output) {
       allocator.deallocate(original_local_output, allocator.state);
     }
-    if (!local_output) {
-      *output_topic_name = NULL;
-      RCL_SET_ERROR_MSG("failed to allocate memory for output topic");
-      return RCL_RET_BAD_ALLOC;
-    }
-  }
-  // if the original input_topic_name has not yet be copied into new memory, strdup it now
-  if (!local_output) {
-    local_output = rcutils_strdup(input_topic_name, allocator);
     if (!local_output) {
       *output_topic_name = NULL;
       RCL_SET_ERROR_MSG("failed to allocate memory for output topic");
