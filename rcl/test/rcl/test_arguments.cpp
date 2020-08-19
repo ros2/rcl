@@ -320,6 +320,10 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_unpar
   rcl_reset_error();
 
   EXPECT_EQ(
+    RCL_RET_BAD_ALLOC, rcl_arguments_get_unparsed_ros(&parsed_args, bad_alloc, &actual_unparsed));
+  rcl_reset_error();
+
+  EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_arguments_get_unparsed_ros(nullptr, allocator, &actual_unparsed));
   rcl_reset_error();
