@@ -465,27 +465,6 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_ini_mocked) 
     EXPECT_EQ(RCL_RET_ERROR, ret);
   }
   {
-    // Making rcutils_string_map_init fail the second time causes rcl_remap_service_name
-    // to fail
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rcutils_string_map_init,
-      [base = rcutils_string_map_init](
-        rcutils_string_map_t * string_map, size_t initial_capacity, rcutils_allocator_t allocator)
-      {
-        static int counter = 1;
-        if (counter == 1) {
-          counter++;
-          return base(string_map, initial_capacity, allocator);
-        } else {
-          return RCUTILS_RET_BAD_ALLOC;
-        }
-      });
-    ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
-    EXPECT_EQ(RCL_RET_ERROR, ret);
-    EXPECT_TRUE(rcl_error_is_set());
-    rcl_reset_error();
-  }
-  {
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_validate_full_topic_name, RMW_RET_ERROR);
     ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
