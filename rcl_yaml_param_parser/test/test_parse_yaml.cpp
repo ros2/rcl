@@ -313,7 +313,6 @@ TEST(test_file_parser, seq_map1) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   // No cleanup, rcl_parse_yaml_file takes care of that if it fails.
 }
@@ -338,7 +337,6 @@ TEST(test_file_parser, seq_map2) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   // No cleanup, rcl_parse_yaml_file takes care of that if it fails
 }
@@ -363,7 +361,6 @@ TEST(test_file_parser, params_with_no_node) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   // No cleanup, rcl_parse_yaml_file takes care of that if it fails.
 }
@@ -388,7 +385,6 @@ TEST(test_file_parser, no_alias_support) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   // No cleanup, rcl_parse_yaml_file takes care of that if it fails.
 }
@@ -441,7 +437,6 @@ TEST(test_file_parser, no_value1) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   // No cleanup, rcl_parse_yaml_file takes care of that if it fails.
 }
@@ -466,7 +461,6 @@ TEST(test_file_parser, indented_ns) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   // No cleanup, rcl_parse_yaml_file takes care of that if it fails.
 }
@@ -492,7 +486,6 @@ TEST(test_file_parser, maximum_number_parameters) {
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  fprintf(stderr, "%s\n", rcutils_get_error_string().str);
   EXPECT_FALSE(res);
   // No cleanup, rcl_parse_yaml_file takes care of that if it fails.
 }
