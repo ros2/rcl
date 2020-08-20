@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <stdio.h>
-#include <math.h>
 #include <gtest/gtest.h>
+
+#include <cmath>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
@@ -535,12 +535,10 @@ TEST(test_file_parser, special_float_point) {
   ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
   ASSERT_TRUE(NULL != param_value->double_array_value);
   ASSERT_EQ(9U, param_value->double_array_value->size);
-  EXPECT_TRUE(isnan(param_value->double_array_value->values[2]));
-  EXPECT_TRUE(isnan(param_value->double_array_value->values[3]));
-  EXPECT_TRUE(isinf(param_value->double_array_value->values[4]));
-  EXPECT_TRUE(isinf(param_value->double_array_value->values[5]));
-
-  rcl_yaml_node_struct_print(params_hdl);
+  EXPECT_TRUE(std::isnan(param_value->double_array_value->values[2]));
+  EXPECT_TRUE(std::isnan(param_value->double_array_value->values[3]));
+  EXPECT_TRUE(std::isinf(param_value->double_array_value->values[4]));
+  EXPECT_TRUE(std::isinf(param_value->double_array_value->values[5]));
 }
 
 int32_t main(int32_t argc, char ** argv)
