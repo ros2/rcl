@@ -1106,7 +1106,7 @@ static void * get_value(
   {
     errno = 0;
     endptr = NULL;
-    const char * vernier_ptr = NULL;
+    const char * iter_ptr = NULL;
     if ((0 == strcasecmp(value, ".nan")) ||
       (0 == strcasecmp(value, ".inf")) ||
       (0 == strcasecmp(value, "+.inf")) ||
@@ -1115,10 +1115,10 @@ static void * get_value(
       (0 == strcasecmp(value, "+.infinity")) ||
       (0 == strcasecmp(value, "-.infinity")))
     {
-      for (vernier_ptr = value; !isalpha(*vernier_ptr); ) {
-        vernier_ptr += 1;
+      for (iter_ptr = value; !isalpha(*iter_ptr); ) {
+        iter_ptr += 1;
       }
-      dval = strtod(vernier_ptr, &endptr);
+      dval = strtod(iter_ptr, &endptr);
     } else {
       dval = strtod(value, &endptr);
     }
