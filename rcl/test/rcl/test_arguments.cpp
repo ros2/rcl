@@ -1062,6 +1062,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overri
   rcl_arguments_t empty_parsed_arg = rcl_get_zero_initialized_arguments();
   ret = rcl_arguments_get_param_overrides(&empty_parsed_arg, &params);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
 
   rcl_params_t preallocated_params;
   params = &preallocated_params;
@@ -1216,13 +1217,19 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_get_param_
 
   ret = rcl_arguments_get_param_files(nullptr, allocator, &parameter_files);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 
   ret = rcl_arguments_get_param_files(&parsed_args, allocator, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 
   rcl_arguments_t empty_parsed_args = rcl_get_zero_initialized_arguments();
   ret = rcl_arguments_get_param_files(&empty_parsed_args, allocator, &parameter_files);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_parse_arg) {
@@ -1243,6 +1250,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_parse
       break;
     } else {
       EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
+      rcl_reset_error();
     }
   }
 }
