@@ -1083,6 +1083,10 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_init_fini_ma
     if (RCL_RET_OK == ret) {
       EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
       ret = rcl_subscription_fini(&subscription, this->node_ptr);
+      if (RCL_RET_OK != ret) {
+        // If fault injection caused fini to fail, we should try it again.
+        EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, this->node_ptr));
+      }
     } else {
       EXPECT_TRUE(rcl_error_is_set());
       rcl_reset_error();
