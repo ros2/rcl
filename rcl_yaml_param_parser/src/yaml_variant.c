@@ -22,7 +22,6 @@
 
 #define RCL_YAML_VARIANT_COPY_VALUE(dest_ptr, src_ptr, allocator, var_type) \
   do { \
-    fprintf(stderr, "Allocating for type " #var_type " with size %lu\n", sizeof(var_type)); \
     dest_ptr = allocator.allocate(sizeof(var_type), allocator.state); \
     if (NULL == dest_ptr) { \
       RCUTILS_SAFE_FWRITE_TO_STDERR( \
