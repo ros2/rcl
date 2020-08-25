@@ -233,7 +233,7 @@ rcl_lifecycle_get_zero_initialized_state_machine();
  *    the state_machine pointer is only used to initialize the interfaces
  * \param[in] allocator a valid allocator used to initialized the state machine
  * \return `RCL_RET_OK` if the state machine was initialized successfully, or
- * \return ` RCL_RET_INVALID_ARGUMENT` if input params is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if input params is NULL, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_LIFECYCLE_PUBLIC
