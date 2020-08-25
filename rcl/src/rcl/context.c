@@ -112,7 +112,7 @@ __cleanup_context(rcl_context_t * context)
 
   // clean up global_arguments if initialized
   if (NULL != context->global_arguments.impl) {
-    rcl_ret_t ret = rcl_arguments_fini(&(context->global_arguments));
+    ret = rcl_arguments_fini(&(context->global_arguments));
     if (RCL_RET_OK != ret) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(
         "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
@@ -130,10 +130,10 @@ __cleanup_context(rcl_context_t * context)
 
     // finalize init options if valid
     if (NULL != context->impl->init_options.impl) {
-      rcl_ret_t inner_ret = rcl_init_options_fini(&(context->impl->init_options));
-      if (RCL_RET_OK != inner_ret) {
+      rcl_ret_t init_options_fini_ret = rcl_init_options_fini(&(context->impl->init_options));
+      if (RCL_RET_OK != init_options_fini_ret) {
         if (RCL_RET_OK == ret) {
-          ret = inner_ret;
+          ret = init_options_fini_ret;
         }
         RCUTILS_SAFE_FWRITE_TO_STDERR(
           "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
@@ -146,10 +146,10 @@ __cleanup_context(rcl_context_t * context)
 
     // clean up rmw_context
     if (NULL != context->impl->rmw_context.implementation_identifier) {
-      rmw_ret_t rmw_ret = rmw_context_fini(&(context->impl->rmw_context));
-      if (RMW_RET_OK != rmw_ret) {
+      rmw_ret_t rmw_context_fini_ret = rmw_context_fini(&(context->impl->rmw_context));
+      if (RMW_RET_OK != rmw_context_fini_ret) {
         if (RCL_RET_OK == ret) {
-          ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+          ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_context_fini_ret);
         }
         RCUTILS_SAFE_FWRITE_TO_STDERR(
           "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
