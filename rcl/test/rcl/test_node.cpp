@@ -21,12 +21,18 @@
 #include "rcl/rcl.h"
 #include "rcl/node.h"
 #include "rmw/rmw.h"  // For rmw_get_implementation_identifier.
+#include "rmw/validate_namespace.h"
+#include "rmw/validate_node_name.h"
 
 #include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rcutils/testing/fault_injection.h"
 #include "rcl/error_handling.h"
+#include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
+
+#include "../mocking_utils/patch.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -393,24 +399,6 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
-  // Try with invalid allocator.
-  rcl_node_options_t options_with_invalid_allocator = rcl_node_get_default_options();
-  options_with_invalid_allocator.allocator.allocate = nullptr;
-  options_with_invalid_allocator.allocator.deallocate = nullptr;
-  options_with_invalid_allocator.allocator.reallocate = nullptr;
-  ret = rcl_node_init(&node, name, namespace_, &context, &options_with_invalid_allocator);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
-  ASSERT_TRUE(rcl_error_is_set());
-  rcl_reset_error();
-  // Try with failing allocator.
-  rcl_node_options_t options_with_failing_allocator = rcl_node_get_default_options();
-  options_with_failing_allocator.allocator.allocate = failing_malloc;
-  options_with_failing_allocator.allocator.reallocate = failing_realloc;
-  ret = rcl_node_init(&node, name, namespace_, &context, &options_with_failing_allocator);
-  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
-  ASSERT_TRUE(rcl_error_is_set());
-  rcl_reset_error();
-
   // Try fini with invalid arguments.
   ret = rcl_node_fini(nullptr);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << "Expected RCL_RET_NODE_INVALID";
@@ -435,6 +423,121 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
   EXPECT_EQ(RCL_RET_OK, ret);
   ret = rcl_node_fini(&node);
   EXPECT_EQ(RCL_RET_OK, ret);
+}
+
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_init_with_internal_errors) {
+  rcl_ret_t ret;
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  const char * name = "test_rcl_node_init_with_internal_errors";
+  const char * namespace_ = "ns";  // force non-absolute namespace handling
+  rcl_node_options_t options = rcl_node_get_default_options();
+  options.enable_rosout = true;  // enable logging to cover more ground
+  // Initialize rcl with rcl_init().
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_init_options_init(&init_options, allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+  });
+  // Initialize logging and rosout.
+  ret = rcl_logging_configure(&context.global_arguments, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_logging_fini()) << rcl_get_error_string().str;
+  });
+  ret = rcl_logging_rosout_init(&allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_fini()) << rcl_get_error_string().str;
+  });
+  // Try with invalid allocator.
+  rcl_node_options_t options_with_invalid_allocator = rcl_node_get_default_options();
+  options_with_invalid_allocator.allocator.allocate = nullptr;
+  options_with_invalid_allocator.allocator.deallocate = nullptr;
+  options_with_invalid_allocator.allocator.reallocate = nullptr;
+  ret = rcl_node_init(&node, name, namespace_, &context, &options_with_invalid_allocator);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << "Expected RCL_RET_INVALID_ARGUMENT";
+  ASSERT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  // Try with failing allocator.
+  rcl_node_options_t options_with_failing_allocator = rcl_node_get_default_options();
+  options_with_failing_allocator.allocator.allocate = failing_malloc;
+  options_with_failing_allocator.allocator.reallocate = failing_realloc;
+  ret = rcl_node_init(&node, name, namespace_, &context, &options_with_failing_allocator);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
+  ASSERT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+  // Try init but force internal errors.
+  {
+    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_create_node, nullptr);
+    ret = rcl_node_init(&node, name, namespace_, &context, &options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
+  }
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_node_get_graph_guard_condition, nullptr);
+    ret = rcl_node_init(&node, name, namespace_, &context, &options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
+  }
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_node_name, RMW_RET_ERROR);
+    ret = rcl_node_init(&node, name, namespace_, &context, &options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
+  }
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_validate_namespace, RMW_RET_ERROR);
+    ret = rcl_node_init(&node, name, namespace_, &context, &options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
+  }
+  // Try normal init but force an internal error on fini.
+  {
+    ret = rcl_node_init(&node, name, namespace_, &context, &options);
+    EXPECT_EQ(RCL_RET_OK, ret);
+    auto mock = mocking_utils::inject_on_return("lib:rcl", rmw_destroy_node, RMW_RET_ERROR);
+    ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
+  }
+
+  // Battle test node init/fini.
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    ret = rcl_node_init(&node, name, namespace_, &context, &options);
+
+    int64_t count = rcutils_fault_injection_get_count();
+    rcutils_fault_injection_set_count(RCUTILS_FAULT_INJECTION_NEVER_FAIL);
+
+    if (RCL_RET_OK == ret) {
+      ASSERT_TRUE(rcl_node_is_valid(&node));
+      EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
+    } else {
+      ASSERT_FALSE(rcl_node_is_valid(&node));
+      rcl_reset_error();
+    }
+
+    rcutils_fault_injection_set_count(count);
+  });
 }
 
 /* Tests the node name restrictions enforcement.

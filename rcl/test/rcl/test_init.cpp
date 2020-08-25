@@ -23,6 +23,9 @@
 #include "rcutils/env.h"
 #include "rcutils/format_string.h"
 #include "rcutils/snprintf.h"
+#include "rcutils/testing/fault_injection.h"
+
+#include "rmw/rmw.h"
 
 #include "./allocator_testing_utils.h"
 #include "../mocking_utils/patch.hpp"
@@ -314,6 +317,76 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_and_shutdown
   ret = rcl_context_fini(&context);
   EXPECT_EQ(ret, RCL_RET_OK);
   context = rcl_get_zero_initialized_context();
+}
+
+/* Tests rcl_init() deals with internal errors correctly.
+ */
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_internal_error) {
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  FakeTestArgv test_args;
+  rcl_context_t context = rcl_get_zero_initialized_context();
+
+  {
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rmw_init, "internal error", RMW_RET_ERROR);
+    ret = rcl_init(test_args.argc, test_args.argv, &init_options, &context);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+    EXPECT_FALSE(rcl_context_is_valid(&context));
+  }
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    ret = rcl_init(test_args.argc, test_args.argv, &init_options, &context);
+
+    int64_t count = rcutils_fault_injection_get_count();
+    rcutils_fault_injection_set_count(RCUTILS_FAULT_INJECTION_NEVER_FAIL);
+
+    if (RCL_RET_OK == ret) {
+      ASSERT_TRUE(rcl_context_is_valid(&context));
+      EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+      EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+    } else {
+      ASSERT_FALSE(rcl_context_is_valid(&context));
+      rcl_reset_error();
+    }
+
+    rcutils_fault_injection_set_count(count);
+  });
+}
+
+/* Tests rcl_shutdown() deals with internal errors correctly.
+ */
+TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_shutdown_internal_error) {
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+  });
+  EXPECT_TRUE(rcl_context_is_valid(&context));
+
+  auto mock = mocking_utils::patch_to_fail(
+    "lib:rcl", rmw_shutdown, "internal error", RMW_RET_ERROR);
+  EXPECT_EQ(RCL_RET_ERROR, rcl_shutdown(&context));
+  rcl_reset_error();
 }
 
 /* Tests the rcl_get_instance_id() function.
