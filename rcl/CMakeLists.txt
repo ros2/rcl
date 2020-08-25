@@ -83,6 +83,10 @@ ament_target_dependencies(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_BUILDING_DLL")
 rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
 
+if(BUILD_TESTING AND NOT RCUTILS_DISABLE_FAULT_INJECTION)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
+endif()
+
 install(
   TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
   ARCHIVE DESTINATION lib

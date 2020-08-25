@@ -17,6 +17,7 @@
 #include "rcl/client.h"
 
 #include "rcl/rcl.h"
+#include "rcutils/testing/fault_injection.h"
 
 #include "test_msgs/srv/basic_types.h"
 
@@ -276,4 +277,30 @@ TEST_F(TestClientFixture, test_client_bad_arguments) {
     RCL_RET_CLIENT_INVALID, rcl_send_request(
       &client, &client_request, &sequence_number)) << rcl_get_error_string().str;
   EXPECT_EQ(24, sequence_number);
+}
+
+TEST_F(TestClientFixture, test_client_init_fini_maybe_fail)
+{
+  const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+  constexpr char topic_name[] = "chatter";
+  rcl_client_options_t default_client_options = rcl_client_get_default_options();
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_client_t client = rcl_get_zero_initialized_client();
+    rcl_ret_t ret = rcl_client_init(
+      &client, this->node_ptr, ts, topic_name, &default_client_options);
+    if (RCL_RET_OK == ret) {
+      EXPECT_TRUE(rcl_client_is_valid(&client));
+      ret = rcl_client_fini(&client, this->node_ptr);
+      if (RCL_RET_OK != ret) {
+        // If fault injection caused fini to fail, we should try it again.
+        EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, this->node_ptr));
+      }
+    } else {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
+    }
+  });
 }
