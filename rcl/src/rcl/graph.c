@@ -21,6 +21,7 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcutils/allocator.h"
+#include "rcutils/macros.h"
 #include "rcutils/types.h"
 #include "rmw/error_handling.h"
 #include "rmw/get_node_info_and_types.h"
@@ -289,6 +290,8 @@ rcl_names_and_types_init(
   size_t size,
   rcl_allocator_t * allocator)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(names_and_types, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR(allocator, return RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_names_and_types_init(names_and_types, size, allocator);
@@ -298,6 +301,8 @@ rcl_names_and_types_init(
 rcl_ret_t
 rcl_names_and_types_fini(rcl_names_and_types_t * topic_names_and_types)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_names_and_types, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_names_and_types_fini(topic_names_and_types);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
@@ -514,6 +519,9 @@ rcl_service_server_is_available(
   const rcl_client_t * client,
   bool * is_available)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_NODE_INVALID);
+
   if (!rcl_node_is_valid(node)) {
     return RCL_RET_NODE_INVALID;  // error already set
   }

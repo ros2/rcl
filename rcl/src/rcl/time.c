@@ -20,6 +20,7 @@
 #include "./common.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcutils/macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rcutils/time.h"
 
@@ -251,6 +252,9 @@ rcl_difference_times(
 rcl_ret_t
 rcl_clock_get_now(rcl_clock_t * clock, rcl_time_point_value_t * time_point_value)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(time_point_value, RCL_RET_INVALID_ARGUMENT);
   if (clock->type && clock->get_now) {

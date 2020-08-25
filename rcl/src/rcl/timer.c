@@ -345,6 +345,8 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period)
 rcl_ret_t
 rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t * old_period)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT);
   *old_period = rcutils_atomic_exchange_uint64_t(&timer->impl->period, new_period);
@@ -375,6 +377,9 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
 rcl_ret_t
 rcl_timer_cancel(rcl_timer_t * timer)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_TIMER_INVALID);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
   rcutils_atomic_store(&timer->impl->canceled, true);
@@ -394,6 +399,8 @@ rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled)
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
   rcl_time_point_value_t now;
