@@ -23,6 +23,7 @@
 #include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
 
+#include "rcutils/testing/fault_injection.h"
 #include "test_msgs/msg/basic_types.h"
 #include "test_msgs/msg/strings.h"
 #include "rosidl_runtime_c/string_functions.h"
@@ -1064,4 +1065,31 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   rcl_reset_error();
   EXPECT_EQ(NULL, rcl_subscription_get_options(&subscription_zero_init));
   rcl_reset_error();
+}
+
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_init_fini_maybe_fail)
+{
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  constexpr char topic[] = "chatter";
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_ret_t ret = rcl_subscription_init(
+      &subscription, this->node_ptr, ts, topic, &subscription_options);
+
+    if (RCL_RET_OK == ret) {
+      EXPECT_TRUE(rcl_subscription_is_valid(&subscription));
+      ret = rcl_subscription_fini(&subscription, this->node_ptr);
+      if (RCL_RET_OK != ret) {
+        // If fault injection caused fini to fail, we should try it again.
+        EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, this->node_ptr));
+      }
+    } else {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
+    }
+  });
 }
