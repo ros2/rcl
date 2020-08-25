@@ -241,14 +241,14 @@ rcl_shutdown(rcl_context_t * context)
     return RCL_RET_ALREADY_SHUTDOWN;
   }
 
-  // reset the instance id to 0 to indicate "invalid"
-  rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), 0);
-
   rmw_ret_t rmw_ret = rmw_shutdown(&(context->impl->rmw_context));
   if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
+
+  // reset the instance id to 0 to indicate "invalid"
+  rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), 0);
 
   return RCL_RET_OK;
 }
