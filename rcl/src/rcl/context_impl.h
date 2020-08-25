@@ -41,7 +41,7 @@ typedef struct rcl_context_impl_t
 } rcl_context_impl_t;
 
 RCL_LOCAL
-void
+rcl_ret_t
 __cleanup_context(rcl_context_t * context);
 
 #ifdef __cplusplus
