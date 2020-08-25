@@ -32,10 +32,6 @@
 #include "rcl_yaml_param_parser/types.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
 
-#ifdef _WIN32
-#define strcasecmp stricmp
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {

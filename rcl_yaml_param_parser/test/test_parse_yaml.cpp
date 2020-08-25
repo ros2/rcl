@@ -529,16 +529,20 @@ TEST(test_file_parser, special_float_point) {
   ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
   ASSERT_TRUE(NULL != param_value->string_array_value);
   EXPECT_STREQ(".nananan", param_value->string_array_value->data[1]);
-  EXPECT_STREQ(".infinf", param_value->string_array_value->data[2]);
+  EXPECT_STREQ(".nAN", param_value->string_array_value->data[2]);
+  EXPECT_STREQ(".infinf", param_value->string_array_value->data[4]);
+  EXPECT_STREQ(".INf", param_value->string_array_value->data[5]);
   param_value = rcl_yaml_node_struct_get(
     "test_node", "nan_inf", params_hdl);
   ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
   ASSERT_TRUE(NULL != param_value->double_array_value);
-  ASSERT_EQ(9U, param_value->double_array_value->size);
+  ASSERT_EQ(7U, param_value->double_array_value->size);
+  EXPECT_FALSE(std::isnan(param_value->double_array_value->values[1]));
   EXPECT_TRUE(std::isnan(param_value->double_array_value->values[2]));
   EXPECT_TRUE(std::isnan(param_value->double_array_value->values[3]));
   EXPECT_TRUE(std::isinf(param_value->double_array_value->values[4]));
   EXPECT_TRUE(std::isinf(param_value->double_array_value->values[5]));
+  EXPECT_TRUE(std::isinf(param_value->double_array_value->values[6]));
 }
 
 int32_t main(int32_t argc, char ** argv)

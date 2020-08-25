@@ -1107,13 +1107,18 @@ static void * get_value(
     errno = 0;
     endptr = NULL;
     const char * iter_ptr = NULL;
-    if ((0 == strcasecmp(value, ".nan")) ||
-      (0 == strcasecmp(value, ".inf")) ||
-      (0 == strcasecmp(value, "+.inf")) ||
-      (0 == strcasecmp(value, "-.inf")) ||
-      (0 == strcasecmp(value, ".infinity")) ||
-      (0 == strcasecmp(value, "+.infinity")) ||
-      (0 == strcasecmp(value, "-.infinity")))
+    if ((0 == strcmp(value, ".nan")) ||
+      (0 == strcmp(value, ".NaN")) ||
+      (0 == strcmp(value, ".NAN")) ||
+      (0 == strcmp(value, ".inf")) ||
+      (0 == strcmp(value, ".Inf")) ||
+      (0 == strcmp(value, ".INF")) ||
+      (0 == strcmp(value, "+.inf")) ||
+      (0 == strcmp(value, "+.Inf")) ||
+      (0 == strcmp(value, "+.INF")) ||
+      (0 == strcmp(value, "-.inf")) ||
+      (0 == strcmp(value, "-.Inf")) ||
+      (0 == strcmp(value, "-.INF")))
     {
       for (iter_ptr = value; !isalpha(*iter_ptr); ) {
         iter_ptr += 1;
