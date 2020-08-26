@@ -382,6 +382,7 @@ rcl_wait_set_resize(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set->impl, RCL_RET_WAIT_SET_INVALID);
+
   SET_RESIZE(
     subscription,
     SET_RESIZE_RMW_DEALLOC(
