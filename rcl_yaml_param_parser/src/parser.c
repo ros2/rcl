@@ -1124,6 +1124,9 @@ static void * get_value(
         iter_ptr += 1;
       }
       dval = strtod(iter_ptr, &endptr);
+      if (*value == '-') {
+        dval = -dval;
+      }
     } else {
       dval = strtod(value, &endptr);
     }
