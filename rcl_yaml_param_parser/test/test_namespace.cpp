@@ -104,3 +104,52 @@ TEST(TestNamespace, replace_ns) {
   EXPECT_STREQ(expected_param_ns, ns_tracker.parameter_ns);
   EXPECT_EQ(3u, ns_tracker.num_parameter_ns);
 }
+
+TEST(TestNamespace, replace_ns_maybe_fail) {
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  namespace_tracker_t ns_tracker;
+  ns_tracker.node_ns = rcutils_strdup("node1/node2", allocator);
+  ASSERT_STREQ("node1/node2", ns_tracker.node_ns);
+  ns_tracker.parameter_ns = rcutils_strdup("param1.param2", allocator);
+  ASSERT_STREQ("param1.param2", ns_tracker.parameter_ns);
+  ns_tracker.num_node_ns = 2;
+  ns_tracker.num_parameter_ns = 2;
+
+  char * expected_ns = rcutils_strdup("new_ns1/new_ns2/new_ns3", allocator);
+  ASSERT_STREQ("new_ns1/new_ns2/new_ns3", expected_ns);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(expected_ns, allocator.state);
+  });
+
+  char * expected_param_ns =
+    rcutils_strdup("new_param1.new_param2.new_param3", allocator);
+  ASSERT_STREQ("new_param1.new_param2.new_param3", expected_param_ns);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(expected_param_ns, allocator.state);
+  });
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcutils_ret_t ret =
+    replace_ns(&ns_tracker, expected_ns, 3, NS_TYPE_NODE, allocator);
+    if (RCUTILS_RET_OK != ret) {
+      EXPECT_EQ(nullptr, ns_tracker.node_ns);
+      rcutils_reset_error();
+    } else {
+      EXPECT_EQ(RCUTILS_RET_OK, ret) << rcutils_get_error_string().str;
+      EXPECT_STREQ(expected_ns, ns_tracker.node_ns);
+      EXPECT_EQ(3u, ns_tracker.num_node_ns);
+    }
+
+    ret = replace_ns(&ns_tracker, expected_param_ns, 3, NS_TYPE_PARAM, allocator);
+    if (RCUTILS_RET_OK != ret) {
+      EXPECT_EQ(nullptr, ns_tracker.parameter_ns);
+      rcutils_reset_error();
+    } else {
+      EXPECT_STREQ(expected_param_ns, ns_tracker.parameter_ns);
+      EXPECT_EQ(3u, ns_tracker.num_parameter_ns);
+    }
+  });
+}
