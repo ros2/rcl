@@ -337,7 +337,6 @@ TEST(TestRclLifecycle, state_machine) {
   ret = rcl_lifecycle_state_machine_fini(&state_machine, nullptr, &allocator);
   EXPECT_EQ(ret, RCL_RET_ERROR);
   rcutils_reset_error();
-  std::cout << "state_machine: " << __LINE__ << std::endl;
 }
 
 TEST(TestRclLifecycle, state_transitions) {
