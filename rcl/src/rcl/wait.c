@@ -86,13 +86,13 @@ rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set)
 }
 
 static void
-__wait_set_clean_up(rcl_wait_set_t * wait_set, rcl_allocator_t allocator)
+__wait_set_clean_up(rcl_wait_set_t * wait_set)
 {
   rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0, 0);
   (void)ret;  // NO LINT
   assert(RCL_RET_OK == ret);  // Defensive, shouldn't fail with size 0.
   if (wait_set->impl) {
-    allocator.deallocate(wait_set->impl, allocator.state);
+    wait_set->impl->allocator.deallocate(wait_set->impl, wait_set->impl->allocator.state);
     wait_set->impl = NULL;
   }
 }
@@ -146,6 +146,10 @@ rcl_wait_set_init(
   wait_set->impl->rmw_services.service_count = 0;
   wait_set->impl->rmw_events.events = NULL;
   wait_set->impl->rmw_events.event_count = 0;
+  // Set context.
+  wait_set->impl->context = context;
+  // Set allocator.
+  wait_set->impl->allocator = allocator;
 
   size_t num_conditions =
     (2 * number_of_subscriptions) +
@@ -159,10 +163,6 @@ rcl_wait_set_init(
     goto fail;
   }
 
-  // Set context.
-  wait_set->impl->context = context;
-  // Set allocator.
-  wait_set->impl->allocator = allocator;
   // Initialize subscription space.
   rcl_ret_t ret = rcl_wait_set_resize(
     wait_set, number_of_subscriptions, number_of_guard_conditions, number_of_timers,
@@ -179,7 +179,7 @@ fail:
       fail_ret = RCL_RET_WAIT_SET_INVALID;
     }
   }
-  __wait_set_clean_up(wait_set, allocator);
+  __wait_set_clean_up(wait_set);
   return fail_ret;
 }
 
@@ -195,7 +195,7 @@ rcl_wait_set_fini(rcl_wait_set_t * wait_set)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_WAIT_SET_INVALID;
     }
-    __wait_set_clean_up(wait_set, wait_set->impl->allocator);
+    __wait_set_clean_up(wait_set);
   }
   return result;
 }
@@ -300,6 +300,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
     wait_set->impl->RMWStorage, sizeof(void *) * Type ## s_size, allocator.state); \
   if (!wait_set->impl->RMWStorage) { \
     allocator.deallocate((void *)wait_set->Type ## s, allocator.state); \
+    wait_set->Type ## s = NULL; \
     wait_set->size_of_ ## Type ## s = 0; \
     RCL_SET_ERROR_MSG("allocating memory failed"); \
     return RCL_RET_BAD_ALLOC; \
