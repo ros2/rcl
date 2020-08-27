@@ -684,3 +684,32 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_get_allocator
   ret = rcl_wait_set_fini(&wait_set);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
+
+// Test proper error handling with a fault injection test
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_test_maybe_init_fail) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = RCL_RET_OK;
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 1, 1, 0, context_ptr, alloc);
+    if (RCL_RET_OK == ret) {
+      EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set));
+    } else {
+      EXPECT_TRUE(RCL_RET_WAIT_SET_INVALID == ret || RCL_RET_BAD_ALLOC == ret);
+      rcl_reset_error();
+    }
+  });
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    ret = rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 1, context_ptr, alloc);
+    if (RCL_RET_OK == ret) {
+      EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set));
+    } else {
+      EXPECT_TRUE(RCL_RET_WAIT_SET_INVALID == ret || RCL_RET_BAD_ALLOC == ret);
+      rcl_reset_error();
+    }
+  });
+}
