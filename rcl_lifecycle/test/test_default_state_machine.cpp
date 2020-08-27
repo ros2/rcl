@@ -844,6 +844,11 @@ TEST_F(TestDefaultStateMachine, init_fini_maybe_fail) {
     rcl_ret_t ret = rcl_lifecycle_init_default_state_machine(&sm, this->allocator);
     if (RCL_RET_OK == ret) {
       ret = rcl_lifecycle_state_machine_fini(&sm, this->node_ptr, this->allocator);
+      if (RCL_RET_OK != ret) {
+        EXPECT_EQ(
+          RCL_RET_OK,
+          rcl_lifecycle_state_machine_fini(&sm, this->node_ptr, this->allocator));
+      }
     }
   });
 }
