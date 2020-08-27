@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <yaml.h>
+
 #include <string>
 #include <vector>
 
@@ -22,6 +24,7 @@
 #include "rcutils/error_handling.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/testing/fault_injection.h"
+#include "./mocking_utils/patch.hpp"
 #include "./time_bomb_allocator_testing_utils.h"
 
 TEST(RclYamlParamParser, node_init_fini) {
@@ -359,6 +362,37 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
       params_hdl = NULL;
     });
   }
+}
+
+TEST(RclYamlParamParser, test_parse_yaml_initialize_mock) {
+  char cur_dir[1024];
+  rcutils_reset_error();
+  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024)) << rcutils_get_error_string().str;
+
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  char * test_path = rcutils_join_path(cur_dir, "test", allocator);
+
+  char * path = rcutils_join_path(test_path, "correct_config.yaml", allocator);
+  ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(path, allocator.state);
+  });
+
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  ASSERT_NE(nullptr, params_hdl);
+
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl_yaml_param_parser", yaml_parser_initialize, false);
+
+  EXPECT_FALSE(rcl_parse_yaml_file(path, params_hdl));
+
+  constexpr char node_name[] = "node name";
+  constexpr char param_name[] = "param name";
+  constexpr char yaml_value[] = "true";
+  rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
+  ASSERT_NE(params_st, nullptr);
+  EXPECT_FALSE(rcl_parse_yaml_value(node_name, param_name, yaml_value, params_st));
 }
 
 
