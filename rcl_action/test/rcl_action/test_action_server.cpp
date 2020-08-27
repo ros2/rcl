@@ -969,9 +969,8 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
 TEST_F(TestActionServer, action_server_init_fini_maybe_fail)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  rcl_ret_t ret;
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-  ret = rcl_init_options_init(&init_options, allocator);
+  rcl_ret_t ret = rcl_init_options_init(&init_options, allocator);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
@@ -1012,6 +1011,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_maybe_fa
   {
     rcl_ret_t ret = rcl_action_process_cancel_request(
       &this->action_server, &cancel_request, &cancel_response);
+    // Regardless of return, fini should be able to succeed
     (void)ret;
     EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
   });
@@ -1027,7 +1027,8 @@ TEST_F(TestActionServerCancelPolicy, test_action_expire_goals_maybe_fail)
   {
     rcl_ret_t ret = rcl_action_expire_goals(
       &this->action_server, expired_goals, capacity, &num_expired);
-    (void)ret;
-    rcl_reset_error();
+    if (RCL_RET_OK != ret) {
+      rcl_reset_error();
+    }
   });
 }

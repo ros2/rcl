@@ -1128,17 +1128,23 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
     // Publish feedback with valid arguments
     rcl_ret_t ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
     if (RCL_RET_OK != ret) {
+      // This isn't set in all cases, but reset anyway.
+      rcl_reset_error();
       continue;
     }
 
     ret = rcl_action_wait_set_add_action_client(
       &this->wait_set, &this->action_client, NULL, NULL);
     if (RCL_RET_OK != ret) {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
       continue;
     }
 
     ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
     if (RCL_RET_OK != ret) {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
       continue;
     }
 
@@ -1151,12 +1157,16 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
       &this->is_cancel_response_ready,
       &this->is_result_response_ready);
     if (RCL_RET_OK != ret) {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
       continue;
     }
 
     // Take feedback with valid arguments
     ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback);
     if (RCL_RET_OK != ret) {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
       continue;
     }
 

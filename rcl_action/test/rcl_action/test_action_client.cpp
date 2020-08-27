@@ -362,6 +362,8 @@ TEST_F(TestActionClientBaseFixture, test_action_client_init_fini_maybe_fail)
     std::string node_name = std::string("test_action_client_node_") + std::to_string(count);
     rcl_ret_t ret = rcl_node_init(&node, node_name.c_str(), "", &this->context, &node_options);
     if (RCL_RET_OK != ret) {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
       continue;
     }
     const rosidl_action_type_support_t * action_typesupport = ROSIDL_GET_ACTION_TYPE_SUPPORT(
@@ -379,6 +381,10 @@ TEST_F(TestActionClientBaseFixture, test_action_client_init_fini_maybe_fail)
 
     if (RCL_RET_OK == ret) {
       ret = rcl_action_client_fini(&action_client, &node);
+      if (RCL_RET_OK != ret) {
+        // Not always guaranteed be set, but reset anyway
+        rcl_reset_error();
+      }
     } else {
       EXPECT_TRUE(rcl_error_is_set());
       rcl_reset_error();
