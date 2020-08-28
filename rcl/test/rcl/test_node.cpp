@@ -520,7 +520,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_init_with_i
     rcl_reset_error();
   }
 
-  // Battle test node init/fini.
+  // Battle test node init.
   RCUTILS_FAULT_INJECTION_TEST(
   {
     ret = rcl_node_init(&node, name, namespace_, &context, &options);
