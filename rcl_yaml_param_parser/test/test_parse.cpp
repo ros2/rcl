@@ -279,16 +279,17 @@ TEST(TestParse, parse_value_bad_args) {
   ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&params_st->params[0], allocator));
   params_st->num_nodes = 1u;
 
-  // event.data.scaler.value is NULL
+  // event.data.scaler.value is NULL, but event.data.scalar.length > 0
   event.start_mark = {0u, 0u, 0u};
-  event.data.scalar = {NULL, NULL, NULL, 0u, 0, 0, YAML_ANY_SCALAR_STYLE};
+  event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st));
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
 
-  // event.data.scalar.length is 0
+  // event.data.scalar.length is 0 and style is not a QUOTED_SCALAR_STYLE
+  event.data.scalar.length = 0u;
   yaml_char_t event_value[] = "non_empty_string";
   const size_t event_value_length = sizeof(event_value) / sizeof(event_value[0]);
   event.data.scalar.value = event_value;

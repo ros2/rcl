@@ -28,6 +28,9 @@ TEST(TestNodeParams, init_fini) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcl_node_params_t node_params = {NULL, NULL, 0u};
   EXPECT_EQ(RCUTILS_RET_OK, node_params_init(&node_params, allocator));
+  EXPECT_NE(nullptr, node_params.parameter_names);
+  EXPECT_NE(nullptr, node_params.parameter_values);
+  EXPECT_EQ(0u, node_params.num_params);
   rcl_yaml_node_params_fini(&node_params, allocator);
   EXPECT_EQ(nullptr, node_params.parameter_names);
   EXPECT_EQ(nullptr, node_params.parameter_values);

@@ -32,6 +32,11 @@ TEST(TestNamespace, add_name_to_ns) {
   ASSERT_STREQ("", ns_tracker.node_ns);
   ns_tracker.parameter_ns = rcutils_strdup("", allocator);
   ASSERT_STREQ("", ns_tracker.parameter_ns);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(ns_tracker.node_ns, allocator.state);
+    allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
+  });
   ns_tracker.num_node_ns = 0;
   ns_tracker.num_parameter_ns = 0;
 
@@ -63,10 +68,10 @@ TEST(TestNamespace, add_name_to_ns) {
 TEST(TestNamespace, replace_ns) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   namespace_tracker_t ns_tracker;
-  ns_tracker.node_ns = rcutils_strdup("node1/node2", allocator);
-  ASSERT_STREQ("node1/node2", ns_tracker.node_ns);
-  ns_tracker.parameter_ns = rcutils_strdup("param1.param2", allocator);
-  ASSERT_STREQ("param1.param2", ns_tracker.parameter_ns);
+  ns_tracker.node_ns = rcutils_strdup("initial_node1/initial_node2", allocator);
+  ASSERT_STREQ("initial_node1/initial_node2", ns_tracker.node_ns);
+  ns_tracker.parameter_ns = rcutils_strdup("initial_param1.initial_param2", allocator);
+  ASSERT_STREQ("initial_param1.initial_param2", ns_tracker.parameter_ns);
   ns_tracker.num_node_ns = 2;
   ns_tracker.num_parameter_ns = 2;
 
@@ -74,6 +79,8 @@ TEST(TestNamespace, replace_ns) {
   ASSERT_STREQ("new_ns1/new_ns2/new_ns3", expected_ns);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
+    allocator.deallocate(ns_tracker.node_ns, allocator.state);
+    allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
     allocator.deallocate(expected_ns, allocator.state);
   });
 
