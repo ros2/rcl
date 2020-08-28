@@ -20,6 +20,10 @@
 #include "rcl/error_handling.h"
 #include "rcl/init.h"
 
+#include "rmw/rmw.h"
+
+#include "../mocking_utils/patch.hpp"
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -148,6 +152,10 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), bad_fini) {
   ret = rcl_shutdown(&context);
   EXPECT_EQ(ret, RCL_RET_OK);
 
-  ret = rcl_context_fini(&context);
-  EXPECT_EQ(ret, RCL_RET_OK);
+  {
+    auto mock = mocking_utils::inject_on_return(
+      "lib:rcl", rmw_context_fini, RMW_RET_ERROR);
+    EXPECT_EQ(RCL_RET_ERROR, rcl_context_fini(&context));
+    rcl_reset_error();
+  }
 }

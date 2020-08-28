@@ -21,6 +21,7 @@ extern "C"
 
 #include "./common.h"
 #include "./init_options_impl.h"
+#include "rcutils/macros.h"
 #include "rcl/error_handling.h"
 #include "rmw/error_handling.h"
 #include "rcutils/logging_macros.h"
@@ -36,6 +37,11 @@ rcl_get_zero_initialized_init_options(void)
 rcl_ret_t
 rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocator)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ALREADY_INIT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_BAD_ALLOC);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(init_options, RCL_RET_INVALID_ARGUMENT);
   if (NULL != init_options->impl) {
     RCL_SET_ERROR_MSG("given init_options (rcl_init_options_t) is already initialized");
@@ -61,6 +67,11 @@ rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocat
 rcl_ret_t
 rcl_init_options_copy(const rcl_init_options_t * src, rcl_init_options_t * dst)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ALREADY_INIT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_BAD_ALLOC);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(src->impl, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
