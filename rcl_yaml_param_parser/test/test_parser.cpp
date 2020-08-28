@@ -376,6 +376,7 @@ TEST(RclYamlParamParser, test_parse_yaml_initialize_mock) {
   ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
+    allocator.deallocate(test_path, allocator.state);
     allocator.deallocate(path, allocator.state);
   });
 
