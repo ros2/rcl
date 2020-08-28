@@ -114,6 +114,11 @@ TEST(TestNamespace, replace_ns_maybe_fail) {
   ASSERT_STREQ("param1.param2", ns_tracker.parameter_ns);
   ns_tracker.num_node_ns = 2;
   ns_tracker.num_parameter_ns = 2;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(ns_tracker.node_ns, allocator.state);
+    allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
+  });
 
   char * expected_ns = rcutils_strdup("new_ns1/new_ns2/new_ns3", allocator);
   ASSERT_STREQ("new_ns1/new_ns2/new_ns3", expected_ns);
