@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <rcutils/macros.h>
 #include <rcutils/snprintf.h>
 
 #include "rmw/validate_namespace.h"
@@ -32,9 +33,7 @@ rcl_validate_enclave_name(
   int * validation_result,
   size_t * invalid_index)
 {
-  if (!enclave) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(enclave, RCL_RET_INVALID_ARGUMENT);
   return rcl_validate_enclave_name_with_size(
     enclave, strlen(enclave), validation_result, invalid_index);
 }
@@ -46,12 +45,11 @@ rcl_validate_enclave_name_with_size(
   int * validation_result,
   size_t * invalid_index)
 {
-  if (!enclave) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-  if (!validation_result) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(enclave, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(validation_result, RCL_RET_INVALID_ARGUMENT);
 
   int tmp_validation_result;
   size_t tmp_invalid_index;
