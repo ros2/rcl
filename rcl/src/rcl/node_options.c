@@ -17,6 +17,8 @@ extern "C"
 {
 #endif
 
+#include "rcutils/macros.h"
+
 #include "rcl/node_options.h"
 
 #include "rcl/arguments.h"
@@ -44,6 +46,8 @@ rcl_node_options_copy(
   const rcl_node_options_t * options,
   rcl_node_options_t * options_out)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(options_out, RCL_RET_INVALID_ARGUMENT);
   if (options_out == options) {
@@ -59,8 +63,7 @@ rcl_node_options_copy(
   options_out->use_global_arguments = options->use_global_arguments;
   options_out->enable_rosout = options->enable_rosout;
   if (NULL != options->arguments.impl) {
-    rcl_ret_t ret = rcl_arguments_copy(&(options->arguments), &(options_out->arguments));
-    return ret;
+    return rcl_arguments_copy(&(options->arguments), &(options_out->arguments));
   }
   return RCL_RET_OK;
 }

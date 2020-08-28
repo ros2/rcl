@@ -27,12 +27,13 @@ const char * const RCL_DOMAIN_ID_ENV_VAR = "ROS_DOMAIN_ID";
 rcl_ret_t
 rcl_get_default_domain_id(size_t * domain_id)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
   const char * ros_domain_id = NULL;
   const char * get_env_error_str = NULL;
 
-  if (!domain_id) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
 
   get_env_error_str = rcutils_get_env(RCL_DOMAIN_ID_ENV_VAR, &ros_domain_id);
   if (NULL != get_env_error_str) {

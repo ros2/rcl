@@ -74,7 +74,7 @@ function(test_target_function)
     SRCS rcl/test_context.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
+    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -157,7 +157,7 @@ function(test_target_function)
     SRCS rcl/test_init.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
+    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools mimick
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
@@ -165,8 +165,9 @@ function(test_target_function)
     SRCS rcl/test_node.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
+    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
+    TIMEOUT 240  # Large timeout to wait for fault injection tests
   )
 
   rcl_add_custom_gtest(test_arguments${target_suffix}
@@ -200,7 +201,7 @@ function(test_target_function)
     SRCS rcl/test_guard_condition.cpp
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
+    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
@@ -383,7 +384,7 @@ rcl_add_custom_gtest(test_expand_topic_name
 rcl_add_custom_gtest(test_security
   SRCS rcl/test_security.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} mimick
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
