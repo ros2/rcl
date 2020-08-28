@@ -29,6 +29,8 @@ TEST(TestParse, parse_value) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   yaml_event_t event;
   event.type = YAML_NO_EVENT;
+  event.start_mark = {0u, 0u, 0u};
+  event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
 
   bool is_seq = false;
   size_t node_idx = 0u;
@@ -109,6 +111,8 @@ TEST(TestParse, parse_value_sequence) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   yaml_event_t event;
   event.type = YAML_NO_EVENT;
+  event.start_mark = {0u, 0u, 0u};
+  event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
 
   bool is_seq = true;
   size_t node_idx = 0u;
@@ -176,7 +180,7 @@ TEST(TestParse, parse_value_sequence) {
   allocator.deallocate(
     params_st->params[0].parameter_values[0].integer_array_value->values, allocator.state);
   allocator.deallocate(
-    params_st->params[0].parameter_values[0].integer_value, allocator.state);
+    params_st->params[0].parameter_values[0].integer_array_value, allocator.state);
   params_st->params[0].parameter_values[0].integer_array_value = nullptr;
 
   // double value
@@ -235,6 +239,8 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_OK,
     rcutils_string_array_fini(params_st->params[0].parameter_values[0].string_array_value)) <<
     rcutils_get_error_string().str;
+  allocator.deallocate(
+    params_st->params[0].parameter_values[0].string_array_value, allocator.state);
   params_st->params[0].parameter_values[0].string_array_value = nullptr;
 }
 
@@ -242,6 +248,8 @@ TEST(TestParse, parse_value_bad_args) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   yaml_event_t event;
   event.type = YAML_NO_EVENT;
+  event.start_mark = {0u, 0u, 0u};
+  event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
 
   bool is_seq = false;
   size_t node_idx = 0u;
@@ -280,8 +288,7 @@ TEST(TestParse, parse_value_bad_args) {
   params_st->num_nodes = 1u;
 
   // event.data.scaler.value is NULL, but event.data.scalar.length > 0
-  event.start_mark = {0u, 0u, 0u};
-  event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
+  event.data.scalar.value = NULL;
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st));
@@ -317,6 +324,8 @@ TEST(TestParse, parse_key_bad_args)
 {
   yaml_event_t event;
   event.type = YAML_NO_EVENT;
+  event.start_mark = {0u, 0u, 0u};
+
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   uint32_t map_level = MAP_NODE_NAME_LVL;
   bool is_new_map = false;
