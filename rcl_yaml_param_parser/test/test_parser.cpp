@@ -382,7 +382,10 @@ TEST(RclYamlParamParser, test_parse_yaml_initialize_mock) {
 
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_NE(nullptr, params_hdl);
-
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_struct_fini(params_hdl);
+  });
   auto mock = mocking_utils::patch_and_return(
     "lib:rcl_yaml_param_parser", yaml_parser_initialize, false);
 
@@ -391,8 +394,13 @@ TEST(RclYamlParamParser, test_parse_yaml_initialize_mock) {
   constexpr char node_name[] = "node name";
   constexpr char param_name[] = "param name";
   constexpr char yaml_value[] = "true";
+
   rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
   ASSERT_NE(params_st, nullptr);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_struct_fini(params_st);
+  });
   EXPECT_FALSE(rcl_parse_yaml_value(node_name, param_name, yaml_value, params_st));
 }
 

@@ -466,11 +466,24 @@ TEST(TestParse, parse_file_events_mock_yaml_parser_parse) {
 
   rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
   ASSERT_NE(nullptr, params_hdl);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_struct_fini(params_hdl);
+  });
+
   yaml_parser_t parser;
   ASSERT_NE(0, yaml_parser_initialize(&parser));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    yaml_parser_delete(&parser);
+  });
 
   FILE * yaml_file = fopen(path, "r");
   ASSERT_NE(nullptr, yaml_file);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    fclose(yaml_file);
+  });
   yaml_parser_set_input_file(&parser, yaml_file);
 
   namespace_tracker_t ns_tracker;
@@ -493,7 +506,10 @@ TEST(TestParse, parse_value_events_mock_yaml_parser_parse) {
 
   rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
   ASSERT_NE(params_st, nullptr);
-
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_struct_fini(params_st);
+  });
   auto mock = mocking_utils::patch(
     "lib:rcl_yaml_param_parser", yaml_parser_parse, [](yaml_parser_t *, yaml_event_t * event) {
       event->start_mark.line = 0u;
