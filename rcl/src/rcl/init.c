@@ -175,6 +175,13 @@ rcl_init(
     context->impl->init_options.impl->rmw_init_options.enclave = rcutils_strdup(
       "/", context->impl->allocator);
   }
+
+  if (!context->impl->init_options.impl->rmw_init_options.enclave) {
+    RCL_SET_ERROR_MSG("failed to set context name");
+    fail_ret = RCL_RET_BAD_ALLOC;
+    goto fail;
+  }
+
   int validation_result;
   size_t invalid_index;
   ret = rcl_validate_enclave_name(
@@ -192,12 +199,6 @@ rcl_init(
       rcl_enclave_name_validation_result_string(validation_result),
       invalid_index);
     fail_ret = RCL_RET_ERROR;
-    goto fail;
-  }
-
-  if (!context->impl->init_options.impl->rmw_init_options.enclave) {
-    RCL_SET_ERROR_MSG("failed to set context name");
-    fail_ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
 
