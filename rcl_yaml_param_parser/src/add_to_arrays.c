@@ -29,7 +29,7 @@
         RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n"); \
         return RCUTILS_RET_BAD_ALLOC; \
       } \
-      memmove(val_array->values, tmp_arr, (val_array->size * sizeof(value_type))); \
+      memcpy(val_array->values, tmp_arr, (val_array->size * sizeof(value_type))); \
       val_array->values[val_array->size] = *value; \
       val_array->size++; \
       allocator.deallocate(value, allocator.state); \

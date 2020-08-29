@@ -185,7 +185,6 @@ rcutils_ret_t parse_value(
 
   rcl_variant_t * param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
 
-  // param_value->string_value = rcutils_strdup(value, allocator);
   data_types_t val_type;
   void * ret_val = get_value(value, style, &val_type, allocator);
   if (NULL == ret_val) {
@@ -202,7 +201,7 @@ rcutils_ret_t parse_value(
       ret = RCUTILS_RET_ERROR;
       break;
     case DATA_TYPE_BOOL:
-      if (false == is_seq) {
+      if (!is_seq) {
         if (NULL != param_value->bool_value) {
           // Overwriting, deallocate original
           allocator.deallocate(param_value->bool_value, allocator.state);
@@ -243,7 +242,7 @@ rcutils_ret_t parse_value(
       }
       break;
     case DATA_TYPE_INT64:
-      if (false == is_seq) {
+      if (!is_seq) {
         if (NULL != param_value->integer_value) {
           // Overwriting, deallocate original
           allocator.deallocate(param_value->integer_value, allocator.state);
@@ -284,7 +283,7 @@ rcutils_ret_t parse_value(
       }
       break;
     case DATA_TYPE_DOUBLE:
-      if (false == is_seq) {
+      if (!is_seq) {
         if (NULL != param_value->double_value) {
           // Overwriting, deallocate original
           allocator.deallocate(param_value->double_value, allocator.state);
@@ -325,7 +324,7 @@ rcutils_ret_t parse_value(
       }
       break;
     case DATA_TYPE_STRING:
-      if (false == is_seq) {
+      if (!is_seq) {
         if (NULL != param_value->string_value) {
           // Overwriting, deallocate original
           allocator.deallocate(param_value->string_value, allocator.state);
@@ -463,7 +462,7 @@ rcutils_ret_t parse_key(
         char * param_name = NULL;
 
         /// If it is a new map, the previous key is param namespace
-        if (true == *is_new_map) {
+        if (*is_new_map) {
           parameter_ns = params_st->params[*node_idx].parameter_names[*parameter_idx];
           if (NULL == parameter_ns) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -515,9 +514,9 @@ rcutils_ret_t parse_key(
             break;
           }
 
-          memmove(param_name, parameter_ns, params_ns_len);
+          memcpy(param_name, parameter_ns, params_ns_len);
           param_name[params_ns_len] = '.';
-          memmove((param_name + params_ns_len + 1U), value, param_name_len);
+          memcpy((param_name + params_ns_len + 1U), value, param_name_len);
           param_name[tot_len - 1U] = '\0';
 
           if (NULL != params_st->params[*node_idx].parameter_names[*parameter_idx]) {
@@ -584,7 +583,7 @@ rcutils_ret_t parse_file_events(
       case YAML_SCALAR_EVENT:
         {
           /// Need to toggle between key and value at params level
-          if (true == is_key) {
+          if (is_key) {
             ret = parse_key(
               event, &map_level, &is_new_map, &node_idx, &parameter_idx, ns_tracker, params_st);
             if (RCUTILS_RET_OK != ret) {
@@ -615,14 +614,14 @@ rcutils_ret_t parse_file_events(
             if (RCUTILS_RET_OK != ret) {
               break;
             }
-            if (false == is_seq) {
+            if (!is_seq) {
               is_key = true;
             }
           }
         }
         break;
       case YAML_SEQUENCE_START_EVENT:
-        if (true == is_key) {
+        if (is_key) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Sequences cannot be key at line %d", line_num);
           ret = RCUTILS_RET_ERROR;
