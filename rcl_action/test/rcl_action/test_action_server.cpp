@@ -972,14 +972,31 @@ TEST_F(TestActionServer, action_server_init_fini_maybe_fail)
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_ret_t ret = rcl_init_options_init(&init_options, allocator);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
+  });
+
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+  });
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_options = rcl_node_get_default_options();
   ret = rcl_node_init(&node, "test_action_server_node", "", &context, &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&node_options));
+  }
+  );
+
   rcl_clock_t clock;
   ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
