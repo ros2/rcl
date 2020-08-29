@@ -21,7 +21,7 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl_yaml_param_parser/parser.h"
-#include "rcl_yaml_param_parser/impl/namespace.h"
+#include "../src/impl/namespace.h"
 #include "rcutils/allocator.h"
 #include "rcutils/strdup.h"
 

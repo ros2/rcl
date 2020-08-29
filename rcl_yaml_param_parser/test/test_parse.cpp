@@ -21,8 +21,8 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl_yaml_param_parser/parser.h"
-#include "rcl_yaml_param_parser/impl/parse.h"
-#include "rcl_yaml_param_parser/impl/node_params.h"
+#include "../src/impl/parse.h"
+#include "../src/impl/node_params.h"
 #include "rcutils/filesystem.h"
 
 TEST(TestParse, parse_value) {
