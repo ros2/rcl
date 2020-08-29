@@ -16,8 +16,8 @@
 /// map level 1 : Node name mapping
 /// map level 2 : Params mapping
 
-#ifndef RCL_YAML_PARAM_PARSER__IMPL__TYPES_H_
-#define RCL_YAML_PARAM_PARSER__IMPL__TYPES_H_
+#ifndef IMPL__TYPES_H_
+#define IMPL__TYPES_H_
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -69,4 +69,4 @@ typedef struct namespace_tracker_s
 }
 #endif
 
-#endif  // RCL_YAML_PARAM_PARSER__IMPL__TYPES_H_
+#endif  // IMPL__TYPES_H_

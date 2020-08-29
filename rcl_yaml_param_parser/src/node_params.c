@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl_yaml_param_parser/impl/node_params.h"
-#include "rcl_yaml_param_parser/impl/types.h"
-#include "rcl_yaml_param_parser/impl/yaml_variant.h"
+#include "./impl/node_params.h"
+#include "./impl/types.h"
+#include "./impl/yaml_variant.h"
 
 rcutils_ret_t node_params_init(
   rcl_node_params_t * node_params,

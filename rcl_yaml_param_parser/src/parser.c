@@ -30,10 +30,10 @@
 #include "rcutils/strdup.h"
 #include "rcutils/types.h"
 
-#include "rcl_yaml_param_parser/impl/types.h"
-#include "rcl_yaml_param_parser/impl/parse.h"
-#include "rcl_yaml_param_parser/impl/node_params.h"
-#include "rcl_yaml_param_parser/impl/yaml_variant.h"
+#include "./impl/types.h"
+#include "./impl/parse.h"
+#include "./impl/node_params.h"
+#include "./impl/yaml_variant.h"
 
 #define MAX_NUM_NODE_ENTRIES 256U
 

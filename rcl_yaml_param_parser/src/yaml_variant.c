@@ -16,8 +16,8 @@
 #include "rcutils/strdup.h"
 #include "rcutils/types.h"
 
-#include "rcl_yaml_param_parser/impl/types.h"
-#include "rcl_yaml_param_parser/impl/yaml_variant.h"
+#include "./impl/types.h"
+#include "./impl/yaml_variant.h"
 #include "rcl_yaml_param_parser/types.h"
 
 #define RCL_YAML_VARIANT_COPY_VALUE(dest_ptr, src_ptr, allocator, var_type) \

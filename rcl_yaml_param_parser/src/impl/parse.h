@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_YAML_PARAM_PARSER__IMPL__PARSE_H_
-#define RCL_YAML_PARAM_PARSER__IMPL__PARSE_H_
+#ifndef IMPL__PARSE_H_
+#define IMPL__PARSE_H_
 
 #include <yaml.h>
 
 #include "rcutils/types.h"
 
-#include "rcl_yaml_param_parser/impl/types.h"
+#include "./types.h"
 #include "rcl_yaml_param_parser/types.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
 
@@ -91,4 +91,4 @@ rcutils_ret_t find_parameter(
 }
 #endif
 
-#endif  // RCL_YAML_PARAM_PARSER__IMPL__PARSE_H_
+#endif  // IMPL__PARSE_H_

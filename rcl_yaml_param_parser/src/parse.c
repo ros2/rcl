@@ -17,10 +17,10 @@
 #include "rcutils/allocator.h"
 #include "rcutils/strdup.h"
 
-#include "rcl_yaml_param_parser/impl/add_to_arrays.h"
-#include "rcl_yaml_param_parser/impl/parse.h"
-#include "rcl_yaml_param_parser/impl/namespace.h"
-#include "rcl_yaml_param_parser/impl/node_params.h"
+#include "./impl/add_to_arrays.h"
+#include "./impl/parse.h"
+#include "./impl/namespace.h"
+#include "./impl/node_params.h"
 
 ///
 /// Determine the type of the value and return the converted value

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_YAML_PARAM_PARSER__IMPL__ADD_TO_ARRAYS_H_
-#define RCL_YAML_PARAM_PARSER__IMPL__ADD_TO_ARRAYS_H_
+#ifndef IMPL__ADD_TO_ARRAYS_H_
+#define IMPL__ADD_TO_ARRAYS_H_
 
 #include <yaml.h>
 
 #include "rcutils/types.h"
 
-#include "rcl_yaml_param_parser/impl/types.h"
+#include "./types.h"
 #include "rcl_yaml_param_parser/types.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
 
@@ -76,4 +76,4 @@ rcutils_ret_t add_val_to_string_arr(
 }
 #endif
 
-#endif  // RCL_YAML_PARAM_PARSER__IMPL__ADD_TO_ARRAYS_H_
+#endif  // IMPL__ADD_TO_ARRAYS_H_

@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_YAML_PARAM_PARSER__IMPL__YAML_VARIANT_H_
-#define RCL_YAML_PARAM_PARSER__IMPL__YAML_VARIANT_H_
+#ifndef IMPL__NAMESPACE_H_
+#define IMPL__NAMESPACE_H_
 
-#include "rcutils/allocator.h"
+#include <yaml.h>
 
-#include "rcl_yaml_param_parser/impl/types.h"
+#include "rcutils/types.h"
+
+#include "./types.h"
 #include "rcl_yaml_param_parser/types.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
 
@@ -27,23 +29,40 @@ extern "C"
 #endif
 
 ///
-/// Finalize an rcl_yaml_variant_t
-///
-RCL_YAML_PARAM_PARSER_PUBLIC
-void rcl_yaml_variant_fini(
-  rcl_variant_t * param_var,
-  const rcutils_allocator_t allocator);
-
-///
-/// Copy a yaml_variant_t from param_var to out_param_var
+/// Add name to namespace tracker
 ///
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
-bool rcl_yaml_variant_copy(
-  rcl_variant_t * out_param_var, const rcl_variant_t * param_var, rcutils_allocator_t allocator);
+rcutils_ret_t add_name_to_ns(
+  namespace_tracker_t * ns_tracker,
+  const char * name,
+  const namespace_type_t namespace_type,
+  rcutils_allocator_t allocator);
+
+///
+/// Remove name from namespace tracker
+///
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t rem_name_from_ns(
+  namespace_tracker_t * ns_tracker,
+  const namespace_type_t namespace_type,
+  rcutils_allocator_t allocator);
+
+///
+/// Replace namespace in namespace tracker
+///
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t replace_ns(
+  namespace_tracker_t * ns_tracker,
+  char * const new_ns,
+  const uint32_t new_ns_count,
+  const namespace_type_t namespace_type,
+  rcutils_allocator_t allocator);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // RCL_YAML_PARAM_PARSER__IMPL__YAML_VARIANT_H_
+#endif  // IMPL__NAMESPACE_H_

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl_yaml_param_parser/impl/namespace.h"
+#include "./impl/namespace.h"
 
 #include "rcutils/strdup.h"
 

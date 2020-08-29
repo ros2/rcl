@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_YAML_PARAM_PARSER__IMPL__NODE_PARAMS_H_
-#define RCL_YAML_PARAM_PARSER__IMPL__NODE_PARAMS_H_
+#ifndef IMPL__NODE_PARAMS_H_
+#define IMPL__NODE_PARAMS_H_
 
 #include "rcl_yaml_param_parser/types.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
@@ -44,4 +44,4 @@ void rcl_yaml_node_params_fini(
 }
 #endif
 
-#endif  // RCL_YAML_PARAM_PARSER__IMPL__NODE_PARAMS_H_
+#endif  // IMPL__NODE_PARAMS_H_

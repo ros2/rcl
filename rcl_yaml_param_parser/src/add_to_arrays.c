@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl_yaml_param_parser/impl/add_to_arrays.h"
+#include "./impl/add_to_arrays.h"
 
 #define ADD_VALUE_TO_SIMPLE_ARRAY(val_array, value, value_type, allocator) \
   do { \
