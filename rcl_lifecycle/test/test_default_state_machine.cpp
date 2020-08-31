@@ -28,6 +28,7 @@
 #include "rcl/rcl.h"
 
 #include "rcutils/logging_macros.h"
+#include "rcutils/testing/fault_injection.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
 #include "rcl_lifecycle/default_state_machine.h"
@@ -832,4 +833,20 @@ TEST_F(TestDefaultStateMachine, default_sequence_error_unresolved) {
       RCL_RET_OK,
       rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr, this->allocator));
   }
+}
+
+TEST_F(TestDefaultStateMachine, init_fini_maybe_fail) {
+  rcl_lifecycle_state_machine_t sm = rcl_lifecycle_get_zero_initialized_state_machine();
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_ret_t ret = rcl_lifecycle_init_default_state_machine(&sm, this->allocator);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_lifecycle_state_machine_fini(&sm, this->node_ptr, this->allocator);
+      if (RCL_RET_OK != ret) {
+        EXPECT_EQ(
+          RCL_RET_OK,
+          rcl_lifecycle_state_machine_fini(&sm, this->node_ptr, this->allocator));
+      }
+    }
+  });
 }
