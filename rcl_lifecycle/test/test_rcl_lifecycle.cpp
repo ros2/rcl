@@ -207,9 +207,9 @@ TEST(TestRclLifecycle, state_machine) {
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    ASSERT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
   });
 
   const rosidl_message_type_support_t * pn =
@@ -367,9 +367,9 @@ TEST(TestRclLifecycle, state_transitions) {
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    ASSERT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
   });
 
   const rosidl_message_type_support_t * pn =
@@ -454,8 +454,8 @@ TEST(TestRclLifecycle, init_fini_maybe_fail) {
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
-    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
 
   ret = rcl_node_init(&node, "node", "namespace", &context, &options);
@@ -483,6 +483,9 @@ TEST(TestRclLifecycle, init_fini_maybe_fail) {
       &sm, &node, pn, cs, gs, gas, gat, gtg, true, &allocator);
     if (RCL_RET_OK == ret) {
       ret = rcl_lifecycle_state_machine_fini(&sm, &node, &allocator);
+      if (RCL_RET_OK != ret) {
+        EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_state_machine_fini(&sm, &node, &allocator));
+      }
     }
   });
 }
