@@ -22,6 +22,7 @@ extern "C"
 #include <string.h>
 
 #include "rcl/error_handling.h"
+#include "rcl/macros.h"
 #include "rcutils/format_string.h"
 
 #include "rcl_lifecycle/transition_map.h"
@@ -53,6 +54,7 @@ rcl_lifecycle_transition_map_fini(
   rcl_lifecycle_transition_map_t * transition_map,
   const rcutils_allocator_t * allocator)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
   if (!allocator) {
     RCL_SET_ERROR_MSG("can't free transition map, no allocator given\n");
     return RCL_RET_ERROR;
@@ -85,6 +87,8 @@ rcl_lifecycle_register_state(
   rcl_lifecycle_state_t state,
   const rcutils_allocator_t * allocator)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
   if (rcl_lifecycle_get_state(transition_map, state.id) != NULL) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("state %u is already registered\n", state.id);
     return RCL_RET_ERROR;
@@ -116,6 +120,9 @@ rcl_lifecycle_register_transition(
   rcl_lifecycle_transition_t transition,
   const rcutils_allocator_t * allocator)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_BAD_ALLOC);
+
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     allocator, "invalid allocator", return RCL_RET_ERROR)
 
