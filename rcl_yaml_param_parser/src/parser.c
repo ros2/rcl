@@ -1006,13 +1006,14 @@ static rcutils_ret_t add_val_to_string_arr(
     val_array->data[0U] = value;
   } else {
     /// Increase the array size by one and add the new value
-    val_array->data = allocator.reallocate(
+    char ** new_string_arr_ptr = allocator.reallocate(
       val_array->data,
       ((val_array->size + 1U) * sizeof(char *)), allocator.state);
-    if (NULL == val_array->data) {
+    if (NULL == new_string_arr_ptr) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
       return RCUTILS_RET_BAD_ALLOC;
     }
+    val_array->data = new_string_arr_ptr;
     val_array->data[val_array->size] = value;
     val_array->size++;
   }
