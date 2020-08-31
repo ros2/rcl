@@ -42,6 +42,10 @@ rcl_action_goal_handle_init(
   const rcl_action_goal_info_t * goal_info,
   rcl_allocator_t allocator)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ALREADY_INIT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_BAD_ALLOC);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_handle, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_info, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
@@ -103,6 +107,9 @@ rcl_action_goal_handle_get_info(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_action_goal_info_t * goal_info)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ACTION_GOAL_HANDLE_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   if (!rcl_action_goal_handle_is_valid(goal_handle)) {
     return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
   }
@@ -117,6 +124,9 @@ rcl_action_goal_handle_get_status(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_action_goal_state_t * status)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ACTION_GOAL_HANDLE_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   if (!rcl_action_goal_handle_is_valid(goal_handle)) {
     return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
   }
