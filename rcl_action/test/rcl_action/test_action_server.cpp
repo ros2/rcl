@@ -965,3 +965,86 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_by_time_
   EXPECT_TRUE(uuidcmp(goal_info_out->goal_id.uuid, cancel_request.goal_info.goal_id.uuid));
   EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
 }
+
+TEST_F(TestActionServer, action_server_init_fini_maybe_fail)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_ret_t ret = rcl_init_options_init(&init_options, allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
+  });
+
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+  });
+
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node, "test_action_server_node", "", &context, &node_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+    EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&node_options));
+  });
+
+  rcl_clock_t clock;
+  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+  const rcl_action_server_options_t options = rcl_action_server_get_default_options();
+  constexpr char action_name[] = "test_action_server_name";
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
+    rcl_ret_t ret = rcl_action_server_init(
+      &action_server, &node, &clock, ts, action_name, &options);
+
+    if (RCL_RET_OK == ret) {
+      ret = rcl_action_server_fini(&action_server, &node);
+    }
+  });
+}
+
+TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_maybe_fail)
+{
+  // Request to cancel all goals
+  rcl_action_cancel_request_t cancel_request = rcl_action_get_zero_initialized_cancel_request();
+  cancel_request.goal_info.stamp.sec = 0;
+  cancel_request.goal_info.stamp.nanosec = 0u;
+  rcl_action_cancel_response_t cancel_response = rcl_action_get_zero_initialized_cancel_response();
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_ret_t ret = rcl_action_process_cancel_request(
+      &this->action_server, &cancel_request, &cancel_response);
+    // Regardless of return, fini should be able to succeed
+    (void)ret;
+    EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
+  });
+}
+
+TEST_F(TestActionServerCancelPolicy, test_action_expire_goals_maybe_fail)
+{
+  const size_t capacity = 10u;
+  rcl_action_goal_info_t expired_goals[10u];
+  size_t num_expired = 42u;
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_ret_t ret = rcl_action_expire_goals(
+      &this->action_server, expired_goals, capacity, &num_expired);
+    if (RCL_RET_OK != ret) {
+      rcl_reset_error();
+    }
+  });
+}
