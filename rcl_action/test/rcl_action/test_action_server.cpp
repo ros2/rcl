@@ -994,8 +994,7 @@ TEST_F(TestActionServer, action_server_init_fini_maybe_fail)
   {
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
     EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&node_options));
-  }
-  );
+  });
 
   rcl_clock_t clock;
   ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);

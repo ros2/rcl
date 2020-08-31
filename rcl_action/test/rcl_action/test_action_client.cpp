@@ -354,24 +354,20 @@ TEST_F(TestActionClientFixture, test_action_client_get_options) {
 
 TEST_F(TestActionClientBaseFixture, test_action_client_init_fini_maybe_fail)
 {
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_options = rcl_node_get_default_options();
+  rcl_ret_t ret =
+    rcl_node_init(&node, "test_action_client_node", "", &this->context, &node_options);
+  ASSERT_EQ(RCL_RET_OK, ret);
+  const rosidl_action_type_support_t * action_typesupport =
+    ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+  rcl_action_client_t action_client = rcl_action_get_zero_initialized_client();
+  rcl_action_client_options_t action_client_options = rcl_action_client_get_default_options();
+
   RCUTILS_FAULT_INJECTION_TEST(
   {
     int64_t count = rcutils_fault_injection_get_count();
-    rcl_node_t node = rcl_get_zero_initialized_node();
-    rcl_node_options_t node_options = rcl_node_get_default_options();
-    std::string node_name = std::string("test_action_client_node_") + std::to_string(count);
-    rcl_ret_t ret = rcl_node_init(&node, node_name.c_str(), "", &this->context, &node_options);
-    if (RCL_RET_OK != ret) {
-      EXPECT_TRUE(rcl_error_is_set());
-      rcl_reset_error();
-      continue;
-    }
-    const rosidl_action_type_support_t * action_typesupport = ROSIDL_GET_ACTION_TYPE_SUPPORT(
-      test_msgs, Fibonacci);
     std::string action_name = std::string("test_action_client_name_") + std::to_string(count);
-    rcl_action_client_t action_client = rcl_action_get_zero_initialized_client();
-    rcl_action_client_options_t action_client_options = rcl_action_client_get_default_options();
-
     ret = rcl_action_client_init(
       &action_client,
       &node,
