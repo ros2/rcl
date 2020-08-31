@@ -14,11 +14,14 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "rcl_action/action_client.h"
 #include "rcl_action/action_client_impl.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
+#include "rcutils/testing/fault_injection.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "test_msgs/action/fibonacci.h"
@@ -79,7 +82,6 @@ protected:
   rcl_context_t context;
   rcl_node_t node;
 };
-
 
 TEST_F(TestActionClientBaseFixture, test_action_client_init_fini) {
   rcl_ret_t ret = RCL_RET_OK;
@@ -348,4 +350,53 @@ TEST_F(TestActionClientFixture, test_action_client_get_options) {
 
   options = rcl_action_client_get_options(&this->action_client);
   ASSERT_NE(options, nullptr) << rcl_get_error_string().str;
+}
+
+TEST_F(TestActionClientBaseFixture, test_action_client_init_fini_maybe_fail)
+{
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_options = rcl_node_get_default_options();
+  rcl_ret_t ret =
+    rcl_node_init(&node, "test_action_client_node", "", &this->context, &node_options);
+  ASSERT_EQ(RCL_RET_OK, ret);
+  const rosidl_action_type_support_t * action_typesupport =
+    ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+  rcl_action_client_t action_client = rcl_action_get_zero_initialized_client();
+  rcl_action_client_options_t action_client_options = rcl_action_client_get_default_options();
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    int64_t count = rcutils_fault_injection_get_count();
+    std::string action_name = std::string("test_action_client_name_") + std::to_string(count);
+    ret = rcl_action_client_init(
+      &action_client,
+      &node,
+      action_typesupport,
+      action_name.c_str(),
+      &action_client_options);
+
+    if (RCL_RET_OK == ret) {
+      ret = rcl_action_client_fini(&action_client, &node);
+      if (RCL_RET_OK != ret) {
+        // Not always guaranteed be set, but reset anyway
+        rcl_reset_error();
+      }
+    } else {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
+    }
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  });
+}
+
+TEST_F(TestActionClientFixture, test_action_server_is_available_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    bool is_available = false;
+    rcl_ret_t ret = rcl_action_server_is_available(
+      &this->node, &this->action_client, &is_available);
+    (void)ret;
+    rcl_reset_error();
+  });
 }

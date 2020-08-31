@@ -19,6 +19,7 @@ extern "C"
 #include "rcl_action/types.h"
 
 #include "rcl/error_handling.h"
+#include "rcutils/macros.h"
 
 rcl_action_goal_info_t
 rcl_action_get_zero_initialized_goal_info(void)
@@ -96,6 +97,10 @@ rcl_action_cancel_response_init(
   const size_t num_goals_canceling,
   const rcl_allocator_t allocator)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ALREADY_INIT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_BAD_ALLOC);
+
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(cancel_response, RCL_RET_INVALID_ARGUMENT);
   // Size of array to allocate must be greater than 0
