@@ -330,11 +330,9 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
     bool res = rcl_parse_yaml_file(path, params_hdl);
     // Not verifying res is true or false here, because eventually it will come back with an ok
     // result. We're just trying to make sure that bad allocations are properly handled
-    if (res) {
-      // This is already freed in the case of a non-ok error in rcl_parse_yaml_file
-      rcl_yaml_node_struct_fini(params_hdl);
-      params_hdl = NULL;
-    }
+    (void)res;
+    rcl_yaml_node_struct_fini(params_hdl);
+    params_hdl = NULL;
   }
 
   // Check sporadic failing calloc calls
@@ -347,11 +345,9 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
     bool res = rcl_parse_yaml_file(path, params_hdl);
     // Not verifying res is true or false here, because eventually it will come back with an ok
     // result. We're just trying to make sure that bad allocations are properly handled
-    if (res) {
-      // This is already freed in the case of a non-ok error in rcl_parse_yaml_file
-      rcl_yaml_node_struct_fini(params_hdl);
-      params_hdl = NULL;
-    }
+    (void)res;
+    rcl_yaml_node_struct_fini(params_hdl);
+    params_hdl = NULL;
   }
 }
 
