@@ -56,6 +56,10 @@ rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(rcl_lifecycle PRIVATE "RCL_LIFECYCLE_BUILDING_DLL")
 
+if(BUILD_TESTING AND NOT RCUTILS_DISABLE_FAULT_INJECTION)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
+endif()
+
 install(TARGETS rcl_lifecycle EXPORT rcl_lifecycle
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -78,6 +82,9 @@ if(BUILD_TESTING)
       "osrf_testing_tools_cpp"
     )
     target_link_libraries(test_default_state_machine ${PROJECT_NAME})
+    target_compile_definitions(test_default_state_machine
+      PUBLIC RCUTILS_ENABLE_FAULT_INJECTION
+    )
   endif()
   ament_add_gtest(test_multiple_instances
     test/test_multiple_instances.cpp
@@ -98,6 +105,9 @@ if(BUILD_TESTING)
       "osrf_testing_tools_cpp"
     )
     target_link_libraries(test_rcl_lifecycle ${PROJECT_NAME})
+    target_compile_definitions(test_rcl_lifecycle
+      PUBLIC RCUTILS_ENABLE_FAULT_INJECTION
+    )
   endif()
   ament_add_gtest(test_transition_map
     test/test_transition_map.cpp

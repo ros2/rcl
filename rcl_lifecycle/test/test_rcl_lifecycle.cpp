@@ -19,9 +19,12 @@
 #include <gtest/gtest.h>
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
+
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rcutils/testing/fault_injection.h"
+
 #include "lifecycle_msgs/msg/transition_event.h"
 #include "lifecycle_msgs/srv/change_state.h"
 #include "lifecycle_msgs/srv/get_available_states.h"
@@ -204,9 +207,9 @@ TEST(TestRclLifecycle, state_machine) {
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    ASSERT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
   });
 
   const rosidl_message_type_support_t * pn =
@@ -364,9 +367,9 @@ TEST(TestRclLifecycle, state_transitions) {
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    ASSERT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
-    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
   });
 
   const rosidl_message_type_support_t * pn =
@@ -435,4 +438,54 @@ TEST(TestRclLifecycle, state_transitions) {
 
   ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+}
+
+TEST(TestRclLifecycle, init_fini_maybe_fail) {
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_node_options_t options = rcl_node_get_default_options();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_ret_t ret = rcl_init_options_init(&init_options, allocator);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+  });
+
+  ret = rcl_node_init(&node, "node", "namespace", &context, &options);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  const rosidl_message_type_support_t * pn =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(lifecycle_msgs, msg, TransitionEvent);
+  const rosidl_service_type_support_t * cs =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, ChangeState);
+  const rosidl_service_type_support_t * gs =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetState);
+  const rosidl_service_type_support_t * gas =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableStates);
+  const rosidl_service_type_support_t * gat =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions);
+  const rosidl_service_type_support_t * gtg =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions);
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    // Init segfaults if this is not zero initialized
+    rcl_lifecycle_state_machine_t sm = rcl_lifecycle_get_zero_initialized_state_machine();
+
+    ret = rcl_lifecycle_state_machine_init(
+      &sm, &node, pn, cs, gs, gas, gat, gtg, true, &allocator);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_lifecycle_state_machine_fini(&sm, &node, &allocator);
+      if (RCL_RET_OK != ret) {
+        EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_state_machine_fini(&sm, &node, &allocator));
+      }
+    }
+  });
 }
