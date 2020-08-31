@@ -1050,8 +1050,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_arguments
 
   rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
   ret = rcl_arguments_copy(&parsed_args, &copied_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(2, rcl_arguments_get_param_files_count(&copied_args));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overrides) {
