@@ -26,21 +26,27 @@
 #include "rcutils/strdup.h"
 #include "rcutils/testing/fault_injection.h"
 
-#define TEST_VARIANT_COPY(dest_variant, src_variant, field, tmp_var, allocator) \
+#define TEST_VARIANT_COPY(field, tmp_var) \
   do { \
     SCOPED_TRACE("TEST_VARIANT_COPY " #field); \
+    rcl_variant_t src_variant{}; \
+    rcl_variant_t dest_variant{}; \
+    rcutils_allocator_t allocator = rcutils_get_default_allocator(); \
     src_variant.field = &tmp_var; \
     EXPECT_TRUE(rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)); \
     ASSERT_NE(nullptr, dest_variant.field); \
     EXPECT_EQ(*src_variant.field, *dest_variant.field); \
     rcl_yaml_variant_fini(&dest_variant, allocator); \
-    variant.field = nullptr; \
+    src_variant.field = nullptr; \
   } while (0)
 
-#define TEST_VARIANT_ARRAY_COPY( \
-    dest_variant, src_variant, field, array_type, value_type, tmp_array, array_size, allocator) \
+#define TEST_VARIANT_ARRAY_COPY(field, array_type, value_type, tmp_array) \
   do { \
     SCOPED_TRACE("TEST_VARIANT_ARRAY_COPY " #field); \
+    constexpr size_t array_size = sizeof(tmp_array) / sizeof(tmp_array[0]); \
+    rcl_variant_t src_variant{}; \
+    rcl_variant_t dest_variant{}; \
+    rcutils_allocator_t allocator = rcutils_get_default_allocator(); \
     src_variant.field = \
       static_cast<array_type *>(allocator.allocate(sizeof(array_type), allocator.state)); \
     ASSERT_NE(nullptr, src_variant.field); \
@@ -48,9 +54,16 @@
       static_cast<value_type *>( \
       allocator.zero_allocate(array_size, sizeof(value_type), allocator.state)); \
     ASSERT_NE(nullptr, src_variant.field->values); \
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT( \
+    { \
+      rcl_yaml_variant_fini(&src_variant, allocator); \
+      rcl_yaml_variant_fini(&dest_variant, allocator); \
+      src_variant.field = nullptr; \
+      dest_variant.field = nullptr; \
+    }); \
     src_variant.field->size = array_size; \
     for (size_t i = 0; i < array_size; ++i) { \
-      variant.field->values[i] = tmp_array[i]; \
+      src_variant.field->values[i] = tmp_array[i]; \
     } \
     EXPECT_TRUE(rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)); \
     ASSERT_NE(nullptr, dest_variant.field); \
@@ -59,77 +72,18 @@
       SCOPED_TRACE(i); \
       EXPECT_EQ(src_variant.field->values[i], dest_variant.field->values[i]); \
     } \
-    rcl_yaml_variant_fini(&src_variant, allocator); \
-    rcl_yaml_variant_fini(&dest_variant, allocator); \
-    src_variant.field = nullptr; \
-    dest_variant.field = nullptr; \
   } while (0)
 
 TEST(TestYamlVariant, copy_fini) {
-  rcl_variant_t variant =
-  {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+  rcl_variant_t variant{};
+  rcl_variant_t copy{};
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
-  rcl_variant_t copy =
-  {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
   EXPECT_FALSE(rcl_yaml_variant_copy(nullptr, &variant, allocator));
   EXPECT_FALSE(rcl_yaml_variant_copy(&copy, nullptr, allocator));
 
-  bool tmp_bool = true;
-  TEST_VARIANT_COPY(copy, variant, bool_value, tmp_bool, allocator);
+  ASSERT_TRUE(rcl_yaml_variant_copy(&copy, &variant, allocator));
 
-  int64_t tmp_int = 42;
-  TEST_VARIANT_COPY(copy, variant, integer_value, tmp_int, allocator);
-
-  double tmp_double = 3.14159;
-  TEST_VARIANT_COPY(copy, variant, double_value, tmp_double, allocator);
-
-  // String version is slightly different and can't use the above macro
-  char * tmp_string = rcutils_strdup("hello there", allocator);
-  variant.string_value = tmp_string;
-  EXPECT_TRUE(rcl_yaml_variant_copy(&copy, &variant, allocator));
-  ASSERT_NE(nullptr, copy.string_value);
-  EXPECT_STREQ(tmp_string, copy.string_value);
-  rcl_yaml_variant_fini(&copy, allocator);
-  allocator.deallocate(tmp_string, allocator.state);
-  variant.string_value = nullptr;
-
-  constexpr size_t size = 3u;
-  constexpr bool bool_arry[size] = {true, false, true};
-  TEST_VARIANT_ARRAY_COPY(
-    copy, variant, bool_array_value, rcl_bool_array_t, bool, bool_arry, size, allocator);
-
-  constexpr int64_t int_arry[size] = {1, 2, 3};
-  TEST_VARIANT_ARRAY_COPY(
-    copy, variant, integer_array_value, rcl_int64_array_t, int64_t, int_arry, size, allocator);
-
-  constexpr double double_arry[size] = {10.0, 11.0, 12.0};
-  TEST_VARIANT_ARRAY_COPY(
-    copy, variant, double_array_value, rcl_double_array_t, double, double_arry, size, allocator);
-
-  // Strings just have to be different
-  variant.string_array_value =
-    static_cast<rcutils_string_array_t *>(
-    allocator.allocate(sizeof(rcutils_string_array_t), allocator.state));
-  ASSERT_NE(nullptr, variant.string_array_value);
-  *variant.string_array_value = rcutils_get_zero_initialized_string_array();
-  ASSERT_EQ(
-    RCUTILS_RET_OK, rcutils_string_array_init(variant.string_array_value, size, &allocator));
-  variant.string_array_value->size = size;
-  variant.string_array_value->data[0] = rcutils_strdup("string1", allocator);
-  variant.string_array_value->data[1] = rcutils_strdup("string2", allocator);
-  variant.string_array_value->data[2] = rcutils_strdup("string3", allocator);
-  for (size_t i = 0; i < size; ++i) {
-    ASSERT_NE(nullptr, variant.string_array_value->data[i]);
-  }
-  EXPECT_TRUE(rcl_yaml_variant_copy(&copy, &variant, allocator));
-  ASSERT_NE(nullptr, copy.string_array_value);
-  ASSERT_NE(nullptr, copy.string_array_value->data);
-  for (size_t i = 0; i < size; ++i) {
-    SCOPED_TRACE(i);
-    EXPECT_STREQ(variant.string_array_value->data[i], copy.string_array_value->data[i]);
-  }
-  rcl_yaml_variant_fini(&variant, allocator);
   rcl_yaml_variant_fini(&copy, allocator);
 
   // Check second fini works fine
@@ -137,4 +91,95 @@ TEST(TestYamlVariant, copy_fini) {
 
   // Check fini with a nullptr doesn't crash.
   rcl_yaml_variant_fini(nullptr, allocator);
+}
+
+TEST(TestYamlVariant, copy_bool_value) {
+  bool tmp_bool = true;
+  TEST_VARIANT_COPY(bool_value, tmp_bool);
+}
+
+TEST(TestYamlVariant, copy_integer_value) {
+  int64_t tmp_int = 42;
+  TEST_VARIANT_COPY(integer_value, tmp_int);
+}
+
+TEST(TestYamlVariant, copy_double_value) {
+  double tmp_double = 3.14159;
+  TEST_VARIANT_COPY(double_value, tmp_double);
+}
+
+TEST(TestYamlVariant, copy_string_value) {
+  // String version is slightly different and can't use the above macro
+  rcl_variant_t src_variant{};
+  rcl_variant_t dest_variant{};
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  char * tmp_string = rcutils_strdup("hello there", allocator);
+  ASSERT_STREQ("hello there", tmp_string);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(tmp_string, allocator.state);
+  });
+  src_variant.string_value = tmp_string;
+  EXPECT_TRUE(rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator));
+  ASSERT_NE(nullptr, dest_variant.string_value);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_variant_fini(&dest_variant, allocator);
+  });
+  EXPECT_STREQ(tmp_string, dest_variant.string_value);
+}
+
+TEST(TestYamlVariant, copy_bool_array_values) {
+  constexpr bool bool_arry[] = {true, false, true};
+  TEST_VARIANT_ARRAY_COPY(
+    bool_array_value, rcl_bool_array_t, bool, bool_arry);
+}
+
+TEST(TestYamlVariant, copy_integer_array_values) {
+  constexpr int64_t int_arry[] = {1, 2, 3};
+  TEST_VARIANT_ARRAY_COPY(
+    integer_array_value, rcl_int64_array_t, int64_t, int_arry);
+}
+
+TEST(TestYamlVariant, copy_double_array_values) {
+  constexpr double double_arry[] = {10.0, 11.0, 12.0};
+  TEST_VARIANT_ARRAY_COPY(
+    double_array_value, rcl_double_array_t, double, double_arry);
+}
+
+TEST(TestYamlVariant, copy_string_array_values) {
+  // Strings just have to be different
+  rcl_variant_t src_variant{};
+  rcl_variant_t dest_variant{};
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  constexpr size_t size = 3u;
+  src_variant.string_array_value =
+    static_cast<rcutils_string_array_t *>(
+    allocator.allocate(sizeof(rcutils_string_array_t), allocator.state));
+  ASSERT_NE(nullptr, src_variant.string_array_value);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_variant_fini(&src_variant, allocator);
+    rcl_yaml_variant_fini(&dest_variant, allocator);
+  });
+  *src_variant.string_array_value = rcutils_get_zero_initialized_string_array();
+  ASSERT_EQ(
+    RCUTILS_RET_OK, rcutils_string_array_init(src_variant.string_array_value, size, &allocator));
+  src_variant.string_array_value->size = size;
+  src_variant.string_array_value->data[0] = rcutils_strdup("string1", allocator);
+  src_variant.string_array_value->data[1] = rcutils_strdup("string2", allocator);
+  src_variant.string_array_value->data[2] = rcutils_strdup("string3", allocator);
+  for (size_t i = 0; i < size; ++i) {
+    ASSERT_NE(nullptr, src_variant.string_array_value->data[i]);
+  }
+  EXPECT_TRUE(rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator));
+  ASSERT_NE(nullptr, dest_variant.string_array_value);
+  ASSERT_NE(nullptr, dest_variant.string_array_value->data);
+  for (size_t i = 0; i < size; ++i) {
+    SCOPED_TRACE(i);
+    EXPECT_STREQ(
+      src_variant.string_array_value->data[i], dest_variant.string_array_value->data[i]);
+  }
 }

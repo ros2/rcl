@@ -56,10 +56,11 @@ TEST(TestParse, parse_value) {
     RCUTILS_RET_OK,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[0].parameter_values[0].bool_value);
-  EXPECT_TRUE(*params_st->params[0].parameter_values[0].bool_value);
-  allocator.deallocate(params_st->params[0].parameter_values[0].bool_value, allocator.state);
-  params_st->params[0].parameter_values[0].bool_value = nullptr;
+  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].bool_value);
+  EXPECT_TRUE(*params_st->params[node_idx].parameter_values[parameter_idx].bool_value);
+  allocator.deallocate(
+    params_st->params[node_idx].parameter_values[parameter_idx].bool_value, allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].bool_value = nullptr;
 
   // integer value
   yaml_char_t integer_value[] = "42";
@@ -71,10 +72,11 @@ TEST(TestParse, parse_value) {
     RCUTILS_RET_OK,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[0].parameter_values[0].integer_value);
-  EXPECT_EQ(42, *params_st->params[0].parameter_values[0].integer_value);
-  allocator.deallocate(params_st->params[0].parameter_values[0].integer_value, allocator.state);
-  params_st->params[0].parameter_values[0].integer_value = nullptr;
+  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].integer_value);
+  EXPECT_EQ(42, *params_st->params[node_idx].parameter_values[parameter_idx].integer_value);
+  allocator.deallocate(
+    params_st->params[node_idx].parameter_values[parameter_idx].integer_value, allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].integer_value = nullptr;
 
   // double value
   yaml_char_t double_value[] = "3.14159";
@@ -86,10 +88,11 @@ TEST(TestParse, parse_value) {
     RCUTILS_RET_OK,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[0].parameter_values[0].double_value);
-  EXPECT_EQ(3.14159, *params_st->params[0].parameter_values[0].double_value);
-  allocator.deallocate(params_st->params[0].parameter_values[0].double_value, allocator.state);
-  params_st->params[0].parameter_values[0].double_value = nullptr;
+  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].double_value);
+  EXPECT_EQ(3.14159, *params_st->params[node_idx].parameter_values[parameter_idx].double_value);
+  allocator.deallocate(
+    params_st->params[node_idx].parameter_values[parameter_idx].double_value, allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].double_value = nullptr;
 
   // double value
   yaml_char_t string_value[] = "hello, I am a string";
@@ -101,10 +104,13 @@ TEST(TestParse, parse_value) {
     RCUTILS_RET_OK,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[0].parameter_values[0].string_value);
-  EXPECT_STREQ("hello, I am a string", params_st->params[0].parameter_values[0].string_value);
-  allocator.deallocate(params_st->params[0].parameter_values[0].string_value, allocator.state);
-  params_st->params[0].parameter_values[0].string_value = nullptr;
+  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].string_value);
+  EXPECT_STREQ(
+    "hello, I am a string",
+    params_st->params[node_idx].parameter_values[parameter_idx].string_value);
+  allocator.deallocate(
+    params_st->params[node_idx].parameter_values[parameter_idx].string_value, allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].string_value = nullptr;
 }
 
 TEST(TestParse, parse_value_sequence) {
@@ -140,7 +146,9 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_ERROR,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  EXPECT_EQ(nullptr, params_st->params[0].parameter_values[0].integer_array_value);
+  EXPECT_EQ(
+    nullptr,
+    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
 
   // Check proper sequence type
   seq_data_type = DATA_TYPE_UNKNOWN;
@@ -148,12 +156,16 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_OK,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[0].parameter_values[0].bool_array_value);
-  EXPECT_TRUE(params_st->params[0].parameter_values[0].bool_array_value->values[0]);
+  ASSERT_NE(
+    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value);
+  EXPECT_TRUE(
+    params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value->values[0]);
   allocator.deallocate(
-    params_st->params[0].parameter_values[0].bool_array_value->values, allocator.state);
-  allocator.deallocate(params_st->params[0].parameter_values[0].bool_array_value, allocator.state);
-  params_st->params[0].parameter_values[0].bool_array_value = nullptr;
+    params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value->values,
+    allocator.state);
+  allocator.deallocate(
+    params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value, allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value = nullptr;
 
   // integer array value
   yaml_char_t integer_value[] = "42";
@@ -167,7 +179,8 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_ERROR,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  EXPECT_EQ(nullptr, params_st->params[0].parameter_values[0].integer_array_value);
+  EXPECT_EQ(
+    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
 
   // Check proper sequence type
   seq_data_type = DATA_TYPE_UNKNOWN;
@@ -175,13 +188,19 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_OK,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[0].parameter_values[0].integer_array_value);
-  EXPECT_EQ(42, params_st->params[0].parameter_values[0].integer_array_value->values[0]);
+  ASSERT_NE(
+    nullptr,
+    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
+  EXPECT_EQ(
+    42,
+    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value->values[0]);
   allocator.deallocate(
-    params_st->params[0].parameter_values[0].integer_array_value->values, allocator.state);
+    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value->values,
+    allocator.state);
   allocator.deallocate(
-    params_st->params[0].parameter_values[0].integer_array_value, allocator.state);
-  params_st->params[0].parameter_values[0].integer_array_value = nullptr;
+    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value,
+    allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value = nullptr;
 
   // double value
   yaml_char_t double_value[] = "3.14159";
@@ -195,7 +214,8 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_ERROR,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  EXPECT_EQ(nullptr, params_st->params[0].parameter_values[0].integer_array_value);
+  EXPECT_EQ(
+    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
 
   // Check proper sequence type
   seq_data_type = DATA_TYPE_UNKNOWN;
@@ -203,13 +223,18 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_OK,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[0].parameter_values[0].double_array_value);
-  EXPECT_EQ(3.14159, params_st->params[0].parameter_values[0].double_array_value->values[0]);
+  ASSERT_NE(
+    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].double_array_value);
+  EXPECT_EQ(
+    3.14159,
+    params_st->params[node_idx].parameter_values[parameter_idx].double_array_value->values[0]);
   allocator.deallocate(
-    params_st->params[0].parameter_values[0].double_array_value->values, allocator.state);
+    params_st->params[node_idx].parameter_values[parameter_idx].double_array_value->values,
+    allocator.state);
   allocator.deallocate(
-    params_st->params[0].parameter_values[0].double_array_value, allocator.state);
-  params_st->params[0].parameter_values[0].double_array_value = nullptr;
+    params_st->params[node_idx].parameter_values[parameter_idx].double_array_value,
+    allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].double_array_value = nullptr;
 
   // double value
   yaml_char_t string_value[] = "hello, I am a string";
@@ -223,7 +248,8 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_ERROR,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  EXPECT_EQ(nullptr, params_st->params[0].parameter_values[0].integer_array_value);
+  EXPECT_EQ(
+    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
 
   // Check proper sequence type
   seq_data_type = DATA_TYPE_UNKNOWN;
@@ -231,17 +257,20 @@ TEST(TestParse, parse_value_sequence) {
     RCUTILS_RET_OK,
     parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[0].parameter_values[0].string_array_value);
+  ASSERT_NE(
+    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].string_array_value);
   EXPECT_STREQ(
     "hello, I am a string",
-    params_st->params[0].parameter_values[0].string_array_value->data[0]);
+    params_st->params[node_idx].parameter_values[parameter_idx].string_array_value->data[0]);
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    rcutils_string_array_fini(params_st->params[0].parameter_values[0].string_array_value)) <<
+    rcutils_string_array_fini(
+      params_st->params[node_idx].parameter_values[parameter_idx].string_array_value)) <<
     rcutils_get_error_string().str;
   allocator.deallocate(
-    params_st->params[0].parameter_values[0].string_array_value, allocator.state);
-  params_st->params[0].parameter_values[0].string_array_value = nullptr;
+    params_st->params[node_idx].parameter_values[parameter_idx].string_array_value,
+    allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].string_array_value = nullptr;
 }
 
 TEST(TestParse, parse_value_bad_args) {
@@ -287,7 +316,7 @@ TEST(TestParse, parse_value_bad_args) {
   ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&params_st->params[0], allocator));
   params_st->num_nodes = 1u;
 
-  // event.data.scaler.value is NULL, but event.data.scalar.length > 0
+  // event.data.scalar.value is NULL, but event.data.scalar.length > 0
   event.data.scalar.value = NULL;
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
@@ -342,14 +371,6 @@ TEST(TestParse, parse_key_bad_args)
 
   ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&params_st->params[0], allocator));
   params_st->num_nodes = 1u;
-
-  // map_level is nullptr
-  EXPECT_EQ(
-    RCUTILS_RET_INVALID_ARGUMENT,
-    parse_key(event, nullptr, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
-    rcutils_get_error_string().str;
-  EXPECT_TRUE(rcutils_error_is_set());
-  rcutils_reset_error();
 
   // map_level is nullptr
   EXPECT_EQ(
