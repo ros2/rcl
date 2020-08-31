@@ -1810,12 +1810,7 @@ bool rcl_parse_yaml_file(
     allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
   }
 
-  if (RCUTILS_RET_OK != ret) {
-    rcl_yaml_node_struct_fini(params_st);
-    return false;
-  }
-
-  return true;
+  return RCUTILS_RET_OK == ret;
 }
 
 ///
