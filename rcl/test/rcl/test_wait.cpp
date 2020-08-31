@@ -746,6 +746,8 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_test_maybe_in
 
   RCUTILS_FAULT_INJECTION_TEST(
   {
+    // Test init in the case where guard_conditions_size + timers_size = 0
+    // (used for guard condition size)
     ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 1, 1, 0, context_ptr, alloc);
     if (RCL_RET_OK == ret) {
       ret = rcl_wait_set_fini(&wait_set);
@@ -760,6 +762,8 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_test_maybe_in
 
   RCUTILS_FAULT_INJECTION_TEST(
   {
+    // Test init wait_set using at least one of each of the possible elements that receives
+    // (subs, guard conditions, timers, clients, services, events)
     ret = rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 1, context_ptr, alloc);
     if (RCL_RET_OK == ret) {
       ret = rcl_wait_set_fini(&wait_set);
