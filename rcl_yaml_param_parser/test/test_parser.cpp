@@ -353,7 +353,14 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
       // Not verifying res is true or false here, because eventually it will come back with an ok
       // result. We're just trying to make sure that bad allocations are properly handled
       (void)res;
+
+      // If `rcutils_string_array_fini` fails, there will be a small memory leak here.
+      // Pausing fault injection so this test runs clean
+      int64_t count = rcutils_fault_injection_get_count();
+      rcutils_fault_injection_set_count(RCUTILS_FAULT_INJECTION_NEVER_FAIL);
       rcl_yaml_node_struct_fini(params_hdl);
+      rcutils_fault_injection_set_count(count);
+
       params_hdl = NULL;
     });
   }
