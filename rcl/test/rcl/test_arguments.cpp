@@ -229,13 +229,34 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--remap"}));
-
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "1"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":="}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "foo:="}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":=bar"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "::="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "1:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__node:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__node:=/foo/bar"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__ns:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__ns:=foo"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":__node:=nodename"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~:__node:=nodename"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "}foo:=/bar"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "f oo:=/bar"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "foo:=/b ar"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "f{oo:=/bar"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "foo:=/b}ar"}));
+
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "rostopic://:=rosservice"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "rostopic::=rosservice"}));
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--params-file"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "foo:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":=bar"}));
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "1"}));
@@ -248,26 +269,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "__ns:=foo"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":__node:=nodename"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "~:__node:=nodename"}));
-
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "1"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "::="}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "1:="}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~:="}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__node:="}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__node:=/foo/bar"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__ns:=foo"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":__node:=nodename"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~:__node:=nodename"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "}foo:=/bar"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "f oo:=/bar"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "foo:=/b ar"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "f{oo:=/bar"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "foo:=/b}ar"}));
-
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "rostopic://:=rosservice"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "rostopic::=rosservice"}));
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "}foo:=/bar"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--param", "}foo:=/bar"}));
