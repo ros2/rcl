@@ -702,6 +702,14 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_init) 
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
+  rcl_allocator_t zero_init_allocator =
+    static_cast<rcl_allocator_t>(rcutils_get_zero_initialized_allocator());
+  ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, zero_init_allocator);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
   {
     // Mock rmw implementation to fail init
     auto mock = mocking_utils::patch_and_return(
