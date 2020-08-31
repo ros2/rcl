@@ -722,27 +722,6 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_init) 
   }
 }
 
-// Test failure init when using a bad allocators
-TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_init_bomb_alloc) {
-  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret = RCL_RET_OK;
-
-  // Pass bomb allocator to make resize function fail
-  rcl_allocator_t bomb_alloc = get_time_bombed_allocator();
-  for (int i = 0; i < 10; i++) {
-    set_time_bombed_allocator_count(bomb_alloc, i);
-    ret =
-      rcl_wait_set_init(&wait_set, 1, 0, 0, 1, 1, 0, context_ptr, bomb_alloc);
-    if (RCL_RET_OK == ret) {
-      EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set));
-      break;
-    } else {
-      EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
-      rcl_reset_error();
-    }
-  }
-}
-
 // Test wait set fini failure cases using mocks
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_fini) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
