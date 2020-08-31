@@ -749,7 +749,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_test_maybe_in
     ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 1, 1, 0, context_ptr, alloc);
     if (RCL_RET_OK == ret) {
       ret = rcl_wait_set_fini(&wait_set);
-      if(ret != RCL_RET_OK) {
+      if (ret != RCL_RET_OK) {
         rcl_reset_error();
       }
     } else {
@@ -763,7 +763,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_test_maybe_in
     ret = rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 1, context_ptr, alloc);
     if (RCL_RET_OK == ret) {
       ret = rcl_wait_set_fini(&wait_set);
-      if(ret != RCL_RET_OK) {
+      if (ret != RCL_RET_OK) {
         rcl_reset_error();
       }
       EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set));
