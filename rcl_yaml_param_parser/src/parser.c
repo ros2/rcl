@@ -214,10 +214,11 @@ static rcutils_ret_t add_name_to_ns(
 
     tot_len = ns_len + sep_len + name_len + 1U;
 
-    cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
-    if (NULL == cur_ns) {
+    char * tmp_ns_ptr = allocator.reallocate(cur_ns, tot_len, allocator.state);
+    if (NULL == tmp_ns_ptr) {
       return RCUTILS_RET_BAD_ALLOC;
     }
+    cur_ns = tmp_ns_ptr;
     memmove((cur_ns + ns_len), sep_str, sep_len);
     memmove((cur_ns + ns_len + sep_len), name, name_len);
     cur_ns[tot_len - 1U] = '\0';
@@ -284,10 +285,11 @@ static rcutils_ret_t rem_name_from_ns(
       }
       if (NULL != last_idx) {
         tot_len = ((size_t)(last_idx - cur_ns) + 1U);
-        cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
-        if (NULL == cur_ns) {
+        char * tmp_ns_ptr = allocator.reallocate(cur_ns, tot_len, allocator.state);
+        if (NULL == tmp_ns_ptr) {
           return RCUTILS_RET_BAD_ALLOC;
         }
+        cur_ns = tmp_ns_ptr;
         cur_ns[tot_len - 1U] = '\0';
       }
     }
