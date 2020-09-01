@@ -71,8 +71,8 @@ rcutils_ret_t add_name_to_ns(
     if (NULL == cur_ns) {
       return RCUTILS_RET_BAD_ALLOC;
     }
-    memmove((cur_ns + ns_len), sep_str, sep_len);
-    memmove((cur_ns + ns_len + sep_len), name, name_len);
+    memcpy((cur_ns + ns_len), sep_str, sep_len);
+    memcpy((cur_ns + ns_len + sep_len), name, name_len);
     cur_ns[tot_len - 1U] = '\0';
   }
   *cur_count = (*cur_count + 1U);
