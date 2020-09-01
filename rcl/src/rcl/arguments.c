@@ -1814,7 +1814,7 @@ _rcl_parse_remap_rule(
     if (RCL_RET_OK != ret) {
       if (RCL_RET_OK != fini_ret) {
         RCUTILS_LOG_ERROR_NAMED(
-            ROS_PACKAGE_NAME, "Failed to fini lookahead2 after error occurred");
+          ROS_PACKAGE_NAME, "Failed to fini lookahead2 after error occurred");
       }
     } else {
       if (RCL_RET_OK == fini_ret) {
