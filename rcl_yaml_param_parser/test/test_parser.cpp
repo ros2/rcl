@@ -340,7 +340,6 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
     });
     ASSERT_TRUE(rcutils_exists(path)) << "No test YAML file found at " << path;
 
-    // Check sporadic failing malloc calls
     RCUTILS_FAULT_INJECTION_TEST(
     {
       rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -355,12 +354,8 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
       (void)res;
 
       // If `rcutils_string_array_fini` fails, there will be a small memory leak here.
-      // Pausing fault injection so this test runs clean
-      int64_t count = rcutils_fault_injection_get_count();
-      rcutils_fault_injection_set_count(RCUTILS_FAULT_INJECTION_NEVER_FAIL);
+      // However, it's necessary for coverage
       rcl_yaml_node_struct_fini(params_hdl);
-      rcutils_fault_injection_set_count(count);
-
       params_hdl = NULL;
     });
   }
