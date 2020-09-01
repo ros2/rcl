@@ -26,6 +26,8 @@
 
 #include "rcl_yaml_param_parser/parser.h"
 
+#include "rcutils/testing/fault_injection.h"
+
 #include "./allocator_testing_utils.h"
 #include "./arguments_impl.h"
 
@@ -227,21 +229,18 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--remap"}));
-
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "1"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":="}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "foo:="}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":=bar"}));
-
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--params-file"}));
-
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":="}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "foo:="}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":=bar"}));
-  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__ns:="}));
-
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "::="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "1:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~:="}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__node:="}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__node:=/foo/bar"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__ns:="}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "__ns:=foo"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", ":__node:=nodename"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "~:__node:=nodename"}));
@@ -254,10 +253,30 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "rostopic://:=rosservice"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-r", "rostopic::=rosservice"}));
 
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "foo:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":=bar"}));
+
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "1"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "~"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "::="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "1:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "~:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "__node:="}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "__node:=/foo/bar"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "__ns:=foo"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", ":__node:=nodename"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "~:__node:=nodename"}));
+
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "}foo:=/bar"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--param", "}foo:=/bar"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-p", "f oo:=/bar"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--param", "f oo:=/bar"}));
+
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "-e"}));
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--enclave"}));
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--params-file"}));
 
@@ -1032,8 +1051,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_arguments
 
   rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
   ret = rcl_arguments_copy(&parsed_args, &copied_args);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(2, rcl_arguments_get_param_files_count(&copied_args));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&copied_args));
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_no_param_overrides) {
@@ -1164,40 +1184,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_get_p
   EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
 }
 
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_allocs_copy) {
-  const std::string parameters_filepath1 = (test_path / "test_parameters.1.yaml").string();
-  const std::string parameters_filepath2 = (test_path / "test_parameters.2.yaml").string();
-  const char * const argv[] = {
-    "process_name", "--ros-args", "--params-file", parameters_filepath1.c_str(),
-    "-r", "__ns:=/namespace", "random:=arg", "--params-file", parameters_filepath2.c_str(),
-    "-r", "/foo/bar:=/fiz/buz", "--remap", "foo:=/baz",
-    "-e", "/foo", "--", "foo"
-  };
-  const int argc = sizeof(argv) / sizeof(const char *);
-
-  rcl_allocator_t alloc = rcl_get_default_allocator();
-  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
-
-  rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
-  });
-
-  rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
-  rcl_allocator_t bomb_alloc = get_time_bombed_allocator();
-  rcl_allocator_t saved_alloc = parsed_args.impl->allocator;
-  parsed_args.impl->allocator = bomb_alloc;
-  for (int i = 0; i < 8; i++) {
-    set_time_bombed_allocator_count(bomb_alloc, i);
-    ret = rcl_arguments_copy(&parsed_args, &copied_args);
-    EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-  }
-  parsed_args.impl->allocator = saved_alloc;
-}
-
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_get_param_files) {
   const std::string parameters_filepath1 = (test_path / "test_parameters.1.yaml").string();
   const char * const argv[] = {
@@ -1232,25 +1218,102 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_null_get_param_
   rcl_reset_error();
 }
 
-TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_bad_alloc_parse_arg) {
-  const std::string parameters_filepath1 = (test_path / "test_parameters.1.yaml").string();
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_parse_with_internal_errors) {
+  const std::string parameters_filepath1 =
+    (test_path / "test_parameters.1.yaml").string();
+  const std::string parameters_filepath2 =
+    (test_path / "test_parameters.2.yaml").string();
   const char * const argv[] = {
-    "process_name", "--ros-args", "--params-file", parameters_filepath1.c_str()
+    "process_name", RCL_ROS_ARGS_FLAG,
+    RCL_PARAM_FILE_FLAG, parameters_filepath1.c_str(),
+    RCL_REMAP_FLAG, "that_node:foo:=baz",
+    RCL_REMAP_FLAG, "foo:=bar",
+    RCL_PARAM_FILE_FLAG, parameters_filepath2.c_str(),
+    RCL_REMAP_FLAG, "__name:=my_node",
+    RCL_REMAP_FLAG, "__ns:=/my_ns",
+    RCL_PARAM_FLAG, "testing:=true",
+    RCL_PARAM_FLAG, "this_node:constant:=42",
+    RCL_ENCLAVE_FLAG, "fizz",
+    RCL_ENCLAVE_FLAG, "buzz",  // override
+    RCL_LOG_LEVEL_FLAG, "rcl:=debug",
+    RCL_EXTERNAL_LOG_CONFIG_FLAG, "flip.txt",
+    RCL_EXTERNAL_LOG_CONFIG_FLAG, "flop.txt",  // override
+    "--enable-" RCL_LOG_STDOUT_FLAG_SUFFIX,
+    "--enable-" RCL_LOG_ROSOUT_FLAG_SUFFIX,
+    "--disable-" RCL_LOG_EXT_LIB_FLAG_SUFFIX,
+    "--not-a-real-ros-flag", "not-a-real-ros-arg",
+    RCL_ROS_ARGS_EXPLICIT_END_TOKEN,
+    "--some-non-ros-flag", "some-non-ros-flag"
   };
-  const int argc = sizeof(argv) / sizeof(const char *);
-
+  const int argc = sizeof(argv) / sizeof(argv[0]);
+  rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
-  rcl_allocator_t bomb_alloc = get_time_bombed_allocator();
-
-  for (int i = 0; i < 100; i++) {
-    set_time_bombed_allocator_count(bomb_alloc, i);
-    rcl_ret_t ret = rcl_parse_arguments(argc, argv, bomb_alloc, &parsed_args);
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_ret_t ret = rcl_parse_arguments(argc, argv, allocator, &parsed_args);
     if (RCL_RET_OK == ret) {
-      EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
-      break;
+      int64_t count = rcutils_fault_injection_get_count();
+      rcutils_fault_injection_set_count(RCUTILS_FAULT_INJECTION_NEVER_FAIL);
+      ret = rcl_arguments_fini(&parsed_args);
+      rcutils_fault_injection_set_count(count);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     } else {
-      EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
       rcl_reset_error();
     }
-  }
+  });
+}
+
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_with_internal_errors) {
+  const std::string parameters_filepath1 =
+    (test_path / "test_parameters.1.yaml").string();
+  const std::string parameters_filepath2 =
+    (test_path / "test_parameters.2.yaml").string();
+  const char * const argv[] = {
+    "process_name", RCL_ROS_ARGS_FLAG,
+    RCL_PARAM_FILE_FLAG, parameters_filepath1.c_str(),
+    RCL_REMAP_FLAG, "that_node:foo:=baz",
+    RCL_REMAP_FLAG, "foo:=bar",
+    RCL_PARAM_FILE_FLAG, parameters_filepath2.c_str(),
+    RCL_REMAP_FLAG, "__name:=my_node",
+    RCL_REMAP_FLAG, "__ns:=/my_ns",
+    RCL_PARAM_FLAG, "testing:=true",
+    RCL_PARAM_FLAG, "this_node:constant:=42",
+    RCL_ENCLAVE_FLAG, "fizz",
+    RCL_ENCLAVE_FLAG, "buzz",  // override
+    RCL_LOG_LEVEL_FLAG, "rcl:=debug",
+    RCL_EXTERNAL_LOG_CONFIG_FLAG, "flip.txt",
+    RCL_EXTERNAL_LOG_CONFIG_FLAG, "flop.txt",  // override
+    "--enable-" RCL_LOG_STDOUT_FLAG_SUFFIX,
+    "--enable-" RCL_LOG_ROSOUT_FLAG_SUFFIX,
+    "--disable-" RCL_LOG_EXT_LIB_FLAG_SUFFIX,
+    "--not-a-real-ros-flag", "not-a-real-ros-arg",
+    RCL_ROS_ARGS_EXPLICIT_END_TOKEN,
+    "--some-non-ros-flag", "some-non-ros-flag"
+  };
+  const int argc = sizeof(argv) / sizeof(argv[0]);
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+  });
+
+  rcl_arguments_t copied_args = rcl_get_zero_initialized_arguments();
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_ret_t ret = rcl_arguments_copy(&parsed_args, &copied_args);
+    if (RCL_RET_OK == ret) {
+      int64_t count = rcutils_fault_injection_get_count();
+      rcutils_fault_injection_set_count(RCUTILS_FAULT_INJECTION_NEVER_FAIL);
+      ret = rcl_arguments_fini(&copied_args);
+      rcutils_fault_injection_set_count(count);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    } else {
+      rcl_reset_error();
+    }
+  });
 }
