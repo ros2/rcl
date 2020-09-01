@@ -30,6 +30,7 @@
 #include "rcutils/logging_macros.h"
 
 #include "./allocator_testing_utils.h"
+#include "../mocking_utils/patch.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -646,6 +647,28 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_valid_argumen
     rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, &not_init_context, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_NOT_INIT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  // nullptr failures
+  ret =
+    rcl_wait_set_init(nullptr, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, nullptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  rcl_allocator_t zero_init_allocator =
+    static_cast<rcl_allocator_t>(rcutils_get_zero_initialized_allocator());
+  ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, zero_init_allocator);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
   ret =
     rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -683,4 +706,73 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_get_allocator
 
   ret = rcl_wait_set_fini(&wait_set);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
+// Test wait set init failure cases using mocks
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_init) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  // Mock rmw implementation to fail init
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_create_wait_set, nullptr);
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+}
+
+// Test wait set fini failure cases using mocks
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_fini) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret);
+  {
+    // Mock rmw implementation to fail fini
+    auto mock = mocking_utils::inject_on_return(
+      "lib:rcl", rmw_destroy_wait_set, RMW_RET_ERROR);
+    EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, rcl_wait_set_fini(&wait_set));
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+}
+
+// Test proper error handling with a fault injection test
+TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_test_maybe_init_fail) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = RCL_RET_OK;
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    // Test init in the case where guard_conditions_size + timers_size = 0
+    // (used for guard condition size)
+    ret = rcl_wait_set_init(&wait_set, 1, 0, 0, 1, 1, 0, context_ptr, alloc);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_wait_set_fini(&wait_set);
+      if (ret != RCL_RET_OK) {
+        rcl_reset_error();
+      }
+    } else {
+      EXPECT_TRUE(RCL_RET_WAIT_SET_INVALID == ret || RCL_RET_BAD_ALLOC == ret);
+      rcl_reset_error();
+    }
+  });
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    // Test init wait_set using at least one of each of the possible elements that receives
+    // (subs, guard conditions, timers, clients, services, events)
+    ret = rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 1, context_ptr, alloc);
+    if (RCL_RET_OK == ret) {
+      ret = rcl_wait_set_fini(&wait_set);
+      if (ret != RCL_RET_OK) {
+        rcl_reset_error();
+      }
+      EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set));
+    } else {
+      EXPECT_TRUE(RCL_RET_WAIT_SET_INVALID == ret || RCL_RET_BAD_ALLOC == ret);
+      rcl_reset_error();
+    }
+  });
 }
