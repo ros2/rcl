@@ -647,6 +647,28 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_valid_argumen
     rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, &not_init_context, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_NOT_INIT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  // nullptr failures
+  ret =
+    rcl_wait_set_init(nullptr, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, nullptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  rcl_allocator_t zero_init_allocator =
+    static_cast<rcl_allocator_t>(rcutils_get_zero_initialized_allocator());
+  ret =
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, zero_init_allocator);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
   ret =
     rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -689,37 +711,14 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_get_allocator
 // Test wait set init failure cases using mocks
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_init) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  // nullptr failures
+  // Mock rmw implementation to fail init
+  auto mock = mocking_utils::patch_and_return(
+    "lib:rcl", rmw_create_wait_set, nullptr);
   rcl_ret_t ret =
-    rcl_wait_set_init(nullptr, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, ret);
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
-
-  ret =
-    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, nullptr, rcl_get_default_allocator());
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  EXPECT_TRUE(rcl_error_is_set());
-  rcl_reset_error();
-
-  rcl_allocator_t zero_init_allocator =
-    static_cast<rcl_allocator_t>(rcutils_get_zero_initialized_allocator());
-  ret =
-    rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, zero_init_allocator);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  EXPECT_TRUE(rcl_error_is_set());
-  rcl_reset_error();
-
-  {
-    // Mock rmw implementation to fail init
-    auto mock = mocking_utils::patch_and_return(
-      "lib:rcl", rmw_create_wait_set, nullptr);
-    ret =
-      rcl_wait_set_init(&wait_set, 1, 1, 1, 1, 1, 0, context_ptr, rcl_get_default_allocator());
-    EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, ret);
-    EXPECT_TRUE(rcl_error_is_set());
-    rcl_reset_error();
-  }
 }
 
 // Test wait set fini failure cases using mocks
