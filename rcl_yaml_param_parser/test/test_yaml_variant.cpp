@@ -182,3 +182,35 @@ TEST(TestYamlVariant, copy_string_array_values) {
       src_variant.string_array_value->data[i], dest_variant.string_array_value->data[i]);
   }
 }
+
+TEST(TestYamlVariant, copy_string_array_maybe_fail) {
+  rcl_variant_t src_variant{};
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  constexpr size_t size = 3u;
+  src_variant.string_array_value =
+    static_cast<rcutils_string_array_t *>(
+    allocator.allocate(sizeof(rcutils_string_array_t), allocator.state));
+  ASSERT_NE(nullptr, src_variant.string_array_value);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_variant_fini(&src_variant, allocator);
+  });
+  *src_variant.string_array_value = rcutils_get_zero_initialized_string_array();
+  ASSERT_EQ(
+    RCUTILS_RET_OK, rcutils_string_array_init(src_variant.string_array_value, size, &allocator));
+  src_variant.string_array_value->size = size;
+  src_variant.string_array_value->data[0] = rcutils_strdup("string1", allocator);
+  src_variant.string_array_value->data[1] = rcutils_strdup("string2", allocator);
+  src_variant.string_array_value->data[2] = rcutils_strdup("string3", allocator);
+  for (size_t i = 0; i < size; ++i) {
+    ASSERT_NE(nullptr, src_variant.string_array_value->data[i]);
+  }
+
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcl_variant_t dest_variant{};
+    rcutils_ret_t ret = rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator);
+    (void)ret;
+    rcl_yaml_variant_fini(&dest_variant, allocator);
+  });
+}
