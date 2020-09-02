@@ -2,6 +2,12 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add fault injection macros and unit tests to rcl_action (`#730 <https://github.com/ros2/rcl/issues/730>`_)
+* Change some EXPECT_EQ to ASSERT_EQ in test_action_server. (`#759 <https://github.com/ros2/rcl/issues/759>`_)
+* Contributors: Chris Lalancette, brawner
+
 2.1.0 (2020-07-22)
 ------------------
 * Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_)

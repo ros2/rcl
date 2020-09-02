@@ -2,6 +2,44 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Bump rcl arguments' API test coverage (`#777 <https://github.com/ros2/rcl/issues/777>`_)
+* Fix rcl arguments' API memory leaks and bugs (`#778 <https://github.com/ros2/rcl/issues/778>`_)
+* Add coverage tests wait module (`#769 <https://github.com/ros2/rcl/issues/769>`_)
+* Fix wait set allocation cleanup (`#770 <https://github.com/ros2/rcl/issues/770>`_)
+* Improve test coverage in rcl (`#764 <https://github.com/ros2/rcl/issues/764>`_)
+* Check if rcutils_strdup() outcome immediately (`#768 <https://github.com/ros2/rcl/issues/768>`_)
+* Cleanup rcl_get_secure_root() implementation (`#762 <https://github.com/ros2/rcl/issues/762>`_)
+* Add fault injection macros to rcl functions (`#727 <https://github.com/ros2/rcl/issues/727>`_)
+* Yield rcl_context_fini() error codes (`#763 <https://github.com/ros2/rcl/issues/763>`_)
+* Do not invalidate context before successful shutdown (`#761 <https://github.com/ros2/rcl/issues/761>`_)
+* Zero initialize guard condition on failed init (`#760 <https://github.com/ros2/rcl/issues/760>`_)
+* Adding tests to arguments API (`#752 <https://github.com/ros2/rcl/issues/752>`_)
+* Extend rcl_expand_topic_name() API test coverage (`#758 <https://github.com/ros2/rcl/issues/758>`_)
+* Add coverage tests 94% to service API (`#756 <https://github.com/ros2/rcl/issues/756>`_)
+* Clean up rcl_expand_topic_name() implementation (`#757 <https://github.com/ros2/rcl/issues/757>`_)
+* Complete rcl enclave validation API coverage (`#751 <https://github.com/ros2/rcl/issues/751>`_)
+* Cope with base function restrictions in mocks (`#753 <https://github.com/ros2/rcl/issues/753>`_)
+* Fix allocation when copying arguments (`#748 <https://github.com/ros2/rcl/issues/748>`_)
+* Complete rcl package's logging API test coverage (`#747 <https://github.com/ros2/rcl/issues/747>`_)
+* Improve coverage to 95% in domain id, init option, rmw implementation id and log level modules (`#744 <https://github.com/ros2/rcl/issues/744>`_)
+* Fix rcl package's logging API error code documentation and handling (`#746 <https://github.com/ros2/rcl/issues/746>`_)
+* Fix bug error handling in get_param_files (`#743 <https://github.com/ros2/rcl/issues/743>`_)
+* Complete subscription API test coverage (`#734 <https://github.com/ros2/rcl/issues/734>`_)
+* increase timeouts in test_services fixtures for Connext (`#745 <https://github.com/ros2/rcl/issues/745>`_)
+* Tweaks to client.c and subscription.c for cleaner init/fini (`#728 <https://github.com/ros2/rcl/issues/728>`_)
+* Improve error checking and handling in subscription APIs (`#739 <https://github.com/ros2/rcl/issues/739>`_)
+* Add deallocate calls to free strdup allocated memory (`#737 <https://github.com/ros2/rcl/issues/737>`_)
+* Add missing calls to rcl_convert_rmw_ret_to_rcl_ret (`#738 <https://github.com/ros2/rcl/issues/738>`_)
+* Add mock tests, publisher 95% coverage (`#732 <https://github.com/ros2/rcl/issues/732>`_)
+* Restore env variables set in the test_failing_configuration. (`#733 <https://github.com/ros2/rcl/issues/733>`_)
+* Expose qos setting for /rosout (`#722 <https://github.com/ros2/rcl/issues/722>`_)
+* Reformat rmw_impl_id_check to call a testable function (`#725 <https://github.com/ros2/rcl/issues/725>`_)
+* Add extra check for invalid event implementation (`#726 <https://github.com/ros2/rcl/issues/726>`_)
+* Consolidate macro duplication (`#653 <https://github.com/ros2/rcl/issues/653>`_)
+* Contributors: Ada-King, Dan Rose, Dirk Thomas, Jorge Perez, Michel Hidalgo, brawner, tomoya
+
 2.1.0 (2020-07-22)
 ------------------
 * Add test for subscription message lost event (`#705 <https://github.com/ros2/rcl/issues/705>`_)

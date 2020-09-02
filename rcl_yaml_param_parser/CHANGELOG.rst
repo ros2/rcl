@@ -2,6 +2,17 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Refactor parser.c for better testability (`#754 <https://github.com/ros2/rcl/issues/754>`_)
+* Don't overwrite cur_ns pointer if reallocation fails (`#780 <https://github.com/ros2/rcl/issues/780>`_)
+* Fix mem leaks in unit test from 776 (`#779 <https://github.com/ros2/rcl/issues/779>`_)
+* Fix rcl_parse_yaml_file() error handling. (`#776 <https://github.com/ros2/rcl/issues/776>`_)
+* Don't overwrite string_array pointer on reallocation failure (`#775 <https://github.com/ros2/rcl/issues/775>`_)
+* Set yaml_variant values to NULL on finalization (`#765 <https://github.com/ros2/rcl/issues/765>`_)
+* Remove debugging statements. (`#755 <https://github.com/ros2/rcl/issues/755>`_)
+* Contributors: Michel Hidalgo, brawner, tomoya
+
 2.1.0 (2020-07-22)
 ------------------
 * Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_)
