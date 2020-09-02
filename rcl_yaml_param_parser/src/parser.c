@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <yaml.h>
-#include <ctype.h>
 
 #include "rcl_yaml_param_parser/parser.h"
 #include "rcl_yaml_param_parser/types.h"
