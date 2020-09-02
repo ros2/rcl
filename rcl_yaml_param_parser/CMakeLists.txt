@@ -72,6 +72,7 @@ if(BUILD_TESTING)
       "rcutils"
       "osrf_testing_tools_cpp"
     )
+    target_compile_definitions(test_namespace PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
     target_link_libraries(test_namespace ${PROJECT_NAME})
   endif()
 
@@ -119,6 +120,7 @@ if(BUILD_TESTING)
       "osrf_testing_tools_cpp"
     )
     target_link_libraries(test_parser ${PROJECT_NAME})
+    target_compile_definitions(test_parser PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
   add_performance_test(benchmark_parse_yaml test/benchmark/benchmark_parse_yaml.cpp
