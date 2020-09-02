@@ -63,6 +63,30 @@ if(BUILD_TESTING)
     performance_test_fixture::performance_test_fixture INTERFACE_INCLUDE_DIRECTORIES)
 
   # Gtests
+  ament_add_gtest(test_namespace
+    test/test_namespace.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_namespace)
+    ament_target_dependencies(test_namespace
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_namespace ${PROJECT_NAME})
+  endif()
+
+  ament_add_gtest(test_node_params
+    test/test_node_params.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_node_params)
+    ament_target_dependencies(test_node_params
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_node_params ${PROJECT_NAME})
+  endif()
+
   ament_add_gtest(test_parse_yaml
     test/test_parse_yaml.cpp
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -71,6 +95,18 @@ if(BUILD_TESTING)
     target_link_libraries(test_parse_yaml ${PROJECT_NAME})
     target_include_directories(test_parse_yaml
       PRIVATE ${osrf_testing_tools_cpp_INCLUDE_DIRS})
+  endif()
+
+  ament_add_gtest(test_parse
+    test/test_parse.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_parse)
+    ament_target_dependencies(test_parse
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_parse ${PROJECT_NAME})
   endif()
 
   ament_add_gtest(test_parser
@@ -93,6 +129,17 @@ if(BUILD_TESTING)
       "rcpputils"
       "rcutils"
     )
+  endif()
+  ament_add_gtest(test_yaml_variant
+    test/test_yaml_variant.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_yaml_variant)
+    ament_target_dependencies(test_yaml_variant
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_yaml_variant ${PROJECT_NAME})
   endif()
 endif()
 
