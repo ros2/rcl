@@ -40,19 +40,21 @@
     src_variant.field = nullptr; \
   } while (0)
 
-#define TEST_VARIANT_ARRAY_COPY(field, array_type, value_type, tmp_array) \
+#define TEST_VARIANT_ARRAY_COPY(field, tmp_array) \
   do { \
     SCOPED_TRACE("TEST_VARIANT_ARRAY_COPY " #field); \
     constexpr size_t array_size = sizeof(tmp_array) / sizeof(tmp_array[0]); \
     rcl_variant_t src_variant{}; \
     rcl_variant_t dest_variant{}; \
     rcutils_allocator_t allocator = rcutils_get_default_allocator(); \
+    using ArrayT = std::remove_pointer<decltype(src_variant.field)>::type; \
     src_variant.field = \
-      static_cast<array_type *>(allocator.allocate(sizeof(array_type), allocator.state)); \
+      static_cast<ArrayT *>(allocator.allocate(sizeof(ArrayT), allocator.state)); \
     ASSERT_NE(nullptr, src_variant.field); \
+    using ValueT = std::remove_pointer<decltype(src_variant.field->values)>::type; \
     src_variant.field->values = \
-      static_cast<value_type *>( \
-      allocator.zero_allocate(array_size, sizeof(value_type), allocator.state)); \
+      static_cast<ValueT *>( \
+      allocator.zero_allocate(array_size, sizeof(ValueT), allocator.state)); \
     ASSERT_NE(nullptr, src_variant.field->values); \
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT( \
     { \
@@ -132,20 +134,17 @@ TEST(TestYamlVariant, copy_string_value) {
 
 TEST(TestYamlVariant, copy_bool_array_values) {
   constexpr bool bool_arry[] = {true, false, true};
-  TEST_VARIANT_ARRAY_COPY(
-    bool_array_value, rcl_bool_array_t, bool, bool_arry);
+  TEST_VARIANT_ARRAY_COPY(bool_array_value, bool_arry);
 }
 
 TEST(TestYamlVariant, copy_integer_array_values) {
   constexpr int64_t int_arry[] = {1, 2, 3};
-  TEST_VARIANT_ARRAY_COPY(
-    integer_array_value, rcl_int64_array_t, int64_t, int_arry);
+  TEST_VARIANT_ARRAY_COPY(integer_array_value, int_arry);
 }
 
 TEST(TestYamlVariant, copy_double_array_values) {
   constexpr double double_arry[] = {10.0, 11.0, 12.0};
-  TEST_VARIANT_ARRAY_COPY(
-    double_array_value, rcl_double_array_t, double, double_arry);
+  TEST_VARIANT_ARRAY_COPY(double_array_value, double_arry);
 }
 
 TEST(TestYamlVariant, copy_string_array_values) {
