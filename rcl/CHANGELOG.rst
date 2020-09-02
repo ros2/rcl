@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.0 (2020-09-02)
+------------------
 * Bump rcl arguments' API test coverage (`#777 <https://github.com/ros2/rcl/issues/777>`_)
 * Fix rcl arguments' API memory leaks and bugs (`#778 <https://github.com/ros2/rcl/issues/778>`_)
 * Add coverage tests wait module (`#769 <https://github.com/ros2/rcl/issues/769>`_)
