@@ -107,7 +107,7 @@ if(BUILD_TESTING)
       "rcutils"
       "osrf_testing_tools_cpp"
     )
-    target_link_libraries(test_parse ${PROJECT_NAME})
+    target_link_libraries(test_parse ${PROJECT_NAME} mimick)
   endif()
 
   ament_add_gtest(test_parser
@@ -119,7 +119,7 @@ if(BUILD_TESTING)
       "rcutils"
       "osrf_testing_tools_cpp"
     )
-    target_link_libraries(test_parser ${PROJECT_NAME})
+    target_link_libraries(test_parser ${PROJECT_NAME} mimick)
     target_compile_definitions(test_parser PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
