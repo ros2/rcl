@@ -537,6 +537,10 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request
 
   test_msgs__srv__BasicTypes_Request service_request;
   test_msgs__srv__BasicTypes_Request__init(&service_request);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    test_msgs__srv__BasicTypes_Request__fini(&service_request);
+  });
   rmw_service_info_t header;
 
   ret = rcl_take_request_with_info(nullptr, &header, &service_request);
