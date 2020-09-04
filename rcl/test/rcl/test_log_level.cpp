@@ -274,6 +274,10 @@ TEST(TestLogLevel, logger_log_level_copy) {
   // Expected usage
   rcl_log_levels_t copied_log_levels = rcl_get_zero_initialized_log_levels();
   EXPECT_EQ(RCL_RET_OK, rcl_log_levels_copy(&log_levels, &copied_log_levels));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_log_levels_fini(&copied_log_levels));
+  });
   EXPECT_EQ(RCUTILS_LOG_SEVERITY_UNSET, copied_log_levels.default_logger_level);
   EXPECT_EQ(log_levels.default_logger_level, copied_log_levels.default_logger_level);
   EXPECT_EQ(1ul, copied_log_levels.num_logger_settings);
