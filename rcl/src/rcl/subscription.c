@@ -25,6 +25,7 @@ extern "C"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/strdup.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
 #include "tracetools/tracetools.h"
@@ -193,6 +194,53 @@ rcl_subscription_init(
   goto cleanup;
 fail:
   if (subscription->impl) {
+    // Used for concatenating error messages in the fail: block.
+    // The cause or error which leads to jump to fail:
+    char * fail_error_message = NULL;
+    // The error happens in fail:
+    char * fini_error_message = NULL;
+    rcl_allocator_t default_allocator = rcl_get_default_allocator();
+
+    if (rcl_error_is_set()) {
+      fail_error_message = rcutils_strdup(rcl_get_error_string().str, default_allocator);
+      rcl_reset_error();
+    }
+
+    if (subscription->impl->rmw_handle) {
+      // If rmw_destroy_subscription fails, it will clobber the error string here.
+      // Concatenate the error strings if that happens
+      if (rmw_destroy_subscription(
+          rcl_node_get_rmw_handle(node),
+          subscription->impl->rmw_handle) == RMW_RET_ERROR)
+      {
+        if (rcl_error_is_set()) {
+          fini_error_message = rcutils_strdup(rcl_get_error_string().str, default_allocator);
+          rcl_reset_error();
+        }
+
+        RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+          "rmw_destroy_subscription failed while handling a previous error."
+          "\nOriginal error:\n\t%s\nError encountered in rmw_destroy_subscription():\n\t%s\n",
+          fail_error_message != NULL ?
+          fail_error_message : "Failed to duplicate error while init subscription !",
+          fini_error_message != NULL ?
+          fini_error_message : "Failed to duplicate error while destory rmw subscription !");
+      }
+    }
+
+    if (!rcl_error_is_set()) {
+      RCL_SET_ERROR_MSG(
+        (fail_error_message != NULL) ?
+        fail_error_message : "Unspecified error in rcl_subscription_init() !");
+    }
+
+    if (fail_error_message != NULL) {
+      default_allocator.deallocate(fail_error_message, default_allocator.state);
+    }
+    if (fini_error_message != NULL) {
+      default_allocator.deallocate(fini_error_message, default_allocator.state);
+    }
+
     allocator->deallocate(subscription->impl, allocator->state);
     subscription->impl = NULL;
   }
