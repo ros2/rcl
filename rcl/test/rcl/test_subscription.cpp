@@ -571,6 +571,10 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   {
     ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    test_msgs__msg__Strings__fini(&msg);
+    ret = rmw_serialized_message_fini(&serialized_msg);
+    ASSERT_EQ(RCUTILS_RET_OK, ret) << rcl_get_error_string().str;
   });
   rcl_reset_error();
 
@@ -595,6 +599,10 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     ASSERT_EQ(RMW_RET_OK, ret);
     ASSERT_EQ(
       std::string(test_string), std::string(msg_rcv.string_value.data, msg_rcv.string_value.size));
+
+    test_msgs__msg__Strings__fini(&msg_rcv);
+    ret = rmw_serialized_message_fini(&serialized_msg_rcv);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 }
 
