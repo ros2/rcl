@@ -48,7 +48,6 @@ rcl_publisher_event_init(
   const rcl_publisher_t * publisher,
   const rcl_publisher_event_type_t event_type)
 {
-  rcl_ret_t ret = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_EVENT_INVALID);
   // Check publisher and allocator first, so allocator can be used with errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(publisher, RCL_RET_INVALID_ARGUMENT);
@@ -74,12 +73,12 @@ rcl_publisher_event_init(
   event->impl = (rcl_event_impl_t *) allocator->allocate(
     sizeof(rcl_event_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    event->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; return ret);
+    event->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
   event->impl->rmw_handle = rmw_get_zero_initialized_event();
   event->impl->allocator = *allocator;
 
-  ret = rmw_publisher_event_init(
+  rmw_ret_t ret = rmw_publisher_event_init(
     &event->impl->rmw_handle,
     publisher->impl->rmw_handle,
     rmw_event_type);
@@ -91,7 +90,7 @@ rcl_publisher_event_init(
 fail:
   allocator->deallocate(event->impl, allocator->state);
   event->impl = NULL;
-  return ret;
+  return rcl_convert_rmw_ret_to_rcl_ret(ret);
 }
 
 rcl_ret_t
@@ -100,7 +99,6 @@ rcl_subscription_event_init(
   const rcl_subscription_t * subscription,
   const rcl_subscription_event_type_t event_type)
 {
-  rcl_ret_t ret = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(event, RCL_RET_EVENT_INVALID);
   // Check subscription and allocator first, so allocator can be used with errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(subscription, RCL_RET_INVALID_ARGUMENT);
@@ -129,12 +127,12 @@ rcl_subscription_event_init(
   event->impl = (rcl_event_impl_t *) allocator->allocate(
     sizeof(rcl_event_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    event->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; return ret);
+    event->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
   event->impl->rmw_handle = rmw_get_zero_initialized_event();
   event->impl->allocator = *allocator;
 
-  ret = rmw_subscription_event_init(
+  rmw_ret_t ret = rmw_subscription_event_init(
     &event->impl->rmw_handle,
     subscription->impl->rmw_handle,
     rmw_event_type);
@@ -146,7 +144,7 @@ rcl_subscription_event_init(
 fail:
   allocator->deallocate(event->impl, allocator->state);
   event->impl = NULL;
-  return ret;
+  return rcl_convert_rmw_ret_to_rcl_ret(ret);
 }
 
 rcl_ret_t
