@@ -279,6 +279,9 @@ TEST_F(
   ret = rcutils_string_array_fini(&node_namespaces);
   ASSERT_EQ(RCUTILS_RET_OK, ret);
 
+  ret = rcutils_string_array_fini(&enclaves);
+  ASSERT_EQ(RCUTILS_RET_OK, ret);
+
   ret = rcl_node_fini(&node1);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
