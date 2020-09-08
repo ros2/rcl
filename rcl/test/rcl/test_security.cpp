@@ -257,6 +257,7 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
     PATH_SEPARATOR "enclaves" PATH_SEPARATOR TEST_ENCLAVE,
     options.security_root_path);
+  EXPECT_EQ(RMW_RET_OK, rmw_security_options_fini(&options, &allocator));
 }
 
 TEST_F(TestGetSecureRoot, test_rcl_security_enabled) {
