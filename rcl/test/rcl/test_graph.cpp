@@ -1435,6 +1435,10 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names)
     EXPECT_EQ(RCUTILS_RET_OK, ret);
     ret = rcutils_string_array_fini(&node_namespaces);
     EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_string_array_fini(&node_names_2);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_string_array_fini(&node_namespaces_2);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
     ret = rcutils_string_array_fini(&node_enclaves);
     EXPECT_EQ(RCUTILS_RET_OK, ret);
   });

@@ -226,6 +226,9 @@ TEST(test_expand_topic_name, internal_error) {
     EXPECT_TRUE(rcl_error_is_set());
     rcl_reset_error();
   }
+
+  ret = rcutils_string_map_fini(&subs);
+  ASSERT_EQ(RCL_RET_OK, ret);
 }
 
 TEST(test_expand_topic_name, various_valid_topics) {
