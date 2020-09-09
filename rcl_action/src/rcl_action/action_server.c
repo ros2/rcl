@@ -170,10 +170,13 @@ rcl_action_server_init(
   PUBLISHER_INIT(feedback);
   PUBLISHER_INIT(status);
 
-  // Initialize Timer
+  // Copy clock
+  action_server->impl->clock = *clock;
+
+// Initialize Timer
   ret = rcl_timer_init(
-    &action_server->impl->expire_timer, clock, node->context, options->result_timeout.nanoseconds,
-    NULL, allocator);
+    &action_server->impl->expire_timer, &action_server->impl->clock, node->context,
+    options->result_timeout.nanoseconds, NULL, allocator);
   if (RCL_RET_OK != ret) {
     goto fail;
   }
@@ -182,9 +185,6 @@ rcl_action_server_init(
   if (RCL_RET_OK != ret) {
     goto fail;
   }
-
-  // Copy clock
-  action_server->impl->clock = *clock;
 
   // Copy action name
   action_server->impl->action_name = rcutils_strdup(action_name, allocator);
