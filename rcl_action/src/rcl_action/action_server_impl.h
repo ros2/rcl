@@ -33,7 +33,7 @@ typedef struct rcl_action_server_impl_t
   rcl_action_goal_handle_t ** goal_handles;
   size_t num_goal_handles;
   // Clock
-  rcl_clock_t clock;
+  rcl_clock_t * clock;
   // Wait set records
   size_t wait_set_goal_service_index;
   size_t wait_set_cancel_service_index;
