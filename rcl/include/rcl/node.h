@@ -72,7 +72,7 @@ rcl_get_zero_initialized_node(void);
  * slash.
  * Because there is no notion of a relative namespace, there is no difference
  * between a namespace which lacks a forward and the same namespace with a
- * leasing forward slash.
+ * leading forward slash.
  * Therefore, a namespace like ``"foo/bar"`` is automatically changed to
  * ``"/foo/bar"`` by this function.
  * Similarly, the namespace ``""`` will implicitly become ``"/"`` which is a
