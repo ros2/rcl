@@ -544,10 +544,8 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_mocked_rcl_init_optio
   auto mock = mocking_utils::inject_on_return("lib:rcl", rmw_init_options_fini, RMW_RET_ERROR);
   EXPECT_EQ(RCL_RET_ERROR, rcl_init_options_fini(&init_options));
   rcl_reset_error();
-  {
-    auto mock = mocking_utils::inject_on_return("lib:rcl", rmw_init_options_fini, RCL_RET_OK);
-    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
-  }
+  auto mock_ok = mocking_utils::inject_on_return("lib:rcl", rmw_init_options_fini, RMW_RET_OK);
+  EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
 }
 
 // Mock rcl_init_options_copy to fail
@@ -563,10 +561,8 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_copy_mocked_
   auto mock = mocking_utils::inject_on_return("lib:rcl", rmw_init_options_fini, RMW_RET_ERROR);
   EXPECT_EQ(RCL_RET_ERROR, rcl_init_options_copy(&init_options, &init_options_dst));
   rcl_reset_error();
-  {
-    auto mock = mocking_utils::inject_on_return("lib:rcl", rmw_init_options_fini, RMW_RET_OK);
-    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst));
-  }
+  auto mock_ok = mocking_utils::inject_on_return("lib:rcl", rmw_init_options_fini, RMW_RET_OK);
+  EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst));
 }
 
 // Mock rcl_init_options_copy to fail
@@ -587,7 +583,7 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_copy
       rcl_init_options_fini(&init_options_dst)) << rcl_get_error_string().str;
     rcl_reset_error();
 
-    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_init_options_fini, RMW_RET_OK);
+    auto mock_ok = mocking_utils::patch_and_return("lib:rcl", rmw_init_options_fini, RMW_RET_OK);
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst)) << rcl_get_error_string().str;
   });
 
