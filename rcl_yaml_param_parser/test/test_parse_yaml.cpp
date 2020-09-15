@@ -485,6 +485,7 @@ TEST(test_file_parser, indented_ns) {
 }
 
 // Regression test for https://github.com/ros2/rcl/issues/419
+// No maximum number limitation by https://github.com/ros2/rcl/issues/526
 TEST(test_file_parser, maximum_number_parameters) {
   rcutils_reset_error();
   EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024)) << rcutils_get_error_string().str;
@@ -509,7 +510,7 @@ TEST(test_file_parser, maximum_number_parameters) {
     rcl_yaml_node_struct_fini(params_hdl);
   });
   bool res = rcl_parse_yaml_file(path, params_hdl);
-  EXPECT_FALSE(res);
+  EXPECT_TRUE(res);
 }
 
 // Test special float point(https://github.com/ros2/rcl/issues/555).

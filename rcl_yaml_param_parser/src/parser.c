@@ -35,7 +35,7 @@
 #include "./impl/node_params.h"
 #include "./impl/yaml_variant.h"
 
-#define MAX_NUM_NODE_ENTRIES 256U
+#define INIT_NUM_NODE_ENTRIES 256U
 
 ///
 /// Create the rcl_params_t parameter structure
@@ -43,7 +43,18 @@
 rcl_params_t * rcl_yaml_node_struct_init(
   const rcutils_allocator_t allocator)
 {
+  return rcl_yaml_node_struct_init_with_capacity(allocator, INIT_NUM_NODE_ENTRIES);
+}
+
+rcl_params_t * rcl_yaml_node_struct_init_with_capacity(
+  const rcutils_allocator_t allocator,
+  size_t capacity)
+{
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return NULL);
+  if (capacity == 0) {
+    RCUTILS_SET_ERROR_MSG("capacity can't be zero");
+    return NULL;
+  }
   rcl_params_t * params_st = allocator.zero_allocate(1, sizeof(rcl_params_t), allocator.state);
   if (NULL == params_st) {
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
@@ -53,7 +64,7 @@ rcl_params_t * rcl_yaml_node_struct_init(
   params_st->allocator = allocator;
 
   params_st->node_names = allocator.zero_allocate(
-    MAX_NUM_NODE_ENTRIES, sizeof(char *), allocator.state);
+    capacity, sizeof(char *), allocator.state);
   if (NULL == params_st->node_names) {
     rcl_yaml_node_struct_fini(params_st);
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
@@ -61,14 +72,61 @@ rcl_params_t * rcl_yaml_node_struct_init(
   }
 
   params_st->params = allocator.zero_allocate(
-    MAX_NUM_NODE_ENTRIES, sizeof(rcl_node_params_t), allocator.state);
+    capacity, sizeof(rcl_node_params_t), allocator.state);
   if (NULL == params_st->params) {
     rcl_yaml_node_struct_fini(params_st);
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
     return NULL;
   }
 
+  params_st->capacity_nodes = capacity;
   return params_st;
+}
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+rcutils_ret_t rcl_yaml_node_struct_reallocate(
+  rcl_params_t * params_st,
+  const rcutils_allocator_t allocator,
+  size_t new_capacity)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
+  // invalid if new_capacity is smaller than num_nodes
+  if (new_capacity < params_st->num_nodes) {
+    RCUTILS_SET_ERROR_MSG("invalid capacity");
+    return RCUTILS_RET_INVALID_ARGUMENT;
+  }
+
+  void * node_names = allocator.reallocate(
+    params_st->node_names, new_capacity * sizeof(char *), allocator.state);
+  if (NULL == node_names) {
+    RCUTILS_SET_ERROR_MSG("reallocate error");
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+
+  rcl_node_params_t * params = allocator.reallocate(
+    params_st->params, new_capacity * sizeof(rcl_node_params_t), allocator.state);
+  if (NULL == params) {
+    RCUTILS_SET_ERROR_MSG("reallocate error");
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+
+  params_st->node_names = node_names;
+  params_st->params = params;
+
+  // zero initialization for the added memory
+  if (new_capacity > params_st->capacity_nodes) {
+    memset(
+      params_st->node_names + params_st->capacity_nodes, 0,
+      (new_capacity - params_st->capacity_nodes) * sizeof(char *));
+    memset(
+      &params_st->params[params_st->capacity_nodes], 0,
+      (new_capacity - params_st->capacity_nodes) * sizeof(rcl_node_params_t));
+  }
+
+  params_st->capacity_nodes = new_capacity;
+  return RCUTILS_RET_OK;
 }
 
 ///
@@ -80,7 +138,9 @@ rcl_params_t * rcl_yaml_node_struct_copy(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, NULL);
 
   rcutils_allocator_t allocator = params_st->allocator;
-  rcl_params_t * out_params_st = rcl_yaml_node_struct_init(allocator);
+  rcl_params_t * out_params_st = rcl_yaml_node_struct_init_with_capacity(
+    allocator,
+    params_st->capacity_nodes);
 
   if (NULL == out_params_st) {
     RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
@@ -99,7 +159,9 @@ rcl_params_t * rcl_yaml_node_struct_copy(
 
     rcl_node_params_t * node_params_st = &(params_st->params[node_idx]);
     rcl_node_params_t * out_node_params_st = &(out_params_st->params[node_idx]);
-    ret = node_params_init(out_node_params_st, allocator);
+    ret = node_params_init_with_capacity(
+      out_node_params_st, allocator,
+      node_params_st->capacity_params);
     if (RCUTILS_RET_OK != ret) {
       if (RCUTILS_RET_BAD_ALLOC == ret) {
         RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
@@ -164,6 +226,7 @@ void rcl_yaml_node_struct_fini(
   }  // if (params)
 
   params_st->num_nodes = 0U;
+  params_st->capacity_nodes = 0U;
   allocator.deallocate(params_st, allocator.state);
 }
 

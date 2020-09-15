@@ -33,6 +33,27 @@ rcutils_ret_t node_params_init(
   const rcutils_allocator_t allocator);
 
 ///
+/// Create rcl_node_params_t structure with a capacity
+///
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t node_params_init_with_capacity(
+  rcl_node_params_t * node_params,
+  const rcutils_allocator_t allocator,
+  size_t capacity);
+
+///
+/// Reallocate rcl_node_params_t structure with a new capacity
+///
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t node_params_reallocate(
+  rcl_node_params_t * node_params,
+  const rcutils_allocator_t allocator,
+  size_t new_capacity);
+
+
+///
 /// Finalize rcl_node_params_t structure
 ///
 RCL_YAML_PARAM_PARSER_PUBLIC

@@ -26,15 +26,17 @@
 
 TEST(TestNodeParams, init_fini) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  rcl_node_params_t node_params = {NULL, NULL, 0u};
+  rcl_node_params_t node_params = {NULL, NULL, 0u, 512u};
   EXPECT_EQ(RCUTILS_RET_OK, node_params_init(&node_params, allocator));
   EXPECT_NE(nullptr, node_params.parameter_names);
   EXPECT_NE(nullptr, node_params.parameter_values);
   EXPECT_EQ(0u, node_params.num_params);
+  EXPECT_EQ(512u, node_params.capacity_params);
   rcl_yaml_node_params_fini(&node_params, allocator);
   EXPECT_EQ(nullptr, node_params.parameter_names);
   EXPECT_EQ(nullptr, node_params.parameter_values);
   EXPECT_EQ(0u, node_params.num_params);
+  EXPECT_EQ(0u, node_params.capacity_params);
 
   // This function doesn't return anything, so just check it doesn't segfault on the second try
   rcl_yaml_node_params_fini(&node_params, allocator);
