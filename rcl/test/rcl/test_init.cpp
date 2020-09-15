@@ -582,7 +582,6 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_copy
       RCL_RET_INVALID_ARGUMENT,
       rcl_init_options_fini(&init_options_dst)) << rcl_get_error_string().str;
     rcl_reset_error();
-
     auto mock_ok = mocking_utils::patch_and_return("lib:rcl", rmw_init_options_fini, RMW_RET_OK);
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_dst)) << rcl_get_error_string().str;
   });
