@@ -604,7 +604,7 @@ TEST_F(
   {
     test_msgs__msg__Strings__fini(&msg);
     ASSERT_EQ(
-      RCUTILS_RET_OK,
+      RMW_RET_OK,
       rmw_serialized_message_fini(&serialized_msg)) << rcl_get_error_string().str;
   });
 
