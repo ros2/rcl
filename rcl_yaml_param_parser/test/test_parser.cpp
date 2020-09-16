@@ -321,7 +321,7 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
     "correct_config.yaml",
     "empty_string.yaml",
     "indented_name_space.yaml",
-//    "max_num_params.yaml",
+    "max_num_params.yaml",
     "multi_ns_correct.yaml",
     "no_alias_support.yaml",
     "no_value1.yaml",
