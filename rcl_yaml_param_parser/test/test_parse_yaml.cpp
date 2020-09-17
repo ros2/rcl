@@ -484,9 +484,7 @@ TEST(test_file_parser, indented_ns) {
   EXPECT_FALSE(res);
 }
 
-// Regression test for https://github.com/ros2/rcl/issues/419
-// No maximum number limitation by https://github.com/ros2/rcl/issues/526
-TEST(test_file_parser, maximum_number_parameters) {
+TEST(test_file_parser, multiple_number_parameters) {
   rcutils_reset_error();
   EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024)) << rcutils_get_error_string().str;
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -496,7 +494,7 @@ TEST(test_file_parser, maximum_number_parameters) {
   {
     allocator.deallocate(test_path, allocator.state);
   });
-  char * path = rcutils_join_path(test_path, "max_num_params.yaml", allocator);
+  char * path = rcutils_join_path(test_path, "multiple_params.yaml", allocator);
   ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -509,8 +507,59 @@ TEST(test_file_parser, maximum_number_parameters) {
   {
     rcl_yaml_node_struct_fini(params_hdl);
   });
-  bool res = rcl_parse_yaml_file(path, params_hdl);
-  EXPECT_TRUE(res);
+  EXPECT_TRUE(rcl_parse_yaml_file(path, params_hdl));
+}
+
+TEST(test_file_parser, multiple_number_nodes) {
+  rcutils_reset_error();
+  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024)) << rcutils_get_error_string().str;
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  char * test_path = rcutils_join_path(cur_dir, "test", allocator);
+  ASSERT_TRUE(NULL != test_path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(test_path, allocator.state);
+  });
+  char * path = rcutils_join_path(test_path, "multiple_nodes.yaml", allocator);
+  ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(path, allocator.state);
+  });
+  ASSERT_TRUE(rcutils_exists(path)) << "No test YAML file found at " << path;
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_struct_fini(params_hdl);
+  });
+  EXPECT_TRUE(rcl_parse_yaml_file(path, params_hdl));
+}
+
+TEST(test_file_parser, multiple_number_nodes_and_parameters) {
+  rcutils_reset_error();
+  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024)) << rcutils_get_error_string().str;
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  char * test_path = rcutils_join_path(cur_dir, "test", allocator);
+  ASSERT_TRUE(NULL != test_path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(test_path, allocator.state);
+  });
+  char * path = rcutils_join_path(test_path, "multiple_nodes_parameters.yaml", allocator);
+  ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(path, allocator.state);
+  });
+  ASSERT_TRUE(rcutils_exists(path)) << "No test YAML file found at " << path;
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_struct_fini(params_hdl);
+  });
+  EXPECT_TRUE(rcl_parse_yaml_file(path, params_hdl));
 }
 
 // Test special float point(https://github.com/ros2/rcl/issues/555).

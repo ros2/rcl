@@ -39,8 +39,8 @@ RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t node_params_init_with_capacity(
   rcl_node_params_t * node_params,
-  const rcutils_allocator_t allocator,
-  size_t capacity);
+  size_t capacity,
+  const rcutils_allocator_t allocator);
 
 ///
 /// Reallocate rcl_node_params_t structure with a new capacity
@@ -49,8 +49,8 @@ RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t node_params_reallocate(
   rcl_node_params_t * node_params,
-  const rcutils_allocator_t allocator,
-  size_t new_capacity);
+  size_t new_capacity,
+  const rcutils_allocator_t allocator);
 
 
 ///

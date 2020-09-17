@@ -45,18 +45,18 @@ rcl_params_t * rcl_yaml_node_struct_init(
   const rcutils_allocator_t allocator);
 
 /// \brief Initialize parameter structure with a capacity
-/// \param[in] allocator memory allocator to be used
 /// \param[in] capacity a capacity to param structure
+/// \param[in] allocator memory allocator to be used
 /// \return a pointer to param structure on success or NULL on failure
 RCL_YAML_PARAM_PARSER_PUBLIC
 rcl_params_t * rcl_yaml_node_struct_init_with_capacity(
-  const rcutils_allocator_t allocator,
-  size_t capacity);
+  size_t capacity,
+  const rcutils_allocator_t allocator);
 
 /// \brief Reallocate parameter structure with a new capacity
 /// \param[in] params_st a parameter structure
-/// \param[in] allocator memory allocator to be used
 /// \param[in] new_capacity a new capacity to param structure that must be greater than num_params
+/// \param[in] allocator memory allocator to be used
 /// \return `RCL_RET_OK` if the structure was reallocated successfully, or
 /// \return `RCL_RET_INVALID_ARGUMENT` if params_st is NULL, or
 ///  allocator is invalid, or
@@ -65,8 +65,8 @@ rcl_params_t * rcl_yaml_node_struct_init_with_capacity(
 RCL_YAML_PARAM_PARSER_PUBLIC
 rcutils_ret_t rcl_yaml_node_struct_reallocate(
   rcl_params_t * params_st,
-  const rcutils_allocator_t allocator,
-  size_t new_capacity);
+  size_t new_capacity,
+  const rcutils_allocator_t allocator);
 
 /// \brief Copy parameter structure
 /// \param[in] params_st points to the parameter struct to be copied

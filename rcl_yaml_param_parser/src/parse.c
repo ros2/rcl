@@ -801,37 +801,26 @@ rcutils_ret_t find_parameter(
       return RCUTILS_RET_OK;
     }
   }
+  // Parameter not found, add it.
   rcutils_allocator_t allocator = param_st->allocator;
   // Reallocate if necessary
-  bool reallocate = false;
-  rcutils_ret_t ret;
   if (node_param_st->num_params >= node_param_st->capacity_params) {
     if (RCUTILS_RET_OK != node_params_reallocate(
-        node_param_st, allocator, node_param_st->capacity_params * 2))
+        node_param_st, node_param_st->capacity_params * 2, allocator))
     {
-      ret = RCUTILS_RET_BAD_ALLOC;
-      goto clean;
+      return RCUTILS_RET_BAD_ALLOC;
     }
-    reallocate = true;
   }
-  // Parameter not found, add it.
   if (NULL != node_param_st->parameter_names[*parameter_idx]) {
     param_st->allocator.deallocate(
       node_param_st->parameter_names[*parameter_idx], param_st->allocator.state);
   }
   node_param_st->parameter_names[*parameter_idx] = rcutils_strdup(parameter_name, allocator);
   if (NULL == node_param_st->parameter_names[*parameter_idx]) {
-    ret = RCUTILS_RET_BAD_ALLOC;
-    goto clean;
+    return RCUTILS_RET_BAD_ALLOC;
   }
   node_param_st->num_params++;
   return RCUTILS_RET_OK;
-
-clean:
-  if (reallocate) {
-    rcl_yaml_node_params_fini(node_param_st, allocator);
-  }
-  return ret;
 }
 
 ///
@@ -852,40 +841,26 @@ rcutils_ret_t find_node(
       return RCUTILS_RET_OK;
     }
   }
+  // Node not found, add it.
   rcutils_allocator_t allocator = param_st->allocator;
   // Reallocate if necessary
-  bool reallocate = false;
-  rcutils_ret_t ret;
   if (param_st->num_nodes >= param_st->capacity_nodes) {
     if (RCUTILS_RET_OK != rcl_yaml_node_struct_reallocate(
-        param_st, allocator, param_st->capacity_nodes * 2))
+        param_st, param_st->capacity_nodes * 2, allocator))
     {
-      ret = RCUTILS_RET_BAD_ALLOC;
-      goto clean;
+      return RCUTILS_RET_BAD_ALLOC;
     }
-    reallocate = true;
   }
-  // Node not found, add it.
   param_st->node_names[*node_idx] = rcutils_strdup(node_name, allocator);
   if (NULL == param_st->node_names[*node_idx]) {
-    ret = RCUTILS_RET_BAD_ALLOC;
-    goto clean;
+    return RCUTILS_RET_BAD_ALLOC;
   }
-  ret = node_params_init(&(param_st->params[*node_idx]), allocator);
+  rcutils_ret_t ret = node_params_init(&(param_st->params[*node_idx]), allocator);
   if (RCUTILS_RET_OK != ret) {
-    goto clean;
+    allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
+    param_st->node_names[*node_idx] = NULL;
+    return ret;
   }
   param_st->num_nodes++;
   return RCUTILS_RET_OK;
-
-clean:
-  if (param_st->node_names[*node_idx]) {
-    allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
-    param_st->node_names[*node_idx] = NULL;
-  }
-
-  if (reallocate) {
-    rcl_yaml_node_struct_fini(param_st);
-  }
-  return ret;
 }
