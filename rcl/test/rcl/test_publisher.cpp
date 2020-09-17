@@ -603,6 +603,9 @@ TEST_F(
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     test_msgs__msg__Strings__fini(&msg);
+    ASSERT_EQ(
+      RMW_RET_OK,
+      rmw_serialized_message_fini(&serialized_msg)) << rcl_get_error_string().str;
   });
 
   ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
