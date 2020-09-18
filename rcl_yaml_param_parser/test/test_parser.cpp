@@ -361,9 +361,6 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
     "correct_config.yaml",
     "empty_string.yaml",
     "indented_name_space.yaml",
-    "multiple_params.yaml",
-    "multiple_nodes.yaml",
-//    "multiple_nodes_parameters.yaml",  // Comment it because Timeout while running test.
     "multi_ns_correct.yaml",
     "no_alias_support.yaml",
     "no_value1.yaml",

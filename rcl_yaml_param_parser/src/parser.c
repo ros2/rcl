@@ -35,7 +35,7 @@
 #include "./impl/node_params.h"
 #include "./impl/yaml_variant.h"
 
-#define INIT_NUM_NODE_ENTRIES 256U
+#define INIT_NUM_NODE_ENTRIES 128U
 
 ///
 /// Create the rcl_params_t parameter structure
@@ -88,7 +88,6 @@ clean:
   return NULL;
 }
 
-RCL_YAML_PARAM_PARSER_PUBLIC
 rcutils_ret_t rcl_yaml_node_struct_reallocate(
   rcl_params_t * params_st,
   size_t new_capacity,

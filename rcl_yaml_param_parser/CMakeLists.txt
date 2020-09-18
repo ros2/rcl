@@ -118,6 +118,32 @@ if(BUILD_TESTING)
     target_compile_definitions(test_parser PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
+  ament_add_gtest(test_parser_multiple_nodes
+    test/test_parser_multiple_nodes.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_parser_multiple_nodes)
+    ament_target_dependencies(test_parser_multiple_nodes
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_parser_multiple_nodes ${PROJECT_NAME} mimick)
+    target_compile_definitions(test_parser_multiple_nodes PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
+  endif()
+
+  ament_add_gtest(test_parser_multiple_params
+    test/test_parser_multiple_params.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_parser_multiple_params)
+    ament_target_dependencies(test_parser_multiple_params
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_parser_multiple_params ${PROJECT_NAME} mimick)
+    target_compile_definitions(test_parser_multiple_params PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
+  endif()
+
   ament_add_gtest(test_yaml_variant
     test/test_yaml_variant.cpp
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
