@@ -46,6 +46,7 @@ public:
     if (NULL == params_hdl) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
+    reset_heap_counters();
   }
 
   void TearDown(::benchmark::State & st)
