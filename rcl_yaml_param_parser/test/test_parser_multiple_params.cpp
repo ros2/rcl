@@ -26,6 +26,42 @@
 #include "rcutils/testing/fault_injection.h"
 #include "./mocking_utils/patch.hpp"
 
+static char cur_dir[1024];
+
+TEST(RclYamlParamParserMultipleParams, multiple_params) {
+  rcutils_reset_error();
+  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024)) << rcutils_get_error_string().str;
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  char * test_path = rcutils_join_path(cur_dir, "test", allocator);
+  ASSERT_TRUE(NULL != test_path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(test_path, allocator.state);
+  });
+  char * path = rcutils_join_path(test_path, "multiple_params.yaml", allocator);
+  ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(path, allocator.state);
+  });
+  ASSERT_TRUE(rcutils_exists(path)) << "No test YAML file found at " << path;
+  rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+  ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_struct_fini(params_hdl);
+  });
+  ASSERT_TRUE(rcl_parse_yaml_file(path, params_hdl));
+  ASSERT_EQ(1u, params_hdl->num_nodes);
+  EXPECT_EQ(std::string("foo_ns/foo_name"), params_hdl->node_names[0]);
+  rcl_node_params_t * node_params = &params_hdl->params[0];
+  ASSERT_TRUE(NULL != node_params);
+  ASSERT_EQ(513U, node_params->num_params);
+  for (size_t i = 0; i < node_params->num_params; ++i) {
+    EXPECT_EQ("param" + std::to_string(i + 1), node_params->parameter_names[i]);
+    EXPECT_EQ(static_cast<int64_t>(i + 1), *node_params->parameter_values[i].integer_value);
+  }
+}
 
 TEST(RclYamlParamParserMultipleParams, test_multiple_params_with_bad_allocator) {
   char cur_dir[1024];

@@ -44,6 +44,8 @@ rcutils_ret_t node_params_init_with_capacity(
 
 ///
 /// Reallocate rcl_node_params_t structure with a new capacity
+/// \post the address of \p parameter_names in \p node_params might be changed
+/// even if the result value is `RCL_RET_BAD_ALLOC`.
 ///
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
@@ -51,7 +53,6 @@ rcutils_ret_t node_params_reallocate(
   rcl_node_params_t * node_params,
   size_t new_capacity,
   const rcutils_allocator_t allocator);
-
 
 ///
 /// Finalize rcl_node_params_t structure

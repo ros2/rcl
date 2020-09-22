@@ -54,6 +54,8 @@ rcl_params_t * rcl_yaml_node_struct_init_with_capacity(
   const rcutils_allocator_t allocator);
 
 /// \brief Reallocate parameter structure with a new capacity
+/// \post the address of \p node_names in \p params_st might be changed
+///   even if the result value is `RCL_RET_BAD_ALLOC`.
 /// \param[in] params_st a parameter structure
 /// \param[in] new_capacity a new capacity to param structure that must be greater than num_params
 /// \param[in] allocator memory allocator to be used

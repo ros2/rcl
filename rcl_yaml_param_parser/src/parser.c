@@ -120,14 +120,6 @@ rcutils_ret_t rcl_yaml_node_struct_reallocate(
     params_st->params, new_capacity * sizeof(rcl_node_params_t), allocator.state);
   if (NULL == params) {
     RCUTILS_SET_ERROR_MSG("Failed to reallocate memory for parameter values");
-    for (size_t node_idx = 0U; node_idx < params_st->num_nodes; node_idx++) {
-      char * node_name = params_st->node_names[node_idx];
-      if (NULL != node_name) {
-        allocator.deallocate(node_name, allocator.state);
-      }
-    }
-    allocator.deallocate(params_st->node_names, allocator.state);
-    params_st->node_names = NULL;
     return RCUTILS_RET_BAD_ALLOC;
   }
   params_st->params = params;

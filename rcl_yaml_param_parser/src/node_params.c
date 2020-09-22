@@ -89,16 +89,6 @@ rcutils_ret_t node_params_reallocate(
     node_params->parameter_values, new_capacity * sizeof(rcl_variant_t), allocator.state);
   if (NULL == parameter_values) {
     RCUTILS_SET_ERROR_MSG("Failed to reallocate node parameter values");
-    for (size_t parameter_idx = 0U; parameter_idx < node_params->num_params;
-      parameter_idx++)
-    {
-      char * param_name = node_params->parameter_names[parameter_idx];
-      if (NULL != param_name) {
-        allocator.deallocate(param_name, allocator.state);
-      }
-    }
-    allocator.deallocate(node_params->parameter_names, allocator.state);
-    node_params->parameter_names = NULL;
     return RCUTILS_RET_BAD_ALLOC;
   }
   node_params->parameter_values = parameter_values;
