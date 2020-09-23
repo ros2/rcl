@@ -30,6 +30,11 @@
 
 using performance_test_fixture::PerformanceTest;
 
+namespace
+{
+constexpr const uint64_t kSize = 1024;
+}
+
 BENCHMARK_DEFINE_F(PerformanceTest, bool_copy_variant)(benchmark::State & st)
 {
   bool bool_value = true;
@@ -74,6 +79,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, double_copy_variant)(benchmark::State & st)
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   src_variant.double_value = &double_value;
 
+  reset_heap_counters();
+
   for (auto _ : st) {
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
@@ -86,14 +93,15 @@ BENCHMARK_REGISTER_F(PerformanceTest, double_copy_variant);
 
 BENCHMARK_DEFINE_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
 {
-  const size_t len = st.range(0);
-  std::string data(len, '*');
+  std::string data(kSize, '*');
   rcl_variant_t src_variant{};
   rcl_variant_t dest_variant{};
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   char * tmp_string = rcutils_strdup(data.c_str(), allocator);
   src_variant.string_value = tmp_string;
+
+  reset_heap_counters();
 
   for (auto _ : st) {
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
@@ -103,13 +111,11 @@ BENCHMARK_DEFINE_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
   }
   src_variant.string_value = nullptr;
 }
-BENCHMARK_REGISTER_F(PerformanceTest, string_copy_variant)
-->RangeMultiplier(2)->Range(1 << 3, 1 << 12);
+BENCHMARK_REGISTER_F(PerformanceTest, string_copy_variant);
 
 BENCHMARK_DEFINE_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & st)
 {
-  const size_t array_size = st.range(0);
-  bool * bool_arry = new bool[array_size];
+  bool bool_arry[kSize];
   rcl_variant_t src_variant{};
   rcl_variant_t dest_variant{};
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -119,7 +125,7 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & 
   using ValueT = std::remove_pointer<decltype(src_variant.bool_array_value->values)>::type;
   src_variant.bool_array_value->values =
     static_cast<ValueT *>(
-    allocator.zero_allocate(array_size, sizeof(ValueT), allocator.state));
+    allocator.zero_allocate(kSize, sizeof(ValueT), allocator.state));
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_yaml_variant_fini(&src_variant, allocator);
@@ -127,10 +133,12 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & 
     src_variant.bool_array_value = nullptr;
     dest_variant.bool_array_value = nullptr;
   });
-  src_variant.bool_array_value->size = array_size;
-  for (size_t i = 0; i < array_size; ++i) {
+  src_variant.bool_array_value->size = kSize;
+  for (size_t i = 0; i < kSize; ++i) {
     src_variant.bool_array_value->values[i] = bool_arry[i];
   }
+
+  reset_heap_counters();
 
   for (auto _ : st) {
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
@@ -140,13 +148,11 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & 
     dest_variant.double_array_value = nullptr;
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, array_bool_copy_variant)
-->RangeMultiplier(2)->Range(1 << 3, 1 << 12);
+BENCHMARK_REGISTER_F(PerformanceTest, array_bool_copy_variant);
 
 BENCHMARK_DEFINE_F(PerformanceTest, array_int_copy_variant)(benchmark::State & st)
 {
-  const size_t array_size = st.range(0);
-  int * int_arry = new int[array_size];
+  int int_arry[kSize];
   rcl_variant_t src_variant{};
   rcl_variant_t dest_variant{};
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -156,7 +162,7 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_int_copy_variant)(benchmark::State & s
   using ValueT = std::remove_pointer<decltype(src_variant.integer_array_value->values)>::type;
   src_variant.integer_array_value->values =
     static_cast<ValueT *>(
-    allocator.zero_allocate(array_size, sizeof(ValueT), allocator.state));
+    allocator.zero_allocate(kSize, sizeof(ValueT), allocator.state));
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_yaml_variant_fini(&src_variant, allocator);
@@ -164,10 +170,12 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_int_copy_variant)(benchmark::State & s
     src_variant.integer_array_value = nullptr;
     dest_variant.integer_array_value = nullptr;
   });
-  src_variant.integer_array_value->size = array_size;
-  for (size_t i = 0; i < array_size; ++i) {
+  src_variant.integer_array_value->size = kSize;
+  for (size_t i = 0; i < kSize; ++i) {
     src_variant.integer_array_value->values[i] = int_arry[i];
   }
+
+  reset_heap_counters();
 
   for (auto _ : st) {
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
@@ -176,15 +184,12 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_int_copy_variant)(benchmark::State & s
     rcl_yaml_variant_fini(&dest_variant, allocator);
     dest_variant.double_array_value = nullptr;
   }
-  delete int_arry;
 }
-BENCHMARK_REGISTER_F(PerformanceTest, array_int_copy_variant)
-->RangeMultiplier(2)->Range(1 << 3, 1 << 12);
+BENCHMARK_REGISTER_F(PerformanceTest, array_int_copy_variant);
 
 BENCHMARK_DEFINE_F(PerformanceTest, array_double_copy_variant)(benchmark::State & st)
 {
-  const size_t array_size = st.range(0);
-  double * double_arry = new double[array_size];
+  double double_arry[kSize];
   rcl_variant_t src_variant{};
   rcl_variant_t dest_variant{};
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -194,19 +199,20 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_double_copy_variant)(benchmark::State 
   using ValueT = std::remove_pointer<decltype(src_variant.double_array_value->values)>::type;
   src_variant.double_array_value->values =
     static_cast<ValueT *>(
-    allocator.zero_allocate(array_size, sizeof(ValueT), allocator.state));
+    allocator.zero_allocate(kSize, sizeof(ValueT), allocator.state));
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_yaml_variant_fini(&src_variant, allocator);
     rcl_yaml_variant_fini(&dest_variant, allocator);
     src_variant.double_array_value = nullptr;
     dest_variant.double_array_value = nullptr;
-    delete double_arry;
   });
-  src_variant.double_array_value->size = array_size;
-  for (size_t i = 0; i < array_size; ++i) {
+  src_variant.double_array_value->size = kSize;
+  for (size_t i = 0; i < kSize; ++i) {
     src_variant.double_array_value->values[i] = double_arry[i];
   }
+
+  reset_heap_counters();
 
   for (auto _ : st) {
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
@@ -216,13 +222,10 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_double_copy_variant)(benchmark::State 
     dest_variant.double_array_value = nullptr;
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, array_double_copy_variant)
-->RangeMultiplier(2)->Range(1 << 3, 1 << 12);
+BENCHMARK_REGISTER_F(PerformanceTest, array_double_copy_variant);
 
 BENCHMARK_DEFINE_F(PerformanceTest, array_string_copy_variant)(benchmark::State & st)
 {
-  const size_t len = st.range(0);
-
   rcl_variant_t src_variant{};
   rcl_variant_t dest_variant{};
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -236,18 +239,20 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_string_copy_variant)(benchmark::State 
     rcl_yaml_variant_fini(&dest_variant, allocator);
   });
   *src_variant.string_array_value = rcutils_get_zero_initialized_string_array();
-  if (rcutils_string_array_init(src_variant.string_array_value, len, &allocator) !=
+  if (rcutils_string_array_init(src_variant.string_array_value, kSize, &allocator) !=
     RCUTILS_RET_OK)
   {
     st.SkipWithError(rcutils_get_error_string().str);
   }
-  src_variant.string_array_value->size = len;
-  for (size_t i = 0; i < len; i++) {
+  src_variant.string_array_value->size = kSize;
+  for (size_t i = 0; i < kSize; i++) {
     src_variant.string_array_value->data[i] = rcutils_strdup("string", allocator);
     if (src_variant.string_array_value->data[i] == NULL) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
   }
+  reset_heap_counters();
+
   for (auto _ : st) {
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
@@ -256,5 +261,4 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_string_copy_variant)(benchmark::State 
     dest_variant.double_array_value = nullptr;
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, array_string_copy_variant)
-->RangeMultiplier(2)->Range(1 << 3, 1 << 12);
+BENCHMARK_REGISTER_F(PerformanceTest, array_string_copy_variant);

@@ -34,12 +34,16 @@ public:
     if (!rcutils_get_cwd(cur_dir, 1024)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
-    test_path = rcutils_join_path(cur_dir, "benchmark", allocator);
+    test_path = rcutils_join_path(cur_dir, "test/benchmark", allocator);
     if (test_path == NULL) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
     path = rcutils_join_path(test_path, filename.c_str(), allocator);
     if (path == NULL) {
+      st.SkipWithError(rcutils_get_error_string().str);
+    }
+    params_hdl = rcl_yaml_node_struct_init(allocator);
+    if (NULL == params_hdl) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
     params_hdl = rcl_yaml_node_struct_init(allocator);
@@ -68,6 +72,7 @@ BENCHMARK_DEFINE_F(PerformanceTestPaserYaml, parser_yaml_max_params)(benchmark::
 {
   InitYamlStructure("max_num_params.yaml", st);
   for (auto _ : st) {
+
     bool res = rcl_parse_yaml_file(path, params_hdl);
     if (!res) {
       rcl_yaml_node_struct_fini(params_hdl);
