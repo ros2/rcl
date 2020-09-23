@@ -68,7 +68,7 @@ public:
   rcl_params_t * params_hdl;
 };
 
-BENCHMARK_DEFINE_F(PerformanceTestPaserYaml, parser_yaml_max_params)(benchmark::State & st)
+BENCHMARK_F(PerformanceTestPaserYaml, parser_yaml_max_params)(benchmark::State & st)
 {
   InitYamlStructure("max_num_params.yaml", st);
   for (auto _ : st) {
@@ -80,4 +80,3 @@ BENCHMARK_DEFINE_F(PerformanceTestPaserYaml, parser_yaml_max_params)(benchmark::
     }
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTestPaserYaml, parser_yaml_max_params);

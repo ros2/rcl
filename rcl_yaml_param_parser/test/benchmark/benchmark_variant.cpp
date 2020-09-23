@@ -35,7 +35,7 @@ namespace
 constexpr const uint64_t kSize = 1024;
 }
 
-BENCHMARK_DEFINE_F(PerformanceTest, bool_copy_variant)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, bool_copy_variant)(benchmark::State & st)
 {
   bool bool_value = true;
   rcl_variant_t src_variant{};
@@ -51,9 +51,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, bool_copy_variant)(benchmark::State & st)
   rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.bool_value = nullptr;
 }
-BENCHMARK_REGISTER_F(PerformanceTest, bool_copy_variant);
 
-BENCHMARK_DEFINE_F(PerformanceTest, int_copy_variant)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, int_copy_variant)(benchmark::State & st)
 {
   int64_t int_value = 42;
   rcl_variant_t src_variant{};
@@ -69,9 +68,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, int_copy_variant)(benchmark::State & st)
   rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.integer_value = nullptr;
 }
-BENCHMARK_REGISTER_F(PerformanceTest, int_copy_variant);
 
-BENCHMARK_DEFINE_F(PerformanceTest, double_copy_variant)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, double_copy_variant)(benchmark::State & st)
 {
   double double_value = 3.14157;
   rcl_variant_t src_variant{};
@@ -89,9 +87,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, double_copy_variant)(benchmark::State & st)
   rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.double_value = nullptr;
 }
-BENCHMARK_REGISTER_F(PerformanceTest, double_copy_variant);
 
-BENCHMARK_DEFINE_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
 {
   std::string data(kSize, '*');
   rcl_variant_t src_variant{};
@@ -111,9 +108,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
   }
   src_variant.string_value = nullptr;
 }
-BENCHMARK_REGISTER_F(PerformanceTest, string_copy_variant);
 
-BENCHMARK_DEFINE_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & st)
 {
   bool bool_arry[kSize];
   rcl_variant_t src_variant{};
@@ -148,9 +144,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & 
     dest_variant.double_array_value = nullptr;
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, array_bool_copy_variant);
 
-BENCHMARK_DEFINE_F(PerformanceTest, array_int_copy_variant)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, array_int_copy_variant)(benchmark::State & st)
 {
   int int_arry[kSize];
   rcl_variant_t src_variant{};
@@ -185,9 +180,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_int_copy_variant)(benchmark::State & s
     dest_variant.double_array_value = nullptr;
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, array_int_copy_variant);
 
-BENCHMARK_DEFINE_F(PerformanceTest, array_double_copy_variant)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, array_double_copy_variant)(benchmark::State & st)
 {
   double double_arry[kSize];
   rcl_variant_t src_variant{};
@@ -222,9 +216,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_double_copy_variant)(benchmark::State 
     dest_variant.double_array_value = nullptr;
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, array_double_copy_variant);
 
-BENCHMARK_DEFINE_F(PerformanceTest, array_string_copy_variant)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, array_string_copy_variant)(benchmark::State & st)
 {
   rcl_variant_t src_variant{};
   rcl_variant_t dest_variant{};
@@ -261,4 +254,3 @@ BENCHMARK_DEFINE_F(PerformanceTest, array_string_copy_variant)(benchmark::State 
     dest_variant.double_array_value = nullptr;
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, array_string_copy_variant);
