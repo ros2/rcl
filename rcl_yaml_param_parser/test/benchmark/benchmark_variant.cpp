@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <string>
-#include <iostream>
+#include <type_traits>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
