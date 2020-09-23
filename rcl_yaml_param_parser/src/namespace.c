@@ -20,7 +20,7 @@
 /// Validate a name whether it is a valid namespace
 ///
 static rcutils_ret_t
-__validate_namespace(const char * name, rcutils_allocator_t allocator)
+__validate_namespace(const char * name)
 {
   if (strstr(name, "//") != NULL) {
     return RCUTILS_RET_INVALID_ARGUMENT;
@@ -63,7 +63,7 @@ rcutils_ret_t add_name_to_ns(
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
   if (namespace_type == NS_TYPE_NODE) {
-    rcutils_ret_t ret = __validate_namespace(name, allocator);
+    rcutils_ret_t ret = __validate_namespace(name);
     if (RCUTILS_RET_OK != ret) {
       return ret;
     }
