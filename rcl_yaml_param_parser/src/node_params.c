@@ -16,6 +16,8 @@
 #include "./impl/types.h"
 #include "./impl/yaml_variant.h"
 
+#define INIT_NUM_PARAMS_PER_NODE 128U
+
 rcutils_ret_t node_params_init(
   rcl_node_params_t * node_params,
   const rcutils_allocator_t allocator)
@@ -67,7 +69,10 @@ rcutils_ret_t node_params_reallocate(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
   // invalid if new_capacity is less than num_params
   if (new_capacity < node_params->num_params) {
-    RCUTILS_SET_ERROR_MSG("invalid capacity");
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "new capacity '%zu' must be greater than or equal to '%zu'",
+      new_capacity,
+      node_params->num_params);
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
 

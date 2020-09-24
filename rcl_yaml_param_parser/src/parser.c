@@ -98,7 +98,10 @@ rcutils_ret_t rcl_yaml_node_struct_reallocate(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
   // invalid if new_capacity is less than num_nodes
   if (new_capacity < params_st->num_nodes) {
-    RCUTILS_SET_ERROR_MSG("invalid capacity");
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "new capacity '%zu' must be greater than or equal to '%zu'",
+      new_capacity,
+      params_st->num_nodes);
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
 
