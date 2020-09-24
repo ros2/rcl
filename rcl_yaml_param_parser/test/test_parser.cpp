@@ -52,6 +52,46 @@ TEST(RclYamlParamParser, node_init_fini) {
   rcl_yaml_node_struct_fini(nullptr);
 }
 
+TEST(RclYamlParamParser, node_init_with_capacity_fini) {
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  rcl_params_t * params_st = rcl_yaml_node_struct_init_with_capacity(1024, allocator);
+  ASSERT_NE(params_st, nullptr);
+  EXPECT_EQ(0U, params_st->num_nodes);
+  EXPECT_EQ(1024U, params_st->capacity_nodes);
+  rcl_yaml_node_struct_fini(params_st);
+
+  allocator = get_time_bomb_allocator();
+  // Bad alloc of params_st
+  set_time_bomb_allocator_calloc_count(allocator, 0);
+  // This cleans up after itself if it fails so no need to call fini()
+  EXPECT_EQ(rcl_yaml_node_struct_init_with_capacity(1024, allocator), nullptr);
+
+  // Bad alloc of params_st->node_names
+  set_time_bomb_allocator_calloc_count(allocator, 1);
+  EXPECT_EQ(rcl_yaml_node_struct_init_with_capacity(1024, allocator), nullptr);
+
+  // Bad alloc of params_st->params
+  set_time_bomb_allocator_calloc_count(allocator, 2);
+  EXPECT_EQ(rcl_yaml_node_struct_init_with_capacity(1024, allocator), nullptr);
+
+  // Check this doesn't die.
+  rcl_yaml_node_struct_fini(nullptr);
+}
+
+TEST(RclYamlParamParser, reallocate_node_init_with_capacity_fini) {
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  rcl_params_t * params_st = rcl_yaml_node_struct_init_with_capacity(1024, allocator);
+  ASSERT_NE(params_st, nullptr);
+  EXPECT_EQ(0U, params_st->num_nodes);
+  EXPECT_EQ(1024U, params_st->capacity_nodes);
+  EXPECT_EQ(RCUTILS_RET_OK, rcl_yaml_node_struct_reallocate(params_st, 2048, allocator));
+  EXPECT_EQ(0U, params_st->num_nodes);
+  EXPECT_EQ(2048U, params_st->capacity_nodes);
+  rcl_yaml_node_struct_fini(params_st);
+}
+
 TEST(RclYamlParamParser, node_copy) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
@@ -321,7 +361,6 @@ TEST(RclYamlParamParser, test_parse_file_with_bad_allocator) {
     "correct_config.yaml",
     "empty_string.yaml",
     "indented_name_space.yaml",
-    "max_num_params.yaml",
     "multi_ns_correct.yaml",
     "no_alias_support.yaml",
     "no_value1.yaml",

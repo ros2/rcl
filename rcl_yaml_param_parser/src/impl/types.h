@@ -31,8 +31,6 @@ extern "C"
 #define NODE_NS_SEPERATOR "/"
 #define PARAMETER_NS_SEPERATOR "."
 
-#define MAX_NUM_PARAMS_PER_NODE 512U
-
 typedef enum yaml_map_lvl_e
 {
   MAP_UNINIT_LVL = 0U,

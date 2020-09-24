@@ -24,6 +24,7 @@
 #include "./impl/parse.h"
 #include "./impl/namespace.h"
 #include "./impl/node_params.h"
+#include "rcl_yaml_param_parser/parser.h"
 
 ///
 /// Determine the type of the value and return the converted value
@@ -508,15 +509,6 @@ rcutils_ret_t parse_key(
           *is_new_map = false;
         }
 
-        // Guard against adding more than the maximum allowed parameters
-        if (params_st->params[*node_idx].num_params >= MAX_NUM_PARAMS_PER_NODE) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Exceeded maximum allowed number of parameters for a node (%d)",
-            MAX_NUM_PARAMS_PER_NODE);
-          ret = RCUTILS_RET_ERROR;
-          break;
-        }
-
         /// Add a parameter name into the node parameters
         parameter_ns = ns_tracker->parameter_ns;
         if (NULL == parameter_ns) {
@@ -811,6 +803,14 @@ rcutils_ret_t find_parameter(
   }
   // Parameter not found, add it.
   rcutils_allocator_t allocator = param_st->allocator;
+  // Reallocate if necessary
+  if (node_param_st->num_params >= node_param_st->capacity_params) {
+    if (RCUTILS_RET_OK != node_params_reallocate(
+        node_param_st, node_param_st->capacity_params * 2, allocator))
+    {
+      return RCUTILS_RET_BAD_ALLOC;
+    }
+  }
   if (NULL != node_param_st->parameter_names[*parameter_idx]) {
     param_st->allocator.deallocate(
       node_param_st->parameter_names[*parameter_idx], param_st->allocator.state);
@@ -843,6 +843,14 @@ rcutils_ret_t find_node(
   }
   // Node not found, add it.
   rcutils_allocator_t allocator = param_st->allocator;
+  // Reallocate if necessary
+  if (param_st->num_nodes >= param_st->capacity_nodes) {
+    if (RCUTILS_RET_OK != rcl_yaml_node_struct_reallocate(
+        param_st, param_st->capacity_nodes * 2, allocator))
+    {
+      return RCUTILS_RET_BAD_ALLOC;
+    }
+  }
   param_st->node_names[*node_idx] = rcutils_strdup(node_name, allocator);
   if (NULL == param_st->node_names[*node_idx]) {
     return RCUTILS_RET_BAD_ALLOC;
@@ -850,6 +858,7 @@ rcutils_ret_t find_node(
   rcutils_ret_t ret = node_params_init(&(param_st->params[*node_idx]), allocator);
   if (RCUTILS_RET_OK != ret) {
     allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
+    param_st->node_names[*node_idx] = NULL;
     return ret;
   }
   param_st->num_nodes++;
