@@ -43,7 +43,7 @@ TEST(TestNodeParams, init_fini) {
   rcl_yaml_node_params_fini(nullptr, allocator);
 }
 
-TEST(TestNodeParams, init_with_capability_fini) {
+TEST(TestNodeParams, init_with_capacity_fini) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcl_node_params_t node_params = {NULL, NULL, 0u, 1024u};
   EXPECT_EQ(RCUTILS_RET_OK, node_params_init_with_capacity(&node_params, 1024, allocator));
@@ -62,7 +62,7 @@ TEST(TestNodeParams, init_with_capability_fini) {
   rcl_yaml_node_params_fini(nullptr, allocator);
 }
 
-TEST(TestNodeParams, reallocate_with_capability_fini) {
+TEST(TestNodeParams, reallocate_with_capacity_fini) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcl_node_params_t node_params = {NULL, NULL, 0u, 1024u};
   EXPECT_EQ(RCUTILS_RET_OK, node_params_init_with_capacity(&node_params, 1024, allocator));
