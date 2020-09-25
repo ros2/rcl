@@ -139,6 +139,10 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
   if(TARGET benchmark_parse_yaml)
     target_link_libraries(benchmark_parse_yaml ${PROJECT_NAME})
+    ament_target_dependencies(benchmark_parse_yaml
+      "rcpputils"
+      "rcutils"
+    )
   endif()
 
   add_performance_test(benchmark_variant test/benchmark/benchmark_variant.cpp)
