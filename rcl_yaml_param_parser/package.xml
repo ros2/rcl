@@ -18,6 +18,8 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>mimick_vendor</test_depend>
   <test_depend>osrf_testing_tools_cpp</test_depend>
+  <test_depend>performance_test_fixture</test_depend>
+  <test_depend>rcpputils</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
