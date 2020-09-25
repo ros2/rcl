@@ -26,40 +26,20 @@
 
 using performance_test_fixture::PerformanceTest;
 
-class PerformanceTestPaserYaml : public performance_test_fixture::PerformanceTest
+BENCHMARK_F(PerformanceTest, parser_yaml_max_params)(benchmark::State & st)
 {
-public:
-  void InitYamlStructure(const std::string & filename, ::benchmark::State & st)
-  {
-    rcutils_reset_error();
-    path = rcpputils::fs::current_path().string() + "/test/benchmark/" + filename.c_str();
-    if (path.empty()) {
-      st.SkipWithError(rcutils_get_error_string().str);
-    }
-    params_hdl = rcl_yaml_node_struct_init(rcutils_get_default_allocator());
+  std::string path =
+    (rcpputils::fs::current_path() / "test" / "benchmark" / "benchmark_params.yaml").string();
+  reset_heap_counters();
+  for (auto _ : st) {
+    rcl_params_t * params_hdl = rcl_yaml_node_struct_init(rcutils_get_default_allocator());
     if (NULL == params_hdl) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
-    reset_heap_counters();
-  }
-
-  void TearDown(::benchmark::State & st)
-  {
-    performance_test_fixture::PerformanceTest::TearDown(st);
-    rcl_yaml_node_struct_fini(params_hdl);
-  }
-  std::string path;
-  rcl_params_t * params_hdl;
-};
-
-BENCHMARK_F(PerformanceTestPaserYaml, parser_yaml_max_params)(benchmark::State & st)
-{
-  InitYamlStructure("max_num_params.yaml", st);
-  for (auto _ : st) {
     bool res = rcl_parse_yaml_file(path.c_str(), params_hdl);
     if (!res) {
-      rcl_yaml_node_struct_fini(params_hdl);
       st.SkipWithError(rcutils_get_error_string().str);
     }
+    rcl_yaml_node_struct_fini(params_hdl);
   }
 }
