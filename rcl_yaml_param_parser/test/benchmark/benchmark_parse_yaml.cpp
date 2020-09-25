@@ -26,7 +26,7 @@
 
 using performance_test_fixture::PerformanceTest;
 
-BENCHMARK_F(PerformanceTest, parser_yaml_max_params)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, parser_yaml_param)(benchmark::State & st)
 {
   std::string path =
     (rcpputils::fs::current_path() / "test" / "benchmark" / "benchmark_params.yaml").string();
