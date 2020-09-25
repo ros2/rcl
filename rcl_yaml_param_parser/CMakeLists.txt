@@ -57,6 +57,11 @@ if(BUILD_TESTING)
   find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
+  find_package(performance_test_fixture REQUIRED)
+  # Give cppcheck hints about macro definitions coming from outside this package
+  get_target_property(ament_cmake_cppcheck_ADDITIONAL_INCLUDE_DIRS
+    performance_test_fixture::performance_test_fixture INTERFACE_INCLUDE_DIRECTORIES)
+
   # Gtests
   ament_add_gtest(test_parse_yaml
     test/test_parse_yaml.cpp
@@ -80,6 +85,23 @@ if(BUILD_TESTING)
     target_link_libraries(test_parser ${PROJECT_NAME})
   endif()
 
+  add_performance_test(benchmark_parse_yaml test/benchmark/benchmark_parse_yaml.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+  if(TARGET benchmark_parse_yaml)
+    target_link_libraries(benchmark_parse_yaml ${PROJECT_NAME})
+    ament_target_dependencies(benchmark_parse_yaml
+      "rcpputils"
+      "rcutils"
+    )
+  endif()
+
+  add_performance_test(benchmark_variant test/benchmark/benchmark_variant.cpp)
+  if(TARGET benchmark_variant)
+    target_link_libraries(benchmark_variant ${PROJECT_NAME})
+    ament_target_dependencies(benchmark_variant
+      "rcutils"
+    )
+  endif()
 endif()
 
 ament_export_dependencies(ament_cmake libyaml_vendor)
