@@ -35,6 +35,7 @@
 
 #include "rcutils/logging_macros.h"
 #include "rcutils/logging.h"
+#include "rcutils/env.h"
 
 #include "test_msgs/msg/basic_types.h"
 #include "test_msgs/srv/basic_types.h"
@@ -1223,75 +1224,160 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
     9);  // number of retries
 }
 
-/* Test the graph guard condition notices topic changes.
+/* Test the graph guard condition notices beliow changes.
+ * publisher create/destroy, subscription create/destroy
+ * service create/destroy, client create/destroy
+ * Other node added/removed
  *
  * Note: this test could be impacted by other communications on the same ROS Domain.
  */
-TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_condition_topics) {
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_condition_trigger_check) {
   rcl_ret_t ret;
-  // Create a thread to sleep for a time, then create a publisher, sleep more, then a subscriber,
-  // sleep more, destroy the subscriber, sleep more, and then destroy the publisher.
-  std::promise<bool> topic_changes_promise;
-  std::thread topic_thread(
-    [this, &topic_changes_promise]() {
-      // sleep
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      // create the publisher
-      rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
-      rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
-      rcl_ret_t ret = rcl_publisher_init(
-        &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
-        "/chatter_test_graph_guard_condition_topics", &pub_ops);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      // sleep
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      // create the subscription
-      rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
-      rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
-      ret = rcl_subscription_init(
-        &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
-        "/chatter_test_graph_guard_condition_topics", &sub_ops);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      // sleep
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      // destroy the subscription
-      ret = rcl_subscription_fini(&sub, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      // sleep
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      // destroy the publication
-      ret = rcl_publisher_fini(&pub, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      // notify that the thread is done
-      topic_changes_promise.set_value(true);
-    });
-  // Wait for the graph state to change, expecting it to do so at least 4 times,
-  // once for each change in the topics thread.
+  std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(400);
+
+  // Test in new ROS domain
+  ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "66"));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(rcutils_set_env("ROS_DOMAIN_ID", NULL), true);
+  });
+
+  // Create new context
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
+    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
+  });
+
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node, "test_graph", "", &context, &node_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
+  });
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_init(
+    &wait_set, 0, 1, 0, 0, 0, 0, &context, rcl_get_default_allocator());
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
+  });
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   const rcl_guard_condition_t * graph_guard_condition =
-    rcl_node_get_graph_guard_condition(this->node_ptr);
-  ASSERT_NE(nullptr, graph_guard_condition) << rcl_get_error_string().str;
-  std::shared_future<bool> future = topic_changes_promise.get_future();
-  size_t graph_changes_count = 0;
-  // while the topic thread is not done, wait and count the graph changes
-  while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
-    ret = rcl_wait_set_clear(this->wait_set_ptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition, NULL);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(400);
-    RCUTILS_LOG_INFO_NAMED(
-      ROS_PACKAGE_NAME,
-      "waiting up to '%s' nanoseconds for graph changes",
-      std::to_string(time_to_sleep.count()).c_str());
-    ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
-    if (ret == RCL_RET_TIMEOUT) {
-      continue;
-    }
-    graph_changes_count++;
-  }
-  topic_thread.join();
-  // expect at least 4 changes
-  ASSERT_GE(graph_changes_count, 4ul);
+    rcl_node_get_graph_guard_condition(&node);
+
+  auto wait_check_func =
+    [&ret, &wait_set, &graph_guard_condition, &time_to_sleep](rcl_ret_t expected) {
+      ret = rcl_wait_set_clear(&wait_set);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      ret = rcl_wait(&wait_set, time_to_sleep.count());
+      ASSERT_EQ(expected, ret) << rcl_get_error_string().str;
+    };
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since creating the publisher
+  rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
+  rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(
+    &pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
+    "/chatter_test_graph_guard_condition_topics", &pub_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since destroying the publisher
+  ret = rcl_publisher_fini(&pub, &node);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since creating the subscription
+  rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(
+    &sub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
+    "/chatter_test_graph_guard_condition_topics", &sub_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since destroying the subscription
+  ret = rcl_subscription_fini(&sub, &node);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since creating service
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  ret = rcl_service_init(
+    &service,
+    &node,
+    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes),
+    "test_graph_guard_condition_service",
+    &service_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since destroy service
+  ret = rcl_service_fini(&service, &node);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since creating client
+  rcl_client_t client = rcl_get_zero_initialized_client();
+  rcl_client_options_t client_options = rcl_client_get_default_options();
+  ret = rcl_client_init(
+    &client,
+    &node,
+    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes),
+    "test_graph_guard_condition_service",
+    &client_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since destroying client
+  ret = rcl_client_fini(&client, &node);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since adding new node
+  rcl_node_t node_new = rcl_get_zero_initialized_node();
+  ret = rcl_node_init(&node_new, "test_graph2", "", &context, &node_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Graph change since destroying new node
+  ret = rcl_node_fini(&node_new);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  wait_check_func(RCL_RET_OK);
+
+  // Should not get graph change
+  wait_check_func(RCL_RET_TIMEOUT);
 }
 
 /* Test the rcl_service_server_is_available function.
