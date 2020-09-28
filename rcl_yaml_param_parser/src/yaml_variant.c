@@ -45,6 +45,7 @@
       dest_array->values = allocator.allocate( \
         sizeof(var_type) * src_array->size, allocator.state); \
       if (NULL == dest_array->values) { \
+        allocator.deallocate(dest_array, allocator.state); \
         RCUTILS_SAFE_FWRITE_TO_STDERR( \
           "Error allocating mem for array values of type " #var_type "\n"); \
         return false; \

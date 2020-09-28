@@ -15,6 +15,7 @@
 #define RCL_YAML_PARAM_PARSER__TYPES_H_
 
 #include "rcutils/allocator.h"
+#include "rcutils/types/hash_map.h"
 #include "rcutils/types/string_array.h"
 
 /// Array of bool values
@@ -89,10 +90,8 @@ typedef struct rcl_variant_s
 */
 typedef struct rcl_node_params_s
 {
-  char ** parameter_names;  ///< Array of parameter names (keys)
-  rcl_variant_t * parameter_values;  ///< Array of coressponding parameter values
-  size_t num_params;  ///< Number of parameters in the node
-  size_t capacity_params;  ///< Capacity of parameters in the node
+  /// Hash map of parameter names (keys) and parameter values pointer
+  rcutils_hash_map_t node_params_map;
 } rcl_node_params_t;
 
 /// stores all the parameters of all nodes of a process
@@ -101,11 +100,10 @@ typedef struct rcl_node_params_s
 */
 typedef struct rcl_params_s
 {
-  char ** node_names;  ///< List of names of the node
-  rcl_node_params_t * params;  ///<  Array of parameters
-  size_t num_nodes;       ///< Number of nodes
-  size_t capacity_nodes;  ///< Capacity of nodes
-  rcutils_allocator_t allocator;  ///< Allocator used
+  /// Hash map of node names (keys) and node parameter values pointer
+  rcutils_hash_map_t params_map;
+  /// Allocator used
+  rcutils_allocator_t allocator;
 } rcl_params_t;
 
 #endif  // RCL_YAML_PARAM_PARSER__TYPES_H_

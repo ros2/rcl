@@ -63,78 +63,21 @@ rcl_params_t * rcl_yaml_node_struct_init_with_capacity(
 
   params_st->allocator = allocator;
 
-  params_st->node_names = allocator.zero_allocate(
-    capacity, sizeof(char *), allocator.state);
-  if (NULL == params_st->node_names) {
-    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for parameter node names");
+  rcutils_hash_map_t map = rcutils_get_zero_initialized_hash_map();
+  rcutils_ret_t ret = rcutils_hash_map_init(
+    &map, capacity, sizeof(char *), sizeof(rcl_node_params_t *),
+    rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, &allocator);
+  if (RCUTILS_RET_OK != ret) {
+    RCUTILS_SET_ERROR_MSG("Failed to initialize hash map for parameters");
     goto clean;
   }
 
-  params_st->params = allocator.zero_allocate(
-    capacity, sizeof(rcl_node_params_t), allocator.state);
-  if (NULL == params_st->params) {
-    allocator.deallocate(params_st->node_names, allocator.state);
-    params_st->node_names = NULL;
-    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for parameter values");
-    goto clean;
-  }
-
-  params_st->num_nodes = 0U;
-  params_st->capacity_nodes = capacity;
+  params_st->params_map = map;
   return params_st;
 
 clean:
   allocator.deallocate(params_st, allocator.state);
   return NULL;
-}
-
-rcutils_ret_t rcl_yaml_node_struct_reallocate(
-  rcl_params_t * params_st,
-  size_t new_capacity,
-  const rcutils_allocator_t allocator)
-{
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
-    &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
-  // invalid if new_capacity is less than num_nodes
-  if (new_capacity < params_st->num_nodes) {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "new capacity '%zu' must be greater than or equal to '%zu'",
-      new_capacity,
-      params_st->num_nodes);
-    return RCUTILS_RET_INVALID_ARGUMENT;
-  }
-
-  void * node_names = allocator.reallocate(
-    params_st->node_names, new_capacity * sizeof(char *), allocator.state);
-  if (NULL == node_names) {
-    RCUTILS_SET_ERROR_MSG("Failed to reallocate memory for parameter node names");
-    return RCUTILS_RET_BAD_ALLOC;
-  }
-  params_st->node_names = node_names;
-  // zero initialization for the added memory
-  if (new_capacity > params_st->capacity_nodes) {
-    memset(
-      params_st->node_names + params_st->capacity_nodes, 0,
-      (new_capacity - params_st->capacity_nodes) * sizeof(char *));
-  }
-
-  void * params = allocator.reallocate(
-    params_st->params, new_capacity * sizeof(rcl_node_params_t), allocator.state);
-  if (NULL == params) {
-    RCUTILS_SET_ERROR_MSG("Failed to reallocate memory for parameter values");
-    return RCUTILS_RET_BAD_ALLOC;
-  }
-  params_st->params = params;
-  // zero initialization for the added memory
-  if (new_capacity > params_st->capacity_nodes) {
-    memset(
-      &params_st->params[params_st->capacity_nodes], 0,
-      (new_capacity - params_st->capacity_nodes) * sizeof(rcl_node_params_t));
-  }
-
-  params_st->capacity_nodes = new_capacity;
-  return RCUTILS_RET_OK;
 }
 
 ///
@@ -145,57 +88,94 @@ rcl_params_t * rcl_yaml_node_struct_copy(
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, NULL);
 
-  rcutils_allocator_t allocator = params_st->allocator;
-  rcl_params_t * out_params_st = rcl_yaml_node_struct_init_with_capacity(
-    params_st->capacity_nodes,
-    allocator);
-
-  if (NULL == out_params_st) {
-    RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
+  size_t capacity;
+  rcutils_ret_t ret;
+  ret = rcutils_hash_map_get_capacity(&params_st->params_map, &capacity);
+  if (RCUTILS_RET_OK != ret) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Error getting capacity from a hash map\n");
     return NULL;
   }
 
-  rcutils_ret_t ret;
-  for (size_t node_idx = 0U; node_idx < params_st->num_nodes; ++node_idx) {
-    out_params_st->node_names[node_idx] =
-      rcutils_strdup(params_st->node_names[node_idx], allocator);
-    if (NULL == out_params_st->node_names[node_idx]) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
+  rcutils_allocator_t allocator = params_st->allocator;
+  rcl_params_t * out_params_st = rcl_yaml_node_struct_init_with_capacity(
+    capacity,
+    allocator);
+
+  if (NULL == out_params_st) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating memory for parameter\n");
+    return NULL;
+  }
+
+  char * node_name = NULL;
+  rcl_node_params_t * node_param = NULL;
+  char * out_node_name = NULL;
+  rcl_node_params_t * out_node_param = NULL;
+  ret = rcutils_hash_map_get_next_key_and_data(
+    &params_st->params_map, NULL, &node_name, &node_param);
+  while (RCUTILS_RET_OK == ret) {
+    if (node_name == NULL || node_param == NULL) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error getting invalid key and data\n");
+      break;
+    }
+
+    out_node_name = rcutils_strdup(node_name, allocator);
+    if (out_node_name == NULL) {
       goto fail;
     }
-    out_params_st->num_nodes++;
 
-    rcl_node_params_t * node_params_st = &(params_st->params[node_idx]);
-    rcl_node_params_t * out_node_params_st = &(out_params_st->params[node_idx]);
+    ret = rcutils_hash_map_get_capacity(&node_param->node_params_map, &capacity);
+    if (RCUTILS_RET_OK != ret) {
+      goto fail;
+    }
+
+    out_node_param = allocator.allocate(
+      sizeof(rcl_node_params_t), allocator.state);
+    if (NULL == out_node_param) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating memory for parameter values");
+      goto fail;
+    }
+
     ret = node_params_init_with_capacity(
-      out_node_params_st,
-      node_params_st->capacity_params,
+      out_node_param,
+      capacity,
       allocator);
     if (RCUTILS_RET_OK != ret) {
-      if (RCUTILS_RET_BAD_ALLOC == ret) {
-        RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
-      }
       goto fail;
     }
-    for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params; ++parameter_idx) {
-      out_node_params_st->parameter_names[parameter_idx] =
-        rcutils_strdup(node_params_st->parameter_names[parameter_idx], allocator);
-      if (NULL == out_node_params_st->parameter_names[parameter_idx]) {
-        RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
-        goto fail;
-      }
-      out_node_params_st->num_params++;
 
-      const rcl_variant_t * param_var = &(node_params_st->parameter_values[parameter_idx]);
-      rcl_variant_t * out_param_var = &(out_node_params_st->parameter_values[parameter_idx]);
-      if (!rcl_yaml_variant_copy(out_param_var, param_var, allocator)) {
-        goto fail;
-      }
+    ret = node_params_copy(node_param, out_node_param, allocator);
+    if (RCUTILS_RET_OK != ret) {
+      goto after_init;
     }
+
+    ret = rcutils_hash_map_set(&out_params_st->params_map, &out_node_name, &out_node_param);
+    if (ret != RCUTILS_RET_OK) {
+      goto after_init;
+    }
+
+    out_node_name = NULL;
+    out_node_param = NULL;
+    ret = rcutils_hash_map_get_next_key_and_data(
+      &params_st->params_map, &node_name, &node_name, &node_param);
   }
+
+  if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != ret) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to get next item for node parameters");
+    goto fail;
+  }
+
   return out_params_st;
 
+after_init:
+  rcl_yaml_node_params_fini(out_node_param, allocator);
+
 fail:
+  if (out_node_param) {
+    allocator.deallocate(out_node_param, allocator.state);
+  }
+  if (out_node_name) {
+    allocator.deallocate(out_node_name, allocator.state);
+  }
   rcl_yaml_node_struct_fini(out_params_st);
   return NULL;
 }
@@ -213,29 +193,35 @@ void rcl_yaml_node_struct_fini(
   }
   rcutils_allocator_t allocator = params_st->allocator;
 
-  if (NULL != params_st->node_names) {
-    for (size_t node_idx = 0U; node_idx < params_st->num_nodes; node_idx++) {
-      char * node_name = params_st->node_names[node_idx];
-      if (NULL != node_name) {
-        allocator.deallocate(node_name, allocator.state);
-      }
+  char * node_name = NULL;
+  rcl_node_params_t * node_parameter = NULL;
+  rcutils_ret_t ret = rcutils_hash_map_get_next_key_and_data(
+    &params_st->params_map, NULL, &node_name, &node_parameter);
+  while (RCUTILS_RET_OK == ret) {
+    rcl_yaml_node_params_fini(node_parameter, allocator);
+    ret = rcutils_hash_map_unset(&params_st->params_map, &node_name);
+    if (ret != RCUTILS_RET_OK) {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Failed to unset key '%s' hash map for node parameters", node_name);
+      return;
     }
 
-    allocator.deallocate(params_st->node_names, allocator.state);
-    params_st->node_names = NULL;
+    allocator.deallocate(node_name, allocator.state);      // we use duplicate key, must delete it
+    allocator.deallocate(node_parameter, allocator.state);
+    ret = rcutils_hash_map_get_next_key_and_data(
+      &params_st->params_map, NULL, &node_name, &node_parameter);
+  }
+  if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != ret) {
+    RCUTILS_SET_ERROR_MSG("Failed to get next item for node parameters");
+    return;
   }
 
-  if (NULL != params_st->params) {
-    for (size_t node_idx = 0U; node_idx < params_st->num_nodes; node_idx++) {
-      rcl_yaml_node_params_fini(&(params_st->params[node_idx]), allocator);
-    }  // for (node_idx)
+  ret = rcutils_hash_map_fini(&params_st->params_map);
+  if (RCUTILS_RET_OK != ret) {
+    RCUTILS_SET_ERROR_MSG("Failed to deallocate hash map");
+    return;
+  }
 
-    allocator.deallocate(params_st->params, allocator.state);
-    params_st->params = NULL;
-  }  // if (params)
-
-  params_st->num_nodes = 0U;
-  params_st->capacity_nodes = 0U;
   allocator.deallocate(params_st, allocator.state);
 }
 
@@ -314,14 +300,8 @@ bool rcl_parse_yaml_value(
     return false;
   }
 
-  size_t node_idx = 0U;
-  rcutils_ret_t ret = find_node(node_name, params_st, &node_idx);
-  if (RCUTILS_RET_OK != ret) {
-    return false;
-  }
-
-  size_t parameter_idx = 0U;
-  ret = find_parameter(node_idx, param_name, params_st, &parameter_idx);
+  rcl_node_params_t * node_params_st = NULL;
+  rcutils_ret_t ret = find_node(node_name, params_st, &node_params_st);
   if (RCUTILS_RET_OK != ret) {
     return false;
   }
@@ -336,7 +316,7 @@ bool rcl_parse_yaml_value(
   yaml_parser_set_input_string(
     &parser, (const unsigned char *)yaml_value, strlen(yaml_value));
 
-  ret = parse_value_events(&parser, node_idx, parameter_idx, params_st);
+  ret = parse_value_events(&parser, node_params_st, param_name, params_st);
 
   yaml_parser_delete(&parser);
 
@@ -352,18 +332,16 @@ rcl_variant_t * rcl_yaml_node_struct_get(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_name, NULL);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, NULL);
 
-  rcl_variant_t * param_value = NULL;
-
-  size_t node_idx = 0U;
-  rcutils_ret_t ret = find_node(node_name, params_st, &node_idx);
+  rcl_node_params_t * node_param = NULL;
+  rcutils_ret_t ret = find_node(node_name, params_st, &node_param);
   if (RCUTILS_RET_OK == ret) {
-    size_t parameter_idx = 0U;
-    ret = find_parameter(node_idx, param_name, params_st, &parameter_idx);
+    rcl_variant_t * param_value = NULL;
+    ret = find_parameter(node_param, param_name, &param_value, params_st->allocator);
     if (RCUTILS_RET_OK == ret) {
-      param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
+      return param_value;
     }
   }
-  return param_value;
+  return NULL;
 }
 
 ///
@@ -377,73 +355,76 @@ void rcl_yaml_node_struct_print(
   }
 
   printf("\n Node Name\t\t\t\tParameters\n");
-  for (size_t node_idx = 0U; node_idx < params_st->num_nodes; node_idx++) {
-    int32_t param_col = 50;
-    const char * const node_name = params_st->node_names[node_idx];
+  int32_t param_col = 50;
+  char * node_name = NULL;
+  rcl_node_params_t * node_param = NULL;
+  rcutils_ret_t ret = rcutils_hash_map_get_next_key_and_data(
+    &params_st->params_map, NULL, &node_name, &node_param);
+  while (RCUTILS_RET_OK == ret) {
     if (NULL != node_name) {
       printf("%s\n", node_name);
     }
 
-    if (NULL != params_st->params) {
-      rcl_node_params_t * node_params_st = &(params_st->params[node_idx]);
-      for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params; parameter_idx++) {
-        if (
-          (NULL != node_params_st->parameter_names) &&
-          (NULL != node_params_st->parameter_values))
-        {
-          char * param_name = node_params_st->parameter_names[parameter_idx];
-          rcl_variant_t * param_var = &(node_params_st->parameter_values[parameter_idx]);
-          if (NULL != param_name) {
-            printf("%*s", param_col, param_name);
-          }
+    char * param_name = NULL;
+    rcl_variant_t * param_value = NULL;
+    ret = rcutils_hash_map_get_next_key_and_data(
+      &node_param->node_params_map, NULL, &param_name, &param_value);
+    while (RCUTILS_RET_OK == ret) {
+      if (NULL != param_name) {
+        printf("%*s", param_col, param_name);
+      }
 
-          if (NULL != param_var) {
-            if (NULL != param_var->bool_value) {
-              printf(": %s\n", *(param_var->bool_value) ? "true" : "false");
-            } else if (NULL != param_var->integer_value) {
-              printf(": %" PRId64 "\n", *(param_var->integer_value));
-            } else if (NULL != param_var->double_value) {
-              printf(": %lf\n", *(param_var->double_value));
-            } else if (NULL != param_var->string_value) {
-              printf(": %s\n", param_var->string_value);
-            } else if (NULL != param_var->bool_array_value) {
-              printf(": ");
-              for (size_t i = 0; i < param_var->bool_array_value->size; i++) {
-                if (param_var->bool_array_value->values) {
-                  printf(
-                    "%s, ",
-                    (param_var->bool_array_value->values[i]) ? "true" : "false");
-                }
-              }
-              printf("\n");
-            } else if (NULL != param_var->integer_array_value) {
-              printf(": ");
-              for (size_t i = 0; i < param_var->integer_array_value->size; i++) {
-                if (param_var->integer_array_value->values) {
-                  printf("%" PRId64 ", ", param_var->integer_array_value->values[i]);
-                }
-              }
-              printf("\n");
-            } else if (NULL != param_var->double_array_value) {
-              printf(": ");
-              for (size_t i = 0; i < param_var->double_array_value->size; i++) {
-                if (param_var->double_array_value->values) {
-                  printf("%lf, ", param_var->double_array_value->values[i]);
-                }
-              }
-              printf("\n");
-            } else if (NULL != param_var->string_array_value) {
-              printf(": ");
-              for (size_t i = 0; i < param_var->string_array_value->size; i++) {
-                if (param_var->string_array_value->data[i]) {
-                  printf("%s, ", param_var->string_array_value->data[i]);
-                }
-              }
-              printf("\n");
+      if (NULL != param_value) {
+        if (NULL != param_value->bool_value) {
+          printf(": %s\n", *(param_value->bool_value) ? "true" : "false");
+        } else if (NULL != param_value->integer_value) {
+          printf(": %" PRId64 "\n", *(param_value->integer_value));
+        } else if (NULL != param_value->double_value) {
+          printf(": %lf\n", *(param_value->double_value));
+        } else if (NULL != param_value->string_value) {
+          printf(": %s\n", param_value->string_value);
+        } else if (NULL != param_value->bool_array_value) {
+          printf(": ");
+          for (size_t i = 0; i < param_value->bool_array_value->size; i++) {
+            if (param_value->bool_array_value->values) {
+              printf(
+                "%s, ",
+                (param_value->bool_array_value->values[i]) ? "true" : "false");
             }
           }
+          printf("\n");
+        } else if (NULL != param_value->integer_array_value) {
+          printf(": ");
+          for (size_t i = 0; i < param_value->integer_array_value->size; i++) {
+            if (param_value->integer_array_value->values) {
+              printf("%" PRId64 ", ", param_value->integer_array_value->values[i]);
+            }
+          }
+          printf("\n");
+        } else if (NULL != param_value->double_array_value) {
+          printf(": ");
+          for (size_t i = 0; i < param_value->double_array_value->size; i++) {
+            if (param_value->double_array_value->values) {
+              printf("%lf, ", param_value->double_array_value->values[i]);
+            }
+          }
+          printf("\n");
+        } else if (NULL != param_value->string_array_value) {
+          printf(": ");
+          for (size_t i = 0; i < param_value->string_array_value->size; i++) {
+            if (param_value->string_array_value->data[i]) {
+              printf("%s, ", param_value->string_array_value->data[i]);
+            }
+          }
+          printf("\n");
         }
       }
+
+      ret = rcutils_hash_map_get_next_key_and_data(
+        &node_param->node_params_map, &param_name, &param_name, &param_value);
     }
+
+    ret = rcutils_hash_map_get_next_key_and_data(
+      &params_st->params_map, &node_name, &node_name, &node_param);
   }
 }

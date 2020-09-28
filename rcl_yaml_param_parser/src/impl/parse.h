@@ -41,8 +41,8 @@ RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_value(
   const yaml_event_t event,
   const bool is_seq,
-  const size_t node_idx,
-  const size_t parameter_idx,
+  rcl_node_params_t * node_params_st,
+  const char * parameter_name,
   data_types_t * seq_data_type,
   rcl_params_t * params_st);
 
@@ -52,8 +52,8 @@ rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
-  size_t * node_idx,
-  size_t * parameter_idx,
+  rcl_node_params_t ** node_params_st,
+  char ** parameter_name,
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st);
 
@@ -68,8 +68,8 @@ RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_value_events(
   yaml_parser_t * parser,
-  const size_t node_idx,
-  const size_t parameter_idx,
+  rcl_node_params_t * node_params_st,
+  const char * parameter_name,
   rcl_params_t * params_st);
 
 RCL_YAML_PARAM_PARSER_PUBLIC
@@ -77,15 +77,15 @@ RCUTILS_WARN_UNUSED
 rcutils_ret_t find_node(
   const char * node_name,
   rcl_params_t * param_st,
-  size_t * node_idx);
+  rcl_node_params_t ** node_param_st);
 
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t find_parameter(
-  const size_t node_idx,
+  rcl_node_params_t * node_params_st,
   const char * parameter_name,
-  rcl_params_t * param_st,
-  size_t * parameter_idx);
+  rcl_variant_t ** parameter_value,
+  rcutils_allocator_t allocator);
 
 #ifdef __cplusplus
 }

@@ -290,8 +290,21 @@ TEST(test_file_parser, root_ns) {
   rcl_yaml_node_struct_print(params_hdl);
   // Check that there is only one forward slash in the node's FQN.
   // (Regression test for https://github.com/ros2/rcl/pull/299).
-  EXPECT_EQ(1u, params_hdl->num_nodes);
-  EXPECT_STREQ("/my_node", params_hdl->node_names[0]);
+
+  size_t node_size;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get_size(&params_hdl->params_map, &node_size)) <<
+    rcutils_get_error_string().str;
+  ASSERT_EQ(1u, node_size);
+  const char * node_name = "/my_node";
+  EXPECT_TRUE(rcutils_hash_map_key_exists(&params_hdl->params_map, &node_name));
+  rcl_node_params_t * node_param;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&params_hdl->params_map, &node_name, &node_param)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, node_param);
 }
 
 TEST(test_file_parser, seq_map1) {

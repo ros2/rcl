@@ -40,12 +40,8 @@ TEST(RclYamlParamParser, node_init_fini) {
   // This cleans up after itself if it fails so no need to call fini()
   EXPECT_EQ(rcl_yaml_node_struct_init(allocator), nullptr);
 
-  // Bad alloc of params_st->node_names
-  set_time_bomb_allocator_calloc_count(allocator, 1);
-  EXPECT_EQ(rcl_yaml_node_struct_init(allocator), nullptr);
-
-  // Bad alloc of params_st->params
-  set_time_bomb_allocator_calloc_count(allocator, 2);
+  // Bad alloc of a temporary hash map
+  set_time_bomb_allocator_malloc_count(allocator, 0);
   EXPECT_EQ(rcl_yaml_node_struct_init(allocator), nullptr);
 
   // Check this doesn't die.
@@ -57,8 +53,6 @@ TEST(RclYamlParamParser, node_init_with_capacity_fini) {
 
   rcl_params_t * params_st = rcl_yaml_node_struct_init_with_capacity(1024, allocator);
   ASSERT_NE(params_st, nullptr);
-  EXPECT_EQ(0U, params_st->num_nodes);
-  EXPECT_EQ(1024U, params_st->capacity_nodes);
   rcl_yaml_node_struct_fini(params_st);
 
   allocator = get_time_bomb_allocator();
@@ -67,29 +61,12 @@ TEST(RclYamlParamParser, node_init_with_capacity_fini) {
   // This cleans up after itself if it fails so no need to call fini()
   EXPECT_EQ(rcl_yaml_node_struct_init_with_capacity(1024, allocator), nullptr);
 
-  // Bad alloc of params_st->node_names
-  set_time_bomb_allocator_calloc_count(allocator, 1);
-  EXPECT_EQ(rcl_yaml_node_struct_init_with_capacity(1024, allocator), nullptr);
-
-  // Bad alloc of params_st->params
-  set_time_bomb_allocator_calloc_count(allocator, 2);
+  // Bad alloc of a temporary hash map
+  set_time_bomb_allocator_malloc_count(allocator, 0);
   EXPECT_EQ(rcl_yaml_node_struct_init_with_capacity(1024, allocator), nullptr);
 
   // Check this doesn't die.
   rcl_yaml_node_struct_fini(nullptr);
-}
-
-TEST(RclYamlParamParser, reallocate_node_init_with_capacity_fini) {
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-
-  rcl_params_t * params_st = rcl_yaml_node_struct_init_with_capacity(1024, allocator);
-  ASSERT_NE(params_st, nullptr);
-  EXPECT_EQ(0U, params_st->num_nodes);
-  EXPECT_EQ(1024U, params_st->capacity_nodes);
-  EXPECT_EQ(RCUTILS_RET_OK, rcl_yaml_node_struct_reallocate(params_st, 2048, allocator));
-  EXPECT_EQ(0U, params_st->num_nodes);
-  EXPECT_EQ(2048U, params_st->capacity_nodes);
-  rcl_yaml_node_struct_fini(params_st);
 }
 
 TEST(RclYamlParamParser, node_copy) {
@@ -99,10 +76,23 @@ TEST(RclYamlParamParser, node_copy) {
 
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(nullptr));
 
-  const char node_name[] = "node name";
-  const char param_name[] = "param name";
-  const char yaml_value[] = "true";
+  const char * node_name = "node name";
+  const char * param_name = "param name";
+  const char * yaml_value = "true";
   EXPECT_TRUE(rcl_parse_yaml_value(node_name, param_name, yaml_value, params_st));
+
+  rcl_node_params_t * node_param = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&params_st->params_map, &node_name, &node_param)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, node_param);
+
+  rcl_variant_t * param_value = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&node_param->node_params_map, &param_name, &param_value)) <<
+    rcutils_get_error_string().str;
 
   rcl_params_t * copy = rcl_yaml_node_struct_copy(params_st);
   EXPECT_NE(copy, nullptr);
@@ -114,10 +104,7 @@ TEST(RclYamlParamParser, node_copy) {
   set_time_bomb_allocator_calloc_count(params_st->allocator, 0);
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
 
-  set_time_bomb_allocator_calloc_count(params_st->allocator, 1);
-  EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
-
-  constexpr int expected_num_calloc_calls = 5;
+  constexpr int expected_num_calloc_calls = 1;
   for (int i = 0; i < expected_num_calloc_calls; ++i) {
     // Check various locations for allocation failures
     set_time_bomb_allocator_calloc_count(params_st->allocator, i);
@@ -132,52 +119,40 @@ TEST(RclYamlParamParser, node_copy) {
   // Reset calloc countdown
   set_time_bomb_allocator_calloc_count(params_st->allocator, -1);
 
-  constexpr int expected_num_malloc_calls = 3;
-  for (int i = 0; i < expected_num_malloc_calls; ++i) {
-    set_time_bomb_allocator_malloc_count(params_st->allocator, i);
-    EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
-  }
-
-  // Check that the expected number of malloc calls occur
-  set_time_bomb_allocator_malloc_count(params_st->allocator, expected_num_malloc_calls);
-  copy = rcl_yaml_node_struct_copy(params_st);
-  EXPECT_NE(nullptr, copy);
-  rcl_yaml_node_struct_fini(copy);
-
   constexpr int num_malloc_calls_until_copy_param = 2;
 
   // Check integer value
   int64_t temp_int = 42;
-  if (params_st->params->parameter_values[0].bool_value != nullptr) {
+  if (param_value->bool_value != nullptr) {
     // Since this bool was allocated above in rcl_parse_yaml_value, it needs to be freed.
     params_st->allocator.deallocate(
-      params_st->params->parameter_values[0].bool_value, params_st->allocator.state);
-    params_st->params->parameter_values[0].bool_value = nullptr;
+      param_value->bool_value, params_st->allocator.state);
+    param_value->bool_value = nullptr;
   }
   set_time_bomb_allocator_malloc_count(params_st->allocator, num_malloc_calls_until_copy_param);
-  params_st->params->parameter_values[0].integer_value = &temp_int;
+  param_value->integer_value = &temp_int;
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
-  params_st->params->parameter_values[0].integer_value = nullptr;
+  param_value->integer_value = nullptr;
 
   // Check double value
   double temp_double = 42.0;
   set_time_bomb_allocator_malloc_count(params_st->allocator, num_malloc_calls_until_copy_param);
-  params_st->params->parameter_values[0].double_value = &temp_double;
+  param_value->double_value = &temp_double;
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
-  params_st->params->parameter_values[0].double_value = nullptr;
+  param_value->double_value = nullptr;
 
   // Check string value
   char temp_string[] = "stringy string";
   set_time_bomb_allocator_malloc_count(params_st->allocator, num_malloc_calls_until_copy_param);
-  params_st->params->parameter_values[0].string_value = temp_string;
+  param_value->string_value = temp_string;
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
-  params_st->params->parameter_values[0].string_value = nullptr;
+  param_value->string_value = nullptr;
 
   // Check bool_array_value array pointer is allocated
   bool bool_array[] = {true};
   rcl_bool_array_s temp_bool_array = {bool_array, 1};
   set_time_bomb_allocator_malloc_count(params_st->allocator, num_malloc_calls_until_copy_param);
-  params_st->params->parameter_values[0].bool_array_value = &temp_bool_array;
+  param_value->bool_array_value = &temp_bool_array;
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
 
   // Check bool_array_value->values is allocated
@@ -187,18 +162,30 @@ TEST(RclYamlParamParser, node_copy) {
 
   // Check bool_array_value->values is set to null if size is 0
   set_time_bomb_allocator_malloc_count(params_st->allocator, -1);
-  params_st->params->parameter_values[0].bool_array_value->size = 0u;
+  param_value->bool_array_value->size = 0u;
   copy = rcl_yaml_node_struct_copy(params_st);
   EXPECT_NE(nullptr, copy);
-  EXPECT_EQ(nullptr, copy->params->parameter_values[0].bool_array_value->values);
+  rcl_node_params_t * copy_node_param = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&copy->params_map, &node_name, &copy_node_param)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, copy_node_param);
+  rcl_variant_t * copy_param_value = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&copy_node_param->node_params_map, &param_name, &copy_param_value)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, copy_param_value);
+  EXPECT_EQ(nullptr, copy_param_value->bool_array_value->values);
   rcl_yaml_node_struct_fini(copy);
-  params_st->params->parameter_values[0].bool_array_value = nullptr;
+  param_value->bool_array_value = nullptr;
 
   // Check integer_array array pointer is allocated
   int64_t integer_array[] = {42};
   rcl_int64_array_s temp_integer_array = {integer_array, 1};
   set_time_bomb_allocator_malloc_count(params_st->allocator, num_malloc_calls_until_copy_param);
-  params_st->params->parameter_values[0].integer_array_value = &temp_integer_array;
+  param_value->integer_array_value = &temp_integer_array;
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
 
   // Check integer_array->values is allocated
@@ -207,40 +194,66 @@ TEST(RclYamlParamParser, node_copy) {
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
 
   // Check integer_array->values is set to null if size is 0
-  params_st->params->parameter_values[0].integer_array_value->size = 0u;
+  param_value->integer_array_value->size = 0u;
   copy = rcl_yaml_node_struct_copy(params_st);
   EXPECT_NE(nullptr, copy);
-  EXPECT_EQ(nullptr, copy->params->parameter_values[0].integer_array_value->values);
+  copy_node_param = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&copy->params_map, &node_name, &copy_node_param)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, copy_node_param);
+  copy_param_value = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&copy_node_param->node_params_map, &param_name, &copy_param_value)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, copy_param_value);
+
+  EXPECT_EQ(nullptr, copy_param_value->integer_array_value->values);
   rcl_yaml_node_struct_fini(copy);
-  params_st->params->parameter_values[0].integer_array_value = nullptr;
+  param_value->integer_array_value = nullptr;
 
 
   double double_array[] = {42.0};
   rcl_double_array_s temp_double_array = {double_array, 1};
   set_time_bomb_allocator_malloc_count(params_st->allocator, num_malloc_calls_until_copy_param);
-  params_st->params->parameter_values[0].double_array_value = &temp_double_array;
+  param_value->double_array_value = &temp_double_array;
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
 
   set_time_bomb_allocator_malloc_count(
     params_st->allocator, num_malloc_calls_until_copy_param + 1);
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
 
-  params_st->params->parameter_values[0].double_array_value->size = 0u;
+  param_value->double_array_value->size = 0u;
   copy = rcl_yaml_node_struct_copy(params_st);
   EXPECT_NE(nullptr, copy);
-  EXPECT_EQ(nullptr, copy->params->parameter_values[0].double_array_value->values);
+  copy_node_param = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&copy->params_map, &node_name, &copy_node_param)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, copy_node_param);
+  copy_param_value = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&copy_node_param->node_params_map, &param_name, &copy_param_value)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, copy_param_value);
+
+  EXPECT_EQ(nullptr, copy_param_value->double_array_value->values);
   rcl_yaml_node_struct_fini(copy);
-  params_st->params->parameter_values[0].double_array_value = nullptr;
+  param_value->double_array_value = nullptr;
 
   char s[] = "stringy string";
   char * string_array[] = {s};
   rcutils_string_array_t temp_string_array = {1, string_array, allocator};
   set_time_bomb_allocator_malloc_count(params_st->allocator, num_malloc_calls_until_copy_param);
-  params_st->params->parameter_values[0].string_array_value = &temp_string_array;
+  param_value->string_array_value = &temp_string_array;
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
-  params_st->params->parameter_values[0].string_array_value = nullptr;
+  param_value->string_array_value = nullptr;
 
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 1; ++i) {
     set_time_bomb_allocator_calloc_count(params_st->allocator, i);
     EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
   }
@@ -285,20 +298,16 @@ TEST(RclYamlParamParser, test_parse_yaml_value) {
   EXPECT_FALSE(rcl_parse_yaml_value(node_name, empty_string, yaml_value, params_st));
   EXPECT_FALSE(rcl_parse_yaml_value(node_name, param_name, empty_string, params_st));
 
-  // Check allocating params_st->node_names[*node_idx] fails
+  // Check allocating node_name fails
   params_st->allocator = get_time_bomb_allocator();
   set_time_bomb_allocator_malloc_count(params_st->allocator, 0);
   EXPECT_FALSE(rcl_parse_yaml_value(node_name, param_name, yaml_value, params_st));
 
-  // Check allocating node_params->parameter_names fails
+  // Check allocating a temporary hash map for rcl_node_params_t fails
   allocator = get_time_bomb_allocator();
-  set_time_bomb_allocator_calloc_count(params_st->allocator, 0);
+  set_time_bomb_allocator_malloc_count(params_st->allocator, 1);
   EXPECT_FALSE(rcl_parse_yaml_value(node_name, param_name, yaml_value, params_st));
-
-  // Check allocating node_params->parameter_values fails
-  allocator = get_time_bomb_allocator();
-  set_time_bomb_allocator_calloc_count(params_st->allocator, 1);
-  EXPECT_FALSE(rcl_parse_yaml_value(node_name, param_name, yaml_value, params_st));
+  // Ignore checking bomb allocator for rcutils_hash_map_set internal
 
   allocator = rcutils_get_default_allocator();
   EXPECT_TRUE(rcl_parse_yaml_value(node_name, param_name, yaml_value, params_st));
@@ -318,8 +327,11 @@ TEST(RclYamlParamParser, test_yaml_node_struct_get) {
 
   // Check null arguments
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_get(nullptr, param_name, params_st));
+  rcutils_reset_error();
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_get(node_name, nullptr, params_st));
+  rcutils_reset_error();
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_get(node_name, param_name, nullptr));
+  rcutils_reset_error();
 
   rcl_variant_t * result = rcl_yaml_node_struct_get(node_name, param_name, params_st);
   ASSERT_NE(nullptr, result->bool_value);

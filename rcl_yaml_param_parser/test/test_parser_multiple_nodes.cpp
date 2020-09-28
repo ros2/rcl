@@ -52,16 +52,42 @@ TEST(RclYamlParamParserMultipleNodes, multiple_number_nodes) {
     rcl_yaml_node_struct_fini(params_hdl);
   });
   ASSERT_TRUE(rcl_parse_yaml_file(path, params_hdl));
-  ASSERT_EQ(513u, params_hdl->num_nodes);
-  for (size_t i = 0; i < params_hdl->num_nodes; ++i) {
-    EXPECT_EQ("foo_ns/foo_name" + std::to_string(i + 1), params_hdl->node_names[i]);
-    rcl_node_params_t * node_params = &params_hdl->params[i];
-    ASSERT_TRUE(NULL != node_params);
-    ASSERT_EQ(1U, node_params->num_params);
-    EXPECT_EQ("param" + std::to_string(i + 1), node_params->parameter_names[0]);
+
+  size_t node_size;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get_size(&params_hdl->params_map, &node_size)) <<
+    rcutils_get_error_string().str;
+  ASSERT_EQ(513u, node_size);
+
+  for (size_t i = 0; i < node_size; ++i) {
+    std::string name = "foo_ns/foo_name" + std::to_string(i + 1);
+    const char * node_name = name.c_str();
+
+    rcl_node_params_t * node_param = NULL;
+    EXPECT_EQ(
+      RCUTILS_RET_OK,
+      rcutils_hash_map_get(&params_hdl->params_map, &node_name, &node_param)) <<
+      rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != node_param);
+
+    size_t param_size;
+    EXPECT_EQ(
+      RCUTILS_RET_OK,
+      rcutils_hash_map_get_size(&node_param->node_params_map, &param_size)) <<
+      rcutils_get_error_string().str;
+    ASSERT_EQ(1u, param_size);
+
+    name = "param" + std::to_string(i + 1);
+    const char * param_name = name.c_str();
+    rcl_variant_t * param_value = NULL;
+    EXPECT_EQ(
+      RCUTILS_RET_OK,
+      rcutils_hash_map_get(&node_param->node_params_map, &param_name, &param_value)) <<
+      rcutils_get_error_string().str;
     EXPECT_EQ(
       static_cast<int64_t>(i + 1),
-      *node_params->parameter_values[0].integer_value);
+      *param_value->integer_value);
   }
 }
 

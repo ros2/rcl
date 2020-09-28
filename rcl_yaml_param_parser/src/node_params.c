@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rcutils/strdup.h"
+
 #include "./impl/node_params.h"
 #include "./impl/types.h"
 #include "./impl/yaml_variant.h"
@@ -38,74 +40,89 @@ rcutils_ret_t node_params_init_with_capacity(
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
 
-  node_params->parameter_names = allocator.zero_allocate(
-    capacity, sizeof(char *), allocator.state);
-  if (NULL == node_params->parameter_names) {
-    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for node parameter names");
-    return RCUTILS_RET_BAD_ALLOC;
+  rcutils_hash_map_t map = rcutils_get_zero_initialized_hash_map();
+  rcutils_ret_t ret = rcutils_hash_map_init(
+    &map, capacity, sizeof(char *), sizeof(rcl_variant_t *),
+    rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, &allocator);
+  if (RCUTILS_RET_OK != ret) {
+    RCUTILS_SET_ERROR_MSG("Failed to initialize a hash map for node parameters");
+    return ret;
   }
 
-  node_params->parameter_values = allocator.zero_allocate(
-    capacity, sizeof(rcl_variant_t), allocator.state);
-  if (NULL == node_params->parameter_values) {
-    allocator.deallocate(node_params->parameter_names, allocator.state);
-    node_params->parameter_names = NULL;
-    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for node parameter values");
-    return RCUTILS_RET_BAD_ALLOC;
-  }
-
-  node_params->num_params = 0U;
-  node_params->capacity_params = capacity;
+  node_params->node_params_map = map;
   return RCUTILS_RET_OK;
 }
 
-rcutils_ret_t node_params_reallocate(
-  rcl_node_params_t * node_params,
-  size_t new_capacity,
+rcutils_ret_t node_params_copy(
+  const rcl_node_params_t * src,
+  rcl_node_params_t * dest,
   const rcutils_allocator_t allocator)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_params, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(src, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(dest, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
-  // invalid if new_capacity is less than num_params
-  if (new_capacity < node_params->num_params) {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "new capacity '%zu' must be greater than or equal to '%zu'",
-      new_capacity,
-      node_params->num_params);
-    return RCUTILS_RET_INVALID_ARGUMENT;
+
+  char * parameter_name = NULL;
+  rcl_variant_t * parameter_value = NULL;
+  char * param_name = NULL;
+  rcl_variant_t * param_value = NULL;
+  rcutils_ret_t ret = rcutils_hash_map_get_next_key_and_data(
+    &src->node_params_map, NULL, &parameter_name, &parameter_value);
+  while (RCUTILS_RET_OK == ret) {
+    if (parameter_name == NULL || parameter_value == NULL) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error getting a key and data from a hash map\n");
+      ret = RCUTILS_RET_ERROR;
+      goto fail;
+    }
+    param_name = rcutils_strdup(parameter_name, allocator);
+    if (param_name == NULL) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating parameter name\n");
+      ret = RCUTILS_RET_BAD_ALLOC;
+      goto fail;
+    }
+
+    param_value = allocator.allocate(
+      sizeof(rcl_variant_t), allocator.state);
+    if (param_value == NULL) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating parameter value\n");
+      ret = RCUTILS_RET_BAD_ALLOC;
+      goto fail;
+    }
+    memset(param_value, 0, sizeof(rcl_variant_t));
+
+    if (!rcl_yaml_variant_copy(param_value, parameter_value, allocator)) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating parameter value\n");
+      ret = RCUTILS_RET_ERROR;
+      goto fail;
+    }
+
+    ret = rcutils_hash_map_set(&dest->node_params_map, &param_name, &param_value);
+    if (ret != RCUTILS_RET_OK) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error setting a hash map\n");
+      ret = RCUTILS_RET_ERROR;
+      goto after_copy;
+    }
+
+    param_name = NULL;
+    param_value = NULL;
+    ret = rcutils_hash_map_get_next_key_and_data(
+      &src->node_params_map, &parameter_name, &parameter_name, &parameter_value);
   }
 
-  void * parameter_names = allocator.reallocate(
-    node_params->parameter_names, new_capacity * sizeof(char *), allocator.state);
-  if (NULL == parameter_names) {
-    RCUTILS_SET_ERROR_MSG("Failed to reallocate node parameter names");
-    return RCUTILS_RET_BAD_ALLOC;
-  }
-  node_params->parameter_names = parameter_names;
-  // zero initialization for the added memory
-  if (new_capacity > node_params->capacity_params) {
-    memset(
-      node_params->parameter_names + node_params->capacity_params, 0,
-      (new_capacity - node_params->capacity_params) * sizeof(char *));
-  }
-
-  void * parameter_values = allocator.reallocate(
-    node_params->parameter_values, new_capacity * sizeof(rcl_variant_t), allocator.state);
-  if (NULL == parameter_values) {
-    RCUTILS_SET_ERROR_MSG("Failed to reallocate node parameter values");
-    return RCUTILS_RET_BAD_ALLOC;
-  }
-  node_params->parameter_values = parameter_values;
-  // zero initialization for the added memory
-  if (new_capacity > node_params->capacity_params) {
-    memset(
-      &node_params->parameter_values[node_params->capacity_params], 0,
-      (new_capacity - node_params->capacity_params) * sizeof(rcl_variant_t));
-  }
-
-  node_params->capacity_params = new_capacity;
   return RCUTILS_RET_OK;
+
+after_copy:
+  rcl_yaml_variant_fini(param_value, allocator);
+fail:
+  if (param_value) {
+    allocator.deallocate(param_value, allocator.state);
+  }
+  if (param_name) {
+    allocator.deallocate(param_name, allocator.state);
+  }
+
+  return ret;
 }
 
 void rcl_yaml_node_params_fini(
@@ -116,30 +133,33 @@ void rcl_yaml_node_params_fini(
     return;
   }
 
-  if (NULL != node_params_st->parameter_names) {
-    for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params;
-      parameter_idx++)
-    {
-      char * param_name = node_params_st->parameter_names[parameter_idx];
-      if (NULL != param_name) {
-        allocator.deallocate(param_name, allocator.state);
-      }
-    }
-    allocator.deallocate(node_params_st->parameter_names, allocator.state);
-    node_params_st->parameter_names = NULL;
-  }
-
-  if (NULL != node_params_st->parameter_values) {
-    for (size_t parameter_idx = 0U; parameter_idx < node_params_st->num_params;
-      parameter_idx++)
-    {
-      rcl_yaml_variant_fini(&(node_params_st->parameter_values[parameter_idx]), allocator);
+  char * param_name = NULL;
+  rcl_variant_t * param_value = NULL;
+  rcutils_ret_t ret = rcutils_hash_map_get_next_key_and_data(
+    &node_params_st->node_params_map, NULL, &param_name, &param_value);
+  while (RCUTILS_RET_OK == ret) {
+    rcl_yaml_variant_fini(param_value, allocator);
+    ret = rcutils_hash_map_unset(&node_params_st->node_params_map, &param_name);
+    if (RCUTILS_RET_OK != ret) {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Failed to unset key '%s' for hash map of a node parameter", param_name);
+      return;
     }
 
-    allocator.deallocate(node_params_st->parameter_values, allocator.state);
-    node_params_st->parameter_values = NULL;
+    allocator.deallocate(param_name, allocator.state);
+    param_name = NULL;
+    allocator.deallocate(param_value, allocator.state);
+    param_value = NULL;
+    ret = rcutils_hash_map_get_next_key_and_data(
+      &node_params_st->node_params_map, NULL, &param_name, &param_value);
+  }
+  if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != ret) {
+    RCUTILS_SET_ERROR_MSG("Failed to get next item for node parameters");
+    return;
   }
 
-  node_params_st->num_params = 0;
-  node_params_st->capacity_params = 0;
+  ret = rcutils_hash_map_fini(&node_params_st->node_params_map);
+  if (RCUTILS_RET_OK != ret) {
+    RCUTILS_SET_ERROR_MSG("Failed to deallocate hash map of a node parameter");
+  }
 }

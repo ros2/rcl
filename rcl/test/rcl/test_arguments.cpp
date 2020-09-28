@@ -944,7 +944,11 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   {
     rcl_yaml_node_struct_fini(params);
   });
-  EXPECT_EQ(1U, params->num_nodes);
+  size_t num_nodes = 0;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get_size(&params->params_map, &num_nodes));
+  EXPECT_EQ(1U, num_nodes);
 
   rcl_variant_t * param_value =
     rcl_yaml_node_struct_get("some_node", "param_group.string_param", params);
@@ -998,7 +1002,11 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   {
     rcl_yaml_node_struct_fini(params);
   });
-  EXPECT_EQ(2U, params->num_nodes);
+  size_t num_nodes = 0;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get_size(&params->params_map, &num_nodes));
+  EXPECT_EQ(2U, num_nodes);
 
   rcl_variant_t * param_value =
     rcl_yaml_node_struct_get("some_node", "int_param", params);
@@ -1124,7 +1132,11 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
   {
     rcl_yaml_node_struct_fini(params);
   });
-  EXPECT_EQ(2U, params->num_nodes);
+  size_t num_nodes = 0;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get_size(&params->params_map, &num_nodes));
+  EXPECT_EQ(2U, num_nodes);
 
   rcl_variant_t * param_value =
     rcl_yaml_node_struct_get("/**", "string_param", params);

@@ -35,8 +35,9 @@ TEST(TestParse, parse_value) {
   event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
 
   bool is_seq = false;
-  size_t node_idx = 0u;
-  size_t parameter_idx = 0u;
+  rcl_node_params_t node_param;
+  const char * parameter_name = "test";
+  rcl_variant_t * parameter_value = NULL;
   data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
   rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
   ASSERT_NE(nullptr, params_st);
@@ -45,8 +46,11 @@ TEST(TestParse, parse_value) {
     rcl_yaml_node_struct_fini(params_st);
   });
 
-  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&params_st->params[0], allocator));
-  params_st->num_nodes = 1u;
+  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&node_param, allocator));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_params_fini(&node_param, allocator);
+  });
 
   // bool value
   yaml_char_t bool_value[] = "true";
@@ -56,13 +60,16 @@ TEST(TestParse, parse_value) {
 
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].bool_value);
-  EXPECT_TRUE(*params_st->params[node_idx].parameter_values[parameter_idx].bool_value);
-  allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].bool_value, allocator.state);
-  params_st->params[node_idx].parameter_values[parameter_idx].bool_value = nullptr;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&node_param.node_params_map, &parameter_name, &parameter_value)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, parameter_value->bool_value);
+  EXPECT_TRUE(*parameter_value->bool_value);
+  allocator.deallocate(parameter_value->bool_value, allocator.state);
+  parameter_value->bool_value = nullptr;
 
   // integer value
   yaml_char_t integer_value[] = "42";
@@ -72,13 +79,12 @@ TEST(TestParse, parse_value) {
 
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].integer_value);
-  EXPECT_EQ(42, *params_st->params[node_idx].parameter_values[parameter_idx].integer_value);
-  allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].integer_value, allocator.state);
-  params_st->params[node_idx].parameter_values[parameter_idx].integer_value = nullptr;
+  ASSERT_NE(nullptr, parameter_value->integer_value);
+  EXPECT_EQ(42, *parameter_value->integer_value);
+  allocator.deallocate(parameter_value->integer_value, allocator.state);
+  parameter_value->integer_value = nullptr;
 
   // double value
   yaml_char_t double_value[] = "3.14159";
@@ -88,13 +94,13 @@ TEST(TestParse, parse_value) {
 
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].double_value);
-  EXPECT_EQ(3.14159, *params_st->params[node_idx].parameter_values[parameter_idx].double_value);
+  ASSERT_NE(nullptr, parameter_value->double_value);
+  EXPECT_EQ(3.14159, *parameter_value->double_value);
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].double_value, allocator.state);
-  params_st->params[node_idx].parameter_values[parameter_idx].double_value = nullptr;
+    parameter_value->double_value, allocator.state);
+  parameter_value->double_value = nullptr;
 
   // double value
   yaml_char_t string_value[] = "hello, I am a string";
@@ -104,15 +110,15 @@ TEST(TestParse, parse_value) {
 
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].string_value);
+  ASSERT_NE(nullptr, parameter_value->string_value);
   EXPECT_STREQ(
     "hello, I am a string",
-    params_st->params[node_idx].parameter_values[parameter_idx].string_value);
+    parameter_value->string_value);
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].string_value, allocator.state);
-  params_st->params[node_idx].parameter_values[parameter_idx].string_value = nullptr;
+    parameter_value->string_value, allocator.state);
+  parameter_value->string_value = nullptr;
 }
 
 TEST(TestParse, parse_value_sequence) {
@@ -123,8 +129,9 @@ TEST(TestParse, parse_value_sequence) {
   event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
 
   bool is_seq = true;
-  size_t node_idx = 0u;
-  size_t parameter_idx = 0u;
+  rcl_node_params_t node_param;
+  const char * parameter_name = "test";
+  rcl_variant_t * parameter_value = NULL;
   data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
   rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
   ASSERT_NE(nullptr, params_st);
@@ -133,8 +140,11 @@ TEST(TestParse, parse_value_sequence) {
     rcl_yaml_node_struct_fini(params_st);
   });
 
-  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&params_st->params[0], allocator));
-  params_st->num_nodes = 1u;
+  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&node_param, allocator));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_params_fini(&node_param, allocator);
+  });
 
   // bool array value
   yaml_char_t bool_value[] = "true";
@@ -146,28 +156,34 @@ TEST(TestParse, parse_value_sequence) {
   seq_data_type = DATA_TYPE_STRING;
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
+  rcutils_reset_error();
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    rcutils_hash_map_get(&node_param.node_params_map, &parameter_name, &parameter_value)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, parameter_value);
   EXPECT_EQ(
     nullptr,
-    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
+    parameter_value->integer_array_value);
 
   // Check proper sequence type
   seq_data_type = DATA_TYPE_UNKNOWN;
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
   ASSERT_NE(
-    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value);
+    nullptr, parameter_value->bool_array_value);
   EXPECT_TRUE(
-    params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value->values[0]);
+    parameter_value->bool_array_value->values[0]);
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value->values,
+    parameter_value->bool_array_value->values,
     allocator.state);
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value, allocator.state);
-  params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value = nullptr;
+    parameter_value->bool_array_value, allocator.state);
+  parameter_value->bool_array_value = nullptr;
 
   // integer array value
   yaml_char_t integer_value[] = "42";
@@ -179,30 +195,31 @@ TEST(TestParse, parse_value_sequence) {
   seq_data_type = DATA_TYPE_STRING;
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
+  rcutils_reset_error();
   EXPECT_EQ(
-    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
+    nullptr, parameter_value->integer_array_value);
 
   // Check proper sequence type
   seq_data_type = DATA_TYPE_UNKNOWN;
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
   ASSERT_NE(
     nullptr,
-    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
+    parameter_value->integer_array_value);
   EXPECT_EQ(
     42,
-    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value->values[0]);
+    parameter_value->integer_array_value->values[0]);
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value->values,
+    parameter_value->integer_array_value->values,
     allocator.state);
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value,
+    parameter_value->integer_array_value,
     allocator.state);
-  params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value = nullptr;
+  parameter_value->integer_array_value = nullptr;
 
   // double value
   yaml_char_t double_value[] = "3.14159";
@@ -214,29 +231,30 @@ TEST(TestParse, parse_value_sequence) {
   seq_data_type = DATA_TYPE_STRING;
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
+  rcutils_reset_error();
   EXPECT_EQ(
-    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
+    nullptr, parameter_value->integer_array_value);
 
   // Check proper sequence type
   seq_data_type = DATA_TYPE_UNKNOWN;
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
   ASSERT_NE(
-    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].double_array_value);
+    nullptr, parameter_value->double_array_value);
   EXPECT_EQ(
     3.14159,
-    params_st->params[node_idx].parameter_values[parameter_idx].double_array_value->values[0]);
+    parameter_value->double_array_value->values[0]);
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].double_array_value->values,
+    parameter_value->double_array_value->values,
     allocator.state);
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].double_array_value,
+    parameter_value->double_array_value,
     allocator.state);
-  params_st->params[node_idx].parameter_values[parameter_idx].double_array_value = nullptr;
+  parameter_value->double_array_value = nullptr;
 
   // double value
   yaml_char_t string_value[] = "hello, I am a string";
@@ -248,31 +266,32 @@ TEST(TestParse, parse_value_sequence) {
   seq_data_type = DATA_TYPE_BOOL;
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
+  rcutils_reset_error();
   EXPECT_EQ(
-    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
+    nullptr, parameter_value->integer_array_value);
 
   // Check proper sequence type
   seq_data_type = DATA_TYPE_UNKNOWN;
   EXPECT_EQ(
     RCUTILS_RET_OK,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
   ASSERT_NE(
-    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].string_array_value);
+    nullptr, parameter_value->string_array_value);
   EXPECT_STREQ(
     "hello, I am a string",
-    params_st->params[node_idx].parameter_values[parameter_idx].string_array_value->data[0]);
+    parameter_value->string_array_value->data[0]);
   EXPECT_EQ(
     RCUTILS_RET_OK,
     rcutils_string_array_fini(
-      params_st->params[node_idx].parameter_values[parameter_idx].string_array_value)) <<
+      parameter_value->string_array_value)) <<
     rcutils_get_error_string().str;
   allocator.deallocate(
-    params_st->params[node_idx].parameter_values[parameter_idx].string_array_value,
+    parameter_value->string_array_value,
     allocator.state);
-  params_st->params[node_idx].parameter_values[parameter_idx].string_array_value = nullptr;
+  parameter_value->string_array_value = nullptr;
 }
 
 TEST(TestParse, parse_value_bad_args) {
@@ -283,8 +302,8 @@ TEST(TestParse, parse_value_bad_args) {
   event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
 
   bool is_seq = false;
-  size_t node_idx = 0u;
-  size_t parameter_idx = 0u;
+  rcl_node_params_t node_param;
+  const char * parameter_name = "test";
   data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
   rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
   ASSERT_NE(nullptr, params_st);
@@ -295,60 +314,41 @@ TEST(TestParse, parse_value_bad_args) {
 
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
-    parse_value(event, is_seq, node_idx, parameter_idx, nullptr, params_st));
+    parse_value(event, is_seq, &node_param, parameter_name, nullptr, params_st));
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
 
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, nullptr));
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, nullptr));
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
 
-  // No node to update
-  const size_t num_nodes = params_st->num_nodes;
-  params_st->num_nodes = 0u;
-  EXPECT_EQ(
-    RCUTILS_RET_INVALID_ARGUMENT,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st));
-  EXPECT_TRUE(rcutils_error_is_set());
-  rcutils_reset_error();
-  params_st->num_nodes = num_nodes;
-
-  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&params_st->params[0], allocator));
-  params_st->num_nodes = 1u;
+  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&node_param, allocator));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_params_fini(&node_param, allocator);
+  });
 
   // event.data.scalar.value is NULL, but event.data.scalar.length > 0
   event.data.scalar.value = NULL;
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st));
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st));
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
 
   // event.data.scalar.length is 0 and style is not a QUOTED_SCALAR_STYLE
   event.data.scalar.length = 0u;
   yaml_char_t event_value[] = "non_empty_string";
-  const size_t event_value_length = sizeof(event_value) / sizeof(event_value[0]);
+//  const size_t event_value_length = sizeof(event_value) / sizeof(event_value[0]);
   event.data.scalar.value = event_value;
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    parse_value(event, is_seq, &node_param, parameter_name, &seq_data_type, params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
-
-  // parameter_values is NULL
-  event.data.scalar.length = event_value_length;
-  rcl_variant_t * tmp_variant_array = params_st->params[0].parameter_values;
-  params_st->params[0].parameter_values = NULL;
-  EXPECT_EQ(
-    RCUTILS_RET_BAD_ALLOC,
-    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
-    rcutils_get_error_string().str;
-  EXPECT_TRUE(rcutils_error_is_set());
-  rcutils_reset_error();
-  params_st->params[0].parameter_values = tmp_variant_array;
 }
 
 TEST(TestParse, parse_key_bad_args)
@@ -360,8 +360,9 @@ TEST(TestParse, parse_key_bad_args)
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   uint32_t map_level = MAP_NODE_NAME_LVL;
   bool is_new_map = false;
-  size_t node_idx = 0;
-  size_t parameter_idx = 0;
+  rcl_node_params_t node_param;
+  rcl_node_params_t * node_params_st = NULL;
+  char * parameter_name = NULL;
   namespace_tracker_t ns_tracker;
 
   rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
@@ -371,22 +372,27 @@ TEST(TestParse, parse_key_bad_args)
     rcl_yaml_node_struct_fini(params_st);
   });
 
-  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&params_st->params[0], allocator));
-  params_st->num_nodes = 1u;
+  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&node_param, allocator));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_params_fini(&node_param, allocator);
+  });
 
   // map_level is nullptr
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
-    parse_key(event, nullptr, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
-    rcutils_get_error_string().str;
+    parse_key(
+      event, nullptr, &is_new_map, &node_params_st, &parameter_name, &ns_tracker,
+      params_st)) << rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
 
   // params_st is nullptr
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
-    parse_key(event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, nullptr)) <<
-    rcutils_get_error_string().str;
+    parse_key(
+      event, &map_level, &is_new_map, &node_params_st, &parameter_name, &ns_tracker,
+      nullptr)) << rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
 
@@ -396,7 +402,7 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &node_params_st, &parameter_name, &ns_tracker, params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -410,7 +416,7 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &node_params_st, &parameter_name, &ns_tracker, params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -421,7 +427,7 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &node_params_st, &parameter_name, &ns_tracker, params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -431,19 +437,7 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
-    rcutils_get_error_string().str;
-  EXPECT_TRUE(rcutils_error_is_set());
-  rcutils_reset_error();
-
-  // previous parameter names required for parameter namespace
-  map_level = MAP_PARAMS_LVL;
-  is_new_map = true;
-  params_st->params[0].parameter_names[0] = nullptr;
-  EXPECT_EQ(
-    RCUTILS_RET_ERROR,
-    parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &node_params_st, &parameter_name, &ns_tracker, params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();

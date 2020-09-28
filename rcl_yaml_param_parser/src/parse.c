@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "rcutils/allocator.h"
+#include "rcutils/format_string.h"
 #include "rcutils/strdup.h"
 
 #include "./impl/add_to_arrays.h"
@@ -172,22 +173,19 @@ void * get_value(
 rcutils_ret_t parse_value(
   const yaml_event_t event,
   const bool is_seq,
-  const size_t node_idx,
-  const size_t parameter_idx,
+  rcl_node_params_t * node_params_st,
+  const char * parameter_name,
   data_types_t * seq_data_type,
   rcl_params_t * params_st)
 {
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_params_st, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(parameter_name, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(seq_data_type, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
 
   rcutils_allocator_t allocator = params_st->allocator;
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
-
-  if (0U == params_st->num_nodes) {
-    RCUTILS_SET_ERROR_MSG("No node to update");
-    return RCUTILS_RET_INVALID_ARGUMENT;
-  }
 
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
@@ -205,12 +203,13 @@ rcutils_ret_t parse_value(
     return RCUTILS_RET_ERROR;
   }
 
-  if (NULL == params_st->params[node_idx].parameter_values) {
-    RCUTILS_SET_ERROR_MSG("Internal error: Invalid mem");
-    return RCUTILS_RET_BAD_ALLOC;
+  rcutils_ret_t ret;
+  rcl_variant_t * param_value = NULL;
+  ret = find_parameter(node_params_st, parameter_name, &param_value, allocator);
+  if (RCUTILS_RET_OK != ret) {
+    RCUTILS_SET_ERROR_MSG("Internal error: find_parameter");
+    return ret;
   }
-
-  rcl_variant_t * param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
 
   data_types_t val_type;
   void * ret_val = get_value(value, style, &val_type, allocator);
@@ -220,7 +219,7 @@ rcutils_ret_t parse_value(
     return RCUTILS_RET_ERROR;
   }
 
-  rcutils_ret_t ret = RCUTILS_RET_OK;
+  ret = RCUTILS_RET_OK;
   switch (val_type) {
     case DATA_TYPE_UNKNOWN:
       RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -411,12 +410,15 @@ rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
-  size_t * node_idx,
-  size_t * parameter_idx,
+  rcl_node_params_t ** node_params_st,
+  char ** parameter_name,
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(map_level, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(is_new_map, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_params_st, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(parameter_name, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
   rcutils_allocator_t allocator = params_st->allocator;
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
@@ -466,7 +468,7 @@ rcutils_ret_t parse_key(
             break;
           }
 
-          ret = find_node(node_name_ns, params_st, node_idx);
+          ret = find_node(node_name_ns, params_st, node_params_st);
           allocator.deallocate(node_name_ns, allocator.state);
           if (RCUTILS_RET_OK != ret) {
             break;
@@ -486,64 +488,44 @@ rcutils_ret_t parse_key(
     case MAP_PARAMS_LVL:
       {
         char * parameter_ns = NULL;
-        char * param_name = NULL;
 
         /// If it is a new map, the previous key is param namespace
         if (*is_new_map) {
-          parameter_ns = params_st->params[*node_idx].parameter_names[*parameter_idx];
-          if (NULL == parameter_ns) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "Internal error creating param namespace at line %d", line_num);
-            ret = RCUTILS_RET_ERROR;
-            break;
+          parameter_ns = *parameter_name;
+          if (NULL != parameter_ns) {
+            ret = replace_ns(
+              ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
+              NS_TYPE_PARAM, allocator);
+            if (RCUTILS_RET_OK != ret) {
+              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+                "Internal error replacing namespace at line %d", line_num);
+              ret = RCUTILS_RET_ERROR;
+              break;
+            }
           }
-          ret = replace_ns(
-            ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
-            NS_TYPE_PARAM, allocator);
-          if (RCUTILS_RET_OK != ret) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "Internal error replacing namespace at line %d", line_num);
-            ret = RCUTILS_RET_ERROR;
-            break;
-          }
+
           *is_new_map = false;
         }
 
         /// Add a parameter name into the node parameters
         parameter_ns = ns_tracker->parameter_ns;
+
+        char * param_name = NULL;
         if (NULL == parameter_ns) {
-          ret = find_parameter(*node_idx, value, params_st, parameter_idx);
-          if (ret != RCUTILS_RET_OK) {
-            break;
-          }
+          param_name = rcutils_strdup(value, allocator);
         } else {
-          ret = find_parameter(*node_idx, parameter_ns, params_st, parameter_idx);
-          if (ret != RCUTILS_RET_OK) {
-            break;
-          }
-
-          const size_t params_ns_len = strlen(parameter_ns);
-          const size_t param_name_len = strlen(value);
-          const size_t tot_len = (params_ns_len + param_name_len + 2U);
-
-          param_name = allocator.zero_allocate(1U, tot_len, allocator.state);
-          if (NULL == param_name) {
-            ret = RCUTILS_RET_BAD_ALLOC;
-            break;
-          }
-
-          memcpy(param_name, parameter_ns, params_ns_len);
-          param_name[params_ns_len] = '.';
-          memcpy((param_name + params_ns_len + 1U), value, param_name_len);
-          param_name[tot_len - 1U] = '\0';
-
-          if (NULL != params_st->params[*node_idx].parameter_names[*parameter_idx]) {
-            // This memory was allocated in find_parameter(), and its pointer is being overwritten
-            allocator.deallocate(
-              params_st->params[*node_idx].parameter_names[*parameter_idx], allocator.state);
-          }
-          params_st->params[*node_idx].parameter_names[*parameter_idx] = param_name;
+          param_name = rcutils_format_string(allocator, "%s.%s", parameter_ns, value);
         }
+        if (NULL == param_name) {
+          ret = RCUTILS_RET_BAD_ALLOC;
+          break;
+        }
+
+        if (*parameter_name) {
+          allocator.deallocate(*parameter_name, allocator.state);
+        }
+
+        *parameter_name = param_name;
       }
       break;
     default:
@@ -578,8 +560,8 @@ rcutils_ret_t parse_file_events(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
 
   yaml_event_t event;
-  size_t node_idx = 0;
-  size_t parameter_idx = 0;
+  rcl_node_params_t * node_params_st = NULL;
+  char * parameter_name = NULL;
   rcutils_ret_t ret = RCUTILS_RET_OK;
   while (0 == done_parsing) {
     if (RCUTILS_RET_OK != ret) {
@@ -603,7 +585,8 @@ rcutils_ret_t parse_file_events(
           /// Need to toggle between key and value at params level
           if (is_key) {
             ret = parse_key(
-              event, &map_level, &is_new_map, &node_idx, &parameter_idx, ns_tracker, params_st);
+              event, &map_level, &is_new_map, &node_params_st, &parameter_name, ns_tracker,
+              params_st);
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -616,19 +599,9 @@ rcutils_ret_t parse_file_events(
               ret = RCUTILS_RET_ERROR;
               break;
             }
-            if (0U == params_st->num_nodes) {
-              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-                "Cannot have a value before %s at line %d", PARAMS_KEY, line_num);
-              yaml_event_delete(&event);
-              return RCUTILS_RET_ERROR;
-            }
-            if (0U == params_st->params[node_idx].num_params) {
-              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-                "Cannot have a value before %s at line %d", PARAMS_KEY, line_num);
-              yaml_event_delete(&event);
-              return RCUTILS_RET_ERROR;
-            }
-            ret = parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
+
+            ret = parse_value(
+              event, is_seq, node_params_st, parameter_name, &seq_data_type, params_st);
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -720,6 +693,10 @@ rcutils_ret_t parse_file_events(
     }
     yaml_event_delete(&event);
   }
+
+  if (parameter_name) {
+    allocator.deallocate(parameter_name, allocator.state);
+  }
   return ret;
 }
 
@@ -728,8 +705,8 @@ rcutils_ret_t parse_file_events(
 ///
 rcutils_ret_t parse_value_events(
   yaml_parser_t * parser,
-  const size_t node_idx,
-  const size_t parameter_idx,
+  rcl_node_params_t * node_params_st,
+  const char * parameter_name,
   rcl_params_t * params_st)
 {
   bool is_seq = false;
@@ -750,7 +727,7 @@ rcutils_ret_t parse_value_events(
         break;
       case YAML_SCALAR_EVENT:
         ret = parse_value(
-          event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
+          event, is_seq, node_params_st, parameter_name, &seq_data_type, params_st);
         break;
       case YAML_SEQUENCE_START_EVENT:
         is_seq = true;
@@ -780,87 +757,121 @@ rcutils_ret_t parse_value_events(
 }
 
 ///
-/// Find parameter entry index in node parameters' structure
+/// Find parameter value entry in node parameters' structure
 ///
 rcutils_ret_t find_parameter(
-  const size_t node_idx,
+  rcl_node_params_t * node_params_st,
   const char * parameter_name,
-  rcl_params_t * param_st,
-  size_t * parameter_idx)
+  rcl_variant_t ** parameter_value,
+  rcutils_allocator_t allocator
+)
 {
+  assert(NULL != node_params_st);
   assert(NULL != parameter_name);
-  assert(NULL != param_st);
-  assert(NULL != parameter_idx);
+  assert(NULL != parameter_value);
 
-  assert(node_idx < param_st->num_nodes);
+  rcutils_ret_t ret = rcutils_hash_map_get(
+    &node_params_st->node_params_map, &parameter_name, parameter_value);
+  if (RCUTILS_RET_OK == ret) {
+    // Node found.
+    return RCUTILS_RET_OK;
+  } else if (ret != RCUTILS_RET_NOT_FOUND) {
+    return ret;
+  }
 
-  rcl_node_params_t * node_param_st = &(param_st->params[node_idx]);
-  for (*parameter_idx = 0U; *parameter_idx < node_param_st->num_params; (*parameter_idx)++) {
-    if (0 == strcmp(node_param_st->parameter_names[*parameter_idx], parameter_name)) {
-      // Parameter found.
-      return RCUTILS_RET_OK;
-    }
-  }
-  // Parameter not found, add it.
-  rcutils_allocator_t allocator = param_st->allocator;
-  // Reallocate if necessary
-  if (node_param_st->num_params >= node_param_st->capacity_params) {
-    if (RCUTILS_RET_OK != node_params_reallocate(
-        node_param_st, node_param_st->capacity_params * 2, allocator))
-    {
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-  }
-  if (NULL != node_param_st->parameter_names[*parameter_idx]) {
-    param_st->allocator.deallocate(
-      node_param_st->parameter_names[*parameter_idx], param_st->allocator.state);
-  }
-  node_param_st->parameter_names[*parameter_idx] = rcutils_strdup(parameter_name, allocator);
-  if (NULL == node_param_st->parameter_names[*parameter_idx]) {
+  // Node not found, add it.
+  char * param_name = rcutils_strdup(parameter_name, allocator);
+  if (NULL == param_name) {
+    RCUTILS_SET_ERROR_MSG("Failed to rcutils_strdup for parameter name");
     return RCUTILS_RET_BAD_ALLOC;
   }
-  node_param_st->num_params++;
+
+  void * param_value = allocator.allocate(
+    sizeof(rcl_variant_t), allocator.state);
+  if (NULL == param_value) {
+    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for parameter value");
+    ret = RCUTILS_RET_BAD_ALLOC;
+    goto fail;
+  }
+  memset(param_value, 0, sizeof(rcl_variant_t));
+
+  ret = rcutils_hash_map_set(&node_params_st->node_params_map, &param_name, &param_value);
+  if (RCUTILS_RET_OK != ret) {
+    goto fail;
+  }
+
+  *parameter_value = param_value;
   return RCUTILS_RET_OK;
+
+fail:
+  if (param_value) {
+    allocator.deallocate(param_value, allocator.state);
+  }
+  if (param_name) {
+    allocator.deallocate(param_name, allocator.state);
+  }
+  return ret;
 }
 
 ///
-/// Find node entry index in parameters' structure
+/// Find node parameter entry in parameters' structure
 ///
 rcutils_ret_t find_node(
   const char * node_name,
   rcl_params_t * param_st,
-  size_t * node_idx)
+  rcl_node_params_t ** node_param_st)
 {
   assert(NULL != node_name);
   assert(NULL != param_st);
-  assert(NULL != node_idx);
+  assert(NULL != node_param_st);
 
-  for (*node_idx = 0U; *node_idx < param_st->num_nodes; (*node_idx)++) {
-    if (0 == strcmp(param_st->node_names[*node_idx], node_name)) {
-      // Node found.
-      return RCUTILS_RET_OK;
-    }
-  }
-  // Node not found, add it.
   rcutils_allocator_t allocator = param_st->allocator;
-  // Reallocate if necessary
-  if (param_st->num_nodes >= param_st->capacity_nodes) {
-    if (RCUTILS_RET_OK != rcl_yaml_node_struct_reallocate(
-        param_st, param_st->capacity_nodes * 2, allocator))
-    {
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-  }
-  param_st->node_names[*node_idx] = rcutils_strdup(node_name, allocator);
-  if (NULL == param_st->node_names[*node_idx]) {
-    return RCUTILS_RET_BAD_ALLOC;
-  }
-  rcutils_ret_t ret = node_params_init(&(param_st->params[*node_idx]), allocator);
-  if (RCUTILS_RET_OK != ret) {
-    allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
-    param_st->node_names[*node_idx] = NULL;
+
+  rcutils_ret_t ret = rcutils_hash_map_get(&param_st->params_map, &node_name, node_param_st);
+  if (RCUTILS_RET_OK == ret) {
+    // Node found.
+    return RCUTILS_RET_OK;
+  } else if (ret != RCUTILS_RET_NOT_FOUND) {
     return ret;
   }
-  param_st->num_nodes++;
+
+  // Node not found, add it.
+  char * name = rcutils_strdup(node_name, allocator);
+  if (NULL == name) {
+    RCUTILS_SET_ERROR_MSG("Failed to rcutils_strdup for node parameter name");
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+
+  void * node_param = allocator.allocate(
+    sizeof(rcl_node_params_t), allocator.state);
+  if (NULL == node_param) {
+    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for node parameter value");
+    ret = RCUTILS_RET_BAD_ALLOC;
+    goto fail;
+  }
+
+  ret = node_params_init(node_param, param_st->allocator);
+  if (RCUTILS_RET_OK != ret) {
+    goto fail;
+  }
+
+  ret = rcutils_hash_map_set(&param_st->params_map, &name, &node_param);
+  if (RCUTILS_RET_OK != ret) {
+    goto after_init;
+  }
+
+  *node_param_st = node_param;
   return RCUTILS_RET_OK;
+
+after_init:
+  rcl_yaml_node_params_fini(node_param, allocator);
+
+fail:
+  if (node_param) {
+    allocator.deallocate(node_param, allocator.state);
+  }
+  if (name) {
+    allocator.deallocate(name, allocator.state);
+  }
+  return ret;
 }

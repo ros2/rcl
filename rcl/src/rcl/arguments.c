@@ -627,7 +627,12 @@ rcl_parse_arguments(
   }
 
   // Drop parameter overrides if none was found.
-  if (0U == args_impl->parameter_overrides->num_nodes) {
+  size_t num_nodes = 0;
+  ret = rcutils_hash_map_get_size(&args_impl->parameter_overrides->params_map, &num_nodes);
+  if (ret != RCL_RET_OK) {
+    goto fail;
+  }
+  if (0U == num_nodes) {
     rcl_yaml_node_struct_fini(args_impl->parameter_overrides);
     args_impl->parameter_overrides = NULL;
   }
