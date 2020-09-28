@@ -231,6 +231,13 @@ BENCHMARK_F(PerformanceTest, array_string_copy_variant)(benchmark::State & st)
   }
   src_variant.string_array_value->size = kSize;
 
+  for (size_t i = 0; i < kSize; i++) {
+    src_variant.string_array_value->data[i] = rcutils_strdup("string", allocator);
+    if (src_variant.string_array_value->data[i] == NULL) {
+      st.SkipWithError(rcutils_get_error_string().str);
+    }
+  }
+
   reset_heap_counters();
 
   for (auto _ : st) {
