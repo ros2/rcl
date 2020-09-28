@@ -106,8 +106,7 @@ rcl_lifecycle_transition_map_fini(
  * \param[in] allocator a valid allocator used to register the state machine
  * \return `RCL_RET_OK` if the state was registered successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
- * \return `RCL_RET_LIFECYCLE_STATE_REGISTERED` if state is already registered, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ * \return `RCL_RET_LIFECYCLE_STATE_REGISTERED` if state is already registered.
  */
 RCL_LIFECYCLE_PUBLIC
 RCL_WARN_UNUSED
