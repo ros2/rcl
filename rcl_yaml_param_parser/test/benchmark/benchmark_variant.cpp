@@ -49,8 +49,8 @@ BENCHMARK_F(PerformanceTest, bool_copy_variant)(benchmark::State & st)
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
+    rcl_yaml_variant_fini(&dest_variant, allocator);
   }
-  rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.bool_value = nullptr;
 }
 
@@ -68,8 +68,8 @@ BENCHMARK_F(PerformanceTest, int_copy_variant)(benchmark::State & st)
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
+    rcl_yaml_variant_fini(&dest_variant, allocator);
   }
-  rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.integer_value = nullptr;
 }
 
@@ -87,8 +87,8 @@ BENCHMARK_F(PerformanceTest, double_copy_variant)(benchmark::State & st)
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
+    rcl_yaml_variant_fini(&dest_variant, allocator);
   }
-  rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.double_value = nullptr;
 }
 
