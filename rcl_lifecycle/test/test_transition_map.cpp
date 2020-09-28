@@ -68,7 +68,7 @@ TEST_F(TestTransitionMap, initialized) {
   EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_is_initialized(&transition_map));
 
   ret = rcl_lifecycle_register_state(&transition_map, state0, &allocator);
-  EXPECT_EQ(RCL_RET_ERROR, ret);
+  EXPECT_EQ(RCL_RET_LIFECYCLE_STATE_REGISTERED, ret);
   rcutils_reset_error();
 
   rcl_lifecycle_state_t state1 = {"my_state_1", 1, NULL, 0};
@@ -82,7 +82,7 @@ TEST_F(TestTransitionMap, initialized) {
   rcl_lifecycle_state_t * original_ptr = transition_map.states;
   size_t original_size = transition_map.states_size;
   ret = rcl_lifecycle_register_state(&transition_map, unregistered, &bad_allocator);
-  EXPECT_EQ(RCL_RET_ERROR, ret);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
   rcutils_reset_error();
   EXPECT_EQ(transition_map.states, original_ptr);
   EXPECT_EQ(original_size, transition_map.states_size);
@@ -116,7 +116,7 @@ TEST_F(TestTransitionMap, initialized) {
     start_state, &unregistered};
   ret = rcl_lifecycle_register_transition(
     &transition_map, transition_bad1, &allocator);
-  EXPECT_EQ(RCL_RET_ERROR, ret);
+  EXPECT_EQ(RCL_RET_LIFECYCLE_STATE_NOT_REGISTERED, ret);
   rcutils_reset_error();
   EXPECT_EQ(old_transitions_ptr, transition_map.transitions);
   EXPECT_EQ(original_size, transition_map.transitions_size);
@@ -127,7 +127,7 @@ TEST_F(TestTransitionMap, initialized) {
     &unregistered, goal_state};
   ret = rcl_lifecycle_register_transition(
     &transition_map, transition_bad2, &allocator);
-  EXPECT_EQ(RCL_RET_ERROR, ret);
+  EXPECT_EQ(RCL_RET_LIFECYCLE_STATE_NOT_REGISTERED, ret);
   rcutils_reset_error();
   EXPECT_EQ(old_transitions_ptr, transition_map.transitions);
   EXPECT_EQ(original_size, transition_map.transitions_size);
