@@ -1224,7 +1224,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
     9);  // number of retries
 }
 
-/* Test the graph guard condition notices beliow changes.
+/* Test the graph guard condition notices below changes.
  * publisher create/destroy, subscription create/destroy
  * service create/destroy, client create/destroy
  * Other node added/removed
@@ -1235,13 +1235,6 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   rcl_ret_t ret;
   std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(400);
 
-  // Test in new ROS domain
-  ASSERT_TRUE(rcutils_set_env("ROS_DOMAIN_ID", "66"));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(rcutils_set_env("ROS_DOMAIN_ID", NULL), true);
-  });
-
   // Create new context
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
@@ -1250,6 +1243,10 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   {
     EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
   });
+
+  // Test in new ROS domain
+  ret = rcl_init_options_set_domain_id(&init_options, 66);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_context_t context = rcl_get_zero_initialized_context();
   ret = rcl_init(0, nullptr, &init_options, &context);
@@ -1273,25 +1270,22 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rcl_wait_set_init(
     &wait_set, 0, 1, 0, 0, 0, 0, &context, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
   });
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
   const rcl_guard_condition_t * graph_guard_condition =
     rcl_node_get_graph_guard_condition(&node);
 
-  auto wait_check_func =
-    [&ret, &wait_set, &graph_guard_condition, &time_to_sleep](rcl_ret_t expected) {
-      ret = rcl_wait_set_clear(&wait_set);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      ret = rcl_wait(&wait_set, time_to_sleep.count());
-      ASSERT_EQ(expected, ret) << rcl_get_error_string().str;
-    };
-
-  wait_check_func(RCL_RET_OK);
+  // Graph change since first node created
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since creating the publisher
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
@@ -1301,13 +1295,23 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     "/chatter_test_graph_guard_condition_topics", &pub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since destroying the publisher
   ret = rcl_publisher_fini(&pub, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since creating the subscription
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
@@ -1317,13 +1321,23 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     "/chatter_test_graph_guard_condition_topics", &sub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since destroying the subscription
   ret = rcl_subscription_fini(&sub, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since creating service
   rcl_service_t service = rcl_get_zero_initialized_service();
@@ -1336,13 +1350,23 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since destroy service
   ret = rcl_service_fini(&service, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since creating client
   rcl_client_t client = rcl_get_zero_initialized_client();
@@ -1355,29 +1379,54 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     &client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since destroying client
   ret = rcl_client_fini(&client, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since adding new node
   rcl_node_t node_new = rcl_get_zero_initialized_node();
   ret = rcl_node_init(&node_new, "test_graph2", "", &context, &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Graph change since destroying new node
   ret = rcl_node_fini(&node_new);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  wait_check_func(RCL_RET_OK);
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  // Should not get graph change
-  wait_check_func(RCL_RET_TIMEOUT);
+  // Should not get graph change if no change
+  ret = rcl_wait_set_clear(&wait_set);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ret = rcl_wait(&wait_set, time_to_sleep.count());
+  ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
 }
 
 /* Test the rcl_service_server_is_available function.
