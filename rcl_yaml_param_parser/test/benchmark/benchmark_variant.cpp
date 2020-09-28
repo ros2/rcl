@@ -101,6 +101,11 @@ BENCHMARK_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
 
   char * tmp_string = rcutils_strdup(data.c_str(), allocator);
   src_variant.string_value = tmp_string;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_variant_fini(&src_variant, allocator);
+    rcl_yaml_variant_fini(&dest_variant, allocator);
+  });
 
   reset_heap_counters();
 
