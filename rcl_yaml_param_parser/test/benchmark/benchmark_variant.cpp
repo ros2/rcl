@@ -49,8 +49,8 @@ BENCHMARK_F(PerformanceTest, bool_copy_variant)(benchmark::State & st)
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
+    rcl_yaml_variant_fini(&dest_variant, allocator);
   }
-  rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.bool_value = nullptr;
 }
 
@@ -68,8 +68,8 @@ BENCHMARK_F(PerformanceTest, int_copy_variant)(benchmark::State & st)
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
+    rcl_yaml_variant_fini(&dest_variant, allocator);
   }
-  rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.integer_value = nullptr;
 }
 
@@ -87,8 +87,8 @@ BENCHMARK_F(PerformanceTest, double_copy_variant)(benchmark::State & st)
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
+    rcl_yaml_variant_fini(&dest_variant, allocator);
   }
-  rcl_yaml_variant_fini(&dest_variant, allocator);
   src_variant.double_value = nullptr;
 }
 
@@ -101,6 +101,11 @@ BENCHMARK_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
 
   char * tmp_string = rcutils_strdup(data.c_str(), allocator);
   src_variant.string_value = tmp_string;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_variant_fini(&src_variant, allocator);
+    rcl_yaml_variant_fini(&dest_variant, allocator);
+  });
 
   reset_heap_counters();
 
@@ -110,7 +115,6 @@ BENCHMARK_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
     }
     rcl_yaml_variant_fini(&dest_variant, allocator);
   }
-  src_variant.string_value = nullptr;
 }
 
 BENCHMARK_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & st)
@@ -129,8 +133,6 @@ BENCHMARK_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & st)
   {
     rcl_yaml_variant_fini(&src_variant, allocator);
     rcl_yaml_variant_fini(&dest_variant, allocator);
-    src_variant.bool_array_value = nullptr;
-    dest_variant.bool_array_value = nullptr;
   });
   src_variant.bool_array_value->size = kSize;
 
@@ -141,7 +143,6 @@ BENCHMARK_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & st)
       st.SkipWithError(rcutils_get_error_string().str);
     }
     rcl_yaml_variant_fini(&dest_variant, allocator);
-    dest_variant.double_array_value = nullptr;
   }
 }
 
@@ -161,8 +162,6 @@ BENCHMARK_F(PerformanceTest, array_int_copy_variant)(benchmark::State & st)
   {
     rcl_yaml_variant_fini(&src_variant, allocator);
     rcl_yaml_variant_fini(&dest_variant, allocator);
-    src_variant.integer_array_value = nullptr;
-    dest_variant.integer_array_value = nullptr;
   });
   src_variant.integer_array_value->size = kSize;
 
@@ -173,7 +172,6 @@ BENCHMARK_F(PerformanceTest, array_int_copy_variant)(benchmark::State & st)
       st.SkipWithError(rcutils_get_error_string().str);
     }
     rcl_yaml_variant_fini(&dest_variant, allocator);
-    dest_variant.double_array_value = nullptr;
   }
 }
 
@@ -193,8 +191,6 @@ BENCHMARK_F(PerformanceTest, array_double_copy_variant)(benchmark::State & st)
   {
     rcl_yaml_variant_fini(&src_variant, allocator);
     rcl_yaml_variant_fini(&dest_variant, allocator);
-    src_variant.double_array_value = nullptr;
-    dest_variant.double_array_value = nullptr;
   });
   src_variant.double_array_value->size = kSize;
 
@@ -205,7 +201,6 @@ BENCHMARK_F(PerformanceTest, array_double_copy_variant)(benchmark::State & st)
       st.SkipWithError(rcutils_get_error_string().str);
     }
     rcl_yaml_variant_fini(&dest_variant, allocator);
-    dest_variant.double_array_value = nullptr;
   }
 }
 
@@ -229,7 +224,6 @@ BENCHMARK_F(PerformanceTest, array_string_copy_variant)(benchmark::State & st)
   {
     st.SkipWithError(rcutils_get_error_string().str);
   }
-  src_variant.string_array_value->size = kSize;
 
   for (size_t i = 0; i < kSize; i++) {
     src_variant.string_array_value->data[i] = rcutils_strdup("string", allocator);
@@ -245,6 +239,5 @@ BENCHMARK_F(PerformanceTest, array_string_copy_variant)(benchmark::State & st)
       st.SkipWithError(rcutils_get_error_string().str);
     }
     rcl_yaml_variant_fini(&dest_variant, allocator);
-    dest_variant.double_array_value = nullptr;
   }
 }
