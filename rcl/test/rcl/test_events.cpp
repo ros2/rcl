@@ -878,7 +878,7 @@ get_test_pubsub_incompatible_qos_inputs()
   return inputs;
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   TestPubSubIncompatibilityWithDifferentQosSettings,
   TestEventFixture,
   ::testing::ValuesIn(get_test_pubsub_incompatible_qos_inputs()),

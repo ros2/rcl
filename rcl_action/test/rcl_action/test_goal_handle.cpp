@@ -315,7 +315,7 @@ const StateTransitionSequence valid_state_transition_sequences[] = {
   },
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   TestValidGoalHandleStateTransitions,
   TestGoalHandleStateTransitionSequence,
   ::testing::ValuesIn(valid_state_transition_sequences),
@@ -347,7 +347,7 @@ const StateTransitionSequence invalid_state_transition_sequences[] = {
   },
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   TestInvalidGoalHandleStateTransitions,
   TestGoalHandleStateTransitionSequence,
   ::testing::ValuesIn(invalid_state_transition_sequences),

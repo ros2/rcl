@@ -154,7 +154,7 @@ const ActionDerivedNameTestSubject action_service_and_topic_subjects[] = {
   }
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   TestActionServiceAndTopicNames, TestActionDerivedName,
   ::testing::ValuesIn(action_service_and_topic_subjects),
   ::testing::PrintToStringParamName());
