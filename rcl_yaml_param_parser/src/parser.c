@@ -593,33 +593,41 @@ void rcl_yaml_variant_fini(
 
   if (NULL != param_var->bool_value) {
     allocator.deallocate(param_var->bool_value, allocator.state);
+    param_var->bool_value = NULL;
   } else if (NULL != param_var->integer_value) {
     allocator.deallocate(param_var->integer_value, allocator.state);
+    param_var->integer_value = NULL;
   } else if (NULL != param_var->double_value) {
     allocator.deallocate(param_var->double_value, allocator.state);
+    param_var->double_value = NULL;
   } else if (NULL != param_var->string_value) {
     allocator.deallocate(param_var->string_value, allocator.state);
+    param_var->string_value = NULL;
   } else if (NULL != param_var->bool_array_value) {
     if (NULL != param_var->bool_array_value->values) {
       allocator.deallocate(param_var->bool_array_value->values, allocator.state);
     }
     allocator.deallocate(param_var->bool_array_value, allocator.state);
+    param_var->bool_array_value = NULL;
   } else if (NULL != param_var->integer_array_value) {
     if (NULL != param_var->integer_array_value->values) {
       allocator.deallocate(param_var->integer_array_value->values, allocator.state);
     }
     allocator.deallocate(param_var->integer_array_value, allocator.state);
+    param_var->integer_array_value = NULL;
   } else if (NULL != param_var->double_array_value) {
     if (NULL != param_var->double_array_value->values) {
       allocator.deallocate(param_var->double_array_value->values, allocator.state);
     }
     allocator.deallocate(param_var->double_array_value, allocator.state);
+    param_var->double_array_value = NULL;
   } else if (NULL != param_var->string_array_value) {
     if (RCUTILS_RET_OK != rcutils_string_array_fini(param_var->string_array_value)) {
       // Log and continue ...
       RCUTILS_SAFE_FWRITE_TO_STDERR("Error deallocating string array");
     }
     allocator.deallocate(param_var->string_array_value, allocator.state);
+    param_var->string_array_value = NULL;
   } else {
     /// Nothing to do to keep pclint happy
   }
