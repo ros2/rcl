@@ -114,7 +114,7 @@ Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly
 
 ### Performance [4.iv]
 
-`rcl_yaml_param_parser` does not currently have performance tests.
+The performance tests of `rcl_yaml_param_parser` are located in the [test/benchmark directory](https://github.com/ros2/rcl/tree/master/rcl_yaml_param_parser/test/benchmark). The most recent test results can be found [here](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/).
 
 ### Linters and Static Analysis [4.v]
 
