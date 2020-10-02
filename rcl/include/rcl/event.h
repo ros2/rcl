@@ -199,6 +199,15 @@ RCL_PUBLIC
 bool
 rcl_event_is_valid(const rcl_event_t * event);
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_event_set_listener_callback(
+  const rcl_event_t * event,
+  rmw_listener_callback_t listener_callback,
+  const void * user_data,
+  bool use_previous_events);
+
 #ifdef __cplusplus
 }
 #endif

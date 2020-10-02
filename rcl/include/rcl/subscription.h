@@ -28,6 +28,7 @@ extern "C"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
 
+#include "rmw/listener_callback_type.h"
 #include "rmw/message_sequence.h"
 
 /// Internal rcl implementation struct.
@@ -610,6 +611,14 @@ rcl_subscription_get_actual_qos(const rcl_subscription_t * subscription);
 RCL_PUBLIC
 bool
 rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_set_listener_callback(
+  const rcl_subscription_t * subscription,
+  rmw_listener_callback_t listener_callback,
+  const void * user_data);
 
 #ifdef __cplusplus
 }
