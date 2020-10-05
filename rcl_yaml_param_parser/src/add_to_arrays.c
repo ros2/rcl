@@ -14,6 +14,8 @@
 
 #include "./impl/add_to_arrays.h"
 
+#include "rcutils/error_handling.h"
+
 #define ADD_VALUE_TO_SIMPLE_ARRAY(val_array, value, value_type, allocator) \
   do { \
     if (NULL == val_array->values) { \

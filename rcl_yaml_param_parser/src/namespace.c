@@ -14,6 +14,7 @@
 
 #include "./impl/namespace.h"
 
+#include "rcutils/error_handling.h"
 #include "rcutils/strdup.h"
 
 rcutils_ret_t add_name_to_ns(

@@ -16,6 +16,8 @@
 #include "./impl/types.h"
 #include "./impl/yaml_variant.h"
 
+#include "rcutils/error_handling.h"
+
 rcutils_ret_t node_params_init(
   rcl_node_params_t * node_params,
   const rcutils_allocator_t allocator)

@@ -15,6 +15,7 @@
 #include <errno.h>
 
 #include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/strdup.h"
 
 #include "./impl/add_to_arrays.h"
