@@ -154,19 +154,33 @@ TEST_F(TestActionClientBaseFixture, test_action_client_init_fini) {
   EXPECT_EQ(ret, RCL_RET_BAD_ALLOC) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Fail copying action_name string, this will also fail to cleanup and will return generic error
+  // Fail copying action name
   time_bomb_state.malloc_count_until_failure = 1;
   invalid_action_client_options.allocator.state = &time_bomb_state;
   ret = rcl_action_client_init(
     &action_client, &this->node, action_typesupport,
     action_name, &invalid_action_client_options);
-  EXPECT_EQ(ret, RCL_RET_ERROR) << rcl_get_error_string().str;
+  EXPECT_EQ(ret, RCL_RET_BAD_ALLOC) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  // Manually cleanup to setup for next test
-  action_client_options.allocator.deallocate(
-    action_client.impl, action_client_options.allocator.state);
-  action_client.impl = NULL;
+  ret = RCL_RET_OK;
+  int i = 0;
+  do {
+    time_bomb_state.malloc_count_until_failure = i;
+    i++;
+    invalid_action_client_options.allocator.state = &time_bomb_state;
+    ret = rcl_action_client_init(
+      &action_client, &this->node, action_typesupport,
+      action_name, &invalid_action_client_options);
+    if (RCL_RET_OK != ret) {
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
+    } else {
+      EXPECT_EQ(RCL_RET_OK, rcl_action_client_fini(&action_client, &this->node)) <<
+        rcl_get_error_string().str;
+      EXPECT_FALSE(rcl_error_is_set());
+    }
+  } while (ret != RCL_RET_OK);
 
   ret = rcl_action_client_init(
     &action_client, &this->node, action_typesupport,
