@@ -62,8 +62,8 @@ rcl_logging_configure_with_output_handler(
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_handler, RCL_RET_INVALID_ARGUMENT);
-  RCUTILS_LOGGING_AUTOINIT
-    g_logging_allocator = *allocator;
+  RCUTILS_LOGGING_AUTOINIT;
+  g_logging_allocator = *allocator;
   int default_level = global_args->impl->log_level;
   const char * config_file = global_args->impl->external_log_config_file;
   g_rcl_logging_stdout_enabled = !global_args->impl->log_stdout_disabled;
