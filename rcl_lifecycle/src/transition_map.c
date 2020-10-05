@@ -70,9 +70,11 @@ rcl_lifecycle_transition_map_fini(
   // free the primary states
   allocator->deallocate(transition_map->states, allocator->state);
   transition_map->states = NULL;
+  transition_map->states_size = 0;
   // free the tansitions
   allocator->deallocate(transition_map->transitions, allocator->state);
   transition_map->transitions = NULL;
+  transition_map->transitions_size = 0;
 
   return fcn_ret;
 }
