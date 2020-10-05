@@ -89,14 +89,6 @@ if(BUILD_TESTING)
       "rcutils"
     )
   endif()
-
-  add_performance_test(benchmark_variant test/benchmark/benchmark_variant.cpp)
-  if(TARGET benchmark_variant)
-    target_link_libraries(benchmark_variant ${PROJECT_NAME})
-    ament_target_dependencies(benchmark_variant
-      "rcutils"
-    )
-  endif()
 endif()
 
 ament_export_dependencies(ament_cmake libyaml_vendor)
