@@ -16,7 +16,12 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(rcl_yaml_parser_sources
+  src/add_to_arrays.c
+  src/namespace.c
+  src/node_params.c
+  src/parse.c
   src/parser.c
+  src/yaml_variant.c
 )
 
 add_library(

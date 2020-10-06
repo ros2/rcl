@@ -14,6 +14,8 @@
 #ifndef RCL_YAML_PARAM_PARSER__TYPES_H_
 #define RCL_YAML_PARAM_PARSER__TYPES_H_
 
+#include <stdint.h>
+
 #include "rcutils/allocator.h"
 #include "rcutils/types/string_array.h"
 
