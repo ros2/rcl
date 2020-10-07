@@ -2,6 +2,13 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.8 (2020-10-07)
+------------------
+* Set transition_map->states/transition size to 0 on fini (`#729 <https://github.com/ros2/rcl/issues/729>`_) (`#821 <https://github.com/ros2/rcl/issues/821>`_)
+* Topic fix rcl lifecycle test issue (`#715 <https://github.com/ros2/rcl/issues/715>`_) (`#796 <https://github.com/ros2/rcl/issues/796>`_)
+* Remove std::cout line from test_rcl_lifecycle.cpp (`#773 <https://github.com/ros2/rcl/issues/773>`_) (`#774 <https://github.com/ros2/rcl/issues/774>`_)
+* Contributors: Shane Loretz, Stephen Brawner
+
 1.1.7 (2020-08-03)
 ------------------
 * Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_) (`#724 <https://github.com/ros2/rcl/issues/724>`_)

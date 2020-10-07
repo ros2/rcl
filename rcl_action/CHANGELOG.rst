@@ -2,6 +2,12 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.8 (2020-10-07)
+------------------
+* Fix action client test failure on Windows by zero initializing pointers and freeing memory (`#717 <https://github.com/ros2/rcl/issues/717>`_) (`#820 <https://github.com/ros2/rcl/issues/820>`_)
+* Use valid clock in case of issue in rcl_timer_init (`#795 <https://github.com/ros2/rcl/issues/795>`_) Store reference to rcl_clock_t instead of copy (`#797 <https://github.com/ros2/rcl/issues/797>`_) (`#805 <https://github.com/ros2/rcl/issues/805>`_)
+* Contributors: Shane Loretz, Stephen Brawner
+
 1.1.7 (2020-08-03)
 ------------------
 * Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_) (`#724 <https://github.com/ros2/rcl/issues/724>`_)

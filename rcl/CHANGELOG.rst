@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.8 (2020-10-07)
+------------------
+* Tweaks to client.c and subscription.c for cleaner init/fini (`#728 <https://github.com/ros2/rcl/issues/728>`_) (`#822 <https://github.com/ros2/rcl/issues/822>`_)
+* Contributors: Stephen Brawner
+
 1.1.7 (2020-08-03)
 ------------------
 * Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_) (`#724 <https://github.com/ros2/rcl/issues/724>`_)
