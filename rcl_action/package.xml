@@ -4,7 +4,9 @@
   <name>rcl_action</name>
   <version>2.2.0</version>
   <description>Package containing a C-based ROS action implementation</description>
+  <maintainer email="ivanpauno@ekumenlabs.com">Ivan Paunovic</maintainer>
   <maintainer email="jacob@openrobotics.org">Jacob Perron</maintainer>
+  <maintainer email="william@openrobotics.org">William Woodall</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
