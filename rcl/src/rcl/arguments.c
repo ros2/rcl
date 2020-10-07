@@ -372,11 +372,10 @@ rcl_parse_arguments(
         if (i + 1 < argc) {
           // Attempt to parse next argument as parameter file rule
           args_impl->parameter_files[args_impl->num_param_files_args] = NULL;
-          if (
-            RCL_RET_OK == _rcl_parse_param_file(
-              argv[i + 1], allocator, args_impl->parameter_overrides,
-              &args_impl->parameter_files[args_impl->num_param_files_args]))
-          {
+          ret = _rcl_parse_param_file(
+            argv[i + 1], allocator, args_impl->parameter_overrides,
+            &args_impl->parameter_files[args_impl->num_param_files_args]);
+          if (RCL_RET_OK == ret) {
             ++(args_impl->num_param_files_args);
             RCUTILS_LOG_DEBUG_NAMED(
               ROS_PACKAGE_NAME,
@@ -385,6 +384,19 @@ rcl_parse_arguments(
               args_impl->num_param_files_args);
             ++i;  // Skip flag here, for loop will skip rule.
             continue;
+          }
+          if (RCL_RET_ERROR == ret) {
+            // If _rcl_parse_param_file() returned
+            // RCL_RET_ERROR then the argument contained the
+            // '__params:=' prefix, but parsing the parameter
+            // file failed without any notice.
+            rcl_error_string_t prev_error_string = rcl_get_error_string();
+            rcl_reset_error();
+            RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+              "Couldn't parse params file: '%s'. Error: %s",
+              args_impl->parameter_files[args_impl->num_param_files_args],
+              prev_error_string.str);
+            goto fail;
           }
           rcl_error_string_t prev_error_string = rcl_get_error_string();
           rcl_reset_error();
@@ -606,7 +618,7 @@ rcl_parse_arguments(
   }
 
   // Drop parameter overrides if none was found.
-  if (0U == args_impl->parameter_overrides->num_nodes) {
+  if (NULL != args_impl->parameter_overrides && 0U == args_impl->parameter_overrides->num_nodes) {
     rcl_yaml_node_struct_fini(args_impl->parameter_overrides);
     args_impl->parameter_overrides = NULL;
   }

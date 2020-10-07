@@ -1,0 +1,5 @@
+some_node:
+  ros_parameters: # must have double _
+    int_param: 1
+    param_group:
+      string_param: foo

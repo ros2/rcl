@@ -935,3 +935,21 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
   ASSERT_TRUE(NULL != param_value->string_value);
   EXPECT_STREQ("foo", param_value->string_value);
 }
+
+// Regression test for https://github.com/ros2/rcl/issues/815
+// Testing behaviour that was broken in Foxy
+TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_malformed_param_file) {
+  const std::string parameters_filepath = (test_path / "test_malformed_parameters.1.yaml").string();
+  const std::string parameter_rule = "__params:=" + parameters_filepath;
+  const char * argv[] = {
+    "process_name", "--ros-args", "--params-file", parameter_rule.c_str()
+  };
+  int argc = sizeof(argv) / sizeof(const char *);
+  rcl_ret_t ret;
+
+  rcl_allocator_t alloc = rcl_get_default_allocator();
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  ret = rcl_parse_arguments(argc, argv, alloc, &parsed_args);
+  ASSERT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+}
