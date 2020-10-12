@@ -18,7 +18,12 @@
 #include <string.h>
 
 #include "rcutils/allocator.h"
+#include "rcutils/format_string.h"
 #include "rcutils/strdup.h"
+
+#include "rmw/error_handling.h"
+#include "rmw/validate_namespace.h"
+#include "rmw/validate_node_name.h"
 
 #include "./impl/add_to_arrays.h"
 #include "./impl/parse.h"
@@ -405,6 +410,118 @@ rcutils_ret_t parse_value(
 }
 
 ///
+/// Check a name space whether it is valid
+///
+static rcutils_ret_t
+__validate_namespace(const char * namespace)
+{
+  int validation_result = 0;
+  rmw_ret_t ret;
+  ret = rmw_validate_namespace(namespace, &validation_result, NULL);
+  if (ret != RMW_RET_OK) {
+    RCUTILS_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCUTILS_RET_ERROR;
+  }
+  if (validation_result != RMW_NAMESPACE_VALID) {
+    RCUTILS_SET_ERROR_MSG(rmw_namespace_validation_result_string(validation_result));
+    return RCUTILS_RET_INVALID_ARGUMENT;
+  }
+
+  return RCUTILS_RET_OK;
+}
+
+///
+/// Check a node name whether it is valid
+///
+static rcutils_ret_t
+__validate_nodename(const char * name)
+{
+  int validation_result = 0;
+  rmw_ret_t ret;
+  ret = rmw_validate_node_name(name, &validation_result, NULL);
+  if (ret != RMW_RET_OK) {
+    RCUTILS_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCUTILS_RET_ERROR;
+  }
+  if (validation_result != RMW_NODE_NAME_VALID) {
+    RCUTILS_SET_ERROR_MSG(rmw_node_name_validation_result_string(validation_result));
+    return RCUTILS_RET_ERROR;
+  }
+
+  return RCUTILS_RET_OK;
+}
+
+///
+/// Check a name (namespace/node_name) whether it is valid
+///
+static rcutils_ret_t
+__validate_name(const char * name, rcutils_allocator_t allocator)
+{
+  // special rules
+  if (strcmp(name, "/**") == 0) {
+    return RCUTILS_RET_OK;
+  }
+
+  rcutils_ret_t ret = RCUTILS_RET_OK;
+  char * separator_pos = rindex(name, '/');
+  char * namespace = NULL;
+  char * node_name = NULL;
+  char * absolute_namespace = NULL;
+  if (NULL == separator_pos) {
+    node_name = rcutils_strdup(name, allocator);
+    if (NULL == node_name) {
+      ret = RCUTILS_RET_BAD_ALLOC;
+      goto clean;
+    }
+  } else {
+    namespace = rcutils_strndup(name, separator_pos - name, allocator);
+    if (NULL == namespace) {
+      ret = RCUTILS_RET_BAD_ALLOC;
+      goto clean;
+    }
+    if (namespace[0] != '/') {
+      absolute_namespace = rcutils_format_string(allocator, "/%s", namespace);
+      if (NULL == absolute_namespace) {
+        ret = RCUTILS_RET_BAD_ALLOC;
+        goto clean;
+      }
+    }
+    node_name = rcutils_strdup(separator_pos + 1, allocator);
+    if (NULL == node_name) {
+      ret = RCUTILS_RET_BAD_ALLOC;
+      goto clean;
+    }
+  }
+
+  if (absolute_namespace) {
+    ret = __validate_namespace(absolute_namespace);
+  } else if (namespace) {
+    ret = __validate_namespace(namespace);
+  }
+
+  if (ret != RCUTILS_RET_OK) {
+    goto clean;
+  }
+
+  ret = __validate_nodename(node_name);
+  if (ret != RCUTILS_RET_OK) {
+    goto clean;
+  }
+
+clean:
+  if (absolute_namespace) {
+    allocator.deallocate(absolute_namespace, allocator.state);
+  }
+  if (node_name) {
+    allocator.deallocate(node_name, allocator.state);
+  }
+  if (namespace) {
+    allocator.deallocate(namespace, allocator.state);
+  }
+  return ret;
+}
+
+///
 /// Parse the key part of the <key:value> pair
 ///
 rcutils_ret_t parse_key(
@@ -463,6 +580,12 @@ rcutils_ret_t parse_key(
           char * node_name_ns = rcutils_strdup(ns_tracker->node_ns, allocator);
           if (NULL == node_name_ns) {
             ret = RCUTILS_RET_BAD_ALLOC;
+            break;
+          }
+
+          ret = __validate_name(node_name_ns, allocator);
+          if (RCUTILS_RET_OK != ret) {
+            allocator.deallocate(node_name_ns, allocator.state);
             break;
           }
 

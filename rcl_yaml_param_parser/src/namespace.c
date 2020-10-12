@@ -14,47 +14,7 @@
 
 #include "./impl/namespace.h"
 
-#include "rcutils/format_string.h"
 #include "rcutils/strdup.h"
-
-#include "rmw/error_handling.h"
-#include "rmw/validate_namespace.h"
-
-///
-/// Validate a name whether it is a valid namespace
-///
-static rcutils_ret_t
-__validate_namespace(const char * name, rcutils_allocator_t allocator)
-{
-  // rmw_validate_namespace will report RMW_NAMESPACE_INVALID_NOT_ABSOLUTE
-  // so add prefix '/' to name to make an absolute name if necessary
-  char * absolute_name = NULL;
-  if (name[0] != '/') {
-    absolute_name = rcutils_format_string(allocator, "/%s", name);
-    if (NULL == absolute_name) {
-      RCUTILS_SET_ERROR_MSG("failed to allocate memory for absolute name");
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-  }
-  int validation_result = 0;
-  rmw_ret_t ret;
-  if (absolute_name) {
-    ret = rmw_validate_namespace(absolute_name, &validation_result, NULL);
-    allocator.deallocate(absolute_name, allocator.state);
-  } else {
-    ret = rmw_validate_namespace(name, &validation_result, NULL);
-  }
-  if (ret != RMW_RET_OK) {
-    RCUTILS_SET_ERROR_MSG(rmw_get_error_string().str);
-    return RCUTILS_RET_ERROR;
-  } else {
-    if (validation_result != RMW_NAMESPACE_VALID) {
-      RCUTILS_SET_ERROR_MSG(rmw_namespace_validation_result_string(validation_result));
-      return RCUTILS_RET_INVALID_ARGUMENT;
-    }
-  }
-  return RCUTILS_RET_OK;
-}
 
 rcutils_ret_t add_name_to_ns(
   namespace_tracker_t * ns_tracker,
@@ -88,12 +48,6 @@ rcutils_ret_t add_name_to_ns(
   /// Add a name to ns
   if (NULL == name) {
     return RCUTILS_RET_INVALID_ARGUMENT;
-  }
-  if (namespace_type == NS_TYPE_NODE) {
-    rcutils_ret_t ret = __validate_namespace(name, allocator);
-    if (RCUTILS_RET_OK != ret) {
-      return ret;
-    }
   }
   if (0U == *cur_count) {
     cur_ns = rcutils_strdup(name, allocator);
