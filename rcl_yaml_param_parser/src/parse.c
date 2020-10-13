@@ -418,11 +418,11 @@ __validate_namespace(const char * namespace)
   int validation_result = 0;
   rmw_ret_t ret;
   ret = rmw_validate_namespace(namespace, &validation_result, NULL);
-  if (ret != RMW_RET_OK) {
+  if (RMW_RET_OK != ret) {
     RCUTILS_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCUTILS_RET_ERROR;
   }
-  if (validation_result != RMW_NAMESPACE_VALID) {
+  if (RMW_NAMESPACE_VALID != validation_result) {
     RCUTILS_SET_ERROR_MSG(rmw_namespace_validation_result_string(validation_result));
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
@@ -439,11 +439,11 @@ __validate_nodename(const char * name)
   int validation_result = 0;
   rmw_ret_t ret;
   ret = rmw_validate_node_name(name, &validation_result, NULL);
-  if (ret != RMW_RET_OK) {
+  if (RMW_RET_OK != ret) {
     RCUTILS_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCUTILS_RET_ERROR;
   }
-  if (validation_result != RMW_NODE_NAME_VALID) {
+  if (RMW_NODE_NAME_VALID != validation_result) {
     RCUTILS_SET_ERROR_MSG(rmw_node_name_validation_result_string(validation_result));
     return RCUTILS_RET_ERROR;
   }
@@ -451,6 +451,9 @@ __validate_nodename(const char * name)
   return RCUTILS_RET_OK;
 }
 
+///
+/// TODO(iuhilnehc-ynos): add more extra special rules when the design is determined
+///
 ///
 /// Check a name (namespace/node_name) whether it is valid
 ///
@@ -499,12 +502,12 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
     ret = __validate_namespace(namespace);
   }
 
-  if (ret != RCUTILS_RET_OK) {
+  if (RCUTILS_RET_OK != ret) {
     goto clean;
   }
 
   ret = __validate_nodename(node_name);
-  if (ret != RCUTILS_RET_OK) {
+  if (RCUTILS_RET_OK != ret) {
     goto clean;
   }
 
