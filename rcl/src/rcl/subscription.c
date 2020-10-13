@@ -194,10 +194,9 @@ rcl_subscription_init(
 fail:
   if (subscription->impl) {
     if (subscription->impl->rmw_handle) {
-      if (rmw_destroy_subscription(
-          rcl_node_get_rmw_handle(node),
-          subscription->impl->rmw_handle) != RMW_RET_OK)
-      {
+      rmw_ret_t rmw_fail_ret = rmw_destroy_subscription(
+        rcl_node_get_rmw_handle(node), subscription->impl->rmw_handle);
+      if (RMW_RET_OK != rmw_fail_ret) {
         RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       }
     }
