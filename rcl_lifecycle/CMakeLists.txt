@@ -22,7 +22,10 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(
+    -Wall -Wextra -Wpedantic
+    -Wformat=2 -Wconversion -Wshadow -Wsign-conversion
+  )
 endif()
 
 set(rcl_lifecycle_sources

@@ -250,9 +250,9 @@ rcl_lifecycle_com_interface_publish_notification(
   rcl_lifecycle_com_interface_t * com_interface,
   const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal)
 {
-  msg.start_state.id = start->id;
+  msg.start_state.id = (uint8_t) start->id;
   rosidl_runtime_c__String__assign(&msg.start_state.label, start->label);
-  msg.goal_state.id = goal->id;
+  msg.goal_state.id = (uint8_t) goal->id;
   rosidl_runtime_c__String__assign(&msg.goal_state.label, goal->label);
 
   return rcl_publish(&com_interface->pub_transition_event, &msg, NULL);
