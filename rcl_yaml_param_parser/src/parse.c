@@ -452,16 +452,13 @@ __validate_nodename(const char * name)
 }
 
 ///
-/// TODO(iuhilnehc-ynos): add more extra special rules when the design is determined
-///
-///
 /// Check a name (namespace/node_name) whether it is valid
 ///
 static rcutils_ret_t
 __validate_name(const char * name, rcutils_allocator_t allocator)
 {
   // special rules
-  if (strcmp(name, "/**") == 0) {
+  if (0 == strcmp(name, "/**")) {
     return RCUTILS_RET_OK;
   }
 
@@ -500,15 +497,19 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
   }
 
   if (absolute_namespace) {
-    ret = __validate_namespace(absolute_namespace);
-    if (RCUTILS_RET_OK != ret) {
-      goto clean;
+    if (0 != strcmp(absolute_namespace, "/**")) {
+      ret = __validate_namespace(absolute_namespace);
+      if (RCUTILS_RET_OK != ret) {
+        goto clean;
+      }
     }
   }
 
-  ret = __validate_nodename(node_name);
-  if (RCUTILS_RET_OK != ret) {
-    goto clean;
+  if (0 != strcmp(node_name, "*")) {
+    ret = __validate_nodename(node_name);
+    if (RCUTILS_RET_OK != ret) {
+      goto clean;
+    }
   }
 
 clean:
