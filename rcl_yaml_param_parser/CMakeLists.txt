@@ -13,7 +13,10 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(
+    -Wall -Wextra -Wpedantic
+    -Wformat=2 -Wconversion -Wsign-conversion
+  )
 endif()
 
 set(rcl_yaml_parser_sources
