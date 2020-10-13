@@ -458,7 +458,7 @@ static rcutils_ret_t
 __validate_name(const char * name, rcutils_allocator_t allocator)
 {
   // special rules
-  if (0 == strcmp(name, "/**")) {
+  if (0 == strcmp(name, "/**") || 0 == strcmp(name, "/*")) {
     return RCUTILS_RET_OK;
   }
 
@@ -473,8 +473,20 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
       goto clean;
     }
   } else {
+    node_name = rcutils_strdup(separator_pos + 1, allocator);
+    if (NULL == node_name) {
+      ret = RCUTILS_RET_BAD_ALLOC;
+      goto clean;
+    }
+
     char * namespace = NULL;
-    namespace = rcutils_strndup(name, separator_pos - name, allocator);
+    // Besides "*", node name also support /*.
+    if (0 == strcmp(node_name, "*") && '/' == name[separator_pos - name]) {
+      namespace = rcutils_strndup(name, separator_pos - name - 1, allocator);
+    } else {
+      namespace = rcutils_strndup(name, separator_pos - name, allocator);
+    }
+
     if (NULL == namespace) {
       ret = RCUTILS_RET_BAD_ALLOC;
       goto clean;
@@ -489,15 +501,12 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
     } else {
       absolute_namespace = namespace;
     }
-    node_name = rcutils_strdup(separator_pos + 1, allocator);
-    if (NULL == node_name) {
-      ret = RCUTILS_RET_BAD_ALLOC;
-      goto clean;
-    }
   }
 
   if (absolute_namespace) {
-    if (0 != strcmp(absolute_namespace, "/**")) {
+    if (0 != strcmp(absolute_namespace, "/**") &&
+      0 != strcmp(absolute_namespace, "/*"))
+    {
       ret = __validate_namespace(absolute_namespace);
       if (RCUTILS_RET_OK != ret) {
         goto clean;
