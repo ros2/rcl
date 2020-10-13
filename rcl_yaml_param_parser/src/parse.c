@@ -467,7 +467,6 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
 
   rcutils_ret_t ret = RCUTILS_RET_OK;
   char * separator_pos = rindex(name, '/');
-  char * namespace = NULL;
   char * node_name = NULL;
   char * absolute_namespace = NULL;
   if (NULL == separator_pos) {
@@ -477,6 +476,7 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
       goto clean;
     }
   } else {
+    char * namespace = NULL;
     namespace = rcutils_strndup(name, separator_pos - name, allocator);
     if (NULL == namespace) {
       ret = RCUTILS_RET_BAD_ALLOC;
@@ -484,10 +484,13 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
     }
     if (namespace[0] != '/') {
       absolute_namespace = rcutils_format_string(allocator, "/%s", namespace);
+      allocator.deallocate(namespace, allocator.state);
       if (NULL == absolute_namespace) {
         ret = RCUTILS_RET_BAD_ALLOC;
         goto clean;
       }
+    } else {
+      absolute_namespace = namespace;
     }
     node_name = rcutils_strdup(separator_pos + 1, allocator);
     if (NULL == node_name) {
@@ -498,12 +501,9 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
 
   if (absolute_namespace) {
     ret = __validate_namespace(absolute_namespace);
-  } else if (namespace) {
-    ret = __validate_namespace(namespace);
-  }
-
-  if (RCUTILS_RET_OK != ret) {
-    goto clean;
+    if (RCUTILS_RET_OK != ret) {
+      goto clean;
+    }
   }
 
   ret = __validate_nodename(node_name);
@@ -517,9 +517,6 @@ clean:
   }
   if (node_name) {
     allocator.deallocate(node_name, allocator.state);
-  }
-  if (namespace) {
-    allocator.deallocate(namespace, allocator.state);
   }
   return ret;
 }
