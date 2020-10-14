@@ -193,6 +193,15 @@ rcl_subscription_init(
   goto cleanup;
 fail:
   if (subscription->impl) {
+    if (subscription->impl->rmw_handle) {
+      rmw_ret_t rmw_fail_ret = rmw_destroy_subscription(
+        rcl_node_get_rmw_handle(node), subscription->impl->rmw_handle);
+      if (RMW_RET_OK != rmw_fail_ret) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR_WITH_FORMAT_STRING(
+          "%s, at %s:%d\n", rmw_get_error_string().str, __FILE__, __LINE__);
+      }
+    }
+
     allocator->deallocate(subscription->impl, allocator->state);
   }
   ret = fail_ret;
