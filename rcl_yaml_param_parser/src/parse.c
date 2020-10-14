@@ -473,20 +473,8 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
       goto clean;
     }
   } else {
-    node_name = rcutils_strdup(separator_pos + 1, allocator);
-    if (NULL == node_name) {
-      ret = RCUTILS_RET_BAD_ALLOC;
-      goto clean;
-    }
-
-    char * namespace = NULL;
-    // Besides "*", node name also support /*.
-    if (0 == strcmp(node_name, "*") && '/' == name[separator_pos - name]) {
-      namespace = rcutils_strndup(name, separator_pos - name - 1, allocator);
-    } else {
-      namespace = rcutils_strndup(name, separator_pos - name, allocator);
-    }
-
+    // substring namespace including the last '/'
+    char * namespace = rcutils_strndup(name, separator_pos - name + 1, allocator);
     if (NULL == namespace) {
       ret = RCUTILS_RET_BAD_ALLOC;
       goto clean;
@@ -501,20 +489,51 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
     } else {
       absolute_namespace = namespace;
     }
+
+    node_name = rcutils_strdup(separator_pos + 1, allocator);
+    if (NULL == node_name) {
+      ret = RCUTILS_RET_BAD_ALLOC;
+      goto clean;
+    }
   }
 
   if (absolute_namespace) {
-    if (0 != strcmp(absolute_namespace, "/**") &&
-      0 != strcmp(absolute_namespace, "/*"))
-    {
+    size_t i = 0;
+    separator_pos = index(absolute_namespace + i + 1, '/');
+    if (NULL == separator_pos) {
       ret = __validate_namespace(absolute_namespace);
       if (RCUTILS_RET_OK != ret) {
         goto clean;
       }
+    } else {
+      do {
+        size_t len = separator_pos - absolute_namespace - i;
+        char * namespace = rcutils_strndup(absolute_namespace + i, len, allocator);
+        if (NULL == namespace) {
+          ret = RCUTILS_RET_BAD_ALLOC;
+          goto clean;
+        }
+        if (0 == strcmp(namespace, "/")) {
+          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "%s contains repeated forward slash", absolute_namespace);
+          allocator.deallocate(namespace, allocator.state);
+          ret = RCUTILS_RET_INVALID_ARGUMENT;
+          goto clean;
+        }
+        if (0 != strcmp(namespace, "/**") && 0 != strcmp(namespace, "/*")) {
+          ret = __validate_namespace(namespace);
+          if (RCUTILS_RET_OK != ret) {
+            allocator.deallocate(namespace, allocator.state);
+            goto clean;
+          }
+        }
+        allocator.deallocate(namespace, allocator.state);
+        i += len;
+      } while (NULL != (separator_pos = index(absolute_namespace + i + 1, '/')));
     }
   }
 
-  if (0 != strcmp(node_name, "*")) {
+  if (0 != strcmp(node_name, "*") && 0 != strcmp(node_name, "**")) {
     ret = __validate_nodename(node_name);
     if (RCUTILS_RET_OK != ret) {
       goto clean;

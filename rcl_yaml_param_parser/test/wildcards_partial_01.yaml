@@ -1,8 +1,7 @@
 # config/test_yaml
 ---
 
-/**:
-  some_node:
+/foo**:
     ros__parameters:
       id: 10
       name: "front lidar"
