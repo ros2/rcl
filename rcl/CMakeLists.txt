@@ -53,6 +53,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/node_options.c
   src/rcl/publisher.c
   src/rcl/remap.c
+  src/rcl/resolve_topic_name.c
   src/rcl/rmw_implementation_identifier_check.c
   src/rcl/security.c
   src/rcl/service.c
