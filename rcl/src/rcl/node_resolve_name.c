@@ -40,7 +40,7 @@ rcl_resolve_name(
   bool only_expand,
   char ** output_topic_name)
 {
-  // the other arguments are checked by rcl_expand_topic_name() and rcl_remap_topic_name()
+  // the other arguments are checked by rcl_expand_topic_name() and rcl_remap_name()
   RCL_CHECK_ARGUMENT_FOR_NULL(output_topic_name, RCL_RET_INVALID_ARGUMENT);
   // Create default topic name substitutions map
   rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
