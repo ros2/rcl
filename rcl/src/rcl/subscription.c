@@ -198,6 +198,7 @@ fail:
         rcl_node_get_rmw_handle(node), subscription->impl->rmw_handle);
       if (RMW_RET_OK != rmw_fail_ret) {
         RCUTILS_SAFE_FWRITE_TO_STDERR(rmw_get_error_string().str);
+        RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
       }
     }
 
