@@ -108,7 +108,7 @@ cleanup:
     rcutils_error_string_t error = rcutils_get_error_string();
     rcutils_reset_error();
     if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG(error);
+      RCL_SET_ERROR_MSG(error.str);
       ret = RCL_RET_ERROR;
     } else {
       RCUTILS_LOG_ERROR_NAMED(

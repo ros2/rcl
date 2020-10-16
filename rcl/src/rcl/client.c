@@ -129,12 +129,7 @@ fail:
   ret = fail_ret;
   // Fall through to cleanup
 cleanup:
-  if (NULL != expanded_service_name) {
-    allocator->deallocate(expanded_service_name, allocator->state);
-  }
-  if (NULL != remapped_service_name) {
-    allocator->deallocate(remapped_service_name, allocator->state);
-  }
+  allocator->deallocate(remapped_service_name, allocator->state);
   return ret;
 }
 

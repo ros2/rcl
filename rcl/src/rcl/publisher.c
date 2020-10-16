@@ -78,34 +78,8 @@ rcl_publisher_init(
 
 
   // Expand the given topic name.
-  rcutils_allocator_t rcutils_allocator = *allocator;  // implicit conversion to rcutils version
-  rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
-  rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-    if (rcutils_ret == RCUTILS_RET_BAD_ALLOC) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
-  }
-  rcl_ret_t ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
-  if (ret != RCL_RET_OK) {
-    rcutils_ret = rcutils_string_map_fini(&substitutions_map);
-    if (rcutils_ret != RCUTILS_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME,
-        "failed to fini string_map (%d) during error handling: %s",
-        rcutils_ret,
-        rcutils_get_error_string().str);
-    }
-    if (ret == RCL_RET_BAD_ALLOC) {
-      return ret;
-    }
-    return RCL_RET_ERROR;
-  }
-
   char * remapped_topic_name = NULL;
-  ret = rcl_resolve_name_with_node(
+  rcl_ret_t ret = rcl_resolve_name_with_node(
     node,
     topic_name,
     *allocator,

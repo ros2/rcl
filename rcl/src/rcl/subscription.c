@@ -105,7 +105,7 @@ rcl_subscription_init(
     goto fail;
   }
   // get actual qos, and store it
-  rmw_ret = rmw_subscription_get_actual_qos(
+  rmw_ret_t rmw_ret = rmw_subscription_get_actual_qos(
     subscription->impl->rmw_handle,
     &subscription->impl->actual_qos);
   if (RMW_RET_OK != rmw_ret) {
