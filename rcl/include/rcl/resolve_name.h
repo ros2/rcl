@@ -60,7 +60,7 @@ extern "C"
  * \param[in] node_name Name of the node associated with the topic/service.
  * \param[in] node_namespace Namespace of the node associated with the topic/service.
  * \param[in] allocator The allocator to be used when creating the output name.
- * \param[in] only_expand if `true`, remmapping rules aren't applied.
+ * \param[in] is_service for services use `true`, for topics use `false`.
  * \param[out] output_name Output char * pointer.
  * \return `RCL_RET_OK` if the name was expanded successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any of input_name, node_name, node_namespace
@@ -112,7 +112,7 @@ rcl_resolve_name(
  * \param[in] node Node object. Its name, namespace, local/global command line arguments are used.
  * \param[in] input_name Topic name to be expanded and remapped.
  * \param[in] allocator The allocator to be used when creating the output topic.
- * \param[in] only_expand if `true`, remmapping rules aren't applied.
+ * \param[in] is_service for services use `true`, for topics use `false`.
  * \param[out] output_name Output char * pointer.
  * \return `RCL_RET_OK` if the topic name was expanded successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any of input_name, node_name, node_namespace

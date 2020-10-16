@@ -44,9 +44,9 @@ rcl_resolve_name(
   rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
-    const char * error = rcutils_get_error_string().str;
+    rcutils_error_string_t error = rcutils_get_error_string();
     rcutils_reset_error();
-    RCL_SET_ERROR_MSG(error);
+    RCL_SET_ERROR_MSG(error.str);
     if (RCUTILS_RET_BAD_ALLOC == rcutils_ret) {
       return RCL_RET_BAD_ALLOC;
     }
@@ -105,12 +105,18 @@ rcl_resolve_name(
 cleanup:
   rcutils_ret = rcutils_string_map_fini(&substitutions_map);
   if (rcutils_ret != RCUTILS_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
-      "failed to fini string_map (%d) during error handling: %s",
-      rcutils_ret,
-      rcutils_get_error_string().str);
+    rcutils_error_string_t error = rcutils_get_error_string();
     rcutils_reset_error();
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG(error);
+      ret = RCL_RET_ERROR;
+    } else {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
+        "failed to fini string_map (%d) during error handling: %s",
+        rcutils_ret,
+        error.str);
+    }
   }
   allocator.deallocate(expanded_topic_name, allocator.state);
   if (is_service && RCL_RET_TOPIC_NAME_INVALID == ret) {
