@@ -32,8 +32,8 @@
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
 
-#include "../arg_macros.hpp"
 #include "../mocking_utils/patch.hpp"
+#include "./arg_macros.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
@@ -918,7 +918,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
 
   // Initialize rcl with rcl_init().
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -938,7 +938,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   rcl_arguments_t local_arguments;
   SCOPE_ARGS(local_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/local_args");
   options.arguments = local_arguments;
-  ret = rcl_node_init(&node, "node", "/ns", &context, &default_options);
+  ret = rcl_node_init(&node, "node", "/ns", &context, &options);
   ASSERT_EQ(RCL_RET_OK, ret);
 
   // Invalid arguments
@@ -954,28 +954,28 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
     RCL_RET_OK,
     rcl_node_resolve_name(&node, "my_topic", default_allocator, false, &final_name));
   ASSERT_TRUE(final_name);
-  EXPECT_STREQ("/ns/my_topic", *final_name);
+  EXPECT_STREQ("/ns/my_topic", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
 
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_node_resolve_name(&node, "my_service", default_allocator, true, &final_name));
   ASSERT_TRUE(final_name);
-  EXPECT_STREQ("/ns/my_service", *final_name);
+  EXPECT_STREQ("/ns/my_service", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
 
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_node_resolve_name(&node, "/bar/foo", default_allocator, false, &final_name));
   ASSERT_TRUE(final_name);
-  EXPECT_STREQ("/foo/local_args", *final_name);
+  EXPECT_STREQ("/foo/local_args", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
 
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_node_resolve_name(&node, "relative_ns/foo", default_allocator, true, &final_name));
   ASSERT_TRUE(final_name);
-  EXPECT_STREQ("/ns/relative_ns/foo", *final_name);
+  EXPECT_STREQ("/ns/relative_ns/foo", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
 }
 
