@@ -997,4 +997,3 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   EXPECT_STREQ("/ns/relative_ns/foo", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
 }
-
