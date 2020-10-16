@@ -197,6 +197,15 @@ rcl_publisher_init(
   goto cleanup;
 fail:
   if (publisher->impl) {
+    if (publisher->impl->rmw_handle) {
+      rmw_ret_t rmw_fail_ret = rmw_destroy_publisher(
+        rcl_node_get_rmw_handle(node), publisher->impl->rmw_handle);
+      if (RMW_RET_OK != rmw_fail_ret) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR(rmw_get_error_string().str);
+        RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+      }
+    }
+
     allocator->deallocate(publisher->impl, allocator->state);
   }
 
