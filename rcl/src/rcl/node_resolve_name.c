@@ -37,6 +37,7 @@ rcl_resolve_name(
   const char * node_namespace,
   rcl_allocator_t allocator,
   bool is_service,
+  bool only_expand,
   char ** output_topic_name)
 {
   // the other arguments are checked by rcl_expand_topic_name() and rcl_remap_topic_name()
@@ -74,12 +75,14 @@ rcl_resolve_name(
     goto cleanup;
   }
   // remap topic name
-  ret = rcl_remap_name(
-    local_args, global_args, is_service ? RCL_SERVICE_REMAP : RCL_TOPIC_REMAP,
-    expanded_topic_name, node_name, node_namespace, &substitutions_map, allocator,
-    &remapped_topic_name);
-  if (RCL_RET_OK != ret) {
-    goto cleanup;
+  if (!only_expand) {
+    ret = rcl_remap_name(
+      local_args, global_args, is_service ? RCL_SERVICE_REMAP : RCL_TOPIC_REMAP,
+      expanded_topic_name, node_name, node_namespace, &substitutions_map, allocator,
+      &remapped_topic_name);
+    if (RCL_RET_OK != ret) {
+      goto cleanup;
+    }
   }
   if (NULL == remapped_topic_name) {
     remapped_topic_name = expanded_topic_name;
@@ -133,6 +136,7 @@ rcl_node_resolve_name(
   const char * input_topic_name,
   rcl_allocator_t allocator,
   bool is_service,
+  bool only_expand,
   char ** output_topic_name)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
@@ -153,5 +157,6 @@ rcl_node_resolve_name(
     rcl_node_get_namespace(node),
     allocator,
     is_service,
+    only_expand,
     output_topic_name);
 }

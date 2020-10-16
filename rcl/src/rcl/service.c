@@ -85,6 +85,7 @@ rcl_service_init(
     service_name,
     *allocator,
     true,
+    false,
     &remapped_service_name);
   if (ret != RCL_RET_OK) {
     if (ret == RCL_RET_SERVICE_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {

@@ -74,6 +74,7 @@ rcl_subscription_init(
     topic_name,
     *allocator,
     false,
+    false,
     &remapped_topic_name);
   if (ret != RCL_RET_OK) {
     if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {

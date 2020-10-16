@@ -911,10 +911,10 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   // Invalid node
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_node_resolve_name(NULL, "my_topic", default_allocator, false, &final_name));
+    rcl_node_resolve_name(NULL, "my_topic", default_allocator, false, false, &final_name));
   EXPECT_EQ(
     RCL_RET_ERROR,
-    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, &final_name));
+    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, false, &final_name));
 
   // Initialize rcl with rcl_init().
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -956,36 +956,43 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   // Invalid arguments
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_node_resolve_name(&node, NULL, default_allocator, false, &final_name));
+    rcl_node_resolve_name(&node, NULL, default_allocator, false, false, &final_name));
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, NULL));
+    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, false, NULL));
 
   // Some valid options, test_remap and test_expand_topic_name already have good coverage
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, &final_name));
+    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, false, &final_name));
   ASSERT_TRUE(final_name);
   EXPECT_STREQ("/ns/my_topic", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
 
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_node_resolve_name(&node, "my_service", default_allocator, true, &final_name));
+    rcl_node_resolve_name(&node, "my_service", default_allocator, true, false, &final_name));
   ASSERT_TRUE(final_name);
   EXPECT_STREQ("/ns/my_service", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
 
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_node_resolve_name(&node, "/bar/foo", default_allocator, false, &final_name));
+    rcl_node_resolve_name(&node, "/bar/foo", default_allocator, false, false, &final_name));
   ASSERT_TRUE(final_name);
   EXPECT_STREQ("/foo/local_args", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
 
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_node_resolve_name(&node, "relative_ns/foo", default_allocator, true, &final_name));
+    rcl_node_resolve_name(&node, "/bar/foo", default_allocator, false, true, &final_name));
+  ASSERT_TRUE(final_name);
+  EXPECT_STREQ("/bar/foo", final_name);
+  default_allocator.deallocate(final_name, default_allocator.state);
+
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_resolve_name(&node, "relative_ns/foo", default_allocator, true, false, &final_name));
   ASSERT_TRUE(final_name);
   EXPECT_STREQ("/ns/relative_ns/foo", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
