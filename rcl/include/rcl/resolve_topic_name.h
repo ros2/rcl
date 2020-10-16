@@ -25,6 +25,8 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/arguments.h"
 #include "rcl/macros.h"
+#include "rcl/node.h"
+#include "rcl/node_options.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
@@ -83,6 +85,49 @@ rcl_resolve_topic_name(
   const char * input_topic_name,
   const char * node_name,
   const char * node_namespace,
+  rcl_allocator_t allocator,
+  bool only_expand,
+  char ** output_topic_name);
+
+/// Expand a given topic name into a fully-qualified topic name and apply remapping rules.
+/**
+ * See \ref rcl_resolve_topic_name_with_node() for more info.
+ * This overload takes a node pointer instead of
+ * `local_args`, `global_args`, `node_name` and `node_namespace`.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node Node object. Its name, namespace, local/global command line arguments are used.
+ * \param[in] input_topic_name Topic name to be expanded and remapped.
+ * \param[in] allocator The allocator to be used when creating the output topic.
+ * \param[in] only_expand if `true`, remmapping rules aren't applied.
+ * \param[out] output_topic_name Output char * pointer.
+ * \return `RCL_RET_OK` if the topic name was expanded successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any of input_topic_name, node_name, node_namespace
+ *  or output_topic_name are NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if both local_args and global_args are NULL, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid
+ *  (see \ref rcl_validate_topic_name()), or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the given node name is invalid
+ *  (see \ref rmw_validate_node_name()), or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the given node namespace is invalid
+ *  (see \ref rmw_validate_namespace()), or
+ * \return `RCL_RET_UNKNOWN_SUBSTITUTION` for unknown substitutions in name, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_resolve_topic_name_with_node(
+  const rcl_node_t * node,
+  const char * input_topic_name,
   rcl_allocator_t allocator,
   bool only_expand,
   char ** output_topic_name);

@@ -67,23 +67,11 @@ rcl_subscription_init(
     return RCL_RET_ALREADY_INIT;
   }
 
-  const rcl_node_options_t * node_options = rcl_node_get_options(node);
-  if (NULL == node_options) {
-    return RCL_RET_ERROR;
-  }
-  rcl_arguments_t * global_args = NULL;
-  if (node_options->use_global_arguments) {
-    global_args = &(node->context->global_arguments);
-  }
-
   // Expand the given topic name.
   char * remapped_topic_name = NULL;
-  rcl_ret_t ret = rcl_resolve_topic_name(
-    &(node_options->arguments),
-    global_args,
+  rcl_ret_t ret = rcl_resolve_topic_name_with_node(
+    node,
     topic_name,
-    rcl_node_get_name(node),
-    rcl_node_get_namespace(node),
     *allocator,
     false,
     &remapped_topic_name);

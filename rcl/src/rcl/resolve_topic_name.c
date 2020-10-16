@@ -114,3 +114,31 @@ cleanup:
   allocator.deallocate(expanded_topic_name, allocator.state);
   return ret;
 }
+
+rcl_ret_t
+rcl_resolve_topic_name_with_node(
+  const rcl_node_t * node,
+  const char * input_topic_name,
+  rcl_allocator_t allocator,
+  bool only_expand,
+  char ** output_topic_name)
+{
+  const rcl_node_options_t * node_options = rcl_node_get_options(node);
+  if (NULL == node_options) {
+    return RCL_RET_ERROR;
+  }
+  rcl_arguments_t * global_args = NULL;
+  if (node_options->use_global_arguments) {
+    global_args = &(node->context->global_arguments);
+  }
+
+  return rcl_resolve_topic_name(
+    &(node_options->arguments),
+    global_args,
+    input_topic_name,
+    rcl_node_get_name(node),
+    rcl_node_get_namespace(node),
+    allocator,
+    only_expand,
+    output_topic_name);
+}
