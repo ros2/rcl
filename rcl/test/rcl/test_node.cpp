@@ -935,11 +935,23 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
 
   // Initialize node with default options
   rcl_node_options_t options = rcl_node_get_default_options();
-  rcl_arguments_t local_arguments;
-  SCOPE_ARGS(local_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/local_args");
-  options.arguments = local_arguments;
+  rcl_arguments_t local_arguments = rcl_get_zero_initialized_arguments();
+  const char * argv[] = {"process_name", "--ros-args", "-r", "/bar/foo:=/foo/local_args"};
+  unsigned int argc = (sizeof(argv) / sizeof(const char *));
+  ret = rcl_parse_arguments(
+    argc, argv, default_allocator, &local_arguments);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  options.arguments = local_arguments;  // transfer ownership
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_node_options_fini(&options);
+  });
   ret = rcl_node_init(&node, "node", "/ns", &context, &options);
   ASSERT_EQ(RCL_RET_OK, ret);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ASSERT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+  });
 
   // Invalid arguments
   EXPECT_EQ(

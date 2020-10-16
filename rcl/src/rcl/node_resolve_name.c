@@ -135,7 +135,7 @@ rcl_node_resolve_name(
   bool is_service,
   char ** output_topic_name)
 {
-  // node get options checks `node` validity
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (NULL == node_options) {
     return RCL_RET_ERROR;

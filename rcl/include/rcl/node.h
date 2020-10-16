@@ -496,7 +496,7 @@ rcl_node_get_logger_name(const rcl_node_t * node);
  * Attribute          | Adherence
  * ------------------ | -------------
  * Allocates Memory   | Yes
- * Thread-Safe        | Yes
+ * Thread-Safe        | No
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
