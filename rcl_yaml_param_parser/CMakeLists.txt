@@ -127,6 +127,7 @@ if(BUILD_TESTING)
   ament_add_gtest(test_parser_multiple_nodes
     test/test_parser_multiple_nodes.cpp
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    TIMEOUT 240  # Large timeout to wait for fault injection tests
   )
   if(TARGET test_parser_multiple_nodes)
     ament_target_dependencies(test_parser_multiple_nodes

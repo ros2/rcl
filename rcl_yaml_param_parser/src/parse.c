@@ -32,6 +32,41 @@
 #include "rcl_yaml_param_parser/parser.h"
 
 ///
+/// Check a name space whether it is valid
+///
+/// \param[in] namespace the namespace to check
+/// \return RCUTILS_RET_OK if namespace is valid, or
+/// \return RCUTILS_RET_INVALID_ARGUMENT if namespace is not valid, or
+/// \return RCUTILS_RET_ERROR if an unspecified error occurred.
+RCL_YAML_PARAM_PARSER_LOCAL
+rcutils_ret_t
+__validate_namespace(const char * namespace);
+
+///
+/// Check a node name whether it is valid
+///
+/// \param[in] name the node name to check
+/// \return RCUTILS_RET_OK if the node name is valid, or
+/// \return RCUTILS_RET_INVALID_ARGUMENT if node name is not valid, or
+/// \return RCUTILS_RET_ERROR if an unspecified error occurred.
+RCL_YAML_PARAM_PARSER_LOCAL
+rcutils_ret_t
+__validate_nodename(const char * node_name);
+
+///
+/// Check a name (namespace/node_name) whether it is valid
+///
+/// \param name the name to check
+/// \param allocator an allocator to use
+/// \return RCUTILS_RET_OK if name is valid, or
+/// \return RCUTILS_RET_INVALID_ARGUMENT if name is not valid, or
+/// \return RCL_RET_BAD_ALLOC if an allocation failed, or
+/// \return RCUTILS_RET_ERROR if an unspecified error occurred.
+RCL_YAML_PARAM_PARSER_LOCAL
+rcutils_ret_t
+__validate_name(const char * name, rcutils_allocator_t allocator);
+
+///
 /// Determine the type of the value and return the converted value
 /// NOTE: Only canonical forms supported as of now
 ///
@@ -409,10 +444,7 @@ rcutils_ret_t parse_value(
   return ret;
 }
 
-///
-/// Check a name space whether it is valid
-///
-static rcutils_ret_t
+rcutils_ret_t
 __validate_namespace(const char * namespace)
 {
   int validation_result = 0;
@@ -430,31 +462,25 @@ __validate_namespace(const char * namespace)
   return RCUTILS_RET_OK;
 }
 
-///
-/// Check a node name whether it is valid
-///
-static rcutils_ret_t
-__validate_nodename(const char * name)
+rcutils_ret_t
+__validate_nodename(const char * node_name)
 {
   int validation_result = 0;
   rmw_ret_t ret;
-  ret = rmw_validate_node_name(name, &validation_result, NULL);
+  ret = rmw_validate_node_name(node_name, &validation_result, NULL);
   if (RMW_RET_OK != ret) {
     RCUTILS_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCUTILS_RET_ERROR;
   }
   if (RMW_NODE_NAME_VALID != validation_result) {
     RCUTILS_SET_ERROR_MSG(rmw_node_name_validation_result_string(validation_result));
-    return RCUTILS_RET_ERROR;
+    return RCUTILS_RET_INVALID_ARGUMENT;
   }
 
   return RCUTILS_RET_OK;
 }
 
-///
-/// Check a name (namespace/node_name) whether it is valid
-///
-static rcutils_ret_t
+rcutils_ret_t
 __validate_name(const char * name, rcutils_allocator_t allocator)
 {
   // special rules
@@ -463,7 +489,7 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
   }
 
   rcutils_ret_t ret = RCUTILS_RET_OK;
-  char * separator_pos = rindex(name, '/');
+  char * separator_pos = strrchr(name, '/');
   char * node_name = NULL;
   char * absolute_namespace = NULL;
   if (NULL == separator_pos) {
@@ -499,7 +525,7 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
 
   if (absolute_namespace) {
     size_t i = 0;
-    separator_pos = index(absolute_namespace + i + 1, '/');
+    separator_pos = strchr(absolute_namespace + i + 1, '/');
     if (NULL == separator_pos) {
       ret = __validate_namespace(absolute_namespace);
       if (RCUTILS_RET_OK != ret) {
