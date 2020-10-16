@@ -22,7 +22,7 @@ extern "C"
 #include <stdio.h>
 
 #include "rcl/error_handling.h"
-#include "rcl/resolve_topic_name.h"
+#include "rcl/resolve_name.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
@@ -69,7 +69,7 @@ rcl_subscription_init(
 
   // Expand the given topic name.
   char * remapped_topic_name = NULL;
-  rcl_ret_t ret = rcl_resolve_topic_name_with_node(
+  rcl_ret_t ret = rcl_resolve_name_with_node(
     node,
     topic_name,
     *allocator,
@@ -86,19 +86,6 @@ rcl_subscription_init(
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Expanded and remapped topic name '%s'", remapped_topic_name);
 
-  // Validate the expanded topic name.
-  int validation_result;
-  rmw_ret_t rmw_ret = rmw_validate_full_topic_name(remapped_topic_name, &validation_result, NULL);
-  if (rmw_ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    ret = RCL_RET_ERROR;
-    goto cleanup;
-  }
-  if (validation_result != RMW_TOPIC_VALID) {
-    RCL_SET_ERROR_MSG(rmw_full_topic_name_validation_result_string(validation_result));
-    ret = RCL_RET_TOPIC_NAME_INVALID;
-    goto cleanup;
-  }
   // Allocate memory for the implementation struct.
   subscription->impl = (rcl_subscription_impl_t *)allocator->allocate(
     sizeof(rcl_subscription_impl_t), allocator->state);

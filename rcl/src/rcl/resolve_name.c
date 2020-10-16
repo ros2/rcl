@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl/resolve_topic_name.h"
+#include "rcl/resolve_name.h"
 
 #include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
@@ -25,15 +25,17 @@
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
 
+#include "./remap_impl.h"
+
 rcl_ret_t
-rcl_resolve_topic_name(
+rcl_resolve_name(
   const rcl_arguments_t * local_args,
   const rcl_arguments_t * global_args,
   const char * input_topic_name,
   const char * node_name,
   const char * node_namespace,
   rcl_allocator_t allocator,
-  bool only_expand,
+  bool is_service,
   char ** output_topic_name)
 {
   // the other arguments are checked by rcl_expand_topic_name() and rcl_remap_topic_name()
@@ -70,14 +72,13 @@ rcl_resolve_topic_name(
   if (RCL_RET_OK != ret) {
     goto cleanup;
   }
-  if (!only_expand) {
-    // remap topic name
-    ret = rcl_remap_topic_name(
-      local_args, global_args, expanded_topic_name,
-      node_name, node_namespace, allocator, &remapped_topic_name);
-    if (RCL_RET_OK != ret) {
-      goto cleanup;
-    }
+  // remap topic name
+  ret = rcl_remap_name(
+    local_args, global_args, is_service ? RCL_SERVICE_REMAP : RCL_TOPIC_REMAP,
+    expanded_topic_name, node_name, node_namespace, &substitutions_map, allocator,
+    &remapped_topic_name);
+  if (RCL_RET_OK != ret) {
+    goto cleanup;
   }
   if (NULL == remapped_topic_name) {
     remapped_topic_name = expanded_topic_name;
@@ -112,17 +113,21 @@ cleanup:
     rcutils_reset_error();
   }
   allocator.deallocate(expanded_topic_name, allocator.state);
+  if (is_service && RCL_RET_TOPIC_NAME_INVALID == ret) {
+    ret = RCL_RET_SERVICE_NAME_INVALID;
+  }
   return ret;
 }
 
 rcl_ret_t
-rcl_resolve_topic_name_with_node(
+rcl_resolve_name_with_node(
   const rcl_node_t * node,
   const char * input_topic_name,
   rcl_allocator_t allocator,
-  bool only_expand,
+  bool is_service,
   char ** output_topic_name)
 {
+  // node get options checks `node` validity
   const rcl_node_options_t * node_options = rcl_node_get_options(node);
   if (NULL == node_options) {
     return RCL_RET_ERROR;
@@ -132,13 +137,13 @@ rcl_resolve_topic_name_with_node(
     global_args = &(node->context->global_arguments);
   }
 
-  return rcl_resolve_topic_name(
+  return rcl_resolve_name(
     &(node_options->arguments),
     global_args,
     input_topic_name,
     rcl_node_get_name(node),
     rcl_node_get_namespace(node),
     allocator,
-    only_expand,
+    is_service,
     output_topic_name);
 }

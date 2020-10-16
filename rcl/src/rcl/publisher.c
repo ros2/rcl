@@ -24,13 +24,10 @@ extern "C"
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rcl/expand_topic_name.h"
-#include "rcl/remap.h"
-#include "rcl/resolve_topic_name.h"
+#include "rcl/resolve_name.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rmw/error_handling.h"
-#include "rmw/validate_full_topic_name.h"
 #include "tracetools/tracetools.h"
 
 #include "./common.h"
@@ -108,7 +105,7 @@ rcl_publisher_init(
   }
 
   char * remapped_topic_name = NULL;
-  ret = rcl_resolve_topic_name_with_node(
+  ret = rcl_resolve_name_with_node(
     node,
     topic_name,
     *allocator,

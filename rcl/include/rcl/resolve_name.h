@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__RESOLVE_TOPIC_NAME_H_
-#define RCL__RESOLVE_TOPIC_NAME_H_
+#ifndef RCL__RESOLVE_NAME_H_
+#define RCL__RESOLVE_NAME_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -32,17 +32,17 @@ extern "C"
 
 /// Expand a given topic name into a fully-qualified topic name and apply remapping rules.
 /**
- * \pre The input_topic_name, node_name, and node_namespace arguments must all be
+ * \pre The input_name, node_name, and node_namespace arguments must all be
  * valid, null terminated c strings.
- * \post The output_topic_name will not be assigned a value in the event of an error.
- * \post If assigned, the output_topic_name will be null terminated.
+ * \post The output_name will not be assigned a value in the event of an error.
+ * \post If assigned, the output_name will be null terminated.
  *  Its memory must be freed by the user.
  *
  * This function uses the substitutions provided by rcl_get_default_topic_name_substitutions(),
  * and the additional ones explained in \ref expand_topic_name().
  *
  * The remapping rules are provided by `local_args` and `global_args`,
- * see \ref rcl_remap_topic_name().
+ * see \ref rcl_remap_topic_name(), \ref rcl_remap_service_name().
  *
  * <hr>
  * Attribute          | Adherence
@@ -56,18 +56,24 @@ extern "C"
  *   if NULL or zero-initialized then only global arguments are used.
  * \param[in] global_arguments Command line arguments to use if no local rules matched, or
  *   `NULL` or zero-initialized to ignore global arguments.
- * \param[in] input_topic_name Topic name to be expanded and remapped.
- * \param[in] node_name Name of the node associated with the topic.
- * \param[in] node_namespace Namespace of the node associated with the topic.
- * \param[in] allocator The allocator to be used when creating the output topic.
+ * \param[in] input_name Topic or service name to be expanded and remapped.
+ * \param[in] node_name Name of the node associated with the topic/service.
+ * \param[in] node_namespace Namespace of the node associated with the topic/service.
+ * \param[in] allocator The allocator to be used when creating the output name.
  * \param[in] only_expand if `true`, remmapping rules aren't applied.
- * \param[out] output_topic_name Output char * pointer.
- * \return `RCL_RET_OK` if the topic name was expanded successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any of input_topic_name, node_name, node_namespace
- *  or output_topic_name are NULL, or
+ * \param[out] output_name Output char * pointer.
+ * \return `RCL_RET_OK` if the name was expanded successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any of input_name, node_name, node_namespace
+ *  or output_name are NULL, or
  * \return `RCL_RET_INVALID_ARGUMENT` if both local_args and global_args are NULL, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid
+ *  (see \ref rcl_validate_topic_name()), or
+ * \return `RCL_RET_TOPIC_NAME_INVALID` if the resulting topic name is invalid
+ *  (see \ref rcl_validate_topic_name()), or
+ * \return `RCL_RET_SERVICE_NAME_INVALID` if the given service name is invalid
+ *  (see \ref rcl_validate_topic_name()), or
+  * \return `RCL_RET_SERVICE_NAME_INVALID` if the resulting service name is invalid
  *  (see \ref rcl_validate_topic_name()), or
  * \return `RCL_RET_NODE_INVALID_NAME` if the given node name is invalid
  *  (see \ref rmw_validate_node_name()), or
@@ -79,19 +85,19 @@ extern "C"
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_resolve_topic_name(
+rcl_resolve_name(
   const rcl_arguments_t * local_args,
   const rcl_arguments_t * global_args,
-  const char * input_topic_name,
+  const char * input_name,
   const char * node_name,
   const char * node_namespace,
   rcl_allocator_t allocator,
-  bool only_expand,
-  char ** output_topic_name);
+  bool is_service,
+  char ** output_name);
 
 /// Expand a given topic name into a fully-qualified topic name and apply remapping rules.
 /**
- * See \ref rcl_resolve_topic_name_with_node() for more info.
+ * See \ref rcl_resolve_name_with_node() for more info.
  * This overload takes a node pointer instead of
  * `local_args`, `global_args`, `node_name` and `node_namespace`.
  *
@@ -104,13 +110,13 @@ rcl_resolve_topic_name(
  * Lock-Free          | Yes
  *
  * \param[in] node Node object. Its name, namespace, local/global command line arguments are used.
- * \param[in] input_topic_name Topic name to be expanded and remapped.
+ * \param[in] input_name Topic name to be expanded and remapped.
  * \param[in] allocator The allocator to be used when creating the output topic.
  * \param[in] only_expand if `true`, remmapping rules aren't applied.
- * \param[out] output_topic_name Output char * pointer.
+ * \param[out] output_name Output char * pointer.
  * \return `RCL_RET_OK` if the topic name was expanded successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if any of input_topic_name, node_name, node_namespace
- *  or output_topic_name are NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any of input_name, node_name, node_namespace
+ *  or output_name are NULL, or
  * \return `RCL_RET_INVALID_ARGUMENT` if both local_args and global_args are NULL, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid
@@ -125,15 +131,15 @@ rcl_resolve_topic_name(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_resolve_topic_name_with_node(
+rcl_resolve_name_with_node(
   const rcl_node_t * node,
-  const char * input_topic_name,
+  const char * input_name,
   rcl_allocator_t allocator,
-  bool only_expand,
-  char ** output_topic_name);
+  bool is_service,
+  char ** output_name);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // RCL__RESOLVE_TOPIC_NAME_H_
+#endif  // RCL__RESOLVE_NAME_H_
