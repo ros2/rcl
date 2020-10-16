@@ -23,7 +23,7 @@ extern "C"
 #include <string.h>
 
 #include "rcl/error_handling.h"
-#include "rcl/resolve_name.h"
+#include "rcl/node.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rcutils/stdatomic_helper.h"
@@ -76,7 +76,7 @@ rcl_client_init(
 
   // Expand the given service name.
   char * remapped_service_name = NULL;
-  rcl_ret_t ret = rcl_resolve_name_with_node(
+  rcl_ret_t ret = rcl_node_resolve_name(
     node,
     service_name,
     *allocator,

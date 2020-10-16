@@ -24,7 +24,7 @@ extern "C"
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rcl/resolve_name.h"
+#include "rcl/node.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rmw/error_handling.h"
@@ -78,7 +78,7 @@ rcl_publisher_init(
 
   // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
-  rcl_ret_t ret = rcl_resolve_name_with_node(
+  rcl_ret_t ret = rcl_node_resolve_name(
     node,
     topic_name,
     *allocator,

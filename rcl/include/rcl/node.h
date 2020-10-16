@@ -490,6 +490,45 @@ RCL_WARN_UNUSED
 const char *
 rcl_node_get_logger_name(const rcl_node_t * node);
 
+/// Expand a given name into a fully-qualified topic name and apply remapping rules.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node Node object. Its name, namespace, local/global command line arguments are used.
+ * \param[in] input_name Topic name to be expanded and remapped.
+ * \param[in] allocator The allocator to be used when creating the output topic.
+ * \param[in] is_service for services use `true`, for topics use `false`.
+ * \param[out] output_name Output char * pointer.
+ * \return `RCL_RET_OK` if the topic name was expanded successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any of input_name, node_name, node_namespace
+ *  or output_name are NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if both local_args and global_args are NULL, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid
+ *  (see \ref rcl_validate_topic_name()), or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the given node name is invalid
+ *  (see \ref rmw_validate_node_name()), or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the given node namespace is invalid
+ *  (see \ref rmw_validate_namespace()), or
+ * \return `RCL_RET_UNKNOWN_SUBSTITUTION` for unknown substitutions in name, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_node_resolve_name(
+  const rcl_node_t * node,
+  const char * input_name,
+  rcl_allocator_t allocator,
+  bool is_service,
+  char ** output_name);
+
 #ifdef __cplusplus
 }
 #endif

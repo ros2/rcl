@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rcl/resolve_name.h"
+#include "rcl/node.h"
 
 #include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
@@ -27,6 +27,7 @@
 
 #include "./remap_impl.h"
 
+static
 rcl_ret_t
 rcl_resolve_name(
   const rcl_arguments_t * local_args,
@@ -127,7 +128,7 @@ cleanup:
 }
 
 rcl_ret_t
-rcl_resolve_name_with_node(
+rcl_node_resolve_name(
   const rcl_node_t * node,
   const char * input_topic_name,
   rcl_allocator_t allocator,

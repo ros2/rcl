@@ -99,7 +99,6 @@ fail:
 
 /// Get the first matching rule in a chain.
 /// \return RCL_RET_OK if no errors occurred while searching for a rule
-RCL_LOCAL
 static
 rcl_ret_t
 rcl_remap_first_match(
