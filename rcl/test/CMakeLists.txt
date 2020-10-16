@@ -411,6 +411,12 @@ rcl_add_custom_gtest(test_log_level
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
+rcl_add_custom_gtest(test_qos
+  SRCS rcl/test_qos.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+)
+
 # Install test resources
 install(DIRECTORY ${test_resources_dir_name}
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
