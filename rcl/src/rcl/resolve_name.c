@@ -100,14 +100,14 @@ rcl_resolve_name(
     goto cleanup;
   }
   *output_topic_name = remapped_topic_name;
-  return RCL_RET_OK;
+  remapped_topic_name = NULL;
 
 cleanup:
   rcutils_ret = rcutils_string_map_fini(&substitutions_map);
   if (rcutils_ret != RCUTILS_RET_OK) {
     rcutils_error_string_t error = rcutils_get_error_string();
     rcutils_reset_error();
-    if (RCL_RET_OK != ret) {
+    if (RCL_RET_OK == ret) {
       RCL_SET_ERROR_MSG(error.str);
       ret = RCL_RET_ERROR;
     } else {
@@ -119,6 +119,7 @@ cleanup:
     }
   }
   allocator.deallocate(expanded_topic_name, allocator.state);
+  allocator.deallocate(remapped_topic_name, allocator.state);
   if (is_service && RCL_RET_TOPIC_NAME_INVALID == ret) {
     ret = RCL_RET_SERVICE_NAME_INVALID;
   }

@@ -67,7 +67,7 @@ rcl_subscription_init(
     return RCL_RET_ALREADY_INIT;
   }
 
-  // Expand the given topic name.
+  // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
   rcl_ret_t ret = rcl_resolve_name_with_node(
     node,

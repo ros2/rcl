@@ -73,6 +73,7 @@ rcl_client_init(
     RCL_SET_ERROR_MSG("client already initialized, or memory was unintialized");
     return RCL_RET_ALREADY_INIT;
   }
+
   // Expand the given service name.
   char * remapped_service_name = NULL;
   rcl_ret_t ret = rcl_resolve_name_with_node(
@@ -81,7 +82,6 @@ rcl_client_init(
     *allocator,
     true,
     &remapped_service_name);
-
   if (ret != RCL_RET_OK) {
     if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
       ret = RCL_RET_SERVICE_NAME_INVALID;
@@ -92,6 +92,7 @@ rcl_client_init(
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Expanded and remapped service name '%s'", remapped_service_name);
+
   // Allocate space for the implementation struct.
   client->impl = (rcl_client_impl_t *)allocator->allocate(
     sizeof(rcl_client_impl_t), allocator->state);

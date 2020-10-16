@@ -76,8 +76,7 @@ rcl_publisher_init(
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Initializing publisher for topic name '%s'", topic_name);
 
-
-  // Expand the given topic name.
+  // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
   rcl_ret_t ret = rcl_resolve_name_with_node(
     node,
@@ -85,7 +84,6 @@ rcl_publisher_init(
     *allocator,
     false,
     &remapped_topic_name);
-
   if (ret != RCL_RET_OK) {
     if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
       ret = RCL_RET_TOPIC_NAME_INVALID;

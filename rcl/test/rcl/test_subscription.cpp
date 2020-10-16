@@ -204,9 +204,11 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   {
     auto mock =
       mocking_utils::inject_on_return("lib:rcl", rcutils_string_map_fini, RCUTILS_RET_ERROR);
+    fprintf(stderr, "dubious 1\n");
     ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
     EXPECT_EQ(RCL_RET_ERROR, ret);
     rcl_reset_error();
+    fprintf(stderr, "end dubious 1\n");
   }
   {
     rmw_ret_t rmw_validate_full_topic_name_returns = RMW_RET_OK;
@@ -216,14 +218,18 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
         *result = RMW_TOPIC_INVALID_TOO_LONG;
         return rmw_validate_full_topic_name_returns;
       });
+    fprintf(stderr, "dubious 2\n");
     ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
     EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret);
     rcl_reset_error();
+    fprintf(stderr, "end dubious 2\n");
 
+    fprintf(stderr, "dubious 3\n");
     rmw_validate_full_topic_name_returns = RMW_RET_ERROR;
     ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
     EXPECT_EQ(RCL_RET_ERROR, ret);
     rcl_reset_error();
+    fprintf(stderr, "end dubious 3\n");
   }
   {
     auto mock =

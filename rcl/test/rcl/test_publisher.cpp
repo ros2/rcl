@@ -789,23 +789,6 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mocks_fail_publ
     rcl_reset_error();
   }
   {
-    // Internal failure when fini rcutils_string_map returns error, targets rcl_remap_topic_name
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rcutils_string_map_init, [](auto...) {
-        static int counter = 1;
-        if (counter == 1) {
-          counter++;
-          return RCUTILS_RET_OK;
-        } else {
-          // This makes rcl_remap_topic_name fail
-          return RCUTILS_RET_ERROR;
-        }
-      });
-    ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
-    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-  }
-  {
     // Internal rmw failure validating topic name
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_validate_full_topic_name, RMW_RET_ERROR);

@@ -77,7 +77,8 @@ rcl_service_init(
     RCL_SET_ERROR_MSG("service already initialized, or memory was unintialized");
     return RCL_RET_ALREADY_INIT;
   }
-  // Expand the given service name.
+
+  // Expand and remap the given service name.
   char * remapped_service_name = NULL;
   rcl_ret_t ret = rcl_resolve_name_with_node(
     node,
@@ -85,7 +86,6 @@ rcl_service_init(
     *allocator,
     true,
     &remapped_service_name);
-
   if (ret != RCL_RET_OK) {
     if (ret == RCL_RET_SERVICE_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
       ret = RCL_RET_SERVICE_NAME_INVALID;
