@@ -27,7 +27,8 @@
 // Check unrecognized string as input of from_str, check UNKNOWN as input of to_str.
 #define TEST_QOS_POLICY_STRINGIFY_CORNER_CASES(kind, kind_upper) \
   do { \
-    EXPECT_EQ(NULL, rcl_qos_ ## kind ## _policy_to_str(RMW_QOS_POLICY_ ## kind_upper ## _UNKNOWN)); \
+    EXPECT_EQ( \
+      NULL, rcl_qos_ ## kind ## _policy_to_str(RMW_QOS_POLICY_ ## kind_upper ## _UNKNOWN)); \
     EXPECT_EQ( \
       RMW_QOS_POLICY_ ## kind_upper ## _UNKNOWN, \
       rcl_qos_ ## kind ## _policy_from_str("this could never be a stringified policy value")); \
