@@ -32,6 +32,7 @@
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
 
+#include "../arg_macros.hpp"
 #include "../mocking_utils/patch.hpp"
 
 #ifdef RMW_IMPLEMENTATION
@@ -900,3 +901,81 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options_fai
 
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&prev_ini_options.arguments));
 }
+
+/* Tests special case node_options
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_name) {
+  rcl_allocator_t default_allocator = rcl_get_default_allocator();
+  char * final_name = NULL;
+  rcl_node_t node = rcl_get_zero_initialized_node();
+  // Invalid node
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_node_resolve_name(NULL, "my_topic", default_allocator, false, &final_name));
+  EXPECT_EQ(
+    RCL_RET_ERROR,
+    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, &final_name));
+
+  // Initialize rcl with rcl_init().
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+  });
+
+  // Initialize node with default options
+  rcl_node_options_t options = rcl_node_get_default_options();
+  rcl_arguments_t local_arguments;
+  SCOPE_ARGS(local_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/local_args");
+  options.arguments = local_arguments;
+  ret = rcl_node_init(&node, "node", "/ns", &context, &default_options);
+  ASSERT_EQ(RCL_RET_OK, ret);
+
+  // Invalid arguments
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_node_resolve_name(&node, NULL, default_allocator, false, &final_name));
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, NULL));
+
+  // Some valid options, test_remap and test_expand_topic_name already have good coverage
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_resolve_name(&node, "my_topic", default_allocator, false, &final_name));
+  ASSERT_TRUE(final_name);
+  EXPECT_STREQ("/ns/my_topic", *final_name);
+  default_allocator.deallocate(final_name, default_allocator.state);
+
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_resolve_name(&node, "my_service", default_allocator, true, &final_name));
+  ASSERT_TRUE(final_name);
+  EXPECT_STREQ("/ns/my_service", *final_name);
+  default_allocator.deallocate(final_name, default_allocator.state);
+
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_resolve_name(&node, "/bar/foo", default_allocator, false, &final_name));
+  ASSERT_TRUE(final_name);
+  EXPECT_STREQ("/foo/local_args", *final_name);
+  default_allocator.deallocate(final_name, default_allocator.state);
+
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_node_resolve_name(&node, "relative_ns/foo", default_allocator, true, &final_name));
+  ASSERT_TRUE(final_name);
+  EXPECT_STREQ("/ns/relative_ns/foo", *final_name);
+  default_allocator.deallocate(final_name, default_allocator.state);
+}
+
