@@ -78,10 +78,8 @@ rcl_subscription_init(
   if (ret != RCL_RET_OK) {
     if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
       ret = RCL_RET_TOPIC_NAME_INVALID;
-    } else {
-      if (ret != RCL_RET_BAD_ALLOC) {
-        ret = RCL_RET_ERROR;
-      }
+    } else if (ret != RCL_RET_BAD_ALLOC) {
+      ret = RCL_RET_ERROR;
     }
     goto cleanup;
   }
