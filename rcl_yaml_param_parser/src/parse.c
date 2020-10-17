@@ -30,6 +30,7 @@
 #include "./impl/namespace.h"
 #include "./impl/node_params.h"
 #include "rcl_yaml_param_parser/parser.h"
+#include "rcl_yaml_param_parser/visibility_control.h"
 
 ///
 /// Check a name space whether it is valid
@@ -40,7 +41,7 @@
 /// \return RCUTILS_RET_ERROR if an unspecified error occurred.
 RCL_YAML_PARAM_PARSER_LOCAL
 rcutils_ret_t
-__validate_namespace(const char * namespace);
+_validate_namespace(const char * namespace_);
 
 ///
 /// Check a node name whether it is valid
@@ -51,7 +52,7 @@ __validate_namespace(const char * namespace);
 /// \return RCUTILS_RET_ERROR if an unspecified error occurred.
 RCL_YAML_PARAM_PARSER_LOCAL
 rcutils_ret_t
-__validate_nodename(const char * node_name);
+_validate_nodename(const char * node_name);
 
 ///
 /// Check a name (namespace/node_name) whether it is valid
@@ -64,7 +65,7 @@ __validate_nodename(const char * node_name);
 /// \return RCUTILS_RET_ERROR if an unspecified error occurred.
 RCL_YAML_PARAM_PARSER_LOCAL
 rcutils_ret_t
-__validate_name(const char * name, rcutils_allocator_t allocator);
+_validate_name(const char * name, rcutils_allocator_t allocator);
 
 ///
 /// Determine the type of the value and return the converted value
@@ -445,11 +446,11 @@ rcutils_ret_t parse_value(
 }
 
 rcutils_ret_t
-__validate_namespace(const char * namespace)
+_validate_namespace(const char * namespace_)
 {
   int validation_result = 0;
   rmw_ret_t ret;
-  ret = rmw_validate_namespace(namespace, &validation_result, NULL);
+  ret = rmw_validate_namespace(namespace_, &validation_result, NULL);
   if (RMW_RET_OK != ret) {
     RCUTILS_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCUTILS_RET_ERROR;
@@ -463,7 +464,7 @@ __validate_namespace(const char * namespace)
 }
 
 rcutils_ret_t
-__validate_nodename(const char * node_name)
+_validate_nodename(const char * node_name)
 {
   int validation_result = 0;
   rmw_ret_t ret;
@@ -481,7 +482,7 @@ __validate_nodename(const char * node_name)
 }
 
 rcutils_ret_t
-__validate_name(const char * name, rcutils_allocator_t allocator)
+_validate_name(const char * name, rcutils_allocator_t allocator)
 {
   // special rules
   if (0 == strcmp(name, "/**") || 0 == strcmp(name, "/*")) {
@@ -500,20 +501,20 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
     }
   } else {
     // substring namespace including the last '/'
-    char * namespace = rcutils_strndup(name, separator_pos - name + 1, allocator);
-    if (NULL == namespace) {
+    char * namespace_ = rcutils_strndup(name, separator_pos - name + 1, allocator);
+    if (NULL == namespace_) {
       ret = RCUTILS_RET_BAD_ALLOC;
       goto clean;
     }
-    if (namespace[0] != '/') {
-      absolute_namespace = rcutils_format_string(allocator, "/%s", namespace);
-      allocator.deallocate(namespace, allocator.state);
+    if (namespace_[0] != '/') {
+      absolute_namespace = rcutils_format_string(allocator, "/%s", namespace_);
+      allocator.deallocate(namespace_, allocator.state);
       if (NULL == absolute_namespace) {
         ret = RCUTILS_RET_BAD_ALLOC;
         goto clean;
       }
     } else {
-      absolute_namespace = namespace;
+      absolute_namespace = namespace_;
     }
 
     node_name = rcutils_strdup(separator_pos + 1, allocator);
@@ -527,40 +528,40 @@ __validate_name(const char * name, rcutils_allocator_t allocator)
     size_t i = 0;
     separator_pos = strchr(absolute_namespace + i + 1, '/');
     if (NULL == separator_pos) {
-      ret = __validate_namespace(absolute_namespace);
+      ret = _validate_namespace(absolute_namespace);
       if (RCUTILS_RET_OK != ret) {
         goto clean;
       }
     } else {
       do {
         size_t len = separator_pos - absolute_namespace - i;
-        char * namespace = rcutils_strndup(absolute_namespace + i, len, allocator);
-        if (NULL == namespace) {
+        char * namespace_ = rcutils_strndup(absolute_namespace + i, len, allocator);
+        if (NULL == namespace_) {
           ret = RCUTILS_RET_BAD_ALLOC;
           goto clean;
         }
-        if (0 == strcmp(namespace, "/")) {
+        if (0 == strcmp(namespace_, "/")) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "%s contains repeated forward slash", absolute_namespace);
-          allocator.deallocate(namespace, allocator.state);
+          allocator.deallocate(namespace_, allocator.state);
           ret = RCUTILS_RET_INVALID_ARGUMENT;
           goto clean;
         }
-        if (0 != strcmp(namespace, "/**") && 0 != strcmp(namespace, "/*")) {
-          ret = __validate_namespace(namespace);
+        if (0 != strcmp(namespace_, "/**") && 0 != strcmp(namespace_, "/*")) {
+          ret = _validate_namespace(namespace_);
           if (RCUTILS_RET_OK != ret) {
-            allocator.deallocate(namespace, allocator.state);
+            allocator.deallocate(namespace_, allocator.state);
             goto clean;
           }
         }
-        allocator.deallocate(namespace, allocator.state);
+        allocator.deallocate(namespace_, allocator.state);
         i += len;
-      } while (NULL != (separator_pos = index(absolute_namespace + i + 1, '/')));
+      } while (NULL != (separator_pos = strchr(absolute_namespace + i + 1, '/')));
     }
   }
 
   if (0 != strcmp(node_name, "*") && 0 != strcmp(node_name, "**")) {
-    ret = __validate_nodename(node_name);
+    ret = _validate_nodename(node_name);
     if (RCUTILS_RET_OK != ret) {
       goto clean;
     }
@@ -638,7 +639,7 @@ rcutils_ret_t parse_key(
             break;
           }
 
-          ret = __validate_name(node_name_ns, allocator);
+          ret = _validate_name(node_name_ns, allocator);
           if (RCUTILS_RET_OK != ret) {
             allocator.deallocate(node_name_ns, allocator.state);
             break;
