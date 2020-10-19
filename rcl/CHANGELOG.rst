@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.3.0 (2020-10-19)
+------------------
 * Remove redundant error formatting (`#834 <https://github.com/ros2/rcl/issues/834>`_)
 * Fix memory leak in rcl_subscription_init()/rcl_publisher_init() (`#794 <https://github.com/ros2/rcl/issues/794>`_)
 * Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)

@@ -2,8 +2,8 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.3.0 (2020-10-19)
+------------------
 * Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
 * Updated performance section QD (`#817 <https://github.com/ros2/rcl/issues/817>`_)
 * Several memory-related fixes for rcl_variant_t benchmarks (`#813 <https://github.com/ros2/rcl/issues/813>`_)
