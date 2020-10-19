@@ -2,6 +2,11 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
+* Contributors: Chris Lalancette
+
 2.3.0 (2020-10-19)
 ------------------
 * Add lifecycle node state transition instrumentation (`#804 <https://github.com/ros2/rcl/issues/804>`_)

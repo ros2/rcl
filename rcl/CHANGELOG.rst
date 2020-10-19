@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
+* Add convenient node method to get a final topic/service name (`#835 <https://github.com/ros2/rcl/issues/835>`_)
+* Contributors: Chris Lalancette, Ivan Santiago Paunovic
+
 2.3.0 (2020-10-19)
 ------------------
 * Remove redundant error formatting (`#834 <https://github.com/ros2/rcl/issues/834>`_)

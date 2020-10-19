@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
+* Contributors: Chris Lalancette
+
 2.3.0 (2020-10-19)
 ------------------
 * Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
