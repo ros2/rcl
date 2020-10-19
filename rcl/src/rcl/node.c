@@ -222,8 +222,6 @@ rcl_node_init(
     &remapped_node_name);
   if (RCL_RET_OK != ret) {
     goto fail;
-  } else if (NULL != remapped_node_name) {
-    name = remapped_node_name;
   }
   char * remapped_namespace = NULL;
   ret = rcl_remap_node_namespace(
@@ -237,6 +235,12 @@ rcl_node_init(
     }
     should_free_local_namespace_ = true;
     local_namespace_ = remapped_namespace;
+  }
+  // update name after calling `rcl_remap_node_namespace`,
+  // otherwise there exist a limitation about remapping two nodes
+  // that originally have a different name to a same new name but with a different namespace
+  if (NULL != remapped_node_name) {
+    name = remapped_node_name;
   }
 
   // compute fully qualfied name of the node.

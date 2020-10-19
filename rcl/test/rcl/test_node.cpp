@@ -900,3 +900,135 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options_fai
 
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&prev_ini_options.arguments));
 }
+
+/* Tests special cast about remapping namespace and node name.
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_remap_names) {
+  rcl_ret_t ret;
+
+  // Initialize rcl with rcl_init().
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  const char * argv[] = {
+    "process_name", "--ros-args", "-r", "node:__ns:=/test_ns", "-r", "node:__name:=test_node"};
+  int argc = sizeof(argv) / sizeof(const char *);
+  ret = rcl_init(argc, argv, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+  });
+
+  const char * actual_node_logger_name;
+  const char * actual_node_name;
+  const char * actual_node_namespace;
+  const char * actual_node_fq_name;
+
+  rcl_node_options_t default_options = rcl_node_get_default_options();
+
+  // First do a normal node namespace.
+  {
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&node, "node", "/ns", &context, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      rcl_ret_t ret = rcl_node_fini(&node);
+      EXPECT_EQ(RCL_RET_OK, ret);
+    });
+
+    actual_node_logger_name = rcl_node_get_logger_name(&node);
+    actual_node_name = rcl_node_get_name(&node);
+    actual_node_namespace = rcl_node_get_namespace(&node);
+    actual_node_fq_name = rcl_node_get_fully_qualified_name(&node);
+
+    EXPECT_STREQ("test_ns.test_node", actual_node_logger_name);
+    EXPECT_STREQ("test_node", actual_node_name);
+    EXPECT_STREQ("/test_ns", actual_node_namespace);
+    EXPECT_STREQ("/test_ns/test_node", actual_node_fq_name);
+  }
+}
+
+/* Tests special cast about remapping namespace and node name for two nodes.
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_two_nodes_remap_names) {
+  rcl_ret_t ret;
+
+  // Initialize rcl with rcl_init().
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  const char * argv[] = {
+    "process_name", "--ros-args",
+    "-r", "publisher_node:__ns:=/publisher", "-r", "publisher_node:__name:=test_node",
+    "-r", "subscriber_node:__ns:=/subscriber", "-r", "subscriber_node:__name:=test_node"
+  };
+  int argc = sizeof(argv) / sizeof(const char *);
+  ret = rcl_init(argc, argv, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+  });
+
+  const char * actual_node_logger_name;
+  const char * actual_node_name;
+  const char * actual_node_namespace;
+  const char * actual_node_fq_name;
+
+  rcl_node_options_t default_options = rcl_node_get_default_options();
+
+  // First do a normal node namespace.
+  {
+    rcl_node_t publisher_node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&publisher_node, "publisher_node", "/ns", &context, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      rcl_ret_t ret = rcl_node_fini(&publisher_node);
+      EXPECT_EQ(RCL_RET_OK, ret);
+    });
+
+    rcl_node_t subscriber_node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&subscriber_node, "subscriber_node", "/ns", &context, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      rcl_ret_t ret = rcl_node_fini(&subscriber_node);
+      EXPECT_EQ(RCL_RET_OK, ret);
+    });
+
+    actual_node_logger_name = rcl_node_get_logger_name(&publisher_node);
+    actual_node_name = rcl_node_get_name(&publisher_node);
+    actual_node_namespace = rcl_node_get_namespace(&publisher_node);
+    actual_node_fq_name = rcl_node_get_fully_qualified_name(&publisher_node);
+
+    EXPECT_STREQ("publisher.test_node", actual_node_logger_name);
+    EXPECT_STREQ("test_node", actual_node_name);
+    EXPECT_STREQ("/publisher", actual_node_namespace);
+    EXPECT_STREQ("/publisher/test_node", actual_node_fq_name);
+
+    actual_node_logger_name = rcl_node_get_logger_name(&subscriber_node);
+    actual_node_name = rcl_node_get_name(&subscriber_node);
+    actual_node_namespace = rcl_node_get_namespace(&subscriber_node);
+    actual_node_fq_name = rcl_node_get_fully_qualified_name(&subscriber_node);
+
+    EXPECT_STREQ("subscriber.test_node", actual_node_logger_name);
+    EXPECT_STREQ("test_node", actual_node_name);
+    EXPECT_STREQ("/subscriber", actual_node_namespace);
+    EXPECT_STREQ("/subscriber/test_node", actual_node_fq_name);
+  }
+}
