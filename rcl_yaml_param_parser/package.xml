@@ -14,6 +14,7 @@
 
   <depend>libyaml_vendor</depend>
   <depend>yaml</depend>
+  <depend>rmw</depend>
   <build_depend>rcutils</build_depend>
 
   <test_depend>ament_cmake_gtest</test_depend>

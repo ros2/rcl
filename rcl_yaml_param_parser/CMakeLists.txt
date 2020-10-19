@@ -4,6 +4,7 @@ project(rcl_yaml_param_parser)
 
 find_package(ament_cmake_ros REQUIRED)
 find_package(rcutils REQUIRED)
+find_package(rmw REQUIRED)
 find_package(libyaml_vendor REQUIRED)
 
 # Default to C++14
@@ -30,7 +31,7 @@ add_library(
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-ament_target_dependencies(${PROJECT_NAME} "libyaml_vendor" "rcutils")
+ament_target_dependencies(${PROJECT_NAME} "libyaml_vendor" "rcutils" "rmw")
 
 # Set the visibility to hidden by default if possible
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -126,6 +127,7 @@ if(BUILD_TESTING)
   ament_add_gtest(test_parser_multiple_nodes
     test/test_parser_multiple_nodes.cpp
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    TIMEOUT 240  # Large timeout to wait for fault injection tests
   )
   if(TARGET test_parser_multiple_nodes)
     ament_target_dependencies(test_parser_multiple_nodes
@@ -181,6 +183,7 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_dependencies(ament_cmake libyaml_vendor)
+ament_export_dependencies(rmw)
 ament_export_include_directories(include)
 install(
   DIRECTORY include/
