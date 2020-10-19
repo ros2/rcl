@@ -2,6 +2,13 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
+* Store reference to rcl_clock_t instead of copy (`#797 <https://github.com/ros2/rcl/issues/797>`_)
+* Use valid clock in case of issue in rcl_timer_init (`#795 <https://github.com/ros2/rcl/issues/795>`_)
+* Contributors: Ivan Santiago Paunovic, Shane Loretz, brawner
+
 2.2.0 (2020-09-02)
 ------------------
 * Add fault injection macros and unit tests to rcl_action (`#730 <https://github.com/ros2/rcl/issues/730>`_)

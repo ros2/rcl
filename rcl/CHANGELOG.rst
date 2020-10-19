@@ -2,6 +2,20 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove redundant error formatting (`#834 <https://github.com/ros2/rcl/issues/834>`_)
+* Fix memory leak in rcl_subscription_init()/rcl_publisher_init() (`#794 <https://github.com/ros2/rcl/issues/794>`_)
+* Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
+* Add a semicolon to RCUTILS_LOGGING_AUTOINIT. (`#816 <https://github.com/ros2/rcl/issues/816>`_)
+* Improve error messages in rcl_lifecycle (`#742 <https://github.com/ros2/rcl/issues/742>`_)
+* Fix memory leak on serialized message in test_publisher/subscription.cpp (`#801 <https://github.com/ros2/rcl/issues/801>`_)
+* Fix memory leak because of mock test (`#800 <https://github.com/ros2/rcl/issues/800>`_)
+* Spelling correction (`#798 <https://github.com/ros2/rcl/issues/798>`_)
+* Fix that not to deallocate event impl in some failure case (`#790 <https://github.com/ros2/rcl/issues/790>`_)
+* calling fini functions to avoid memory leak (`#791 <https://github.com/ros2/rcl/issues/791>`_)
+* Contributors: Barry Xu, Chen Lihui, Chris Lalancette, Geoffrey Biggs, Ivan Santiago Paunovic, Jacob Perron, Lei Liu
+
 2.2.0 (2020-09-02)
 ------------------
 * Bump rcl arguments' API test coverage (`#777 <https://github.com/ros2/rcl/issues/777>`_)

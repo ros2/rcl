@@ -2,6 +2,20 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
+* Updated performance section QD (`#817 <https://github.com/ros2/rcl/issues/817>`_)
+* Several memory-related fixes for rcl_variant_t benchmarks (`#813 <https://github.com/ros2/rcl/issues/813>`_)
+* Improved rcl_yaml_param_parser benchmark test (`#810 <https://github.com/ros2/rcl/issues/810>`_)
+* Added benchmark test to rcl_yaml_param_parser (`#803 <https://github.com/ros2/rcl/issues/803>`_)
+* Remove MAX_NUM_PARAMS_PER_NODE and MAX_NUM_NODE_ENTRIES limitation. (`#802 <https://github.com/ros2/rcl/issues/802>`_)
+* Add mocking unit tests for rcl_yaml_param_parser (coverage part 3/3) (`#772 <https://github.com/ros2/rcl/issues/772>`_)
+* Add fault-injection unit tests (coverage part 2/3) (`#766 <https://github.com/ros2/rcl/issues/766>`_)
+* Add basic unit tests for refactored functions in rcl_yaml_param_parser (coverage part 1/3) (`#771 <https://github.com/ros2/rcl/issues/771>`_)
+* Fix yaml parser error when meets .nan (refactor on `#754 <https://github.com/ros2/rcl/issues/754>`_) (`#781 <https://github.com/ros2/rcl/issues/781>`_)
+* Contributors: Alejandro Hernández Cordero, Chen Lihui, Ivan Santiago Paunovic, Scott K Logan, brawner
+
 2.2.0 (2020-09-02)
 ------------------
 * Refactor parser.c for better testability (`#754 <https://github.com/ros2/rcl/issues/754>`_)

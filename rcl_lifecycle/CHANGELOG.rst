@@ -2,6 +2,14 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add lifecycle node state transition instrumentation (`#804 <https://github.com/ros2/rcl/issues/804>`_)
+* Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
+* Improve error messages in rcl_lifecycle (`#742 <https://github.com/ros2/rcl/issues/742>`_)
+* Fix test_rcl_lifecycle (`#788 <https://github.com/ros2/rcl/issues/788>`_)
+* Contributors: Christophe Bedard, Ivan Santiago Paunovic, Lei Liu, brawner
+
 2.2.0 (2020-09-02)
 ------------------
 * Add fault injection macros and unit tests to rcl_lifecycle (`#731 <https://github.com/ros2/rcl/issues/731>`_)
