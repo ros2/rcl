@@ -99,9 +99,9 @@ fail:
 
 /// Get the first matching rule in a chain.
 /// \return RCL_RET_OK if no errors occurred while searching for a rule
-RCL_LOCAL
+static
 rcl_ret_t
-_rcl_remap_first_match(
+rcl_remap_first_match(
   rcl_remap_t * remap_rules,
   int num_rules,
   rcl_remap_type_t type_bitmask,
@@ -159,7 +159,7 @@ _rcl_remap_first_match(
 /// Remap from one name to another using rules matching a given type bitmask.
 RCL_LOCAL
 rcl_ret_t
-_rcl_remap_name(
+rcl_remap_name(
   const rcl_arguments_t * local_arguments,
   const rcl_arguments_t * global_arguments,
   rcl_remap_type_t type_bitmask,
@@ -188,7 +188,7 @@ _rcl_remap_name(
 
   // Look at local rules first
   if (NULL != local_arguments) {
-    rcl_ret_t ret = _rcl_remap_first_match(
+    rcl_ret_t ret = rcl_remap_first_match(
       local_arguments->impl->remap_rules, local_arguments->impl->num_remap_rules, type_bitmask,
       name, node_name, node_namespace, substitutions, allocator, &rule);
     if (ret != RCL_RET_OK) {
@@ -197,7 +197,7 @@ _rcl_remap_name(
   }
   // Check global rules if no local rule matched
   if (NULL == rule && NULL != global_arguments) {
-    rcl_ret_t ret = _rcl_remap_first_match(
+    rcl_ret_t ret = rcl_remap_first_match(
       global_arguments->impl->remap_rules, global_arguments->impl->num_remap_rules, type_bitmask,
       name, node_name, node_namespace, substitutions, allocator, &rule);
     if (ret != RCL_RET_OK) {
@@ -244,7 +244,7 @@ rcl_remap_topic_name(
   if (RCUTILS_RET_OK == rcutils_ret) {
     ret = rcl_get_default_topic_name_substitutions(&substitutions);
     if (RCL_RET_OK == ret) {
-      ret = _rcl_remap_name(
+      ret = rcl_remap_name(
         local_arguments, global_arguments, RCL_TOPIC_REMAP, topic_name, node_name,
         node_namespace, &substitutions, allocator, output_name);
     }
@@ -274,7 +274,7 @@ rcl_remap_service_name(
   if (rcutils_ret == RCUTILS_RET_OK) {
     ret = rcl_get_default_topic_name_substitutions(&substitutions);
     if (ret == RCL_RET_OK) {
-      ret = _rcl_remap_name(
+      ret = rcl_remap_name(
         local_arguments, global_arguments, RCL_SERVICE_REMAP, service_name, node_name,
         node_namespace, &substitutions, allocator, output_name);
     }
@@ -299,7 +299,7 @@ rcl_remap_node_name(
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
 
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
-  return _rcl_remap_name(
+  return rcl_remap_name(
     local_arguments, global_arguments, RCL_NODENAME_REMAP, NULL, node_name, NULL, NULL,
     allocator, output_name);
 }
@@ -318,7 +318,7 @@ rcl_remap_node_namespace(
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
 
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "allocator is invalid", return RCL_RET_INVALID_ARGUMENT);
-  return _rcl_remap_name(
+  return rcl_remap_name(
     local_arguments, global_arguments, RCL_NAMESPACE_REMAP, NULL, node_name, NULL, NULL,
     allocator, output_namespace);
 }

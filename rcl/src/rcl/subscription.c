@@ -22,8 +22,7 @@ extern "C"
 #include <stdio.h>
 
 #include "rcl/error_handling.h"
-#include "rcl/expand_topic_name.h"
-#include "rcl/remap.h"
+#include "rcl/node.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
@@ -67,89 +66,27 @@ rcl_subscription_init(
     RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
   }
-  // Expand the given topic name.
-  rcutils_allocator_t rcutils_allocator = *allocator;  // implicit conversion to rcutils version
-  rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
-  rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-    if (RCUTILS_RET_BAD_ALLOC == rcutils_ret) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
-  }
-  rcl_ret_t ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
-  if (ret != RCL_RET_OK) {
-    rcutils_ret = rcutils_string_map_fini(&substitutions_map);
-    if (rcutils_ret != RCUTILS_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME,
-        "failed to fini string_map (%d) during error handling: %s",
-        rcutils_ret,
-        rcutils_get_error_string().str);
-    }
-    if (RCL_RET_BAD_ALLOC == ret) {
-      return ret;
-    }
-    return RCL_RET_ERROR;
-  }
-  char * expanded_topic_name = NULL;
+
+  // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
-  ret = rcl_expand_topic_name(
+  rcl_ret_t ret = rcl_node_resolve_name(
+    node,
     topic_name,
-    rcl_node_get_name(node),
-    rcl_node_get_namespace(node),
-    &substitutions_map,
     *allocator,
-    &expanded_topic_name);
-  rcutils_ret = rcutils_string_map_fini(&substitutions_map);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-    ret = RCL_RET_ERROR;
-    goto cleanup;
-  }
+    false,
+    false,
+    &remapped_topic_name);
   if (ret != RCL_RET_OK) {
     if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
       ret = RCL_RET_TOPIC_NAME_INVALID;
-    } else {
+    } else if (ret != RCL_RET_BAD_ALLOC) {
       ret = RCL_RET_ERROR;
     }
     goto cleanup;
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded topic name '%s'", expanded_topic_name);
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Expanded and remapped topic name '%s'", remapped_topic_name);
 
-  const rcl_node_options_t * node_options = rcl_node_get_options(node);
-  if (NULL == node_options) {
-    ret = RCL_RET_ERROR;
-    goto cleanup;
-  }
-  rcl_arguments_t * global_args = NULL;
-  if (node_options->use_global_arguments) {
-    global_args = &(node->context->global_arguments);
-  }
-  ret = rcl_remap_topic_name(
-    &(node_options->arguments), global_args, expanded_topic_name,
-    rcl_node_get_name(node), rcl_node_get_namespace(node), *allocator, &remapped_topic_name);
-  if (RCL_RET_OK != ret) {
-    goto fail;
-  } else if (NULL == remapped_topic_name) {
-    remapped_topic_name = expanded_topic_name;
-    expanded_topic_name = NULL;
-  }
-
-  // Validate the expanded topic name.
-  int validation_result;
-  rmw_ret_t rmw_ret = rmw_validate_full_topic_name(remapped_topic_name, &validation_result, NULL);
-  if (rmw_ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    ret = RCL_RET_ERROR;
-    goto cleanup;
-  }
-  if (validation_result != RMW_TOPIC_VALID) {
-    RCL_SET_ERROR_MSG(rmw_full_topic_name_validation_result_string(validation_result));
-    ret = RCL_RET_TOPIC_NAME_INVALID;
-    goto cleanup;
-  }
   // Allocate memory for the implementation struct.
   subscription->impl = (rcl_subscription_impl_t *)allocator->allocate(
     sizeof(rcl_subscription_impl_t), allocator->state);
@@ -169,7 +106,7 @@ rcl_subscription_init(
     goto fail;
   }
   // get actual qos, and store it
-  rmw_ret = rmw_subscription_get_actual_qos(
+  rmw_ret_t rmw_ret = rmw_subscription_get_actual_qos(
     subscription->impl->rmw_handle,
     &subscription->impl->actual_qos);
   if (RMW_RET_OK != rmw_ret) {
@@ -208,12 +145,7 @@ fail:
   ret = fail_ret;
   // Fall through to cleanup
 cleanup:
-  if (NULL != expanded_topic_name) {
-    allocator->deallocate(expanded_topic_name, allocator->state);
-  }
-  if (NULL != remapped_topic_name) {
-    allocator->deallocate(remapped_topic_name, allocator->state);
-  }
+  allocator->deallocate(remapped_topic_name, allocator->state);
   return ret;
 }
 
