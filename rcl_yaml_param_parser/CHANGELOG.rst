@@ -2,8 +2,8 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.4.0 (2020-10-19)
+------------------
 * Check for valid node names in parameters files (`#809 <https://github.com/ros2/rcl/issues/809>`_)
 * Contributors: Chen Lihui
 
