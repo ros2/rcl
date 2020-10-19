@@ -73,6 +73,7 @@ TEST_F(TestTransitionMap, initialized) {
 
   rcl_lifecycle_state_t state1 = {"my_state_1", 1, NULL, 0};
   ret = rcl_lifecycle_register_state(&transition_map, state1, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret);
 
   rcl_lifecycle_state_t unregistered = {"my_state_2", 2, NULL, 0};
 
@@ -96,7 +97,6 @@ TEST_F(TestTransitionMap, initialized) {
 
   rcl_lifecycle_transition_t transition01 = {"from0to1", 0,
     start_state, goal_state};
-  original_size = transition_map.transitions_size;
   ret = rcl_lifecycle_register_transition(
     &transition_map, transition01, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);
@@ -104,7 +104,6 @@ TEST_F(TestTransitionMap, initialized) {
 
   rcl_lifecycle_transition_t transition10 = {"from1to0", 1,
     goal_state, start_state};
-  original_size = transition_map.transitions_size;
   ret = rcl_lifecycle_register_transition(
     &transition_map, transition10, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret);

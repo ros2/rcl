@@ -67,6 +67,7 @@ protected:
     ret = rcl_node_init(&this->node, "test_action_communication_node", "", &context, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_clock_init(RCL_STEADY_TIME, &this->clock, &allocator);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
       test_msgs, Fibonacci);
     const char * action_name = "test_action_commmunication_name";
@@ -216,6 +217,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -261,6 +263,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
@@ -319,6 +322,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
@@ -363,6 +367,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
       this->outgoing_feedback.feedback.sequence.size));
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -413,6 +418,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
@@ -484,6 +490,7 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -529,6 +536,7 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
@@ -587,6 +595,7 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
@@ -631,6 +640,7 @@ TEST_F(
       this->outgoing_feedback.feedback.sequence.size));
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -687,6 +697,7 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -737,6 +748,7 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
@@ -786,6 +798,7 @@ TEST_F(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_client(
     &this->wait_set, &this->action_client, NULL, NULL);
