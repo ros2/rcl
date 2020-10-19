@@ -888,6 +888,7 @@ public:
     this->remote_context_ptr = new rcl_context_t;
     *this->remote_context_ptr = rcl_get_zero_initialized_context();
     ret = rcl_init(0, nullptr, &init_options, this->remote_context_ptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     ret = rcl_node_init(
       remote_node_ptr, remote_node_name, "", this->remote_context_ptr,

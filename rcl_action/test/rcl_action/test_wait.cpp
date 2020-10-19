@@ -294,6 +294,7 @@ TEST_F(TestActionServerWait, test_wait_set_add_action_server) {
   EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
   ret = rcl_wait_set_init(
     &wait_set, 0, 0, 0, 0, 0, 0, &this->context, rcl_get_default_allocator());
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, &service_index);
   EXPECT_EQ(ret, RCL_RET_WAIT_SET_FULL) << rcl_get_error_string().str;
@@ -305,6 +306,7 @@ TEST_F(TestActionServerWait, test_wait_set_add_action_server) {
   EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
   ret = rcl_wait_set_init(
     &wait_set, 0, 0, 0, 0, 1, 0, &this->context, rcl_get_default_allocator());
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, &service_index);
   EXPECT_EQ(ret, RCL_RET_WAIT_SET_FULL) << rcl_get_error_string().str;
@@ -316,6 +318,7 @@ TEST_F(TestActionServerWait, test_wait_set_add_action_server) {
   EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
   ret = rcl_wait_set_init(
     &wait_set, 0, 0, 0, 0, 2, 0, &this->context, rcl_get_default_allocator());
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, &service_index);
   EXPECT_EQ(ret, RCL_RET_WAIT_SET_FULL) << rcl_get_error_string().str;
@@ -327,6 +330,7 @@ TEST_F(TestActionServerWait, test_wait_set_add_action_server) {
   EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
   ret = rcl_wait_set_init(
     &wait_set, 0, 0, 0, 0, 3, 0, &this->context, rcl_get_default_allocator());
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, &service_index);
   EXPECT_EQ(ret, RCL_RET_WAIT_SET_FULL) << rcl_get_error_string().str;
@@ -338,6 +342,7 @@ TEST_F(TestActionServerWait, test_wait_set_add_action_server) {
   EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
   ret = rcl_wait_set_init(
     &wait_set, 0, 0, 1, 0, 3, 0, &this->context, rcl_get_default_allocator());
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, &service_index);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -347,6 +352,7 @@ TEST_F(TestActionServerWait, test_wait_set_add_action_server) {
   EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
   ret = rcl_wait_set_init(
     &wait_set, 0, 0, 1, 0, 3, 0, &this->context, rcl_get_default_allocator());
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   ret = rcl_action_wait_set_add_action_server(&wait_set, &this->action_server, nullptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(rcl_error_is_set()) << rcl_get_error_string().str;

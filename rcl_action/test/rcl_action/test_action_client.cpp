@@ -165,7 +165,6 @@ TEST_F(TestActionClientBaseFixture, test_action_client_init_fini) {
   EXPECT_EQ(ret, RCL_RET_BAD_ALLOC) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  ret = RCL_RET_OK;
   int i = 0;
   do {
     time_bomb_state.malloc_count_until_failure = i;
