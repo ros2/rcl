@@ -54,6 +54,8 @@ rcl_resolve_name(
     }
     return RCL_RET_ERROR;
   }
+  char * expanded_topic_name = NULL;
+  char * remapped_topic_name = NULL;
   rcl_ret_t ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
   if (ret != RCL_RET_OK) {
     if (RCL_RET_BAD_ALLOC != ret) {
@@ -62,8 +64,6 @@ rcl_resolve_name(
     goto cleanup;
   }
   // expand topic name
-  char * expanded_topic_name = NULL;
-  char * remapped_topic_name = NULL;
   ret = rcl_expand_topic_name(
     input_topic_name,
     node_name,
