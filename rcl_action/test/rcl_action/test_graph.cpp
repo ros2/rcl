@@ -296,6 +296,7 @@ public:
 
     this->remote_context = rcl_get_zero_initialized_context();
     ret = rcl_init(0, nullptr, &init_options, &this->remote_context);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     ret = rcl_node_init(
       &this->remote_node, this->remote_node_name, "", &this->remote_context, &node_options);

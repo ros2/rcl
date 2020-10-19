@@ -69,6 +69,7 @@ TEST(TestRclLifecycle, lifecycle_state) {
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_init(&state, expected_id, &expected_label[0], &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(expected_id, state.id);
   EXPECT_STREQ(&expected_label[0], state.label);
 
