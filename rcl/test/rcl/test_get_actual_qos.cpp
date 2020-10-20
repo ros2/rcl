@@ -44,10 +44,10 @@
   APPLY( \
     TEST_P, \
     CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
-#define INSTANTIATE_TEST_CASE_P_RMW(instance_name, test_case_name, ...) \
+#define INSTANTIATE_TEST_SUITE_P_RMW(instance_name, test_case_name, ...) \
   EXPAND( \
     APPLY( \
-      INSTANTIATE_TEST_CASE_P, instance_name, \
+      INSTANTIATE_TEST_SUITE_P, instance_name, \
       CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
 
 /**
@@ -469,13 +469,13 @@ get_parameters(bool for_publisher)
   return parameters;
 }
 
-INSTANTIATE_TEST_CASE_P_RMW(
+INSTANTIATE_TEST_SUITE_P_RMW(
   TestPublisherWithDifferentQoSSettings,
   TestPublisherGetActualQoS,
   ::testing::ValuesIn(get_parameters(true)),
   ::testing::PrintToStringParamName());
 
-INSTANTIATE_TEST_CASE_P_RMW(
+INSTANTIATE_TEST_SUITE_P_RMW(
   TestSubscriptionWithDifferentQoSSettings,
   TestSubscriptionGetActualQoS,
   ::testing::ValuesIn(get_parameters(false)),
