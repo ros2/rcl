@@ -35,7 +35,6 @@
 
 #include "rcutils/logging_macros.h"
 #include "rcutils/logging.h"
-#include "rcutils/env.h"
 
 #include "test_msgs/msg/basic_types.h"
 #include "test_msgs/srv/basic_types.h"
@@ -1232,6 +1231,15 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
  * Note: this test could be impacted by other communications on the same ROS Domain.
  */
 TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_condition_trigger_check) {
+#define CHECK_GUARD_CONDITION_CHANGE(EXPECTED_RESULT)   do { \
+    ret = rcl_wait_set_clear(&wait_set); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
+    ret = rcl_wait(&wait_set, time_to_sleep.count()); \
+    ASSERT_EQ(EXPECTED_RESULT, ret) << rcl_get_error_string().str; \
+} while (0)
+
   rcl_ret_t ret;
   std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(400);
 
@@ -1245,7 +1253,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   });
 
   // Test in new ROS domain
-  ret = rcl_init_options_set_domain_id(&init_options, 66);
+  ret = rcl_init_options_set_domain_id(&init_options, 42);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_context_t context = rcl_get_zero_initialized_context();
@@ -1259,7 +1267,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_node_options_t node_options = rcl_node_get_default_options();
-  ret = rcl_node_init(&node, "test_graph", "", &context, &node_options);
+  ret = rcl_node_init(&node, "test_graph", "/", &context, &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -1280,12 +1288,10 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     rcl_node_get_graph_guard_condition(&node);
 
   // Graph change since first node created
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since creating the publisher
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
@@ -1295,23 +1301,19 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     "/chatter_test_graph_guard_condition_topics", &pub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since destroying the publisher
   ret = rcl_publisher_fini(&pub, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since creating the subscription
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
@@ -1321,23 +1323,19 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     "/chatter_test_graph_guard_condition_topics", &sub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since destroying the subscription
   ret = rcl_subscription_fini(&sub, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since creating service
   rcl_service_t service = rcl_get_zero_initialized_service();
@@ -1350,23 +1348,19 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     &service_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since destroy service
   ret = rcl_service_fini(&service, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since creating client
   rcl_client_t client = rcl_get_zero_initialized_client();
@@ -1379,54 +1373,44 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
     &client_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since destroying client
   ret = rcl_client_fini(&client, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since adding new node
   rcl_node_t node_new = rcl_get_zero_initialized_node();
   ret = rcl_node_init(&node_new, "test_graph2", "", &context, &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Graph change since destroying new node
   ret = rcl_node_fini(&node_new);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  }
 
   // Should not get graph change if no change
-  ret = rcl_wait_set_clear(&wait_set);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait(&wait_set, time_to_sleep.count());
-  ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_TIMEOUT);
+  }
 }
 
 /* Test the rcl_service_server_is_available function.
