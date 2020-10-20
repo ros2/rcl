@@ -85,7 +85,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lifecycle_state_init(
   rcl_lifecycle_state_t * state,
-  unsigned int id,
+  uint8_t id,
   const char * label,
   const rcl_allocator_t * allocator);
 

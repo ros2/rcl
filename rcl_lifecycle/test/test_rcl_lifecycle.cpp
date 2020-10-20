@@ -47,7 +47,7 @@ TEST(TestRclLifecycle, lifecycle_state) {
   EXPECT_EQ(nullptr, state.label);
 
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  unsigned int expected_id = 42;
+  uint8_t expected_id = 42;
   const char expected_label[] = "label";
   rcl_ret_t ret = rcl_lifecycle_state_init(&state, expected_id, &expected_label[0], nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
