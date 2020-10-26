@@ -164,6 +164,10 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), bad_fini) {
   });
 
   rcl_context_t context = rcl_get_zero_initialized_context();
+
+  ret = rcl_context_fini(&context);
+  EXPECT_EQ(RCL_RET_OK, ret);
+
   ret = rcl_init(0, nullptr, &init_options, &context);
   EXPECT_EQ(RCL_RET_OK, ret);
 
