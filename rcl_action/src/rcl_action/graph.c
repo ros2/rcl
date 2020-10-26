@@ -225,7 +225,7 @@ rcl_action_get_names_and_types(
     ret = rcl_names_and_types_fini(action_names_and_types);
     if (RCL_RET_OK != ret) {
       RCUTILS_SET_ERROR_MSG(
-        "Freeing names and types failed while handling a previous error. Leaking memory!");
+        "Freeing names and types failed while handling a previous error. Leaking memory!\n");
     }
     return nat_fini_ret;
   }
