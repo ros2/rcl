@@ -218,7 +218,7 @@ rcl_lifecycle_state_machine_init(
       ret = rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator);
       if (ret != RCL_RET_OK) {
         RCUTILS_SAFE_FWRITE_TO_STDERR(
-          "Freeing state machine failed while handling a previous error. Leaking memory!");
+          "Freeing state machine failed while handling a previous error. Leaking memory!\n");
       }
       return RCL_RET_ERROR;
     }
