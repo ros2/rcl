@@ -135,13 +135,13 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `rcutils` provides commonly used functionality in C.
 
-It is **Quality Level 3**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
+It is **Quality Level 3**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
 
 #### `libyaml_vendor`
 
 `libyaml_vendor` is a vendor package for the libyaml C library.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/libyaml_vendor/blob/master/QUALITY_DECLARATION.md).
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/libyaml_vendor/blob/foxy/QUALITY_DECLARATION.md).
 
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 
@@ -151,7 +151,7 @@ It is **Quality Level 4**, see its [Quality Declaration document](https://github
 
 `libyaml` is a YAML parsing library written in C.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/libyaml_vendor/blob/master/libyaml_q_declaration.md).
+It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/libyaml_vendor/blob/foxy/libyaml_q_declaration.md).
 
 ## Platform Support [6]
 
