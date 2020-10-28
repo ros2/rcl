@@ -74,6 +74,8 @@ rcl_get_zero_initialized_wait_set()
     .size_of_services = 0,
     .timers = NULL,
     .size_of_timers = 0,
+    .events = NULL,
+    .size_of_events = 0,
     .impl = NULL,
   };
   return null_wait_set;
