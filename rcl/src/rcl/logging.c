@@ -126,6 +126,12 @@ rcl_ret_t rcl_logging_fini()
 {
   rcl_ret_t status = RCL_RET_OK;
   rcutils_logging_set_output_handler(rcutils_logging_console_output_handler);
+  // In order to output log message to `rcutils_logging_console_output_handler`
+  // and `rcl_logging_ext_lib_output_handler` is not called after `rcl_logging_fini`,
+  // in addition to calling `rcutils_logging_set_output_handler`,
+  // the `g_rcl_logging_num_out_handlers` and `g_rcl_logging_out_handlers` must be updated.
+  g_rcl_logging_num_out_handlers = 1;
+  g_rcl_logging_out_handlers[0] = rcutils_logging_console_output_handler;
 
   if (g_rcl_logging_rosout_enabled) {
     status = rcl_logging_rosout_fini();
