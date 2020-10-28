@@ -49,8 +49,10 @@ rcl_ret_t
 rcl_context_fini(rcl_context_t * context)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    context->impl, "context is zero-initialized", return RCL_RET_INVALID_ARGUMENT);
+  if (!context->impl) {
+    // Context is zero-initialized
+    return RCL_RET_OK;
+  }
   if (rcl_context_is_valid(context)) {
     RCL_SET_ERROR_MSG("rcl_shutdown() not called on the given context");
     return RCL_RET_INVALID_ARGUMENT;
