@@ -122,7 +122,10 @@ _filter_action_names(
   // Cleanup if there is an error
   if (RCL_RET_OK != ret) {
     rcl_ret_t fini_ret = rcl_names_and_types_fini(action_names_and_types);
-    (void)fini_ret;  // Error already set
+    if (RCL_RET_OK != fini_ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(
+        "Freeing names and types failed while handling a previous error. Leaking memory!\n");
+    }
   }
 
   return ret;
@@ -154,6 +157,10 @@ rcl_action_get_client_names_and_types_by_node(
   rcl_ret_t nat_fini_ret = rcl_names_and_types_fini(&topic_names_and_types);
   if (RCL_RET_OK != nat_fini_ret) {
     ret = rcl_names_and_types_fini(action_names_and_types);
+    if (RCL_RET_OK != ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(
+        "Freeing names and types failed while handling a previous error. Leaking memory!\n");
+    }
     return nat_fini_ret;
   }
   return ret;
@@ -185,6 +192,11 @@ rcl_action_get_server_names_and_types_by_node(
   rcl_ret_t nat_fini_ret = rcl_names_and_types_fini(&topic_names_and_types);
   if (RCL_RET_OK != nat_fini_ret) {
     ret = rcl_names_and_types_fini(action_names_and_types);
+    if (RCL_RET_OK != ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(
+        "Freeing names and types failed while handling a previous error. Leaking memory!\n");
+    }
+
     return nat_fini_ret;
   }
   return ret;
@@ -211,6 +223,10 @@ rcl_action_get_names_and_types(
   rcl_ret_t nat_fini_ret = rcl_names_and_types_fini(&topic_names_and_types);
   if (RCL_RET_OK != nat_fini_ret) {
     ret = rcl_names_and_types_fini(action_names_and_types);
+    if (RCL_RET_OK != ret) {
+      RCUTILS_SET_ERROR_MSG(
+        "Freeing names and types failed while handling a previous error. Leaking memory!\n");
+    }
     return nat_fini_ret;
   }
   return ret;
