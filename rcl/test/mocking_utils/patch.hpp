@@ -354,6 +354,14 @@ auto make_patch(const std::string & target, std::function<SignatureT> proxy)
 #define patch_and_return(scope, function, return_code) \
   patch(scope, function, [&](auto && ...) {return return_code;})
 
+/// Patch a `function` to always yield a given `return_code` in a given `scope`.
+#define patch_to_fail(scope, function, error_message, return_code) \
+  patch( \
+    scope, function, [&](auto && ...) { \
+      RCUTILS_SET_ERROR_MSG(error_message); \
+      return return_code; \
+    })
+
 /// Patch a `function` to execute normally but always yield a given `return_code`
 /// in a given `scope`.
 #define inject_on_return(scope, function, return_code) \
