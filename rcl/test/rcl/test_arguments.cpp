@@ -1235,7 +1235,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_parse_with_inte
     RCL_PARAM_FLAG, "this_node:constant:=42",
     RCL_ENCLAVE_FLAG, "fizz",
     RCL_ENCLAVE_FLAG, "buzz",  // override
-    RCL_LOG_LEVEL_FLAG, "rcl:=debug",
     RCL_EXTERNAL_LOG_CONFIG_FLAG, "flip.txt",
     RCL_EXTERNAL_LOG_CONFIG_FLAG, "flop.txt",  // override
     "--enable-" RCL_LOG_STDOUT_FLAG_SUFFIX,
@@ -1280,7 +1279,6 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_copy_with_inter
     RCL_PARAM_FLAG, "this_node:constant:=42",
     RCL_ENCLAVE_FLAG, "fizz",
     RCL_ENCLAVE_FLAG, "buzz",  // override
-    RCL_LOG_LEVEL_FLAG, "rcl:=debug",
     RCL_EXTERNAL_LOG_CONFIG_FLAG, "flip.txt",
     RCL_EXTERNAL_LOG_CONFIG_FLAG, "flop.txt",  // override
     "--enable-" RCL_LOG_STDOUT_FLAG_SUFFIX,
