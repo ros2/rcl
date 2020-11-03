@@ -2,8 +2,8 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.9 (2020-11-03)
+------------------
 * Make sure to always check return values. (`#840 <https://github.com/ros2/rcl/issues/840>`_)
 * Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
 * Fix test_rcl_lifecycle (`#788 <https://github.com/ros2/rcl/issues/788>`_)
