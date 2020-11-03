@@ -924,7 +924,7 @@ public:
       std::placeholders::_2,
       "/",
       std::placeholders::_3);
-    WaitForAllNodesAlive();
+    wait_for_all_nodes_alive();
   }
 
   void TearDown() override
@@ -944,7 +944,7 @@ public:
     delete this->remote_context_ptr;
   }
 
-  void WaitForAllNodesAlive()
+  void wait_for_all_nodes_alive()
   {
     // wait for all 3 nodes to be discovered: remote_node, old_node, node
     size_t attempts = 0u;
