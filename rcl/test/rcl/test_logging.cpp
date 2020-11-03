@@ -172,33 +172,6 @@ TEST(TestLogging, test_failing_external_logging_configure) {
   }
 }
 
-TEST(TestLogging, test_failing_logger_level_configure) {
-  const char * argv[] = {
-    "test_logging", RCL_ROS_ARGS_FLAG,
-    RCL_LOG_LEVEL_FLAG, "info"};
-  const int argc = sizeof(argv) / sizeof(argv[0]);
-  rcl_allocator_t default_allocator = rcl_get_default_allocator();
-  rcl_arguments_t global_arguments = rcl_get_zero_initialized_arguments();
-  ASSERT_EQ(RCL_RET_OK, rcl_parse_arguments(argc, argv, default_allocator, &global_arguments)) <<
-    rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&global_arguments)) << rcl_get_error_string().str;
-  });
-
-  // TODO(anyone): This part of the API is not backported to Foxy. Uncomment this block if
-  // someone backports this API.
-  // {
-  //   auto mock = mocking_utils::patch_to_fail(
-  //     "lib:rcl", rcutils_logging_set_logger_level, "failed to allocate", RCUTILS_RET_ERROR);
-  //   EXPECT_EQ(RCL_RET_ERROR, rcl_logging_configure(&global_arguments, &default_allocator));
-  //   EXPECT_TRUE(rcl_error_is_set());
-  //   rcl_reset_error();
-  //
-  //   EXPECT_EQ(RCL_RET_OK, rcl_logging_fini()) << rcl_get_error_string().str;
-  // }
-}
-
 TEST(TestLogging, test_failing_external_logging) {
   const char * argv[] = {
     "test_logging", RCL_ROS_ARGS_FLAG,
