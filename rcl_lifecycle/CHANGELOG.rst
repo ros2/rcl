@@ -2,6 +2,14 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make sure to always check return values. (`#840 <https://github.com/ros2/rcl/issues/840>`_)
+* Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
+* Fix test_rcl_lifecycle (`#788 <https://github.com/ros2/rcl/issues/788>`_)
+* Add fault injection macros and unit tests to rcl_lifecycle (`#731 <https://github.com/ros2/rcl/issues/731>`_)
+* Contributors: Chris Lalancette, brawner
+
 1.1.8 (2020-10-07)
 ------------------
 * Set transition_map->states/transition size to 0 on fini (`#729 <https://github.com/ros2/rcl/issues/729>`_) (`#821 <https://github.com/ros2/rcl/issues/821>`_)

@@ -2,6 +2,19 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add mocking unit tests for rcl_yaml_param_parser (coverage part 3/3) (`#772 <https://github.com/ros2/rcl/issues/772>`_)
+* Add fault-injection unit tests (coverage part 2/3) (`#766 <https://github.com/ros2/rcl/issues/766>`_)
+* Add basic unit tests for refactored functions in rcl_yaml_param_parser (coverage part 1/3) (`#771 <https://github.com/ros2/rcl/issues/771>`_)
+* Fix mem leaks in unit test from 776 (`#779 <https://github.com/ros2/rcl/issues/779>`_)
+* remove debugging statements. (`#755 <https://github.com/ros2/rcl/issues/755>`_)
+* Removed variant benchmark
+* Several memory-related fixes for rcl_variant_t benchmarks (`#813 <https://github.com/ros2/rcl/issues/813>`_)
+* Improved rcl_yaml_param_parser benchmark test (`#810 <https://github.com/ros2/rcl/issues/810>`_)
+* Added benchmark test to rcl_yaml_param_parser (`#803 <https://github.com/ros2/rcl/issues/803>`_)
+* Contributors: Alejandro Hernández Cordero, Scott K Logan, ahcorde, brawner, tomoya
+
 1.1.8 (2020-10-07)
 ------------------
 * Fix yaml parser error when meets .nan (refactor on `#754 <https://github.com/ros2/rcl/issues/754>`_) (`#781 <https://github.com/ros2/rcl/issues/781>`_) (`#785 <https://github.com/ros2/rcl/issues/785>`_)

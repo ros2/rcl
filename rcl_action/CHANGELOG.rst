@@ -2,6 +2,13 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make sure to always check return values. (`#840 <https://github.com/ros2/rcl/issues/840>`_)
+* Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
+* Add fault injection macros and unit tests to rcl_action (`#730 <https://github.com/ros2/rcl/issues/730>`_)
+* Contributors: Chris Lalancette, brawner
+
 1.1.8 (2020-10-07)
 ------------------
 * Fix action client test failure on Windows by zero initializing pointers and freeing memory (`#717 <https://github.com/ros2/rcl/issues/717>`_) (`#820 <https://github.com/ros2/rcl/issues/820>`_)
