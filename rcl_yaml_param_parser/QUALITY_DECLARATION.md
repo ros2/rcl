@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_yaml_param_parse
 
 # `rcl_yaml_param_parser` Quality Declaration
 
-The package `rcl_yaml_param_parser` claims to be in the **Quality Level 3** category.
+The package `rcl_yaml_param_parser` claims to be in the **Quality Level 2** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -135,7 +135,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `rcutils` provides commonly used functionality in C.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
 
 #### `libyaml_vendor`
 

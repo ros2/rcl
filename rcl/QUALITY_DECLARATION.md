@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl` package, based 
 
 # `rcl` Quality Declaration
 
-The package `rcl` claims to be in the **Quality Level 3** category.
+The package `rcl` claims to be in the **Quality Level 2** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -151,7 +151,7 @@ It is **Quality Level 4**, see its [Quality Declaration document](https://github
 
 The `rcl_interfaces` package provides some common ROS Message and ROS Service types which are used to implement certain client library features.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/foxy/rcl_interfaces/QUALITY_DECLARATION.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/foxy/rcl_interfaces/QUALITY_DECLARATION.md).
 
 #### `rcl_logging_spdlog`
 
@@ -163,7 +163,7 @@ It is **Quality Level 4**, see its [Quality Declaration document](https://github
 
 The `rcl_yaml_param_parser` package provides an API that is used to parse YAML configuration files which may be used to configure ROS and specific nodes.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl/tree/foxy/rcl_yaml_param_parser/Quality_Declaration.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcl/tree/foxy/rcl_yaml_param_parser/Quality_Declaration.md).
 
 #### `rcutils`
 
@@ -175,19 +175,19 @@ It is **Quality Level 2**, see its [Quality Declaration document](https://github
 
 The `rmw_implementation` package provides access to the default rmw implementation, and provides the ability to dynamically switch rmw implementations if more than one is available.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/foxy/QUALITY_DECLARATION.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/foxy/QUALITY_DECLARATION.md).
 
 #### `rosidl_runtime_c`
 
 The `rosidl_runtime_c` package provides runtime interfaces in C based on user defined ROS Messages and ROS Services, as well as associated support functions for those types.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rosidl/tree/foxy/rosidl_runtime_c/Quality_Declaration.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/tree/foxy/rosidl_runtime_c/Quality_Declaration.md).
 
 #### `tracetools`
 
 The `tracetools` package provides utilities for instrumenting the code in `rcl` so that it may be traced for debugging and performance analysis.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://gitlab.com/ros-tracing/ros2_tracing/-/blob/master/tracetools/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://gitlab.com/ros-tracing/ros2_tracing/-/blob/foxy/tracetools/QUALITY_DECLARATION.md).
 
 ### Optional Direct Runtime ROS Dependencies [5.ii]
 
