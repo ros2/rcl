@@ -924,7 +924,7 @@ public:
       std::placeholders::_2,
       "/",
       std::placeholders::_3);
-    WaitForAllNodesAlive();
+    wait_for_all_nodes_alive();
   }
 
   void TearDown() override
@@ -944,27 +944,25 @@ public:
     delete this->remote_context_ptr;
   }
 
-  void WaitForAllNodesAlive()
+  void wait_for_all_nodes_alive()
   {
-    rcl_ret_t ret;
-    rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
-    rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-    {
-      ret = rcutils_string_array_fini(&node_names);
-      ASSERT_EQ(RCUTILS_RET_OK, ret);
-      ret = rcutils_string_array_fini(&node_namespaces);
-      ASSERT_EQ(RCUTILS_RET_OK, ret);
-    });
     // wait for all 3 nodes to be discovered: remote_node, old_node, node
-    size_t attempts = 0;
-    size_t max_attempts = 4;
-    while (node_names.size < 3) {
+    size_t attempts = 0u;
+    size_t max_attempts = 10u;
+    size_t last_size = 0u;
+    do {
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      ret = rcl_get_node_names(this->remote_node_ptr, allocator, &node_names, &node_namespaces);
+      rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
+      rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
+      ASSERT_EQ(
+        RCL_RET_OK,
+        rcl_get_node_names(this->remote_node_ptr, allocator, &node_names, &node_namespaces));
       attempts++;
+      last_size = node_names.size;
+      ASSERT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_names));
+      ASSERT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_namespaces));
       ASSERT_LE(attempts, max_attempts) << "Unable to attain all required nodes";
-    }
+    } while (last_size < 3u);
   }
 
   /**
