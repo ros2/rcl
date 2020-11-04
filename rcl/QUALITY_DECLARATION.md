@@ -175,13 +175,13 @@ It is **Quality Level 2**, see its [Quality Declaration document](https://github
 
 The `rmw_implementation` package provides access to the default rmw implementation, and provides the ability to dynamically switch rmw implementations if more than one is available.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/foxy/QUALITY_DECLARATION.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/foxy/rmw_implementation/QUALITY_DECLARATION.md).
 
 #### `rosidl_runtime_c`
 
 The `rosidl_runtime_c` package provides runtime interfaces in C based on user defined ROS Messages and ROS Services, as well as associated support functions for those types.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/tree/foxy/rosidl_runtime_c/Quality_Declaration.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/foxy/rosidl_runtime_c/QUALITY_DECLARATION.md).
 
 #### `tracetools`
 

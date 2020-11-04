@@ -164,12 +164,6 @@ It is **Quality Level 2**, see its [Quality Declaration document](https://github
 
 It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/foxy/rosidl_runtime_c/QUALITY_DECLARATION.md).
 
-#### `tracetools`
-
-The `tracetools` package provides utilities for instrumenting the code in `rcl_lifecycle` so that it may be traced for debugging and performance analysis.
-
-It is **Quality Level 1**, see its [Quality Declaration document](https://gitlab.com/ros-tracing/ros2_tracing/-/blob/foxy/tracetools/QUALITY_DECLARATION.md).
-
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 
 `rcl_lifecycle` does not have any runtime non-ROS dependencies.
