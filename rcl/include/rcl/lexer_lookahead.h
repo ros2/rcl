@@ -170,6 +170,28 @@ rcl_lexer_lookahead2_peek2(
   rcl_lexeme_t * next_type1,
   rcl_lexeme_t * next_type2);
 
+/// Look ahead to check if buffer contains colon prefix.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes [1]
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * <i>[1] Only allocates if an argument is invalid or an internal bug is detected.</i>
+ *
+ * \param[in] buffer the lookahead2 buffer being used to analyze a string.
+ * \return `RCL_RET_OK` if peeking was successfull, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any function arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_lexer_lookahead2_peek_colon_prefix(
+  rcl_lexer_lookahead2_t * buffer);
+
 /// Accept a lexeme and advance analysis.
 /**
  * A token must have been peeked before it can be accepted.

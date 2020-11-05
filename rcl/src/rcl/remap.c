@@ -19,6 +19,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcutils/allocator.h"
+#include "rcutils/format_string.h"
 #include "rcutils/macros.h"
 #include "rcutils/strdup.h"
 #include "rcutils/types/string_map.h"
@@ -113,15 +114,34 @@ rcl_remap_first_match(
   rcl_remap_t ** output_rule)
 {
   *output_rule = NULL;
+
+  char * full_qualified_name = NULL;
+  if (node_namespace && node_name) {
+    const char * fmt = (strlen(node_namespace) == 1) ? "%s%s" : "%s/%s";
+    full_qualified_name =
+      rcutils_format_string(allocator, fmt, node_namespace, node_name);
+    if (NULL == full_qualified_name) {
+      RCL_SET_ERROR_MSG("failed to allocate memory for full node name");
+      return RCL_RET_BAD_ALLOC;
+    }
+  }
+
   for (int i = 0; i < num_rules; ++i) {
     rcl_remap_t * rule = &(remap_rules[i]);
     if (!(rule->impl->type & type_bitmask)) {
       // Not the type of remap rule we're looking fore
       continue;
     }
-    if (rule->impl->node_name != NULL && 0 != strcmp(rule->impl->node_name, node_name)) {
-      // Rule has a node name prefix and the supplied node name didn't match
-      continue;
+    if (rule->impl->node_name != NULL) {
+      if (rule->impl->node_name[0] == '/' && full_qualified_name) {
+        if (0 != strcmp(rule->impl->node_name, full_qualified_name)) {
+          // Rule has a full qualified name and the supplied node name didn't match
+          continue;
+        }
+      } else if (0 != strcmp(rule->impl->node_name, node_name)) {
+        // Rule has a node name prefix and the supplied node name didn't match
+        continue;
+      }
     }
     bool matched = false;
     if (rule->impl->type & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
@@ -138,6 +158,7 @@ rcl_remap_first_match(
           RCL_RET_BAD_ALLOC == ret)
         {
           // these are probably going to happen again. Stop processing rules
+          allocator.deallocate(full_qualified_name, allocator.state);
           return ret;
         }
         continue;
@@ -153,6 +174,7 @@ rcl_remap_first_match(
       break;
     }
   }
+  allocator.deallocate(full_qualified_name, allocator.state);
   return RCL_RET_OK;
 }
 
