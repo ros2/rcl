@@ -34,6 +34,22 @@ rcl_get_zero_initialized_init_options(void)
   };  // NOLINT(readability/braces): false positive
 }
 
+/// Initialize given init_options with the default values and zero-initialize implementation.
+RCL_LOCAL
+rcl_ret_t
+_rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocator)
+{
+  init_options->impl = allocator.allocate(sizeof(rcl_init_options_impl_t), allocator.state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    init_options->impl,
+    "failed to allocate memory for init options impl",
+    return RCL_RET_BAD_ALLOC);
+  init_options->impl->allocator = allocator;
+  init_options->impl->rmw_init_options = rmw_get_zero_initialized_init_options();
+
+  return RCL_RET_OK;
+}
+
 rcl_ret_t
 rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocator)
 {
@@ -48,13 +64,11 @@ rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocat
     return RCL_RET_ALREADY_INIT;
   }
   RCL_CHECK_ALLOCATOR(&allocator, return RCL_RET_INVALID_ARGUMENT);
-  init_options->impl = allocator.allocate(sizeof(rcl_init_options_impl_t), allocator.state);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    init_options->impl,
-    "failed to allocate memory for init options impl",
-    return RCL_RET_BAD_ALLOC);
-  init_options->impl->allocator = allocator;
-  init_options->impl->rmw_init_options = rmw_get_zero_initialized_init_options();
+
+  rcl_ret_t ret = _rcl_init_options_init(init_options, allocator);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
   rmw_ret_t rmw_ret = rmw_init_options_init(&(init_options->impl->rmw_init_options), allocator);
   if (RMW_RET_OK != rmw_ret) {
     allocator.deallocate(init_options->impl, allocator.state);
@@ -74,6 +88,7 @@ rcl_init_options_copy(const rcl_init_options_t * src, rcl_init_options_t * dst)
 
   RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(src->impl, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ALLOCATOR(&src->impl->allocator, return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
   if (NULL != dst->impl) {
     RCL_SET_ERROR_MSG("given dst (rcl_init_options_t) is already initialized");
@@ -81,7 +96,7 @@ rcl_init_options_copy(const rcl_init_options_t * src, rcl_init_options_t * dst)
   }
 
   // initialize dst (since we know it's in a zero initialized state)
-  rcl_ret_t ret = rcl_init_options_init(dst, src->impl->allocator);
+  rcl_ret_t ret = _rcl_init_options_init(dst, src->impl->allocator);
   if (RCL_RET_OK != ret) {
     return ret;  // error already set
   }
