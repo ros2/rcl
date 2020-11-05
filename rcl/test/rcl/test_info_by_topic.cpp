@@ -27,6 +27,7 @@
 
 #include "rmw/topic_endpoint_info_array.h"
 #include "rmw/error_handling.h"
+#include "wait_for_entity_helpers.hpp"
 
 #include "test_msgs/msg/strings.h"
 #include "rosidl_runtime_c/string_functions.h"
@@ -356,6 +357,7 @@ TEST_F(
     this->topic_name,
     &subscription_options);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
   const std::string fqdn = std::string("/") + this->topic_name;
   // Get publishers info by topic
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array_pub =
