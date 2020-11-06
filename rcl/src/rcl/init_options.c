@@ -35,9 +35,9 @@ rcl_get_zero_initialized_init_options(void)
 }
 
 /// Initialize given init_options with the default values and zero-initialize implementation.
-RCL_LOCAL
+static inline
 rcl_ret_t
-_rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocator)
+_rcl_init_options_zero_init(rcl_init_options_t * init_options, rcl_allocator_t allocator)
 {
   init_options->impl = allocator.allocate(sizeof(rcl_init_options_impl_t), allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
@@ -65,7 +65,7 @@ rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocat
   }
   RCL_CHECK_ALLOCATOR(&allocator, return RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret = _rcl_init_options_init(init_options, allocator);
+  rcl_ret_t ret = _rcl_init_options_zero_init(init_options, allocator);
   if (RCL_RET_OK != ret) {
     return ret;
   }
@@ -96,7 +96,7 @@ rcl_init_options_copy(const rcl_init_options_t * src, rcl_init_options_t * dst)
   }
 
   // initialize dst (since we know it's in a zero initialized state)
-  rcl_ret_t ret = _rcl_init_options_init(dst, src->impl->allocator);
+  rcl_ret_t ret = _rcl_init_options_zero_init(dst, src->impl->allocator);
   if (RCL_RET_OK != ret) {
     return ret;  // error already set
   }
