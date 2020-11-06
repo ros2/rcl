@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_yaml_param_parse
 
 # `rcl_yaml_param_parser` Quality Declaration
 
-The package `rcl_yaml_param_parser` claims to be in the **Quality Level 3** category.
+The package `rcl_yaml_param_parser` claims to be in the **Quality Level 2** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 

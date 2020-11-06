@@ -145,7 +145,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 The `rmw` package provides the API used by `rcl` to interact with the underlying middleware in an abstract way.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rmw/rmw/QUALITY_DECLARATION.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md).
 
 #### `rcl_interfaces`
 

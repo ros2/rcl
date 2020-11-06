@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_lifecycle` packa
 
 # `rcl_lifecycle` Quality Declaration
 
-The package `rcl_lifecycle` claims to be in the **Quality Level 3** category.
+The package `rcl_lifecycle` claims to be in the **Quality Level 2** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -144,7 +144,7 @@ It is **Quality Level 2**, see its [Quality Declaration document](https://github
 
 `rcl` is the ROS 2 client library in C.
 
-It is **Quality Level 2**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION).
+It is **Quality Level 2**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION.md).
 
 #### `rcutils`
 
