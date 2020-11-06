@@ -1248,6 +1248,45 @@ _rcl_parse_resource_match(
   return RCL_RET_OK;
 }
 
+RCL_LOCAL
+rcl_ret_t
+_rcl_parse_param_name_token(rcl_lexer_lookahead2_t * lex_lookahead)
+{
+  rcl_ret_t ret;
+  rcl_lexeme_t lexeme;
+
+  // Check arguments sanity
+  assert(NULL != lex_lookahead);
+
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  if (RCL_LEXEME_TOKEN != lexeme && RCL_LEXEME_FORWARD_SLASH != lexeme) {
+    if (RCL_LEXEME_WILD_ONE == lexeme) {
+      RCL_SET_ERROR_MSG("Wildcard '*' is not implemented");
+      return RCL_RET_ERROR;
+    } else if (RCL_LEXEME_WILD_MULTI == lexeme) {
+      RCL_SET_ERROR_MSG("Wildcard '**' is not implemented");
+      return RCL_RET_ERROR;
+    } else {
+      RCL_SET_ERROR_MSG("Expecting token or wildcard");
+      return RCL_RET_WRONG_LEXEME;
+    }
+  }
+  do {
+    ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+    ret = rcl_lexer_lookahead2_peek(lex_lookahead, &lexeme);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  } while (RCL_LEXEME_TOKEN == lexeme || RCL_LEXEME_FORWARD_SLASH == lexeme);
+  return RCL_RET_OK;
+}
+
 /// Parse a parameter name in a parameter override rule (ex: `foo.bar`)
 /**
  * \sa _rcl_parse_param_rule()
@@ -1277,7 +1316,7 @@ _rcl_parse_param_name(
   }
 
   // token ( '.' token )*
-  ret = _rcl_parse_resource_match_token(lex_lookahead);
+  ret = _rcl_parse_param_name_token(lex_lookahead);
   if (RCL_RET_OK != ret) {
     return ret;
   }
@@ -1290,7 +1329,7 @@ _rcl_parse_param_name(
     if (RCL_RET_WRONG_LEXEME == ret) {
       return RCL_RET_INVALID_REMAP_RULE;
     }
-    ret = _rcl_parse_resource_match_token(lex_lookahead);
+    ret = _rcl_parse_param_name_token(lex_lookahead);
     if (RCL_RET_OK != ret) {
       return ret;
     }
