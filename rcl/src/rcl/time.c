@@ -370,10 +370,10 @@ rcl_set_ros_time_override(
     }
     time_jump.delta.nanoseconds = time_value - current_time;
     rcl_clock_call_callbacks(clock, &time_jump, true);
-  }
-  rcutils_atomic_store(&(storage->current_time), time_value);
-  if (storage->active) {
+    rcutils_atomic_store(&(storage->current_time), time_value);
     rcl_clock_call_callbacks(clock, &time_jump, false);
+  } else {
+    rcutils_atomic_store(&(storage->current_time), time_value);
   }
   return RCL_RET_OK;
 }
