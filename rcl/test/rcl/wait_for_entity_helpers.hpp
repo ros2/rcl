@@ -63,4 +63,24 @@ wait_for_subscription_to_be_ready(
   size_t max_tries,
   int64_t period_ms);
 
+/// Wait for specified number of publication in GraphCache
+/// by trying at most `max_tries` times with a `period_ms` period.
+bool
+wait_for_graph_publication(
+  const rcl_node_t * node,
+  const char * topic_name,
+  size_t count_to_wait,
+  size_t max_tries,
+  int64_t period_ms);
+
+/// Wait for specified number of subcription in GraphCache
+/// by trying at most `max_tries` times with a `period_ms` period.
+bool
+wait_for_graph_subscription(
+  const rcl_node_t * node,
+  const char * topic_name,
+  size_t count_to_wait,
+  size_t max_tries,
+  int64_t period_ms);
+
 #endif  // RCL__WAIT_FOR_ENTITY_HELPERS_HPP_
