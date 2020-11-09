@@ -129,7 +129,7 @@ function(test_target_function)
     set(AMENT_GTEST_ARGS TIMEOUT 120)
   endif()
   rcl_add_custom_gtest(test_info_by_topic${target_suffix}
-    SRCS rcl/test_info_by_topic.cpp
+    SRCS rcl/test_info_by_topic.cpp rcl/wait_for_entity_helpers.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
