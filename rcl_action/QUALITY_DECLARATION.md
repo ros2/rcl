@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_action` package,
 
 # `rcl_action` Quality Declaration
 
-The package `rcl_action` claims to be in the **Quality Level 3** category.
+The package `rcl_action` claims to be in the **Quality Level 2** category.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -137,13 +137,13 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `action_msgs` provides messages and services for ROS 2 actions.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/master/action_msgs/QUALITY_DECLARATION.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/master/action_msgs/QUALITY_DECLARATION.md).
 
 #### `rcl`
 
 `rcl` is the ROS 2 client library in C.
 
-It is **Quality Level 3**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION).
+It is **Quality Level 2**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION.md).
 
 #### `rcutils`
 
@@ -155,13 +155,13 @@ It is **Quality Level 2**, see its [Quality Declaration document](https://github
 
 `rmw` is the ROS 2 middleware library.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md).
+It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md).
 
 #### `rosidl_runtime_c`
 
 `rosidl_runtime_c` provides runtime functionality for rosidl message and service interfaces.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_c/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_c/QUALITY_DECLARATION.md).
 
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 
