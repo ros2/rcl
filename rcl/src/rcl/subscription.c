@@ -111,7 +111,6 @@ rcl_subscription_init(
     &subscription->impl->actual_qos);
   if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    ret = RCL_RET_ERROR;
     goto fail;
   }
   subscription->impl->actual_qos.avoid_ros_namespace_conventions =
