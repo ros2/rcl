@@ -731,6 +731,7 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   // Clang static analysis has trouble following macros here, so it flags this pointer as
   // potentially null.
   const auto * goal_info_out_uuid = goal_info_out->goal_id.uuid;
+  ASSERT_NE(goal_info_out_uuid, nullptr);
   assert(nullptr != goal_info_out_uuid);
 
   EXPECT_TRUE(uuidcmp(goal_info_out_uuid, goal_info_in.goal_id.uuid));
@@ -880,6 +881,7 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
     // Clang static analysis has trouble following macros here, so it flags this pointer as
     // potentially null.
     auto * goal_info_uuid = goal_info->goal_id.uuid;
+    ASSERT_NE(goal_info_out_uuid, nullptr);
     assert(nullptr != goal_info_uuid);
     EXPECT_TRUE(uuidcmp(goal_info_uuid, cancel_request.goal_info.goal_id.uuid));
     EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
