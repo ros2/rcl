@@ -80,11 +80,14 @@ TEST(test_parser, correct_syntax) {
     rcl_variant_t * param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_2", "is_back", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->bool_value);
-    EXPECT_TRUE(*param_value->bool_value);
+    // Assigning to local to avoid clang analysis warning "Forming reference to null pointer"
+    bool bool_value = *param_value->bool_value;
+    EXPECT_TRUE(bool_value);
     res = rcl_parse_yaml_value("lidar_ns/lidar_2", "is_back", "false", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->bool_value);
-    EXPECT_FALSE(*param_value->bool_value);
+    bool_value = *param_value->bool_value;
+    EXPECT_FALSE(bool_value);
 
     param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_2", "id", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
