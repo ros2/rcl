@@ -1021,9 +1021,12 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_argument_
   ASSERT_TRUE(NULL != param_value->bool_array_value);
   ASSERT_TRUE(NULL != param_value->bool_array_value->values);
   ASSERT_EQ(3U, param_value->bool_array_value->size);
-  EXPECT_TRUE(param_value->bool_array_value->values[0]);
-  EXPECT_FALSE(param_value->bool_array_value->values[1]);
-  EXPECT_FALSE(param_value->bool_array_value->values[2]);
+  bool bool_value = param_value->bool_array_value->values[0];
+  EXPECT_TRUE(bool_value);
+  bool_value = param_value->bool_array_value->values[1];
+  EXPECT_FALSE(bool_value);
+  bool_value = param_value->bool_array_value->values[2];
+  EXPECT_FALSE(bool_value);
 }
 
 TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_arguments_copy) {
@@ -1135,7 +1138,8 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), test_param_overrides
   param_value = rcl_yaml_node_struct_get("/**", "some.bool_param", params);
   ASSERT_TRUE(NULL != param_value);
   ASSERT_TRUE(NULL != param_value->bool_value);
-  EXPECT_FALSE(*(param_value->bool_value));
+  bool bool_value = *param_value->bool_value;
+  EXPECT_FALSE(bool_value);
 
   param_value = rcl_yaml_node_struct_get("some_node", "int_param", params);
   ASSERT_TRUE(NULL != param_value);
