@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_lifecycle` packa
 
 # `rcl_lifecycle` Quality Declaration
 
-The package `rcl_lifecycle` claims to be in the **Quality Level 2** category.
+The package `rcl_lifecycle` claims to be in the **Quality Level 1** category when it is used with a **Quality Level 1** middleware.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -115,7 +115,13 @@ Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly
 
 ### Performance [4.iv]
 
-`rcl_lifecycle` does not currently have performance tests.
+`rcl_lifecycle` follows the recommendations for performance testing of C code in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#performance), and opts to do performance analysis on each release rather than each change.
+
+System level performance benchmarks that cover features of `rcl_lifecycle` can be found at:
+* [Benchmarks](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/)
+* [Performance](http://build.ros2.org/view/Rci/job/Rci__nightly-performance_ubuntu_focal_amd64/lastCompletedBuild/)
+
+Changes that introduce regressions in performance must be adequately justified in order to be accepted and merged.
 
 ### Linters and Static Analysis [4.v]
 
@@ -138,25 +144,25 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `lifecycle_msgs` provides message and services for managing lifecycle nodes.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/foxy/lifecycle_msgs/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/foxy/lifecycle_msgs/QUALITY_DECLARATION.md).
 
 #### `rcl`
 
 `rcl` is the ROS 2 client library in C.
 
-It is **Quality Level 2**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION).
+It is **Quality Level 1**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION.md).
 
 #### `rcutils`
 
 `rcutils` provides commonly used functionality in C.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
 
 #### `rmw`
 
 `rmw` is the ROS 2 middleware library.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/foxy/rmw/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/foxy/rmw/QUALITY_DECLARATION.md).
 
 #### `rosidl_runtime_c`
 

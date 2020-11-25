@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl` package, based 
 
 # `rcl` Quality Declaration
 
-The package `rcl` claims to be in the **Quality Level 2** category.
+The package `rcl` claims to be in the **Quality Level 1** category when it is used with a **Quality Level 1** middleware.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -120,7 +120,13 @@ Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly
 
 ### Performance [4.iv]
 
-`rcl` does not conduct performance tests.
+`rcl` follows the recommendations for performance testing of C code in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#performance), and opts to do performance analysis on each release rather than each change.
+
+System level performance benchmarks that cover features of `rcl` can be found at:
+* [Benchmarks](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/)
+* [Performance](http://build.ros2.org/view/Rci/job/Rci__nightly-performance_ubuntu_focal_amd64/lastCompletedBuild/)
+
+Changes that introduce regressions in performance must be adequately justified in order to be accepted and merged.
 
 ### Linters and Static Analysis [4.v]
 
@@ -145,37 +151,37 @@ It also has several test dependencies, which do not affect the resulting quality
 
 The `rmw` package provides the API used by `rcl` to interact with the underlying middleware in an abstract way.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rmw/rmw/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/foxy/rmw/QUALITY_DECLARATION.md).
 
 #### `rcl_interfaces`
 
 The `rcl_interfaces` package provides some common ROS Message and ROS Service types which are used to implement certain client library features.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/foxy/rcl_interfaces/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/foxy/rcl_interfaces/QUALITY_DECLARATION.md).
 
 #### `rcl_logging_spdlog`
 
 The `rcl_logging_spdlog` package provides the default logging implementation by wrapping the `spdlog` library.
 
-It is **Quality Level 4**, see its [Quality Declaration document](https://github.com/ros2/rcl_logging/rcl_logging_spdlog/Quality_Declaration.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_logging/blob/foxy/rcl_logging_spdlog/QUALITY_DECLARATION.md).
 
 #### `rcl_yaml_param_parser`
 
 The `rcl_yaml_param_parser` package provides an API that is used to parse YAML configuration files which may be used to configure ROS and specific nodes.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcl/tree/foxy/rcl_yaml_param_parser/Quality_Declaration.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl/blob/foxy/rcl_yaml_param_parser/QUALITY_DECLARATION.md).
 
 #### `rcutils`
 
 The `rcutils` package provides an API which contains common utilities and data structures needed when programming in C.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
 
 #### `rmw_implementation`
 
 The `rmw_implementation` package provides access to the default rmw implementation, and provides the ability to dynamically switch rmw implementations if more than one is available.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/foxy/rmw_implementation/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/foxy/rmw_implementation/QUALITY_DECLARATION.md).
 
 #### `rosidl_runtime_c`
 
@@ -238,7 +244,7 @@ The chart below compares the requirements in the REP-2004 with the current state
 |4.ii| Public API tests | ✓ |
 |4.iii.a| Using coverage | ✓ |
 |4.iii.a| Coverage policy | ✓ |
-|4.iv.a| Performance tests (if applicable) | ☓ |
+|4.iv.a| Performance tests (if applicable) | ✓ |
 |4.iv.b| Performance tests policy| ✓ |
 |4.v.a| Code style enforcement (linters)| ✓ |
 |4.v.b| Use of static analysis tools | ✓ |
