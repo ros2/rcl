@@ -2,7 +2,7 @@ This document is a declaration of software quality for the `rcl_action` package,
 
 # `rcl_action` Quality Declaration
 
-The package `rcl_action` claims to be in the **Quality Level 2** category.
+The package `rcl_action` claims to be in the **Quality Level 1** category when it is used with a **Quality Level 1** middleware.
 
 Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#package-quality-categories).
 
@@ -64,7 +64,7 @@ It is [hosted](http://design.ros2.org/articles/actions.html).
 
 ### Public API Documentation [3.ii]
 
-Most of `rcl_action` has embedded API documentation and it is [hosted](http://docs.ros2.org/latest/api/rcl_action/).
+Most of `rcl_action` has embedded API documentation and it is [hosted](http://docs.ros2.org/foxy/api/rcl_action/).
 
 ### License [3.iii]
 
@@ -72,7 +72,7 @@ The license for `rcl_action` is Apache 2.0, and a summary is in each source file
 
 There is an automated test which runs a linter that ensures each file has a license statement.
 
-The most recent test results can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_action/copyright/).
+The most recent test results can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_action__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_action).
 
 ### Copyright Statements [3.iv]
 
@@ -80,7 +80,7 @@ The copyright holders each provide a statement of copyright in each source code 
 
 There is an automated test which runs a linter that ensures each file has at least one copyright statement.
 
-The results of the test can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_action/copyright/).
+The results of the test can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_action__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_action/copyright/).
 
 ## Testing [4]
 
@@ -89,11 +89,11 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 `rcl_action` has feature tests, which test for proper node state transitions.
 The tests are located in the [test](test) subdirectory.
 New features are required to have tests before being added.
-Currently nightly test results can be seen here:
-* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl_action/)
-* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_action/)
-* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl_action/)
-* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl_action/)
+Though there are no nightly jobs for foxy outside of linux, each change is tested on ci.ros2.org.
+* [linux-aarch64](https://ci.ros2.org/job/ci_linux-aarch64)
+* [linux](https://ci.ros2.org/job/ci_linux)
+* [mac_osx](https://ci.ros2.org/job/ci_osx)
+* [windows](https://ci.ros2.org/job/ci_windows)
 
 ### Public API Testing [4.ii]
 
@@ -110,17 +110,23 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_action_src_rcl_action/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly_linux_foxy_coverage/lastCompletedBuild/cobertura/src_ros2_rcl_rcl_action_src_rcl_action/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
 ### Performance [4.iv]
 
-`rcl_action` does not currently have performance tests.
+`rcl_action` follows the recommendations for performance testing of C code in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#performance), and opts to do performance analysis on each release rather than each change.
+
+System level performance benchmarks that cover features of `rcl_action` can be found at:
+* [Benchmarks](http://build.ros2.org/view/Fci/job/Fci__benchmark_ubuntu_focal_amd64/BenchmarkTable/)
+* [Performance](http://build.ros2.org/view/Fci/job/Fci__nightly-performance_ubuntu_focal_amd64/lastCompletedBuild/)
+
+Changes that introduce regressions in performance must be adequately justified in order to be accepted and merged.
 
 ### Linters and Static Analysis [4.v]
 
 `rcl_action` uses and passes all the standard linters and static analysis tools for a C package as described in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#linters).
 
-Results of the nightly linter tests can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_action).
+Results of the nightly linter tests can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_action__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_action).
 
 ## Dependencies [5]
 
@@ -137,25 +143,25 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `action_msgs` provides messages and services for ROS 2 actions.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/foxy/action_msgs/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/foxy/action_msgs/QUALITY_DECLARATION.md).
 
 #### `rcl`
 
 `rcl` is the ROS 2 client library in C.
 
-It is **Quality Level 2**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION).
+It is **Quality Level 1**, see its [Quality Declaration document](../rcl/QUALITY_DECLARATION.md).
 
 #### `rcutils`
 
 `rcutils` provides commonly used functionality in C.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/foxy/QUALITY_DECLARATION.md).
 
 #### `rmw`
 
 `rmw` is the ROS 2 middleware library.
 
-It is **Quality Level 2**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/foxy/rmw/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/foxy/rmw/QUALITY_DECLARATION.md).
 
 #### `rosidl_runtime_c`
 
@@ -171,11 +177,11 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 
 `rcl_action` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers), and tests each change against all of them.
 
-Currently nightly results can be seen here:
-* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl_action/)
-* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_action/)
-* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl_action/)
-* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl_action/)
+Though there are no nightly jobs for foxy outside of linux, each change is tested on ci.ros2.org.
+* [linux-aarch64](https://ci.ros2.org/job/ci_linux-aarch64)
+* [linux](https://ci.ros2.org/job/ci_linux)
+* [mac_osx](https://ci.ros2.org/job/ci_osx)
+* [windows](https://ci.ros2.org/job/ci_windows)
 
 # Security [7]
 
