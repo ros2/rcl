@@ -72,7 +72,7 @@ The license for `rcl_lifecycle` is Apache 2.0, and a summary is in each source f
 
 There is an automated test which runs a linter that ensures each file has a license statement.
 
-The most recent test results can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_lifecycle/copyright/).
+The most recent test results can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_lifecycle__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_lifecycle).
 
 ### Copyright Statements [3.iv]
 
@@ -80,7 +80,7 @@ The copyright holders each provide a statement of copyright in each source code 
 
 There is an automated test which runs a linter that ensures each file has at least one copyright statement.
 
-The results of the test can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_lifecycle/copyright/).
+The results of the test can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_lifecycle__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_lifecycle).
 
 ## Testing [4]
 
@@ -89,12 +89,11 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 `rcl_lifecycle` has feature tests, which test for proper node state transitions.
 The tests are located in the [test](test) subdirectory.
 New features are required to have tests before being added.
-Currently nightly test results can be seen here:
-* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl_lifecycle/)
-* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_lifecycle/)
-* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl_lifecycle/)
-* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl_lifecycle/)
-
+Though there are no nightly jobs for foxy outside of linux, each change is tested on ci.ros2.org.
+* [linux-aarch64](https://ci.ros2.org/job/ci_linux-aarch64)
+* [linux](https://ci.ros2.org/job/ci_linux)
+* [mac_osx](https://ci.ros2.org/job/ci_osx)
+* [windows](https://ci.ros2.org/job/ci_windows)
 
 ### Public API Testing [4.ii]
 
@@ -111,15 +110,15 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rcl_rcl_lifecycle_src/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/nightly_linux_foxy_coverage/lastCompletedBuild/cobertura/src_ros2_rcl_rcl_lifecycle_src/). A description of how coverage statistics are calculated is summarized in this page ["ROS 2 Onboarding Guide"](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
 ### Performance [4.iv]
 
 `rcl_lifecycle` follows the recommendations for performance testing of C code in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#performance), and opts to do performance analysis on each release rather than each change.
 
 System level performance benchmarks that cover features of `rcl_lifecycle` can be found at:
-* [Benchmarks](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/)
-* [Performance](http://build.ros2.org/view/Rci/job/Rci__nightly-performance_ubuntu_focal_amd64/lastCompletedBuild/)
+* [Benchmarks](http://build.ros2.org/view/Fci/job/Fci__benchmark_ubuntu_focal_amd64/BenchmarkTable/)
+* [Performance](http://build.ros2.org/view/Fci/job/Fci__nightly-performance_ubuntu_focal_amd64/lastCompletedBuild/)
 
 Changes that introduce regressions in performance must be adequately justified in order to be accepted and merged.
 
@@ -127,7 +126,7 @@ Changes that introduce regressions in performance must be adequately justified i
 
 `rcl_lifecycle` uses and passes all the standard linters and static analysis tools for a C package as described in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#linters).
 
-Results of the nightly linter tests can be found [here](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_lifecycle).
+Results of the nightly linter tests can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_lifecycle__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_lifecycle).
 
 ## Dependencies [5]
 
@@ -178,11 +177,11 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 
 `rcl_lifecycle` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers), and tests each change against all of them.
 
-Currently nightly results can be seen here:
-* [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl_lifecycle/)
-* [linux_release](https://ci.ros2.org/view/nightly/job/nightly_linux_release/lastBuild/testReport/rcl_lifecycle/)
-* [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rcl_lifecycle/)
-* [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rcl_lifecycle/)
+Though there are no nightly jobs for foxy outside of linux, each change is tested on ci.ros2.org.
+* [linux-aarch64](https://ci.ros2.org/job/ci_linux-aarch64)
+* [linux](https://ci.ros2.org/job/ci_linux)
+* [mac_osx](https://ci.ros2.org/job/ci_osx)
+* [windows](https://ci.ros2.org/job/ci_windows)
 
 # Security [7]
 
