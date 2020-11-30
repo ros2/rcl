@@ -511,21 +511,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_init_with_i
     EXPECT_EQ(RCL_RET_ERROR, ret);
     rcl_reset_error();
   }
-
   // Try normal init but force an internal error on fini.
   {
     ret = rcl_node_init(&node, name, namespace_, &context, &options);
     EXPECT_EQ(RCL_RET_OK, ret);
-    auto mock = mocking_utils::patch_and_return(
-      "lib:rcl", rcl_logging_rosout_fini_publisher_for_node, RCL_RET_ERROR);
-    EXPECT_EQ(RCL_RET_ERROR, rcl_node_fini(&node));
+    auto mock = mocking_utils::inject_on_return("lib:rcl", rmw_destroy_node, RMW_RET_ERROR);
+    ret = rcl_node_fini(&node);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
     rcl_reset_error();
   }
-  // This takes advantage of the fact that the very first call in
-  // `rcl_node_fini` (`rcl_logging_rosout_fini_publisher_for_node`) was patched
-  // for failure.  Because of this, we can stop the patching, and just call
-  // `rcl_node_fini` to really cleanup.
-  EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
 
   // Battle test node init.
   RCUTILS_FAULT_INJECTION_TEST(
