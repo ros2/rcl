@@ -796,6 +796,7 @@ TEST_F(TestActionServerWait, test_server_wait_set_get_entities_ready) {
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
 
   ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 3, 0, &this->context, rcl_get_default_allocator());
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   wait_set.services[0] = &this->action_server.impl->goal_service;
   this->action_server.impl->wait_set_goal_service_index = 0;
   wait_set.services[1] = &this->action_server.impl->cancel_service;

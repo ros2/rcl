@@ -656,12 +656,16 @@ rcl_action_expire_goals(
       }
     }
   }
-  ret_final = _recalculate_expire_timer(
+  rcl_ret_t expire_timer_ret = _recalculate_expire_timer(
     &action_server->impl->expire_timer,
     action_server->impl->options.result_timeout.nanoseconds,
     action_server->impl->goal_handles,
     action_server->impl->num_goal_handles,
     action_server->impl->clock);
+
+  if (RCL_RET_OK != expire_timer_ret) {
+    ret_final = expire_timer_ret;
+  }
 
   // If argument is not null, then set it
   if (NULL != num_expired) {
@@ -795,8 +799,9 @@ rcl_action_process_cancel_request(
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC == ret) {
       ret_final = RCL_RET_BAD_ALLOC;  // error already set
+    } else {
+      ret_final = RCL_RET_ERROR;  // error already set
     }
-    ret_final = RCL_RET_ERROR;  // error already set
     goto cleanup;
   }
 
