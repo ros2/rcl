@@ -73,7 +73,7 @@ The license for `rcl_yaml_param_parser` is Apache 2.0, and a summary is in each 
 
 There is an automated test which runs a linter that ensures each file has a license statement.
 
-The most recent test results can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_yaml_param_parser__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_yaml_param_parser).
+The most recent test results can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_yaml_param_parser).
 
 ### Copyright Statements [3.iv]
 
@@ -81,7 +81,7 @@ The copyright holders each provide a statement of copyright in each source code 
 
 There is an automated test which runs a linter that ensures each file has at least one copyright statement.
 
-The results of the test can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_yaml_param_parser__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_yaml_param_parser/copyright/).
+The results of the test can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_yaml_param_parser/copyright/).
 
 ## Testing [4]
 
@@ -128,7 +128,7 @@ Changes that introduce regressions in performance must be adequately justified i
 
 `rcl_yaml_param_parser` uses and passes all the standard linters and static analysis tools for a C package as described in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#linters).
 
-Results of the nightly linter tests can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl_yaml_param_parser__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_yaml_param_parser).
+Results of the nightly linter tests can be found [here](http://build.ros2.org/view/Fpr/job/Fpr__rcl__ubuntu_focal_amd64/lastCompletedBuild/testReport/rcl_yaml_param_parser).
 
 ## Dependencies [5]
 
