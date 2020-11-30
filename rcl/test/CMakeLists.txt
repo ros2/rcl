@@ -23,6 +23,27 @@ set(extra_lib_dirs "${rcl_lib_dir}")
 set(test_resources_dir_name "resources")
 add_definitions(-DTEST_RESOURCES_DIRECTORY="${CMAKE_CURRENT_BINARY_DIR}/${test_resources_dir_name}")
 
+set(DISTRIBUTION "Unknown")
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+  # If we are on Linux, look for /etc/os-release, which has "key=value" items.
+  # Parse those items, looking for a key named "id" (case-insensitive), and
+  # if we find it, set DISTRIBUTION to that value.  That gives us some idea
+  # of which Linux distribution we are on.
+  if(EXISTS "/etc/os-release")
+    file(STRINGS "/etc/os-release" OS_RELEASE)
+    foreach(line ${OS_RELEASE})
+      string(REGEX REPLACE "^(.*)=.*" "\\1" key "${line}")
+      string(TOLOWER "${key}" key)
+      if("${key}" STREQUAL "id")
+        string(REGEX REPLACE "^.*=(.*)" "\\1" DISTRIBUTION "${line}")
+        string(TOLOWER "${DISTRIBUTION}" DISTRIBUTION)
+        message(STATUS "CHRIS: ${DISTRIBUTION}")
+        break()
+      endif()
+    endforeach()
+  endif()
+endif()
+
 # finding gtest once in the highest scope
 # prevents finding it repeatedly in each local scope
 ament_find_gtest()
@@ -162,14 +183,16 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_node${target_suffix}
-    SRCS rcl/test_node.cpp
-    ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
-    TIMEOUT 240  # Large timeout to wait for fault injection tests
-  )
+  if(NOT "${DISTRIBUTION}" STREQUAL "\"centos\"")
+    rcl_add_custom_gtest(test_node${target_suffix}
+      SRCS rcl/test_node.cpp
+      ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
+      APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+      LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
+      AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
+      TIMEOUT 240  # Large timeout to wait for fault injection tests
+    )
+  endif()
 
   rcl_add_custom_gtest(test_arguments${target_suffix}
     SRCS rcl/test_arguments.cpp
