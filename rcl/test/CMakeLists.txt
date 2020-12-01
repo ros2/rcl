@@ -37,7 +37,6 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
       if("${key}" STREQUAL "id")
         string(REGEX REPLACE "^.*=(.*)" "\\1" DISTRIBUTION "${line}")
         string(TOLOWER "${DISTRIBUTION}" DISTRIBUTION)
-        message(STATUS "CHRIS: ${DISTRIBUTION}")
         break()
       endif()
     endforeach()
@@ -183,6 +182,9 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+  # CentOS does not support mimick's inject_on_return functionality, which
+  # causes test_node to segfault when it runs.  Since CentOS is not a Tier 1
+  # platform, just disable the test since we are covering it elsewhere.
   if(NOT "${DISTRIBUTION}" STREQUAL "\"centos\"")
     rcl_add_custom_gtest(test_node${target_suffix}
       SRCS rcl/test_node.cpp
