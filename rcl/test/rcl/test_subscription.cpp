@@ -1087,6 +1087,8 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   rcl_reset_error();
   EXPECT_EQ(NULL, rcl_subscription_get_options(nullptr));
   rcl_reset_error();
+  EXPECT_FALSE(rcl_subscription_is_cft_supported(nullptr));
+  rcl_reset_error();
 
   EXPECT_EQ(NULL, rcl_subscription_get_actual_qos(&subscription_zero_init));
   rcl_reset_error();
@@ -1098,6 +1100,111 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   rcl_reset_error();
   EXPECT_EQ(NULL, rcl_subscription_get_options(&subscription_zero_init));
   rcl_reset_error();
+  EXPECT_FALSE(rcl_subscription_is_cft_supported(&subscription_zero_init));
+  rcl_reset_error();
+}
+
+/* Test for all failure modes in subscription rcl_subscription_set_cft_expression_parameters function.
+ */
+TEST_F(
+  CLASSNAME(
+    TestSubscriptionFixtureInit,
+    RMW_IMPLEMENTATION), test_bad_rcl_subscription_set_cft_expression_parameters) {
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID,
+    rcl_subscription_set_cft_expression_parameters(nullptr, nullptr, nullptr));
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID,
+    rcl_subscription_set_cft_expression_parameters(&subscription_zero_init, nullptr, nullptr));
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_subscription_set_cft_expression_parameters(&subscription, nullptr, nullptr));
+  rcl_reset_error();
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_subscription_set_cft_expression_parameters, RMW_RET_UNSUPPORTED);
+    std::string filter_expression = "(data_ MATCH '0')";
+    EXPECT_EQ(
+      RMW_RET_UNSUPPORTED,
+      rcl_subscription_set_cft_expression_parameters(
+        &subscription, filter_expression.c_str(),
+        nullptr));
+    rcl_reset_error();
+  }
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_subscription_set_cft_expression_parameters, RMW_RET_ERROR);
+    std::string filter_expression = "(data_ MATCH '0')";
+    EXPECT_EQ(
+      RCL_RET_ERROR,
+      rcl_subscription_set_cft_expression_parameters(
+        &subscription, filter_expression.c_str(),
+        nullptr));
+    rcl_reset_error();
+  }
+}
+
+/* Test for all failure modes in subscription rcl_subscription_get_cft_expression_parameters function.
+ */
+TEST_F(
+  CLASSNAME(
+    TestSubscriptionFixtureInit,
+    RMW_IMPLEMENTATION), test_bad_rcl_subscription_get_cft_expression_parameters) {
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID,
+    rcl_subscription_get_cft_expression_parameters(nullptr, nullptr, nullptr));
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_SUBSCRIPTION_INVALID,
+    rcl_subscription_get_cft_expression_parameters(&subscription_zero_init, nullptr, nullptr));
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_subscription_get_cft_expression_parameters(&subscription, nullptr, nullptr));
+  rcl_reset_error();
+
+  char * filter_expression = NULL;
+  rcutils_string_array_t parameters;
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_subscription_get_cft_expression_parameters(&subscription, &filter_expression, nullptr));
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_subscription_get_cft_expression_parameters(&subscription, nullptr, &parameters));
+  rcl_reset_error();
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_subscription_get_cft_expression_parameters, RMW_RET_UNSUPPORTED);
+    EXPECT_EQ(
+      RMW_RET_UNSUPPORTED,
+      rcl_subscription_get_cft_expression_parameters(
+        &subscription, &filter_expression,
+        &parameters));
+    rcl_reset_error();
+  }
+
+  {
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_subscription_get_cft_expression_parameters, RMW_RET_ERROR);
+    EXPECT_EQ(
+      RCL_RET_ERROR,
+      rcl_subscription_get_cft_expression_parameters(
+        &subscription, &filter_expression,
+        &parameters));
+    rcl_reset_error();
+  }
 }
 
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_init_fini_maybe_fail)

@@ -27,6 +27,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
+#include "rcutils/types/string_array.h"
 
 #include "rmw/message_sequence.h"
 
@@ -207,6 +208,136 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_subscription_options_t
 rcl_subscription_get_default_options(void);
+
+/// Copy one rcl_subscription_options_t structure into another.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] src The structure to be copied.
+ *  Its allocator is used to copy memory into the new structure.
+ * \param[out] dst A rcl_subscription_options_t structure to be copied into.
+ * \return `RCL_RET_OK` if the structure was copied successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if src is NULL, or
+ *  if src allocator is invalid, or
+ *  if dst is NULL, or
+ *  if dst contains already allocated memory, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_options_copy(
+  const rcl_subscription_options_t * src,
+  rcl_subscription_options_t * dst
+);
+
+/// Reclaim resources held inside rcl_subscription_options_t structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] option The structure which its resources have to be deallocated.
+ * \return `RCL_RET_OK` if the memory was successfully freed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is NULL, or
+ *  if its allocator is invalid and the structure contains initialized memory.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_options_fini(rcl_subscription_options_t * option);
+
+/// Check if the content filter topic feature is supported in the subscription.
+/**
+ * Depending on the middleware and whether cft is supported in the subscription.
+ * this will return true if the middleware can support ContentFilteredTopic in the subscription.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+bool
+rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription);
+
+/// Set the filter expression and expression parameters for the subscription.
+/**
+ * This function will set a filter expression and an array of expression parameters
+ * for the given subscription, but not to update the original rcl_subscription_options_t
+ * of subscription.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation defined, check the implementation documentation</i>
+ *
+ * \param[in] subscription subscription the subscription object to inspect.
+ * \param[in] filter_expression An filter expression to set.
+ * \param[in] expression_parameters Array of expression parameters to set,
+ *   it can be NULL if there is no placeholder in filter_expression.
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `filter_expression` is NULL, or
+ * \return `RCL_RET_INCORRECT_RMW_IMPLEMENTATION` if the `node` implementation
+ *   identifier does not match this implementation, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_set_cft_expression_parameters(
+  const rcl_subscription_t * subscription,
+  const char * filter_expression,
+  const rcutils_string_array_t * expression_parameters
+);
+
+/// Retrieve the filter expression of the subscription.
+/**
+ * This function will return an filter expression by the given subscription.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation defined, check the implementation documentation</i>
+ *
+ * \param[in] subscription subscription the subscription object to inspect.
+ * \param[out] filter_expression an filter expression, populated on success.
+ *   It is up to the caller to deallocate the filter expression later on,
+ *   using rcutils_get_default_allocator().deallocate().
+ * \param[out] expression_parameters Array of expression parameters, populated on success.
+ *   It is up to the caller to finalize this array later on, using rcutils_string_array_fini().
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `filter_expression` is NULL, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `expression_parameters` is NULL, or
+ * \return `RCL_RET_INCORRECT_RMW_IMPLEMENTATION` if the `node` implementation
+ *   identifier does not match this implementation, or
+ * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_get_cft_expression_parameters(
+  const rcl_subscription_t * subscription,
+  char ** filter_expression,
+  rcutils_string_array_t * expression_parameters
+);
 
 /// Take a ROS message from a topic using a rcl subscription.
 /**
