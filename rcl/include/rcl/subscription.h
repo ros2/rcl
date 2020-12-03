@@ -280,9 +280,8 @@ rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription);
  * Thread-Safe        | No
  * Uses Atomics       | Maybe [1]
  * Lock-Free          | Maybe [1]
- * <i>[1] implementation defined, check the implementation documentation</i>
  *
- * \param[in] subscription subscription the subscription object to inspect.
+ * \param[in] subscription the subscription object to inspect.
  * \param[in] filter_expression An filter expression to set.
  * \param[in] expression_parameters Array of expression parameters to set,
  *   it can be NULL if there is no placeholder in filter_expression.
@@ -313,9 +312,8 @@ rcl_subscription_set_cft_expression_parameters(
  * Thread-Safe        | No
  * Uses Atomics       | Maybe [1]
  * Lock-Free          | Maybe [1]
- * <i>[1] implementation defined, check the implementation documentation</i>
  *
- * \param[in] subscription subscription the subscription object to inspect.
+ * \param[in] subscription the subscription object to inspect.
  * \param[out] filter_expression an filter expression, populated on success.
  *   It is up to the caller to deallocate the filter expression later on,
  *   using rcutils_get_default_allocator().deallocate().
