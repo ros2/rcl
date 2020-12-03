@@ -239,7 +239,7 @@ rcl_context_get_init_options(const rcl_context_t * context);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_context_instance_id_t
-rcl_context_get_instance_id(rcl_context_t * context);
+rcl_context_get_instance_id(const rcl_context_t * context);
 
 /// Returns the context domain id.
 /**
@@ -287,7 +287,7 @@ rcl_context_get_domain_id(rcl_context_t * context, size_t * domain_id);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 bool
-rcl_context_is_valid(rcl_context_t * context);
+rcl_context_is_valid(const rcl_context_t * context);
 
 /// Return pointer to the rmw context if the given context is currently valid, otherwise `NULL`.
 /**
