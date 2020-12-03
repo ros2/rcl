@@ -17,6 +17,7 @@ MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
 PREDEFINED             += RCL_PUBLIC=
 PREDEFINED             += RCL_WARN_UNUSED=
+EXTRACT_ALL            = YES
 
 # Uncomment to generate internal documentation.
 ENABLED_SECTIONS       = INTERNAL
