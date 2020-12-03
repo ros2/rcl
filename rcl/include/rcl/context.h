@@ -239,7 +239,7 @@ rcl_context_get_init_options(const rcl_context_t * context);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_context_instance_id_t
-rcl_context_get_instance_id(rcl_context_t * context);
+rcl_context_get_instance_id(const rcl_context_t * context);
 
 /// Returns the context domain id.
 /**
