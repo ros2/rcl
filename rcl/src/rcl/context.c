@@ -91,7 +91,7 @@ rcl_context_get_domain_id(rcl_context_t * context, size_t * domain_id)
 }
 
 bool
-rcl_context_is_valid(rcl_context_t * context)
+rcl_context_is_valid(const rcl_context_t * context)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(context, false);
   return 0 != rcl_context_get_instance_id(context);
