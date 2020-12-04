@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.5 (2020-12-04)
+------------------
+* Fix memory leak in rcl_subscription_init()/rcl_publisher_init() (`#794 <https://github.com/ros2/rcl/issues/794>`_) (`#833 <https://github.com/ros2/rcl/issues/833>`_)
+* [Eloquent] Don't check history depth if RMW_QOS_POLICY_HISTORY_KEEP_ALL (`#595 <https://github.com/ros2/rcl/issues/595>`_) (`#596 <https://github.com/ros2/rcl/issues/596>`_)
+* Fix behavior when provided a malformed parameters file (`#556 <https://github.com/ros2/rcl/issues/556>`_)
+* Contributors: Dan Rose, Jacob Perron
+
 0.8.4 (2020-01-17)
 ------------------
 * Set allocator before goto fail. (`#547 <https://github.com/ros2/rcl/issues/547>`_)

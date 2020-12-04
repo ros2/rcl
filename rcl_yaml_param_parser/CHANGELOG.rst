@@ -2,6 +2,12 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.5 (2020-12-04)
+------------------
+* added rcl yaml param parser doxyfile (`#634 <https://github.com/ros2/rcl/issues/634>`_) (`#700 <https://github.com/ros2/rcl/issues/700>`_)
+* Fix behavior when provided a malformed parameters file (`#556 <https://github.com/ros2/rcl/issues/556>`_)
+ Contributors: Alejandro Hernández Cordero, Jacob Perron
+
 0.8.4 (2020-01-17)
 ------------------
 
