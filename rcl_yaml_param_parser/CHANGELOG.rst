@@ -2,6 +2,15 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.0 (2020-12-08)
+------------------
+* Enable compiler warnings (`#831 <https://github.com/ros2/rcl/issues/831>`_)
+* Update QDs to QL 1 (`#866 <https://github.com/ros2/rcl/issues/866>`_)
+* Rearrange test logic to avoid reference to null (`#862 <https://github.com/ros2/rcl/issues/862>`_)
+* Update QL (`#858 <https://github.com/ros2/rcl/issues/858>`_)
+* Make sure to initialize the end_mark for yaml_event_t (`#849 <https://github.com/ros2/rcl/issues/849>`_)
+* Contributors: Alejandro Hernández Cordero, Audrow Nash, Chris Lalancette, Stephen Brawner
+
 2.4.0 (2020-10-19)
 ------------------
 * Check for valid node names in parameters files (`#809 <https://github.com/ros2/rcl/issues/809>`_)

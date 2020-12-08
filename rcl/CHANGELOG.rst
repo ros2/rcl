@@ -2,6 +2,25 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.0 (2020-12-08)
+------------------
+* Add const to constant rcl_context functions (`#872 <https://github.com/ros2/rcl/issues/872>`_)
+* Fix another failing test on CentOS 7 (`#863 <https://github.com/ros2/rcl/issues/863>`_)
+* Update QDs to QL 1 (`#866 <https://github.com/ros2/rcl/issues/866>`_)
+* Address clang static analysis issues (`#865 <https://github.com/ros2/rcl/issues/865>`_)
+* Fix flaky test_info_by_topic (`#859 <https://github.com/ros2/rcl/issues/859>`_)
+* Update QL (`#858 <https://github.com/ros2/rcl/issues/858>`_)
+* Refactor for removing unnecessary source code (`#857 <https://github.com/ros2/rcl/issues/857>`_)
+* Clarify storing of current_time (`#850 <https://github.com/ros2/rcl/issues/850>`_)
+* Make tests in test_graph.cpp more reliable (`#854 <https://github.com/ros2/rcl/issues/854>`_)
+* Fix for external log segfault after SIGINT (`#844 <https://github.com/ros2/rcl/issues/844>`_)
+* Update tracetools QL and add to rcl_lifecycle's QD (`#845 <https://github.com/ros2/rcl/issues/845>`_)
+* Make test logging rosout more reliable (`#846 <https://github.com/ros2/rcl/issues/846>`_)
+* Return OK when finalizing zero-initialized contexts (`#842 <https://github.com/ros2/rcl/issues/842>`_)
+* Zero initialize events an size_of_events members of rcl_wait_set_t (`#841 <https://github.com/ros2/rcl/issues/841>`_)
+* Update deprecated gtest macros (`#818 <https://github.com/ros2/rcl/issues/818>`_)
+* Contributors: Alejandro Hernández Cordero, Audrow Nash, Chen Lihui, Chris Lalancette, Christophe Bedard, Ivan Santiago Paunovic, Jacob Perron, Stephen Brawner, Thijs Raymakers, tomoya
+
 2.4.0 (2020-10-19)
 ------------------
 * Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)

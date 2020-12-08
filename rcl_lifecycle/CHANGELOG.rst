@@ -2,6 +2,15 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.0 (2020-12-08)
+------------------
+* Update QDs to QL 1 (`#866 <https://github.com/ros2/rcl/issues/866>`_)
+* Update QL (`#858 <https://github.com/ros2/rcl/issues/858>`_)
+* Make sure to always check return values (`#840 <https://github.com/ros2/rcl/issues/840>`_)
+* Update tracetools QL and add to rcl_lifecycle's QD (`#845 <https://github.com/ros2/rcl/issues/845>`_)
+* Add compiler warnings (`#830 <https://github.com/ros2/rcl/issues/830>`_)
+* Contributors: Alejandro Hernández Cordero, Audrow Nash, Chris Lalancette, Christophe Bedard, Stephen Brawner
+
 2.4.0 (2020-10-19)
 ------------------
 * Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)

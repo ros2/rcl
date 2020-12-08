@@ -2,6 +2,15 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.0 (2020-12-08)
+------------------
+* Address various clang static analysis fixes (`#864 <https://github.com/ros2/rcl/issues/864>`_)
+* Update QDs to QL 1 (`#866 <https://github.com/ros2/rcl/issues/866>`_)
+* Update QL (`#858 <https://github.com/ros2/rcl/issues/858>`_)
+* Make sure to always check return values (`#840 <https://github.com/ros2/rcl/issues/840>`_)
+* Update deprecated gtest macros (`#818 <https://github.com/ros2/rcl/issues/818>`_)
+* Contributors: Alejandro Hernández Cordero, Audrow Nash, Chris Lalancette, Stephen Brawner
+
 2.4.0 (2020-10-19)
 ------------------
 * Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
