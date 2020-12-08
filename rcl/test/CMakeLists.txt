@@ -290,6 +290,15 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
+  rcl_add_custom_gtest(test_network_flow${target_suffix}
+    SRCS rcl/test_network_flow.cpp
+    ENV ${rmw_implementation_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
+    LIBRARIES ${PROJECT_NAME} mimick
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+  )
+
   # Launch tests
 
   rcl_add_custom_executable(service_fixture${target_suffix}
