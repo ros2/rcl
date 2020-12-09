@@ -727,7 +727,11 @@ TEST_F(TestActionServer, test_action_server_get_goal_status_array)
   EXPECT_NE(status_array.msg.status_list.data, nullptr);
   EXPECT_EQ(status_array.msg.status_list.size, 1u);
   rcl_action_goal_info_t * goal_info_out = &status_array.msg.status_list.data[0].goal_info;
-  EXPECT_TRUE(uuidcmp(goal_info_out->goal_id.uuid, goal_info_in.goal_id.uuid));
+
+  // Passing this array by pointer can confuse scan-build into thinking the pointer is
+  // not checked for null. Passing by reference works fine
+  const auto & goal_info_out_uuid = goal_info_out->goal_id.uuid;
+  EXPECT_TRUE(uuidcmp(goal_info_out_uuid, goal_info_in.goal_id.uuid));
   ret = rcl_action_goal_status_array_fini(&status_array);
   ASSERT_EQ(ret, RCL_RET_OK);
 
@@ -870,7 +874,11 @@ TEST_F(TestActionServerCancelPolicy, test_action_process_cancel_request_single_g
     ASSERT_EQ(cancel_response.msg.goals_canceling.size, 1u);
     EXPECT_EQ(cancel_response.msg.return_code, action_msgs__srv__CancelGoal_Response__ERROR_NONE);
     rcl_action_goal_info_t * goal_info = &cancel_response.msg.goals_canceling.data[0];
-    EXPECT_TRUE(uuidcmp(goal_info->goal_id.uuid, cancel_request.goal_info.goal_id.uuid));
+
+    // Passing this array by pointer can confuse scan-build into thinking the pointer is
+    // not checked for null. Passing by reference works fine
+    const auto & goal_info_uuid = goal_info->goal_id.uuid;
+    EXPECT_TRUE(uuidcmp(goal_info_uuid, cancel_request.goal_info.goal_id.uuid));
     EXPECT_EQ(RCL_RET_OK, rcl_action_cancel_response_fini(&cancel_response));
   }
   {
