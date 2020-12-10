@@ -2,6 +2,14 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2020-12-09)
+-------------------
+* rcl_action: address various clang static analysis fixes (`#864 <https://github.com/ros2/rcl/issues/864>`_) (`#875 <https://github.com/ros2/rcl/issues/875>`_)
+* Update build.ros2.org links (`#868 <https://github.com/ros2/rcl/issues/868>`_)
+* Update QD to QL 1 (`#867 <https://github.com/ros2/rcl/issues/867>`_)
+* Update QD (`#843 <https://github.com/ros2/rcl/issues/843>`_)
+* Contributors: Alejandro Hernández Cordero, Christophe Bedard, Jorge Perez, Stephen Brawner
+
 1.1.9 (2020-11-03)
 ------------------
 * Make sure to always check return values. (`#840 <https://github.com/ros2/rcl/issues/840>`_)

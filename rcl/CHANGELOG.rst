@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2020-12-09)
+-------------------
+* Update QD to QL 1 (`#867 <https://github.com/ros2/rcl/issues/867>`_)
+* Update QD (`#843 <https://github.com/ros2/rcl/issues/843>`_)
+* Complete rcl package's logging API test coverage (`#747 <https://github.com/ros2/rcl/issues/747>`_)
+* Contributors: Alejandro Hernández Cordero, Christophe Bedard, Jorge Perez, Michel Hidalgo, Stephen Brawner
+
 1.1.9 (2020-11-03)
 ------------------
 * increase timeouts in test_services fixtures for Connext (`#745 <https://github.com/ros2/rcl/issues/745>`_)
