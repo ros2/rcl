@@ -209,15 +209,18 @@ rcl_timer_fini(rcl_timer_t * timer)
   // Will return either RCL_RET_OK or RCL_RET_ERROR since the timer is valid.
   rcl_ret_t result = rcl_timer_cancel(timer);
   rcl_allocator_t allocator = timer->impl->allocator;
-  rcl_ret_t fail_ret = rcl_guard_condition_fini(&(timer->impl->guard_condition));
-  if (RCL_RET_OK != fail_ret) {
-    RCL_SET_ERROR_MSG("Failure to fini guard condition");
-  }
+  rcl_ret_t fail_ret;
   if (RCL_ROS_TIME == timer->impl->clock->type) {
+    // The jump callbacks use the guard condition, so we have to remove it
+    // before freeing the guard condition below.
     fail_ret = rcl_clock_remove_jump_callback(timer->impl->clock, _rcl_timer_time_jump, timer);
     if (RCL_RET_OK != fail_ret) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to remove timer jump callback");
     }
+  }
+  fail_ret = rcl_guard_condition_fini(&(timer->impl->guard_condition));
+  if (RCL_RET_OK != fail_ret) {
+    RCL_SET_ERROR_MSG("Failure to fini guard condition");
   }
   allocator.deallocate(timer->impl, allocator.state);
   timer->impl = NULL;
