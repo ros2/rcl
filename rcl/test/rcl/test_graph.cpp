@@ -1243,41 +1243,9 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   rcl_ret_t ret;
   std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(400);
 
-  // Create new context
-  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
-  });
-
-  // Test in new ROS domain
-  ret = rcl_init_options_set_domain_id(&init_options, 42);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-  rcl_context_t context = rcl_get_zero_initialized_context();
-  ret = rcl_init(0, nullptr, &init_options, &context);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_shutdown(&context)) << rcl_get_error_string().str;
-    EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&context)) << rcl_get_error_string().str;
-  });
-
-  rcl_node_t node = rcl_get_zero_initialized_node();
-  rcl_node_options_t node_options = rcl_node_get_default_options();
-  ret = rcl_node_init(&node, "test_graph", "/", &context, &node_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
-  });
-
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rcl_wait_set_init(
-    &wait_set, 0, 1, 0, 0, 0, 0, &context, rcl_get_default_allocator());
+    &wait_set, 0, 1, 0, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -1285,19 +1253,31 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   });
 
   const rcl_guard_condition_t * graph_guard_condition =
-    rcl_node_get_graph_guard_condition(&node);
+    rcl_node_get_graph_guard_condition(node_ptr);
 
-  // Graph change since first node created
-  {
-    SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK);
+  // Wait for no graph change condition
+  int idx = 0;
+  while (idx < 100) {
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, time_to_sleep.count());
+    if (RCL_RET_TIMEOUT == ret) {
+      break;
+    } else {
+      RCUTILS_LOG_INFO_NAMED(
+        ROS_PACKAGE_NAME,
+        "waiting for no graph change condition ...");
+    }
   }
+  ASSERT_NE(idx, 100);
 
   // Graph change since creating the publisher
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(
-    &pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
+    &pub, node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
     "/chatter_test_graph_guard_condition_topics", &pub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -1307,7 +1287,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   }
 
   // Graph change since destroying the publisher
-  ret = rcl_publisher_fini(&pub, &node);
+  ret = rcl_publisher_fini(&pub, node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   {
@@ -1319,7 +1299,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
   ret = rcl_subscription_init(
-    &sub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
+    &sub, node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
     "/chatter_test_graph_guard_condition_topics", &sub_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -1329,7 +1309,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   }
 
   // Graph change since destroying the subscription
-  ret = rcl_subscription_fini(&sub, &node);
+  ret = rcl_subscription_fini(&sub, node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   {
@@ -1342,7 +1322,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   rcl_service_options_t service_options = rcl_service_get_default_options();
   ret = rcl_service_init(
     &service,
-    &node,
+    node_ptr,
     ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes),
     "test_graph_guard_condition_service",
     &service_options);
@@ -1354,7 +1334,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   }
 
   // Graph change since destroy service
-  ret = rcl_service_fini(&service, &node);
+  ret = rcl_service_fini(&service, node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   {
@@ -1367,7 +1347,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   rcl_client_options_t client_options = rcl_client_get_default_options();
   ret = rcl_client_init(
     &client,
-    &node,
+    node_ptr,
     ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes),
     "test_graph_guard_condition_service",
     &client_options);
@@ -1379,7 +1359,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   }
 
   // Graph change since destroying client
-  ret = rcl_client_fini(&client, &node);
+  ret = rcl_client_fini(&client, node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   {
@@ -1389,7 +1369,8 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
 
   // Graph change since adding new node
   rcl_node_t node_new = rcl_get_zero_initialized_node();
-  ret = rcl_node_init(&node_new, "test_graph2", "", &context, &node_options);
+  rcl_node_options_t node_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node_new, "test_graph2", "", context_ptr, &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   {
