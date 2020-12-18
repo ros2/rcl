@@ -143,6 +143,9 @@ rcl_remap_first_match(
         continue;
       }
       if (NULL != name) {
+        // this check is to satisfy clang-tidy – name is always not null when type_bitmask is
+        // RCL_TOPIC_REMAP or RCL_SERVICE_REMAP. That is guaranteed because rcl_remap_first_match
+        // and rcl_remap_name are not public.
         matched = (0 == strcmp(expanded_match, name));
       }
       allocator.deallocate(expanded_match, allocator.state);
