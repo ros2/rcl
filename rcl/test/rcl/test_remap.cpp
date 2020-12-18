@@ -172,6 +172,27 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replac
   }
 }
 
+TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), topic_and_service_name_not_null) {
+  rcl_ret_t ret;
+  rcl_arguments_t global_arguments;
+  SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/bar");
+
+  {
+    char * output = NULL;
+    ret = rcl_remap_service_name(
+      NULL, &global_arguments, NULL, "NodeName", "/", rcl_get_default_allocator(), &output);
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+    ASSERT_EQ(NULL, output);
+  }
+  {
+    char * output = NULL;
+    ret = rcl_remap_topic_name(
+      NULL, &global_arguments, NULL, "NodeName", "/", rcl_get_default_allocator(), &output);
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+    EXPECT_EQ(NULL, output);
+  }
+}
+
 TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_topic_name_remap) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
