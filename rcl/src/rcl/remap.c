@@ -142,7 +142,9 @@ rcl_remap_first_match(
         }
         continue;
       }
-      matched = (0 == strcmp(expanded_match, name));
+      if (NULL != name) {
+        matched = (0 == strcmp(expanded_match, name));
+      }
       allocator.deallocate(expanded_match, allocator.state);
     } else {
       // nodename and namespace replacement apply if the type and node name prefix checks passed
