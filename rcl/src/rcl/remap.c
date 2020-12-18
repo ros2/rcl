@@ -142,9 +142,7 @@ rcl_remap_first_match(
         }
         continue;
       }
-      if (NULL != name) {
-        matched = (0 == strcmp(expanded_match, name));
-      }
+      matched = (0 == strcmp(expanded_match, name));
       allocator.deallocate(expanded_match, allocator.state);
     } else {
       // nodename and namespace replacement apply if the type and node name prefix checks passed
@@ -174,6 +172,9 @@ rcl_remap_name(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_name, RCL_RET_INVALID_ARGUMENT);
+  if (type_bitmask & (RCL_TOPIC_REMAP | RCL_SERVICE_REMAP)) {
+    RCL_CHECK_ARGUMENT_FOR_NULL(name, RCL_RET_INVALID_ARGUMENT);
+  }
   if (NULL != local_arguments && NULL == local_arguments->impl) {
     local_arguments = NULL;
   }
