@@ -1257,7 +1257,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
 
   // Wait for no graph change condition
   int idx = 0;
-  while (idx < 100) {
+  for (; idx < 100; idx++) {
     ret = rcl_wait_set_clear(&wait_set);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
