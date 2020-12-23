@@ -489,10 +489,10 @@ TEST_F(
       ret = rcl_take_sequence(&subscription, 5, &messages, &message_infos, nullptr);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       total_messages_taken += messages.size;
-    } while (total_messages_taken < 3 && std::chrono::steady_clock::now() < start + 30s);
+      EXPECT_EQ(messages.size, message_infos.size);
+    } while (total_messages_taken < 3 && std::chrono::steady_clock::now() < start + 10s);
 
-    ASSERT_EQ(3u, messages.size);
-    ASSERT_EQ(3u, message_infos.size);
+    EXPECT_EQ(3u, total_messages_taken);
   }
 
   {
@@ -545,12 +545,11 @@ TEST_F(
       ret = rcl_take_sequence(&subscription, 3, &messages, &message_infos, nullptr);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       total_messages_taken += messages.size;
-    } while (total_messages_taken < 3 && std::chrono::steady_clock::now() < start + 30s);
+      EXPECT_EQ(messages.size, message_infos.size);
+    } while (total_messages_taken < 3 && std::chrono::steady_clock::now() < start + 10s);
 
-    ASSERT_EQ(3u, messages.size);
-    ASSERT_EQ(3u, message_infos.size);
-
-    ASSERT_EQ(
+    EXPECT_EQ(3u, total_messages_taken);
+    EXPECT_EQ(
       std::string(test_string),
       std::string(seq->data[0].string_value.data, seq->data[0].string_value.size));
   }
