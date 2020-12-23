@@ -391,6 +391,7 @@ TEST_F(
   CLASSNAME(
     TestSubscriptionFixture,
     RMW_IMPLEMENTATION), test_subscription_nominal_string_sequence) {
+  using namespace std::chrono_literals;
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -479,10 +480,19 @@ TEST_F(
       test_msgs__msg__Strings__Sequence__destroy(seq);
     });
 
-    ret = rcl_take_sequence(&subscription, 5, &messages, &message_infos, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(3u, messages.size);
-    ASSERT_EQ(3u, message_infos.size);
+    auto start = std::chrono::steady_clock::now();
+    size_t total_messages_taken = 0u;
+    do {
+      // `wait_for_subscription_to_be_ready` only ensures there's one message ready,
+      // so we need to loop to guarantee that we get the three published messages.
+      ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 1, 100));
+      ret = rcl_take_sequence(&subscription, 5, &messages, &message_infos, nullptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      total_messages_taken += messages.size;
+      EXPECT_EQ(messages.size, message_infos.size);
+    } while (total_messages_taken < 3 && std::chrono::steady_clock::now() < start + 10s);
+
+    EXPECT_EQ(3u, total_messages_taken);
   }
 
   {
@@ -526,13 +536,20 @@ TEST_F(
       test_msgs__msg__Strings__Sequence__destroy(seq);
     });
 
-    ret = rcl_take_sequence(&subscription, 3, &messages, &message_infos, nullptr);
+    auto start = std::chrono::steady_clock::now();
+    size_t total_messages_taken = 0u;
+    do {
+      // `wait_for_subscription_to_be_ready` only ensures there's one message ready,
+      // so we need to loop to guarantee that we get the three published messages.
+      ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 1, 100));
+      ret = rcl_take_sequence(&subscription, 3, &messages, &message_infos, nullptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      total_messages_taken += messages.size;
+      EXPECT_EQ(messages.size, message_infos.size);
+    } while (total_messages_taken < 3 && std::chrono::steady_clock::now() < start + 10s);
 
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(3u, messages.size);
-    ASSERT_EQ(3u, message_infos.size);
-
-    ASSERT_EQ(
+    EXPECT_EQ(3u, total_messages_taken);
+    EXPECT_EQ(
       std::string(test_string),
       std::string(seq->data[0].string_value.data, seq->data[0].string_value.size));
   }
