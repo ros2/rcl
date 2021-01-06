@@ -228,6 +228,8 @@ rcl_lifecycle_get_zero_initialized_state_machine();
  *    available transitions
  * \param[in] ts_srv_get_transition_graph pointer to the service that allows to get transitions from
  *    the graph
+ * \param[in] enable_com_interface if `false` the services listed above are not initialized,
+ *    if true all services are available and active
  * \param[in] default_states if `true` a new default state machine is initialized, otherwise
  *    the state_machine pointer is only used to initialize the interfaces
  * \param[in] allocator a valid allocator used to initialized the state machine
@@ -247,6 +249,7 @@ rcl_lifecycle_state_machine_init(
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
   const rosidl_service_type_support_t * ts_srv_get_transition_graph,
+  bool enable_com_interface,
   bool default_states,
   const rcl_allocator_t * allocator);
 
