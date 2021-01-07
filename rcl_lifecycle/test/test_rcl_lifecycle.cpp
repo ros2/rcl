@@ -301,15 +301,21 @@ TEST(TestRclLifecycle, state_machine) {
   rcutils_reset_error();
 
   // Com interface not enabled
+  // The transition event publisher is active
+  // The external transition services are inactive
   ret = rcl_lifecycle_state_machine_init(
     &state_machine, &node, pn, cs, gs, gas, gat, gtg, false, false, &allocator);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_NE(nullptr, &state_machine.com_interface);
+  EXPECT_NE(nullptr, &state_machine.com_interface.pub_transition_event.impl);
   EXPECT_EQ(nullptr, state_machine.com_interface.srv_change_state.impl);
   EXPECT_EQ(nullptr, state_machine.com_interface.srv_get_state.impl);
   EXPECT_EQ(nullptr, state_machine.com_interface.srv_get_available_states.impl);
   EXPECT_EQ(nullptr, state_machine.com_interface.srv_get_available_transitions.impl);
   EXPECT_EQ(nullptr, state_machine.com_interface.srv_get_transition_graph.impl);
+  // Reset the state machine as the previous init call was successful
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Everything should be good
   ret = rcl_lifecycle_state_machine_init(

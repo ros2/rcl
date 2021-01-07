@@ -202,12 +202,19 @@ rcl_lifecycle_state_machine_init(
     allocator, "can't initialize state machine, no allocator given\n",
     return RCL_RET_INVALID_ARGUMENT);
 
+  // enable full com_interface with pub & srvs
   if (enable_com_interface) {
     rcl_ret_t ret = rcl_lifecycle_com_interface_init(
       &state_machine->com_interface, node_handle,
       ts_pub_notify,
       ts_srv_change_state, ts_srv_get_state,
       ts_srv_get_available_states, ts_srv_get_available_transitions, ts_srv_get_transition_graph);
+    if (ret != RCL_RET_OK) {
+      return RCL_RET_ERROR;
+    }
+  } else {
+    rcl_ret_t ret = rcl_lifecycle_com_interface_publisher_init(
+      &state_machine->com_interface, node_handle, ts_pub_notify);
     if (ret != RCL_RET_OK) {
       return RCL_RET_ERROR;
     }
