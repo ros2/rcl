@@ -2,6 +2,9 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 2.5.0 (2020-12-08)
 ------------------
 * Address various clang static analysis fixes (`#864 <https://github.com/ros2/rcl/issues/864>`_)

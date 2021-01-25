@@ -2,6 +2,16 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Re-add "Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)" (`#884 <https://github.com/ros2/rcl/issues/884>`_)
+* Revert "Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)" (`#883 <https://github.com/ros2/rcl/issues/883>`_)
+* Move the guard condition cleanup after removing callback. (`#877 <https://github.com/ros2/rcl/issues/877>`_)
+* Make test_subscription_nominal_string_sequence more reliable (`#881 <https://github.com/ros2/rcl/issues/881>`_)
+* Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)
+* Add NULL check in remap.c (`#879 <https://github.com/ros2/rcl/issues/879>`_)
+* Contributors: Barry Xu, Chris Lalancette, Ivan Santiago Paunovic, Nikolai Morin
+
 2.5.0 (2020-12-08)
 ------------------
 * Add const to constant rcl_context functions (`#872 <https://github.com/ros2/rcl/issues/872>`_)

@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 2.5.0 (2020-12-08)
 ------------------
 * Enable compiler warnings (`#831 <https://github.com/ros2/rcl/issues/831>`_)
