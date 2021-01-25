@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.5.1 (2021-01-25)
+------------------
 * Re-add "Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)" (`#884 <https://github.com/ros2/rcl/issues/884>`_)
 * Revert "Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)" (`#883 <https://github.com/ros2/rcl/issues/883>`_)
 * Move the guard condition cleanup after removing callback. (`#877 <https://github.com/ros2/rcl/issues/877>`_)
