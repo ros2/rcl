@@ -32,6 +32,7 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/wait.h"
 
+#include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
@@ -98,12 +99,16 @@ _rcl_action_client_fini_impl(
   return ret;
 }
 
+// \internal Add a comment inside macro
+#define COMMENT_IN_MACRO(ignored)
+
 // \internal Initializes an action client specific service client.
 #define CLIENT_INIT(Type) \
   char * Type ## _service_name = NULL; \
   ret = rcl_action_get_ ## Type ## _service_name(action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
-    RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
+    COMMENT_IN_MACRO("error already set") \
+    RCUTILS_SAFE_FWRITE_TO_STDERR("failed to get " #Type " service name\n"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
     } else { \
@@ -138,7 +143,8 @@ _rcl_action_client_fini_impl(
   char * Type ## _topic_name = NULL; \
   ret = rcl_action_get_ ## Type ## _topic_name(action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
-    RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
+    COMMENT_IN_MACRO("error already set") \
+    RCUTILS_SAFE_FWRITE_TO_STDERR("failed to get " #Type " topic name\n"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
     } else { \
