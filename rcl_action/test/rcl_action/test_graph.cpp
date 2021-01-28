@@ -358,6 +358,14 @@ public:
       ret = rcl_get_node_names(&this->remote_node, allocator, &node_names, &node_namespaces);
       ++attempts;
       ASSERT_LE(attempts, max_attempts) << "Unable to attain all required nodes";
+      if (node_names.size < 3u) {
+        ret = rcutils_string_array_fini(&node_names);
+        ASSERT_EQ(RCUTILS_RET_OK, ret);
+        ret = rcutils_string_array_fini(&node_namespaces);
+        ASSERT_EQ(RCUTILS_RET_OK, ret);
+        node_names = rcutils_get_zero_initialized_string_array();
+        node_namespaces = rcutils_get_zero_initialized_string_array();
+      }
     }
   }
 
