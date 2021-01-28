@@ -103,6 +103,7 @@ _rcl_action_client_fini_impl(
   char * Type ## _service_name = NULL; \
   ret = rcl_action_get_ ## Type ## _service_name(action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
+    rcl_reset_error(); \
     RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
@@ -138,6 +139,7 @@ _rcl_action_client_fini_impl(
   char * Type ## _topic_name = NULL; \
   ret = rcl_action_get_ ## Type ## _topic_name(action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
+    rcl_reset_error(); \
     RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
     if (RCL_RET_BAD_ALLOC == ret) { \
       ret = RCL_RET_BAD_ALLOC; \
