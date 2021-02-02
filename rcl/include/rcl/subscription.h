@@ -290,6 +290,7 @@ rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription);
  * \return `RCL_RET_INVALID_ARGUMENT` if `filter_expression` is NULL, or
  * \return `RCL_RET_INCORRECT_RMW_IMPLEMENTATION` if the `node` implementation
  *   identifier does not match this implementation, or
+ * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
@@ -326,6 +327,7 @@ rcl_subscription_set_cft_expression_parameters(
  * \return `RCL_RET_INCORRECT_RMW_IMPLEMENTATION` if the `node` implementation
  *   identifier does not match this implementation, or
  * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
