@@ -253,6 +253,8 @@ rcl_subscription_options_copy(
       goto clean;
     }
 
+    dst->rmw_subscription_options.expression_parameters = parameters;
+
     rcutils_ret_t ret = rcutils_string_array_init(
       parameters, src->rmw_subscription_options.expression_parameters->size, allocator);
     if (RCUTILS_RET_OK != ret) {
@@ -269,8 +271,6 @@ rcl_subscription_options_copy(
       }
       parameters->data[i] = parameter;
     }
-
-    dst->rmw_subscription_options.expression_parameters = parameters;
   }
 
   return RCL_RET_OK;
@@ -299,7 +299,9 @@ rcl_subscription_options_fini(rcl_subscription_options_t * option)
   if (option->rmw_subscription_options.expression_parameters) {
     rcutils_ret_t ret = rcutils_string_array_fini(
       option->rmw_subscription_options.expression_parameters);
-    assert(ret == RCUTILS_RET_OK);
+    if (RCUTILS_RET_OK != ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to fini string array.\n");
+    }
     allocator->deallocate(option->rmw_subscription_options.expression_parameters, allocator->state);
     option->rmw_subscription_options.expression_parameters = NULL;
   }
@@ -310,7 +312,8 @@ bool
 rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription)
 {
   if (!rcl_subscription_is_valid(subscription)) {
-    return false;  // error message already set
+    rcl_reset_error();
+    return false;
   }
   return subscription->impl->rmw_handle->is_cft_supported;
 }
