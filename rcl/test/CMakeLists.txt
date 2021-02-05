@@ -20,8 +20,7 @@ include(cmake/rcl_add_custom_gtest.cmake)
 include(cmake/rcl_add_custom_launch_test.cmake)
 
 set(extra_lib_dirs "${rcl_lib_dir}")
-set(test_resources_dir_name "resources")
-add_definitions(-DTEST_RESOURCES_DIRECTORY="${CMAKE_CURRENT_BINARY_DIR}/${test_resources_dir_name}")
+add_definitions(-DTEST_RESOURCES_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/resources")
 
 set(DISTRIBUTION "Unknown")
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
@@ -435,8 +434,3 @@ rcl_add_custom_gtest(test_log_level
   LIBRARIES ${PROJECT_NAME} mimick
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
-
-# Install test resources
-add_custom_target(${test_resources_dir_name} ALL
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${test_resources_dir_name} ${test_resources_dir_name}
-  COMMENT "Copying test resources")
