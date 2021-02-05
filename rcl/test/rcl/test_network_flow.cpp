@@ -101,7 +101,8 @@ public:
 
     publisher_unique_network_flow = rcl_get_zero_initialized_publisher();
     publisher_options_unique_network_flow = rcl_publisher_get_default_options();
-    publisher_options_unique_network_flow.rmw_publisher_options.unique_network_flow = true;
+    publisher_options_unique_network_flow.rmw_publisher_options.require_unique_network_flow =
+      RMW_UNIQUE_NETWORK_FLOW_STRICTLY_REQUIRED;
     ret = rcl_publisher_init(
       &publisher_unique_network_flow, this->node_ptr, ts, topic,
       &publisher_options_unique_network_flow);
@@ -146,7 +147,8 @@ public:
 
     subscription_unique_network_flow = rcl_get_zero_initialized_subscription();
     subscription_options_unique_network_flow = rcl_subscription_get_default_options();
-    subscription_options_unique_network_flow.rmw_subscription_options.unique_network_flow = true;
+    subscription_options_unique_network_flow.rmw_subscription_options.require_unique_network_flow =
+      RMW_UNIQUE_NETWORK_FLOW_STRICTLY_REQUIRED;
     ret = rcl_subscription_init(
       &subscription_unique_network_flow, this->node_ptr, ts, topic,
       &subscription_options_unique_network_flow);
