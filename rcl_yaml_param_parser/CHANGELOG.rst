@@ -2,6 +2,94 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.1 (2021-01-25)
+------------------
+
+2.5.0 (2020-12-08)
+------------------
+* Enable compiler warnings (`#831 <https://github.com/ros2/rcl/issues/831>`_)
+* Update QDs to QL 1 (`#866 <https://github.com/ros2/rcl/issues/866>`_)
+* Rearrange test logic to avoid reference to null (`#862 <https://github.com/ros2/rcl/issues/862>`_)
+* Update QL (`#858 <https://github.com/ros2/rcl/issues/858>`_)
+* Make sure to initialize the end_mark for yaml_event_t (`#849 <https://github.com/ros2/rcl/issues/849>`_)
+* Contributors: Alejandro Hernández Cordero, Audrow Nash, Chris Lalancette, Stephen Brawner
+
+2.4.0 (2020-10-19)
+------------------
+* Check for valid node names in parameters files (`#809 <https://github.com/ros2/rcl/issues/809>`_)
+* Contributors: Chen Lihui
+
+2.3.0 (2020-10-19)
+------------------
+* Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
+* Updated performance section QD (`#817 <https://github.com/ros2/rcl/issues/817>`_)
+* Several memory-related fixes for rcl_variant_t benchmarks (`#813 <https://github.com/ros2/rcl/issues/813>`_)
+* Improved rcl_yaml_param_parser benchmark test (`#810 <https://github.com/ros2/rcl/issues/810>`_)
+* Added benchmark test to rcl_yaml_param_parser (`#803 <https://github.com/ros2/rcl/issues/803>`_)
+* Remove MAX_NUM_PARAMS_PER_NODE and MAX_NUM_NODE_ENTRIES limitation. (`#802 <https://github.com/ros2/rcl/issues/802>`_)
+* Add mocking unit tests for rcl_yaml_param_parser (coverage part 3/3) (`#772 <https://github.com/ros2/rcl/issues/772>`_)
+* Add fault-injection unit tests (coverage part 2/3) (`#766 <https://github.com/ros2/rcl/issues/766>`_)
+* Add basic unit tests for refactored functions in rcl_yaml_param_parser (coverage part 1/3) (`#771 <https://github.com/ros2/rcl/issues/771>`_)
+* Fix yaml parser error when meets .nan (refactor on `#754 <https://github.com/ros2/rcl/issues/754>`_) (`#781 <https://github.com/ros2/rcl/issues/781>`_)
+* Contributors: Alejandro Hernández Cordero, Chen Lihui, Ivan Santiago Paunovic, Scott K Logan, brawner
+
+2.2.0 (2020-09-02)
+------------------
+* Refactor parser.c for better testability (`#754 <https://github.com/ros2/rcl/issues/754>`_)
+* Don't overwrite cur_ns pointer if reallocation fails (`#780 <https://github.com/ros2/rcl/issues/780>`_)
+* Fix mem leaks in unit test from 776 (`#779 <https://github.com/ros2/rcl/issues/779>`_)
+* Fix rcl_parse_yaml_file() error handling. (`#776 <https://github.com/ros2/rcl/issues/776>`_)
+* Don't overwrite string_array pointer on reallocation failure (`#775 <https://github.com/ros2/rcl/issues/775>`_)
+* Set yaml_variant values to NULL on finalization (`#765 <https://github.com/ros2/rcl/issues/765>`_)
+* Remove debugging statements. (`#755 <https://github.com/ros2/rcl/issues/755>`_)
+* Contributors: Michel Hidalgo, brawner, tomoya
+
+2.1.0 (2020-07-22)
+------------------
+* Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_)
+* Contributors: Alejandro Hernández Cordero
+
+2.0.0 (2020-07-09)
+------------------
+* Update quality declaration and coverage (`#674 <https://github.com/ros2/rcl/issues/674>`_)
+* Contributors: Alejandro Hernández Cordero
+
+1.2.0 (2020-06-18)
+------------------
+
+1.1.5 (2020-06-03)
+------------------
+
+1.1.4 (2020-06-02)
+------------------
+
+1.1.3 (2020-06-01)
+------------------
+* Add Security Vulnerability Policy pointing to REP-2006 (`#661 <https://github.com/ros2/rcl/issues/661>`_)
+* Contributors: Chris Lalancette
+
+1.1.2 (2020-05-28)
+------------------
+
+1.1.1 (2020-05-26)
+------------------
+* Increase rcl_yaml_param_parser test coverage (`#656 <https://github.com/ros2/rcl/issues/656>`_)
+* Contributors: Stephen Brawner
+
+1.1.0 (2020-05-22)
+------------------
+* Update Quality Declaration for 1.0 (`#647 <https://github.com/ros2/rcl/issues/647>`_)
+* Contributors: brawner
+
+1.0.0 (2020-05-12)
+------------------
+
+0.9.1 (2020-05-08)
+------------------
+* Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)
+* Quality Declarations for rcl_action, rcl_lifecycle, yaml_parser (`#641 <https://github.com/ros2/rcl/issues/641>`_)
+* Contributors: Alejandro Hernández Cordero, brawner
+
 0.9.0 (2020-04-29)
 ------------------
 * Added rcl yaml param parser doxyfile (`#634 <https://github.com/ros2/rcl/issues/634>`_)

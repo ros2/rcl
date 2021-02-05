@@ -120,6 +120,11 @@ TEST(test_validate_topic_name, various_valid_topics) {
     EXPECT_EQ(42u, invalid_index);
     EXPECT_STREQ(nullptr, rcl_topic_name_validation_result_string(validation_result));
   }
+
+  int not_valid_validation_result = 5600;
+  EXPECT_STREQ(
+    "unknown result code for rcl topic name validation",
+    rcl_topic_name_validation_result_string(not_valid_validation_result));
 }
 
 TEST(test_validate_topic_name, various_invalid_topics) {

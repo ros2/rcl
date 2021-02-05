@@ -67,6 +67,7 @@ typedef enum rcl_clock_type_t
 /// A duration of time, measured in nanoseconds and its source.
 typedef struct rcl_duration_t
 {
+  /// Duration in nanoseconds and its source.
   rcl_duration_value_t nanoseconds;
 } rcl_duration_t;
 
@@ -118,29 +119,38 @@ typedef struct rcl_jump_threshold_t
 /// Struct to describe an added callback.
 typedef struct rcl_jump_callback_info_t
 {
+  /// Callback to fucntion.
   rcl_jump_callback_t callback;
+  /// Threshold to decide when to call the callback.
   rcl_jump_threshold_t threshold;
+  /// Pointer passed to the callback.
   void * user_data;
 } rcl_jump_callback_info_t;
 
 /// Encapsulation of a time source.
 typedef struct rcl_clock_t
 {
+  /// Clock type
   enum rcl_clock_type_t type;
   /// An array of added jump callbacks.
   rcl_jump_callback_info_t * jump_callbacks;
   /// Number of callbacks in jump_callbacks.
   size_t num_jump_callbacks;
+  /// Pointer to get_now function
   rcl_ret_t (* get_now)(void * data, rcl_time_point_value_t * now);
   // void (*set_now) (rcl_time_point_value_t);
+  /// Clock storage
   void * data;
+  /// Custom allocator used for internal allocations.
   rcl_allocator_t allocator;
 } rcl_clock_t;
 
 /// A single point in time, measured in nanoseconds, the reference point is based on the source.
 typedef struct rcl_time_point_t
 {
+  /// Nanoseconds of the point in time
   rcl_time_point_value_t nanoseconds;
+  /// Clock type of the point in time
   rcl_clock_type_t clock_type;
 } rcl_time_point_t;
 
@@ -259,6 +269,7 @@ rcl_clock_fini(
  * \param[in] allocator The allocator to use for allocations
  * \return `RCL_RET_OK` if the time source was successfully initialized, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` an unspecified error occur.
  */
 RCL_PUBLIC
@@ -671,7 +682,6 @@ rcl_clock_add_jump_callback(
  *        `clock` object.</i>
  *
  * \param[in] clock The clock to remove a jump callback from.
- * \param[in] threshold Criteria indicating when to call callback.
  * \param[in] callback The callback to call.
  * \param[in] user_data A pointer to be passed to the callback.
  * \return `RCL_RET_OK` if the callback was added successfully, or

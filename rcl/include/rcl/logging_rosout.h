@@ -26,6 +26,25 @@ extern "C"
 {
 #endif
 
+/// The default qos profile setting for topic /rosout
+/**
+ * - depth = 1000
+ * - durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL
+ * - lifespan = {10, 0}
+ */
+static const rmw_qos_profile_t rcl_qos_profile_rosout_default =
+{
+  RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+  1000,
+  RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+  RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+  RMW_QOS_DEADLINE_DEFAULT,
+  {10, 0},
+  RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT,
+  RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+  false
+};
+
 /// Initializes the rcl_logging_rosout features
 /**
  * Calling this will initialize the rcl_logging_rosout features. This function must be called
@@ -93,13 +112,12 @@ rcl_logging_rosout_fini();
  * Lock-Free          | Yes
  *
  * \param[in] node a valid rcl_node_t that the publisher will be created on
- * \return `RCL_RET_OK` if the publisher was created successfully, or
- * \return `RCL_RET_ALREADY_INIT` if the publisher has already exists, or
- * \return `RCL_RET_NODE_INVALID` if any arguments are invalid, or
+ * \return `RCL_RET_OK` if the logging publisher was created successfully, or
+ * \return `RCL_RET_NODE_INVALID` if the argument is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_LOCAL
+RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_logging_rosout_init_publisher_for_node(
@@ -120,12 +138,12 @@ rcl_logging_rosout_init_publisher_for_node(
  * Lock-Free          | Yes
  *
  * \param[in] node a valid rcl_node_t that the publisher will be created on
- * \return `RCL_RET_OK` if the publisher was created successfully, or
+ * \return `RCL_RET_OK` if the logging publisher was finalized successfully, or
  * \return `RCL_RET_NODE_INVALID` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
-RCL_LOCAL
+RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_logging_rosout_fini_publisher_for_node(
@@ -152,7 +170,8 @@ rcl_logging_rosout_fini_publisher_for_node(
  * \param[in] severity The severity level
  * \param[in] name The name of the logger, must be null terminated c string
  * \param[in] timestamp The timestamp for when the log message was made
- * \param[in] log_str The string to be logged
+ * \param[in] format The list of arguments to insert into the formatted log message
+ * \param[in] args argument for the string format
  */
 RCL_PUBLIC
 void rcl_logging_rosout_output_handler(

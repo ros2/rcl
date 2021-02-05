@@ -32,6 +32,7 @@ struct rcl_service_impl_t;
 /// Structure which encapsulates a ROS Service.
 typedef struct rcl_service_t
 {
+  /// Pointer to the service implementation
   struct rcl_service_impl_t * impl;
 } rcl_service_t;
 
@@ -139,6 +140,7 @@ rcl_get_zero_initialized_service(void);
  * \param[in] options service options, including quality of service settings
  * \return `RCL_RET_OK` if service was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ALREADY_INIT` if the service is already initialized, or
  * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_SERVICE_NAME_INVALID` if the given service name is invalid, or

@@ -23,6 +23,11 @@
 
 #include "rcl/error_handling.h"
 
+void * bad_malloc(size_t, void *)
+{
+  return nullptr;
+}
+
 TEST(TestGoalHandle, test_goal_handle_init_fini)
 {
   rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
@@ -43,6 +48,13 @@ TEST(TestGoalHandle, test_goal_handle_init_fini)
   rcl_allocator_t invalid_allocator = (rcl_allocator_t)rcutils_get_zero_initialized_allocator();
   ret = rcl_action_goal_handle_init(&goal_handle, &goal_info, invalid_allocator);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Initialize with a failing allocator
+  rcl_allocator_t bad_allocator = rcl_get_default_allocator();
+  bad_allocator.allocate = bad_malloc;
+  ret = rcl_action_goal_handle_init(&goal_handle, &goal_info, bad_allocator);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
   rcl_reset_error();
 
   // Initialize with valid goal handle and allocator
@@ -154,6 +166,7 @@ TEST(TestGoalHandle, test_goal_handle_update_state_invalid)
   ret = rcl_action_update_goal_state(&goal_handle, GOAL_EVENT_NUM_EVENTS);
   EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_EVENT_INVALID) << rcl_get_error_string().str;
   rcl_reset_error();
+
   EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&goal_handle));
 }
 
@@ -216,6 +229,28 @@ TEST_P(TestGoalHandleStateTransitionSequence, test_goal_handle_state_transitions
   // Goal handle starts in state ACCEPTED
   expect_state_eq(GOAL_STATE_ACCEPTED);
 
+  // Test bad goal handles
+  rcl_action_goal_state_t status;
+  EXPECT_EQ(
+    RCL_RET_ACTION_GOAL_HANDLE_INVALID,
+    rcl_action_goal_handle_get_status(nullptr, &status));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_action_goal_handle_get_status(&this->goal_handle, nullptr));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  EXPECT_FALSE(rcl_action_goal_handle_is_active(nullptr));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  EXPECT_FALSE(rcl_action_goal_handle_is_cancelable(nullptr));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
   // Walk through state transitions
   rcl_ret_t ret;
   for (const EventStateActiveCancelableTuple & event_state : this->test_sequence) {
@@ -228,6 +263,8 @@ TEST_P(TestGoalHandleStateTransitionSequence, test_goal_handle_state_transitions
     ret = rcl_action_update_goal_state(&this->goal_handle, goal_event);
     if (GOAL_STATE_UNKNOWN == expected_goal_state) {
       EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_EVENT_INVALID);
+      EXPECT_TRUE(rcl_error_is_set());
+      rcl_reset_error();
       continue;
     }
     EXPECT_EQ(ret, RCL_RET_OK);
@@ -278,7 +315,7 @@ const StateTransitionSequence valid_state_transition_sequences[] = {
   },
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   TestValidGoalHandleStateTransitions,
   TestGoalHandleStateTransitionSequence,
   ::testing::ValuesIn(valid_state_transition_sequences),
@@ -310,7 +347,7 @@ const StateTransitionSequence invalid_state_transition_sequences[] = {
   },
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   TestInvalidGoalHandleStateTransitions,
   TestGoalHandleStateTransitionSequence,
   ::testing::ValuesIn(invalid_state_transition_sequences),

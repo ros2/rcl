@@ -72,7 +72,7 @@ rcl_get_zero_initialized_node(void);
  * slash.
  * Because there is no notion of a relative namespace, there is no difference
  * between a namespace which lacks a forward and the same namespace with a
- * leasing forward slash.
+ * leading forward slash.
  * Therefore, a namespace like ``"foo/bar"`` is automatically changed to
  * ``"/foo/bar"`` by this function.
  * Similarly, the namespace ``""`` will implicitly become ``"/"`` which is a
@@ -132,6 +132,7 @@ rcl_get_zero_initialized_node(void);
  *   pass in.
  * \return `RCL_RET_OK` if the node was initialized successfully, or
  * \return `RCL_RET_ALREADY_INIT` if the node has already be initialized, or
+ * \return `RCL_RET_NOT_INIT` if the given context is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
  * \return `RCL_RET_NODE_INVALID_NAME` if the name is invalid, or
@@ -369,31 +370,6 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_node_get_domain_id(const rcl_node_t * node, size_t * domain_id);
 
-/// Manually assert that this node is alive (for RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE)
-/**
- * If the rmw Liveliness policy is set to RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_NODE, the creator of
- * this node may manually call `assert_liveliness` at some point in time to signal to the rest
- * of the system that this Node is still alive.
- * This function must be called at least as often as the qos_profile's liveliness_lease_duration
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | Yes
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] node handle to the node that needs liveliness to be asserted
- * \return `RCL_RET_OK` if the liveliness assertion was completed successfully, or
- * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
- * \return `RCL_RET_ERROR` if an unspecified error occurs.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_node_assert_liveliness(const rcl_node_t * node);
-
 /// Return the rmw node handle.
 /**
  * The handle returned is a pointer to the internally held rmw handle.
@@ -513,6 +489,47 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 const char *
 rcl_node_get_logger_name(const rcl_node_t * node);
+
+/// Expand a given name into a fully-qualified topic name and apply remapping rules.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node Node object. Its name, namespace, local/global command line arguments are used.
+ * \param[in] input_name Topic name to be expanded and remapped.
+ * \param[in] allocator The allocator to be used when creating the output topic.
+ * \param[in] is_service For services use `true`, for topics use `false`.
+ * \param[in] only_expand When `true`, remapping rules are ignored.
+ * \param[out] output_name Output char * pointer.
+ * \return `RCL_RET_OK` if the topic name was expanded successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any of input_name, node_name, node_namespace
+ *  or output_name are NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if both local_args and global_args are NULL, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory failed, or
+ * \return `RCL_RET_TOPIC_NAME_INVALID` if the given topic name is invalid
+ *  (see \ref rcl_validate_topic_name()), or
+ * \return `RCL_RET_NODE_INVALID_NAME` if the given node name is invalid
+ *  (see \ref rmw_validate_node_name()), or
+ * \return `RCL_RET_NODE_INVALID_NAMESPACE` if the given node namespace is invalid
+ *  (see \ref rmw_validate_namespace()), or
+ * \return `RCL_RET_UNKNOWN_SUBSTITUTION` for unknown substitutions in name, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_node_resolve_name(
+  const rcl_node_t * node,
+  const char * input_name,
+  rcl_allocator_t allocator,
+  bool is_service,
+  bool only_expand,
+  char ** output_name);
 
 #ifdef __cplusplus
 }

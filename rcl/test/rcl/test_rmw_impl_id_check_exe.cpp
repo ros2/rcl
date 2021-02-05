@@ -27,6 +27,9 @@ int main(int, char **)
     return ret;
   }
   ret = rcl_init_options_fini(&init_options);
+  if (ret != RCL_RET_OK) {
+    return ret;
+  }
   ret = rcl_shutdown(&context);
   if (ret != RCL_RET_OK) {
     return ret;

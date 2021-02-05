@@ -67,7 +67,7 @@ rcl_validate_enclave_name(
  * This is an overload of \ref rcl_validate_enclave_name with an extra parameter
  * for the length of enclave.
  *
- * \param[in] enclave The number of characters in enclave.
+ * \param[in] enclave_length The number of characters in enclave.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

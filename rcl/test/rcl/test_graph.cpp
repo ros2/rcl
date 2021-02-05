@@ -149,7 +149,7 @@ TEST_F(
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
     rcutils_get_zero_initialized_allocator());
-  rcl_names_and_types_t tnat {};
+  rcl_names_and_types_t tnat = rcl_get_zero_initialized_names_and_types();
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // invalid node
   ret = rcl_get_topic_names_and_types(nullptr, &allocator, false, &tnat);
@@ -172,6 +172,11 @@ TEST_F(
   ret = rcl_get_topic_names_and_types(this->node_ptr, &allocator, false, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  tnat.names.size = 1;
+  ret = rcl_get_topic_names_and_types(this->node_ptr, &allocator, false, &tnat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  tnat.names.size = 0;
   // invalid argument to rcl_destroy_topic_names_and_types
   ret = rcl_names_and_types_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
@@ -195,7 +200,7 @@ TEST_F(
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
     rcutils_get_zero_initialized_allocator());
-  rcl_names_and_types_t tnat {};
+  rcl_names_and_types_t tnat = rcl_get_zero_initialized_names_and_types();
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   // invalid node
   ret = rcl_get_service_names_and_types(nullptr, &allocator, &tnat);
@@ -218,6 +223,11 @@ TEST_F(
   ret = rcl_get_service_names_and_types(this->node_ptr, &allocator, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  tnat.names.size = 1;
+  ret = rcl_get_service_names_and_types(this->node_ptr, &allocator, &tnat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  tnat.names.size = 0;
   // invalid argument to rcl_destroy_service_names_and_types
   ret = rcl_names_and_types_fini(nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
@@ -334,6 +344,12 @@ TEST_F(
     this->node_ptr, &allocator, false, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  nat.names.size = 1;
+  ret = rcl_get_publisher_names_and_types_by_node(
+    this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  nat.names.size = 0;
   // unknown node name
   ret = rcl_get_publisher_names_and_types_by_node(
     this->node_ptr, &allocator, false, unknown_node_name, "", &nat);
@@ -419,6 +435,12 @@ TEST_F(
     this->node_ptr, &allocator, false, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  nat.names.size = 1;
+  ret = rcl_get_subscriber_names_and_types_by_node(
+    this->node_ptr, &allocator, false, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  nat.names.size = 0;
   // unknown node name
   ret = rcl_get_subscriber_names_and_types_by_node(
     this->node_ptr, &allocator, false, unknown_node_name, "", &nat);
@@ -501,6 +523,12 @@ TEST_F(
     this->node_ptr, &allocator, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  nat.names.size = 1;
+  ret = rcl_get_service_names_and_types_by_node(
+    this->node_ptr, &allocator, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  nat.names.size = 0;
   // unknown node name
   ret = rcl_get_service_names_and_types_by_node(
     this->node_ptr, &allocator, unknown_node_name, "", &nat);
@@ -584,6 +612,12 @@ TEST_F(
     this->node_ptr, &allocator, this->test_graph_node_name, "", nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  nat.names.size = 1;
+  ret = rcl_get_client_names_and_types_by_node(
+    this->node_ptr, &allocator, this->test_graph_node_name, "", &nat);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  nat.names.size = 0;
   // unknown node name
   ret = rcl_get_client_names_and_types_by_node(
     this->node_ptr, &allocator, unknown_node_name, "", &nat);
@@ -854,6 +888,7 @@ public:
     this->remote_context_ptr = new rcl_context_t;
     *this->remote_context_ptr = rcl_get_zero_initialized_context();
     ret = rcl_init(0, nullptr, &init_options, this->remote_context_ptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     ret = rcl_node_init(
       remote_node_ptr, remote_node_name, "", this->remote_context_ptr,
@@ -889,7 +924,7 @@ public:
       std::placeholders::_2,
       "/",
       std::placeholders::_3);
-    WaitForAllNodesAlive();
+    wait_for_all_nodes_alive();
   }
 
   void TearDown() override
@@ -909,27 +944,25 @@ public:
     delete this->remote_context_ptr;
   }
 
-  void WaitForAllNodesAlive()
+  void wait_for_all_nodes_alive()
   {
-    rcl_ret_t ret;
-    rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
-    rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-    {
-      ret = rcutils_string_array_fini(&node_names);
-      ASSERT_EQ(RCUTILS_RET_OK, ret);
-      ret = rcutils_string_array_fini(&node_namespaces);
-      ASSERT_EQ(RCUTILS_RET_OK, ret);
-    });
     // wait for all 3 nodes to be discovered: remote_node, old_node, node
-    size_t attempts = 0;
-    size_t max_attempts = 4;
-    while (node_names.size < 3) {
+    size_t attempts = 0u;
+    size_t max_attempts = 10u;
+    size_t last_size = 0u;
+    do {
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      ret = rcl_get_node_names(this->remote_node_ptr, allocator, &node_names, &node_namespaces);
+      rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
+      rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
+      ASSERT_EQ(
+        RCL_RET_OK,
+        rcl_get_node_names(this->remote_node_ptr, allocator, &node_names, &node_namespaces));
       attempts++;
+      last_size = node_names.size;
+      ASSERT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_names));
+      ASSERT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_namespaces));
       ASSERT_LE(attempts, max_attempts) << "Unable to attain all required nodes";
-    }
+    } while (last_size < 3u);
   }
 
   /**
@@ -1190,75 +1223,176 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
     9);  // number of retries
 }
 
-/* Test the graph guard condition notices topic changes.
+/* Test the graph guard condition notices below changes.
+ * publisher create/destroy, subscription create/destroy
+ * service create/destroy, client create/destroy
+ * Other node added/removed
  *
  * Note: this test could be impacted by other communications on the same ROS Domain.
  */
-TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_condition_topics) {
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_condition_trigger_check) {
+#define CHECK_GUARD_CONDITION_CHANGE(EXPECTED_RESULT, TIMEOUT)   do { \
+    ret = rcl_wait_set_clear(&wait_set); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL); \
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
+    ret = rcl_wait(&wait_set, TIMEOUT.count()); \
+    ASSERT_EQ(EXPECTED_RESULT, ret) << rcl_get_error_string().str; \
+} while (0)
+
   rcl_ret_t ret;
-  // Create a thread to sleep for a time, then create a publisher, sleep more, then a subscriber,
-  // sleep more, destroy the subscriber, sleep more, and then destroy the publisher.
-  std::promise<bool> topic_changes_promise;
-  std::thread topic_thread(
-    [this, &topic_changes_promise]() {
-      // sleep
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      // create the publisher
-      rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
-      rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
-      rcl_ret_t ret = rcl_publisher_init(
-        &pub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
-        "/chatter_test_graph_guard_condition_topics", &pub_ops);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      // sleep
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      // create the subscription
-      rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
-      rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
-      ret = rcl_subscription_init(
-        &sub, this->node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
-        "/chatter_test_graph_guard_condition_topics", &sub_ops);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      // sleep
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      // destroy the subscription
-      ret = rcl_subscription_fini(&sub, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      // sleep
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
-      // destroy the publication
-      ret = rcl_publisher_fini(&pub, this->node_ptr);
-      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      // notify that the thread is done
-      topic_changes_promise.set_value(true);
-    });
-  // Wait for the graph state to change, expecting it to do so at least 4 times,
-  // once for each change in the topics thread.
+  std::chrono::nanoseconds timeout_1s = std::chrono::seconds(1);
+  std::chrono::nanoseconds timeout_3s = std::chrono::seconds(3);
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  ret = rcl_wait_set_init(
+    &wait_set, 0, 1, 0, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set)) << rcl_get_error_string().str;
+  });
+
   const rcl_guard_condition_t * graph_guard_condition =
-    rcl_node_get_graph_guard_condition(this->node_ptr);
-  ASSERT_NE(nullptr, graph_guard_condition) << rcl_get_error_string().str;
-  std::shared_future<bool> future = topic_changes_promise.get_future();
-  size_t graph_changes_count = 0;
-  // while the topic thread is not done, wait and count the graph changes
-  while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
-    ret = rcl_wait_set_clear(this->wait_set_ptr);
+    rcl_node_get_graph_guard_condition(node_ptr);
+
+  // Wait for no graph change condition
+  int idx = 0;
+  for (; idx < 100; idx++) {
+    ret = rcl_wait_set_clear(&wait_set);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_guard_condition(this->wait_set_ptr, graph_guard_condition, NULL);
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(400);
-    RCUTILS_LOG_INFO_NAMED(
-      ROS_PACKAGE_NAME,
-      "waiting up to '%s' nanoseconds for graph changes",
-      std::to_string(time_to_sleep.count()).c_str());
-    ret = rcl_wait(this->wait_set_ptr, time_to_sleep.count());
-    if (ret == RCL_RET_TIMEOUT) {
-      continue;
+    ret = rcl_wait(&wait_set, timeout_3s.count());
+    if (RCL_RET_TIMEOUT == ret) {
+      break;
+    } else {
+      RCUTILS_LOG_INFO_NAMED(
+        ROS_PACKAGE_NAME,
+        "waiting for no graph change condition ...");
     }
-    graph_changes_count++;
   }
-  topic_thread.join();
-  // expect at least 4 changes
-  ASSERT_GE(graph_changes_count, 4ul);
+  ASSERT_NE(idx, 100);
+
+  // Graph change since creating the publisher
+  rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
+  rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(
+    &pub, node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
+    "/chatter_test_graph_guard_condition_topics", &pub_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Graph change since destroying the publisher
+  ret = rcl_publisher_fini(&pub, node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Graph change since creating the subscription
+  rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(
+    &sub, node_ptr, ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes),
+    "/chatter_test_graph_guard_condition_topics", &sub_ops);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Graph change since destroying the subscription
+  ret = rcl_subscription_fini(&sub, node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Graph change since creating service
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  ret = rcl_service_init(
+    &service,
+    node_ptr,
+    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes),
+    "test_graph_guard_condition_service",
+    &service_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Graph change since destroy service
+  ret = rcl_service_fini(&service, node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Graph change since creating client
+  rcl_client_t client = rcl_get_zero_initialized_client();
+  rcl_client_options_t client_options = rcl_client_get_default_options();
+  ret = rcl_client_init(
+    &client,
+    node_ptr,
+    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes),
+    "test_graph_guard_condition_service",
+    &client_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Graph change since destroying client
+  ret = rcl_client_fini(&client, node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Graph change since adding new node
+  rcl_node_t node_new = rcl_get_zero_initialized_node();
+  rcl_node_options_t node_options = rcl_node_get_default_options();
+  ret = rcl_node_init(&node_new, "test_graph2", "", context_ptr, &node_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_3s);
+  }
+
+  // Graph change since destroying new node
+  ret = rcl_node_fini(&node_new);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+  }
+
+  // Should not get graph change if no change
+  {
+    SCOPED_TRACE("Check guard condition change failed !");
+    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_TIMEOUT, timeout_1s);
+  }
 }
 
 /* Test the rcl_service_server_is_available function.
@@ -1353,4 +1487,176 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
   // Assert the state goes back to "not available" after the service is removed.
   wait_for_service_state_to_change(false, is_available);
   ASSERT_FALSE(is_available);
+}
+
+/* Test passing invalid params to server_is_available
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_server_available) {
+  // Create a client which will be used to call the function.
+  rcl_client_t client = rcl_get_zero_initialized_client();
+  auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
+  const char * service_name = "/service_test_rcl_service_server_is_available";
+  rcl_client_options_t client_options = rcl_client_get_default_options();
+  rcl_ret_t ret = rcl_client_init(&client, this->node_ptr, ts, service_name, &client_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  // Check, knowing there is no service server (created by us at least).
+  bool is_available;
+  ret = rcl_service_server_is_available(this->node_ptr, &client, &is_available);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_FALSE(is_available);
+
+  ret = rcl_service_server_is_available(nullptr, &client, &is_available);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  rcl_node_t not_init_node = rcl_get_zero_initialized_node();
+  ret = rcl_service_server_is_available(&not_init_node, &client, &is_available);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+}
+
+/* Test passing invalid params to get_node_names functions
+ */
+TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names) {
+  rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
+
+  rcutils_string_array_t node_names_2 = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t node_namespaces_2 = rcutils_get_zero_initialized_string_array();
+  rcutils_string_array_t node_enclaves = rcutils_get_zero_initialized_string_array();
+  rcl_ret_t ret = RCL_RET_OK;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcutils_string_array_fini(&node_names);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_string_array_fini(&node_namespaces);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_string_array_fini(&node_names_2);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_string_array_fini(&node_namespaces_2);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_string_array_fini(&node_enclaves);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+  });
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+
+  // Invalid nullptr as node
+  ret = rcl_get_node_names(nullptr, allocator, &node_names, &node_namespaces);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_get_node_names_with_enclaves(
+    nullptr, allocator, &node_names, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+
+  // Invalid not init node
+  rcl_node_t not_init_node = rcl_get_zero_initialized_node();
+  ret = rcl_get_node_names(&not_init_node, allocator, &node_names, &node_namespaces);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_get_node_names_with_enclaves(
+    &not_init_node, allocator, &node_names, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+
+  // Invalid nullptr as node names output
+  ret = rcl_get_node_names(this->node_ptr, allocator, nullptr, &node_namespaces);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, nullptr, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  // Invalid nullptr as node_namespaces output
+  ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names, nullptr, &node_enclaves);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  // Invalid nullptr as node_enclaves output
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names, &node_namespaces, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  // Invalid node_names previously init (size is set)
+  node_names.size = 1;
+  ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, &node_namespaces);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  node_names.size = 0;
+
+  // Invalid node_names previously init (size is zero, but internal structure size is 1)
+  ret = rcutils_string_array_init(&node_names, 1, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  node_names.size = 0;
+  ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, &node_namespaces);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  node_names.size = 1;
+  ret = rcutils_string_array_fini(&node_names);
+  EXPECT_EQ(RCL_RET_OK, ret);
+
+  // Invalid node_namespaces previously init (size is set)
+  node_namespaces.size = 1;
+  ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, &node_namespaces);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  node_namespaces.size = 0;
+
+  // Invalid node_namespaces previously init (size is zero, but internal structure size is 1)
+  ret = rcutils_string_array_init(&node_namespaces, 1, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  node_namespaces.size = 0;
+  ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, &node_namespaces);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  node_namespaces.size = 1;
+  ret = rcutils_string_array_fini(&node_namespaces);
+  EXPECT_EQ(RCL_RET_OK, ret);
+
+  // Invalid node_enclaves previously init (size is set)
+  node_enclaves.size = 1;
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  node_enclaves.size = 0;
+
+  // Invalid node_enclave previously init (size is zero, but internal structure size is 1)
+  ret = rcutils_string_array_init(&node_enclaves, 1, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  node_enclaves.size = 0;
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names, &node_namespaces, &node_enclaves);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+  node_enclaves.size = 1;
+  ret = rcutils_string_array_fini(&node_enclaves);
+  EXPECT_EQ(RCL_RET_OK, ret);
+
+  // Expected usage
+  ret = rcl_get_node_names(this->node_ptr, allocator, &node_names, &node_namespaces);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  ret = rcl_get_node_names_with_enclaves(
+    this->node_ptr, allocator, &node_names_2, &node_namespaces_2, &node_enclaves);
+  EXPECT_EQ(RCL_RET_OK, ret);
 }

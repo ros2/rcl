@@ -32,6 +32,7 @@ struct rcl_client_impl_t;
 /// Structure which encapsulates a ROS Client.
 typedef struct rcl_client_t
 {
+  /// Pointer to the client implementation
   struct rcl_client_impl_t * impl;
 } rcl_client_t;
 

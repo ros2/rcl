@@ -14,6 +14,7 @@
 
 #include "rcl/domain_id.h"
 
+#include <errno.h>
 #include <limits.h>
 
 #include "rcutils/get_env.h"
@@ -26,12 +27,13 @@ const char * const RCL_DOMAIN_ID_ENV_VAR = "ROS_DOMAIN_ID";
 rcl_ret_t
 rcl_get_default_domain_id(size_t * domain_id)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
   const char * ros_domain_id = NULL;
   const char * get_env_error_str = NULL;
 
-  if (!domain_id) {
-    return RCL_RET_INVALID_ARGUMENT;
-  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
 
   get_env_error_str = rcutils_get_env(RCL_DOMAIN_ID_ENV_VAR, &ros_domain_id);
   if (NULL != get_env_error_str) {
@@ -40,10 +42,15 @@ rcl_get_default_domain_id(size_t * domain_id)
       get_env_error_str);
     return RCL_RET_ERROR;
   }
-  if (ros_domain_id) {
-    unsigned long number = strtoul(ros_domain_id, NULL, 0);  // NOLINT(runtime/int)
-    if (number == ULONG_MAX) {
-      RCL_SET_ERROR_MSG("failed to interpret ROS_DOMAIN_ID as integral number");
+  if (ros_domain_id && strcmp(ros_domain_id, "") != 0) {
+    char * end = NULL;
+    unsigned long number = strtoul(ros_domain_id, &end, 0);  // NOLINT(runtime/int)
+    if (number == 0UL && *end != '\0') {
+      RCL_SET_ERROR_MSG("ROS_DOMAIN_ID is not an integral number");
+      return RCL_RET_ERROR;
+    }
+    if ((number == ULONG_MAX && errno == ERANGE) || number > SIZE_MAX) {
+      RCL_SET_ERROR_MSG("ROS_DOMAIN_ID is out of range");
       return RCL_RET_ERROR;
     }
     *domain_id = (size_t)number;

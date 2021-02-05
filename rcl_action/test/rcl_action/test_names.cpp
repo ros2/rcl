@@ -30,6 +30,11 @@ struct ActionDerivedNameTestSubject
   const char * subject_name;
 };
 
+void * bad_malloc(size_t, void *)
+{
+  return NULL;
+}
+
 std::ostream & operator<<(std::ostream & os, const ActionDerivedNameTestSubject & test_subject)
 {
   return os << test_subject.subject_name;
@@ -57,6 +62,8 @@ TEST_P(TestActionDerivedName, validate_action_derived_getter)
     null_action_name, default_allocator,
     &action_derived_name);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 
   action_derived_name = NULL;
   const char * const invalid_action_name = "";
@@ -64,6 +71,7 @@ TEST_P(TestActionDerivedName, validate_action_derived_getter)
     invalid_action_name, default_allocator,
     &action_derived_name);
   EXPECT_EQ(RCL_RET_ACTION_NAME_INVALID, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   action_derived_name = NULL;
@@ -73,6 +81,7 @@ TEST_P(TestActionDerivedName, validate_action_derived_getter)
     test_subject.action_name, invalid_allocator,
     &action_derived_name);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   action_derived_name = NULL;
@@ -81,6 +90,7 @@ TEST_P(TestActionDerivedName, validate_action_derived_getter)
     test_subject.action_name, default_allocator,
     invalid_ptr_to_action_derived_name);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   char dummy_char = '\0';
@@ -89,6 +99,7 @@ TEST_P(TestActionDerivedName, validate_action_derived_getter)
     test_subject.action_name, default_allocator,
     &action_derived_name);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
   action_derived_name = NULL;
@@ -98,6 +109,16 @@ TEST_P(TestActionDerivedName, validate_action_derived_getter)
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_STREQ(test_subject.expected_action_derived_name, action_derived_name);
   default_allocator.deallocate(action_derived_name, default_allocator.state);
+
+  rcl_allocator_t failing_allocator = rcl_get_default_allocator();
+  failing_allocator.allocate = bad_malloc;
+  action_derived_name = NULL;
+  ret = test_subject.get_action_derived_name(
+    test_subject.action_name, failing_allocator,
+    &action_derived_name);
+  EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 }
 
 const ActionDerivedNameTestSubject action_service_and_topic_subjects[] = {
@@ -133,7 +154,7 @@ const ActionDerivedNameTestSubject action_service_and_topic_subjects[] = {
   }
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
   TestActionServiceAndTopicNames, TestActionDerivedName,
   ::testing::ValuesIn(action_service_and_topic_subjects),
   ::testing::PrintToStringParamName());

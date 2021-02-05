@@ -19,9 +19,18 @@
 #include <tuple>
 #include <vector>
 
+#include "rcutils/repl_str.h"
+#include "rcutils/strdup.h"
+
 #include "rcl/expand_topic_name.h"
 
 #include "rcl/error_handling.h"
+
+#include "rmw/validate_namespace.h"
+#include "rmw/validate_node_name.h"
+
+#include "./allocator_testing_utils.h"
+#include "../mocking_utils/patch.hpp"
 
 using namespace std::string_literals;
 
@@ -118,6 +127,103 @@ TEST(test_expand_topic_name, invalid_arguments) {
   {
     ret = rcl_expand_topic_name(topic, node, "white space", &subs, allocator, &expanded_topic);
     EXPECT_EQ(RCL_RET_NODE_INVALID_NAMESPACE, ret);
+    rcl_reset_error();
+  }
+
+  // pass failing allocator
+  {
+    rcl_allocator_t bad_allocator = get_failing_allocator();
+    EXPECT_EQ(
+      RCL_RET_BAD_ALLOC,
+      rcl_expand_topic_name("/absolute", node, ns, &subs, bad_allocator, &expanded_topic));
+    EXPECT_STREQ(NULL, expanded_topic);
+    rcl_reset_error();
+  }
+
+  ret = rcutils_string_map_fini(&subs);
+  ASSERT_EQ(RCL_RET_OK, ret);
+}
+
+// Define dummy comparison operators for rcutils_allocator_t type
+// to use with the Mimick mocking library
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
+MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
+
+TEST(test_expand_topic_name, internal_error) {
+  constexpr char node_name[] = "bar";
+  constexpr char ns[] = "/foo";
+
+  rcutils_string_map_t subs = rcutils_get_zero_initialized_string_map();
+  rcutils_ret_t uret = rcutils_string_map_init(&subs, 0, rcutils_get_default_allocator());
+  ASSERT_EQ(RCUTILS_RET_OK, uret) << rcutils_get_error_string().str;
+  rcl_ret_t ret = rcl_get_default_topic_name_substitutions(&subs);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  char * expanded_topic_name = nullptr;
+
+  {
+    constexpr char topic_name[] = "/test";
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rmw_validate_node_name, "internal error", RMW_RET_ERROR);
+    ret = rcl_expand_topic_name(
+      topic_name, node_name, ns, &subs, allocator, &expanded_topic_name);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+
+  {
+    constexpr char topic_name[] = "/test";
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rmw_validate_namespace, "internal error", RMW_RET_ERROR);
+    ret = rcl_expand_topic_name(
+      topic_name, node_name, ns, &subs, allocator, &expanded_topic_name);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+
+  {
+    constexpr char topic_name_with_valid_substitution[] = "{node}/test";
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rcutils_strndup, "failed to allocate", nullptr);
+    ret = rcl_expand_topic_name(
+      topic_name_with_valid_substitution, node_name, ns,
+      &subs, allocator, &expanded_topic_name);
+    EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+
+    constexpr char topic_name_with_unknown_substitution[] = "{unknown}/test";
+    ret = rcl_expand_topic_name(
+      topic_name_with_unknown_substitution, node_name, ns,
+      &subs, allocator, &expanded_topic_name);
+    EXPECT_EQ(RCL_RET_UNKNOWN_SUBSTITUTION, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+
+  {
+    constexpr char topic_name[] = "{node}/test";
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rcutils_repl_str, "failed to allocate", nullptr);
+    ret = rcl_expand_topic_name(
+      topic_name, node_name, ns, &subs, allocator, &expanded_topic_name);
+    EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+
+  {
+    constexpr char topic_name[] = "/test";
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rcutils_strdup, "failed to allocate", nullptr);
+    ret = rcl_expand_topic_name(
+      topic_name, node_name, ns, &subs, allocator, &expanded_topic_name);
+    EXPECT_EQ(RCL_RET_BAD_ALLOC, ret);
+    EXPECT_TRUE(rcl_error_is_set());
     rcl_reset_error();
   }
 

@@ -154,8 +154,9 @@ rcl_get_zero_initialized_context(void);
 /**
  * The context to be finalized must have been previously initialized with
  * `rcl_init()`, and then later invalidated with `rcl_shutdown()`.
+ * A zero-initialized context that has not been initialized can be finalized.
  * If context is `NULL`, then `RCL_RET_INVALID_ARGUMENT` is returned.
- * If context is zero-initialized, then `RCL_RET_INVALID_ARGUMENT` is returned.
+ * If context is zero-initialized, then `RCL_RET_OK` is returned.
  * If context is initialized and valid (`rcl_shutdown()` was not called on it),
  * then `RCL_RET_INVALID_ARGUMENT` is returned.
  *
@@ -168,6 +169,7 @@ rcl_get_zero_initialized_context(void);
  * Lock-Free          | Yes [1]
  * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
+ * \param[inout] context object to be finalized.
  * \return `RCL_RET_OK` if the shutdown was completed successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occur.
@@ -209,7 +211,7 @@ rcl_context_fini(rcl_context_t * context);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 const rcl_init_options_t *
-rcl_context_get_init_options(rcl_context_t * context);
+rcl_context_get_init_options(const rcl_context_t * context);
 
 /// Returns an unsigned integer that is unique to the given context, or `0` if invalid.
 /**
@@ -237,7 +239,33 @@ rcl_context_get_init_options(rcl_context_t * context);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_context_instance_id_t
-rcl_context_get_instance_id(rcl_context_t * context);
+rcl_context_get_instance_id(const rcl_context_t * context);
+
+/// Returns the context domain id.
+/**
+ * \pre If context is uninitialized, then it is undefined behavior.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes [1]
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * <i>[1] Calling the function asynchronously with `rcl_init` or `rcl_shutdown` can result
+ *  in the function sometimes succeeding and sometimes returning `RCL_RET_INVALID_ARGUMENT`.
+ *
+ * \param[in] context from which the domain id should be retrieved.
+ * \param[out] domain_id output variable where the domain id will be returned.
+ * \return RCL_RET_INVALID_ARGUMENT if `context` is invalid \ref `rcl_context_is_valid`, or
+ * \return RCL_RET_INVALID_ARGUMENT if `domain_id` is `NULL`, or
+ * \return RCL_RET_OK if the domain id was correctly retrieved.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_context_get_domain_id(rcl_context_t * context, size_t * domain_id);
 
 /// Return `true` if the given context is currently valid, otherwise `false`.
 /**
@@ -259,7 +287,7 @@ rcl_context_get_instance_id(rcl_context_t * context);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 bool
-rcl_context_is_valid(rcl_context_t * context);
+rcl_context_is_valid(const rcl_context_t * context);
 
 /// Return pointer to the rmw context if the given context is currently valid, otherwise `NULL`.
 /**

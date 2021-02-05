@@ -48,6 +48,9 @@ rcl_lexer_lookahead2_init(
   const char * text,
   rcl_allocator_t allocator)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_BAD_ALLOC);
+
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(buffer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(text, RCL_RET_INVALID_ARGUMENT);
@@ -93,6 +96,8 @@ rcl_lexer_lookahead2_peek(
   rcl_lexer_lookahead2_t * buffer,
   rcl_lexeme_t * next_type)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(buffer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     buffer->impl, "buffer not initialized", return RCL_RET_INVALID_ARGUMENT);
@@ -126,6 +131,8 @@ rcl_lexer_lookahead2_peek2(
   rcl_lexeme_t * next_type1,
   rcl_lexeme_t * next_type2)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   rcl_ret_t ret;
   // Peek 1 ahead first (reusing its error checking for buffer and next_type1)
   ret = rcl_lexer_lookahead2_peek(buffer, next_type1);
@@ -161,6 +168,9 @@ rcl_lexer_lookahead2_accept(
   const char ** lexeme_text,
   size_t * lexeme_text_length)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(buffer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     buffer->impl, "buffer not initialized", return RCL_RET_INVALID_ARGUMENT);
@@ -209,6 +219,8 @@ rcl_lexer_lookahead2_expect(
   const char ** lexeme_text,
   size_t * lexeme_text_length)
 {
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_WRONG_LEXEME);
+
   rcl_ret_t ret;
   rcl_lexeme_t lexeme;
 

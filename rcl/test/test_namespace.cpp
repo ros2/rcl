@@ -106,6 +106,7 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   bool is_available = false;
   for (auto i = 0; i < timeout; ++i) {
     ret = rcl_service_server_is_available(this->node_ptr, &unmatched_client, &is_available);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     if (is_available) {
       // this should not happen
       break;
@@ -128,6 +129,7 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   is_available = false;
   for (auto i = 0; i < timeout; ++i) {
     ret = rcl_service_server_is_available(this->node_ptr, &matched_client, &is_available);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     if (is_available) {
       break;
     }

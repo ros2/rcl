@@ -18,6 +18,7 @@ extern "C"
 #endif
 
 #include "rcl_action/action_server.h"
+#include "./action_server_impl.h"
 
 #include "rcl_action/default_qos.h"
 #include "rcl_action/goal_handle.h"
@@ -34,28 +35,6 @@ extern "C"
 
 #include "rmw/rmw.h"
 
-/// Internal rcl_action implementation struct.
-typedef struct rcl_action_server_impl_t
-{
-  rcl_service_t goal_service;
-  rcl_service_t cancel_service;
-  rcl_service_t result_service;
-  rcl_publisher_t feedback_publisher;
-  rcl_publisher_t status_publisher;
-  rcl_timer_t expire_timer;
-  char * action_name;
-  rcl_action_server_options_t options;
-  // Array of goal handles
-  rcl_action_goal_handle_t ** goal_handles;
-  size_t num_goal_handles;
-  // Clock
-  rcl_clock_t clock;
-  // Wait set records
-  size_t wait_set_goal_service_index;
-  size_t wait_set_cancel_service_index;
-  size_t wait_set_result_service_index;
-  size_t wait_set_expire_timer_index;
-} rcl_action_server_impl_t;
 
 rcl_action_server_t
 rcl_action_get_zero_initialized_server(void)
@@ -179,7 +158,7 @@ rcl_action_server_init(
   action_server->impl->options = *options;  // copy options
   action_server->impl->goal_handles = NULL;
   action_server->impl->num_goal_handles = 0u;
-  action_server->impl->clock.type = RCL_CLOCK_UNINITIALIZED;
+  action_server->impl->clock = NULL;
 
   rcl_ret_t ret = RCL_RET_OK;
   // Initialize services
@@ -191,10 +170,13 @@ rcl_action_server_init(
   PUBLISHER_INIT(feedback);
   PUBLISHER_INIT(status);
 
-  // Initialize Timer
+  // Store reference to clock
+  action_server->impl->clock = clock;
+
+// Initialize Timer
   ret = rcl_timer_init(
-    &action_server->impl->expire_timer, clock, node->context, options->result_timeout.nanoseconds,
-    NULL, allocator);
+    &action_server->impl->expire_timer, action_server->impl->clock, node->context,
+    options->result_timeout.nanoseconds, NULL, allocator);
   if (RCL_RET_OK != ret) {
     goto fail;
   }
@@ -203,9 +185,6 @@ rcl_action_server_init(
   if (RCL_RET_OK != ret) {
     goto fail;
   }
-
-  // Copy clock
-  action_server->impl->clock = *clock;
 
   // Copy action name
   action_server->impl->action_name = rcutils_strdup(action_name, allocator);
@@ -256,6 +235,8 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
     if (rcl_timer_fini(&action_server->impl->expire_timer) != RCL_RET_OK) {
       ret = RCL_RET_ERROR;
     }
+    // Ditch clock reference
+    action_server->impl->clock = NULL;
     // Deallocate action name
     rcl_allocator_t allocator = action_server->impl->options.allocator;
     if (action_server->impl->action_name) {
@@ -401,7 +382,7 @@ rcl_action_accept_new_goal(
   rcl_action_goal_info_t goal_info_stamp_now = rcl_action_get_zero_initialized_goal_info();
   goal_info_stamp_now = *goal_info;
   rcl_time_point_value_t now_time_point;
-  rcl_ret_t ret = rcl_clock_get_now(&action_server->impl->clock, &now_time_point);
+  rcl_ret_t ret = rcl_clock_get_now(action_server->impl->clock, &now_time_point);
   if (RCL_RET_OK != ret) {
     return NULL;  // Error already set
   }
@@ -605,7 +586,7 @@ rcl_action_expire_goals(
 
   // Get current time (nanosec)
   int64_t current_time;
-  rcl_ret_t ret = rcl_clock_get_now(&action_server->impl->clock, &current_time);
+  rcl_ret_t ret = rcl_clock_get_now(action_server->impl->clock, &current_time);
   if (RCL_RET_OK != ret) {
     return RCL_RET_ERROR;
   }
@@ -675,12 +656,16 @@ rcl_action_expire_goals(
       }
     }
   }
-  ret_final = _recalculate_expire_timer(
+  rcl_ret_t expire_timer_ret = _recalculate_expire_timer(
     &action_server->impl->expire_timer,
     action_server->impl->options.result_timeout.nanoseconds,
     action_server->impl->goal_handles,
     action_server->impl->num_goal_handles,
-    &action_server->impl->clock);
+    action_server->impl->clock);
+
+  if (RCL_RET_OK != expire_timer_ret) {
+    ret_final = expire_timer_ret;
+  }
 
   // If argument is not null, then set it
   if (NULL != num_expired) {
@@ -693,12 +678,15 @@ rcl_ret_t
 rcl_action_notify_goal_done(
   const rcl_action_server_t * action_server)
 {
+  if (!rcl_action_server_is_valid(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
   return _recalculate_expire_timer(
     &action_server->impl->expire_timer,
     action_server->impl->options.result_timeout.nanoseconds,
     action_server->impl->goal_handles,
     action_server->impl->num_goal_handles,
-    &action_server->impl->clock);
+    action_server->impl->clock);
 }
 
 rcl_ret_t
@@ -811,8 +799,9 @@ rcl_action_process_cancel_request(
   if (RCL_RET_OK != ret) {
     if (RCL_RET_BAD_ALLOC == ret) {
       ret_final = RCL_RET_BAD_ALLOC;  // error already set
+    } else {
+      ret_final = RCL_RET_ERROR;  // error already set
     }
-    ret_final = RCL_RET_ERROR;  // error already set
     goto cleanup;
   }
 

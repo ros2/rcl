@@ -17,10 +17,16 @@
 #include <string>
 #include <vector>
 
+#include "rcutils/snprintf.h"
+
 #include "rcl/rcl.h"
 #include "rcl/validate_enclave_name.h"
 
 #include "rcl/error_handling.h"
+
+#include "rmw/validate_namespace.h"
+
+#include "../mocking_utils/patch.hpp"
 
 TEST(TestValidateEnclaveName, test_validate) {
   int validation_result;
@@ -47,6 +53,59 @@ TEST(TestValidateEnclaveName, test_validate) {
     RCL_RET_OK,
     rcl_validate_enclave_name("/foo/bar", &validation_result, &invalid_index));
   EXPECT_EQ(RCL_ENCLAVE_NAME_VALID, validation_result);
+
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_namespace_with_size,
+      [&](auto, auto, int * result, size_t * index) {
+        if (index) {
+          *index = 0u;
+        }
+        *result = RMW_NAMESPACE_INVALID_TOO_LONG;
+        return RMW_RET_OK;
+      });
+
+    // When applying RMW namespace validation rules, an enclave name may be too
+    // long for an RMW namespace but not necessarily for an enclave name.
+    EXPECT_EQ(
+      RCL_RET_OK,
+      rcl_validate_enclave_name("/foo/baz", &validation_result, &invalid_index));
+    EXPECT_EQ(RCL_ENCLAVE_NAME_VALID, validation_result);
+  }
+}
+
+TEST(TestValidateEnclaveName, test_validate_on_internal_error) {
+  int validation_result;
+  size_t invalid_index;
+
+  {
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rmw_validate_namespace_with_size, "internal error", RMW_RET_ERROR);
+
+    EXPECT_EQ(
+      RCL_RET_ERROR,
+      rcl_validate_enclave_name("/foo", &validation_result, &invalid_index));
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
+
+  {
+    auto mock = mocking_utils::patch(
+      "lib:rcl", rmw_validate_namespace_with_size,
+      [&](auto, auto, int * result, size_t * index) {
+        if (index) {
+          *index = 0u;
+        }
+        *result = -1;
+        return RMW_RET_OK;
+      });
+
+    EXPECT_EQ(
+      RCL_RET_ERROR,
+      rcl_validate_enclave_name("/foo", &validation_result, &invalid_index));
+    EXPECT_TRUE(rcl_error_is_set());
+    rcl_reset_error();
+  }
 }
 
 TEST(TestValidateEnclaveName, test_validation_string) {
@@ -64,7 +123,10 @@ TEST(TestValidateEnclaveName, test_validation_string) {
     {"/foo/$", RCL_ENCLAVE_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS, 5},
     {"/bar#", RCL_ENCLAVE_NAME_INVALID_CONTAINS_UNALLOWED_CHARACTERS, 4},
     {"/foo//bar", RCL_ENCLAVE_NAME_INVALID_CONTAINS_REPEATED_FORWARD_SLASH, 5},
-    {"/1bar", RCL_ENCLAVE_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER, 1}
+    {"/1bar", RCL_ENCLAVE_NAME_INVALID_NAME_TOKEN_STARTS_WITH_NUMBER, 1},
+    {"/" + std::string(RCL_ENCLAVE_NAME_MAX_LENGTH, 'o'),
+      RCL_ENCLAVE_NAME_INVALID_TOO_LONG,
+      RCL_ENCLAVE_NAME_MAX_LENGTH - 1}
   };
   for (const auto & case_tuple : enclave_cases_that_should_fail) {
     std::string enclave = case_tuple.enclave;
@@ -82,4 +144,8 @@ TEST(TestValidateEnclaveName, test_validation_string) {
       "Enclave '" << enclave << "' failed with '" << validation_result << "'.";
     EXPECT_NE(nullptr, rcl_enclave_name_validation_result_string(validation_result)) << enclave;
   }
+  EXPECT_STREQ(
+    "unknown result code for rcl context name validation",
+    rcl_enclave_name_validation_result_string(-1));  // invalid result
+  EXPECT_EQ(nullptr, rcl_enclave_name_validation_result_string(RCL_ENCLAVE_NAME_VALID));
 }

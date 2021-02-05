@@ -5,6 +5,7 @@ project(rcl)
 find_package(ament_cmake_ros REQUIRED)
 
 find_package(rcl_interfaces REQUIRED)
+find_package(rcl_logging_interface REQUIRED)
 find_package(rcl_yaml_param_parser REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
@@ -47,10 +48,12 @@ set(${PROJECT_NAME}_sources
   src/rcl/localhost.c
   src/rcl/logging_rosout.c
   src/rcl/logging.c
+  src/rcl/log_level.c
   src/rcl/node.c
   src/rcl/node_options.c
   src/rcl/publisher.c
   src/rcl/remap.c
+  src/rcl/node_resolve_name.c
   src/rcl/rmw_implementation_identifier_check.c
   src/rcl/security.c
   src/rcl/service.c
@@ -69,6 +72,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
   "rcl_interfaces"
+  "rcl_logging_interface"
   "rcl_yaml_param_parser"
   "rcutils"
   "rmw"
@@ -82,6 +86,10 @@ ament_target_dependencies(${PROJECT_NAME}
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_BUILDING_DLL")
 rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
+
+if(BUILD_TESTING AND NOT RCUTILS_DISABLE_FAULT_INJECTION)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
+endif()
 
 install(
   TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
@@ -102,6 +110,7 @@ ament_export_targets(${PROJECT_NAME})
 
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl_interfaces)
+ament_export_dependencies(rcl_logging_interface)
 ament_export_dependencies(rcl_yaml_param_parser)
 ament_export_dependencies(rmw_implementation)
 ament_export_dependencies(rmw)

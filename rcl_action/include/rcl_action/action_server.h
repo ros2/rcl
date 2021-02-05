@@ -35,6 +35,7 @@ struct rcl_action_server_impl_t;
 /// Structure which encapsulates a ROS Action Server.
 typedef struct rcl_action_server_t
 {
+  /// Pointer to the action server implementation
   struct rcl_action_server_impl_t * impl;
 } rcl_action_server_t;
 
@@ -42,10 +43,15 @@ typedef struct rcl_action_server_t
 typedef struct rcl_action_server_options_t
 {
   /// Middleware quality of service settings for the action server.
+  /// Goal service quality of service
   rmw_qos_profile_t goal_service_qos;
+  /// Cancel service quality of service
   rmw_qos_profile_t cancel_service_qos;
+  /// Result service quality of service
   rmw_qos_profile_t result_service_qos;
+  /// Feedback topic quality of service
   rmw_qos_profile_t feedback_topic_qos;
+  /// Status topic quality of service
   rmw_qos_profile_t status_topic_qos;
   /// Custom allocator for the action server, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
@@ -712,7 +718,7 @@ rcl_action_take_cancel_request(
  *
  * \param[in] action_server handle to the action server that will process the cancel request
  * \param[in] cancel_request a C-typed ROS cancel request to process
- * \param[out] cancel_reponse a zero-initialized cancel response struct
+ * \param[out] cancel_response a zero-initialized cancel response struct
  *   where the goal info of goals which should be cancelled are copied
  * \return `RCL_RET_OK` if the response was sent successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or

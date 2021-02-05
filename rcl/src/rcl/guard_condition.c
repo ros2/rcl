@@ -87,6 +87,7 @@ __rcl_guard_condition_init_from_rmw_impl(
     if (!guard_condition->impl->rmw_handle) {
       // Deallocate impl and exit.
       allocator->deallocate(guard_condition->impl, allocator->state);
+      guard_condition->impl = NULL;
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       return RCL_RET_ERROR;
     }

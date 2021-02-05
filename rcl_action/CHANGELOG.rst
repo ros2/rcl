@@ -2,6 +2,85 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.1 (2021-01-25)
+------------------
+
+2.5.0 (2020-12-08)
+------------------
+* Address various clang static analysis fixes (`#864 <https://github.com/ros2/rcl/issues/864>`_)
+* Update QDs to QL 1 (`#866 <https://github.com/ros2/rcl/issues/866>`_)
+* Update QL (`#858 <https://github.com/ros2/rcl/issues/858>`_)
+* Make sure to always check return values (`#840 <https://github.com/ros2/rcl/issues/840>`_)
+* Update deprecated gtest macros (`#818 <https://github.com/ros2/rcl/issues/818>`_)
+* Contributors: Alejandro Hernández Cordero, Audrow Nash, Chris Lalancette, Stephen Brawner
+
+2.4.0 (2020-10-19)
+------------------
+* Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
+* Contributors: Chris Lalancette
+
+2.3.0 (2020-10-19)
+------------------
+* Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
+* Store reference to rcl_clock_t instead of copy (`#797 <https://github.com/ros2/rcl/issues/797>`_)
+* Use valid clock in case of issue in rcl_timer_init (`#795 <https://github.com/ros2/rcl/issues/795>`_)
+* Contributors: Ivan Santiago Paunovic, Shane Loretz, brawner
+
+2.2.0 (2020-09-02)
+------------------
+* Add fault injection macros and unit tests to rcl_action (`#730 <https://github.com/ros2/rcl/issues/730>`_)
+* Change some EXPECT_EQ to ASSERT_EQ in test_action_server. (`#759 <https://github.com/ros2/rcl/issues/759>`_)
+* Contributors: Chris Lalancette, brawner
+
+2.1.0 (2020-07-22)
+------------------
+* Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_)
+* Address issue 716 by zero initializing pointers and freeing memory (`#717 <https://github.com/ros2/rcl/issues/717>`_)
+* Contributors: Alejandro Hernández Cordero, brawner
+
+2.0.0 (2020-07-09)
+------------------
+* Update quality declaration and coverage (`#674 <https://github.com/ros2/rcl/issues/674>`_)
+* Contributors: Alejandro Hernández Cordero
+
+1.2.0 (2020-06-18)
+------------------
+* Fixed doxygen warnings (`#677 <https://github.com/ros2/rcl/issues/677>`_)
+* Contributors: Alejandro Hernández Cordero
+
+1.1.5 (2020-06-03)
+------------------
+
+1.1.4 (2020-06-02)
+------------------
+
+1.1.3 (2020-06-01)
+------------------
+* Add Security Vulnerability Policy pointing to REP-2006 (`#661 <https://github.com/ros2/rcl/issues/661>`_)
+* Address unused parameter warnings (`#666 <https://github.com/ros2/rcl/issues/666>`_)
+* Increase test coverage of rcl_action (`#663 <https://github.com/ros2/rcl/issues/663>`_)
+* Contributors: Chris Lalancette, Stephen Brawner
+
+1.1.2 (2020-05-28)
+------------------
+
+1.1.1 (2020-05-26)
+------------------
+
+1.1.0 (2020-05-22)
+------------------
+* Update Quality Declaration for 1.0 (`#647 <https://github.com/ros2/rcl/issues/647>`_)
+* Contributors: Stephen Brawner
+
+1.0.0 (2020-05-12)
+------------------
+
+0.9.1 (2020-05-08)
+------------------
+* Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)
+* Quality Declarations for rcl_action, rcl_lifecycle, yaml_parser (`#641 <https://github.com/ros2/rcl/issues/641>`_)
+* Contributors: Alejandro Hernández Cordero, Stephen Brawner
+
 0.9.0 (2020-04-29)
 ------------------
 * Export targets in a addition to include directories / libraries (`#632 <https://github.com/ros2/rcl/issues/632>`_)

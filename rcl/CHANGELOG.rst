@@ -2,6 +2,189 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.1 (2021-01-25)
+------------------
+* Re-add "Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)" (`#884 <https://github.com/ros2/rcl/issues/884>`_)
+* Revert "Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)" (`#883 <https://github.com/ros2/rcl/issues/883>`_)
+* Move the guard condition cleanup after removing callback. (`#877 <https://github.com/ros2/rcl/issues/877>`_)
+* Make test_subscription_nominal_string_sequence more reliable (`#881 <https://github.com/ros2/rcl/issues/881>`_)
+* Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)
+* Add NULL check in remap.c (`#879 <https://github.com/ros2/rcl/issues/879>`_)
+* Contributors: Barry Xu, Chris Lalancette, Ivan Santiago Paunovic, Nikolai Morin
+
+2.5.0 (2020-12-08)
+------------------
+* Add const to constant rcl_context functions (`#872 <https://github.com/ros2/rcl/issues/872>`_)
+* Fix another failing test on CentOS 7 (`#863 <https://github.com/ros2/rcl/issues/863>`_)
+* Update QDs to QL 1 (`#866 <https://github.com/ros2/rcl/issues/866>`_)
+* Address clang static analysis issues (`#865 <https://github.com/ros2/rcl/issues/865>`_)
+* Fix flaky test_info_by_topic (`#859 <https://github.com/ros2/rcl/issues/859>`_)
+* Update QL (`#858 <https://github.com/ros2/rcl/issues/858>`_)
+* Refactor for removing unnecessary source code (`#857 <https://github.com/ros2/rcl/issues/857>`_)
+* Clarify storing of current_time (`#850 <https://github.com/ros2/rcl/issues/850>`_)
+* Make tests in test_graph.cpp more reliable (`#854 <https://github.com/ros2/rcl/issues/854>`_)
+* Fix for external log segfault after SIGINT (`#844 <https://github.com/ros2/rcl/issues/844>`_)
+* Update tracetools QL and add to rcl_lifecycle's QD (`#845 <https://github.com/ros2/rcl/issues/845>`_)
+* Make test logging rosout more reliable (`#846 <https://github.com/ros2/rcl/issues/846>`_)
+* Return OK when finalizing zero-initialized contexts (`#842 <https://github.com/ros2/rcl/issues/842>`_)
+* Zero initialize events an size_of_events members of rcl_wait_set_t (`#841 <https://github.com/ros2/rcl/issues/841>`_)
+* Update deprecated gtest macros (`#818 <https://github.com/ros2/rcl/issues/818>`_)
+* Contributors: Alejandro Hernández Cordero, Audrow Nash, Chen Lihui, Chris Lalancette, Christophe Bedard, Ivan Santiago Paunovic, Jacob Perron, Stephen Brawner, Thijs Raymakers, tomoya
+
+2.4.0 (2020-10-19)
+------------------
+* Make sure to check the return value of rcl APIs. (`#838 <https://github.com/ros2/rcl/issues/838>`_)
+* Add convenient node method to get a final topic/service name (`#835 <https://github.com/ros2/rcl/issues/835>`_)
+* Contributors: Chris Lalancette, Ivan Santiago Paunovic
+
+2.3.0 (2020-10-19)
+------------------
+* Remove redundant error formatting (`#834 <https://github.com/ros2/rcl/issues/834>`_)
+* Fix memory leak in rcl_subscription_init()/rcl_publisher_init() (`#794 <https://github.com/ros2/rcl/issues/794>`_)
+* Update maintainers (`#825 <https://github.com/ros2/rcl/issues/825>`_)
+* Add a semicolon to RCUTILS_LOGGING_AUTOINIT. (`#816 <https://github.com/ros2/rcl/issues/816>`_)
+* Improve error messages in rcl_lifecycle (`#742 <https://github.com/ros2/rcl/issues/742>`_)
+* Fix memory leak on serialized message in test_publisher/subscription.cpp (`#801 <https://github.com/ros2/rcl/issues/801>`_)
+* Fix memory leak because of mock test (`#800 <https://github.com/ros2/rcl/issues/800>`_)
+* Spelling correction (`#798 <https://github.com/ros2/rcl/issues/798>`_)
+* Fix that not to deallocate event impl in some failure case (`#790 <https://github.com/ros2/rcl/issues/790>`_)
+* calling fini functions to avoid memory leak (`#791 <https://github.com/ros2/rcl/issues/791>`_)
+* Contributors: Barry Xu, Chen Lihui, Chris Lalancette, Geoffrey Biggs, Ivan Santiago Paunovic, Jacob Perron, Lei Liu
+
+2.2.0 (2020-09-02)
+------------------
+* Bump rcl arguments' API test coverage (`#777 <https://github.com/ros2/rcl/issues/777>`_)
+* Fix rcl arguments' API memory leaks and bugs (`#778 <https://github.com/ros2/rcl/issues/778>`_)
+* Add coverage tests wait module (`#769 <https://github.com/ros2/rcl/issues/769>`_)
+* Fix wait set allocation cleanup (`#770 <https://github.com/ros2/rcl/issues/770>`_)
+* Improve test coverage in rcl (`#764 <https://github.com/ros2/rcl/issues/764>`_)
+* Check if rcutils_strdup() outcome immediately (`#768 <https://github.com/ros2/rcl/issues/768>`_)
+* Cleanup rcl_get_secure_root() implementation (`#762 <https://github.com/ros2/rcl/issues/762>`_)
+* Add fault injection macros to rcl functions (`#727 <https://github.com/ros2/rcl/issues/727>`_)
+* Yield rcl_context_fini() error codes (`#763 <https://github.com/ros2/rcl/issues/763>`_)
+* Do not invalidate context before successful shutdown (`#761 <https://github.com/ros2/rcl/issues/761>`_)
+* Zero initialize guard condition on failed init (`#760 <https://github.com/ros2/rcl/issues/760>`_)
+* Adding tests to arguments API (`#752 <https://github.com/ros2/rcl/issues/752>`_)
+* Extend rcl_expand_topic_name() API test coverage (`#758 <https://github.com/ros2/rcl/issues/758>`_)
+* Add coverage tests 94% to service API (`#756 <https://github.com/ros2/rcl/issues/756>`_)
+* Clean up rcl_expand_topic_name() implementation (`#757 <https://github.com/ros2/rcl/issues/757>`_)
+* Complete rcl enclave validation API coverage (`#751 <https://github.com/ros2/rcl/issues/751>`_)
+* Cope with base function restrictions in mocks (`#753 <https://github.com/ros2/rcl/issues/753>`_)
+* Fix allocation when copying arguments (`#748 <https://github.com/ros2/rcl/issues/748>`_)
+* Complete rcl package's logging API test coverage (`#747 <https://github.com/ros2/rcl/issues/747>`_)
+* Improve coverage to 95% in domain id, init option, rmw implementation id and log level modules (`#744 <https://github.com/ros2/rcl/issues/744>`_)
+* Fix rcl package's logging API error code documentation and handling (`#746 <https://github.com/ros2/rcl/issues/746>`_)
+* Fix bug error handling in get_param_files (`#743 <https://github.com/ros2/rcl/issues/743>`_)
+* Complete subscription API test coverage (`#734 <https://github.com/ros2/rcl/issues/734>`_)
+* increase timeouts in test_services fixtures for Connext (`#745 <https://github.com/ros2/rcl/issues/745>`_)
+* Tweaks to client.c and subscription.c for cleaner init/fini (`#728 <https://github.com/ros2/rcl/issues/728>`_)
+* Improve error checking and handling in subscription APIs (`#739 <https://github.com/ros2/rcl/issues/739>`_)
+* Add deallocate calls to free strdup allocated memory (`#737 <https://github.com/ros2/rcl/issues/737>`_)
+* Add missing calls to rcl_convert_rmw_ret_to_rcl_ret (`#738 <https://github.com/ros2/rcl/issues/738>`_)
+* Add mock tests, publisher 95% coverage (`#732 <https://github.com/ros2/rcl/issues/732>`_)
+* Restore env variables set in the test_failing_configuration. (`#733 <https://github.com/ros2/rcl/issues/733>`_)
+* Expose qos setting for /rosout (`#722 <https://github.com/ros2/rcl/issues/722>`_)
+* Reformat rmw_impl_id_check to call a testable function (`#725 <https://github.com/ros2/rcl/issues/725>`_)
+* Add extra check for invalid event implementation (`#726 <https://github.com/ros2/rcl/issues/726>`_)
+* Consolidate macro duplication (`#653 <https://github.com/ros2/rcl/issues/653>`_)
+* Contributors: Ada-King, Dan Rose, Dirk Thomas, Jorge Perez, Michel Hidalgo, brawner, tomoya
+
+2.1.0 (2020-07-22)
+------------------
+* Add test for subscription message lost event (`#705 <https://github.com/ros2/rcl/issues/705>`_)
+* Add function rcl_event_is_valid (`#720 <https://github.com/ros2/rcl/issues/720>`_)
+* Move actual domain id from node to context (`#718 <https://github.com/ros2/rcl/issues/718>`_)
+* Removed doxygen warnings (`#712 <https://github.com/ros2/rcl/issues/712>`_)
+* Remove some dead code.
+* Make sure to call rcl_arguments_fini at the end of the test.
+* Add remap needed null check (`#711 <https://github.com/ros2/rcl/issues/711>`_)
+* Make public init/fini rosout publisher (`#704 <https://github.com/ros2/rcl/issues/704>`_)
+* Move rcl_remap_copy to public header (`#709 <https://github.com/ros2/rcl/issues/709>`_)
+* Contributors: Alejandro Hernández Cordero, Chris Lalancette, Ivan Santiago Paunovic, Jorge Perez
+
+2.0.0 (2020-07-09)
+------------------
+* Implement a generic way to change logging levels (`#664 <https://github.com/ros2/rcl/issues/664>`_)
+* Remove domain_id and localhost_only from node_options (`#708 <https://github.com/ros2/rcl/issues/708>`_)
+* Add coverage tests (`#703 <https://github.com/ros2/rcl/issues/703>`_)
+* Add bad arguments tests for coverage (`#698 <https://github.com/ros2/rcl/issues/698>`_)
+* Remove unused internal prototypes (`#699 <https://github.com/ros2/rcl/issues/699>`_)
+* Update quality declaration and coverage (`#674 <https://github.com/ros2/rcl/issues/674>`_)
+* Add setter and getter for domain_id in rcl_init_options_t (`#678 <https://github.com/ros2/rcl/issues/678>`_)
+* Remove unused pytest dependency from rcl. (`#695 <https://github.com/ros2/rcl/issues/695>`_)
+* Fix link to latest API docs (`#692 <https://github.com/ros2/rcl/issues/692>`_)
+* Keep domain id if ROS_DOMAIN_ID is invalid. (`#689 <https://github.com/ros2/rcl/issues/689>`_)
+* Remove unused check context.c (`#691 <https://github.com/ros2/rcl/issues/691>`_)
+* Add check rcl_node_options_copy invalid out (`#671 <https://github.com/ros2/rcl/issues/671>`_)
+* Update tracetools' QL to 2 in rcl's QD (`#690 <https://github.com/ros2/rcl/issues/690>`_)
+* Improve subscription coverage (`#681 <https://github.com/ros2/rcl/issues/681>`_)
+* Improve rcl timer test coverage (`#680 <https://github.com/ros2/rcl/issues/680>`_)
+* Improve wait sets test coverage (`#683 <https://github.com/ros2/rcl/issues/683>`_)
+* Contributors: Alejandro Hernández Cordero, Chen Lihui, Chris Lalancette, Christophe Bedard, Ivan Santiago Paunovic, Jorge Perez, Michel Hidalgo, tomoya
+
+1.2.0 (2020-06-18)
+------------------
+* Improve rcl init test coverage. (`#684 <https://github.com/ros2/rcl/issues/684>`_)
+* Improve clock test coverage. (`#685 <https://github.com/ros2/rcl/issues/685>`_)
+* Add message lost event (`#673 <https://github.com/ros2/rcl/issues/673>`_)
+* Minor fixes to rcl clock implementation. (`#688 <https://github.com/ros2/rcl/issues/688>`_)
+* Improve enclave validation test coverage. (`#682 <https://github.com/ros2/rcl/issues/682>`_)
+* Use RCL_RET\_* codes only. (`#686 <https://github.com/ros2/rcl/issues/686>`_)
+* Fixed doxygen warnings (`#677 <https://github.com/ros2/rcl/issues/677>`_)
+* Add tests for rcl package (`#668 <https://github.com/ros2/rcl/issues/668>`_)
+* Remove logging_external_interface.h, provided by rcl_logging_interface package now (`#676 <https://github.com/ros2/rcl/issues/676>`_)
+* Print RCL_LOCALHOST_ENV_VAR if error happens via rcutils_get_env. (`#672 <https://github.com/ros2/rcl/issues/672>`_)
+* Contributors: Alejandro Hernández Cordero, Chris Lalancette, Ivan Santiago Paunovic, Jorge Perez, Michel Hidalgo, tomoya
+
+1.1.5 (2020-06-03)
+------------------
+* Fix conversions between rmw_localhost_only_t and bool (`#670 <https://github.com/ros2/rcl/issues/670>`_)
+* Contributors: Jorge Perez
+
+1.1.4 (2020-06-02)
+------------------
+* Ensure rcl_publisher_init() fails safely (`#667 <https://github.com/ros2/rcl/issues/667>`_)
+* Contributors: Michel Hidalgo
+
+1.1.3 (2020-06-01)
+------------------
+* Add Security Vulnerability Policy pointing to REP-2006 (`#661 <https://github.com/ros2/rcl/issues/661>`_)
+* Add tests to publisher and init modules of rcl (`#657 <https://github.com/ros2/rcl/issues/657>`_)
+* Contributors: Chris Lalancette, Jorge Perez
+
+1.1.2 (2020-05-28)
+------------------
+* Improve docblocks (`#659 <https://github.com/ros2/rcl/issues/659>`_)
+* Contributors: Alejandro Hernández Cordero
+
+1.1.1 (2020-05-26)
+------------------
+
+1.1.0 (2020-05-22)
+------------------
+* Expose rcl default logging output handler (`#660 <https://github.com/ros2/rcl/issues/660>`_)
+* Remove deprecated functions (`#658 <https://github.com/ros2/rcl/issues/658>`_)
+* Warn about unused return value for set_logger_level (`#652 <https://github.com/ros2/rcl/issues/652>`_)
+* Mark cyclonedds test_service test as flakey (`#648 <https://github.com/ros2/rcl/issues/648>`_)
+* Convert sleep_for into appropriate logic in tests(`#631 <https://github.com/ros2/rcl/issues/631>`_)
+* Reduce timeouts in tests(`#613 <https://github.com/ros2/rcl/issues/613>`_)
+* Add tests for time.c and timer.c (`#599 <https://github.com/ros2/rcl/issues/599>`_)
+* Update Quality Declaration for 1.0 (`#647 <https://github.com/ros2/rcl/issues/647>`_)
+* Contributors: Barry Xu, Dirk Thomas, Ivan Santiago Paunovic, Jorge Perez, Tully Foote, brawner
+
+1.0.0 (2020-05-12)
+------------------
+* Remove MANUAL_BY_NODE liveliness API (`#645 <https://github.com/ros2/rcl/issues/645>`_)
+* Make test_two_timers* more reliable (`#640 <https://github.com/ros2/rcl/issues/640>`_)
+* Contributors: Ivan Santiago Paunovic
+
+0.9.1 (2020-05-08)
+------------------
+* Included features (`#644 <https://github.com/ros2/rcl/issues/644>`_)
+* Current state Quality Declaration (`#639 <https://github.com/ros2/rcl/issues/639>`_)
+* Initialize service timestamps to 0 and test. (`#642 <https://github.com/ros2/rcl/issues/642>`_)
+* Contributors: Alejandro Hernández Cordero, Ingo Lütkebohle, Jorge Perez
+
 0.9.0 (2020-04-29)
 ------------------
 * Fix std::string construction in test (`#636 <https://github.com/ros2/rcl/issues/636>`_)

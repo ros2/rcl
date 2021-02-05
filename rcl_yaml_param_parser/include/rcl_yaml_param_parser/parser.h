@@ -12,6 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/** rcl_yaml_param_parser: Parse a YAML parameter file and populate the C data structure
+ *
+ *  - Parser
+ *  - rcl/parser.h
+ *
+ * Some useful abstractions and utilities:
+ * - Return code types
+ *   - rcl/types.h
+ * - Macros for controlling symbol visibility on the library
+ *   - rcl/visibility_control.h
+ */
+
 #ifndef RCL_YAML_PARAM_PARSER__PARSER_H_
 #define RCL_YAML_PARAM_PARSER__PARSER_H_
 
@@ -32,6 +44,32 @@ RCL_YAML_PARAM_PARSER_PUBLIC
 rcl_params_t * rcl_yaml_node_struct_init(
   const rcutils_allocator_t allocator);
 
+/// \brief Initialize parameter structure with a capacity
+/// \param[in] capacity a capacity to param structure
+/// \param[in] allocator memory allocator to be used
+/// \return a pointer to param structure on success or NULL on failure
+RCL_YAML_PARAM_PARSER_PUBLIC
+rcl_params_t * rcl_yaml_node_struct_init_with_capacity(
+  size_t capacity,
+  const rcutils_allocator_t allocator);
+
+/// \brief Reallocate parameter structure with a new capacity
+/// \post the address of \p node_names in \p params_st might be changed
+///   even if the result value is `RCL_RET_BAD_ALLOC`.
+/// \param[in] params_st a parameter structure
+/// \param[in] new_capacity a new capacity to param structure that must be greater than num_params
+/// \param[in] allocator memory allocator to be used
+/// \return `RCL_RET_OK` if the structure was reallocated successfully, or
+/// \return `RCL_RET_INVALID_ARGUMENT` if params_st is NULL, or
+///  allocator is invalid, or
+///  new_capacity is less than num_nodes
+/// \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
+RCL_YAML_PARAM_PARSER_PUBLIC
+rcutils_ret_t rcl_yaml_node_struct_reallocate(
+  rcl_params_t * params_st,
+  size_t new_capacity,
+  const rcutils_allocator_t allocator);
+
 /// \brief Copy parameter structure
 /// \param[in] params_st points to the parameter struct to be copied
 /// \return a pointer to the copied param structure on success or NULL on failure
@@ -45,9 +83,11 @@ RCL_YAML_PARAM_PARSER_PUBLIC
 void rcl_yaml_node_struct_fini(
   rcl_params_t * params_st);
 
-/// \brief Parse the YAML file, initialize and populate params_st
+/// \brief Parse the YAML file and populate \p params_st
+/// \pre Given \p params_st must be a valid parameter struct
+///   as returned by `rcl_yaml_node_struct_init()`
 /// \param[in] file_path is the path to the YAML file
-/// \param[inout] params_st points to the populated parameter struct
+/// \param[inout] params_st points to the struct to be populated
 /// \return true on success and false on failure
 RCL_YAML_PARAM_PARSER_PUBLIC
 bool rcl_parse_yaml_file(

@@ -21,6 +21,7 @@ extern "C"
 
 #include <stdbool.h>
 
+#include "./common.h"
 #include "./context_impl.h"
 #include "rcutils/stdatomic_helper.h"
 
@@ -48,22 +49,23 @@ rcl_ret_t
 rcl_context_fini(rcl_context_t * context)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    context->impl, "context is zero-initialized", return RCL_RET_INVALID_ARGUMENT);
+  if (!context->impl) {
+    // Context is zero-initialized
+    return RCL_RET_OK;
+  }
   if (rcl_context_is_valid(context)) {
     RCL_SET_ERROR_MSG("rcl_shutdown() not called on the given context");
     return RCL_RET_INVALID_ARGUMENT;
   }
   RCL_CHECK_ALLOCATOR_WITH_MSG(
     &(context->impl->allocator), "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-  __cleanup_context(context);
-  return RCL_RET_OK;
+  return __cleanup_context(context);
 }
 
 // See `rcl_shutdown()` for invalidation of the context.
 
 const rcl_init_options_t *
-rcl_context_get_init_options(rcl_context_t * context)
+rcl_context_get_init_options(const rcl_context_t * context)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(context, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(context->impl, "context is zero-initialized", return NULL);
@@ -71,14 +73,25 @@ rcl_context_get_init_options(rcl_context_t * context)
 }
 
 rcl_context_instance_id_t
-rcl_context_get_instance_id(rcl_context_t * context)
+rcl_context_get_instance_id(const rcl_context_t * context)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(context, 0);
   return rcutils_atomic_load_uint64_t((atomic_uint_least64_t *)(&context->instance_id_storage));
 }
 
+rcl_ret_t
+rcl_context_get_domain_id(rcl_context_t * context, size_t * domain_id)
+{
+  if (!rcl_context_is_valid(context)) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(domain_id, RCL_RET_INVALID_ARGUMENT);
+  *domain_id = context->impl->rmw_context.actual_domain_id;
+  return RCL_RET_OK;
+}
+
 bool
-rcl_context_is_valid(rcl_context_t * context)
+rcl_context_is_valid(const rcl_context_t * context)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(context, false);
   return 0 != rcl_context_get_instance_id(context);
@@ -92,20 +105,16 @@ rcl_context_get_rmw_context(rcl_context_t * context)
   return &(context->impl->rmw_context);
 }
 
-void
+rcl_ret_t
 __cleanup_context(rcl_context_t * context)
 {
-  // if null, nothing can be done
-  if (NULL == context) {
-    return;
-  }
-
+  rcl_ret_t ret = RCL_RET_OK;
   // reset the instance id to 0 to indicate "invalid" (should already be 0, but this is defensive)
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), 0);
 
   // clean up global_arguments if initialized
   if (NULL != context->global_arguments.impl) {
-    rcl_ret_t ret = rcl_arguments_fini(&(context->global_arguments));
+    ret = rcl_arguments_fini(&(context->global_arguments));
     if (RCL_RET_OK != ret) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(
         "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
@@ -123,8 +132,11 @@ __cleanup_context(rcl_context_t * context)
 
     // finalize init options if valid
     if (NULL != context->impl->init_options.impl) {
-      rcl_ret_t ret = rcl_init_options_fini(&(context->impl->init_options));
-      if (RCL_RET_OK != ret) {
+      rcl_ret_t init_options_fini_ret = rcl_init_options_fini(&(context->impl->init_options));
+      if (RCL_RET_OK != init_options_fini_ret) {
+        if (RCL_RET_OK == ret) {
+          ret = init_options_fini_ret;
+        }
         RCUTILS_SAFE_FWRITE_TO_STDERR(
           "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
           "] failed to finalize init options while cleaning up context, memory may be leaked: ");
@@ -136,8 +148,11 @@ __cleanup_context(rcl_context_t * context)
 
     // clean up rmw_context
     if (NULL != context->impl->rmw_context.implementation_identifier) {
-      rmw_ret_t rmw_ret = rmw_context_fini(&(context->impl->rmw_context));
-      if (RMW_RET_OK != rmw_ret) {
+      rmw_ret_t rmw_context_fini_ret = rmw_context_fini(&(context->impl->rmw_context));
+      if (RMW_RET_OK != rmw_context_fini_ret) {
+        if (RCL_RET_OK == ret) {
+          ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_context_fini_ret);
+        }
         RCUTILS_SAFE_FWRITE_TO_STDERR(
           "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
           "] failed to finalize rmw context while cleaning up context, memory may be leaked: ");
@@ -162,6 +177,8 @@ __cleanup_context(rcl_context_t * context)
 
   // zero-initialize the context
   *context = rcl_get_zero_initialized_context();
+
+  return ret;
 }
 
 #ifdef __cplusplus

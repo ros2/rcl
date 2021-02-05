@@ -209,15 +209,18 @@ rcl_timer_fini(rcl_timer_t * timer)
   // Will return either RCL_RET_OK or RCL_RET_ERROR since the timer is valid.
   rcl_ret_t result = rcl_timer_cancel(timer);
   rcl_allocator_t allocator = timer->impl->allocator;
-  rcl_ret_t fail_ret = rcl_guard_condition_fini(&(timer->impl->guard_condition));
-  if (RCL_RET_OK != fail_ret) {
-    RCL_SET_ERROR_MSG("Failure to fini guard condition");
-  }
+  rcl_ret_t fail_ret;
   if (RCL_ROS_TIME == timer->impl->clock->type) {
+    // The jump callbacks use the guard condition, so we have to remove it
+    // before freeing the guard condition below.
     fail_ret = rcl_clock_remove_jump_callback(timer->impl->clock, _rcl_timer_time_jump, timer);
     if (RCL_RET_OK != fail_ret) {
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to remove timer jump callback");
     }
+  }
+  fail_ret = rcl_guard_condition_fini(&(timer->impl->guard_condition));
+  if (RCL_RET_OK != fail_ret) {
+    RCL_SET_ERROR_MSG("Failure to fini guard condition");
   }
   allocator.deallocate(timer->impl, allocator.state);
   timer->impl = NULL;
@@ -345,6 +348,8 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period)
 rcl_ret_t
 rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t * old_period)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(old_period, RCL_RET_INVALID_ARGUMENT);
   *old_period = rcutils_atomic_exchange_uint64_t(&timer->impl->period, new_period);
@@ -375,6 +380,9 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
 rcl_ret_t
 rcl_timer_cancel(rcl_timer_t * timer)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_TIMER_INVALID);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
   rcutils_atomic_store(&timer->impl->canceled, true);
@@ -394,6 +402,8 @@ rcl_timer_is_canceled(const rcl_timer_t * timer, bool * is_canceled)
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
   rcl_time_point_value_t now;

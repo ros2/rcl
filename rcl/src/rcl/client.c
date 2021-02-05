@@ -23,13 +23,12 @@ extern "C"
 #include <string.h>
 
 #include "rcl/error_handling.h"
-#include "rcl/expand_topic_name.h"
-#include "rcl/remap.h"
+#include "rcl/node.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
-#include "rmw/validate_full_topic_name.h"
 #include "tracetools/tracetools.h"
 
 #include "./common.h"
@@ -74,89 +73,27 @@ rcl_client_init(
     RCL_SET_ERROR_MSG("client already initialized, or memory was unintialized");
     return RCL_RET_ALREADY_INIT;
   }
+
   // Expand the given service name.
-  rcutils_allocator_t rcutils_allocator = *allocator;  // implicit conversion to rcutils version
-  rcutils_string_map_t substitutions_map = rcutils_get_zero_initialized_string_map();
-  rcutils_ret_t rcutils_ret = rcutils_string_map_init(&substitutions_map, 0, rcutils_allocator);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-    if (rcutils_ret == RCUTILS_RET_BAD_ALLOC) {
-      return RCL_RET_BAD_ALLOC;
-    }
-    return RCL_RET_ERROR;
-  }
-  rcl_ret_t ret = rcl_get_default_topic_name_substitutions(&substitutions_map);
-  if (ret != RCL_RET_OK) {
-    rcutils_ret = rcutils_string_map_fini(&substitutions_map);
-    if (rcutils_ret != RCUTILS_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        ROS_PACKAGE_NAME,
-        "failed to fini string_map (%d) during error handling: %s\n",
-        rcutils_ret,
-        rcutils_get_error_string().str);
-    }
-    if (ret == RCL_RET_BAD_ALLOC) {
-      return ret;
-    }
-    return RCL_RET_ERROR;
-  }
-  char * expanded_service_name = NULL;
   char * remapped_service_name = NULL;
-  ret = rcl_expand_topic_name(
+  rcl_ret_t ret = rcl_node_resolve_name(
+    node,
     service_name,
-    rcl_node_get_name(node),
-    rcl_node_get_namespace(node),
-    &substitutions_map,
     *allocator,
-    &expanded_service_name);
-  rcutils_ret = rcutils_string_map_fini(&substitutions_map);
-  if (rcutils_ret != RCUTILS_RET_OK) {
-    RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-    allocator->deallocate(expanded_service_name, allocator->state);
-    return RCL_RET_ERROR;
-  }
+    true,
+    false,
+    &remapped_service_name);
   if (ret != RCL_RET_OK) {
-    if (ret == RCL_RET_TOPIC_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
+    if (ret == RCL_RET_SERVICE_NAME_INVALID || ret == RCL_RET_UNKNOWN_SUBSTITUTION) {
       ret = RCL_RET_SERVICE_NAME_INVALID;
-    } else {
+    } else if (RCL_RET_BAD_ALLOC != ret) {
       ret = RCL_RET_ERROR;
     }
     goto cleanup;
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Expanded service name '%s'", expanded_service_name);
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Expanded and remapped service name '%s'", remapped_service_name);
 
-  const rcl_node_options_t * node_options = rcl_node_get_options(node);
-  if (NULL == node_options) {
-    ret = RCL_RET_ERROR;
-    goto cleanup;
-  }
-  rcl_arguments_t * global_args = NULL;
-  if (node_options->use_global_arguments) {
-    global_args = &(node->context->global_arguments);
-  }
-  ret = rcl_remap_service_name(
-    &(node_options->arguments), global_args, expanded_service_name,
-    rcl_node_get_name(node), rcl_node_get_namespace(node), *allocator, &remapped_service_name);
-  if (RCL_RET_OK != ret) {
-    goto fail;
-  } else if (NULL == remapped_service_name) {
-    remapped_service_name = expanded_service_name;
-    expanded_service_name = NULL;
-  }
-
-  // Validate the expanded service name.
-  int validation_result;
-  rmw_ret_t rmw_ret = rmw_validate_full_topic_name(remapped_service_name, &validation_result, NULL);
-  if (rmw_ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    ret = RCL_RET_ERROR;
-    goto cleanup;
-  }
-  if (validation_result != RMW_TOPIC_VALID) {
-    RCL_SET_ERROR_MSG(rmw_full_topic_name_validation_result_string(validation_result));
-    ret = RCL_RET_SERVICE_NAME_INVALID;
-    goto cleanup;
-  }
   // Allocate space for the implementation struct.
   client->impl = (rcl_client_impl_t *)allocator->allocate(
     sizeof(rcl_client_impl_t), allocator->state);
@@ -189,22 +126,22 @@ rcl_client_init(
 fail:
   if (client->impl) {
     allocator->deallocate(client->impl, allocator->state);
+    client->impl = NULL;
   }
   ret = fail_ret;
   // Fall through to cleanup
 cleanup:
-  if (NULL != expanded_service_name) {
-    allocator->deallocate(expanded_service_name, allocator->state);
-  }
-  if (NULL != remapped_service_name) {
-    allocator->deallocate(remapped_service_name, allocator->state);
-  }
+  allocator->deallocate(remapped_service_name, allocator->state);
   return ret;
 }
 
 rcl_ret_t
 rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
 {
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_NODE_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing client");
   rcl_ret_t result = RCL_RET_OK;
   RCL_CHECK_ARGUMENT_FOR_NULL(client, RCL_RET_INVALID_ARGUMENT);
@@ -223,6 +160,7 @@ rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
     allocator.deallocate(client->impl, allocator.state);
+    client->impl = NULL;
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client finalized");
   return result;
@@ -303,6 +241,8 @@ rcl_take_response_with_info(
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_response, RCL_RET_INVALID_ARGUMENT);
 
   bool taken = false;
+  request_header->source_timestamp = 0;
+  request_header->received_timestamp = 0;
   if (rmw_take_response(
       client->impl->rmw_handle, request_header, ros_response, &taken) != RMW_RET_OK)
   {

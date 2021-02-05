@@ -26,51 +26,55 @@ typedef rcl_action_goal_state_t
 rcl_action_goal_state_t
 _execute_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if (GOAL_STATE_ACCEPTED != state || GOAL_EVENT_EXECUTE != event) {
-    return GOAL_STATE_UNKNOWN;
-  }
+  assert(GOAL_STATE_ACCEPTED == state);
+  assert(GOAL_EVENT_EXECUTE == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_EXECUTING;
 }
 
 rcl_action_goal_state_t
 _cancel_goal_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if ((GOAL_STATE_ACCEPTED != state && GOAL_STATE_EXECUTING != state) ||
-    GOAL_EVENT_CANCEL_GOAL != event)
-  {
-    return GOAL_STATE_UNKNOWN;
-  }
+  assert(GOAL_STATE_ACCEPTED == state || GOAL_STATE_EXECUTING == state);
+  assert(GOAL_EVENT_CANCEL_GOAL == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_CANCELING;
 }
 
 rcl_action_goal_state_t
 _succeed_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if ((GOAL_STATE_EXECUTING != state && GOAL_STATE_CANCELING != state) ||
-    GOAL_EVENT_SUCCEED != event)
-  {
-    return GOAL_STATE_UNKNOWN;
-  }
+  assert(GOAL_STATE_EXECUTING == state || GOAL_STATE_CANCELING == state);
+  assert(GOAL_EVENT_SUCCEED == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_SUCCEEDED;
 }
 
 rcl_action_goal_state_t
 _abort_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if ((GOAL_STATE_EXECUTING != state && GOAL_STATE_CANCELING != state) ||
-    GOAL_EVENT_ABORT != event)
-  {
-    return GOAL_STATE_UNKNOWN;
-  }
+  assert(GOAL_STATE_EXECUTING == state || GOAL_STATE_CANCELING == state);
+  assert(GOAL_EVENT_ABORT == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_ABORTED;
 }
 
 rcl_action_goal_state_t
 _canceled_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
-  if (GOAL_STATE_CANCELING != state || GOAL_EVENT_CANCELED != event) {
-    return GOAL_STATE_UNKNOWN;
-  }
+  assert(GOAL_STATE_CANCELING == state);
+  assert(GOAL_EVENT_CANCELED == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
   return GOAL_STATE_CANCELED;
 }
 

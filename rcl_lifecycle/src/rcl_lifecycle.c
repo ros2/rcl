@@ -27,7 +27,9 @@ extern "C"
 #include "rcl/error_handling.h"
 
 #include "rcutils/logging_macros.h"
+#include "rcutils/macros.h"
 #include "rcutils/strdup.h"
+#include "tracetools/tracetools.h"
 
 #include "rcl_lifecycle/default_state_machine.h"
 #include "rcl_lifecycle/transition_map.h"
@@ -40,31 +42,31 @@ rcl_lifecycle_get_zero_initialized_state()
   rcl_lifecycle_state_t state;
   state.id = 0;
   state.label = NULL;
+  state.valid_transitions = NULL;
+  state.valid_transition_size = 0;
   return state;
 }
 
 rcl_ret_t
 rcl_lifecycle_state_init(
   rcl_lifecycle_state_t * state,
-  unsigned int id,
+  uint8_t id,
   const char * label,
   const rcl_allocator_t * allocator)
 {
-  if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize state, no allocator given\n");
-    return RCL_RET_ERROR;
-  }
-  if (!state) {
-    RCL_SET_ERROR_MSG("state pointer is null\n");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "can't initialize state, no allocator given\n", return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state, "state pointer is null\n", return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    label, "State label is null\n", return RCL_RET_INVALID_ARGUMENT);
 
   state->id = id;
   state->label = rcutils_strndup(label, strlen(label), *allocator);
-  if (!state->label) {
-    RCL_SET_ERROR_MSG("failed to duplicate label for rcl_lifecycle_state_t\n");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state->label, "failed to duplicate label for rcl_lifecycle_state_t\n", return RCL_RET_ERROR);
 
   return RCL_RET_OK;
 }
@@ -74,10 +76,10 @@ rcl_lifecycle_state_fini(
   rcl_lifecycle_state_t * state,
   const rcl_allocator_t * allocator)
 {
-  if (!allocator) {
-    RCL_SET_ERROR_MSG("can't free state, no allocator given\n");
-    return RCL_RET_ERROR;
-  }
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "can't free state, no allocator given\n", return RCL_RET_INVALID_ARGUMENT);
   // it is already NULL
   if (!state) {
     return RCL_RET_OK;
@@ -111,25 +113,24 @@ rcl_lifecycle_transition_init(
   rcl_lifecycle_state_t * goal,
   const rcl_allocator_t * allocator)
 {
-  if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "can't initialize transition, no allocator given\n",
+    return RCL_RET_INVALID_ARGUMENT);
 
-  if (!transition) {
-    RCL_SET_ERROR_MSG("transition pointer is null\n");
-    return RCL_RET_OK;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    transition, "transition pointer is null\n", return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    label, "label pointer is null\n", return RCL_RET_INVALID_ARGUMENT);
 
   transition->start = start;
   transition->goal = goal;
 
   transition->id = id;
   transition->label = rcutils_strndup(label, strlen(label), *allocator);
-  if (!transition->label) {
-    RCL_SET_ERROR_MSG("failed to duplicate label for rcl_lifecycle_transition_t\n");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    transition->label, "failed to duplicate label for rcl_lifecycle_transition_t\n",
+    return RCL_RET_ERROR);
 
   return RCL_RET_OK;
 }
@@ -139,10 +140,8 @@ rcl_lifecycle_transition_fini(
   rcl_lifecycle_transition_t * transition,
   const rcl_allocator_t * allocator)
 {
-  if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize transition, no allocator given\n");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "can't finalize transition, no allocator given\n", return RCL_RET_INVALID_ARGUMENT);
   // it is already NULL
   if (!transition) {
     return RCL_RET_OK;
@@ -192,10 +191,15 @@ rcl_lifecycle_state_machine_init(
   bool default_states,
   const rcl_allocator_t * allocator)
 {
-  if (!allocator) {
-    RCL_SET_ERROR_MSG("can't initialize state machine, no allocator given\n");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state_machine, "State machine is null\n", return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node_handle, "Node handle is null\n", return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "can't initialize state machine, no allocator given\n",
+    return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t ret = rcl_lifecycle_com_interface_init(
     &state_machine->com_interface, node_handle,
@@ -207,18 +211,23 @@ rcl_lifecycle_state_machine_init(
   }
 
   if (default_states) {
-    rcl_ret_t ret =
-      rcl_lifecycle_init_default_state_machine(state_machine, allocator);
+    ret = rcl_lifecycle_init_default_state_machine(state_machine, allocator);
     if (ret != RCL_RET_OK) {
       // init default state machine might have allocated memory,
       // so we have to call fini
-      if (rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator) != RCL_RET_OK) {
-        // error already set
-        return RCL_RET_ERROR;
+      ret = rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator);
+      if (ret != RCL_RET_OK) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR(
+          "Freeing state machine failed while handling a previous error. Leaking memory!\n");
       }
+      return RCL_RET_ERROR;
     }
   }
 
+  TRACEPOINT(
+    rcl_lifecycle_state_machine_init,
+    (const void *)node_handle,
+    (const void *)state_machine);
   return RCL_RET_OK;
 }
 
@@ -228,10 +237,8 @@ rcl_lifecycle_state_machine_fini(
   rcl_node_t * node_handle,
   const rcl_allocator_t * allocator)
 {
-  if (!allocator) {
-    RCL_SET_ERROR_MSG("can't free state machine, no allocator given\n");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "can't free state machine, no allocator given\n", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
@@ -259,17 +266,17 @@ rcl_lifecycle_state_machine_fini(
 rcl_ret_t
 rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine)
 {
-  if (!state_machine->com_interface.srv_get_state.impl) {
-    RCL_SET_ERROR_MSG("get_state service is null");
-    return RCL_RET_ERROR;
-  }
-  if (!state_machine->com_interface.srv_change_state.impl) {
-    RCL_SET_ERROR_MSG("change_state service is null");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state_machine->com_interface.srv_get_state.impl, "get_state service is null\n",
+    return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state_machine->com_interface.srv_change_state.impl, "change_state service is null\n",
+    return RCL_RET_INVALID_ARGUMENT);
+
   if (rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map) != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("transition map is null");
-    return RCL_RET_ERROR;
+    return RCL_RET_INVALID_ARGUMENT;
   }
   return RCL_RET_OK;
 }
@@ -323,16 +330,11 @@ _trigger_transition(
   bool publish_notification)
 {
   // If we have a faulty transition pointer
-  if (!transition) {
-    RCL_SET_ERROR_MSG("Transition is not registered.");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    transition, "Transition is not registered.", return RCL_RET_INVALID_ARGUMENT);
 
-  if (!transition->goal) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME, "No valid goal is set");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    transition->goal, "No valid goal is set.", return RCL_RET_INVALID_ARGUMENT);
   state_machine->current_state = transition->goal;
 
   if (publish_notification) {
@@ -346,6 +348,11 @@ _trigger_transition(
     }
   }
 
+  TRACEPOINT(
+    rcl_lifecycle_transition,
+    (const void *)state_machine,
+    transition->start->label,
+    state_machine->current_state->label);
   return RCL_RET_OK;
 }
 
@@ -355,10 +362,8 @@ rcl_lifecycle_trigger_transition_by_id(
   uint8_t id,
   bool publish_notification)
 {
-  if (!state_machine) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state_machine, "state machine pointer is null.", return RCL_RET_INVALID_ARGUMENT);
 
   const rcl_lifecycle_transition_t * transition =
     rcl_lifecycle_get_transition_by_id(state_machine->current_state, id);
@@ -372,10 +377,8 @@ rcl_lifecycle_trigger_transition_by_label(
   const char * label,
   bool publish_notification)
 {
-  if (!state_machine) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "state machine pointer is null");
-    return RCL_RET_ERROR;
-  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    state_machine, "state machine pointer is null.", return RCL_RET_INVALID_ARGUMENT);
 
   const rcl_lifecycle_transition_t * transition =
     rcl_lifecycle_get_transition_by_label(state_machine->current_state, label);

@@ -16,17 +16,22 @@
 
 #include <algorithm>
 #include <cstring>
+#include <map>
 #include <string>
 
 #include "rcl/security.h"
 #include "rcl/error_handling.h"
 
 #include "rcutils/filesystem.h"
+#include "rcutils/get_env.h"
 
 #include "rmw/error_handling.h"
+#include "rmw/rmw.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
+#include "./allocator_testing_utils.h"
+#include "../mocking_utils/patch.hpp"
 
 #define TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME "/test_security_directory"
 #define TEST_ENCLAVE "dummy_enclave"
@@ -121,6 +126,11 @@ protected:
 };
 
 TEST_F(TestGetSecureRoot, failureScenarios) {
+  EXPECT_EQ(
+    rcl_get_secure_root(nullptr, &allocator),
+    (char *) NULL);
+  rcl_reset_error();
+
   EXPECT_EQ(
     rcl_get_secure_root(TEST_ENCLAVE_ABSOLUTE, &allocator),
     (char *) NULL);
@@ -247,4 +257,150 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
     TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME
     PATH_SEPARATOR "enclaves" PATH_SEPARATOR TEST_ENCLAVE,
     options.security_root_path);
+  EXPECT_EQ(RMW_RET_OK, rmw_security_options_fini(&options, &allocator));
+}
+
+TEST_F(TestGetSecureRoot, test_rcl_security_enabled) {
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_security_enabled(nullptr));
+  rcl_reset_error();
+
+  {
+    bool use_security;
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_get_env, "internal error");
+    EXPECT_EQ(RCL_RET_ERROR, rcl_security_enabled(&use_security));
+    rcl_reset_error();
+  }
+
+  {
+    bool use_security = false;
+    putenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME "=true");
+    EXPECT_EQ(RCL_RET_OK, rcl_security_enabled(&use_security));
+    EXPECT_TRUE(use_security);
+    unsetenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME);
+  }
+
+  {
+    bool use_security = true;
+    putenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME "=false");
+    EXPECT_EQ(RCL_RET_OK, rcl_security_enabled(&use_security));
+    EXPECT_FALSE(use_security);
+    unsetenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME);
+  }
+
+  {
+    bool use_security = true;
+    putenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME "=foo");
+    EXPECT_EQ(RCL_RET_OK, rcl_security_enabled(&use_security));
+    EXPECT_FALSE(use_security);
+    unsetenv_wrapper(ROS_SECURITY_ENABLE_VAR_NAME);
+  }
+
+  {
+    bool use_security = true;
+    EXPECT_EQ(RCL_RET_OK, rcl_security_enabled(&use_security));
+    EXPECT_FALSE(use_security);
+  }
+}
+
+TEST_F(TestGetSecureRoot, test_rcl_get_enforcement_policy) {
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_enforcement_policy(nullptr));
+  rcl_reset_error();
+
+  {
+    rmw_security_enforcement_policy_t policy;
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_get_env, "internal error");
+    EXPECT_EQ(RCL_RET_ERROR, rcl_get_enforcement_policy(&policy));
+    rcl_reset_error();
+  }
+
+  {
+    rmw_security_enforcement_policy_t policy = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
+    putenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME "=Enforce");
+    EXPECT_EQ(RCL_RET_OK, rcl_get_enforcement_policy(&policy));
+    EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_ENFORCE, policy);
+    unsetenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME);
+  }
+
+  {
+    rmw_security_enforcement_policy_t policy = RMW_SECURITY_ENFORCEMENT_ENFORCE;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_enforcement_policy(&policy));
+    EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_PERMISSIVE, policy);
+  }
+
+  {
+    rmw_security_enforcement_policy_t policy = RMW_SECURITY_ENFORCEMENT_ENFORCE;
+    putenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME "=foo");
+    EXPECT_EQ(RCL_RET_OK, rcl_get_enforcement_policy(&policy));
+    EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_PERMISSIVE, policy);
+    unsetenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME);
+  }
+
+  {
+    rmw_security_enforcement_policy_t policy = RMW_SECURITY_ENFORCEMENT_ENFORCE;
+    putenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME "=ENFORCE");
+    EXPECT_EQ(RCL_RET_OK, rcl_get_enforcement_policy(&policy));
+    EXPECT_EQ(RMW_SECURITY_ENFORCEMENT_PERMISSIVE, policy);
+    unsetenv_wrapper(ROS_SECURITY_STRATEGY_VAR_NAME);
+  }
+}
+
+TEST_F(TestGetSecureRoot, test_rcl_get_secure_root_with_bad_arguments) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  EXPECT_EQ(nullptr, rcl_get_secure_root(nullptr, &allocator));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  EXPECT_EQ(nullptr, rcl_get_secure_root("test", nullptr));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  rcl_allocator_t invalid_allocator = rcutils_get_zero_initialized_allocator();
+  EXPECT_EQ(nullptr, rcl_get_secure_root("test", &invalid_allocator));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+}
+
+TEST_F(TestGetSecureRoot, test_rcl_get_secure_root_with_internal_errors) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_allocator_t failing_allocator = get_time_bombed_allocator();
+
+  std::map<std::string, std::string> env;
+  auto mock = mocking_utils::patch(
+    "lib:rcl", rcutils_get_env,
+    [&](const char * name, const char ** value) -> const char * {
+      if (env.count(name) == 0) {
+        return "internal error";
+      }
+      *value = env[name].c_str();
+      return nullptr;
+    });
+
+  // fail to get ROS_SECURITY_KEYSTORE_VAR_NAME from environment
+  EXPECT_EQ(nullptr, rcl_get_secure_root("test", &allocator));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  env[ROS_SECURITY_KEYSTORE_VAR_NAME] =
+    TEST_RESOURCES_DIRECTORY TEST_SECURITY_DIRECTORY_RESOURCES_DIR_NAME;
+
+  // fail to copy ROS_SECURITY_KEYSTORE_VAR_NAME value
+  set_time_bombed_allocator_count(failing_allocator, 0);
+  EXPECT_EQ(nullptr, rcl_get_secure_root("test", &failing_allocator));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  // fail to get ROS_SECURITY_ENCLAVE_OVERRIDE from environment
+  EXPECT_EQ(nullptr, rcl_get_secure_root("test", &allocator));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  env[ROS_SECURITY_ENCLAVE_OVERRIDE] = TEST_ENCLAVE_ABSOLUTE;
+
+  // fail to copy ROS_SECURITY_ENCLAVE_OVERRIDE value
+  set_time_bombed_allocator_count(failing_allocator, 1);
+  EXPECT_EQ(nullptr, rcl_get_secure_root("test", &failing_allocator));
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
 }

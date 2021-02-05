@@ -1,6 +1,8 @@
 **ROS2 rcl YAML paramter parser**
 
-Parse a YAML parameter file and populate the C data structure
+Parse a YAML parameter file and populate the C data structure.
+
+Features are described in detail at [http://docs.ros2.org](http://docs.ros2.org/latest/api/rcl_yaml_param_parser/index.html)
 
 The data structure params_st will then be used during node initialization
 
@@ -24,4 +26,8 @@ NOTE: It only supports canonical int and float types
         <field2_name>: <field2_value>
 ```
 
-This package depends on C libyaml
+This package depends on C libyaml.
+
+## Quality Declaration
+
+This package claims to be in the **Quality Level 1** category, see the [Quality Declaration](./QUALITY_DECLARATION.md) for more details.
