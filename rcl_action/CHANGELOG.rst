@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.2 (2021-02-05)
+------------------
+* Avoid setting error message twice. (`#887 <https://github.com/ros2/rcl/issues/887>`_)
+* Contributors: Chen Lihui
+
 2.5.1 (2021-01-25)
 ------------------
 

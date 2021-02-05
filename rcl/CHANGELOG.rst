@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.2 (2021-02-05)
+------------------
+* Reference test resources directly from source tree (`#554 <https://github.com/ros2/rcl/issues/554>`_)
+* Contributors: Scott K Logan
+
 2.5.1 (2021-01-25)
 ------------------
 * Re-add "Improve trigger test for graph guard condition (`#811 <https://github.com/ros2/rcl/issues/811>`_)" (`#884 <https://github.com/ros2/rcl/issues/884>`_)
