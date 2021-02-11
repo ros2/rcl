@@ -48,13 +48,6 @@ using osrf_testing_tools_cpp::memory_tools::on_unexpected_calloc;
 using osrf_testing_tools_cpp::memory_tools::on_unexpected_free;
 
 bool operator==(
-  const rmw_time_t & lhs,
-  const rmw_time_t & rhs)
-{
-  return lhs.sec == rhs.sec && lhs.nsec == rhs.nsec;
-}
-
-bool operator==(
   const rmw_qos_profile_t & lhs,
   const rmw_qos_profile_t & rhs)
 {

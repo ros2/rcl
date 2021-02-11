@@ -38,8 +38,8 @@ using namespace std::chrono_literals;
 using std::chrono::seconds;
 using std::chrono::duration_cast;
 
-constexpr seconds LIVELINESS_LEASE_DURATION_IN_S = 1s;
-constexpr seconds DEADLINE_PERIOD_IN_S = 2s;
+constexpr rmw_duration_t LIVELINESS_LEASE_DURATION = RCUTILS_S_TO_NS(1);
+constexpr rmw_duration_t DEADLINE_PERIOD = RCUTILS_S_TO_NS(2);
 constexpr seconds MAX_WAIT_PER_TESTCASE = 10s;
 
 #ifdef RMW_IMPLEMENTATION
@@ -249,10 +249,10 @@ const rmw_qos_profile_t TestEventFixture::default_qos_profile = {
   0,                                            // depth
   RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,       // reliability
   RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT,     // durability
-  {DEADLINE_PERIOD_IN_S.count(), 0},            // deadline
-  {0, 0},                                       // lifespan
+  DEADLINE_PERIOD,                              // deadline
+  0,                                            // lifespan
   RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,    // liveliness
-  {LIVELINESS_LEASE_DURATION_IN_S.count(), 0},  // liveliness_lease_duration
+  LIVELINESS_LEASE_DURATION,                    // liveliness_lease_duration
   false                                         // avoid_ros_namespace_conventions
 };
 
@@ -265,7 +265,7 @@ wait_for_msgs_and_events(
   bool * msg_ready,
   bool * subscription_event_ready,
   bool * publisher_event_ready,
-  seconds period = 1s)
+  rmw_duration_t period = RCUTILS_S_TO_NS(1))
 {
   *msg_ready = false;
   *subscription_event_ready = false;
@@ -303,7 +303,7 @@ wait_for_msgs_and_events(
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  ret = rcl_wait(&wait_set, RCL_S_TO_NS(period.count()));
+  ret = rcl_wait(&wait_set, period);
   if (ret == RCL_RET_TIMEOUT) {
     return ret;
   }
@@ -408,7 +408,7 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
   bool msg_ready, subscription_event_ready, publisher_event_ready;
   rcl_ret_t wait_res = wait_for_msgs_and_events(
     context_ptr, &subscription, &subscription_event, &publisher_event,
-    &msg_ready, &subscription_event_ready, &publisher_event_ready, DEADLINE_PERIOD_IN_S);
+    &msg_ready, &subscription_event_ready, &publisher_event_ready, DEADLINE_PERIOD);
   EXPECT_EQ(wait_res, RCL_RET_OK);
 
   // test that the message published to topic is as expected
@@ -546,7 +546,7 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  std::this_thread::sleep_for(2 * LIVELINESS_LEASE_DURATION_IN_S);
+  std::this_thread::sleep_for(2 * std::chrono::nanoseconds(LIVELINESS_LEASE_DURATION));
 
   WaitConditionPredicate all_ready = [](
     const bool & msg_persist_ready,
@@ -843,9 +843,9 @@ get_test_pubsub_incompatible_qos_inputs()
   inputs[1].testcase_name = "IncompatibleQoS_Deadline";
   inputs[1].qos_policy_kind = RMW_QOS_POLICY_DEADLINE;
   inputs[1].publisher_qos_profile = TestEventFixture::default_qos_profile;
-  inputs[1].publisher_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
+  inputs[1].publisher_qos_profile.deadline = DEADLINE_PERIOD + RCUTILS_S_TO_NS(5);
   inputs[1].subscription_qos_profile = TestEventFixture::default_qos_profile;
-  inputs[1].subscription_qos_profile.deadline = {DEADLINE_PERIOD_IN_S.count(), 0};
+  inputs[1].subscription_qos_profile.deadline = DEADLINE_PERIOD;
   inputs[1].error_msg = "Incompatible qos deadline";
 
   // liveliness
@@ -861,9 +861,9 @@ get_test_pubsub_incompatible_qos_inputs()
   inputs[3].testcase_name = "IncompatibleQoS_LivelinessLeaseDuration";
   inputs[3].qos_policy_kind = RMW_QOS_POLICY_LIVELINESS;
   inputs[3].publisher_qos_profile = TestEventFixture::default_qos_profile;
-  inputs[3].publisher_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count() + 5, 0};
+  inputs[3].publisher_qos_profile.liveliness_lease_duration = DEADLINE_PERIOD + RCUTILS_S_TO_NS(5);
   inputs[3].subscription_qos_profile = TestEventFixture::default_qos_profile;
-  inputs[3].subscription_qos_profile.liveliness_lease_duration = {DEADLINE_PERIOD_IN_S.count(), 0};
+  inputs[3].subscription_qos_profile.liveliness_lease_duration = DEADLINE_PERIOD;
   inputs[3].error_msg = "Incompatible qos liveliness lease duration";
 
   // reliability

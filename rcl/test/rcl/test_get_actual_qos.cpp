@@ -50,6 +50,8 @@
       INSTANTIATE_TEST_SUITE_P, instance_name, \
       CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
 
+static const rmw_duration_t MAX_SEC = RCUTILS_S_TO_NS(INT32_MAX);
+
 /**
  * Parameterized test.
  * The first param are the NodeOptions used to create the nodes.
@@ -67,34 +69,6 @@ std::ostream & operator<<(
   const TestParameters & params)
 {
   out << params.description;
-  return out;
-}
-
-bool operator==(
-  const rmw_time_t & lhs,
-  const rmw_time_t & rhs)
-{
-  return lhs.sec == rhs.sec && lhs.nsec == rhs.nsec;
-}
-
-bool operator>=(
-  const rmw_time_t & lhs,
-  const rmw_time_t & rhs)
-{
-  if (lhs.sec > rhs.sec) {
-    return true;
-  } else if (lhs.sec == rhs.sec) {
-    return lhs.nsec >= rhs.nsec;
-  } else {
-    return false;
-  }
-}
-
-std::ostream & operator<<(
-  std::ostream & out,
-  const rmw_time_t & param)
-{
-  out << "sec: " << param.sec << " nsec: " << param.nsec;
   return out;
 }
 
@@ -267,10 +241,9 @@ nondefault_qos_profile()
   profile.depth = 1000;
   profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  profile.deadline.sec = 1;
-  profile.lifespan.nsec = 500000;
+  profile.deadline = RCUTILS_S_TO_NS(1) + 500000;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 1;
+  profile.liveliness_lease_duration = RCUTILS_S_TO_NS(1);
   profile.avoid_ros_namespace_conventions = true;
   return profile;
 }
@@ -283,10 +256,9 @@ nondefault_qos_profile_for_fastrtps()
   profile.depth = 1000;
   profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  profile.deadline.sec = 1;
-  profile.lifespan.nsec = 500000;
+  profile.deadline = RCUTILS_S_TO_NS(1);
+  profile.lifespan = 500000;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  // profile.liveliness_lease_duration.sec = 1; // fastrtps does not fully support liveliness
   profile.avoid_ros_namespace_conventions = true;
   return profile;
 }
@@ -300,10 +272,10 @@ static constexpr rmw_qos_profile_t
 expected_default_qos_profile()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
-  profile.deadline.sec = 2147483647;
-  profile.lifespan.sec = 2147483647;
+  profile.deadline = MAX_SEC;
+  profile.lifespan = MAX_SEC;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
+  profile.liveliness_lease_duration = MAX_SEC;
   return profile;
 }
 
@@ -321,10 +293,10 @@ expected_nondefault_qos_profile_for_fastrtps()
   profile.depth = 1000;
   profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  profile.deadline.sec = 1;
-  profile.lifespan.nsec = 500000;
+  profile.deadline = RCUTILS_S_TO_NS(1);
+  profile.lifespan = 500000;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
+  profile.liveliness_lease_duration = MAX_SEC;
   profile.avoid_ros_namespace_conventions = true;
   return profile;
 }
@@ -334,10 +306,10 @@ expected_system_default_publisher_qos_profile()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
   profile.depth = 1;
-  profile.deadline.sec = 2147483647;
-  profile.lifespan.sec = 2147483647;
+  profile.deadline = MAX_SEC;
+  profile.lifespan = MAX_SEC;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
+  profile.liveliness_lease_duration = MAX_SEC;
   return profile;
 }
 
@@ -348,7 +320,7 @@ expected_system_default_publisher_qos_profile_for_fastrtps()
   profile.depth = 1;
   profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
+  profile.liveliness_lease_duration = MAX_SEC;
   return profile;
 }
 
@@ -358,9 +330,9 @@ expected_system_default_subscription_qos_profile()
   rmw_qos_profile_t profile = rmw_qos_profile_default;
   profile.depth = 1;
   profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  profile.deadline.sec = 2147483647;
+  profile.deadline = MAX_SEC;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
+  profile.liveliness_lease_duration = MAX_SEC;
   return profile;
 }
 
@@ -371,9 +343,9 @@ expected_system_default_subscription_qos_profile_for_fastrtps()
   profile.depth = 1;
   profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  profile.deadline.sec = 2147483647;
+  profile.deadline = MAX_SEC;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
+  profile.liveliness_lease_duration = MAX_SEC;
   return profile;
 }
 

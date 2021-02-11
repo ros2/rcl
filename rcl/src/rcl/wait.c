@@ -539,8 +539,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   }
   // Calculate the timeout argument.
   // By default, set the timer to block indefinitely if none of the below conditions are met.
-  rmw_time_t * timeout_argument = NULL;
-  rmw_time_t temporary_timeout_storage;
+  rmw_duration_t timeout_argument = -1;
 
   bool is_timer_timeout = false;
   int64_t min_timeout = timeout > 0 ? timeout : INT64_MAX;
@@ -582,25 +581,20 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   }
 
   if (timeout == 0) {
-    // Then it is non-blocking, so set the temporary storage to 0, 0 and pass it.
-    temporary_timeout_storage.sec = 0;
-    temporary_timeout_storage.nsec = 0;
-    timeout_argument = &temporary_timeout_storage;
+    timeout_argument = timeout;
   } else if (timeout > 0 || is_timer_timeout) {
     // If min_timeout was negative, we need to wake up immediately.
     if (min_timeout < 0) {
       min_timeout = 0;
     }
-    temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
-    temporary_timeout_storage.nsec = min_timeout % 1000000000;
-    timeout_argument = &temporary_timeout_storage;
+    timeout_argument = min_timeout;
   }
   RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
     !timeout_argument, ROS_PACKAGE_NAME, "Waiting without timeout");
   RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
     timeout_argument, ROS_PACKAGE_NAME,
-    "Waiting with timeout: %" PRIu64 "s + %" PRIu64 "ns",
-    temporary_timeout_storage.sec, temporary_timeout_storage.nsec);
+    "Waiting with timeout: %" PRIu64 "ns",
+    timeout_argument);
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Timeout calculated based on next scheduled timer: %s",
     is_timer_timeout ? "true" : "false");

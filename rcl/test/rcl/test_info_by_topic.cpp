@@ -110,20 +110,13 @@ public:
     rmw_qos_profile_t qos_profile1, rmw_qos_profile_t qos_profile2,
     bool is_publisher)
   {
-    EXPECT_EQ(qos_profile1.deadline.sec, qos_profile2.deadline.sec);
-    EXPECT_EQ(qos_profile1.deadline.nsec, qos_profile2.deadline.nsec);
+    EXPECT_EQ(qos_profile1.deadline, qos_profile2.deadline);
     if (is_publisher) {
-      EXPECT_EQ(qos_profile1.lifespan.sec, qos_profile2.lifespan.sec);
-      EXPECT_EQ(qos_profile1.lifespan.nsec, qos_profile2.lifespan.nsec);
+      EXPECT_EQ(qos_profile1.lifespan, qos_profile2.lifespan);
     }
     EXPECT_EQ(qos_profile1.reliability, qos_profile2.reliability);
     EXPECT_EQ(qos_profile1.liveliness, qos_profile2.liveliness);
-    EXPECT_EQ(
-      qos_profile1.liveliness_lease_duration.sec,
-      qos_profile2.liveliness_lease_duration.sec);
-    EXPECT_EQ(
-      qos_profile1.liveliness_lease_duration.nsec,
-      qos_profile2.liveliness_lease_duration.nsec);
+    EXPECT_EQ(qos_profile1.liveliness_lease_duration, qos_profile2.liveliness_lease_duration);
     EXPECT_EQ(qos_profile1.durability, qos_profile2.durability);
   }
 };
@@ -327,9 +320,9 @@ TEST_F(
   default_qos_profile.depth = 0;
   default_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   default_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  default_qos_profile.lifespan = {10, 0};
-  default_qos_profile.deadline = {11, 0};
-  default_qos_profile.liveliness_lease_duration = {20, 0};
+  default_qos_profile.lifespan = RCUTILS_S_TO_NS(10);
+  default_qos_profile.deadline = RCUTILS_S_TO_NS(11);
+  default_qos_profile.liveliness_lease_duration = RCUTILS_S_TO_NS(20);
   default_qos_profile.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
 
   rcl_ret_t ret;
