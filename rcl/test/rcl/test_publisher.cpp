@@ -820,8 +820,13 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
     &publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  // Internal rmw failure destroying publisher
-  auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_destroy_publisher, RMW_RET_ERROR);
+  {
+    // Internal rmw failure destroying publisher
+    auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_destroy_publisher, RMW_RET_ERROR);
+    ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  }
+
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }

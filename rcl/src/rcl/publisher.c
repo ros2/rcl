@@ -183,7 +183,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
       rmw_destroy_publisher(rmw_node, publisher->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-      result = RCL_RET_ERROR;
+      return RCL_RET_ERROR;
     }
     allocator.deallocate(publisher->impl, allocator.state);
     publisher->impl = NULL;
