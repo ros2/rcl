@@ -1128,7 +1128,7 @@ TEST_F(
   {
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_subscription_set_cft_expression_parameters, RMW_RET_UNSUPPORTED);
-    std::string filter_expression = "(data_ MATCH '0')";
+    std::string filter_expression = "data MATCH '0'";
     EXPECT_EQ(
       RMW_RET_UNSUPPORTED,
       rcl_subscription_set_cft_expression_parameters(
@@ -1140,7 +1140,7 @@ TEST_F(
   {
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_subscription_set_cft_expression_parameters, RMW_RET_ERROR);
-    std::string filter_expression = "(data_ MATCH '0')";
+    std::string filter_expression = "data MATCH '0'";
     EXPECT_EQ(
       RCL_RET_ERROR,
       rcl_subscription_set_cft_expression_parameters(

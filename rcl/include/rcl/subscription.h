@@ -249,7 +249,7 @@ rcl_subscription_options_copy(
  *
  * \param[in] option The structure which its resources have to be deallocated.
  * \return `RCL_RET_OK` if the memory was successfully freed, or
- * \return `RCL_RET_INVALID_ARGUMENT` if log_levels is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
  *  if its allocator is invalid and the structure contains initialized memory.
  */
 RCL_PUBLIC
@@ -282,14 +282,12 @@ rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription);
  * Lock-Free          | Maybe [1]
  *
  * \param[in] subscription the subscription object to inspect.
- * \param[in] filter_expression An filter expression to set.
+ * \param[in] filter_expression A filter expression to set.
  * \param[in] expression_parameters Array of expression parameters to set,
  *   it can be NULL if there is no placeholder in filter_expression.
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `filter_expression` is NULL, or
- * \return `RCL_RET_INCORRECT_RMW_IMPLEMENTATION` if the `node` implementation
- *   identifier does not match this implementation, or
  * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
@@ -323,9 +321,7 @@ rcl_subscription_set_cft_expression_parameters(
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `filter_expression` is NULL, or
- * \return `RMW_RET_INVALID_ARGUMENT` if `expression_parameters` is NULL, or
- * \return `RCL_RET_INCORRECT_RMW_IMPLEMENTATION` if the `node` implementation
- *   identifier does not match this implementation, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `expression_parameters` is NULL, or
  * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
  * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
