@@ -121,7 +121,7 @@ TEST_F(TestClientFixture, test_client_nominal) {
 TEST_F(TestClientFixture, test_client_init_fini) {
   rcl_ret_t ret;
   // Setup valid inputs.
-  rcl_client_t client;
+  rcl_client_t client = rcl_get_zero_initialized_client();
 
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     test_msgs, srv, BasicTypes);
