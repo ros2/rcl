@@ -209,34 +209,6 @@ RCL_WARN_UNUSED
 rcl_subscription_options_t
 rcl_subscription_get_default_options(void);
 
-/// Copy one rcl_subscription_options_t structure into another.
-/**
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | Yes
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] src The structure to be copied.
- *  Its allocator is used to copy memory into the new structure.
- * \param[out] dst A rcl_subscription_options_t structure to be copied into.
- * \return `RCL_RET_OK` if the structure was copied successfully, or
- * \return `RCL_RET_INVALID_ARGUMENT` if src is NULL, or
- *  if src allocator is invalid, or
- *  if dst is NULL, or
- *  if dst contains already allocated memory, or
- * \return `RCL_RET_BAD_ALLOC` if allocating memory failed.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_subscription_options_copy(
-  const rcl_subscription_options_t * src,
-  rcl_subscription_options_t * dst
-);
-
 /// Reclaim resources held inside rcl_subscription_options_t structure.
 /**
  * <hr>

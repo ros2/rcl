@@ -118,10 +118,7 @@ rcl_subscription_init(
   }
   subscription->impl->actual_qos.avoid_ros_namespace_conventions =
     options->qos.avoid_ros_namespace_conventions;
-  ret = rcl_subscription_options_copy(options, &subscription->impl->options);
-  if (RCL_RET_OK != ret) {
-    goto fail;
-  }
+  subscription->impl->options = *options;
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
@@ -210,79 +207,6 @@ rcl_subscription_get_default_options()
   default_options.allocator = rcl_get_default_allocator();
   default_options.rmw_subscription_options = rmw_get_default_subscription_options();
   return default_options;
-}
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_subscription_options_copy(
-  const rcl_subscription_options_t * src,
-  rcl_subscription_options_t * dst
-)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(src, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(dst, RCL_RET_INVALID_ARGUMENT);
-  const rcl_allocator_t * allocator = &src->allocator;
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-
-  rcl_ret_t ret = RCL_RET_OK;
-  dst->qos = src->qos;
-  dst->allocator = src->allocator;
-  // copy rmw_subscription_options_t
-  dst->rmw_subscription_options.rmw_specific_subscription_payload =
-    src->rmw_subscription_options.rmw_specific_subscription_payload;
-  dst->rmw_subscription_options.ignore_local_publications =
-    src->rmw_subscription_options.ignore_local_publications;
-  if (src->rmw_subscription_options.filter_expression) {
-    dst->rmw_subscription_options.filter_expression =
-      rcutils_strdup(src->rmw_subscription_options.filter_expression, *allocator);
-    if (!dst->rmw_subscription_options.filter_expression) {
-      RMW_SET_ERROR_MSG("failed to allocate memory for filter expression");
-      ret = RCL_RET_BAD_ALLOC;
-      goto clean;
-    }
-
-    // set expression parameters only if filter expression is valid
-    if (src->rmw_subscription_options.expression_parameters) {
-      rcutils_string_array_t * parameters =
-        (rcutils_string_array_t *)allocator->allocate(
-        sizeof(rcutils_string_array_t),
-        allocator->state);
-      if (!parameters) {
-        RMW_SET_ERROR_MSG("failed to allocate memory for expression parameters");
-        ret = RCL_RET_BAD_ALLOC;
-        goto clean;
-      }
-
-      dst->rmw_subscription_options.expression_parameters = parameters;
-
-      rcutils_ret_t ret = rcutils_string_array_init(
-        parameters, src->rmw_subscription_options.expression_parameters->size, allocator);
-      if (RCUTILS_RET_OK != ret) {
-        ret = RCL_RET_BAD_ALLOC;
-        goto clean;
-      }
-
-      for (size_t i = 0; i < src->rmw_subscription_options.expression_parameters->size; ++i) {
-        char * parameter = rcutils_strdup(
-          src->rmw_subscription_options.expression_parameters->data[i], *allocator);
-        if (!parameter) {
-          RMW_SET_ERROR_MSG("failed to allocate memory for expression parameter");
-          ret = RCL_RET_BAD_ALLOC;
-          goto clean;
-        }
-        parameters->data[i] = parameter;
-      }
-    }
-  }
-
-  return RCL_RET_OK;
-
-clean:
-  if (RCL_RET_OK != rcl_subscription_options_fini(dst)) {
-    RCL_SET_ERROR_MSG("Error while finalizing rcl subscription options due to another error");
-  }
-  return ret;
 }
 
 RCL_PUBLIC
