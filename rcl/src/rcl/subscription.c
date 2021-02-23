@@ -315,7 +315,6 @@ bool
 rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription)
 {
   if (!rcl_subscription_is_valid(subscription)) {
-    rcl_reset_error();
     return false;
   }
   return subscription->impl->rmw_handle->is_cft_supported;
