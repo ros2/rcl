@@ -1104,7 +1104,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   rcl_reset_error();
 }
 
-/* Test for all failure modes in subscription rcl_subscription_set_cft_expression_parameters function.
+/* Test for all failure modes in rcl_subscription_set_cft_expression_parameters function.
  */
 TEST_F(
   CLASSNAME(
@@ -1150,7 +1150,7 @@ TEST_F(
   }
 }
 
-/* Test for all failure modes in subscription rcl_subscription_get_cft_expression_parameters function.
+/* Test for all failure modes in rcl_subscription_get_cft_expression_parameters function.
  */
 TEST_F(
   CLASSNAME(
