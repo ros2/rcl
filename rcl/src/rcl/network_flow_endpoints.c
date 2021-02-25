@@ -18,8 +18,8 @@ extern "C"
 #endif
 
 #include "rcl/error_handling.h"
-#include "rcl/get_network_flow_endpoint.h"
 #include "rcl/graph.h"
+#include "rcl/network_flow_endpoints.h"
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
 
@@ -28,7 +28,7 @@ extern "C"
 #include "rcutils/types.h"
 
 #include "rmw/error_handling.h"
-#include "rmw/network_flow_endpoints.h"
+#include "rmw/get_network_flow_endpoints.h"
 #include "rmw/network_flow_endpoint_array.h"
 #include "rmw/types.h"
 
@@ -58,7 +58,7 @@ __validate_allocator_and_network_flow_endpoint_array(
 }
 
 rcl_ret_t
-rcl_publisher_get_network_flow_endpoint(
+rcl_publisher_get_network_flow_endpoints(
   const rcl_publisher_t * publisher,
   rcutils_allocator_t * allocator,
   rcl_network_flow_endpoint_array_t * network_flow_endpoint_array)
@@ -67,13 +67,15 @@ rcl_publisher_get_network_flow_endpoint(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  rcl_ret_t rcl_ret = __validate_allocator_and_network_flow_endpoint_array(allocator, network_flow_endpoint_array);
+  rcl_ret_t rcl_ret = __validate_allocator_and_network_flow_endpoint_array(
+    allocator,
+    network_flow_endpoint_array);
   if (rcl_ret != RCL_RET_OK) {
     return rcl_ret;
   }
 
   rmw_error_string_t error_string;
-  rmw_ret_t rmw_ret = rmw_publisher_get_network_flow_endpoint(
+  rmw_ret_t rmw_ret = rmw_publisher_get_network_flow_endpoints(
     rcl_publisher_get_rmw_handle(publisher),
     allocator,
     network_flow_endpoint_array);
@@ -86,7 +88,7 @@ rcl_publisher_get_network_flow_endpoint(
 }
 
 rcl_ret_t
-rcl_subscription_get_network_flow_endpoint(
+rcl_subscription_get_network_flow_endpoints(
   const rcl_subscription_t * subscription,
   rcutils_allocator_t * allocator,
   rcl_network_flow_endpoint_array_t * network_flow_endpoint_array)
@@ -95,13 +97,15 @@ rcl_subscription_get_network_flow_endpoint(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  rcl_ret_t rcl_ret = __validate_allocator_and_network_flow_endpoint_array(allocator, network_flow_endpoint_array);
+  rcl_ret_t rcl_ret = __validate_allocator_and_network_flow_endpoint_array(
+    allocator,
+    network_flow_endpoint_array);
   if (rcl_ret != RCL_RET_OK) {
     return rcl_ret;
   }
 
   rmw_error_string_t error_string;
-  rmw_ret_t rmw_ret = rmw_subscription_get_network_flow_endpoint(
+  rmw_ret_t rmw_ret = rmw_subscription_get_network_flow_endpoints(
     rcl_subscription_get_rmw_handle(subscription),
     allocator,
     network_flow_endpoint_array);

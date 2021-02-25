@@ -212,7 +212,8 @@ TEST_F(
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t failing_allocator = get_failing_allocator();
-  rcl_network_flow_endpoint_array_t network_flow_endpoint_array = rcl_get_zero_initialized_network_flow_endpoint_array();
+  rcl_network_flow_endpoint_array_t network_flow_endpoint_array =
+    rcl_get_zero_initialized_network_flow_endpoint_array();
 
   // Invalid publisher
   ret = rcl_publisher_get_network_flow_endpoints(
@@ -222,39 +223,43 @@ TEST_F(
 
   // Invalid allocator
   ret = rcl_publisher_get_network_flow_endpoints(
-    &this->publisher, nullptr, &network_flow_endpoint_array);
+    &this->publisher_1, nullptr, &network_flow_endpoint_array);
   EXPECT_EQ(ret == RCL_RET_INVALID_ARGUMENT || ret == RCL_RET_UNSUPPORTED, true);
   rcl_reset_error();
 
   // Invalid network_flow_endpoint_array
   ret = rcl_publisher_get_network_flow_endpoints(
-    &this->publisher, &allocator, nullptr);
+    &this->publisher_1, &allocator, nullptr);
   EXPECT_EQ(ret == RCL_RET_INVALID_ARGUMENT || ret == RCL_RET_UNSUPPORTED, true);
   rcl_reset_error();
 
   // Failing allocator
   set_failing_allocator_is_failing(failing_allocator, true);
   ret = rcl_publisher_get_network_flow_endpoints(
-    &this->publisher, &failing_allocator, &network_flow_endpoint_array);
+    &this->publisher_1, &failing_allocator, &network_flow_endpoint_array);
   EXPECT_EQ(ret == RCL_RET_BAD_ALLOC || ret == RCL_RET_UNSUPPORTED, true);
   rcl_reset_error();
 
   // Non-zero network_flow_endpoint_array
   network_flow_endpoint_array.size = 1;
   ret = rcl_publisher_get_network_flow_endpoints(
-    &this->publisher, &allocator, &network_flow_endpoint_array);
+    &this->publisher_1, &allocator, &network_flow_endpoint_array);
   EXPECT_EQ(ret == RCL_RET_ERROR || ret == RCL_RET_UNSUPPORTED, true);
   rcl_reset_error();
 }
 
-TEST_F(CLASSNAME(TestPublisherNetworkFlowEndpoints, RMW_IMPLEMENTATION), test_publisher_get_network_flow_endpoints) {
+TEST_F(
+  CLASSNAME(
+    TestPublisherNetworkFlowEndpoints,
+    RMW_IMPLEMENTATION), test_publisher_get_network_flow_endpoints) {
   rcl_ret_t ret_1;
   rcl_ret_t ret_2;
   bool flag = false;
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
   // Get network flow endpoints of ordinary publisher
-  rcl_network_flow_endpoint_array_t network_flow_endpoint_array_1 = rcl_get_zero_initialized_network_flow_endpoint_array();
+  rcl_network_flow_endpoint_array_t network_flow_endpoint_array_1 =
+    rcl_get_zero_initialized_network_flow_endpoint_array();
   ret_1 = rcl_publisher_get_network_flow_endpoints(
     &this->publisher_1, &allocator, &network_flow_endpoint_array_1);
   if (ret_1 == RCL_RET_OK || ret_1 == RCL_RET_UNSUPPORTED) {
@@ -269,7 +274,7 @@ TEST_F(CLASSNAME(TestPublisherNetworkFlowEndpoints, RMW_IMPLEMENTATION), test_pu
   if (rcl_publisher_is_valid(&this->publisher_2)) {
     rcl_network_flow_endpoint_array_t network_flow_endpoint_array_2 =
       rcl_get_zero_initialized_network_flow_endpoint_array();
-    ret_2 = rcl_publisher_get_network_flow(
+    ret_2 = rcl_publisher_get_network_flow_endpoints(
       &this->publisher_2, &allocator, &network_flow_endpoint_array_2);
     if (ret_2 == RCL_RET_OK || ret_2 == RCL_RET_UNSUPPORTED) {
       flag = true;
@@ -319,7 +324,8 @@ TEST_F(
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t failing_allocator = get_failing_allocator();
-  rcl_network_flow_endpoint_array_t network_flow_endpoint_array = rcl_get_zero_initialized_network_flow_endpoint_array();
+  rcl_network_flow_endpoint_array_t network_flow_endpoint_array =
+    rcl_get_zero_initialized_network_flow_endpoint_array();
 
   // Invalid subscription
   ret = rcl_subscription_get_network_flow_endpoints(
@@ -329,27 +335,27 @@ TEST_F(
 
   // Invalid allocator
   ret = rcl_subscription_get_network_flow_endpoints(
-    &this->subscription, nullptr, &network_flow_endpoint_array);
+    &this->subscription_1, nullptr, &network_flow_endpoint_array);
   EXPECT_EQ(ret == RCL_RET_INVALID_ARGUMENT || ret == RCL_RET_UNSUPPORTED, true);
   rcl_reset_error();
 
   // Invalid network_flow_endpoint_array
   ret = rcl_subscription_get_network_flow_endpoints(
-    &this->subscription, &allocator, nullptr);
+    &this->subscription_1, &allocator, nullptr);
   EXPECT_EQ(ret == RCL_RET_INVALID_ARGUMENT || ret == RCL_RET_UNSUPPORTED, true);
   rcl_reset_error();
 
   // Failing allocator
   set_failing_allocator_is_failing(failing_allocator, true);
   ret = rcl_subscription_get_network_flow_endpoints(
-    &this->subscription, &failing_allocator, &network_flow_endpoint_array);
+    &this->subscription_1, &failing_allocator, &network_flow_endpoint_array);
   EXPECT_EQ(ret == RCL_RET_BAD_ALLOC || ret == RCL_RET_UNSUPPORTED, true);
   rcl_reset_error();
 
   // Non-zero network_flow_endpoint_array
   network_flow_endpoint_array.size = 1;
   ret = rcl_subscription_get_network_flow_endpoints(
-    &this->subscription, &allocator, &network_flow_endpoint_array);
+    &this->subscription_1, &allocator, &network_flow_endpoint_array);
   EXPECT_EQ(ret == RCL_RET_ERROR || ret == RCL_RET_UNSUPPORTED, true);
   rcl_reset_error();
 }
@@ -364,9 +370,10 @@ TEST_F(
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
   // Get network flow endpoints of ordinary subscription
-  rcl_network_flow_endpoint_array_t network_flow_endpoint_array_1 = rcl_get_zero_initialized_network_flow_endpoint_array();
+  rcl_network_flow_endpoint_array_t network_flow_endpoint_array_1 =
+    rcl_get_zero_initialized_network_flow_endpoint_array();
   ret_1 = rcl_subscription_get_network_flow_endpoints(
-    &this->subscription, &allocator, &network_flow_endpoint_array_1);
+    &this->subscription_1, &allocator, &network_flow_endpoint_array_1);
   if (ret_1 == RCL_RET_OK || ret_1 == RCL_RET_UNSUPPORTED) {
     flag = true;
   }
@@ -379,7 +386,7 @@ TEST_F(
   if (rcl_subscription_is_valid(&this->subscription_2)) {
     rcl_network_flow_endpoint_array_t network_flow_endpoint_array_2 =
       rcl_get_zero_initialized_network_flow_endpoint_array();
-    ret_2 = rcl_subscription_get_network_flow(
+    ret_2 = rcl_subscription_get_network_flow_endpoints(
       &this->subscription_2, &allocator, &network_flow_endpoint_array_2);
     if (ret_2 == RCL_RET_OK || ret_2 == RCL_RET_UNSUPPORTED) {
       flag = true;
