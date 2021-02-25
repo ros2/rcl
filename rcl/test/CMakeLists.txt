@@ -290,8 +290,8 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_network_flow${target_suffix}
-    SRCS rcl/test_network_flow.cpp
+  rcl_add_custom_gtest(test_network_flow_endpoints${target_suffix}
+    SRCS rcl/test_network_flow_endpoints.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
