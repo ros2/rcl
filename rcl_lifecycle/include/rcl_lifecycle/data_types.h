@@ -70,6 +70,8 @@ typedef struct rcl_lifecycle_transition_map_t
 /// It contains the communication interfac with the ROS world
 typedef struct rcl_lifecycle_com_interface_t
 {
+  /// Flag indicating whether the com interface is enabled or not.
+  bool enabled;
   /// Handle to the node used to create the publisher and the services
   rcl_node_t * node_handle;
   /// Event used to publish the transitions

@@ -86,7 +86,9 @@ rcl_lifecycle_com_interface_init(
 
   if (RCL_RET_OK != ret) {
     // cleanup the publisher, which was correctly initialized
-    (void) rcl_lifecycle_com_interface_publisher_fini(com_interface, node_handle);
+    rcl_ret_t ret_fini = rcl_lifecycle_com_interface_publisher_fini(com_interface, node_handle);
+    // warning is already set, no need to log anything here
+    (void) ret_fini;
   }
 
   return ret;
@@ -119,7 +121,8 @@ rcl_lifecycle_com_interface_publisher_init(
 
 fail:
   // error message is already logged on failure
-  (void) rcl_lifecycle_com_interface_publisher_fini(com_interface, node_handle);
+  ret = rcl_lifecycle_com_interface_publisher_fini(com_interface, node_handle);
+  (void) ret;
   return RCL_RET_ERROR;
 }
 
@@ -128,18 +131,15 @@ rcl_lifecycle_com_interface_publisher_fini(
   rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle)
 {
-  rcl_ret_t fcn_ret = RCL_RET_OK;
-
   lifecycle_msgs__msg__TransitionEvent__fini(&msg);
 
   rcl_ret_t ret = rcl_publisher_fini(
     &com_interface->pub_transition_event, node_handle);
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to destroy transition_event publisher");
-    fcn_ret = RCL_RET_ERROR;
   }
 
-  return fcn_ret;
+  return ret;
 }
 
 rcl_ret_t
@@ -160,10 +160,12 @@ rcl_lifecycle_com_interface_services_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_available_transitions, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(ts_srv_get_transition_graph, RCL_RET_INVALID_ARGUMENT);
 
+  rcl_ret_t ret = RCL_RET_OK;
+
   // initialize change state service
   {
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(
+    ret = rcl_service_init(
       &com_interface->srv_change_state, node_handle,
       ts_srv_change_state, srv_change_state_service, &service_options);
 
@@ -175,7 +177,7 @@ rcl_lifecycle_com_interface_services_init(
   // initialize get state service
   {
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(
+    ret = rcl_service_init(
       &com_interface->srv_get_state, node_handle,
       ts_srv_get_state, srv_get_state_service, &service_options);
 
@@ -187,7 +189,7 @@ rcl_lifecycle_com_interface_services_init(
   // initialize get available states service
   {
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(
+    ret = rcl_service_init(
       &com_interface->srv_get_available_states, node_handle,
       ts_srv_get_available_states, srv_get_available_states_service, &service_options);
 
@@ -199,7 +201,7 @@ rcl_lifecycle_com_interface_services_init(
   // initialize get available transitions service
   {
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(
+    ret = rcl_service_init(
       &com_interface->srv_get_available_transitions, node_handle,
       ts_srv_get_available_transitions, srv_get_available_transitions_service, &service_options);
 
@@ -211,7 +213,7 @@ rcl_lifecycle_com_interface_services_init(
   // initialize get transition graph service
   {
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    rcl_ret_t ret = rcl_service_init(
+    ret = rcl_service_init(
       &com_interface->srv_get_transition_graph, node_handle,
       ts_srv_get_transition_graph, srv_get_transition_graph, &service_options);
 
@@ -223,7 +225,8 @@ rcl_lifecycle_com_interface_services_init(
 
 fail:
   // error messages already logged on failure
-  (void) rcl_lifecycle_com_interface_services_fini(com_interface, node_handle);
+  ret = rcl_lifecycle_com_interface_services_fini(com_interface, node_handle);
+  (void) ret;
   return RCL_RET_ERROR;
 }
 

@@ -219,6 +219,7 @@ rcl_lifecycle_state_machine_init(
       return RCL_RET_ERROR;
     }
   }
+  state_machine->com_interface.enabled = enable_com_interface;
 
   if (default_states) {
     rcl_ret_t ret = rcl_lifecycle_init_default_state_machine(state_machine, allocator);
@@ -276,18 +277,21 @@ rcl_lifecycle_state_machine_fini(
 rcl_ret_t
 rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    state_machine->com_interface.srv_get_state.impl, "get_state service is null\n",
-    return RCL_RET_INVALID_ARGUMENT);
+  if (state_machine->com_interface.enabled) {
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+      state_machine->com_interface.srv_get_state.impl, "get_state service is null\n",
+      return RCL_RET_INVALID_ARGUMENT);
 
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    state_machine->com_interface.srv_change_state.impl, "change_state service is null\n",
-    return RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+      state_machine->com_interface.srv_change_state.impl, "change_state service is null\n",
+      return RCL_RET_INVALID_ARGUMENT);
+  }
 
   if (rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map) != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("transition map is null");
     return RCL_RET_INVALID_ARGUMENT;
   }
+
   return RCL_RET_OK;
 }
 
