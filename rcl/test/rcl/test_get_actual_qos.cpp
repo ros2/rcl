@@ -430,10 +430,7 @@ get_parameters(bool for_publisher)
       });
     }
   } else {
-    if (rmw_implementation_str == "rmw_connext_cpp" ||
-      rmw_implementation_str == "rmw_connext_dynamic_cpp" ||
-      rmw_implementation_str == "rmw_opensplice_cpp")
-    {
+    if (rmw_implementation_str == "rmw_opensplice_cpp") {
       /*
        * Test with non-default settings.
        */
