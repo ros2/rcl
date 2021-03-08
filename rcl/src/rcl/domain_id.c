@@ -22,7 +22,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
-const char * const RCL_DOMAIN_ID_ENV_VAR = "ROS_DOMAIN_ID";
+static const char * const RCL_DOMAIN_ID_ENV_VAR = "ROS_DOMAIN_ID";
 
 rcl_ret_t
 rcl_get_default_domain_id(size_t * domain_id)

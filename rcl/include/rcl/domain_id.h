@@ -31,8 +31,6 @@ extern "C"
 /// The default domain ID used by RCL.
 #define RCL_DEFAULT_DOMAIN_ID RMW_DEFAULT_DOMAIN_ID
 
-extern const char * const RCL_DOMAIN_ID_ENV_VAR;
-
 /// Determine the default domain ID, based on the environment.
 /**
  * \param[out] domain_id Must not be NULL.
