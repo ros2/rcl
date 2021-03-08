@@ -606,7 +606,6 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
 
 /*
  * Basic test of publisher and subscriber incompatible qos callback events.
- * Only implemented in opensplice at the moment.
  */
 TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
 {

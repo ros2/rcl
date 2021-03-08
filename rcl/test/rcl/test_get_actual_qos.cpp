@@ -429,37 +429,6 @@ get_parameters(bool for_publisher)
         "system_default_publisher_qos"
       });
     }
-  } else {
-    if (rmw_implementation_str == "rmw_opensplice_cpp") {
-      /*
-       * Test with non-default settings.
-       */
-      parameters.push_back(
-      {
-        nondefault_qos_profile(),
-        expected_nondefault_qos_profile(),
-        "nondefault_qos"
-      });
-
-      /*
-       * Test with system default settings.
-       */
-      if (for_publisher) {
-        parameters.push_back(
-        {
-          rmw_qos_profile_system_default,
-          expected_system_default_publisher_qos_profile(),
-          "system_default_publisher_qos"
-        });
-      } else {
-        parameters.push_back(
-        {
-          rmw_qos_profile_system_default,
-          expected_system_default_subscription_qos_profile(),
-          "system_default_publisher_qos"
-        });
-      }
-    }
   }
 #endif
 
