@@ -22,7 +22,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
-const char * const RCL_LOCALHOST_ENV_VAR = "ROS_LOCALHOST_ONLY";
+static const char * const RCL_LOCALHOST_ENV_VAR = "ROS_LOCALHOST_ONLY";
 
 rcl_ret_t
 rcl_get_localhost_only(rmw_localhost_only_t * localhost_only)

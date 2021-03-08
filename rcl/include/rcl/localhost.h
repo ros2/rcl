@@ -26,8 +26,6 @@ extern "C"
 #include "rcl/visibility_control.h"
 #include "rmw/localhost.h"
 
-extern const char * const RCL_LOCALHOST_ENV_VAR;
-
 /// Determine if the user wants to communicate using loopback only.
 /**
  * Checks if localhost should be used for network communication based on environment.
