@@ -122,7 +122,7 @@ rcl_logging_configure(const rcl_arguments_t * global_args, const rcl_allocator_t
     global_args, allocator, &rcl_logging_multiple_output_handler);
 }
 
-rcl_ret_t rcl_logging_fini()
+rcl_ret_t rcl_logging_fini(void)
 {
   rcl_ret_t status = RCL_RET_OK;
   rcutils_logging_set_output_handler(rcutils_logging_console_output_handler);
@@ -143,7 +143,7 @@ rcl_ret_t rcl_logging_fini()
   return status;
 }
 
-bool rcl_logging_rosout_enabled()
+bool rcl_logging_rosout_enabled(void)
 {
   return g_rcl_logging_rosout_enabled;
 }
