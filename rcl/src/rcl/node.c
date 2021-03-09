@@ -53,7 +53,7 @@ extern "C"
 
 #include "./context_impl.h"
 
-typedef struct rcl_node_impl_t
+typedef struct rcl_node_impl
 {
   rcl_node_options_t options;
   rmw_node_t * rmw_node_handle;
@@ -497,7 +497,7 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node)
   return rcl_context_get_instance_id(node->context);
 }
 
-const struct rcl_guard_condition_t *
+const rcl_guard_condition_t *
 rcl_node_get_graph_guard_condition(const rcl_node_t * node)
 {
   if (!rcl_node_is_valid_except_context(node)) {

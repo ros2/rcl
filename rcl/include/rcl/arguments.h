@@ -29,13 +29,13 @@ extern "C"
 {
 #endif
 
-struct rcl_arguments_impl_t;
+struct rcl_arguments_impl;
 
 /// Hold output of parsing command line arguments.
-typedef struct rcl_arguments_t
+typedef struct rcl_arguments
 {
   /// Private implementation pointer.
-  struct rcl_arguments_impl_t * impl;
+  struct rcl_arguments_impl * impl;
 } rcl_arguments_t;
 
 /// The command-line flag that delineates the start of ROS arguments.
@@ -341,7 +341,7 @@ rcl_arguments_get_param_overrides(
 /// Return a list of arguments with ROS-specific arguments removed.
 /**
  * Some arguments may not have been intended as ROS arguments.
- * This function populates an array of the aruments in a new argv array.
+ * This function populates an array of the arguments in a new argv array.
  * Since the first argument is always assumed to be a process name, the list
  * will always contain the first value from the argument vector.
  *
@@ -353,11 +353,11 @@ rcl_arguments_get_param_overrides(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] argv The argument vector
+ * \param[in] argv The argument vector.
  * \param[in] args An arguments structure that has been parsed.
  * \param[in] allocator A valid allocator.
- * \param[out] nonros_argc The count of arguments that aren't ROS-specific
- * \param[out] nonros_argv An allocated array of arguments that aren't ROS-specific
+ * \param[out] nonros_argc The count of arguments that aren't ROS-specific.
+ * \param[out] nonros_argv An allocated array of arguments that aren't ROS-specific.
  *   This array must be deallocated by the caller using the given allocator.
  *   If there are no non-ROS args, then the output will be set to NULL.
  * \return #RCL_RET_OK if everything goes correctly, or

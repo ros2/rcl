@@ -30,7 +30,7 @@ extern "C"
 #include "rmw/rmw.h"
 #include "tracetools/tracetools.h"
 
-typedef struct rcl_service_impl_t
+typedef struct rcl_service_impl
 {
   rcl_service_options_t options;
   rmw_service_t * rmw_handle;

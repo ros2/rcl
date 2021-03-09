@@ -26,7 +26,7 @@ extern "C"
 
 #include "./context_impl.h"
 
-typedef struct rcl_guard_condition_impl_t
+typedef struct rcl_guard_condition_impl
 {
   rmw_guard_condition_t * rmw_handle;
   bool allocated_rmw_guard_condition;

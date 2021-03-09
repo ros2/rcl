@@ -27,7 +27,7 @@ extern "C"
 #endif
 
 /// Enum doubles as a bitmask for rule sthat apply to both topics and services.
-typedef enum rcl_remap_type_t
+typedef enum rcl_remap_type
 {
   RCL_UNKNOWN_REMAP = 0,
   RCL_TOPIC_REMAP = 1u << 0,
@@ -36,7 +36,7 @@ typedef enum rcl_remap_type_t
   RCL_NAMESPACE_REMAP = 1u << 3
 } rcl_remap_type_t;
 
-typedef struct rcl_remap_impl_t
+typedef struct rcl_remap_impl
 {
   /// Bitmask indicating what type of rule this is.
   rcl_remap_type_t type;

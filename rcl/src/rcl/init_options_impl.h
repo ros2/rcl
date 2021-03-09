@@ -25,7 +25,7 @@ extern "C"
 #endif
 
 /// \internal
-typedef struct rcl_init_options_impl_t
+typedef struct rcl_init_options_impl
 {
   rcl_allocator_t allocator;
   rmw_init_options_t rmw_init_options;

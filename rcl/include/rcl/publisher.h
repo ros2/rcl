@@ -29,17 +29,17 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 /// Internal rcl publisher implementation struct.
-struct rcl_publisher_impl_t;
+struct rcl_publisher_impl;
 
 /// Structure which encapsulates a ROS Publisher.
-typedef struct rcl_publisher_t
+typedef struct rcl_publisher
 {
   /// Pointer to the publisher implementation
-  struct rcl_publisher_impl_t * impl;
+  struct rcl_publisher_impl * impl;
 } rcl_publisher_t;
 
 /// Options available for a rcl publisher.
-typedef struct rcl_publisher_options_t
+typedef struct rcl_publisher_options
 {
   /// Middleware quality of service settings for the publisher.
   rmw_qos_profile_t qos;

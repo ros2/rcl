@@ -29,13 +29,13 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-struct rcl_init_options_impl_t;
+struct rcl_init_options_impl;
 
 /// Encapsulation of init options and implementation defined init options.
-typedef struct rcl_init_options_t
+typedef struct rcl_init_options
 {
   /// Implementation specific pointer.
-  struct rcl_init_options_impl_t * impl;
+  struct rcl_init_options_impl * impl;
 } rcl_init_options_t;
 
 /// Return a zero initialized rcl_init_options_t struct.

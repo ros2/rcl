@@ -33,7 +33,7 @@ extern "C"
 
 #include "./common.h"
 
-typedef struct rcl_client_impl_t
+typedef struct rcl_client_impl
 {
   rcl_client_options_t options;
   rmw_client_t * rmw_handle;

@@ -33,7 +33,7 @@ extern "C"
 
 #include "./context_impl.h"
 
-typedef struct rcl_wait_set_impl_t
+typedef struct rcl_wait_set_impl
 {
   // number of subscriptions that have been added to the wait set
   size_t subscription_index;

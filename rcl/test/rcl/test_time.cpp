@@ -391,7 +391,7 @@ static bool pre_callback_called = false;
 static bool post_callback_called = false;
 
 void clock_callback(
-  const struct rcl_time_jump_t * time_jump,
+  const rcl_time_jump_t * time_jump,
   bool before_jump,
   void * user_data)
 {
