@@ -5,6 +5,7 @@ PROJECT_NUMBER         = master
 PROJECT_BRIEF          = "C API providing common ROS client library functionality."
 
 INPUT                  = ./include
+EXCLUDE                = ./include/rcl/arguments.h
 RECURSIVE              = YES
 EXTRACT_ALL            = NO
 
