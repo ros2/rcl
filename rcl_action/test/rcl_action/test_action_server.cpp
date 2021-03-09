@@ -266,7 +266,7 @@ TEST_F(TestActionServer, test_action_server_is_valid)
   is_valid = rcl_action_server_is_valid(&this->action_server);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
 
-  rcl_service_impl_t * tmp_service = this->action_server.impl->goal_service.impl;
+  struct rcl_service_impl * tmp_service = this->action_server.impl->goal_service.impl;
   this->action_server.impl->goal_service.impl = nullptr;
   is_valid = rcl_action_server_is_valid(&this->action_server);
   EXPECT_FALSE(is_valid);
@@ -290,7 +290,7 @@ TEST_F(TestActionServer, test_action_server_is_valid)
   rcl_reset_error();
   this->action_server.impl->result_service.impl = tmp_service;
 
-  rcl_publisher_impl_t * tmp_publisher = this->action_server.impl->feedback_publisher.impl;
+  struct rcl_publisher_impl * tmp_publisher = this->action_server.impl->feedback_publisher.impl;
   this->action_server.impl->feedback_publisher.impl = nullptr;
   is_valid = rcl_action_server_is_valid(&this->action_server);
   EXPECT_FALSE(is_valid);
@@ -324,7 +324,7 @@ TEST_F(TestActionServer, test_action_server_is_valid_except_context)
   is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
   EXPECT_TRUE(is_valid) << rcl_get_error_string().str;
 
-  rcl_service_impl_t * tmp_service = this->action_server.impl->goal_service.impl;
+  struct rcl_service_impl * tmp_service = this->action_server.impl->goal_service.impl;
   this->action_server.impl->goal_service.impl = nullptr;
   is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
   EXPECT_FALSE(is_valid);
@@ -348,7 +348,7 @@ TEST_F(TestActionServer, test_action_server_is_valid_except_context)
   rcl_reset_error();
   this->action_server.impl->result_service.impl = tmp_service;
 
-  rcl_publisher_impl_t * tmp_publisher = this->action_server.impl->feedback_publisher.impl;
+  struct rcl_publisher_impl * tmp_publisher = this->action_server.impl->feedback_publisher.impl;
   this->action_server.impl->feedback_publisher.impl = nullptr;
   is_valid = rcl_action_server_is_valid_except_context(&this->action_server);
   EXPECT_FALSE(is_valid);

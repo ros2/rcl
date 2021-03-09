@@ -27,17 +27,17 @@ extern "C"
 
 
 /// Internal action client implementation struct.
-struct rcl_action_client_impl_t;
+struct rcl_action_client_impl;
 
 /// Structure which encapsulates a ROS action client.
-typedef struct rcl_action_client_t
+typedef struct rcl_action_client
 {
   /// Pointer to the action client implementation
-  struct rcl_action_client_impl_t * impl;
+  struct rcl_action_client_impl * impl;
 } rcl_action_client_t;
 
 /// Options available for a rcl_action_client_t.
-typedef struct rcl_action_client_options_t
+typedef struct rcl_action_client_options
 {
   /// Middleware quality of service settings for the action client.
   /// Goal service quality of service

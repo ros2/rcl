@@ -277,7 +277,7 @@ TEST_F(TestActionClientFixture, test_action_client_is_valid) {
   EXPECT_FALSE(is_valid) << rcl_get_error_string().str;
   rcl_reset_error();
 
-  rcl_client_impl_t * tmp_client = this->action_client.impl->goal_client.impl;
+  struct rcl_client_impl * tmp_client = this->action_client.impl->goal_client.impl;
   this->action_client.impl->goal_client.impl = nullptr;
   is_valid = rcl_action_client_is_valid(&this->action_client);
   EXPECT_FALSE(is_valid);
@@ -301,7 +301,7 @@ TEST_F(TestActionClientFixture, test_action_client_is_valid) {
   rcl_reset_error();
   this->action_client.impl->result_client.impl = tmp_client;
 
-  rcl_subscription_impl_t * tmp_subscription =
+  struct rcl_subscription_impl * tmp_subscription =
     this->action_client.impl->feedback_subscription.impl;
   this->action_client.impl->feedback_subscription.impl = nullptr;
   is_valid = rcl_action_client_is_valid(&this->action_client);
