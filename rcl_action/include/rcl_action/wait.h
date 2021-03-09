@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// @file
+
 #ifndef RCL_ACTION__WAIT_H_
 #define RCL_ACTION__WAIT_H_
 

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// @file
+
 #ifndef RCL_ACTION__TYPES_H_
 #define RCL_ACTION__TYPES_H_
 
@@ -53,14 +55,18 @@ extern "C"
 /// Action invalid event return code.
 #define RCL_RET_ACTION_GOAL_EVENT_INVALID 2301
 
+/// @cond Doxygen_Suppress
 // TODO(jacobperron): Move these to a common place for UUIDs
 #define UUID_SIZE 16
 #define uuidcmp(uuid0, uuid1) (0 == memcmp(uuid0, uuid1, UUID_SIZE))
 #define zerouuid (uint8_t[UUID_SIZE]) {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define uuidcmpzero(uuid) uuidcmp(uuid, (zerouuid))
+/// @endcond
 
 // Typedef generated messages for convenience
+/// Information about the goal
 typedef action_msgs__msg__GoalInfo rcl_action_goal_info_t;
+/// Status of the goal
 typedef action_msgs__msg__GoalStatus rcl_action_goal_status_t;
 /// Struct with the action goal status array
 typedef struct rcl_action_goal_status_array
@@ -70,6 +76,7 @@ typedef struct rcl_action_goal_status_array
   /// Allocator used to initialize this struct.
   rcl_allocator_t allocator;
 } rcl_action_goal_status_array_t;
+/// A request to cancel the goal
 typedef action_msgs__srv__CancelGoal_Request rcl_action_cancel_request_t;
 /// Struct with the action cancel response
 typedef struct rcl_action_cancel_response
@@ -85,18 +92,28 @@ typedef struct rcl_action_cancel_response
 // Ideally, we could use an enum type directly from the message when the feature
 // is available. Issue: https://github.com/ros2/rosidl/issues/260
 typedef int8_t rcl_action_goal_state_t;
+/// Unknown goal state
 #define GOAL_STATE_UNKNOWN action_msgs__msg__GoalStatus__STATUS_UNKNOWN
+/// Goal has been accepted
 #define GOAL_STATE_ACCEPTED action_msgs__msg__GoalStatus__STATUS_ACCEPTED
+/// Goal is executing
 #define GOAL_STATE_EXECUTING action_msgs__msg__GoalStatus__STATUS_EXECUTING
+/// Goal is being canceled
 #define GOAL_STATE_CANCELING action_msgs__msg__GoalStatus__STATUS_CANCELING
+/// Goal succeeded
 #define GOAL_STATE_SUCCEEDED action_msgs__msg__GoalStatus__STATUS_SUCCEEDED
+/// Goal canceled
 #define GOAL_STATE_CANCELED action_msgs__msg__GoalStatus__STATUS_CANCELED
+/// Goal aborted
 #define GOAL_STATE_ABORTED action_msgs__msg__GoalStatus__STATUS_ABORTED
+/// @cond Doxygen_Suppress
 #define GOAL_STATE_NUM_STATES 7
+/// @endcond
 
-/// User friendly error messages for invalid trasntions
+/// User friendly error messages for invalid transitions
 // Description variables in types.c should be changed if enum values change
 extern const char * goal_state_descriptions[];
+/// User friendly descriptions of goal events
 extern const char * goal_event_descriptions[];
 
 /// Goal state transition events

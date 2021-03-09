@@ -15,6 +15,8 @@
 #ifndef RCL_ACTION__GOAL_STATE_MACHINE_H_
 #define RCL_ACTION__GOAL_STATE_MACHINE_H_
 
+/// @file
+
 #ifdef __cplusplus
 extern "C"
 {

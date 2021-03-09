@@ -15,6 +15,8 @@
 #ifndef RCL_ACTION__DEFAULT_QOS_H_
 #define RCL_ACTION__DEFAULT_QOS_H_
 
+/// @file
+
 #ifdef __cplusplus
 extern "C"
 {
