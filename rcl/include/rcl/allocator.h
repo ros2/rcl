@@ -30,7 +30,7 @@ extern "C"
  */
 typedef rcutils_allocator_t rcl_allocator_t;
 
-/// Return a properly initialized rcutils_allocator_t with default values.
+/// Return a properly initialized rcl_allocator_t with default values.
 /**
  * \sa rcutils_get_default_allocator()
  */

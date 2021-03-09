@@ -256,7 +256,7 @@ rcl_take_request_with_info(
   rmw_service_info_t * request_header,
   void * ros_request);
 
-/// Backwards compatibility function to ake a pending ROS request using a rcl service.
+/// Backwards compatibility function to take a pending ROS request using a rcl service.
 /**
  * This version takes a request ID only.  See rcl_take_request_with_info() for a full
  * explanation of what this does.

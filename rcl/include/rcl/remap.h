@@ -60,7 +60,7 @@ rcl_get_zero_initialized_remap(void);
  * \sa rcl_get_global_arguments()
  *
  * Remap rules are checked in the order they were given.
- * For rules passed to rcl_ini()` this usually is the order they were passed on the command line.
+ * For rules passed to rcl_init() this usually is the order they were passed on the command line.
  * \sa rcl_parse_arguments()
  *
  * Only the first remap rule that matches is used to remap a name.
