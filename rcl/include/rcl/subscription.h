@@ -229,7 +229,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_options_fini(rcl_subscription_options_t * option);
 
-/// Check if the content filter topic feature is supported in the subscription.
+/// Check if the content filtered topic feature is supported in the subscription.
 /**
  * Depending on the middleware and whether cft is supported in the subscription.
  * this will return true if the middleware can support ContentFilteredTopic in the subscription.
@@ -254,9 +254,15 @@ rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription);
  * Lock-Free          | Maybe [1]
  *
  * \param[in] subscription the subscription object to inspect.
- * \param[in] filter_expression A filter expression to set.
- * \param[in] expression_parameters Array of expression parameters to set,
- *   it can be NULL if there is no placeholder in filter_expression.
+ * \param[in] filter_expression A filter_expression is a string that specifies the criteria
+ *   to select the data samples of interest. It is similar to the WHERE part of an SQL clause.
+ *   Using an empty("") string can reset/clean content filtered topic for the subscription.
+ * \param[in] expression_parameters An expression_parameters is an array of strings that
+ *   give values to the ‘parameters’ (i.e., "%n" tokens begin from 0) in the filter_expression.
+ *   The number of supplied parameters must fit with the requested values in the filter_expression.
+ *   It can be NULL if there is no "%n" tokens placeholder in filter_expression.
+ *   The maximun size allowance depends on concrete DDS vendor.
+ *   (i.e., it cannot be greater than 100 on RTI_Connext.)
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `filter_expression` is NULL, or
