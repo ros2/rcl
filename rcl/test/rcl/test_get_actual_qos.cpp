@@ -430,9 +430,9 @@ get_parameters(bool for_publisher)
       });
     }
   } else {
+    // TODO(asorbini): Remove this block once ros2/rmw_connext is deprecated.
     if (rmw_implementation_str == "rmw_connext_cpp" ||
-      rmw_implementation_str == "rmw_connext_dynamic_cpp" ||
-      rmw_implementation_str == "rmw_opensplice_cpp")
+      rmw_implementation_str == "rmw_connext_dynamic_cpp")
     {
       /*
        * Test with non-default settings.

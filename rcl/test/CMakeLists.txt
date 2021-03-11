@@ -73,10 +73,9 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  # TODO(hidmic): re-enable timer tests against RTI Connext once
-  #               https://github.com/ros2/rcl/issues/687 is resolved
+  # TODO(asorbini): Remove these exceptions once ros2/rmw_connext is deprecated.
   set(AMENT_GTEST_ARGS "")
-  if(rmw_implementation STREQUAL "rmw_connext_cpp")
+  if(rmw_implementation MATCHES "rmw_connext(.*)_cpp")
     message(STATUS "Skipping test_timer${target_suffix} test.")
     set(AMENT_GTEST_ARGS "SKIP_TEST")
   endif()
@@ -122,16 +121,16 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
+  # TODO(asorbini): Remove these exceptions once ros2/rmw_connext is deprecated.
   set(AMENT_GTEST_ARGS "")
-  # TODO(wjwwood): remove this when the graph API works properly for connext dynamic
   if(rmw_implementation STREQUAL "rmw_connext_dynamic_cpp")
     message(STATUS "Skipping test_graph${target_suffix} test.")
     set(AMENT_GTEST_ARGS "SKIP_TEST")
-  # TODO(mm318): why rmw_connext tests run much slower than rmw_fastrtps and rmw_opensplice tests
   elseif(rmw_implementation STREQUAL "rmw_connext_cpp")
     message(STATUS "Increasing test_graph${target_suffix} test timeout.")
     set(AMENT_GTEST_ARGS TIMEOUT 180)
   endif()
+
   rcl_add_custom_gtest(test_graph${target_suffix}
     SRCS rcl/test_graph.cpp
     ENV ${rmw_implementation_env_var}
@@ -142,19 +141,19 @@ function(test_target_function)
     ${AMENT_GTEST_ARGS}
   )
 
+  # TODO(asorbini): Remove these exceptions once ros2/rmw_connext is deprecated.
   set(AMENT_GTEST_ARGS "")
-  # TODO(mm318): why rmw_connext tests run much slower than rmw_fastrtps and rmw_opensplice tests
-  if(rmw_implementation STREQUAL "rmw_connext_cpp")
+  if(rmw_implementation MATCHES "rmw_connext(.*)_cpp")
     message(STATUS "Increasing test_info_by_topic${target_suffix} test timeout.")
     set(AMENT_GTEST_ARGS TIMEOUT 120)
   endif()
+
   rcl_add_custom_gtest(test_info_by_topic${target_suffix}
     SRCS rcl/test_info_by_topic.cpp rcl/wait_for_entity_helpers.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
-    ${AMENT_GTEST_ARGS}
   )
 
   rcl_add_custom_gtest(test_count_matched${target_suffix}
@@ -254,8 +253,11 @@ function(test_target_function)
     LIBRARIES ${PROJECT_NAME} mimick
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
+  # TODO(asorbini) Enable message timestamp tests for rmw_connextdds on Windows
+  # once clock incompatibilities are resolved.
   if(rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR
-    rmw_implementation STREQUAL "rmw_fastrtps_dynamic_cpp")
+    rmw_implementation STREQUAL "rmw_fastrtps_dynamic_cpp" OR
+    (rmw_implementation STREQUAL "rmw_connextdds" AND NOT WIN32))
     message(STATUS "Enabling message timestamp test for ${rmw_implementation}")
     target_compile_definitions(test_subscription${target_suffix}
       PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1" "RMW_RECEIVED_TIMESTAMP_SUPPORTED=1")
