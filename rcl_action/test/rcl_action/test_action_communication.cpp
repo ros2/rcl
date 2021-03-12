@@ -1148,8 +1148,11 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedba
 
     ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
     if (RCL_RET_OK != ret) {
-      EXPECT_TRUE(rcl_error_is_set());
-      rcl_reset_error();
+      // All non-OK retcodes should set an error string, except RCL_RET_TIMEOUT.
+      if (RCL_RET_TIMEOUT != ret) {
+        EXPECT_TRUE(rcl_error_is_set());
+        rcl_reset_error();
+      }
       continue;
     }
 
