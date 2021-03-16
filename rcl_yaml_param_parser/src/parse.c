@@ -29,6 +29,7 @@
 #include "./impl/parse.h"
 #include "./impl/namespace.h"
 #include "./impl/node_params.h"
+#include "./impl/node_params_descriptors.h"
 #include "rcl_yaml_param_parser/parser.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
 
@@ -445,6 +446,165 @@ rcutils_ret_t parse_value(
   return ret;
 }
 
+rcutils_ret_t parse_descriptor(
+  namespace_tracker_t * ns_tracker,
+  const yaml_event_t event,
+  const bool is_seq,
+  const size_t node_idx,
+  const size_t parameter_idx,
+  rcl_params_t * params_st)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
+
+  rcutils_allocator_t allocator = params_st->allocator;
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
+
+  if (0U == params_st->num_nodes) {
+    RCUTILS_SET_ERROR_MSG("No node to update");
+    return RCUTILS_RET_INVALID_ARGUMENT;
+  }
+
+  const size_t val_size = event.data.scalar.length;
+  const char * value = (char *)event.data.scalar.value;
+  yaml_scalar_style_t style = event.data.scalar.style;
+  const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
+
+  RCUTILS_CHECK_FOR_NULL_WITH_MSG(
+    value, "event argument has no value", return RCUTILS_RET_INVALID_ARGUMENT);
+
+  if (is_seq) {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Sequences not supported for parameter descriptors at line %d", line_num);
+    return RCUTILS_RET_ERROR;
+  }
+
+  if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
+    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
+    0U == val_size)
+  {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("No value at line %d", line_num);
+    return RCUTILS_RET_ERROR;
+  }
+
+  if (NULL == params_st->descriptors[node_idx].parameter_descriptors) {
+    RCUTILS_SET_ERROR_MSG("Internal error: Invalid mem");
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+
+  rcl_param_descriptor_t * param_descriptor =
+    &(params_st->descriptors[node_idx].parameter_descriptors[parameter_idx]);
+
+  data_types_t val_type;
+  void * ret_val = get_value(value, style, &val_type, allocator);
+  if (NULL == ret_val) {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error parsing value %s at line %d", value, line_num);
+    return RCUTILS_RET_ERROR;
+  }
+
+  if (NULL == ns_tracker->parameter_ns) {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Parameter assignment at line %d unallowed in " PARAMS_DESCRIPTORS_KEY, line_num);
+    return RCUTILS_RET_ERROR;
+  }
+  // If parsing a yaml value, then current parameter namespace must be parameter name
+  allocator.deallocate(params_st->descriptors[node_idx].parameter_names[parameter_idx],
+    allocator.state);
+  params_st->descriptors[node_idx].parameter_names[parameter_idx] =
+    rcutils_strdup(ns_tracker->parameter_ns, allocator);
+
+  if (NULL == param_descriptor->name) {
+    param_descriptor->name =
+      rcutils_strdup(params_st->descriptors[node_idx].parameter_names[parameter_idx], allocator);
+    rcl_node_params_descriptors_t * node_descriptors_st = &(params_st->descriptors[node_idx]);
+    node_descriptors_st->num_params++;
+  }
+
+  if (0 == strncmp("additional_constraints", ns_tracker->descriptor_key_ns,
+    strlen("additional_constraints")))
+  {
+    if (val_type == DATA_TYPE_STRING) {
+      param_descriptor->additional_constraints = (char *)ret_val;
+    } else {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Value type 'string' expected at line %d for "
+        PARAMS_DESCRIPTORS_KEY " key: additional_constraints",
+        line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  } else if (0 == strncmp("type", ns_tracker->descriptor_key_ns, strlen("type"))) {
+    if (val_type == DATA_TYPE_INT64) {
+      param_descriptor->type = (uint8_t *)ret_val;
+    } else {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Value type 'integer' expected at line %d for " PARAMS_DESCRIPTORS_KEY " key: type",
+        line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  } else if (0 == strncmp("min_value", ns_tracker->descriptor_key_ns, strlen("min_value"))) {
+    if (val_type == DATA_TYPE_INT64) {
+      param_descriptor->min_value_int = (int64_t *)ret_val;
+    } else if (val_type == DATA_TYPE_DOUBLE) {
+      param_descriptor->min_value_double = (double *)ret_val;
+    } else {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Value type 'integer' or 'double' expected at line %d for "
+        PARAMS_DESCRIPTORS_KEY " key: min_value",
+        line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  } else if (0 == strncmp("max_value", ns_tracker->descriptor_key_ns, strlen("max_value"))) {
+    if (val_type == DATA_TYPE_INT64) {
+      param_descriptor->max_value_int = (int64_t *)ret_val;
+    } else if (val_type == DATA_TYPE_DOUBLE) {
+      param_descriptor->max_value_double = (double *)ret_val;
+    } else {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Value type 'integer' or 'double' expected at line %d for "
+        PARAMS_DESCRIPTORS_KEY " key: max_value",
+        line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  } else if (0 == strncmp("read_only", ns_tracker->descriptor_key_ns, strlen("read_only"))) {
+    if (val_type == DATA_TYPE_BOOL) {
+      param_descriptor->read_only = (bool *)ret_val;
+    } else {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Value type 'bool' expected at line %d for " PARAMS_DESCRIPTORS_KEY " key: read_only",
+        line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  } else if (0 == strncmp("description", ns_tracker->descriptor_key_ns, strlen("description"))) {
+    if (val_type == DATA_TYPE_STRING) {
+      param_descriptor->description = (char *)ret_val;
+    } else {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Value type 'string' expected at line %d for " PARAMS_DESCRIPTORS_KEY " key: description",
+        line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  } else if (0 == strncmp("step", ns_tracker->descriptor_key_ns, strlen("step"))) {
+    if (val_type == DATA_TYPE_INT64) {
+      param_descriptor->step_int = (int64_t *)ret_val;
+    } else if (val_type == DATA_TYPE_DOUBLE) {
+      param_descriptor->step_double = (double *)ret_val;
+    } else {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Value type 'integer' or 'double' expected at line %d for " PARAMS_DESCRIPTORS_KEY " key: step",
+        line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  } else {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Descriptor key at line %d does not match any valid " PARAMS_DESCRIPTORS_KEY " key",
+      line_num);
+    return RCUTILS_RET_ERROR;
+  }
+
+  return RCUTILS_RET_OK;
+}
+
 rcutils_ret_t
 _validate_namespace(const char * namespace_)
 {
@@ -616,18 +776,39 @@ rcutils_ret_t parse_key(
       break;
     case MAP_NODE_NAME_LVL:
       {
-        /// Till we get PARAMS_KEY, keep adding to node namespace
-        if (0 != strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
-          ret = add_name_to_ns(ns_tracker, value, NS_TYPE_NODE, allocator);
+        /// Till we get PARAMS_KEY or PARAMS_DESCRIPTORS_KEY, keep adding to node namespace
+        if (0 == strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
+          if (0U == ns_tracker->num_node_ns) {
+            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+              "There are no node names before %s at line %d", PARAMS_KEY, line_num);
+            ret = RCUTILS_RET_ERROR;
+            break;
+          }
+          /// The previous key(last name in namespace) was the node name. Remove it
+          /// from the namespace
+          char * node_name_ns = rcutils_strdup(ns_tracker->node_ns, allocator);
+          if (NULL == node_name_ns) {
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
+          }
+
+          ret = find_node(node_name_ns, params_st, node_idx);
+          if (RCUTILS_RET_OK != ret) {
+            break;
+          }
+
+          ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error adding node namespace at line %d", line_num);
             break;
           }
-        } else {
+          /// Bump the map level to PARAMS
+          (*map_level)++;
+        } else if (0 == strncmp(PARAMS_DESCRIPTORS_KEY, value, strlen(PARAMS_DESCRIPTORS_KEY))) {
           if (0U == ns_tracker->num_node_ns) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "There are no node names before %s at line %d", PARAMS_KEY, line_num);
+              "There are no node names before %s at line %d", PARAMS_DESCRIPTORS_KEY, line_num);
             ret = RCUTILS_RET_ERROR;
             break;
           }
@@ -656,9 +837,16 @@ rcutils_ret_t parse_key(
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error adding node namespace at line %d", line_num);
             break;
+          }          
+          /// Bump the map level to PARAMS_DESCRIPTOR
+          *map_level = 3U;
+        } else {
+          ret = add_name_to_ns(ns_tracker, value, NS_TYPE_NODE, allocator);
+          if (RCUTILS_RET_OK != ret) {
+            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+              "Internal error adding node namespace at line %d", line_num);
+            break;
           }
-          /// Bump the map level to PARAMS
-          (*map_level)++;
         }
       }
       break;
@@ -722,6 +910,74 @@ rcutils_ret_t parse_key(
               params_st->params[*node_idx].parameter_names[*parameter_idx], allocator.state);
           }
           params_st->params[*node_idx].parameter_names[*parameter_idx] = param_name;
+        }
+      }
+      break;
+    case MAP_PARAMS_DESCRIPTORS_LVL:
+      {
+        char * parameter_ns = NULL;
+        char * param_name = NULL;
+
+        /// If it is a new map, the previous key is param namespace
+        if (*is_new_map) {
+          parameter_ns = params_st->descriptors[*node_idx].parameter_names[*parameter_idx];
+          if (NULL == parameter_ns) {
+            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+              "Internal error creating param namespace at line %d", line_num);
+            ret = RCUTILS_RET_ERROR;
+            break;
+          }
+          ret = replace_ns(ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
+              NS_TYPE_PARAM, allocator);
+          if (RCUTILS_RET_OK != ret) {
+            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+              "Internal error replacing namespace at line %d", line_num);
+            ret = RCUTILS_RET_ERROR;
+            break;
+          }
+          *is_new_map = false;
+        }
+
+        /// Add a parameter name into the node parameter descriptors
+        parameter_ns = ns_tracker->parameter_ns;
+        if (NULL == parameter_ns) {
+          ret = find_descriptor(*node_idx, value, params_st, parameter_idx);
+          if (ret != RCUTILS_RET_OK) {
+            break;
+          }
+        } else {
+          ret = find_descriptor(*node_idx, parameter_ns, params_st, parameter_idx);
+          if (ret != RCUTILS_RET_OK) {
+            break;
+          }
+
+          ret =
+            replace_ns(ns_tracker, rcutils_strdup(value, allocator),
+              (ns_tracker->num_descriptor_key_ns + 1U),
+              NS_TYPE_DESCRIPTOR, allocator);
+          if (RCUTILS_RET_OK != ret) {
+            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+              "Internal error replacing namespace at line %d", line_num);
+            ret = RCUTILS_RET_ERROR;
+            break;
+          }
+
+          const size_t params_ns_len = strlen(parameter_ns);
+          const size_t param_name_len = strlen(value);
+          const size_t tot_len = (params_ns_len + param_name_len + 2U);
+
+          param_name = allocator.zero_allocate(1U, tot_len, allocator.state);
+          if (NULL == param_name) {
+            ret = RCUTILS_RET_BAD_ALLOC;
+            break;
+          }
+
+          memcpy(param_name, parameter_ns, params_ns_len);
+          param_name[params_ns_len] = '.';
+          memcpy((param_name + params_ns_len + 1U), value, param_name_len);
+          param_name[tot_len - 1U] = '\0';
+
+          params_st->descriptors[*node_idx].parameter_names[*parameter_idx] = param_name;
         }
       }
       break;
@@ -801,13 +1057,18 @@ rcutils_ret_t parse_file_events(
               yaml_event_delete(&event);
               return RCUTILS_RET_ERROR;
             }
-            if (0U == params_st->params[node_idx].num_params) {
+            if (0U == params_st->params[node_idx].num_params && map_level != 3U) {
               RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
                 "Cannot have a value before %s at line %d", PARAMS_KEY, line_num);
               yaml_event_delete(&event);
               return RCUTILS_RET_ERROR;
             }
-            ret = parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
+            if (map_level != 3U) {
+              ret = parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
+            } else {
+              ret = parse_descriptor(ns_tracker, event, is_seq, node_idx, parameter_idx,
+                  params_st);
+            }
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -847,6 +1108,11 @@ rcutils_ret_t parse_file_events(
         {
           is_new_map = false;
         }
+        if ((MAP_PARAMS_DESCRIPTORS_LVL == map_level) &&
+          ((map_depth - (ns_tracker->num_node_ns + 1U)) == 2U))
+        {
+          is_new_map = false;
+        }
         break;
       case YAML_MAPPING_END_EVENT:
         if (MAP_PARAMS_LVL == map_level) {
@@ -860,6 +1126,18 @@ rcutils_ret_t parse_file_events(
             }
           } else {
             map_level--;
+          }
+        } else if (MAP_PARAMS_DESCRIPTORS_LVL == map_level) {
+          if (ns_tracker->num_parameter_ns > 0U) {
+            /// Remove param namesapce
+            ret = rem_name_from_ns(ns_tracker, NS_TYPE_PARAM, allocator);
+            if (RCUTILS_RET_OK != ret) {
+              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+                "Internal error removing parameter namespace at line %d", line_num);
+              break;
+            }
+          } else {
+            map_level = 1U;
           }
         } else {
           if ((MAP_NODE_NAME_LVL == map_level) &&
@@ -1003,6 +1281,38 @@ rcutils_ret_t find_parameter(
 }
 
 ///
+/// Find parameter descriptor entry index in node parameters' structure
+///
+rcutils_ret_t find_descriptor(
+  const size_t node_idx,
+  const char * parameter_name,
+  rcl_params_t * param_st,
+  size_t * parameter_idx)
+{
+  assert(NULL != parameter_name);
+  assert(NULL != param_st);
+  assert(NULL != parameter_idx);
+
+  assert(node_idx < param_st->num_nodes);
+
+  rcl_node_params_descriptors_t * node_descriptors_st = &(param_st->descriptors[node_idx]);
+  for (*parameter_idx = 0U; *parameter_idx < node_descriptors_st->num_params; (*parameter_idx)++) {
+    if (0 == strcmp(node_descriptors_st->parameter_names[*parameter_idx], parameter_name)) {
+      // Parameter found.
+      return RCUTILS_RET_OK;
+    }
+  }
+  // Parameter not found, add it.
+  rcutils_allocator_t allocator = param_st->allocator;
+  node_descriptors_st->parameter_names[*parameter_idx] = rcutils_strdup(parameter_name, allocator);
+  if (NULL == node_descriptors_st->parameter_names[*parameter_idx]) {
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+  // node_descriptors_st->num_params++;
+  return RCUTILS_RET_OK;
+}
+
+///
 /// Find node entry index in parameters' structure
 ///
 rcutils_ret_t find_node(
@@ -1040,6 +1350,14 @@ rcutils_ret_t find_node(
     param_st->node_names[*node_idx] = NULL;
     return ret;
   }
+
+  ret = node_params_descriptors_init(&(param_st->descriptors[*node_idx]), allocator);
+  if (RCUTILS_RET_OK != ret) {
+    allocator.deallocate(param_st->node_names[*node_idx], allocator.state);
+    param_st->node_names[*node_idx] = NULL;
+    return ret;
+  }
+
   param_st->num_nodes++;
   return RCUTILS_RET_OK;
 }

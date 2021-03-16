@@ -48,6 +48,16 @@ rcutils_ret_t parse_value(
 
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
+rcutils_ret_t parse_descriptor(
+  namespace_tracker_t * ns_tracker,
+  const yaml_event_t event,
+  const bool is_seq,
+  const size_t node_idx,
+  const size_t parameter_idx,
+  rcl_params_t * params_st);
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
@@ -82,6 +92,14 @@ rcutils_ret_t find_node(
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t find_parameter(
+  const size_t node_idx,
+  const char * parameter_name,
+  rcl_params_t * param_st,
+  size_t * parameter_idx);
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t find_descriptor(
   const size_t node_idx,
   const char * parameter_name,
   rcl_params_t * param_st,
