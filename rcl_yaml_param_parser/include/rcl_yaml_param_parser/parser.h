@@ -119,6 +119,17 @@ rcl_variant_t * rcl_yaml_node_struct_get(
   const char * param_name,
   rcl_params_t * params_st);
 
+/// \brief Get the descriptor struct for a given parameter
+/// \param[in] node_name is the name of the node to which the parameter belongs
+/// \param[in] param_name is the name of the parameter whose value is to be retrieved
+/// \param[inout] params_st points to the populated (or to be populated) parameter struct
+/// \return parameter descriptor struct on success and NULL on failure
+RCL_YAML_PARAM_PARSER_PUBLIC
+rcl_param_descriptor_t * rcl_yaml_node_struct_get_descriptor(
+  const char * node_name,
+  const char * param_name,
+  rcl_params_t * params_st);
+
 /// \brief Print the parameter structure to stdout
 /// \param[in] params_st points to the populated parameter struct
 RCL_YAML_PARAM_PARSER_PUBLIC

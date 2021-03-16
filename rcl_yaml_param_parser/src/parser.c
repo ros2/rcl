@@ -33,7 +33,9 @@
 #include "./impl/types.h"
 #include "./impl/parse.h"
 #include "./impl/node_params.h"
+#include "./impl/node_params_descriptors.h"
 #include "./impl/yaml_variant.h"
+#include "./impl/yaml_descriptor.h"
 
 #define INIT_NUM_NODE_ENTRIES 128U
 
@@ -76,6 +78,15 @@ rcl_params_t * rcl_yaml_node_struct_init_with_capacity(
     allocator.deallocate(params_st->node_names, allocator.state);
     params_st->node_names = NULL;
     RCUTILS_SET_ERROR_MSG("Failed to allocate memory for parameter values");
+    goto clean;
+  }
+
+  params_st->descriptors = allocator.zero_allocate(
+    capacity, sizeof(rcl_node_params_descriptors_t), allocator.state);
+  if (NULL == params_st->descriptors) {
+    allocator.deallocate(params_st->node_names, allocator.state);
+    params_st->node_names = NULL;
+    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for parameter descriptors");
     goto clean;
   }
 
@@ -126,6 +137,15 @@ rcutils_ret_t rcl_yaml_node_struct_reallocate(
     return RCUTILS_RET_BAD_ALLOC;
   }
   params_st->params = params;
+
+  void * descriptors = allocator.reallocate(
+    params_st->descriptors, new_capacity * sizeof(rcl_node_params_descriptors_t), allocator.state);
+  if (NULL == descriptors) {
+    RCUTILS_SET_ERROR_MSG("Failed to reallocate memory for parameter descriptors");
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+  params_st->descriptors = descriptors;
+
   // zero initialization for the added memory
   if (new_capacity > params_st->capacity_nodes) {
     memset(
@@ -192,6 +212,34 @@ rcl_params_t * rcl_yaml_node_struct_copy(
         goto fail;
       }
     }
+
+    rcl_node_params_descriptors_t * node_params_descriptors_st = &(params_st->descriptors[node_idx]);
+    rcl_node_params_descriptors_t * out_node_params_descriptors_st = &(out_params_st->descriptors[node_idx]);
+    ret = node_params_descriptors_init_with_capacity(
+      out_node_params_descriptors_st,
+      node_params_descriptors_st->capacity_descriptors,
+      allocator);
+    if (RCUTILS_RET_OK != ret) {
+      if (RCUTILS_RET_BAD_ALLOC == ret) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
+      }
+      goto fail;
+    }
+    for (size_t descriptor_idx = 0U; descriptor_idx < node_params_descriptors_st->num_params; ++descriptor_idx) {
+      out_node_params_descriptors_st->parameter_names[descriptor_idx] =
+        rcutils_strdup(node_params_descriptors_st->parameter_names[descriptor_idx], allocator);
+      if (NULL == out_node_params_descriptors_st->parameter_names[descriptor_idx]) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
+        goto fail;
+      }
+      out_node_params_descriptors_st->num_params++;
+
+      const rcl_param_descriptor_t * param_descriptor = &(node_params_descriptors_st->parameter_descriptors[descriptor_idx]);
+      rcl_param_descriptor_t * out_param_descriptor = &(out_node_params_descriptors_st->parameter_descriptors[descriptor_idx]);
+      if (!rcl_yaml_descriptor_copy(out_param_descriptor, param_descriptor, allocator)) {
+        goto fail;
+      }
+    }
   }
   return out_params_st;
 
@@ -233,6 +281,15 @@ void rcl_yaml_node_struct_fini(
     allocator.deallocate(params_st->params, allocator.state);
     params_st->params = NULL;
   }  // if (params)
+
+  if (NULL != params_st->descriptors) {
+    for (size_t node_idx = 0U; node_idx < params_st->num_nodes; node_idx++) {
+      rcl_yaml_node_params_descriptors_fini(&(params_st->descriptors[node_idx]), allocator);
+    }  // for (node_idx)
+
+    allocator.deallocate(params_st->descriptors, allocator.state);
+    params_st->descriptors = NULL;
+  }  // if (descriptors)
 
   params_st->num_nodes = 0U;
   params_st->capacity_nodes = 0U;
@@ -288,7 +345,9 @@ bool rcl_parse_yaml_file(
   if (NULL != ns_tracker.parameter_ns) {
     allocator.deallocate(ns_tracker.parameter_ns, allocator.state);
   }
-
+  if (NULL != ns_tracker.descriptor_key_ns) {
+    allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
+  }
   return RCUTILS_RET_OK == ret;
 }
 
@@ -364,6 +423,29 @@ rcl_variant_t * rcl_yaml_node_struct_get(
     }
   }
   return param_value;
+}
+
+rcl_param_descriptor_t * rcl_yaml_node_struct_get_descriptor(
+  const char * node_name,
+  const char * param_name,
+  rcl_params_t * params_st)
+{
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_name, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(param_name, NULL);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, NULL);
+
+  rcl_param_descriptor_t * param_descriptor = NULL;
+
+  size_t node_idx = 0U;
+  rcutils_ret_t ret = find_node(node_name, params_st, &node_idx);
+  if (RCUTILS_RET_OK == ret) {
+    size_t parameter_idx = 0U;
+    ret = find_descriptor(node_idx, param_name, params_st, &parameter_idx);
+    if (RCUTILS_RET_OK == ret) {
+      param_descriptor = &(params_st->descriptors[node_idx].parameter_descriptors[parameter_idx]);
+    }
+  }
+  return param_descriptor;
 }
 
 ///
@@ -442,6 +524,75 @@ void rcl_yaml_node_struct_print(
               printf("\n");
             }
           }
+        }
+      }
+    }
+  }
+  printf("\n Node Name\t\t\t\tParameter Descriptors\n");
+  for (size_t node_idx = 0U; node_idx < params_st->num_nodes; node_idx++) {
+    int32_t param_col = 50;
+    const char * const node_name = params_st->node_names[node_idx];
+    if (NULL != node_name) {
+      printf("%s\n", node_name);
+    }
+
+    if (NULL != params_st->descriptors) {
+      rcl_node_params_descriptors_t * node_descriptors_st = &(params_st->descriptors[node_idx]);
+      for (size_t parameter_idx = 0U; parameter_idx < node_descriptors_st->num_params;
+        parameter_idx++)
+      {
+        if (NULL != node_descriptors_st->parameter_names) {
+          char * param_name = node_descriptors_st->parameter_names[parameter_idx];
+          if (NULL != param_name) {
+            printf("%*s:", param_col, param_name);
+          }
+          rcl_param_descriptor_t * descriptor =
+            &(node_descriptors_st->parameter_descriptors[parameter_idx]);
+          if (NULL != descriptor->name) {
+            printf("\n%*sname: ", param_col + 2, "");
+            printf("%s", descriptor->name);
+          }
+          if (NULL != descriptor->description) {
+            printf("\n%*sdescription: ", param_col + 2, "");
+            printf("%s", descriptor->description);
+          }
+          if (NULL != descriptor->additional_constraints) {
+            printf("\n%*sadditional_constraints: ", param_col + 2, "");
+            printf("%s", descriptor->additional_constraints);
+          }
+          if (NULL != descriptor->type) {
+            printf("\n%*stype: ", param_col + 2, "");
+            printf("%d", *(descriptor->type));
+          }
+          if (NULL != descriptor->min_value_int) {
+            printf("\n%*smin_value: ", param_col + 2, "");
+            printf("%ld", *(descriptor->min_value_int));
+          }
+          if (NULL != descriptor->min_value_double) {
+            printf("\n%*smin_value: ", param_col + 2, "");
+            printf("%lf", *(descriptor->min_value_double));
+          }
+          if (NULL != descriptor->max_value_int) {
+            printf("\n%*smax_value: ", param_col + 2, "");
+            printf("%ld", *(descriptor->max_value_int));
+          }
+          if (NULL != descriptor->max_value_double) {
+            printf("\n%*smax_value: ", param_col + 2, "");
+            printf("%lf", *(descriptor->max_value_double));
+          }
+          if (NULL != descriptor->step_int) {
+            printf("\n%*sstep: ", param_col + 2, "");
+            printf("%ld", *(descriptor->step_int));
+          }
+          if (NULL != descriptor->step_double) {
+            printf("\n%*sstep: ", param_col + 2, "");
+            printf("%lf", *(descriptor->step_double));
+          }
+          if (NULL != descriptor->read_only) {
+            printf("\n%*sread_only: ", param_col + 2, "");
+            printf("%s", *(descriptor->read_only) ? "true" : "false");
+          }
+          printf("\n");
         }
       }
     }
