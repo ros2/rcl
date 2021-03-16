@@ -22,9 +22,11 @@ endif()
 set(rcl_yaml_parser_sources
   src/add_to_arrays.c
   src/namespace.c
+  src/node_params_descriptors.c
   src/node_params.c
   src/parse.c
   src/parser.c
+  src/yaml_descriptor.c
   src/yaml_variant.c
 )
 
