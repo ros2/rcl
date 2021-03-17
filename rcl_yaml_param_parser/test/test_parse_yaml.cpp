@@ -748,6 +748,21 @@ TEST(test_file_parser, correct_syntax_descriptors) {
     ASSERT_TRUE(NULL != param_descriptor->description);
     EXPECT_STREQ("other namespaced parameter", param_descriptor->description);
 
+    rcl_variant_t * param_value = rcl_yaml_node_struct_get("node_ns/node1", "param1", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_value);
+    EXPECT_EQ(28, *param_value->integer_value);
+
+    param_value = rcl_yaml_node_struct_get("node_ns/node2", "foo.bar", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_value);
+    EXPECT_EQ(10, *param_value->integer_value);
+
+    param_value = rcl_yaml_node_struct_get("node_ns/node2", "foo.baz", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_value);
+    EXPECT_STREQ("hello", param_value->string_value);
+
     rcl_yaml_node_struct_print(params);
   }
 }

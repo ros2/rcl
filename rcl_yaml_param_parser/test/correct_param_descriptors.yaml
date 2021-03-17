@@ -16,6 +16,8 @@ node_ns:
         min_value: 1.0
         max_value: 10.0
         description: "double parameter"
+    ros__parameters:
+      param1: 28
   node2:
     ros__parameters:
       foo:
