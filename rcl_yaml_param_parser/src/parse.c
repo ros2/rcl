@@ -784,25 +784,35 @@ rcutils_ret_t parse_key(
             ret = RCUTILS_RET_ERROR;
             break;
           }
-          /// The previous key(last name in namespace) was the node name. Remove it
-          /// from the namespace
-          char * node_name_ns = rcutils_strdup(ns_tracker->node_ns, allocator);
-          if (NULL == node_name_ns) {
-            ret = RCUTILS_RET_BAD_ALLOC;
-            break;
+
+          if (*is_new_map) {
+            /// The previous key(last name in namespace) was the node name. Remove it
+            /// from the namespace
+            char * node_name_ns = rcutils_strdup(ns_tracker->node_ns, allocator);
+            if (NULL == node_name_ns) {
+              ret = RCUTILS_RET_BAD_ALLOC;
+              break;
+            }
+
+            ret = _validate_name(node_name_ns, allocator);
+            if (RCUTILS_RET_OK != ret) {
+              allocator.deallocate(node_name_ns, allocator.state);
+              break;
+            }
+
+            ret = find_node(node_name_ns, params_st, node_idx);
+            if (RCUTILS_RET_OK != ret) {
+              break;
+            }
+
+            ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
+            if (RCUTILS_RET_OK != ret) {
+              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+                "Internal error adding node namespace at line %d", line_num);
+              break;
+            }
           }
 
-          ret = find_node(node_name_ns, params_st, node_idx);
-          if (RCUTILS_RET_OK != ret) {
-            break;
-          }
-
-          ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
-          if (RCUTILS_RET_OK != ret) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "Internal error adding node namespace at line %d", line_num);
-            break;
-          }
           /// Bump the map level to PARAMS
           (*map_level)++;
         } else if (0 == strncmp(PARAMS_DESCRIPTORS_KEY, value, strlen(PARAMS_DESCRIPTORS_KEY))) {
@@ -812,32 +822,36 @@ rcutils_ret_t parse_key(
             ret = RCUTILS_RET_ERROR;
             break;
           }
-          /// The previous key(last name in namespace) was the node name. Remove it
-          /// from the namespace
-          char * node_name_ns = rcutils_strdup(ns_tracker->node_ns, allocator);
-          if (NULL == node_name_ns) {
-            ret = RCUTILS_RET_BAD_ALLOC;
-            break;
-          }
 
-          ret = _validate_name(node_name_ns, allocator);
-          if (RCUTILS_RET_OK != ret) {
+          if (*is_new_map) {
+            /// The previous key(last name in namespace) was the node name. Remove it
+            /// from the namespace
+            char * node_name_ns = rcutils_strdup(ns_tracker->node_ns, allocator);
+            if (NULL == node_name_ns) {
+              ret = RCUTILS_RET_BAD_ALLOC;
+              break;
+            }
+
+            ret = _validate_name(node_name_ns, allocator);
+            if (RCUTILS_RET_OK != ret) {
+              allocator.deallocate(node_name_ns, allocator.state);
+              break;
+            }
+
+            ret = find_node(node_name_ns, params_st, node_idx);
             allocator.deallocate(node_name_ns, allocator.state);
-            break;
+            if (RCUTILS_RET_OK != ret) {
+              break;
+            }
+
+            ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
+            if (RCUTILS_RET_OK != ret) {
+              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+                "Internal error adding node namespace at line %d", line_num);
+              break;
+            }
           }
 
-          ret = find_node(node_name_ns, params_st, node_idx);
-          allocator.deallocate(node_name_ns, allocator.state);
-          if (RCUTILS_RET_OK != ret) {
-            break;
-          }
-
-          ret = rem_name_from_ns(ns_tracker, NS_TYPE_NODE, allocator);
-          if (RCUTILS_RET_OK != ret) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "Internal error adding node namespace at line %d", line_num);
-            break;
-          }          
           /// Bump the map level to PARAMS_DESCRIPTOR
           *map_level = 3U;
         } else {
@@ -977,6 +991,11 @@ rcutils_ret_t parse_key(
           memcpy((param_name + params_ns_len + 1U), value, param_name_len);
           param_name[tot_len - 1U] = '\0';
 
+          if (NULL != params_st->descriptors[*node_idx].parameter_names[*parameter_idx]) {
+            // This memory was allocated in find_parameter(), and its pointer is being overwritten
+            allocator.deallocate(
+              params_st->descriptors[*node_idx].parameter_names[*parameter_idx], allocator.state);
+          }
           params_st->descriptors[*node_idx].parameter_names[*parameter_idx] = param_name;
         }
       }
