@@ -1,0 +1,4 @@
+node1:
+  parameter__descriptors:
+    foo:
+      min_value: "5"

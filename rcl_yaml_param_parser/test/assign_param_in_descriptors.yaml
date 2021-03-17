@@ -1,0 +1,5 @@
+node1:
+  parameter__descriptors:
+    bar: 42
+    foo:
+      read_only: true
