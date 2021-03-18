@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.6.0 (2021-03-18)
+------------------
+* Add support for rmw_connextdds (`#895 <https://github.com/ros2/rcl/issues/895>`_)
+* Put an argument list of 'void' where no arguments are expected. (`#899 <https://github.com/ros2/rcl/issues/899>`_)
+* Cleanup documentation for doxygen. (`#896 <https://github.com/ros2/rcl/issues/896>`_)
+* Contributors: Andrea Sorbini, Chris Lalancette
+
 2.5.2 (2021-02-05)
 ------------------
 * Reference test resources directly from source tree (`#554 <https://github.com/ros2/rcl/issues/554>`_)

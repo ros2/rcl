@@ -2,6 +2,12 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.6.0 (2021-03-18)
+------------------
+* Don't expect RCL_RET_TIMEOUT to set an error string (`#900 <https://github.com/ros2/rcl/issues/900>`_)
+* Add support for rmw_connextdds (`#895 <https://github.com/ros2/rcl/issues/895>`_)
+* Contributors: Andrea Sorbini
+
 2.5.2 (2021-02-05)
 ------------------
 * Avoid setting error message twice. (`#887 <https://github.com/ros2/rcl/issues/887>`_)
