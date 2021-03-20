@@ -237,8 +237,7 @@ rcl_lifecycle_state_machine_init(
     if (ret != RCL_RET_OK) {
       // init default state machine might have allocated memory,
       // so we have to call fini
-      ret = rcl_lifecycle_state_machine_fini(
-        state_machine, node_handle, &state_machine->options.allocator);
+      ret = rcl_lifecycle_state_machine_fini(state_machine, node_handle);
       if (ret != RCL_RET_OK) {
         RCUTILS_SAFE_FWRITE_TO_STDERR(
           "Freeing state machine failed while handling a previous error. Leaking memory!\n");
@@ -257,12 +256,8 @@ rcl_lifecycle_state_machine_init(
 rcl_ret_t
 rcl_lifecycle_state_machine_fini(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_node_t * node_handle,
-  const rcl_allocator_t * allocator)
+  rcl_node_t * node_handle)
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(
-    allocator, "can't free state machine, no allocator given\n", return RCL_RET_INVALID_ARGUMENT);
-
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
   if (rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle) != RCL_RET_OK) {
@@ -274,7 +269,7 @@ rcl_lifecycle_state_machine_fini(
   }
 
   if (rcl_lifecycle_transition_map_fini(
-      &state_machine->transition_map, allocator) != RCL_RET_OK)
+      &state_machine->transition_map, &state_machine->options.allocator) != RCL_RET_OK)
   {
     rcl_error_string_t error_string = rcl_get_error_string();
     rcutils_reset_error();

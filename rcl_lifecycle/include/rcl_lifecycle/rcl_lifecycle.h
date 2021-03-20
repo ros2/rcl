@@ -268,7 +268,6 @@ rcl_lifecycle_state_machine_init(
  *
  * \param[inout] state_machine struct to be finalized
  * \param[in] node_handle valid (not finalized) handle to the node
- * \param[in] allocator a valid allocator used to finalize the state machine
  * \return `RCL_RET_OK` if the state was finalized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
@@ -278,8 +277,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_lifecycle_state_machine_fini(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_node_t * node_handle,
-  const rcl_allocator_t * allocator);
+  rcl_node_t * node_handle);
 
 /// Check if a state machine is active.
 /**

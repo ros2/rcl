@@ -317,7 +317,7 @@ TEST(TestRclLifecycle, state_machine) {
     RCL_RET_OK,
     rcl_lifecycle_state_machine_is_initialized(&state_machine)) << rcl_get_error_string().str;
   // Reset the state machine as the previous init call was successful
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Everything should be good
@@ -364,18 +364,13 @@ TEST(TestRclLifecycle, state_machine) {
   state_machine.com_interface.srv_change_state.impl =
     reinterpret_cast<rcl_service_impl_t *>(temp_function);
 
-  // allocator is nullptr
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, nullptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcutils_reset_error();
-
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   // Node is null
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, nullptr, &allocator);
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, nullptr);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
 }
@@ -488,7 +483,7 @@ TEST(TestRclLifecycle, state_transitions) {
   rcl_print_state_machine(&state_machine);
   EXPECT_FALSE(rcutils_error_is_set());
 
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
@@ -549,9 +544,9 @@ TEST(TestRclLifecycle, init_fini_maybe_fail) {
     ret = rcl_lifecycle_state_machine_init(
       &sm, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
     if (RCL_RET_OK == ret) {
-      ret = rcl_lifecycle_state_machine_fini(&sm, &node, &allocator);
+      ret = rcl_lifecycle_state_machine_fini(&sm, &node);
       if (RCL_RET_OK != ret) {
-        EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_state_machine_fini(&sm, &node, &allocator));
+        EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_state_machine_fini(&sm, &node));
       }
     }
   });
