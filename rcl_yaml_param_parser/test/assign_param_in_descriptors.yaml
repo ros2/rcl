@@ -1,5 +1,5 @@
 node1:
-  parameter__descriptors:
+  ros__parameter_descriptors:
     bar: 42
     foo:
       read_only: true

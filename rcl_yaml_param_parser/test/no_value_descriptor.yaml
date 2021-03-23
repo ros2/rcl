@@ -1,4 +1,4 @@
 node1:
-  parameter__descriptors:
+  ros__parameter_descriptors:
     foo:
       description:

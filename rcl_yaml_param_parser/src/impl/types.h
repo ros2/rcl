@@ -28,7 +28,7 @@ extern "C"
 #endif
 
 #define PARAMS_KEY "ros__parameters"
-#define PARAMS_DESCRIPTORS_KEY "parameter__descriptors"
+#define PARAMS_DESCRIPTORS_KEY "ros__parameter_descriptors"
 #define NODE_NS_SEPERATOR "/"
 #define PARAMETER_NS_SEPERATOR "."
 
