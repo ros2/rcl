@@ -167,6 +167,17 @@ rcl_lifecycle_transition_fini(
   return ret;
 }
 
+rcl_lifecycle_state_machine_options_t
+rcl_lifecycle_get_default_state_machine_options()
+{
+  rcl_lifecycle_state_machine_options_t options;
+  options.enable_com_interface = true;
+  options.initialize_default_states = true;
+  options.allocator = rcl_get_default_allocator();
+
+  return options;
+}
+
 // get zero initialized state machine here
 rcl_lifecycle_state_machine_t
 rcl_lifecycle_get_zero_initialized_state_machine()
@@ -175,6 +186,7 @@ rcl_lifecycle_get_zero_initialized_state_machine()
   state_machine.current_state = NULL;
   state_machine.transition_map = rcl_lifecycle_get_zero_initialized_transition_map();
   state_machine.com_interface = rcl_lifecycle_get_zero_initialized_com_interface();
+  state_machine.options = rcl_lifecycle_get_default_state_machine_options();
   return state_machine;
 }
 
@@ -188,8 +200,7 @@ rcl_lifecycle_state_machine_init(
   const rosidl_service_type_support_t * ts_srv_get_available_states,
   const rosidl_service_type_support_t * ts_srv_get_available_transitions,
   const rosidl_service_type_support_t * ts_srv_get_transition_graph,
-  bool default_states,
-  const rcl_allocator_t * allocator)
+  const rcl_lifecycle_state_machine_options_t * state_machine_options)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     state_machine, "State machine is null\n", return RCL_RET_INVALID_ARGUMENT);
@@ -198,24 +209,36 @@ rcl_lifecycle_state_machine_init(
     node_handle, "Node handle is null\n", return RCL_RET_INVALID_ARGUMENT);
 
   RCL_CHECK_ALLOCATOR_WITH_MSG(
-    allocator, "can't initialize state machine, no allocator given\n",
+    &state_machine_options->allocator, "can't initialize state machine, no allocator given\n",
     return RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret = rcl_lifecycle_com_interface_init(
-    &state_machine->com_interface, node_handle,
-    ts_pub_notify,
-    ts_srv_change_state, ts_srv_get_state,
-    ts_srv_get_available_states, ts_srv_get_available_transitions, ts_srv_get_transition_graph);
-  if (ret != RCL_RET_OK) {
-    return RCL_RET_ERROR;
+  state_machine->options = *state_machine_options;
+
+  // enable full com_interface with pub & srvs
+  if (state_machine->options.enable_com_interface) {
+    rcl_ret_t ret = rcl_lifecycle_com_interface_init(
+      &state_machine->com_interface, node_handle,
+      ts_pub_notify,
+      ts_srv_change_state, ts_srv_get_state,
+      ts_srv_get_available_states, ts_srv_get_available_transitions, ts_srv_get_transition_graph);
+    if (ret != RCL_RET_OK) {
+      return RCL_RET_ERROR;
+    }
+  } else {
+    rcl_ret_t ret = rcl_lifecycle_com_interface_publisher_init(
+      &state_machine->com_interface, node_handle, ts_pub_notify);
+    if (ret != RCL_RET_OK) {
+      return RCL_RET_ERROR;
+    }
   }
 
-  if (default_states) {
-    ret = rcl_lifecycle_init_default_state_machine(state_machine, allocator);
+  if (state_machine->options.initialize_default_states) {
+    rcl_ret_t ret = rcl_lifecycle_init_default_state_machine(
+      state_machine, &state_machine->options.allocator);
     if (ret != RCL_RET_OK) {
       // init default state machine might have allocated memory,
       // so we have to call fini
-      ret = rcl_lifecycle_state_machine_fini(state_machine, node_handle, allocator);
+      ret = rcl_lifecycle_state_machine_fini(state_machine, node_handle);
       if (ret != RCL_RET_OK) {
         RCUTILS_SAFE_FWRITE_TO_STDERR(
           "Freeing state machine failed while handling a previous error. Leaking memory!\n");
@@ -234,12 +257,8 @@ rcl_lifecycle_state_machine_init(
 rcl_ret_t
 rcl_lifecycle_state_machine_fini(
   rcl_lifecycle_state_machine_t * state_machine,
-  rcl_node_t * node_handle,
-  const rcl_allocator_t * allocator)
+  rcl_node_t * node_handle)
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(
-    allocator, "can't free state machine, no allocator given\n", return RCL_RET_INVALID_ARGUMENT);
-
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
   if (rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle) != RCL_RET_OK) {
@@ -251,7 +270,7 @@ rcl_lifecycle_state_machine_fini(
   }
 
   if (rcl_lifecycle_transition_map_fini(
-      &state_machine->transition_map, allocator) != RCL_RET_OK)
+      &state_machine->transition_map, &state_machine->options.allocator) != RCL_RET_OK)
   {
     rcl_error_string_t error_string = rcl_get_error_string();
     rcutils_reset_error();
@@ -266,18 +285,21 @@ rcl_lifecycle_state_machine_fini(
 rcl_ret_t
 rcl_lifecycle_state_machine_is_initialized(const rcl_lifecycle_state_machine_t * state_machine)
 {
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    state_machine->com_interface.srv_get_state.impl, "get_state service is null\n",
-    return RCL_RET_INVALID_ARGUMENT);
+  if (state_machine->options.enable_com_interface) {
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+      state_machine->com_interface.srv_get_state.impl, "get_state service is null\n",
+      return RCL_RET_INVALID_ARGUMENT);
 
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    state_machine->com_interface.srv_change_state.impl, "change_state service is null\n",
-    return RCL_RET_INVALID_ARGUMENT);
+    RCL_CHECK_FOR_NULL_WITH_MSG(
+      state_machine->com_interface.srv_change_state.impl, "change_state service is null\n",
+      return RCL_RET_INVALID_ARGUMENT);
+  }
 
   if (rcl_lifecycle_transition_map_is_initialized(&state_machine->transition_map) != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("transition map is null");
     return RCL_RET_INVALID_ARGUMENT;
   }
+
   return RCL_RET_OK;
 }
 

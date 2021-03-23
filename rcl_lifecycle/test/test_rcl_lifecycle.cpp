@@ -223,7 +223,6 @@ TEST(TestRclLifecycle, state_machine) {
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
   });
 
-
   const rosidl_message_type_support_t * pn =
     ROSIDL_GET_MSG_TYPE_SUPPORT(lifecycle_msgs, msg, TransitionEvent);
   const rosidl_service_type_support_t * cs =
@@ -237,74 +236,96 @@ TEST(TestRclLifecycle, state_machine) {
   const rosidl_service_type_support_t * gtg =
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions);
 
+  rcl_lifecycle_state_machine_options_t state_machine_options =
+    rcl_lifecycle_get_default_state_machine_options();
+  state_machine_options.initialize_default_states = false;
+
   // Check various arguments are null
   ret = rcl_lifecycle_state_machine_init(
-    nullptr, &node, pn, cs, gs, gas, gat, gtg, false, &allocator);
+    nullptr, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, nullptr, pn, cs, gs, gas, gat, gtg, false, &allocator);
+    &state_machine, nullptr, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, nullptr, cs, gs, gas, gat, gtg, false, &allocator);
+    &state_machine, &node, nullptr, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, nullptr, gs, gas, gat, gtg, false, &allocator);
+    &state_machine, &node, pn, nullptr, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, nullptr, gas, gat, gtg, false, &allocator);
+    &state_machine, &node, pn, cs, nullptr, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, nullptr, gat, gtg, false, &allocator);
+    &state_machine, &node, pn, cs, gs, nullptr, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, nullptr, gtg, false, &allocator);
+    &state_machine, &node, pn, cs, gs, gas, nullptr, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, nullptr, false, &allocator);
+    &state_machine, &node, pn, cs, gs, gas, gat, nullptr, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
-  ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, gtg, false, nullptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcutils_reset_error();
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
-  rcutils_reset_error();
+  // Com interface not enabled
+  // The transition event publisher is active
+  // The external transition services are inactive
+  state_machine_options = rcl_lifecycle_get_default_state_machine_options();
+  state_machine_options.enable_com_interface = false;
 
+  ret = rcl_lifecycle_state_machine_init(
+    &state_machine, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_NE(nullptr, &state_machine.com_interface);
+  EXPECT_NE(nullptr, &state_machine.com_interface.pub_transition_event.impl);
+  EXPECT_EQ(nullptr, state_machine.com_interface.srv_change_state.impl);
+  EXPECT_EQ(nullptr, state_machine.com_interface.srv_get_state.impl);
+  EXPECT_EQ(nullptr, state_machine.com_interface.srv_get_available_states.impl);
+  EXPECT_EQ(nullptr, state_machine.com_interface.srv_get_available_transitions.impl);
+  EXPECT_EQ(nullptr, state_machine.com_interface.srv_get_transition_graph.impl);
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_lifecycle_state_machine_is_initialized(&state_machine)) << rcl_get_error_string().str;
+  // Reset the state machine as the previous init call was successful
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Everything should be good
+  state_machine_options = rcl_lifecycle_get_default_state_machine_options();
+  state_machine_options.initialize_default_states = false;
+
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, gtg, false, &allocator);
+    &state_machine, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Transition_map is not initialized
@@ -343,18 +364,13 @@ TEST(TestRclLifecycle, state_machine) {
   state_machine.com_interface.srv_change_state.impl =
     reinterpret_cast<rcl_service_impl_t *>(temp_function);
 
-  // allocator is nullptr
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, nullptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcutils_reset_error();
-
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
 
   // Node is null
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, nullptr, &allocator);
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, nullptr);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
 }
@@ -370,6 +386,9 @@ TEST(TestRclLifecycle, state_transitions) {
 
   rcl_node_t node = rcl_get_zero_initialized_node();
   rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_lifecycle_state_machine_options_t state_machine_options =
+    rcl_lifecycle_get_default_state_machine_options();
+
   rcl_context_t context = rcl_get_zero_initialized_context();
   rcl_node_options_t options = rcl_node_get_default_options();
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -414,7 +433,7 @@ TEST(TestRclLifecycle, state_transitions) {
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions);
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, gtg, true, &allocator);
+    &state_machine, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_lifecycle_state_machine_is_initialized(&state_machine);
@@ -464,7 +483,7 @@ TEST(TestRclLifecycle, state_transitions) {
   rcl_print_state_machine(&state_machine);
   EXPECT_FALSE(rcutils_error_is_set());
 
-  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node, &allocator);
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
@@ -519,12 +538,15 @@ TEST(TestRclLifecycle, init_fini_maybe_fail) {
     // Init segfaults if this is not zero initialized
     rcl_lifecycle_state_machine_t sm = rcl_lifecycle_get_zero_initialized_state_machine();
 
+    rcl_lifecycle_state_machine_options_t state_machine_options =
+    rcl_lifecycle_get_default_state_machine_options();
+
     ret = rcl_lifecycle_state_machine_init(
-      &sm, &node, pn, cs, gs, gas, gat, gtg, true, &allocator);
+      &sm, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
     if (RCL_RET_OK == ret) {
-      ret = rcl_lifecycle_state_machine_fini(&sm, &node, &allocator);
+      ret = rcl_lifecycle_state_machine_fini(&sm, &node);
       if (RCL_RET_OK != ret) {
-        EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_state_machine_fini(&sm, &node, &allocator));
+        EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_state_machine_fini(&sm, &node));
       }
     }
   });

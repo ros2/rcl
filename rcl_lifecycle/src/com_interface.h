@@ -41,6 +41,36 @@ rcl_lifecycle_com_interface_init(
 
 rcl_ret_t
 RCL_WARN_UNUSED
+rcl_lifecycle_com_interface_publisher_init(
+  rcl_lifecycle_com_interface_t * com_interface,
+  rcl_node_t * node_handle,
+  const rosidl_message_type_support_t * ts_pub_notify);
+
+rcl_ret_t
+RCL_WARN_UNUSED
+rcl_lifecycle_com_interface_publisher_fini(
+  rcl_lifecycle_com_interface_t * com_interface,
+  rcl_node_t * node_handle);
+
+rcl_ret_t
+RCL_WARN_UNUSED
+rcl_lifecycle_com_interface_services_init(
+  rcl_lifecycle_com_interface_t * com_interface,
+  rcl_node_t * node_handle,
+  const rosidl_service_type_support_t * ts_srv_change_state,
+  const rosidl_service_type_support_t * ts_srv_get_state,
+  const rosidl_service_type_support_t * ts_srv_get_available_states,
+  const rosidl_service_type_support_t * ts_srv_get_available_transitions,
+  const rosidl_service_type_support_t * ts_srv_get_transition_graph);
+
+rcl_ret_t
+RCL_WARN_UNUSED
+rcl_lifecycle_com_interface_services_fini(
+  rcl_lifecycle_com_interface_t * com_interface,
+  rcl_node_t * node_handle);
+
+rcl_ret_t
+RCL_WARN_UNUSED
 rcl_lifecycle_com_interface_fini(
   rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle);
