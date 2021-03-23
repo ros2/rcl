@@ -40,7 +40,9 @@ void rcl_yaml_descriptor_fini(
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 bool rcl_yaml_descriptor_copy(
-  rcl_param_descriptor_t * out_param_desc, const rcl_param_descriptor_t * param_desc, rcutils_allocator_t allocator);
+  rcl_param_descriptor_t * out_param_desc,
+  const rcl_param_descriptor_t * param_desc,
+  rcutils_allocator_t allocator);
 
 #ifdef __cplusplus
 }

@@ -213,8 +213,10 @@ rcl_params_t * rcl_yaml_node_struct_copy(
       }
     }
 
-    rcl_node_params_descriptors_t * node_params_descriptors_st = &(params_st->descriptors[node_idx]);
-    rcl_node_params_descriptors_t * out_node_params_descriptors_st = &(out_params_st->descriptors[node_idx]);
+    rcl_node_params_descriptors_t * node_params_descriptors_st =
+      &(params_st->descriptors[node_idx]);
+    rcl_node_params_descriptors_t * out_node_params_descriptors_st =
+      &(out_params_st->descriptors[node_idx]);
     ret = node_params_descriptors_init_with_capacity(
       out_node_params_descriptors_st,
       node_params_descriptors_st->capacity_descriptors,
@@ -225,17 +227,19 @@ rcl_params_t * rcl_yaml_node_struct_copy(
       }
       goto fail;
     }
-    for (size_t descriptor_idx = 0U; descriptor_idx < node_params_descriptors_st->num_params; ++descriptor_idx) {
-      out_node_params_descriptors_st->parameter_names[descriptor_idx] =
-        rcutils_strdup(node_params_descriptors_st->parameter_names[descriptor_idx], allocator);
-      if (NULL == out_node_params_descriptors_st->parameter_names[descriptor_idx]) {
+    for (size_t desc_idx = 0U; desc_idx < node_params_descriptors_st->num_params; ++desc_idx) {
+      out_node_params_descriptors_st->parameter_names[desc_idx] =
+        rcutils_strdup(node_params_descriptors_st->parameter_names[desc_idx], allocator);
+      if (NULL == out_node_params_descriptors_st->parameter_names[desc_idx]) {
         RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
         goto fail;
       }
       out_node_params_descriptors_st->num_params++;
 
-      const rcl_param_descriptor_t * param_descriptor = &(node_params_descriptors_st->parameter_descriptors[descriptor_idx]);
-      rcl_param_descriptor_t * out_param_descriptor = &(out_node_params_descriptors_st->parameter_descriptors[descriptor_idx]);
+      const rcl_param_descriptor_t * param_descriptor =
+        &(node_params_descriptors_st->parameter_descriptors[desc_idx]);
+      rcl_param_descriptor_t * out_param_descriptor =
+        &(out_node_params_descriptors_st->parameter_descriptors[desc_idx]);
       if (!rcl_yaml_descriptor_copy(out_param_descriptor, param_descriptor, allocator)) {
         goto fail;
       }

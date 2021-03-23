@@ -103,7 +103,7 @@ TEST(TestYamlDescriptor, copy_string_fields) {
   src_descriptor.name = tmp_name;
   src_descriptor.description = tmp_description;
   src_descriptor.additional_constraints = tmp_additional_constraints;
-  
+
   EXPECT_TRUE(rcl_yaml_descriptor_copy(&dest_descriptor, &src_descriptor, allocator));
   ASSERT_NE(nullptr, dest_descriptor.name);
   ASSERT_NE(nullptr, dest_descriptor.description);

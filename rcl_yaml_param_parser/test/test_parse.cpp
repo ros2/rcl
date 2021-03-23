@@ -175,10 +175,12 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only);
+  ASSERT_NE(nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only);
   EXPECT_TRUE(*params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only = nullptr;
 
@@ -191,10 +193,13 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int);
-  EXPECT_EQ(28, *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int);
+  ASSERT_NE(nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int);
+  EXPECT_EQ(28,
+    *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int,
+    allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int = nullptr;
 
   // min_value (double)
@@ -204,10 +209,13 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_double);
-  EXPECT_EQ(1.23456, *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_double);
+  ASSERT_NE(nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_double);
+  EXPECT_EQ(1.23456,
+    *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_double);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_double, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_double,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_double = nullptr;
 
@@ -220,10 +228,13 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int);
-  EXPECT_EQ(28, *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int);
+  ASSERT_NE(nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int);
+  EXPECT_EQ(28,
+    *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int,
+    allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int = nullptr;
 
   // max_value (double)
@@ -233,10 +244,13 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_double);
-  EXPECT_EQ(1.23456, *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_double);
+  ASSERT_NE(nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_double);
+  EXPECT_EQ(1.23456,
+    *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_double);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_double, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_double,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_double = nullptr;
 
@@ -249,10 +263,12 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int);
+  ASSERT_NE(nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int);
   EXPECT_EQ(28, *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int,
+    allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int = nullptr;
 
   // step (double)
@@ -262,10 +278,13 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_double);
-  EXPECT_EQ(1.23456, *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_double);
+  ASSERT_NE(nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_double);
+  EXPECT_EQ(1.23456,
+    *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_double);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_double, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_double,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_double = nullptr;
 
@@ -278,12 +297,14 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description);
+  ASSERT_NE(nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description);
   EXPECT_STREQ(
     "I am a string",
     params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description = nullptr;
 
@@ -296,14 +317,17 @@ TEST(TestParse, parse_descriptor) {
     RCUTILS_RET_OK,
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
-  ASSERT_NE(nullptr, params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints);
+  ASSERT_NE(nullptr,
+  params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints);
   EXPECT_STREQ(
     "I am a string",
     params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints);
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
-  params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints = nullptr;
+  params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints =
+    nullptr;
 }
 
 TEST(TestParse, parse_descriptor_bad_args) {
@@ -484,7 +508,8 @@ TEST(TestParse, parse_descriptor_bad_types) {
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only = nullptr;
   rcutils_reset_error();
@@ -500,7 +525,8 @@ TEST(TestParse, parse_descriptor_bad_types) {
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int,
+    allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].min_value_int = nullptr;
   rcutils_reset_error();
 
@@ -515,7 +541,8 @@ TEST(TestParse, parse_descriptor_bad_types) {
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int,
+    allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].max_value_int = nullptr;
   rcutils_reset_error();
 
@@ -530,7 +557,8 @@ TEST(TestParse, parse_descriptor_bad_types) {
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int,
+    allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].step_int = nullptr;
   rcutils_reset_error();
 
@@ -545,7 +573,8 @@ TEST(TestParse, parse_descriptor_bad_types) {
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].description = nullptr;
   rcutils_reset_error();
@@ -561,9 +590,11 @@ TEST(TestParse, parse_descriptor_bad_types) {
     parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
     rcutils_get_error_string().str;
   allocator.deallocate(
-    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints, allocator.state);
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints,
+    allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
-  params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints = nullptr;
+  params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].additional_constraints =
+    nullptr;
   rcutils_reset_error();
 }
 

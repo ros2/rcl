@@ -596,7 +596,8 @@ rcutils_ret_t parse_descriptor(
       param_descriptor->step_double = (double *)ret_val;
     } else {
       RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Value type 'integer' or 'double' expected at line %d for " PARAMS_DESCRIPTORS_KEY " key: step",
+        "Value type 'integer' or 'double' expected at line %d for "
+        PARAMS_DESCRIPTORS_KEY " key: step",
         line_num);
       return RCUTILS_RET_ERROR;
     }

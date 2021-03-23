@@ -22,7 +22,8 @@ rcutils_ret_t node_params_descriptors_init(
   rcl_node_params_descriptors_t * node_descriptors,
   const rcutils_allocator_t allocator)
 {
-  return node_params_descriptors_init_with_capacity(node_descriptors, INIT_NUM_PARAMS_DESCRIPTORS_PER_NODE, allocator);
+  return node_params_descriptors_init_with_capacity(
+    node_descriptors, INIT_NUM_PARAMS_DESCRIPTORS_PER_NODE, allocator);
 }
 
 rcutils_ret_t node_params_descriptors_init_with_capacity(
@@ -91,7 +92,8 @@ rcutils_ret_t node_params_descriptors_reallocate(
   }
 
   void * parameter_descriptors = allocator.reallocate(
-    node_descriptors->parameter_descriptors, new_capacity * sizeof(rcl_param_descriptor_t), allocator.state);
+    node_descriptors->parameter_descriptors,
+    new_capacity * sizeof(rcl_param_descriptor_t), allocator.state);
   if (NULL == parameter_descriptors) {
     RCUTILS_SET_ERROR_MSG("Failed to reallocate node parameter values");
     return RCUTILS_RET_BAD_ALLOC;
@@ -133,7 +135,8 @@ void rcl_yaml_node_params_descriptors_fini(
     for (size_t parameter_idx = 0U; parameter_idx < node_descriptors->num_params;
       parameter_idx++)
     {
-      rcl_yaml_descriptor_fini(&(node_descriptors->parameter_descriptors[parameter_idx]), allocator);
+      rcl_yaml_descriptor_fini(
+        &(node_descriptors->parameter_descriptors[parameter_idx]), allocator);
     }
 
     allocator.deallocate(node_descriptors->parameter_descriptors, allocator.state);

@@ -75,7 +75,9 @@ void rcl_yaml_descriptor_fini(
 }
 
 bool rcl_yaml_descriptor_copy(
-  rcl_param_descriptor_t * out_param_descriptor, const rcl_param_descriptor_t * param_descriptor, rcutils_allocator_t allocator)
+  rcl_param_descriptor_t * out_param_descriptor,
+  const rcl_param_descriptor_t * param_descriptor,
+  rcutils_allocator_t allocator)
 {
   if (NULL == param_descriptor || NULL == out_param_descriptor) {
     return false;
