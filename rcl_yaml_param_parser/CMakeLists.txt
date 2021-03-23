@@ -94,6 +94,18 @@ if(BUILD_TESTING)
     target_link_libraries(test_node_params ${PROJECT_NAME})
   endif()
 
+  ament_add_gtest(test_node_params_descriptors
+    test/test_node_params_descriptors.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_node_params_descriptors)
+    ament_target_dependencies(test_node_params_descriptors
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_node_params_descriptors ${PROJECT_NAME})
+  endif()
+
   ament_add_gtest(test_parse_yaml
     test/test_parse_yaml.cpp
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -166,6 +178,18 @@ if(BUILD_TESTING)
       "osrf_testing_tools_cpp"
     )
     target_link_libraries(test_yaml_variant ${PROJECT_NAME})
+  endif()
+
+  ament_add_gtest(test_yaml_descriptor
+    test/test_yaml_descriptor.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_yaml_descriptor)
+    ament_target_dependencies(test_yaml_descriptor
+      "rcutils"
+      "osrf_testing_tools_cpp"
+    )
+    target_link_libraries(test_yaml_descriptor ${PROJECT_NAME})
   endif()
 
   add_performance_test(benchmark_parse_yaml test/benchmark/benchmark_parse_yaml.cpp

@@ -521,6 +521,11 @@ rcutils_ret_t parse_descriptor(
     node_descriptors_st->num_params++;
   }
 
+  if (NULL == ns_tracker->descriptor_key_ns) {
+    RCUTILS_SET_ERROR_MSG("Internal error: Invalid mem");
+    return RCUTILS_RET_ERROR;
+  }
+
   if (0 == strncmp("additional_constraints", ns_tracker->descriptor_key_ns,
     strlen("additional_constraints")))
   {
