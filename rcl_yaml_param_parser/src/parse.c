@@ -509,7 +509,8 @@ rcutils_ret_t parse_descriptor(
     return RCUTILS_RET_ERROR;
   }
   // If parsing a yaml value, then current parameter namespace must be parameter name
-  allocator.deallocate(params_st->descriptors[node_idx].parameter_names[parameter_idx],
+  allocator.deallocate(
+    params_st->descriptors[node_idx].parameter_names[parameter_idx],
     allocator.state);
   params_st->descriptors[node_idx].parameter_names[parameter_idx] =
     rcutils_strdup(ns_tracker->parameter_ns, allocator);
@@ -526,8 +527,9 @@ rcutils_ret_t parse_descriptor(
     return RCUTILS_RET_ERROR;
   }
 
-  if (0 == strncmp("additional_constraints", ns_tracker->descriptor_key_ns,
-    strlen("additional_constraints")))
+  if (0 == strncmp(
+      "additional_constraints", ns_tracker->descriptor_key_ns,
+      strlen("additional_constraints")))
   {
     if (val_type == DATA_TYPE_STRING) {
       param_descriptor->additional_constraints = (char *)ret_val;
@@ -947,8 +949,9 @@ rcutils_ret_t parse_key(
             ret = RCUTILS_RET_ERROR;
             break;
           }
-          ret = replace_ns(ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
-              NS_TYPE_PARAM, allocator);
+          ret = replace_ns(
+            ns_tracker, parameter_ns, (ns_tracker->num_parameter_ns + 1U),
+            NS_TYPE_PARAM, allocator);
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error replacing namespace at line %d", line_num);
@@ -972,9 +975,10 @@ rcutils_ret_t parse_key(
           }
 
           ret =
-            replace_ns(ns_tracker, rcutils_strdup(value, allocator),
-              (ns_tracker->num_descriptor_key_ns + 1U),
-              NS_TYPE_DESCRIPTOR, allocator);
+            replace_ns(
+            ns_tracker, rcutils_strdup(value, allocator),
+            (ns_tracker->num_descriptor_key_ns + 1U),
+            NS_TYPE_DESCRIPTOR, allocator);
           if (RCUTILS_RET_OK != ret) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Internal error replacing namespace at line %d", line_num);
@@ -1091,8 +1095,9 @@ rcutils_ret_t parse_file_events(
             if (map_level != 3U) {
               ret = parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
             } else {
-              ret = parse_descriptor(ns_tracker, event, is_seq, node_idx, parameter_idx,
-                  params_st);
+              ret = parse_descriptor(
+                ns_tracker, event, is_seq, node_idx, parameter_idx,
+                params_st);
             }
             if (RCUTILS_RET_OK != ret) {
               break;

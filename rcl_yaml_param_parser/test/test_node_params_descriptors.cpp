@@ -39,8 +39,9 @@ TEST(TestNodeParamsDescriptors, init_fini) {
 TEST(TestNodeParamsDescriptors, init_with_capacity_fini) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcl_node_params_descriptors_t node_descriptors = {NULL, NULL, 0u, 1024u};
-  EXPECT_EQ(RCUTILS_RET_OK, node_params_descriptors_init_with_capacity(
-    &node_descriptors, 1024, allocator));
+  EXPECT_EQ(
+    RCUTILS_RET_OK, node_params_descriptors_init_with_capacity(
+      &node_descriptors, 1024, allocator));
   EXPECT_NE(nullptr, node_descriptors.parameter_names);
   EXPECT_NE(nullptr, node_descriptors.parameter_descriptors);
   EXPECT_EQ(0u, node_descriptors.num_params);
@@ -59,8 +60,9 @@ TEST(TestNodeParamsDescriptors, init_with_capacity_fini) {
 TEST(TestNodeParamsDescriptors, reallocate_with_capacity_fini) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcl_node_params_descriptors_t node_descriptors = {NULL, NULL, 0u, 1024u};
-  EXPECT_EQ(RCUTILS_RET_OK, node_params_descriptors_init_with_capacity(
-    &node_descriptors, 1024, allocator));
+  EXPECT_EQ(
+    RCUTILS_RET_OK, node_params_descriptors_init_with_capacity(
+      &node_descriptors, 1024, allocator));
   EXPECT_NE(nullptr, node_descriptors.parameter_names);
   EXPECT_NE(nullptr, node_descriptors.parameter_descriptors);
   EXPECT_EQ(0u, node_descriptors.num_params);
