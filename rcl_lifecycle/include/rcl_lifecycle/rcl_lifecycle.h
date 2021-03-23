@@ -233,7 +233,7 @@ rcl_lifecycle_get_zero_initialized_state_machine();
  *    available transitions
  * \param[in] ts_srv_get_transition_graph pointer to the service that allows to get transitions from
  *    the graph
- * \param[in] state_machine_optios collection of config options for initializing the state machine
+ * \param[in] state_machine_options collection of config options for initializing the state machine
  * \return `RCL_RET_OK` if the state machine was initialized successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if input params is NULL, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
