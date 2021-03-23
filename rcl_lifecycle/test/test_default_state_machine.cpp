@@ -102,7 +102,6 @@ test_trigger_transition(
 TEST_F(TestDefaultStateMachine, zero_init) {
   rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
   EXPECT_EQ(rcl_lifecycle_state_machine_is_initialized(&state_machine), RCL_RET_INVALID_ARGUMENT);
-  state_machine.options = this->state_machine_options;
   rcl_reset_error();
   const rcl_lifecycle_transition_map_t * transition_map = &state_machine.transition_map;
   EXPECT_EQ(transition_map->states_size, 0u);
