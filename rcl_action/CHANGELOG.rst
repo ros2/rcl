@@ -2,6 +2,9 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 2.6.0 (2021-03-18)
 ------------------
 * Don't expect RCL_RET_TIMEOUT to set an error string (`#900 <https://github.com/ros2/rcl/issues/900>`_)
