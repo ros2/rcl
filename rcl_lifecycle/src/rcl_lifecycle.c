@@ -259,11 +259,6 @@ rcl_lifecycle_state_machine_fini(
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_node_t * node_handle)
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(
-    &state_machine->options.allocator,
-    "Can't cleanup state machine. No allocator associated with the state machine.\n",
-    return RCL_RET_ERROR);
-
   rcl_ret_t fcn_ret = RCL_RET_OK;
 
   if (rcl_lifecycle_com_interface_fini(&state_machine->com_interface, node_handle) != RCL_RET_OK) {
