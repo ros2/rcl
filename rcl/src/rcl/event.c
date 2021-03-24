@@ -222,14 +222,12 @@ rcl_ret_t
 rcl_event_set_listener_callback(
   const rcl_event_t * event,
   rmw_listener_callback_t listener_callback,
-  const void * user_data,
-  bool use_previous_events)
+  const void * user_data)
 {
   return rmw_event_set_listener_callback(
     &event->impl->rmw_handle,
     listener_callback,
-    user_data,
-    use_previous_events);
+    user_data);
 }
 
 #ifdef __cplusplus
