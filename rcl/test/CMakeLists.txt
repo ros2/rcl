@@ -79,7 +79,6 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
-    ${AMENT_GTEST_ARGS}
   )
 
   rcl_add_custom_gtest(test_context${target_suffix}
@@ -121,7 +120,6 @@ function(test_target_function)
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
     TIMEOUT 120
-    ${AMENT_GTEST_ARGS}
   )
 
   rcl_add_custom_gtest(test_info_by_topic${target_suffix}
