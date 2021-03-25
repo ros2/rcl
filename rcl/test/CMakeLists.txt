@@ -73,20 +73,12 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  # TODO(asorbini): Remove these exceptions once ros2/rmw_connext is deprecated.
-  set(AMENT_GTEST_ARGS "")
-  if(rmw_implementation MATCHES "rmw_connext(.*)_cpp")
-    message(STATUS "Skipping test_timer${target_suffix} test.")
-    set(AMENT_GTEST_ARGS "SKIP_TEST")
-  endif()
-
   rcl_add_custom_gtest(test_timer${target_suffix}
     SRCS rcl/test_timer.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
-    ${AMENT_GTEST_ARGS}
   )
 
   rcl_add_custom_gtest(test_context${target_suffix}
@@ -121,16 +113,6 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
-  # TODO(asorbini): Remove these exceptions once ros2/rmw_connext is deprecated.
-  set(AMENT_GTEST_ARGS "")
-  if(rmw_implementation STREQUAL "rmw_connext_dynamic_cpp")
-    message(STATUS "Skipping test_graph${target_suffix} test.")
-    set(AMENT_GTEST_ARGS "SKIP_TEST")
-  elseif(rmw_implementation STREQUAL "rmw_connext_cpp")
-    message(STATUS "Increasing test_graph${target_suffix} test timeout.")
-    set(AMENT_GTEST_ARGS TIMEOUT 180)
-  endif()
-
   rcl_add_custom_gtest(test_graph${target_suffix}
     SRCS rcl/test_graph.cpp
     ENV ${rmw_implementation_env_var}
@@ -138,15 +120,7 @@ function(test_target_function)
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
     TIMEOUT 120
-    ${AMENT_GTEST_ARGS}
   )
-
-  # TODO(asorbini): Remove these exceptions once ros2/rmw_connext is deprecated.
-  set(AMENT_GTEST_ARGS "")
-  if(rmw_implementation MATCHES "rmw_connext(.*)_cpp")
-    message(STATUS "Increasing test_info_by_topic${target_suffix} test timeout.")
-    set(AMENT_GTEST_ARGS TIMEOUT 120)
-  endif()
 
   rcl_add_custom_gtest(test_info_by_topic${target_suffix}
     SRCS rcl/test_info_by_topic.cpp rcl/wait_for_entity_helpers.cpp
