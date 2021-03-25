@@ -350,18 +350,18 @@ rcl_get_node_names(
   for (size_t i = 0u; i < node_names->size; ++i) {
     if (!node_names->data[i]) {
       RCL_SET_ERROR_MSG("NULL node name returned by the RMW layer");
-      return RCL_RET_ERROR;
+      return RCL_RET_NODE_INVALID_NAME;
     }
     if (!strcmp(node_names->data[i], "")) {
       RCL_SET_ERROR_MSG("empty node name returned by the RMW layer");
-      return RCL_RET_ERROR;
+      return RCL_RET_NODE_INVALID_NAME;
     }
   }
   // Check that none of the node namespaces are NULL
   for (size_t i = 0u; i < node_namespaces->size; ++i) {
     if (!node_namespaces->data[i]) {
       RCL_SET_ERROR_MSG("NULL node namespace returned by the RMW layer");
-      return RCL_RET_ERROR;
+      return RCL_RET_NODE_INVALID_NAMESPACE;
     }
   }
   return RCL_RET_OK;

@@ -444,6 +444,8 @@ rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
  * \return #RCL_RET_OK if the query was successful, or
  * \return #RCL_RET_BAD_ALLOC if an error occurred while allocating memory, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_NODE_INVALID_NAME if a node with an invalid name is detected, or
+ * \return #RCL_RET_NODE_INVALID_NAMESPACE if a node with an invalid namespace is detected, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
