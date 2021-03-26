@@ -341,7 +341,30 @@ rcl_get_node_names(
     rcl_node_get_rmw_handle(node),
     node_names,
     node_namespaces);
-  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+
+  if (RMW_RET_OK != rmw_ret) {
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+
+  // Check that none of the node names are NULL or empty
+  for (size_t i = 0u; i < node_names->size; ++i) {
+    if (!node_names->data[i]) {
+      RCL_SET_ERROR_MSG("NULL node name returned by the RMW layer");
+      return RCL_RET_NODE_INVALID_NAME;
+    }
+    if (!strcmp(node_names->data[i], "")) {
+      RCL_SET_ERROR_MSG("empty node name returned by the RMW layer");
+      return RCL_RET_NODE_INVALID_NAME;
+    }
+  }
+  // Check that none of the node namespaces are NULL
+  for (size_t i = 0u; i < node_namespaces->size; ++i) {
+    if (!node_namespaces->data[i]) {
+      RCL_SET_ERROR_MSG("NULL node namespace returned by the RMW layer");
+      return RCL_RET_NODE_INVALID_NAMESPACE;
+    }
+  }
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
