@@ -186,18 +186,6 @@ rcl_guard_condition_get_rmw_handle(const rcl_guard_condition_t * guard_condition
   return guard_condition->impl->rmw_handle;
 }
 
-rcl_ret_t
-rcl_guard_condition_set_listener_callback(
-  const rcl_guard_condition_t * guard_condition,
-  rmw_listener_callback_t listener_callback,
-  const void * user_data)
-{
-  return rmw_guard_condition_set_listener_callback(
-    guard_condition->impl->rmw_handle,
-    listener_callback,
-    user_data);
-}
-
 #ifdef __cplusplus
 }
 #endif
