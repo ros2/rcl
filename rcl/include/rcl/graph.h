@@ -585,6 +585,8 @@ rcl_count_subscribers(
 /// Wait for there to be a specified number of publishers on a given topic.
 /**
  * The `node` parameter must point to a valid node.
+ * The nodes graph guard condition is used by this function, and therefore the caller should
+ * take care not to use the guard condition concurrently in any other wait sets.
  *
  * The `allocator` parameter must point to a valid allocator.
  *
@@ -595,6 +597,7 @@ rcl_count_subscribers(
  * is greater than or equal to the `count` parameter, or the specified `timeout` is reached.
  *
  * The `timeout` parameter is in nanoseconds.
+ * The timeout is based on steady time elapsed.
  * A negative value disables the timeout (i.e. this function blocks until the number of
  * publishers is greater than or equals to `count`).
  *
