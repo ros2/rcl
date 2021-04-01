@@ -706,16 +706,104 @@ TEST_F(
   rcl_reset_error();
 }
 
+/* Test the rcl_wait_for_publishers function.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_wait_for_publishers
+) {
+  rcl_ret_t ret;
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
+    rcutils_get_zero_initialized_allocator());
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const char * topic_name = "/topic_test_rcl_wait_for_publishers";
+  bool success = false;
+
+  // Invalid node
+  ret = rcl_wait_for_publishers(nullptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_wait_for_publishers(&zero_node, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_wait_for_publishers(this->old_node_ptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid allocator
+  ret = rcl_wait_for_publishers(this->node_ptr, nullptr, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_wait_for_publishers(this->node_ptr, &zero_allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid topic name
+  ret = rcl_wait_for_publishers(this->node_ptr, &allocator, nullptr, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid output arg
+  ret = rcl_wait_for_publishers(this->node_ptr, &allocator, topic_name, 1u, 100, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Valid call (expect timeout since there are no publishers)
+  ret = rcl_wait_for_publishers(this->node_ptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+/* Test the rcl_wait_for_subscribers function.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_wait_for_subscribers
+) {
+  rcl_ret_t ret;
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
+    rcutils_get_zero_initialized_allocator());
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const char * topic_name = "/topic_test_rcl_wait_for_subscribers";
+  bool success = false;
+
+  // Invalid node
+  ret = rcl_wait_for_subscribers(nullptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_wait_for_subscribers(&zero_node, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_wait_for_subscribers(this->old_node_ptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid allocator
+  ret = rcl_wait_for_subscribers(this->node_ptr, nullptr, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_wait_for_subscribers(this->node_ptr, &zero_allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid topic name
+  ret = rcl_wait_for_subscribers(this->node_ptr, &allocator, nullptr, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid output arg
+  ret = rcl_wait_for_subscribers(this->node_ptr, &allocator, topic_name, 1u, 100, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Valid call (expect timeout since there are no subscribers)
+  ret = rcl_wait_for_subscribers(this->node_ptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
 void
 check_graph_state(
   const rcl_node_t * node_ptr,
-  rcl_wait_set_t * wait_set_ptr,
-  const rcl_guard_condition_t * graph_guard_condition,
   std::string & topic_name,
   size_t expected_publisher_count,
   size_t expected_subscriber_count,
   bool expected_in_tnat,
-  size_t number_of_tries)
+  const std::chrono::nanoseconds & timeout)
 {
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
@@ -724,78 +812,39 @@ check_graph_state(
     expected_subscriber_count,
     expected_in_tnat ? "" : " not"
   );
-  size_t publisher_count = 0;
-  size_t subscriber_count = 0;
   bool is_in_tnat = false;
   rcl_names_and_types_t tnat {};
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  for (size_t i = 0; i < number_of_tries; ++i) {
-    ret = rcl_count_publishers(node_ptr, topic_name.c_str(), &publisher_count);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
 
-    ret = rcl_count_subscribers(node_ptr, topic_name.c_str(), &subscriber_count);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
+  // Wait for expected number of publishers
+  bool success = false;
+  ret = rcl_wait_for_publishers(
+    node_ptr, &allocator, topic_name.c_str(), expected_publisher_count, timeout.count(), &success);
+  ASSERT_EQ(ret, RCL_RET_OK);
+  EXPECT_TRUE(success);
+  // Wait for expected number of subscribers
+  success = false;
+  ret = rcl_wait_for_subscribers(
+    node_ptr, &allocator, topic_name.c_str(), expected_subscriber_count, timeout.count(), &success);
+  ASSERT_EQ(ret, RCL_RET_OK);
+  EXPECT_TRUE(success);
 
-    tnat = rcl_get_zero_initialized_names_and_types();
-    ret = rcl_get_topic_names_and_types(node_ptr, &allocator, false, &tnat);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    rcl_reset_error();
-    is_in_tnat = false;
-    for (size_t i = 0; RCL_RET_OK == ret && i < tnat.names.size; ++i) {
-      if (topic_name == std::string(tnat.names.data[i])) {
-        ASSERT_FALSE(is_in_tnat) << "duplicates in the tnat";  // Found it more than once!
-        is_in_tnat = true;
-      }
+  tnat = rcl_get_zero_initialized_names_and_types();
+  ret = rcl_get_topic_names_and_types(node_ptr, &allocator, false, &tnat);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  is_in_tnat = false;
+  for (size_t i = 0; RCL_RET_OK == ret && i < tnat.names.size; ++i) {
+    if (topic_name == std::string(tnat.names.data[i])) {
+      ASSERT_FALSE(is_in_tnat) << "duplicates in the tnat";  // Found it more than once!
+      is_in_tnat = true;
     }
-    if (RCL_RET_OK == ret) {
-      ret = rcl_names_and_types_fini(&tnat);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      rcl_reset_error();
-    }
-
-    RCUTILS_LOG_INFO_NAMED(
-      ROS_PACKAGE_NAME,
-      " Try %zu: %zu publishers, %zu subscribers, and that the topic is%s in the graph.",
-      i + 1,
-      publisher_count,
-      subscriber_count,
-      is_in_tnat ? "" : " not"
-    );
-    if (
-      expected_publisher_count == publisher_count &&
-      expected_subscriber_count == subscriber_count &&
-      expected_in_tnat == is_in_tnat)
-    {
-      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "  state correct!");
-      break;
-    }
-    // Wait for graph change before trying again.
-    if ((i + 1) == number_of_tries) {
-      // Don't wait for the graph to change on the last loop because we won't check again.
-      continue;
-    }
-    ret = rcl_wait_set_clear(wait_set_ptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_wait_set_add_guard_condition(wait_set_ptr, graph_guard_condition, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(400);
-    RCUTILS_LOG_INFO_NAMED(
-      ROS_PACKAGE_NAME,
-      "  state wrong, waiting up to '%s' nanoseconds for graph changes... ",
-      std::to_string(time_to_sleep.count()).c_str());
-    ret = rcl_wait(wait_set_ptr, time_to_sleep.count());
-    if (ret == RCL_RET_TIMEOUT) {
-      RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "timeout");
-      continue;
-    }
-    RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "change occurred");
+  }
+  if (RCL_RET_OK == ret) {
+    ret = rcl_names_and_types_fini(&tnat);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-  EXPECT_EQ(expected_publisher_count, publisher_count);
-  EXPECT_EQ(expected_subscriber_count, subscriber_count);
+
   if (expected_in_tnat) {
     EXPECT_TRUE(is_in_tnat);
   } else {
@@ -1145,18 +1194,14 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   topic_name += std::to_string(now.count());
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using topic name: %s", topic_name.c_str());
   rcl_ret_t ret;
-  const rcl_guard_condition_t * graph_guard_condition =
-    rcl_node_get_graph_guard_condition(this->node_ptr);
   // First assert the "topic_name" is not in use.
   check_graph_state(
     this->node_ptr,
-    this->wait_set_ptr,
-    graph_guard_condition,
     topic_name,
     0,    // expected publishers on topic
     0,    // expected subscribers on topic
     false,    // topic expected in graph
-    9);    // number of retries
+    std::chrono::seconds(4));    // timeout
   // Now create a publisher on "topic_name" and check that it is seen.
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
   rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
@@ -1167,13 +1212,11 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   // Check the graph.
   check_graph_state(
     this->node_ptr,
-    this->wait_set_ptr,
-    graph_guard_condition,
     topic_name,
     1,  // expected publishers on topic
     0,  // expected subscribers on topic
     true,  // topic expected in graph
-    9);  // number of retries
+    std::chrono::seconds(4));  // timeout
   // Now create a subscriber.
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
@@ -1183,13 +1226,11 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   // Check the graph again.
   check_graph_state(
     this->node_ptr,
-    this->wait_set_ptr,
-    graph_guard_condition,
     topic_name,
     1,  // expected publishers on topic
     1,  // expected subscribers on topic
     true,  // topic expected in graph
-    9);  // number of retries
+    std::chrono::seconds(4));  // timeout
   // Destroy the publisher.
   ret = rcl_publisher_fini(&pub, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -1197,13 +1238,11 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   // Check the graph again.
   check_graph_state(
     this->node_ptr,
-    this->wait_set_ptr,
-    graph_guard_condition,
     topic_name,
     0,  // expected publishers on topic
     1,  // expected subscribers on topic
     true,  // topic expected in graph
-    9);  // number of retries
+    std::chrono::seconds(4));  // timeout
   // Destroy the subscriber.
   ret = rcl_subscription_fini(&sub, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -1211,13 +1250,11 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   // Check the graph again.
   check_graph_state(
     this->node_ptr,
-    this->wait_set_ptr,
-    graph_guard_condition,
     topic_name,
     0,  // expected publishers on topic
     0,  // expected subscribers on topic
     false,  // topic expected in graph
-    9);  // number of retries
+    std::chrono::seconds(4));  // timeout
 }
 
 /* Test the graph guard condition notices below changes.
