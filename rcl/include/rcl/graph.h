@@ -592,10 +592,10 @@ rcl_count_subscribers(
  * It should also follow the topic name rules.
  *
  * This function blocks and will return when the number of publishers for `topic_name`
- * is greater than or equal to the `count` parameter, or the specificed `timeout` is reached.
+ * is greater than or equal to the `count` parameter, or the specified `timeout` is reached.
  *
  * The `timeout` parameter is in nanoseconds.
- * A negative value disables the timeout (i.e. this function to blocks until the number of
+ * A negative value disables the timeout (i.e. this function blocks until the number of
  * publishers is greater than or equals to `count`).
  *
  * The `success` parameter must point to a valid bool.
