@@ -517,8 +517,9 @@ _rcl_wait_for_entities(
   }
 
   // Get current time
+  // We use system time to be consistent with the clock used by rcl_wait()
   rcutils_time_point_value_t start;
-  rcutils_ret_t time_ret = rcutils_steady_time_now(&start);
+  rcutils_ret_t time_ret = rcutils_system_time_now(&start);
   if (time_ret != RCUTILS_RET_OK) {
     rcutils_error_string_t error = rcutils_get_error_string();
     rcutils_reset_error();
@@ -552,7 +553,7 @@ _rcl_wait_for_entities(
     // If we're not waiting indefinitely, compute time remaining
     if (timeout >= 0) {
       rcutils_time_point_value_t now;
-      time_ret = rcutils_steady_time_now(&now);
+      time_ret = rcutils_system_time_now(&now);
       if (time_ret != RCUTILS_RET_OK) {
         rcutils_error_string_t error = rcutils_get_error_string();
         rcutils_reset_error();

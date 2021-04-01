@@ -597,7 +597,7 @@ rcl_count_subscribers(
  * is greater than or equal to the `count` parameter, or the specified `timeout` is reached.
  *
  * The `timeout` parameter is in nanoseconds.
- * The timeout is based on steady time elapsed.
+ * The timeout is based on system time elapsed.
  * A negative value disables the timeout (i.e. this function blocks until the number of
  * publishers is greater than or equals to `count`).
  *
