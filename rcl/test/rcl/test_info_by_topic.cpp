@@ -359,7 +359,11 @@ TEST_F(
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   const std::string fqdn = std::string("/") + this->topic_name;
   // Wait until GraphCache publishers are updated
-  ASSERT_TRUE(wait_for_graph_publication(&this->node, fqdn.c_str(), 1u, 10, 100));
+  bool success = false;
+  ret = rcl_wait_for_publishers(
+    &this->node, &allocator, fqdn.c_str(), 1u, RCUTILS_S_TO_NS(1), &success);
+  ASSERT_EQ(ret, RCL_RET_OK);
+  ASSERT_TRUE(success);
   // Get publishers info by topic
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array_pub =
     rmw_get_zero_initialized_topic_endpoint_info_array();
@@ -375,7 +379,11 @@ TEST_F(
   assert_qos_equality(topic_endpoint_info_pub.qos_profile, default_qos_profile, true);
 
   // Wait until GraphCache subcribers are updated
-  ASSERT_TRUE(wait_for_graph_subscription(&this->node, fqdn.c_str(), 1u, 10, 100));
+  success = false;
+  ret = rcl_wait_for_subscribers(
+    &this->node, &allocator, fqdn.c_str(), 1u, RCUTILS_S_TO_NS(1), &success);
+  ASSERT_EQ(ret, RCL_RET_OK);
+  ASSERT_TRUE(success);
   // Get subscribers info by topic
   rmw_topic_endpoint_info_array_t topic_endpoint_info_array_sub =
     rmw_get_zero_initialized_topic_endpoint_info_array();
