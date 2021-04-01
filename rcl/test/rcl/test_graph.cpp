@@ -706,6 +706,96 @@ TEST_F(
   rcl_reset_error();
 }
 
+/* Test the rcl_wait_for_publishers function.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_wait_for_publishers
+) {
+  rcl_ret_t ret;
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
+    rcutils_get_zero_initialized_allocator());
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const char * topic_name = "/topic_test_rcl_wait_for_publishers";
+  bool success = false;
+
+  // Invalid node
+  ret = rcl_wait_for_publishers(nullptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_wait_for_publishers(&zero_node, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_wait_for_publishers(this->old_node_ptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid allocator
+  ret = rcl_wait_for_publishers(this->node_ptr, nullptr, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_wait_for_publishers(this->node_ptr, &zero_allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid topic name
+  ret = rcl_wait_for_publishers(this->node_ptr, &allocator, nullptr, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid output arg
+  ret = rcl_wait_for_publishers(this->node_ptr, &allocator, topic_name, 1u, 100, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Valid call (expect timeout since there are no publishers)
+  ret = rcl_wait_for_publishers(this->node_ptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+/* Test the rcl_wait_for_subscribers function.
+ */
+TEST_F(
+  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
+  test_rcl_wait_for_subscribers
+) {
+  rcl_ret_t ret;
+  rcl_node_t zero_node = rcl_get_zero_initialized_node();
+  rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
+    rcutils_get_zero_initialized_allocator());
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  const char * topic_name = "/topic_test_rcl_wait_for_subscribers";
+  bool success = false;
+
+  // Invalid node
+  ret = rcl_wait_for_subscribers(nullptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_wait_for_subscribers(&zero_node, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret);
+  rcl_reset_error();
+  ret = rcl_wait_for_subscribers(this->old_node_ptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid allocator
+  ret = rcl_wait_for_subscribers(this->node_ptr, nullptr, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_wait_for_subscribers(this->node_ptr, &zero_allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid topic name
+  ret = rcl_wait_for_subscribers(this->node_ptr, &allocator, nullptr, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid output arg
+  ret = rcl_wait_for_subscribers(this->node_ptr, &allocator, topic_name, 1u, 100, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Valid call (expect timeout since there are no subscribers)
+  ret = rcl_wait_for_subscribers(this->node_ptr, &allocator, topic_name, 1u, 100, &success);
+  EXPECT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
 void
 check_graph_state(
   const rcl_node_t * node_ptr,

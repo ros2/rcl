@@ -20,8 +20,12 @@ extern "C"
 #include "rcl/graph.h"
 
 #include "rcl/error_handling.h"
+#include "rcl/guard_condition.h"
+#include "rcl/wait.h"
 #include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/macros.h"
+#include "rcutils/time.h"
 #include "rcutils/types.h"
 #include "rmw/error_handling.h"
 #include "rmw/get_node_info_and_types.h"
@@ -450,6 +454,158 @@ rcl_count_subscribers(
   RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t rmw_ret = rmw_count_subscribers(rcl_node_get_rmw_handle(node), topic_name, count);
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
+
+typedef rcl_ret_t (* count_entities_func_t)(
+  const rcl_node_t * node,
+  const char * topic_name,
+  size_t * count);
+
+rcl_ret_t
+_rcl_wait_for_entities(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  const char * topic_name,
+  const size_t expected_count,
+  rcutils_duration_value_t timeout,
+  bool * success,
+  count_entities_func_t count_entities_func)
+{
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;
+  }
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(success, RCL_RET_INVALID_ARGUMENT);
+
+  *success = false;
+
+  // We can avoid waiting if there are already the expected number of publishers
+  size_t count = 0u;
+  rcl_ret_t count_ret = count_entities_func(node, topic_name, &count);
+  if (count_ret != RCL_RET_OK) {
+    // Error message already set
+    return count_ret;
+  }
+  if (expected_count <= count) {
+    *success = true;
+    return RCL_RET_OK;
+  }
+
+  // Create a wait set and add the node graph guard condition to it
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(
+    &wait_set, 0, 1, 0, 0, 0, 0, node->context, *allocator);
+  if (ret != RCL_RET_OK) {
+    // Error message already set
+    return ret;
+  }
+
+  const rcl_guard_condition_t * guard_condition = rcl_node_get_graph_guard_condition(node);
+  if (!guard_condition) {
+    // Error message already set
+    return RCL_RET_ERROR;
+  }
+
+  // Add it to the wait set
+  ret = rcl_wait_set_add_guard_condition(&wait_set, guard_condition, NULL);
+  if (ret != RCL_RET_OK) {
+    // Error message already set
+    return ret;
+  }
+
+  // Get current time
+  rcutils_time_point_value_t start;
+  rcutils_ret_t time_ret = rcutils_steady_time_now(&start);
+  if (time_ret != RCUTILS_RET_OK) {
+    rcutils_error_string_t error = rcutils_get_error_string();
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG(error.str);
+    return RCL_RET_ERROR;
+  }
+
+  // Wait for expected count or timeout
+  while (true) {
+    ret = rcl_wait(&wait_set, timeout);
+    if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
+      // Error message already set
+      return ret;
+    }
+
+    // Check count
+    count_ret = count_entities_func(node, topic_name, &count);
+    if (count_ret != RCL_RET_OK) {
+      // Error already set
+      return count_ret;
+    }
+    if (expected_count <= count) {
+      *success = true;
+      break;
+    }
+
+    // If we're not waiting indefinitely, compute time remaining
+    if (timeout >= 0) {
+      rcutils_time_point_value_t now;
+      time_ret = rcutils_steady_time_now(&now);
+      if (time_ret != RCUTILS_RET_OK) {
+        rcutils_error_string_t error = rcutils_get_error_string();
+        rcutils_reset_error();
+        RCL_SET_ERROR_MSG(error.str);
+        return RCL_RET_ERROR;
+      }
+      timeout = timeout - (now - start);
+      if (timeout <= 0) {
+        return RCL_RET_TIMEOUT;
+      }
+    }
+
+    // Clear wait set for next iteration
+    ret = rcl_wait_set_clear(&wait_set);
+    if (ret != RCL_RET_OK) {
+      // Error message already set
+      return ret;
+    }
+  }
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_wait_for_publishers(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  const char * topic_name,
+  const size_t expected_count,
+  rcutils_duration_value_t timeout,
+  bool * success)
+{
+  return _rcl_wait_for_entities(
+    node,
+    allocator,
+    topic_name,
+    expected_count,
+    timeout,
+    success,
+    rcl_count_publishers);
+}
+
+rcl_ret_t
+rcl_wait_for_subscribers(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  const char * topic_name,
+  const size_t expected_count,
+  rcutils_duration_value_t timeout,
+  bool * success)
+{
+  return _rcl_wait_for_entities(
+    node,
+    allocator,
+    topic_name,
+    expected_count,
+    timeout,
+    success,
+    rcl_count_subscribers);
 }
 
 typedef rmw_ret_t (* get_topic_endpoint_info_func_t)(
