@@ -478,14 +478,15 @@ _rcl_wait_for_entities(
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(success, RCL_RET_INVALID_ARGUMENT);
 
+  rcl_ret_t ret = RCL_RET_OK;
   *success = false;
 
   // We can avoid waiting if there are already the expected number of publishers
   size_t count = 0u;
-  rcl_ret_t count_ret = count_entities_func(node, topic_name, &count);
-  if (count_ret != RCL_RET_OK) {
+  ret = count_entities_func(node, topic_name, &count);
+  if (ret != RCL_RET_OK) {
     // Error message already set
-    return count_ret;
+    return ret;
   }
   if (expected_count <= count) {
     *success = true;
@@ -494,7 +495,7 @@ _rcl_wait_for_entities(
 
   // Create a wait set and add the node graph guard condition to it
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
-  rcl_ret_t ret = rcl_wait_set_init(
+  ret = rcl_wait_set_init(
     &wait_set, 0, 1, 0, 0, 0, 0, node->context, *allocator);
   if (ret != RCL_RET_OK) {
     // Error message already set
@@ -504,14 +505,15 @@ _rcl_wait_for_entities(
   const rcl_guard_condition_t * guard_condition = rcl_node_get_graph_guard_condition(node);
   if (!guard_condition) {
     // Error message already set
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
+    goto cleanup;
   }
 
   // Add it to the wait set
   ret = rcl_wait_set_add_guard_condition(&wait_set, guard_condition, NULL);
   if (ret != RCL_RET_OK) {
     // Error message already set
-    return ret;
+    goto cleanup;
   }
 
   // Get current time
@@ -521,22 +523,26 @@ _rcl_wait_for_entities(
     rcutils_error_string_t error = rcutils_get_error_string();
     rcutils_reset_error();
     RCL_SET_ERROR_MSG(error.str);
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
+    goto cleanup;
   }
 
   // Wait for expected count or timeout
+  rcl_ret_t wait_ret;
   while (true) {
-    ret = rcl_wait(&wait_set, timeout);
-    if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
+    // Use separate 'wait_ret' code to avoid returning spurious TIMEOUT value
+    wait_ret = rcl_wait(&wait_set, timeout);
+    if (wait_ret != RCL_RET_OK && wait_ret != RCL_RET_TIMEOUT) {
       // Error message already set
-      return ret;
+      ret = wait_ret;
+      break;
     }
 
     // Check count
-    count_ret = count_entities_func(node, topic_name, &count);
-    if (count_ret != RCL_RET_OK) {
+    ret = count_entities_func(node, topic_name, &count);
+    if (ret != RCL_RET_OK) {
       // Error already set
-      return count_ret;
+      break;
     }
     if (expected_count <= count) {
       *success = true;
@@ -551,11 +557,13 @@ _rcl_wait_for_entities(
         rcutils_error_string_t error = rcutils_get_error_string();
         rcutils_reset_error();
         RCL_SET_ERROR_MSG(error.str);
-        return RCL_RET_ERROR;
+        ret = RCL_RET_ERROR;
+        break;
       }
       timeout = timeout - (now - start);
       if (timeout <= 0) {
-        return RCL_RET_TIMEOUT;
+        ret = RCL_RET_TIMEOUT;
+        break;
       }
     }
 
@@ -563,11 +571,23 @@ _rcl_wait_for_entities(
     ret = rcl_wait_set_clear(&wait_set);
     if (ret != RCL_RET_OK) {
       // Error message already set
-      return ret;
+      break;
     }
   }
 
-  return RCL_RET_OK;
+  rcl_ret_t cleanup_ret;
+cleanup:
+  // Cleanup
+  cleanup_ret = rcl_wait_set_fini(&wait_set);
+  if (cleanup_ret != RCL_RET_OK) {
+    // If we got two unexpected errors, return the earlier error
+    if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
+      // Error message already set
+      ret = cleanup_ret;
+    }
+  }
+
+  return ret;
 }
 
 rcl_ret_t
