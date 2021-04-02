@@ -20,6 +20,7 @@ extern "C"
 #include "rcl/graph.h"
 
 #include "rcl/error_handling.h"
+#include "rcl/expand_topic_name.h"
 #include "rcl/guard_condition.h"
 #include "rcl/wait.h"
 #include "rcutils/allocator.h"
@@ -478,12 +479,27 @@ _rcl_wait_for_entities(
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(success, RCL_RET_INVALID_ARGUMENT);
 
+  char expanded_topic[256];  // topics can't be longer than 256 characters
+  if (topic_name[0] != '/') {
+    int ret_copy = rcutils_snprintf(expanded_topic, sizeof(expanded_topic), "/%s", topic_name);
+    if (ret_copy != (int)strlen(topic_name) + 1) {
+      RCL_SET_ERROR_MSG("unable to make topic absolute");
+      return RCL_RET_ERROR;
+    }
+  } else {
+    int ret_copy = rcutils_snprintf(expanded_topic, sizeof(expanded_topic), "%s", topic_name);
+    if (ret_copy != (int)strlen(topic_name)) {
+      RCL_SET_ERROR_MSG("unable to make topic absolute");
+      return RCL_RET_ERROR;
+    }
+  }
+
   rcl_ret_t ret = RCL_RET_OK;
   *success = false;
 
   // We can avoid waiting if there are already the expected number of publishers
   size_t count = 0u;
-  ret = count_entities_func(node, topic_name, &count);
+  ret = count_entities_func(node, expanded_topic, &count);
   if (ret != RCL_RET_OK) {
     // Error message already set
     return ret;
@@ -540,7 +556,7 @@ _rcl_wait_for_entities(
     }
 
     // Check count
-    ret = count_entities_func(node, topic_name, &count);
+    ret = count_entities_func(node, expanded_topic, &count);
     if (ret != RCL_RET_OK) {
       // Error already set
       break;
