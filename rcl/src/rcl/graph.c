@@ -20,7 +20,6 @@ extern "C"
 #include "rcl/graph.h"
 
 #include "rcl/error_handling.h"
-#include "rcl/expand_topic_name.h"
 #include "rcl/guard_condition.h"
 #include "rcl/wait.h"
 #include "rcutils/allocator.h"
