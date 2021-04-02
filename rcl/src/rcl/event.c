@@ -219,14 +219,19 @@ rcl_event_is_valid(const rcl_event_t * event)
 }
 
 rcl_ret_t
-rcl_event_set_listener_callback(
+rcl_event_set_callback(
   const rcl_event_t * event,
-  rmw_listener_callback_t listener_callback,
+  rcl_event_callback_t callback,
   const void * user_data)
 {
-  return rmw_event_set_listener_callback(
+  if (!rcl_event_is_valid(event)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(callback, "callback is invalid", return RCL_RET_INVALID_ARGUMENT);
+  return rmw_event_set_callback(
     &event->impl->rmw_handle,
-    listener_callback,
+    callback,
     user_data);
 }
 

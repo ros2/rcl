@@ -282,14 +282,19 @@ rcl_client_is_valid(const rcl_client_t * client)
 }
 
 rcl_ret_t
-rcl_client_set_listener_callback(
+rcl_client_set_on_new_response_callback(
   const rcl_client_t * client,
-  rmw_listener_callback_t listener_callback,
+  rcl_event_callback_t callback,
   const void * user_data)
 {
-  return rmw_client_set_listener_callback(
+  if (!rcl_client_is_valid(client)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(callback, "callback is invalid", return RCL_RET_INVALID_ARGUMENT);
+  return rmw_client_set_on_new_response_callback(
     client->impl->rmw_handle,
-    listener_callback,
+    callback,
     user_data);
 }
 

@@ -438,14 +438,19 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
 }
 
 rcl_ret_t
-rcl_subscription_set_listener_callback(
+rcl_subscription_set_on_new_message_callback(
   const rcl_subscription_t * subscription,
-  rmw_listener_callback_t listener_callback,
+  rcl_event_callback_t callback,
   const void * user_data)
 {
-  return rmw_subscription_set_listener_callback(
+  if (!rcl_subscription_is_valid(subscription)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  RCL_CHECK_FOR_NULL_WITH_MSG(callback, "callback is invalid", return RCL_RET_INVALID_ARGUMENT);
+  return rmw_subscription_set_on_new_message_callback(
     subscription->impl->rmw_handle,
-    listener_callback,
+    callback,
     user_data);
 }
 
