@@ -313,8 +313,8 @@ TEST_F(
   }
 
   // Release resources
-  rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_1, &allocator);
-  rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_2, &allocator);
+  rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_1);
+  rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_2);
 }
 
 TEST_F(
@@ -425,6 +425,6 @@ TEST_F(
   }
 
   // Release resources
-  rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_1, &allocator);
-  rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_2, &allocator);
+  rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_1);
+  rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_2);
 }
