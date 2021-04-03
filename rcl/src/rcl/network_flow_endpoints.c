@@ -35,12 +35,9 @@ extern "C"
 #include "./common.h"
 
 rcl_ret_t
-__validate_allocator_and_network_flow_endpoint_array(
-  rcutils_allocator_t * allocator,
+__validate_network_flow_endpoint_array(
   rcl_network_flow_endpoint_array_t * network_flow_endpoint_array)
 {
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-
   RCL_CHECK_ARGUMENT_FOR_NULL(network_flow_endpoint_array, RCL_RET_INVALID_ARGUMENT);
 
   rmw_error_string_t error_string;
@@ -67,8 +64,9 @@ rcl_publisher_get_network_flow_endpoints(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  rcl_ret_t rcl_ret = __validate_allocator_and_network_flow_endpoint_array(
-    allocator,
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t rcl_ret = __validate_network_flow_endpoint_array(
     network_flow_endpoint_array);
   if (rcl_ret != RCL_RET_OK) {
     return rcl_ret;
@@ -97,8 +95,9 @@ rcl_subscription_get_network_flow_endpoints(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  rcl_ret_t rcl_ret = __validate_allocator_and_network_flow_endpoint_array(
-    allocator,
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t rcl_ret = __validate_network_flow_endpoint_array(
     network_flow_endpoint_array);
   if (rcl_ret != RCL_RET_OK) {
     return rcl_ret;
