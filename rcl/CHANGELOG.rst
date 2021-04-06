@@ -2,6 +2,15 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Unique network flows (`#880 <https://github.com/ros2/rcl/issues/880>`_)
+* updating quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#909 <https://github.com/ros2/rcl/issues/909>`_)
+* Add functions for waiting for publishers and subscribers (`#907 <https://github.com/ros2/rcl/issues/907>`_)
+* Revert "Mark cyclonedds test_service test as flakey (`#648 <https://github.com/ros2/rcl/issues/648>`_)" (`#904 <https://github.com/ros2/rcl/issues/904>`_)
+* Guard against returning NULL or empty node names (`#570 <https://github.com/ros2/rcl/issues/570>`_)
+* Contributors: Ananya Muddukrishna, Jacob Perron, Michel Hidalgo, shonigmann
+
 3.0.1 (2021-03-25)
 ------------------
 * Remove exceptions for rmw_connext_cpp tests. (`#903 <https://github.com/ros2/rcl/issues/903>`_)
