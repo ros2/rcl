@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.1.0 (2021-04-06)
+------------------
 * Unique network flows (`#880 <https://github.com/ros2/rcl/issues/880>`_)
 * updating quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#909 <https://github.com/ros2/rcl/issues/909>`_)
 * Add functions for waiting for publishers and subscribers (`#907 <https://github.com/ros2/rcl/issues/907>`_)
