@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make test_two_timers_ready_before_timeout less flaky (`#911 <https://github.com/ros2/rcl/issues/911>`_)
+* Add publishing instrumentation (`#905 <https://github.com/ros2/rcl/issues/905>`_)
+* Contributors: Christophe Bedard, Ivan Santiago Paunovic
+
 3.1.0 (2021-04-06)
 ------------------
 * Unique network flows (`#880 <https://github.com/ros2/rcl/issues/880>`_)
