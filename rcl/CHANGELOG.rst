@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.1.1 (2021-04-12)
+------------------
 * Make test_two_timers_ready_before_timeout less flaky (`#911 <https://github.com/ros2/rcl/issues/911>`_)
 * Add publishing instrumentation (`#905 <https://github.com/ros2/rcl/issues/905>`_)
 * Contributors: Christophe Bedard, Ivan Santiago Paunovic
