@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2021-04-14)
+-------------------
+* Update quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#910 <https://github.com/ros2/rcl/issues/910>`_)
+* Contributors: Simon Honigmann
+
 1.1.10 (2020-12-09)
 -------------------
 * Update QD to QL 1 (`#867 <https://github.com/ros2/rcl/issues/867>`_)

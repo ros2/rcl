@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.11 (2021-04-14)
+-------------------
+* Update quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#910 <https://github.com/ros2/rcl/issues/910>`_)
+* Contributors: Simon Honigmann
+
 1.1.10 (2020-12-09)
 -------------------
 * rcl_action: address various clang static analysis fixes (`#864 <https://github.com/ros2/rcl/issues/864>`_) (`#875 <https://github.com/ros2/rcl/issues/875>`_)
