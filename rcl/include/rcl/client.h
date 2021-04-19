@@ -427,10 +427,10 @@ rcl_client_is_valid(const rcl_client_t * client);
  * <i>[1] rmw implementation defined</i>
  *
  * \param[in] client The client on which to set the callback
- * \param[in] callback The callback to be called when new responses arrive
+ * \param[in] callback The callback to be called when new responses arrive, may be NULL
  * \param[in] user_data Given to the callback when called later, may be NULL
  * \return `RCL_RET_OK` if callback was set to the listener, or
- * \return `RCL_RET_INVALID_ARGUMENT` if `client` or `callback` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `client` is NULL, or
  * \return `RCL_RET_UNSUPPORTED` if the API is not implemented in the dds implementation
  */
 RCL_PUBLIC

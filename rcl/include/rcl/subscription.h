@@ -630,10 +630,10 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
  * <i>[1] rmw implementation defined</i>
  *
  * \param[in] subscription The subscription on which to set the callback
- * \param[in] callback The callback to be called when new messages arrive
+ * \param[in] callback The callback to be called when new messages arrive, may be NULL
  * \param[in] user_data Given to the callback when called later, may be NULL
  * \return `RCL_RET_OK` if successful, or
- * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` or `callback` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
  * \return `RCL_RET_UNSUPPORTED` if the API is not implemented in the dds implementation
  */
 RCL_PUBLIC
