@@ -447,7 +447,7 @@ rcl_subscription_set_on_new_message_callback(
     // error state already set
     return RCL_RET_INVALID_ARGUMENT;
   }
-  RCL_CHECK_FOR_NULL_WITH_MSG(callback, "callback is invalid", return RCL_RET_INVALID_ARGUMENT);
+
   return rmw_subscription_set_on_new_message_callback(
     subscription->impl->rmw_handle,
     callback,

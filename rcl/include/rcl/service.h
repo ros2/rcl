@@ -458,10 +458,10 @@ rcl_service_is_valid(const rcl_service_t * service);
  * <i>[1] rmw implementation defined</i>
  *
  * \param[in] service The service on which to set the callback
- * \param[in] callback The callback to be called when new requests arrive
+ * \param[in] callback The callback to be called when new requests arrive, may be NULL
  * \param[in] user_data Given to the callback when called later, may be NULL
  * \return `RCL_RET_OK` if callback was set to the listener, or
- * \return `RCL_RET_INVALID_ARGUMENT` if `service` or `callback` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `service` is NULL, or
  * \return `RCL_RET_UNSUPPORTED` if the API is not implemented in the dds implementation
  */
 RCL_PUBLIC
