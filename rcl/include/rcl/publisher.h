@@ -434,6 +434,45 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher);
 
+/// Wait until all published message data is acknowledged or until the specified timeout elapses.
+/**
+ * This function waits until all published message data were acknowledged by peer node or timeout.
+ *
+ * The unit of timeout is nanoseconds.
+ * If the timeout is negative then this function will block indefinitely until all published message
+ * data were acknowledged.
+ * If the timeout is 0 then this function will be non-blocking; checking all published message data
+ * were acknowledged, but not waiting.
+ * If the timeout is greater than 0 then this function will return after that period of time has
+ * elapsed or all published message data were acknowledged.
+ *
+ * This function only works effectively while QOS profile of publisher is set to RELIABLE.
+ * Otherwise this function will immediately return RCL_RET_OK.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] publisher handle to the publisher that needs to wait for all acked.
+ * \param[in] timeout the duration to wait for all published message data were acknowledged, in
+ *   nanoseconds.
+ * \return #RCL_RET_OK if successful, or
+ * \return #RCL_RET_TIMEOUT if wait timed out, or
+ * \return #RCL_RET_PUBLISHER_INVALID if publisher is invalid, or
+ * \return #RCL_RET_ERROR if an unspecified error occurs, or
+ * \return #RCL_RET_UNSUPPORTED if the middleware does not support that feature.
+ */
+RMW_PUBLIC
+RMW_WARN_UNUSED
+rcl_ret_t
+rcl_publisher_wait_for_all_acked(
+  const rcl_publisher_t * publisher,
+  int64_t timeout);
+
 /// Get the topic name for the publisher.
 /**
  * This function returns the publisher's internal topic name string.
