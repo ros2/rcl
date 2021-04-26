@@ -27,6 +27,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
+#include "rcl/time.h"
 
 /// Internal rcl publisher implementation struct.
 struct rcl_publisher_impl_t;
@@ -442,9 +443,11 @@ rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher);
  * If the timeout is negative then this function will block indefinitely until all published message
  * data were acknowledged.
  * If the timeout is 0 then this function will be non-blocking; checking all published message data
- * were acknowledged, but not waiting.
+ * were acknowledged (If acknowledged, return RCL_RET_OK. Otherwise, return RCL_RET_TIMEOUT), but
+ * not waiting.
  * If the timeout is greater than 0 then this function will return after that period of time has
- * elapsed or all published message data were acknowledged.
+ * elapsed (return RCL_RET_TIMEOUT) or all published message data were acknowledged (return
+ * RCL_RET_OK).
  *
  * This function only works effectively while QOS profile of publisher is set to RELIABLE.
  * Otherwise this function will immediately return RCL_RET_OK.
@@ -471,7 +474,7 @@ RMW_WARN_UNUSED
 rcl_ret_t
 rcl_publisher_wait_for_all_acked(
   const rcl_publisher_t * publisher,
-  int64_t timeout);
+  rcl_duration_value_t timeout);
 
 /// Get the topic name for the publisher.
 /**

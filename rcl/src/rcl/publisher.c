@@ -307,7 +307,7 @@ rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher)
 }
 
 rcl_ret_t
-rcl_publisher_wait_for_all_acked(const rcl_publisher_t * publisher, int64_t timeout)
+rcl_publisher_wait_for_all_acked(const rcl_publisher_t * publisher, rcl_duration_value_t timeout)
 {
   if (!rcl_publisher_is_valid(publisher)) {
     return RCL_RET_PUBLISHER_INVALID;  // error already set
@@ -316,7 +316,7 @@ rcl_publisher_wait_for_all_acked(const rcl_publisher_t * publisher, int64_t time
   rmw_time_t rmw_timeout;
   if (timeout > 0) {
     rmw_timeout.sec = RCL_NS_TO_S(timeout);
-    rmw_timeout.nsec = timeout;
+    rmw_timeout.nsec = timeout % 1000000000;
   } else if (timeout < 0) {
     rmw_time_t infinite = RMW_DURATION_INFINITE;
     rmw_timeout = infinite;
