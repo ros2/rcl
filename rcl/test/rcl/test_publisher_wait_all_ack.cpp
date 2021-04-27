@@ -21,6 +21,7 @@
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
 #include "rcpputils/filesystem_helper.hpp"
+#include "rcutils/env.h"
 
 #include "rcl/rcl.h"
 #include "test_msgs/msg/strings.h"
@@ -60,11 +61,9 @@ public:
       // mode via fastdds profile file.
       rcpputils::fs::path fastdds_profile(TEST_RESOURCES_DIRECTORY);
       fastdds_profile /= "test_profile/disable_intraprocess.xml";
-#ifdef _WIN32
-      _putenv(env_var.c_str());
-#else
-      ASSERT_EQ(setenv("FASTRTPS_DEFAULT_PROFILES_FILE", fastdds_profile.string().c_str(), 1), 0);
-#endif
+      ASSERT_EQ(
+        rcutils_set_env("FASTRTPS_DEFAULT_PROFILES_FILE", fastdds_profile.string().c_str()),
+        true);
     }
 
     rcl_ret_t ret;
