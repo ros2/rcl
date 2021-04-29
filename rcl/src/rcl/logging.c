@@ -100,11 +100,9 @@ rcl_logging_configure_with_output_handler(
   if (g_rcl_logging_ext_lib_enabled) {
     status = rcl_logging_external_initialize(config_file, g_logging_allocator);
     if (RCL_RET_OK == status) {
-      // TODO(dirk-thomas) the return value should be typed and compared to
-      // constants instead of zero
-      int logging_status = rcl_logging_external_set_logger_level(
+      rcl_logging_ret_t logging_status = rcl_logging_external_set_logger_level(
         NULL, default_level);
-      if (logging_status != 0) {
+      if (RCL_LOGGING_RET_OK != logging_status) {
         status = RCL_RET_ERROR;
       }
       g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =
