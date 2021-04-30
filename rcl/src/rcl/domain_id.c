@@ -17,7 +17,7 @@
 #include <errno.h>
 #include <limits.h>
 
-#include "rcutils/get_env.h"
+#include "rcutils/env.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
