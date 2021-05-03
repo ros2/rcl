@@ -79,7 +79,9 @@ rcl_logging_configure_with_output_handler(
     rcutils_logging_set_default_logger_level(default_level);
     if (RCUTILS_LOG_SEVERITY_UNSET != default_level) {
       rmw_ret_t rmw_status = rmw_set_log_severity((rmw_log_severity_t)default_level);
-      if (RMW_RET_OK != rmw_status) {
+      if (RMW_RET_UNSUPPORTED == rmw_status) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR("rmw_set_log_severity not supported by rmw implementation\n");
+      } else if (RMW_RET_OK != rmw_status) {
         return RCL_RET_ERROR;
       }
     }
