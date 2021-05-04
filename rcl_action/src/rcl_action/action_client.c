@@ -33,6 +33,7 @@ extern "C"
 #include "rcl/wait.h"
 
 #include "rcutils/logging_macros.h"
+#include "rcutils/format_string.h"
 #include "rcutils/strdup.h"
 
 #include "rmw/qos_profiles.h"
@@ -63,7 +64,8 @@ _rcl_action_get_zero_initialized_client_impl(void)
     0,
     0,
     0,
-    0
+    0,
+    rcutils_get_zero_initialized_hash_map()
   };
   return null_action_client;
 }
@@ -92,6 +94,30 @@ _rcl_action_client_fini_impl(
     ret = RCL_RET_ERROR;
   }
   allocator.deallocate(action_client->impl->action_name, allocator.state);
+  if (NULL != action_client->impl->goal_uuids.impl) {
+    uint8_t uuid[UUID_SIZE];
+    char * value = NULL;
+    rcl_allocator_t default_allocator = rcl_get_default_allocator();
+    rcutils_ret_t hashmap_ret = rcutils_hash_map_get_next_key_and_data(
+      &action_client->impl->goal_uuids, NULL, uuid, &value);
+    while (RCUTILS_RET_OK == hashmap_ret) {
+      RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "remove a uuid: %s", value);
+      default_allocator.deallocate(value, default_allocator.state);
+      RCL_RET_FROM_RCUTIL_RET(
+        ret, rcutils_hash_map_unset(&action_client->impl->goal_uuids, uuid));
+      if (ret == RCL_RET_OK) {
+        hashmap_ret = rcutils_hash_map_get_next_key_and_data(
+          &action_client->impl->goal_uuids, NULL, uuid, &value);
+      }
+    }
+    if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != hashmap_ret) {
+      RCL_RET_FROM_RCUTIL_RET(ret, hashmap_ret);
+    }
+    if (RCL_RET_OK == ret) {
+      RCL_RET_FROM_RCUTIL_RET(ret, rcutils_hash_map_fini(&action_client->impl->goal_uuids));
+    }
+  }
+
   allocator.deallocate(action_client->impl, allocator.state);
   action_client->impl = NULL;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client finalized");
@@ -171,6 +197,26 @@ _rcl_action_client_fini_impl(
     goto fail; \
   }
 
+size_t hash_map_uuid_hash_func(const void * uuid)
+{
+  const uint8_t * ckey_str = (const uint8_t *) uuid;
+  size_t hash = 5381;
+
+  for (size_t i = 0; i < UUID_SIZE; ++i) {
+    const char c = *(ckey_str++);
+    hash = ((hash << 5) + hash) + (size_t)c; /* hash * 33 + c */
+  }
+
+  return hash;
+}
+
+int hash_map_uuid_cmp_func(const void * val1, const void * val2)
+{
+  const uint8_t * cval1 = (const uint8_t *)val1;
+  const uint8_t * cval2 = (const uint8_t *)val2;
+  return memcmp(cval1, cval2, UUID_SIZE);
+}
+
 rcl_ret_t
 rcl_action_client_init(
   rcl_action_client_t * action_client,
@@ -221,6 +267,15 @@ rcl_action_client_init(
   // Initialize action topic subscriptions.
   SUBSCRIPTION_INIT(feedback);
   SUBSCRIPTION_INIT(status);
+
+  // Initialize goal_uuids map
+  RCL_RET_FROM_RCUTIL_RET(
+    ret, rcutils_hash_map_init(
+      &action_client->impl->goal_uuids, 2, sizeof(uint8_t[16]), sizeof(const char **),
+      hash_map_uuid_hash_func, hash_map_uuid_cmp_func, &allocator));
+  if (RCL_RET_OK != ret) {
+    goto fail;
+  }
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client initialized");
   return ret;
@@ -647,6 +702,210 @@ rcl_action_client_wait_set_get_entities_ready(
   *is_cancel_response_ready = (&impl->cancel_client == cancel_client);
   *is_result_response_ready = (&impl->result_client == result_client);
   return RCL_RET_OK;
+}
+
+static char *
+to_uuid_string(const uint8_t * uuid, rcl_allocator_t allocator)
+{
+  char * uuid_str = rcutils_format_string(allocator, UUID_FMT, UUID_FMT_ARGS(uuid));
+  return uuid_str;
+}
+
+static
+rcl_ret_t set_content_filtered_topic(
+  const rcl_action_client_t * action_client)
+{
+  rcl_ret_t ret;
+  rcutils_ret_t rcutils_ret;
+  uint8_t uuid[UUID_SIZE];
+  char * uuid_str = NULL;
+  size_t size;
+  char * feedback_filter = NULL;
+  char * feedback_filter_update = NULL;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+
+  feedback_filter = rcutils_strdup("", allocator);
+  if (NULL == feedback_filter) {
+    RCL_SET_ERROR_MSG("failed to allocate memory for feedback filter string");
+    ret = RCL_RET_BAD_ALLOC;
+    goto clean;
+  }
+
+  RCL_RET_FROM_RCUTIL_RET(
+    ret, rcutils_hash_map_get_size(&action_client->impl->goal_uuids, &size));
+  if (RCL_RET_OK != ret) {
+    goto clean;
+  }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "size: %zu", size);
+  if (0 == size) {
+    // mainly to reset content filtered topic with empty string
+    goto set_cft;
+  }
+
+  RCL_RET_FROM_RCUTIL_RET(
+    ret, rcutils_hash_map_get_next_key_and_data(
+      &action_client->impl->goal_uuids, NULL, uuid, &uuid_str));
+  if (RCL_RET_OK != ret) {
+    goto clean;
+  }
+
+  feedback_filter_update =
+    rcutils_format_string(allocator, "goal_id.uuid = &hex(%s)", uuid_str);
+  if (NULL == feedback_filter_update) {
+    RCL_SET_ERROR_MSG("failed to format string for feedback filter");
+    ret = RCL_RET_BAD_ALLOC;
+    goto clean;
+  }
+  allocator.deallocate(feedback_filter, allocator.state);
+  feedback_filter = feedback_filter_update;
+
+  while (RCUTILS_RET_OK == (rcutils_ret = rcutils_hash_map_get_next_key_and_data(
+      &action_client->impl->goal_uuids, uuid, uuid, &uuid_str)))
+  {
+    feedback_filter_update = rcutils_format_string(
+      allocator, "%s or goal_id.uuid = &hex(%s)", feedback_filter, uuid_str);
+    if (NULL == feedback_filter_update) {
+      RCL_SET_ERROR_MSG("failed to format string for feedback filter");
+      ret = RCL_RET_BAD_ALLOC;
+      goto clean;
+    }
+    allocator.deallocate(feedback_filter, allocator.state);
+    feedback_filter = feedback_filter_update;
+  }
+  if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != rcutils_ret) {
+    RCL_RET_FROM_RCUTIL_RET(ret, rcutils_ret);
+  }
+  if (RCL_RET_OK != ret) {
+    goto clean;
+  }
+
+set_cft:
+
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "feedback_filter: %s", feedback_filter);
+  ret = rcl_subscription_set_cft_expression_parameters(
+    &action_client->impl->feedback_subscription, feedback_filter, NULL);
+  if (RCL_RET_OK != ret) {
+    goto clean;
+  }
+
+  // TODO(iuhilnehc-ynos) set status_subscription with filter expression for the sequence
+  // by wildcard if rti_connext_dds support this feature in the future,
+  // otherwise, it seems it's necessary to update the action message type or something else.
+
+clean:
+
+  allocator.deallocate(feedback_filter, allocator.state);
+  return ret;
+}
+
+rcl_ret_t rcl_action_add_goal_uuid(
+  const rcl_action_client_t * action_client,
+  const uint8_t * uuid)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;  /* error already set */
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(uuid, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret;
+  char * uuid_str = NULL;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  uuid_str = to_uuid_string(uuid, allocator);
+  if (NULL == uuid_str) {
+    RCL_SET_ERROR_MSG("failed to allocate memory for uuid value");
+    ret = RCL_RET_BAD_ALLOC;
+    goto end;
+  }
+
+  RCL_RET_FROM_RCUTIL_RET(
+    ret, rcutils_hash_map_set(&action_client->impl->goal_uuids, uuid, &uuid_str));
+  if (RCL_RET_OK != ret) {
+    goto clean;
+  }
+
+  // to set content filtered topic
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "set content filtered topic after adding a uuid: %s", uuid_str);
+  ret = set_content_filtered_topic(action_client);
+  if (RCL_RET_OK != ret) {
+    char * err = rcutils_strdup(rcl_get_error_string().str, allocator);
+    if (NULL == err) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "failed to allocate memory for error");
+      ret = RCL_RET_BAD_ALLOC;
+      goto clean;
+    }
+    rcl_reset_error();
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to set_content_filtered_topic: %s", err);
+    allocator.deallocate(err, allocator.state);
+  }
+  goto end;
+
+clean:
+  allocator.deallocate(uuid_str, allocator.state);
+
+end:
+  return ret;
+}
+
+rcl_ret_t rcl_action_remove_goal_uuid(
+  const rcl_action_client_t * action_client,
+  const uint8_t * uuid)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;  /* error already set */
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(uuid, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret;
+  char * uuid_str = NULL;
+  char * uuid_value = NULL;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  uuid_str = to_uuid_string(uuid, allocator);
+  if (NULL == uuid_str) {
+    RCL_SET_ERROR_MSG("failed to allocate memory for uuid value");
+    ret = RCL_RET_BAD_ALLOC;
+    goto end;
+  }
+  if (!rcutils_hash_map_key_exists(&action_client->impl->goal_uuids, uuid)) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "item key [%s] not found in the map of goal uuids",
+      uuid_str);
+    ret = RCL_RET_ERROR;
+    goto end;
+  }
+
+  RCL_RET_FROM_RCUTIL_RET(
+    ret, rcutils_hash_map_get(&action_client->impl->goal_uuids, uuid, &uuid_value));
+  if (RCL_RET_OK != ret) {
+    goto end;
+  }
+  allocator.deallocate(uuid_value, allocator.state);
+
+  RCL_RET_FROM_RCUTIL_RET(
+    ret, rcutils_hash_map_unset(&action_client->impl->goal_uuids, uuid));
+  if (RCL_RET_OK != ret) {
+    goto end;
+  }
+
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "set content filtered topic after removing a uuid: %s", uuid_str);
+  ret = set_content_filtered_topic(action_client);
+  if (RCL_RET_OK != ret) {
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    char * err = rcutils_strdup(rcl_get_error_string().str, allocator);
+    if (NULL == err) {
+      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "failed to allocate memory for error");
+      ret = RCL_RET_BAD_ALLOC;
+      goto end;
+    }
+    rcl_reset_error();
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("failed to set_content_filtered_topic: %s", err);
+    allocator.deallocate(err, allocator.state);
+  }
+
+end:
+  allocator.deallocate(uuid_str, allocator.state);
+  return ret;
 }
 
 #ifdef __cplusplus

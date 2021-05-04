@@ -58,6 +58,25 @@ extern "C"
 #define uuidcmp(uuid0, uuid1) (0 == memcmp(uuid0, uuid1, UUID_SIZE))
 #define zerouuid (uint8_t[UUID_SIZE]) {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define uuidcmpzero(uuid) uuidcmp(uuid, (zerouuid))
+#define UUID_FMT \
+  "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X"
+#define UUID_FMT_ARGS(uuid) \
+  uuid[0], \
+  uuid[1], \
+  uuid[2], \
+  uuid[3], \
+  uuid[4], \
+  uuid[5], \
+  uuid[6], \
+  uuid[7], \
+  uuid[8], \
+  uuid[9], \
+  uuid[10], \
+  uuid[11], \
+  uuid[12], \
+  uuid[13], \
+  uuid[14], \
+  uuid[15]
 
 // Forward declare
 typedef struct rcl_action_server_t rcl_action_server_t;

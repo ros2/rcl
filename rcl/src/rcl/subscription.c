@@ -24,6 +24,8 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/strdup.h"
+#include "rcutils/types/string_array.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
 #include "tracetools/tracetools.h"
@@ -92,6 +94,7 @@ rcl_subscription_init(
     sizeof(rcl_subscription_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
+  subscription->impl->options = rcl_subscription_get_default_options();
   // Fill out the implemenation struct.
   // rmw_handle
   // TODO(wjwwood): pass allocator once supported in rmw api.
@@ -115,8 +118,8 @@ rcl_subscription_init(
   }
   subscription->impl->actual_qos.avoid_ros_namespace_conventions =
     options->qos.avoid_ros_namespace_conventions;
-  // options
   subscription->impl->options = *options;
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
   TRACEPOINT(
@@ -136,6 +139,12 @@ fail:
         RCUTILS_SAFE_FWRITE_TO_STDERR(rmw_get_error_string().str);
         RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
       }
+    }
+
+    ret = rcl_subscription_options_fini(&subscription->impl->options);
+    if (RCL_RET_OK != ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rmw_get_error_string().str);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
     }
 
     allocator->deallocate(subscription->impl, allocator->state);
@@ -174,6 +183,13 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
+    rcl_ret_t rcl_ret = rcl_subscription_options_fini(&subscription->impl->options);
+    if (RCL_RET_OK != rcl_ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+      result = RCL_RET_ERROR;
+    }
+
     allocator.deallocate(subscription->impl, allocator.state);
     subscription->impl = NULL;
   }
@@ -191,6 +207,90 @@ rcl_subscription_get_default_options()
   default_options.allocator = rcl_get_default_allocator();
   default_options.rmw_subscription_options = rmw_get_default_subscription_options();
   return default_options;
+}
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_options_fini(rcl_subscription_options_t * option)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(option, RCL_RET_INVALID_ARGUMENT);
+  // fini rmw_subscription_options_t
+  const rcl_allocator_t * allocator = &option->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  if (option->rmw_subscription_options.filter_expression) {
+    allocator->deallocate(option->rmw_subscription_options.filter_expression, allocator->state);
+    option->rmw_subscription_options.filter_expression = NULL;
+  }
+
+  if (option->rmw_subscription_options.expression_parameters) {
+    rcutils_ret_t ret = rcutils_string_array_fini(
+      option->rmw_subscription_options.expression_parameters);
+    if (RCUTILS_RET_OK != ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to fini string array.\n");
+    }
+    allocator->deallocate(option->rmw_subscription_options.expression_parameters, allocator->state);
+    option->rmw_subscription_options.expression_parameters = NULL;
+  }
+  return RCL_RET_OK;
+}
+
+bool
+rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    return false;
+  }
+  return subscription->impl->rmw_handle->is_cft_supported;
+}
+
+rcl_ret_t
+rcl_subscription_set_cft_expression_parameters(
+  const rcl_subscription_t * subscription,
+  const char * filter_expression,
+  const rcutils_string_array_t * expression_parameters
+)
+{
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_SUBSCRIPTION_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(filter_expression, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t ret = rmw_subscription_set_cft_expression_parameters(
+    subscription->impl->rmw_handle, filter_expression, expression_parameters);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_subscription_get_cft_expression_parameters(
+  const rcl_subscription_t * subscription,
+  char ** filter_expression,
+  rcutils_string_array_t * expression_parameters
+)
+{
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_SUBSCRIPTION_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(filter_expression, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(expression_parameters, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t ret = rmw_subscription_get_cft_expression_parameters(
+    subscription->impl->rmw_handle, filter_expression, expression_parameters);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+  return RCL_RET_OK;
 }
 
 rcl_ret_t

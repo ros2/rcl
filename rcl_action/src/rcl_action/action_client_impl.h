@@ -18,6 +18,8 @@
 #include "rcl_action/types.h"
 #include "rcl/rcl.h"
 
+#include "rcutils/types.h"
+
 typedef struct rcl_action_client_impl_t
 {
   rcl_client_t goal_client;
@@ -33,6 +35,7 @@ typedef struct rcl_action_client_impl_t
   size_t wait_set_result_client_index;
   size_t wait_set_feedback_subscription_index;
   size_t wait_set_status_subscription_index;
+  rcutils_hash_map_t goal_uuids;
 } rcl_action_client_impl_t;
 
 

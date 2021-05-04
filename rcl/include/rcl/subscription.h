@@ -27,6 +27,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
+#include "rcutils/types/string_array.h"
 
 #include "rmw/message_sequence.h"
 
@@ -207,6 +208,110 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_subscription_options_t
 rcl_subscription_get_default_options(void);
+
+/// Reclaim resources held inside rcl_subscription_options_t structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] option The structure which its resources have to be deallocated.
+ * \return `RCL_RET_OK` if the memory was successfully freed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
+ *  if its allocator is invalid and the structure contains initialized memory.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_options_fini(rcl_subscription_options_t * option);
+
+/// Check if the content filtered topic feature is supported in the subscription.
+/**
+ * Depending on the middleware and whether cft is supported in the subscription.
+ * this will return true if the middleware can support ContentFilteredTopic in the subscription.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+bool
+rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription);
+
+/// Set the filter expression and expression parameters for the subscription.
+/**
+ * This function will set a filter expression and an array of expression parameters
+ * for the given subscription, but not to update the original rcl_subscription_options_t
+ * of subscription.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ *
+ * \param[in] subscription the subscription object to inspect.
+ * \param[in] filter_expression A filter_expression is a string that specifies the criteria
+ *   to select the data samples of interest. It is similar to the WHERE part of an SQL clause.
+ *   Using an empty("") string can reset/clean content filtered topic for the subscription.
+ * \param[in] expression_parameters An expression_parameters is an array of strings that
+ *   give values to the ‘parameters’ (i.e., "%n" tokens begin from 0) in the filter_expression.
+ *   The number of supplied parameters must fit with the requested values in the filter_expression.
+ *   It can be NULL if there is no "%n" tokens placeholder in filter_expression.
+ *   The maximun size allowance depends on concrete DDS vendor.
+ *   (i.e., it cannot be greater than 100 on RTI_Connext.)
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `filter_expression` is NULL, or
+ * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_set_cft_expression_parameters(
+  const rcl_subscription_t * subscription,
+  const char * filter_expression,
+  const rcutils_string_array_t * expression_parameters
+);
+
+/// Retrieve the filter expression of the subscription.
+/**
+ * This function will return an filter expression by the given subscription.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ *
+ * \param[in] subscription the subscription object to inspect.
+ * \param[out] filter_expression an filter expression, populated on success.
+ *   It is up to the caller to deallocate the filter expression later on,
+ *   using rcutils_get_default_allocator().deallocate().
+ * \param[out] expression_parameters Array of expression parameters, populated on success.
+ *   It is up to the caller to finalize this array later on, using rcutils_string_array_fini().
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `filter_expression` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `expression_parameters` is NULL, or
+ * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_get_cft_expression_parameters(
+  const rcl_subscription_t * subscription,
+  char ** filter_expression,
+  rcutils_string_array_t * expression_parameters
+);
 
 /// Take a ROS message from a topic using a rcl subscription.
 /**
