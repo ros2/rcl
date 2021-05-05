@@ -212,6 +212,15 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
+  rcl_add_custom_gtest(test_publisher_wait_all_ack${target_suffix}
+    SRCS rcl/test_publisher_wait_all_ack.cpp rcl/wait_for_entity_helpers.cpp
+    ENV ${rmw_implementation_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
+    LIBRARIES ${PROJECT_NAME} mimick
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+  )
+
   rcl_add_custom_gtest(test_service${target_suffix}
     SRCS rcl/test_service.cpp rcl/wait_for_entity_helpers.cpp
     ENV ${rmw_implementation_env_var}
