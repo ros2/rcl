@@ -143,6 +143,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "foo:=/bar"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "/foo123:=/bar123"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "node:/foo123:=/bar123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "node:foo123:=/bar123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "/node:foo123:=/bar123"}));
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "/ns1/node:foo123:=/bar123"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rostopic:=/foo/bar"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rosservice:=baz"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "-r", "rostopic://rostopic:=rosservice"}));

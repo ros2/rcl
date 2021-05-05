@@ -1504,7 +1504,7 @@ _rcl_parse_remap_nodename_replacement(
   return RCL_RET_OK;
 }
 
-/// Parse a nodename prefix including trailing colon (ex: `node_name:`).
+/// Parse a nodename prefix including trailing colon (ex: `node_name:` or `/ns/node_name:`).
 RCL_LOCAL
 rcl_ret_t
 _rcl_parse_nodename_prefix(
@@ -1512,28 +1512,66 @@ _rcl_parse_nodename_prefix(
   rcl_allocator_t allocator,
   char ** node_name)
 {
-  size_t length = 0;
-  const char * token = NULL;
-
   // Check arguments sanity
   assert(NULL != lex_lookahead);
   assert(rcutils_allocator_is_valid(&allocator));
   assert(NULL != node_name);
   assert(NULL == *node_name);
 
-  // Expect a token and a colon
-  rcl_ret_t ret =
-    rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, &token, &length);
-  if (RCL_RET_OK != ret) {
-    return ret;
+  rcl_ret_t ret;
+  const char * name_start = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  if (NULL == name_start) {
+    RCL_SET_ERROR_MSG("failed to get start of node name");
+    return RCL_RET_ERROR;
   }
-  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_COLON, NULL, NULL);
+
+  rcl_lexeme_t next_type;
+  ret = rcl_lexer_lookahead2_peek(lex_lookahead, &next_type);
   if (RCL_RET_OK != ret) {
     return ret;
   }
 
+  if (RCL_LEXEME_FORWARD_SLASH == next_type) {
+    // repeated slashes and tokens until a colon
+    do {
+      ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
+      if (RCL_RET_WRONG_LEXEME == ret) {
+        rcl_reset_error();
+        break;
+      }
+
+      ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, NULL, NULL);
+      if (RCL_RET_WRONG_LEXEME == ret) {
+        if (RCL_RET_OK == ret) {
+          rcl_reset_error();
+          break;
+        }
+      }
+
+      ret = rcl_lexer_lookahead2_peek(lex_lookahead, &next_type);
+      if (RCL_RET_OK != ret) {
+        return ret;
+      }
+      if (RCL_LEXEME_COLON == next_type) {
+        break;
+      }
+    } while (true);
+  } else {
+    ret =
+      rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_TOKEN, NULL, NULL);
+    if (RCL_RET_OK != ret) {
+      return ret;
+    }
+  }
+
+  const char * name_end = rcl_lexer_lookahead2_get_text(lex_lookahead);
+  ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_COLON, NULL, NULL);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  const size_t length = (size_t)(name_end - name_start);
   // Copy the node name
-  *node_name = rcutils_strndup(token, length, allocator);
+  *node_name = rcutils_strndup(name_start, length, allocator);
   if (NULL == *node_name) {
     RCL_SET_ERROR_MSG("failed to allocate node name");
     return RCL_RET_BAD_ALLOC;
@@ -1582,18 +1620,14 @@ _rcl_parse_remap_begin_remap_rule(
 {
   rcl_ret_t ret;
   rcl_lexeme_t lexeme1;
-  rcl_lexeme_t lexeme2;
 
   // Check arguments sanity
   assert(NULL != lex_lookahead);
   assert(NULL != rule);
 
   // Check for optional nodename prefix
-  ret = rcl_lexer_lookahead2_peek2(lex_lookahead, &lexeme1, &lexeme2);
-  if (RCL_RET_OK != ret) {
-    return ret;
-  }
-  if (RCL_LEXEME_TOKEN == lexeme1 && RCL_LEXEME_COLON == lexeme2) {
+  ret = rcl_lexer_lookahead2_peek_colon_prefix(lex_lookahead);
+  if (RCL_RET_OK == ret) {
     ret = _rcl_parse_remap_nodename_prefix(lex_lookahead, rule);
     if (RCL_RET_OK != ret) {
       return ret;
