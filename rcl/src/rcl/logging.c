@@ -31,6 +31,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcutils/logging.h"
 #include "rcutils/time.h"
+#include "rmw/rmw.h"
 
 #define RCL_LOGGING_MAX_OUTPUT_FUNCS (4)
 
@@ -76,6 +77,14 @@ rcl_logging_configure_with_output_handler(
   if (log_levels) {
     default_level = (int)log_levels->default_logger_level;
     rcutils_logging_set_default_logger_level(default_level);
+    if (RCUTILS_LOG_SEVERITY_UNSET != default_level) {
+      rmw_ret_t rmw_status = rmw_set_log_severity((rmw_log_severity_t)default_level);
+      if (RMW_RET_UNSUPPORTED == rmw_status) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR("rmw_set_log_severity not supported by rmw implementation\n");
+      } else if (RMW_RET_OK != rmw_status) {
+        return RCL_RET_ERROR;
+      }
+    }
 
     for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
       rcutils_ret_t rcutils_status = rcutils_logging_set_logger_level(
