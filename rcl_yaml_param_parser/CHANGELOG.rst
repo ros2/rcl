@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.10 (2021-05-21)
+-------------------
+
 0.7.9 (2020-07-10)
 ------------------
 * Added rcl yaml param parser Doxyfile. (`#701 <https://github.com/ros2/rcl/issues/701>`_)

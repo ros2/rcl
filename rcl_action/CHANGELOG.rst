@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.10 (2021-05-21)
+-------------------
+* Fix rcl_action test_graph (`#504 <https://github.com/ros2/rcl/issues/504>`_) (`#874 <https://github.com/ros2/rcl/issues/874>`_)
+* Contributors: Ivan Pauno, Jacob Perron
+
 0.7.9 (2020-07-10)
 ------------------
 * Fixed doxygen warnings. (`#702 <https://github.com/ros2/rcl/issues/702>`_)
