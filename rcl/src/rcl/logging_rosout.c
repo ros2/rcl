@@ -24,6 +24,7 @@
 #include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
+#include "rcutils/strdup.h"
 #include "rcutils/types/hash_map.h"
 #include "rcutils/types/rcutils_ret.h"
 #include "rosidl_runtime_c/string_functions.h"
@@ -236,10 +237,31 @@ void rcl_logging_rosout_output_handler(
 {
   rosout_map_entry_t entry;
   rcl_ret_t status = RCL_RET_OK;
+  char * name_dup = NULL;
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   if (!__is_initialized) {
     return;
   }
   rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &name, &entry);
+  // if logger name not found, continue to check if its parent logger name exists
+  if (RCUTILS_RET_OK != rcutils_ret) {
+    name_dup = rcutils_strdup(name, allocator);
+    if (NULL == name_dup) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("unable to allocate memory\n");
+      return;
+    }
+    do {
+      char * name_sep = strrchr(name_dup, RCUTILS_LOGGING_SEPARATOR_STRING[0]);
+      if (NULL == name_sep) {
+        break;
+      }
+      name_dup[(size_t)(name_sep - name_dup)] = '\0';
+      if (!rcutils_logging_logger_is_enabled_for(name_dup, severity)) {
+        goto clean;
+      }
+      rcutils_ret = rcutils_hash_map_get(&__logger_map, &name_dup, &entry);
+    } while (RCUTILS_RET_OK != rcutils_ret);
+  }
   if (RCUTILS_RET_OK == rcutils_ret) {
     char msg_buf[1024] = "";
     rcutils_char_array_t msg_array = {
@@ -290,6 +312,9 @@ void rcl_logging_rosout_output_handler(
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
     }
   }
+
+clean:
+  allocator.deallocate(name_dup, allocator.state);
 }
 
 

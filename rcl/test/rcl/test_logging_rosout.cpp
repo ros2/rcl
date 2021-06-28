@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -54,6 +55,8 @@ struct TestParameters
   bool enable_node_option_rosout;
   bool expected_success;
   std::string description;
+  std::vector<std::pair<std::string, std::string>> ns_node_names;
+  std::vector<std::pair<std::string, bool>> expected_logger_names_success;
 };
 
 // for ::testing::PrintToStringParamName() to show the exact test case name
@@ -116,6 +119,15 @@ public:
     ret = rcl_subscription_init(
       this->subscription_ptr, this->node_ptr, ts, topic, &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    for (auto & item : param.ns_node_names) {
+      rcl_node_t * node_ptr = new rcl_node_t;
+      *node_ptr = rcl_get_zero_initialized_node();
+      ret = rcl_node_init(
+        node_ptr, item.second.c_str(), item.first.c_str(), this->context_ptr, &node_options);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      this->node_ptr_list.push_back(node_ptr);
+    }
   }
 
   void TearDown()
@@ -126,6 +138,11 @@ public:
     ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    for (auto & node : this->node_ptr_list) {
+      ret = rcl_node_fini(node);
+      delete node;
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
     ret = rcl_shutdown(this->context_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_context_fini(this->context_ptr);
@@ -138,6 +155,7 @@ protected:
   rcl_context_t * context_ptr;
   rcl_node_t * node_ptr;
   rcl_subscription_t * subscription_ptr;
+  std::vector<rcl_node_t *> node_ptr_list;
 };
 
 void
@@ -173,6 +191,13 @@ check_if_rosout_subscription_gets_a_message(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
       if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
+        rcl_interfaces__msg__Log * log_message = rcl_interfaces__msg__Log__create();
+        OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+        {
+          rcl_interfaces__msg__Log__destroy(log_message);
+        });
+        ret = rcl_take(subscription, log_message, nullptr, nullptr);
+        EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
         success = true;
         return;
       }
@@ -189,6 +214,14 @@ TEST_P_RMW(TestLoggingRosoutFixture, test_logging_rosout) {
     rcl_node_get_logger_name(this->node_ptr), this->subscription_ptr,
     this->context_ptr, 30, 100, success);
   ASSERT_EQ(success, GetParam().expected_success);
+
+  for (auto & item : GetParam().expected_logger_names_success) {
+    success = false;
+    check_if_rosout_subscription_gets_a_message(
+      item.first.c_str(), this->subscription_ptr,
+      this->context_ptr, 30, 100, success);
+    ASSERT_EQ(success, item.second);
+  }
 }
 
 //
@@ -211,7 +244,9 @@ get_parameters()
     nullptr,
     true,
     true,
-    "test_enable_implicit_global_rosout_enable_node_option"
+    "test_enable_implicit_global_rosout_enable_node_option",
+    {},
+    {}
   });
   /*
    * Test with enable(implicit) global rosout logs and disable node option of rosout.
@@ -222,7 +257,9 @@ get_parameters()
     nullptr,
     false,
     false,
-    "test_enable_implicit_global_rosout_disable_node_option"
+    "test_enable_implicit_global_rosout_disable_node_option",
+    {},
+    {}
   });
   /*
    * Test with enable(explicit) global rosout logs and enable node option of rosout.
@@ -233,7 +270,9 @@ get_parameters()
     s_argv_enable_rosout,
     true,
     true,
-    "test_enable_explicit_global_rosout_enable_node_option"
+    "test_enable_explicit_global_rosout_enable_node_option",
+    {},
+    {}
   });
   /*
    * Test with enable(explicit) global rosout logs and disable node option of rosout.
@@ -244,7 +283,9 @@ get_parameters()
     s_argv_enable_rosout,
     false,
     false,
-    "test_enable_explicit_global_rosout_disable_node_option"
+    "test_enable_explicit_global_rosout_disable_node_option",
+    {},
+    {}
   });
   /*
    * Test with disable global rosout logs and enable node option of rosout.
@@ -255,7 +296,9 @@ get_parameters()
     s_argv_disable_rosout,
     true,
     false,
-    "test_disable_global_rosout_enable_node_option"
+    "test_disable_global_rosout_enable_node_option",
+    {},
+    {}
   });
   /*
    * Test with disable global rosout logs and disable node option of rosout.
@@ -266,9 +309,66 @@ get_parameters()
     s_argv_disable_rosout,
     false,
     false,
-    "test_disable_global_rosout_disable_node_option"
+    "test_disable_global_rosout_disable_node_option",
+    {},
+    {}
   });
 
+  /*
+   * Test for using parent logger.
+   */
+  parameters.push_back(
+  {
+    s_argc,
+    s_argv_enable_rosout,
+    true,
+    true,
+    "test_child_logger_use_parent_publisher",
+    {{"/", "node1"}},
+    {{"node1.child", true}}
+  });
+
+  parameters.push_back(
+  {
+    s_argc,
+    s_argv_enable_rosout,
+    true,
+    true,
+    "test_grandchild_logger_use_parent_publisher",
+    {{"/", "node1"}},
+    {{"node1.child.grandchild", true}}
+  });
+
+  /*
+   * Test for not using parent logger.
+   */
+  static int s_argc_node_error_setting = 3;
+  static const char * s_argv_node_error_setting[] = {
+    "--ros-args", "--log-level", "node1.child:=error"};
+  parameters.push_back(
+  {
+    s_argc_node_error_setting,
+    s_argv_node_error_setting,
+    true,
+    true,
+    "test_grandchild_logger_not_use_parent_publisher",
+    {{"/", "node1"}},
+    {{"node1.child.grandchild", false}}
+  });
+
+  /*
+   * Test for nonexist parent logger.
+   */
+  parameters.push_back(
+  {
+    s_argc,
+    s_argv_enable_rosout,
+    true,
+    true,
+    "test_grandchild_logger_nonexist_parent_publisher",
+    {{"/", "node1"}},
+    {{"non_exist_node1.child.grandchild", false}}
+  });
   return parameters;
 }
 
