@@ -786,13 +786,6 @@ rcutils_ret_t parse_key(
       {
         /// Till we get PARAMS_KEY or PARAMS_DESCRIPTORS_KEY, keep adding to node namespace
         if (0 == strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
-          if (0U == ns_tracker->num_node_ns) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "There are no node names before %s at line %d", PARAMS_KEY, line_num);
-            ret = RCUTILS_RET_ERROR;
-            break;
-          }
-
           if (*is_new_map) {
             /// The previous key(last name in namespace) was the node name. Remove it
             /// from the namespace
@@ -824,13 +817,6 @@ rcutils_ret_t parse_key(
           /// Bump the map level to PARAMS
           (*map_level)++;
         } else if (0 == strncmp(PARAMS_DESCRIPTORS_KEY, value, strlen(PARAMS_DESCRIPTORS_KEY))) {
-          if (0U == ns_tracker->num_node_ns) {
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-              "There are no node names before %s at line %d", PARAMS_DESCRIPTORS_KEY, line_num);
-            ret = RCUTILS_RET_ERROR;
-            break;
-          }
-
           if (*is_new_map) {
             /// The previous key(last name in namespace) was the node name. Remove it
             /// from the namespace
