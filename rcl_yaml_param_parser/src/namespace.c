@@ -184,6 +184,16 @@ rcutils_ret_t replace_ns(
       }
       ns_tracker->num_parameter_ns = new_ns_count;
       break;
+    case NS_TYPE_DESCRIPTOR:
+      if (NULL != ns_tracker->descriptor_key_ns) {
+        allocator.deallocate(ns_tracker->descriptor_key_ns, allocator.state);
+      }
+      ns_tracker->descriptor_key_ns = rcutils_strdup(new_ns, allocator);
+      if (NULL == ns_tracker->descriptor_key_ns) {
+        return RCUTILS_RET_BAD_ALLOC;
+      }
+      ns_tracker->num_descriptor_key_ns = new_ns_count;
+      break;
     default:
       res = RCUTILS_RET_ERROR;
       break;

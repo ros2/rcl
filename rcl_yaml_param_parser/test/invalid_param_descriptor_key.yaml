@@ -1,0 +1,5 @@
+node1:
+  ros__parameter_descriptors:
+    foo:
+      read_only: true
+      invalid_description: "This is an invalid descriptor key"

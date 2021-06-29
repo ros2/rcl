@@ -95,6 +95,33 @@ typedef struct rcl_node_params_s
   size_t capacity_params;  ///< Capacity of parameters in the node
 } rcl_node_params_t;
 
+/// \typedef rcl_param_descriptor_t
+/// \brief param_descriptor_t stores the descriptor of a parameter
+typedef struct rcl_param_descriptor_s
+{
+  char * name;
+  bool * read_only;
+  uint8_t * type;
+  char * description;
+  char * additional_constraints;
+  double * min_value_double;
+  double * max_value_double;
+  double * step_double;
+  int64_t * min_value_int;
+  int64_t * max_value_int;
+  int64_t * step_int;
+} rcl_param_descriptor_t;
+
+/// \typedef rcl_node_params_descriptors_t
+/// \brief node_params_descriptors_t stores all the parameter descriptors of a single node
+typedef struct rcl_node_params_descriptors_s
+{
+  char ** parameter_names;  ///< Array of parameter names (keys)
+  rcl_param_descriptor_t * parameter_descriptors;  ///< Array of corresponding parameter descriptors
+  size_t num_params;  ///< Number of parameters in the node
+  size_t capacity_descriptors;  ///< Capacity of parameters in the node
+} rcl_node_params_descriptors_t;
+
 /// stores all the parameters of all nodes of a process
 /*
 * \typedef rcl_params_t
@@ -103,6 +130,7 @@ typedef struct rcl_params_s
 {
   char ** node_names;  ///< List of names of the node
   rcl_node_params_t * params;  ///<  Array of parameters
+  rcl_node_params_descriptors_t * descriptors;  ///<  Array of parameter descriptors
   size_t num_nodes;       ///< Number of nodes
   size_t capacity_nodes;  ///< Capacity of nodes
   rcutils_allocator_t allocator;  ///< Allocator used

@@ -1,0 +1,5 @@
+node1:
+  ros__parameter_descriptors:
+    bar: 42
+    foo:
+      read_only: true
