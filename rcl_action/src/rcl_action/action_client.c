@@ -649,6 +649,86 @@ rcl_action_client_wait_set_get_entities_ready(
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_action_client_set_goal_client_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  return rcl_client_set_on_new_response_callback(
+    &action_client->impl->goal_client,
+    callback,
+    user_data);
+}
+
+rcl_ret_t
+rcl_action_client_set_cancel_client_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  return rcl_client_set_on_new_response_callback(
+    &action_client->impl->cancel_client,
+    callback,
+    user_data);
+}
+
+rcl_ret_t
+rcl_action_client_set_result_client_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  return rcl_client_set_on_new_response_callback(
+    &action_client->impl->result_client,
+    callback,
+    user_data);
+}
+
+rcl_ret_t
+rcl_action_client_set_feedback_subscription_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  return rcl_subscription_set_on_new_message_callback(
+    &action_client->impl->feedback_subscription,
+    callback,
+    user_data);
+}
+
+rcl_ret_t
+rcl_action_client_set_status_subscription_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  return rcl_subscription_set_on_new_message_callback(
+    &action_client->impl->status_subscription,
+    callback,
+    user_data);
+}
+
 #ifdef __cplusplus
 }
 #endif
