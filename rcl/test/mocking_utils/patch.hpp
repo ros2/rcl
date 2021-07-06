@@ -35,11 +35,26 @@
 #include <type_traits>
 #include <utility>
 
+#ifndef RCL_SKIP_MIMICK
 #include "mimick/mimick.h"
+#endif
 
 #include "rcutils/error_handling.h"
 #include "rcutils/macros.h"
 
+/// Define a dummy operator `op` for a given `type`.
+/**
+ * Useful to enable patching functions that take arguments whose types
+ * do not define basic comparison operators, as required by Mimick.
+*/
+#define MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(type_, op) \
+  template<typename T> \
+  typename std::enable_if<std::is_same<T, type_>::value, bool>::type \
+  operator op(const T &, const T &) { \
+    return false; \
+  }
+
+#ifndef RCL_SKIP_MIMICK
 namespace mocking_utils
 {
 
@@ -415,18 +430,6 @@ auto make_patch(const std::string & target, std::function<SignatureT> proxy)
   return Patch<ID, SignatureT>(target, proxy);
 }
 
-/// Define a dummy operator `op` for a given `type`.
-/**
- * Useful to enable patching functions that take arguments whose types
- * do not define basic comparison operators, as required by Mimick.
-*/
-#define MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(type_, op) \
-  template<typename T> \
-  typename std::enable_if<std::is_same<T, type_>::value, bool>::type \
-  operator op(const T &, const T &) { \
-    return false; \
-  }
-
 /// Get the exact \ref mocking_utils::Patch type for a given `id` and `function`.
 /**
  * Useful to avoid ignored attribute warnings when using the \b decltype operator.
@@ -501,5 +504,46 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, !=)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, >)
 #endif
+#else  // RCL_SKIP_MIMICK
 
+namespace mocking_utils
+{
+// Empty prototypes, for when mimick is not available.
+
+struct Patch
+{
+  // This method is sometime used in tests, we need to provide it.
+  template<typename SignatureT>
+  Patch & then_call(SignatureT)
+  {
+    return *this;
+  }
+  // we add a nontrivial destructor on purpose, so the compiler does not complain
+  // about an unused `Patch` instance.
+  ~Patch() {}
+};
+
+template<typename SignatureT>
+auto make_patch(const std::string &, std::function<SignatureT>)
+{
+  return Patch{};
+}
+
+#define prepare_patch(scope, function) make_patch<decltype(function)>(scope, function)
+
+// then_call here isn't doing anything, it's just to avoid an unused variable warning
+#define patch(scope, function, replacement) prepare_patch(scope, function).then_call(replacement)
+
+// same trick here, abusing the template argument a bit
+#define patch_and_return(scope, function, return_code) \
+  prepare_patch(scope, function).then_call(return_code)
+
+#define patch_to_fail(scope, function, error_message, return_code) \
+  prepare_patch(scope, function).then_call(error_message).then_call(return_code)
+
+#define inject_on_return(scope, function, return_code) \
+  prepare_patch(scope, function).then_call(return_code)
+
+}  // namespace mocking_utils
+#endif  // RCL_SKIP_MIMICK
 #endif  // MOCKING_UTILS__PATCH_HPP_

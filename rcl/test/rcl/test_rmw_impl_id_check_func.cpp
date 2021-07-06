@@ -81,6 +81,7 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 
+#ifndef RCL_SKIP_MIMICK
 // Mock internal calls to external libraries to fail
 TEST(TestRmwCheck, test_mock_rmw_impl_check) {
   {
@@ -155,3 +156,4 @@ TEST(TestRmwCheck, test_mock_rmw_impl_check) {
     rcl_reset_error();
   }
 }
+#endif  // RCL_SKIP_MIMICK

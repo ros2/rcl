@@ -263,7 +263,7 @@ TEST_F(TestGetSecureRoot, test_get_security_options) {
 TEST_F(TestGetSecureRoot, test_rcl_security_enabled) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_security_enabled(nullptr));
   rcl_reset_error();
-
+#ifndef RCL_SKIP_MIMICK
   {
     bool use_security;
     auto mock = mocking_utils::patch_and_return(
@@ -271,6 +271,7 @@ TEST_F(TestGetSecureRoot, test_rcl_security_enabled) {
     EXPECT_EQ(RCL_RET_ERROR, rcl_security_enabled(&use_security));
     rcl_reset_error();
   }
+#endif  // RCL_SKIP_MIMICK
 
   {
     bool use_security = false;
@@ -307,6 +308,7 @@ TEST_F(TestGetSecureRoot, test_rcl_get_enforcement_policy) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_enforcement_policy(nullptr));
   rcl_reset_error();
 
+#ifndef RCL_SKIP_MIMICK
   {
     rmw_security_enforcement_policy_t policy;
     auto mock = mocking_utils::patch_and_return(
@@ -314,6 +316,7 @@ TEST_F(TestGetSecureRoot, test_rcl_get_enforcement_policy) {
     EXPECT_EQ(RCL_RET_ERROR, rcl_get_enforcement_policy(&policy));
     rcl_reset_error();
   }
+#endif  // RCL_SKIP_MIMICK
 
   {
     rmw_security_enforcement_policy_t policy = RMW_SECURITY_ENFORCEMENT_PERMISSIVE;
@@ -362,6 +365,7 @@ TEST_F(TestGetSecureRoot, test_rcl_get_secure_root_with_bad_arguments) {
   rcl_reset_error();
 }
 
+#ifndef RCL_SKIP_MIMICK
 TEST_F(TestGetSecureRoot, test_rcl_get_secure_root_with_internal_errors) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t failing_allocator = get_time_bombed_allocator();
@@ -404,3 +408,4 @@ TEST_F(TestGetSecureRoot, test_rcl_get_secure_root_with_internal_errors) {
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 }
+#endif  // RCL_SKIP_MIMICK

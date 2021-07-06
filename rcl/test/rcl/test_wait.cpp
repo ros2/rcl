@@ -708,6 +708,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_get_allocator
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
+#ifndef RCL_SKIP_MIMICK
 // Test wait set init failure cases using mocks
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_init) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
@@ -736,6 +737,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_failed_fini) 
     rcl_reset_error();
   }
 }
+#endif  // RCL_SKIP_MIMICK
 
 // Test proper error handling with a fault injection test
 TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), wait_set_test_maybe_init_fail) {

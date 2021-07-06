@@ -149,6 +149,7 @@ TEST(TestLogging, test_failing_external_logging_configure) {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&global_arguments)) << rcl_get_error_string().str;
   });
 
+#ifndef RCL_SKIP_MIMICK
   {
     auto mock = mocking_utils::patch_to_fail(
       "lib:rcl", rcl_logging_external_initialize, "some error", RCL_LOGGING_RET_ERROR);
@@ -168,6 +169,7 @@ TEST(TestLogging, test_failing_external_logging_configure) {
 
     EXPECT_EQ(RCL_RET_OK, rcl_logging_fini()) << rcl_get_error_string().str;
   }
+#endif  // RCL_SKIP_TESTS
 }
 
 TEST(TestLogging, test_failing_logger_level_configure) {
@@ -183,7 +185,7 @@ TEST(TestLogging, test_failing_logger_level_configure) {
   {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&global_arguments)) << rcl_get_error_string().str;
   });
-
+#ifndef RCL_SKIP_MIMICK
   {
     auto mock = mocking_utils::patch_to_fail(
       "lib:rcl", rcutils_logging_set_logger_level, "failed to allocate", RCUTILS_RET_ERROR);
@@ -193,8 +195,10 @@ TEST(TestLogging, test_failing_logger_level_configure) {
 
     EXPECT_EQ(RCL_RET_OK, rcl_logging_fini()) << rcl_get_error_string().str;
   }
+#endif  // RCL_SKIP_TESTS
 }
 
+#ifndef RCL_SKIP_MIMICK
 TEST(TestLogging, test_failing_external_logging) {
   const char * argv[] = {
     "test_logging", RCL_ROS_ARGS_FLAG,
@@ -266,7 +270,7 @@ TEST(TestLogging, test_failing_external_logging) {
       "Expected '" << stderr_message << "' within '" << stderr_sstream.str() << "'";
     stderr_sstream.str("");
   }
-#endif
+#endif  // MOCKING_UTILS_SUPPORT_VA_LIST
 
   {
     auto mock = mocking_utils::patch_to_fail(
@@ -300,3 +304,4 @@ TEST(TestLogging, test_failing_external_logging) {
     stderr_sstream.str("");
   }
 }
+#endif  // RCL_SKIP_TESTS
