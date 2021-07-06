@@ -503,47 +503,6 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, ==)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, !=)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, >)
-#endif
-#else  // RCL_SKIP_MIMICK
-
-namespace mocking_utils
-{
-// Empty prototypes, for when mimick is not available.
-
-struct Patch
-{
-  // This method is sometime used in tests, we need to provide it.
-  template<typename SignatureT>
-  Patch & then_call(SignatureT)
-  {
-    return *this;
-  }
-  // we add a nontrivial destructor on purpose, so the compiler does not complain
-  // about an unused `Patch` instance.
-  ~Patch() {}
-};
-
-template<typename SignatureT>
-auto make_patch(const std::string &, std::function<SignatureT>)
-{
-  return Patch{};
-}
-
-#define prepare_patch(scope, function) make_patch<decltype(function)>(scope, function)
-
-// then_call here isn't doing anything, it's just to avoid an unused variable warning
-#define patch(scope, function, replacement) prepare_patch(scope, function).then_call(replacement)
-
-// same trick here, abusing the template argument a bit
-#define patch_and_return(scope, function, return_code) \
-  prepare_patch(scope, function).then_call(return_code)
-
-#define patch_to_fail(scope, function, error_message, return_code) \
-  prepare_patch(scope, function).then_call(error_message).then_call(return_code)
-
-#define inject_on_return(scope, function, return_code) \
-  prepare_patch(scope, function).then_call(return_code)
-
-}  // namespace mocking_utils
+#endif  // MOCKING_UTILS_SUPPORT_VA_LIST
 #endif  // RCL_SKIP_MIMICK
 #endif  // MOCKING_UTILS__PATCH_HPP_
