@@ -48,8 +48,8 @@ set(rcl_add_custom_gtest_INCLUDED TRUE)
 #
 macro(rcl_add_custom_gtest target)
   cmake_parse_arguments(_ARG
-    "SKIP_TEST;TRACE;USE_MIMICK"
-    "TIMEOUT;"
+    "SKIP_TEST;TRACE"
+    "TIMEOUT"
     "SRCS;ENV;APPEND_ENV;APPEND_LIBRARY_DIRS;INCLUDE_DIRS;LIBRARIES;AMENT_DEPENDENCIES"
     ${ARGN})
   if(_ARG_UNPARSED_ARGUMENTS)
@@ -90,9 +90,6 @@ macro(rcl_add_custom_gtest target)
     endif()
     # Add extra link libraries, if any.
     if(_ARG_LIBRARIES)
-      if(_ARG_USE_MIMICK)
-        list(APPEND _ARG_LIBRARIES mimick)
-      endif()
       if(_ARG_TRACE)
         message(STATUS "  rcl_add_custom_gtest() LIBRARIES: ${_ARG_LIBRARIES}")
       endif()
@@ -105,11 +102,7 @@ macro(rcl_add_custom_gtest target)
       endif()
       ament_target_dependencies(${target} ${_ARG_AMENT_DEPENDENCIES})
     endif()
-    set(_compile_definitions "RMW_IMPLEMENTATION=${rmw_implementation}")
-    if(NOT _ARG_USE_MIMICK)
-      list(APPEND _compile_definitions "RCL_SKIP_MIMICK=1")
-    endif()
     target_compile_definitions(${target}
-      PUBLIC ${_compile_definitions})
+      PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
   endif()
 endmacro()

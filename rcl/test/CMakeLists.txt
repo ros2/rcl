@@ -3,11 +3,7 @@ find_package(launch_testing_ament_cmake REQUIRED)
 
 find_package(test_msgs REQUIRED)
 
-set(USE_MIMICK)
-if(NOT AMENT_IGNORE_MIMICK_TESTS)
-  find_package(mimick_vendor REQUIRED)
-  set(USE_MIMICK "USE_MIMICK")
-endif()
+find_package(mimick_vendor REQUIRED)
 
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
@@ -90,8 +86,9 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_context${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
   rcl_add_custom_gtest(test_get_node_names${target_suffix}
     SRCS rcl/test_get_node_names.cpp
@@ -156,15 +153,16 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation}
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_init${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
   # CentOS does not support mimick's inject_on_return functionality, which
   # causes test_node to segfault when it runs.  Since CentOS is not a Tier 1
   # platform, just disable the test since we are covering it elsewhere.
-  set(USE_MIMICK_test_node${target_suffix})
-  if(USE_MIMICK OR NOT "${DISTRIBUTION}" STREQUAL "\"centos\"")
-    set(USE_MIMICK_test_node${target_suffix} USE_MIMICK)
+  set(SKIP_MIMICK_test_node${target_suffix} OFF)
+  if("${DISTRIBUTION}" STREQUAL "\"centos\"")
+    set(SKIP_MIMICK_test_node${target_suffix} ON)
   endif()
   rcl_add_custom_gtest(test_node${target_suffix}
     SRCS rcl/test_node.cpp
@@ -173,8 +171,10 @@ function(test_target_function)
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
     TIMEOUT 240  # Large timeout to wait for fault injection tests
-    ${USE_MIMICK_test_node${target_suffix}}
   )
+  target_depend_mimick(test_node${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK
+    SKIP_MIMICK ${SKIP_MIMICK_test_node${target_suffix}})
 
   rcl_add_custom_gtest(test_arguments${target_suffix}
     SRCS rcl/test_arguments.cpp
@@ -209,8 +209,9 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_guard_condition${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
   rcl_add_custom_gtest(test_publisher${target_suffix}
     SRCS rcl/test_publisher.cpp
@@ -219,8 +220,9 @@ function(test_target_function)
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_publisher${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
   rcl_add_custom_gtest(test_service${target_suffix}
     SRCS rcl/test_service.cpp rcl/wait_for_entity_helpers.cpp
@@ -228,8 +230,9 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_service${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
   rcl_add_custom_gtest(test_subscription${target_suffix}
     SRCS rcl/test_subscription.cpp rcl/wait_for_entity_helpers.cpp
@@ -237,8 +240,9 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_subscription${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
   # TODO(asorbini) Enable message timestamp tests for rmw_connextdds on Windows
   # once clock incompatibilities are resolved.
   if(rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR
@@ -276,8 +280,9 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_wait${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
   rcl_add_custom_gtest(test_logging_rosout${target_suffix}
     SRCS rcl/test_logging_rosout.cpp
@@ -301,8 +306,9 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation}
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_rmw_impl_id_check_func${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
   rcl_add_custom_gtest(test_network_flow_endpoints${target_suffix}
     SRCS rcl/test_network_flow_endpoints.cpp
@@ -311,8 +317,9 @@ function(test_target_function)
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
     LIBRARIES ${PROJECT_NAME}
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
-    ${USE_MIMICK}
   )
+  target_depend_mimick(test_network_flow_endpoints${target_suffix}
+    COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
   # Launch tests
 
@@ -378,15 +385,17 @@ rcl_add_custom_gtest(test_validate_enclave_name
   SRCS rcl/test_validate_enclave_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
-  ${USE_MIMICK}
 )
+target_depend_mimick(test_validate_enclave_name
+  COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
 rcl_add_custom_gtest(test_domain_id
   SRCS rcl/test_domain_id.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
-  ${USE_MIMICK}
 )
+target_depend_mimick(test_domain_id
+  COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
 rcl_add_custom_gtest(test_localhost
   SRCS rcl/test_localhost.cpp
@@ -399,8 +408,9 @@ rcl_add_custom_gtest(test_logging
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
-  ${USE_MIMICK}
 )
+target_depend_mimick(test_logging
+  COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
 rcl_add_custom_gtest(test_validate_topic_name
   SRCS rcl/test_validate_topic_name.cpp
@@ -412,16 +422,18 @@ rcl_add_custom_gtest(test_expand_topic_name
   SRCS rcl/test_expand_topic_name.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
-  ${USE_MIMICK}
 )
+target_depend_mimick(test_expand_topic_name
+  COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
 rcl_add_custom_gtest(test_security
   SRCS rcl/test_security.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
-  ${USE_MIMICK}
 )
+target_depend_mimick(test_security
+  COMPILE_DEFINITION RCL_SKIP_MIMICK)
 
 rcl_add_custom_gtest(test_common
   SRCS rcl/test_common.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/common.c
@@ -435,5 +447,6 @@ rcl_add_custom_gtest(test_log_level
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
-  ${USE_MIMICK}
 )
+target_depend_mimick(test_log_level
+  COMPILE_DEFINITION RCL_SKIP_MIMICK)
