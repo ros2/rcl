@@ -430,6 +430,7 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 
+#ifndef SKIP_MIMICK
 /* Test failed service initialization using mocks
  */
 TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_ini_mocked) {
@@ -493,6 +494,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_ini_mocked) 
     rcl_reset_error();
   }
 }
+#endif  // RCL_SKIP_TESTS
 
 /* Test failed service finalization using mocks
  */
@@ -510,12 +512,14 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_fini_mocked)
   ret = rcl_service_fini(&empty_service, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
+#ifndef SKIP_MIMICK
   auto mock = mocking_utils::inject_on_return(
     "lib:rcl", rmw_destroy_service, RMW_RET_ERROR);
   ret = rcl_service_fini(&service, this->node_ptr);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
+#endif  // RCL_SKIP_TESTS
 }
 
 /* Test failed service take_request_with_info using mocks and nullptrs
@@ -557,7 +561,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
-
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_take_request, RMW_RET_ERROR);
@@ -584,6 +588,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_take_request
     ret = rcl_take_request_with_info(&service, &header, &service_request);
     EXPECT_EQ(RCL_RET_SERVICE_TAKE_FAILED, ret);
   }
+#endif  // RCL_SKIP_TESTS
 }
 
 /* Test failed service send_response using mocks and nullptrs
@@ -621,6 +626,7 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_send_respons
   ret = rcl_send_response(&service, &header.request_id, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
 
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_send_response, RMW_RET_ERROR);
@@ -629,4 +635,5 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_fail_send_respons
     EXPECT_TRUE(rcl_error_is_set());
     rcl_reset_error();
   }
+#endif  // RCL_SKIP_TESTS
 }

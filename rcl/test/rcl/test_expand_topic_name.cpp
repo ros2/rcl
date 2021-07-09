@@ -144,6 +144,8 @@ TEST(test_expand_topic_name, invalid_arguments) {
   ASSERT_EQ(RCL_RET_OK, ret);
 }
 
+#ifndef SKIP_MIMICK
+
 // Define dummy comparison operators for rcutils_allocator_t type
 // to use with the Mimick mocking library
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
@@ -226,10 +228,10 @@ TEST(test_expand_topic_name, internal_error) {
     EXPECT_TRUE(rcl_error_is_set());
     rcl_reset_error();
   }
-
   ret = rcutils_string_map_fini(&subs);
   ASSERT_EQ(RCL_RET_OK, ret);
 }
+#endif
 
 TEST(test_expand_topic_name, various_valid_topics) {
   rcl_ret_t ret;

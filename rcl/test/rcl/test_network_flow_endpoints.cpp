@@ -14,7 +14,6 @@
 
 #include <gtest/gtest.h>
 
-#include "mimick/mimick.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/network_flow_endpoints.h"
@@ -24,7 +23,6 @@
 #include "test_msgs/msg/basic_types.h"
 
 #include "./allocator_testing_utils.h"
-#include "../mocking_utils/patch.hpp"
 
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX

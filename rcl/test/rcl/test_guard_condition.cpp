@@ -192,6 +192,7 @@ TEST_F(
   ASSERT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
+#ifndef SKIP_MIMICK
   // Try init but force an internal error.
   {
     auto mock = mocking_utils::patch_to_fail(
@@ -200,6 +201,7 @@ TEST_F(
     EXPECT_EQ(RCL_RET_ERROR, ret);
     rcl_reset_error();
   }
+#endif
 
   // Try fini with invalid arguments.
   ret = rcl_guard_condition_fini(nullptr);
@@ -215,6 +217,7 @@ TEST_F(
   ret = rcl_guard_condition_fini(&guard_condition);
   EXPECT_EQ(RCL_RET_OK, ret);
   // Try normal init and fini, but force an internal error on first try.
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::inject_on_return(
       "lib:rcl", rmw_destroy_guard_condition, RMW_RET_ERROR);
@@ -226,6 +229,7 @@ TEST_F(
   }
   ret = rcl_guard_condition_fini(&guard_condition);
   EXPECT_EQ(RCL_RET_OK, ret);
+#endif
   // Try repeated init and fini calls.
   ret = rcl_guard_condition_init(&guard_condition, &context, default_options);
   EXPECT_EQ(RCL_RET_OK, ret);
