@@ -144,7 +144,7 @@ TEST(test_expand_topic_name, invalid_arguments) {
   ASSERT_EQ(RCL_RET_OK, ret);
 }
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 
 // Define dummy comparison operators for rcutils_allocator_t type
 // to use with the Mimick mocking library

@@ -332,7 +332,7 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_internal_err
   FakeTestArgv test_args;
   rcl_context_t context = rcl_get_zero_initialized_context();
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::patch_to_fail(
       "lib:rcl", rmw_init, "internal error", RMW_RET_ERROR);
@@ -366,7 +366,7 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_internal_err
 
 /* Tests rcl_shutdown() deals with internal errors correctly.
  */
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_shutdown_internal_error) {
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   rcl_ret_t ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
@@ -532,7 +532,7 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 // Tests rcl_init_options_init() mocked to fail
 TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_mocked_rcl_init_options_ini) {
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();

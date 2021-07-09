@@ -541,7 +541,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
 
 // Mocking rmw_publisher_count_matched_subscriptions to make
 // rcl_publisher_get_subscription_count fail
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 TEST_F(
   CLASSNAME(TestPublisherFixtureInit, RMW_IMPLEMENTATION),
   test_mock_publisher_get_subscription_count)
@@ -825,4 +825,4 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
 }
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK

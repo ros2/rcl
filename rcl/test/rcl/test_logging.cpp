@@ -149,7 +149,7 @@ TEST(TestLogging, test_failing_external_logging_configure) {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&global_arguments)) << rcl_get_error_string().str;
   });
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::patch_to_fail(
       "lib:rcl", rcl_logging_external_initialize, "some error", RCL_LOGGING_RET_ERROR);
@@ -185,7 +185,7 @@ TEST(TestLogging, test_failing_logger_level_configure) {
   {
     EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&global_arguments)) << rcl_get_error_string().str;
   });
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::patch_to_fail(
       "lib:rcl", rcutils_logging_set_logger_level, "failed to allocate", RCUTILS_RET_ERROR);
@@ -198,7 +198,7 @@ TEST(TestLogging, test_failing_logger_level_configure) {
 #endif  // RCL_SKIP_TESTS
 }
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 TEST(TestLogging, test_failing_external_logging) {
   const char * argv[] = {
     "test_logging", RCL_ROS_ARGS_FLAG,

@@ -54,7 +54,7 @@ TEST(TestValidateEnclaveName, test_validate) {
     rcl_validate_enclave_name("/foo/bar", &validation_result, &invalid_index));
   EXPECT_EQ(RCL_ENCLAVE_NAME_VALID, validation_result);
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::patch(
       "lib:rcl", rmw_validate_namespace_with_size,
@@ -76,7 +76,7 @@ TEST(TestValidateEnclaveName, test_validate) {
 #endif  // RCL_SKIP_TESTS
 }
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 TEST(TestValidateEnclaveName, test_validate_on_internal_error)
 {
   int validation_result;

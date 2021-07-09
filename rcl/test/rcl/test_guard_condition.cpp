@@ -192,7 +192,7 @@ TEST_F(
   ASSERT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   // Try init but force an internal error.
   {
     auto mock = mocking_utils::patch_to_fail(
@@ -217,7 +217,7 @@ TEST_F(
   ret = rcl_guard_condition_fini(&guard_condition);
   EXPECT_EQ(RCL_RET_OK, ret);
   // Try normal init and fini, but force an internal error on first try.
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::inject_on_return(
       "lib:rcl", rmw_destroy_guard_condition, RMW_RET_ERROR);

@@ -35,7 +35,7 @@
 #include <type_traits>
 #include <utility>
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 #include "mimick/mimick.h"
 #endif
 
@@ -54,7 +54,7 @@
     return false; \
   }
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 namespace mocking_utils
 {
 
@@ -504,5 +504,5 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, !=)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, >)
 #endif  // MOCKING_UTILS_SUPPORT_VA_LIST
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK
 #endif  // MOCKING_UTILS__PATCH_HPP_

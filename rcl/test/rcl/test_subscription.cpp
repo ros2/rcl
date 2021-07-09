@@ -188,7 +188,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     rcutils_ret_t rcutils_string_map_init_returns = RCUTILS_RET_BAD_ALLOC;
     auto mock = mocking_utils::patch_and_return(
@@ -240,7 +240,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     EXPECT_EQ(RCL_RET_ERROR, ret);
     rcl_reset_error();
   }
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK
   ret = rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(rcl_subscription_is_valid(&subscription));
@@ -255,7 +255,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_subscription_fini(&subscription, &invalid_node));
   rcl_reset_error();
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     auto mock =
       mocking_utils::inject_on_return("lib:rcl", rmw_destroy_subscription, RMW_RET_ERROR);
@@ -635,7 +635,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   }
 }
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
 /* Basic test for subscription loan functions
  */
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loaned) {
@@ -716,7 +716,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 }
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK
 
 /* Test for all failure modes in subscription take with loaned messages function.
  */
@@ -753,7 +753,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loa
   rcl_reset_error();
   loaned_message = nullptr;
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     rmw_ret_t rmw_take_loaned_message_with_info_returns = RMW_RET_OK;
     auto mock = mocking_utils::patch(
@@ -786,7 +786,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loa
         &subscription, type_erased_loaned_message_pointer, message_info, allocation));
     rcl_reset_error();
   }
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK
 
   EXPECT_EQ(
     RCL_RET_OK,
@@ -827,7 +827,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_return_l
     RCL_RET_INVALID_ARGUMENT, rcl_return_loaned_message_from_subscription(&subscription, nullptr));
   rcl_reset_error();
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     rmw_ret_t rmw_return_loaned_message_from_subscription_returns = RMW_RET_OK;
     auto mock = mocking_utils::patch_and_return(
@@ -850,7 +850,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_return_l
       RCL_RET_ERROR, rcl_return_loaned_message_from_subscription(&subscription, loaned_message));
     rcl_reset_error();
   }
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK
 
   EXPECT_EQ(
     RCL_RET_OK,
@@ -896,7 +896,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
     RCL_RET_SUBSCRIPTION_INVALID, rcl_take(&subscription_zero_init, &msg, &message_info, nullptr));
   rcl_reset_error();
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   rmw_ret_t rmw_take_with_info_returns = RMW_RET_OK;
   auto mock = mocking_utils::patch(
     "lib:rcl", rmw_take_with_info,
@@ -918,7 +918,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   EXPECT_EQ(
     RCL_RET_ERROR, rcl_take(&subscription, &msg, &message_info, nullptr));
   rcl_reset_error();
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK
 }
 
 /* bad take_serialized
@@ -952,7 +952,7 @@ TEST_F(
     rcl_take_serialized_message(&subscription, nullptr, message_info, allocation));
   rcl_reset_error();
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   rmw_ret_t rmw_take_serialized_message_with_info_returns = RMW_RET_OK;
   auto mock = mocking_utils::patch(
     "lib:rcl", rmw_take_serialized_message_with_info,
@@ -977,7 +977,7 @@ TEST_F(
     RCL_RET_ERROR,
     rcl_take_serialized_message(&subscription, &serialized_msg, message_info, allocation));
   rcl_reset_error();
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK
 }
 
 /* Bad arguments take_sequence
@@ -1036,7 +1036,7 @@ TEST_F(
     rcl_take_sequence(&subscription, seq_size, &messages, nullptr, allocation));
   rcl_reset_error();
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   rmw_ret_t rmw_take_sequence_returns = RMW_RET_OK;
   auto mock = mocking_utils::patch(
     "lib:rcl", rmw_take_sequence,
@@ -1061,7 +1061,7 @@ TEST_F(
     RCL_RET_ERROR,
     rcl_take_sequence(&subscription, seq_size, &messages, &message_infos, allocation));
   rcl_reset_error();
-#endif  // RCL_SKIP_MIMICK
+#endif  // SKIP_MIMICK
 }
 
 /* Test for all failure modes in subscription get_publisher_count function.
@@ -1083,7 +1083,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_bad_get_
     rcl_subscription_get_publisher_count(&subscription, nullptr));
   rcl_reset_error();
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   auto mock = mocking_utils::patch_and_return(
     "lib:rcl", rmw_subscription_count_matched_publishers, RMW_RET_ERROR);
   EXPECT_EQ(

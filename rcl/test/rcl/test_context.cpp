@@ -178,7 +178,7 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), bad_fini) {
   ret = rcl_shutdown(&context);
   EXPECT_EQ(ret, RCL_RET_OK);
 
-#ifndef RCL_SKIP_MIMICK
+#ifndef SKIP_MIMICK
   {
     auto mock = mocking_utils::inject_on_return(
       "lib:rcl", rmw_context_fini, RMW_RET_ERROR);
