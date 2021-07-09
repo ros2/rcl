@@ -480,6 +480,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_init_with_i
   EXPECT_EQ(RCL_RET_BAD_ALLOC, ret) << "Expected RCL_RET_BAD_ALLOC";
   ASSERT_TRUE(rcl_error_is_set());
   rcl_reset_error();
+#ifndef RCL_SKIP_MIMICK
   // Try init but force internal errors.
   {
     auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_create_node, nullptr);
@@ -520,6 +521,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_init_with_i
     EXPECT_EQ(RCL_RET_ERROR, ret);
     rcl_reset_error();
   }
+#endif  // RCL_SKIP_MIMICK
 
   // Battle test node init.
   RCUTILS_FAULT_INJECTION_TEST(
@@ -944,7 +946,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   options.arguments = local_arguments;  // transfer ownership
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    rcl_node_options_fini(&options);
+    ASSERT_EQ(RCL_RET_OK, rcl_node_options_fini(&options));
   });
   ret = rcl_node_init(&node, "node", "/ns", &context, &options);
   ASSERT_EQ(RCL_RET_OK, ret);
