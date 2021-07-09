@@ -238,7 +238,8 @@ function(test_target_function)
     target_compile_definitions(test_service${target_suffix}
       PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1" "RMW_RECEIVED_TIMESTAMP_SUPPORTED=1")
   else()
-    if(rmw_implementation STREQUAL "rmw_cyclonedds_cpp")
+    if(rmw_implementation STREQUAL "rmw_cyclonedds_cpp" OR
+      rmw_implementation STREQUAL "rmw_gurumdds_cpp")
       message(STATUS "Enabling only source timestamp test for ${rmw_implementation}")
       target_compile_definitions(test_subscription${target_suffix}
         PUBLIC "RMW_TIMESTAMPS_SUPPORTED=1")
