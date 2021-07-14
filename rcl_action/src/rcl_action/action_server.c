@@ -1054,6 +1054,60 @@ rcl_action_server_wait_set_get_entities_ready(
   return RCL_RET_OK;
 }
 
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_server_set_goal_service_callback(
+  const rcl_action_server_t * action_server,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
+
+  return rcl_service_set_on_new_request_callback(
+    &action_server->impl->goal_service,
+    callback,
+    user_data);
+}
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_server_set_result_service_callback(
+  const rcl_action_server_t * action_server,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
+
+  return rcl_service_set_on_new_request_callback(
+    &action_server->impl->result_service,
+    callback,
+    user_data);
+}
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_server_set_cancel_service_callback(
+  const rcl_action_server_t * action_server,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
+
+  return rcl_service_set_on_new_request_callback(
+    &action_server->impl->cancel_service,
+    callback,
+    user_data);
+}
+
 #ifdef __cplusplus
 }
 #endif
