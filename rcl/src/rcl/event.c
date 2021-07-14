@@ -218,6 +218,23 @@ rcl_event_is_valid(const rcl_event_t * event)
   return true;
 }
 
+rcl_ret_t
+rcl_event_set_callback(
+  const rcl_event_t * event,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_event_is_valid(event)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  return rmw_event_set_callback(
+    &event->impl->rmw_handle,
+    callback,
+    user_data);
+}
+
 #ifdef __cplusplus
 }
 #endif
