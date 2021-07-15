@@ -22,9 +22,9 @@
 #include "rcl/visibility_control.h"
 #include "rcl_interfaces/msg/log.h"
 #include "rcutils/allocator.h"
+#include "rcutils/format_string.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
-#include "rcutils/strdup.h"
 #include "rcutils/types/hash_map.h"
 #include "rcutils/types/rcutils_ret.h"
 #include "rosidl_runtime_c/string_functions.h"
@@ -84,6 +84,7 @@ typedef struct rosout_map_entry_t
 static rcutils_hash_map_t __logger_map;
 static bool __is_initialized = false;
 static rcl_allocator_t __rosout_allocator;
+static rcutils_array_list_t __sublogger_names;
 
 rcl_ret_t rcl_logging_rosout_init(
   const rcl_allocator_t * allocator)
@@ -99,6 +100,20 @@ rcl_ret_t rcl_logging_rosout_init(
     rcutils_hash_map_init(
       &__logger_map, 2, sizeof(const char *), sizeof(rosout_map_entry_t),
       rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, allocator));
+  if (RCL_RET_OK != status) {
+    return status;
+  }
+
+  __sublogger_names = rcutils_get_zero_initialized_array_list();
+  RCL_RET_FROM_RCUTIL_RET(
+    status,
+    rcutils_array_list_init(
+      &__sublogger_names, 2, sizeof(const char **), allocator));
+  if (RCL_RET_OK != status) {
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_fini(&__logger_map));
+    return status;
+  }
+
   if (RCL_RET_OK == status) {
     __rosout_allocator = *allocator;
     __is_initialized = true;
@@ -112,6 +127,8 @@ rcl_ret_t rcl_logging_rosout_fini()
   rcl_ret_t status = RCL_RET_OK;
   char * key = NULL;
   rosout_map_entry_t entry;
+  size_t array_size;
+  char * sublogger_name = NULL;
 
   // fini all the outstanding publishers
   rcutils_ret_t hashmap_ret = rcutils_hash_map_get_next_key_and_data(
@@ -136,39 +153,34 @@ rcl_ret_t rcl_logging_rosout_fini()
     RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_fini(&__logger_map));
   }
 
+  RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_get_size(&__sublogger_names, &array_size));
+  if (RCL_RET_OK == status) {
+    for (size_t i = 0; i < array_size; ++i) {
+      RCL_RET_FROM_RCUTIL_RET(
+        status, rcutils_array_list_get(&__sublogger_names, i, &sublogger_name));
+      if (RCL_RET_OK == status) {
+        __rosout_allocator.deallocate(sublogger_name, __rosout_allocator.state);
+        sublogger_name = NULL;
+      }
+    }
+  }
+
+  if (RCL_RET_OK == status) {
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_fini(&__sublogger_names));
+  }
+
   if (RCL_RET_OK == status) {
     __is_initialized = false;
   }
   return status;
 }
 
-rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
-  rcl_node_t * node)
+static rcl_ret_t _rcl_logging_rosout_add_logger(
+  rcl_node_t * node,
+  const char * logger_name)
 {
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
-  const char * logger_name = NULL;
   rosout_map_entry_t new_entry;
   rcl_ret_t status = RCL_RET_OK;
-
-  // Verify input and make sure it's not already initialized
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
-  logger_name = rcl_node_get_logger_name(node);
-  if (NULL == logger_name) {
-    RCL_SET_ERROR_MSG("Logger name was null.");
-    return RCL_RET_ERROR;
-  }
-  if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
-    // @TODO(nburek) Update behavior to either enforce unique names or work with non-unique
-    // names based on the outcome here: https://github.com/ros2/design/issues/187
-    RCUTILS_LOG_WARN_NAMED(
-      "rcl.logging_rosout",
-      "Publisher already registered for provided node name. If this is due to multiple nodes "
-      "with the same name then all logs for that logger name will go out over the existing "
-      "publisher. As soon as any node with that name is destructed it will unregister the "
-      "publisher, preventing any further logs for that name from being published on the rosout "
-      "topic.");
-    return RCL_RET_OK;
-  }
 
   // Create a new Log message publisher on the node
   const rosidl_message_type_support_t * type_support =
@@ -200,23 +212,41 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   return status;
 }
 
-rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
+rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   rcl_node_t * node)
 {
   RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
-  rosout_map_entry_t entry;
   const char * logger_name = NULL;
-  rcl_ret_t status = RCL_RET_OK;
 
-  // Verify input and make sure it's initialized
+  // Verify input and make sure it's not already initialized
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
   logger_name = rcl_node_get_logger_name(node);
   if (NULL == logger_name) {
+    RCL_SET_ERROR_MSG("Logger name was null.");
     return RCL_RET_ERROR;
   }
-  if (!rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
+
+  if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
+    // @TODO(nburek) Update behavior to either enforce unique names or work with non-unique
+    // names based on the outcome here: https://github.com/ros2/design/issues/187
+    RCUTILS_LOG_WARN_NAMED(
+      "rcl.logging_rosout",
+      "Publisher already registered for provided node name. If this is due to multiple nodes "
+      "with the same name then all logs for that logger name will go out over the existing "
+      "publisher. As soon as any node with that name is destructed it will unregister the "
+      "publisher, preventing any further logs for that name from being published on the rosout "
+      "topic.");
     return RCL_RET_OK;
   }
+
+  return _rcl_logging_rosout_add_logger(node, logger_name);
+}
+
+static rcl_ret_t _rcl_logging_rosout_remove_logger(
+  const char * logger_name)
+{
+  rosout_map_entry_t entry;
+  rcl_ret_t status = RCL_RET_OK;
 
   // fini the publisher and remove the entry from the map
   RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_get(&__logger_map, &logger_name, &entry));
@@ -230,6 +260,26 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
   return status;
 }
 
+rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
+  rcl_node_t * node)
+{
+  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  const char * logger_name = NULL;
+
+  // Verify input and make sure it's initialized
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
+  logger_name = rcl_node_get_logger_name(node);
+  if (NULL == logger_name) {
+    return RCL_RET_ERROR;
+  }
+
+  if (!rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
+    return RCL_RET_OK;
+  }
+
+  return _rcl_logging_rosout_remove_logger(logger_name);
+}
+
 void rcl_logging_rosout_output_handler(
   const rcutils_log_location_t * location,
   int severity, const char * name, rcutils_time_point_value_t timestamp,
@@ -237,31 +287,10 @@ void rcl_logging_rosout_output_handler(
 {
   rosout_map_entry_t entry;
   rcl_ret_t status = RCL_RET_OK;
-  char * name_dup = NULL;
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
   if (!__is_initialized) {
     return;
   }
   rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &name, &entry);
-  // if logger name not found, continue to check if its parent logger name exists
-  if (RCUTILS_RET_OK != rcutils_ret) {
-    name_dup = rcutils_strdup(name, allocator);
-    if (NULL == name_dup) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR("unable to allocate memory\n");
-      return;
-    }
-    do {
-      char * name_sep = strrchr(name_dup, RCUTILS_LOGGING_SEPARATOR_STRING[0]);
-      if (NULL == name_sep) {
-        break;
-      }
-      name_dup[(size_t)(name_sep - name_dup)] = '\0';
-      if (!rcutils_logging_logger_is_enabled_for(name_dup, severity)) {
-        goto clean;
-      }
-      rcutils_ret = rcutils_hash_map_get(&__logger_map, &name_dup, &entry);
-    } while (RCUTILS_RET_OK != rcutils_ret);
-  }
   if (RCUTILS_RET_OK == rcutils_ret) {
     char msg_buf[1024] = "";
     rcutils_char_array_t msg_array = {
@@ -312,9 +341,121 @@ void rcl_logging_rosout_output_handler(
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
     }
   }
+}
 
-clean:
-  allocator.deallocate(name_dup, allocator.state);
+static char *
+_rcl_logging_rosout_get_sublogger_name(
+  const char * logger_name, const char * sublogger_name)
+{
+  char * full_sublogger_name = NULL;
+
+  full_sublogger_name = rcutils_format_string(
+    __rosout_allocator, "%s%s%s",
+    logger_name, RCUTILS_LOGGING_SEPARATOR_STRING, sublogger_name);
+  if (NULL == full_sublogger_name) {
+    RCL_SET_ERROR_MSG("Failed to allocate a full sublogger name.");
+  }
+
+  return full_sublogger_name;
+}
+
+rcl_ret_t
+rcl_logging_rosout_add_sublogger(
+  const char * logger_name, const char * sublogger_name)
+{
+  rcl_ret_t status = RCL_RET_OK;
+  char * full_sublogger_name = NULL;
+  rosout_map_entry_t entry;
+
+  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  if (NULL == logger_name) {
+    RCL_SET_ERROR_MSG("Logger name was null.");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  if (NULL == sublogger_name) {
+    RCL_SET_ERROR_MSG("Sub-logger name was null.");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
+  if (RCUTILS_RET_OK != rcutils_ret) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("The entry of logger '%s' not exist.", logger_name);
+    return RCL_RET_ERROR;
+  }
+
+  full_sublogger_name = _rcl_logging_rosout_get_sublogger_name(logger_name, sublogger_name);
+  if (NULL == full_sublogger_name) {
+    // Error already set
+    return RCL_RET_ERROR;
+  }
+
+  if (rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
+    __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
+    return RCL_RET_OK;
+  }
+
+  status = _rcl_logging_rosout_add_logger(entry.node, full_sublogger_name);
+
+  if (RCL_RET_OK == status) {
+    RCL_RET_FROM_RCUTIL_RET(
+      status, rcutils_array_list_add(&__sublogger_names, &full_sublogger_name));
+  }
+
+  return status;
+}
+
+rcl_ret_t
+rcl_logging_rosout_remove_sublogger(
+  const char * logger_name, const char * sublogger_name)
+{
+  rcl_ret_t status = RCL_RET_OK;
+  char * full_sublogger_name = NULL;
+  size_t array_size;
+  char * sublogger_name_removed = NULL;
+
+  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  if (NULL == logger_name) {
+    RCL_SET_ERROR_MSG("Logger name was null.");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  if (NULL == sublogger_name) {
+    RCL_SET_ERROR_MSG("Sub-logger name was null.");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  full_sublogger_name = _rcl_logging_rosout_get_sublogger_name(logger_name, sublogger_name);
+  if (NULL == full_sublogger_name) {
+    // Error already set
+    return RCL_RET_ERROR;
+  }
+
+  if (!rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
+    __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
+    return RCL_RET_OK;
+  }
+  status = _rcl_logging_rosout_remove_logger(full_sublogger_name);
+
+  if (RCL_RET_OK == status) {
+    // remove the corresponding name from __sublogger_names
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_get_size(&__sublogger_names, &array_size));
+    if (RCL_RET_OK == status) {
+      for (size_t i = 0; i < array_size; ++i) {
+        RCL_RET_FROM_RCUTIL_RET(
+          status, rcutils_array_list_get(&__sublogger_names, i, &sublogger_name_removed));
+        if (RCL_RET_OK == status) {
+          if (strcmp(full_sublogger_name, sublogger_name_removed) == 0) {
+            __rosout_allocator.deallocate(sublogger_name_removed, __rosout_allocator.state);
+            sublogger_name_removed = NULL;
+            RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_remove(&__sublogger_names, i));
+            break;
+          }
+        }
+      }
+    }
+  }
+  __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
+
+  return status;
 }
 
 
