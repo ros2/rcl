@@ -391,7 +391,7 @@ rcl_logging_rosout_add_sublogger(
 
   if (rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
     __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
-    return RCL_RET_OK;
+    return RCL_RET_SUBLOGGER_ALREADY_EXIST;
   }
 
   status = _rcl_logging_rosout_add_logger(entry.node, full_sublogger_name);
@@ -430,8 +430,9 @@ rcl_logging_rosout_remove_sublogger(
   }
 
   if (!rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Sub-logger '%s' not exist.", full_sublogger_name);
     __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
-    return RCL_RET_OK;
+    return RCL_RET_ERROR;
   }
   status = _rcl_logging_rosout_remove_logger(full_sublogger_name);
 

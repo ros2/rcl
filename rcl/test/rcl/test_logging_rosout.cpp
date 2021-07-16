@@ -384,12 +384,13 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child"));
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child1"));
-  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child1"));
+  EXPECT_EQ(
+    RCL_RET_SUBLOGGER_ALREADY_EXIST, rcl_logging_rosout_add_sublogger(logger_name, "child1"));
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child1"));
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child2"));
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child2"));
-  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child2"));
+  EXPECT_EQ(RCL_RET_ERROR, rcl_logging_rosout_remove_sublogger(logger_name, "child2"));
 }
 
 /* Testing rosout message while adding and removing sublogger
