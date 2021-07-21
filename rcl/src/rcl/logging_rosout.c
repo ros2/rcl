@@ -343,49 +343,45 @@ void rcl_logging_rosout_output_handler(
   }
 }
 
-static char *
+static rcl_ret_t
 _rcl_logging_rosout_get_sublogger_name(
-  const char * logger_name, const char * sublogger_name)
+  const char * logger_name, const char * sublogger_name, char ** full_sublogger_name)
 {
-  char * full_sublogger_name = NULL;
+  RCL_CHECK_ARGUMENT_FOR_NULL(logger_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(sublogger_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(full_sublogger_name, RCL_RET_INVALID_ARGUMENT);
 
-  full_sublogger_name = rcutils_format_string(
+  *full_sublogger_name = rcutils_format_string(
     __rosout_allocator, "%s%s%s",
     logger_name, RCUTILS_LOGGING_SEPARATOR_STRING, sublogger_name);
-  if (NULL == full_sublogger_name) {
+  if (NULL == *full_sublogger_name) {
     RCL_SET_ERROR_MSG("Failed to allocate a full sublogger name.");
+    return RCL_RET_BAD_ALLOC;
   }
 
-  return full_sublogger_name;
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
 rcl_logging_rosout_add_sublogger(
   const char * logger_name, const char * sublogger_name)
 {
+  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
   rcl_ret_t status = RCL_RET_OK;
   char * full_sublogger_name = NULL;
   rosout_map_entry_t entry;
 
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
-  if (NULL == logger_name) {
-    RCL_SET_ERROR_MSG("Logger name was null.");
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-  if (NULL == sublogger_name) {
-    RCL_SET_ERROR_MSG("Sub-logger name was null.");
-    return RCL_RET_INVALID_ARGUMENT;
+  status =
+    _rcl_logging_rosout_get_sublogger_name(logger_name, sublogger_name, &full_sublogger_name);
+  if (RCL_RET_OK != status) {
+    // Error already set
+    return status;
   }
 
   rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
   if (RCUTILS_RET_OK != rcutils_ret) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("The entry of logger '%s' not exist.", logger_name);
-    return RCL_RET_ERROR;
-  }
-
-  full_sublogger_name = _rcl_logging_rosout_get_sublogger_name(logger_name, sublogger_name);
-  if (NULL == full_sublogger_name) {
-    // Error already set
+    __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
     return RCL_RET_ERROR;
   }
 
@@ -408,25 +404,17 @@ rcl_ret_t
 rcl_logging_rosout_remove_sublogger(
   const char * logger_name, const char * sublogger_name)
 {
+  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
   rcl_ret_t status = RCL_RET_OK;
   char * full_sublogger_name = NULL;
   size_t array_size;
   char * sublogger_name_removed = NULL;
 
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
-  if (NULL == logger_name) {
-    RCL_SET_ERROR_MSG("Logger name was null.");
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-  if (NULL == sublogger_name) {
-    RCL_SET_ERROR_MSG("Sub-logger name was null.");
-    return RCL_RET_INVALID_ARGUMENT;
-  }
-
-  full_sublogger_name = _rcl_logging_rosout_get_sublogger_name(logger_name, sublogger_name);
-  if (NULL == full_sublogger_name) {
+  status =
+    _rcl_logging_rosout_get_sublogger_name(logger_name, sublogger_name, &full_sublogger_name);
+  if (RCL_RET_OK != status) {
     // Error already set
-    return RCL_RET_ERROR;
+    return status;
   }
 
   if (!rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {

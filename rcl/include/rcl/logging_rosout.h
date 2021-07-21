@@ -184,7 +184,7 @@ void rcl_logging_rosout_output_handler(
   const char * format,
   va_list * args);
 
-/// Add a sublogger based on a logger
+/// Add a subordinate logger based on a logger
 /**
  * Calling this will create a new publisher based on
  * `logger_name+RCUTILS_LOGGING_SEPARATOR_STRING+sublogger_name` on a node that will be
@@ -207,8 +207,9 @@ void rcl_logging_rosout_output_handler(
  *
  * \param[in] logger_name a logger_name that has a corresponding rosout publisher on a node
  * \param[in] sublogger_name a sublogger name
- * \return #RCL_RET_OK if the logging publisher was finalized successfully, or
+ * \return #RCL_RET_OK if the subordinate logger was created successfully, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_SUBLOGGER_ALREADY_EXIST if the subordinate logger already exists, or
  * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -218,7 +219,7 @@ rcl_ret_t
 rcl_logging_rosout_add_sublogger(
   const char * logger_name, const char * sublogger_name);
 
-/// Remove sublogger and cleans up allocated resources
+/// Remove a subordinate logger and cleans up allocated resources
 /**
  * Calling this will destroy the corresponding rosout publisher based on
  * `logger_name+RCUTILS_LOGGING_SEPARATOR_STRING+sublogger_name` on that node and remove it from
@@ -235,7 +236,7 @@ rcl_logging_rosout_add_sublogger(
  *
  * \param[in] logger_name a logger_name that has a corresponding rosout publisher on a node
  * \param[in] sublogger_name a sublogger name
- * \return #RCL_RET_OK if the logging publisher was finalized successfully, or
+ * \return #RCL_RET_OK if the subordinate logger was finalized successfully, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
