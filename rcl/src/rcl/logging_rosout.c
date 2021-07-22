@@ -175,12 +175,33 @@ rcl_ret_t rcl_logging_rosout_fini()
   return status;
 }
 
-static rcl_ret_t _rcl_logging_rosout_add_logger(
-  rcl_node_t * node,
-  const char * logger_name)
+rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
+  rcl_node_t * node)
 {
+  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  const char * logger_name = NULL;
   rosout_map_entry_t new_entry;
   rcl_ret_t status = RCL_RET_OK;
+
+  // Verify input and make sure it's not already initialized
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
+  logger_name = rcl_node_get_logger_name(node);
+  if (NULL == logger_name) {
+    RCL_SET_ERROR_MSG("Logger name was null.");
+    return RCL_RET_ERROR;
+  }
+  if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
+    // @TODO(nburek) Update behavior to either enforce unique names or work with non-unique
+    // names based on the outcome here: https://github.com/ros2/design/issues/187
+    RCUTILS_LOG_WARN_NAMED(
+      "rcl.logging_rosout",
+      "Publisher already registered for provided node name. If this is due to multiple nodes "
+      "with the same name then all logs for that logger name will go out over the existing "
+      "publisher. As soon as any node with that name is destructed it will unregister the "
+      "publisher, preventing any further logs for that name from being published on the rosout "
+      "topic.");
+    return RCL_RET_OK;
+  }
 
   // Create a new Log message publisher on the node
   const rosidl_message_type_support_t * type_support =
@@ -212,59 +233,13 @@ static rcl_ret_t _rcl_logging_rosout_add_logger(
   return status;
 }
 
-rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
-  rcl_node_t * node)
-{
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
-  const char * logger_name = NULL;
-
-  // Verify input and make sure it's not already initialized
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
-  logger_name = rcl_node_get_logger_name(node);
-  if (NULL == logger_name) {
-    RCL_SET_ERROR_MSG("Logger name was null.");
-    return RCL_RET_ERROR;
-  }
-
-  if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
-    // @TODO(nburek) Update behavior to either enforce unique names or work with non-unique
-    // names based on the outcome here: https://github.com/ros2/design/issues/187
-    RCUTILS_LOG_WARN_NAMED(
-      "rcl.logging_rosout",
-      "Publisher already registered for provided node name. If this is due to multiple nodes "
-      "with the same name then all logs for that logger name will go out over the existing "
-      "publisher. As soon as any node with that name is destructed it will unregister the "
-      "publisher, preventing any further logs for that name from being published on the rosout "
-      "topic.");
-    return RCL_RET_OK;
-  }
-
-  return _rcl_logging_rosout_add_logger(node, logger_name);
-}
-
-static rcl_ret_t _rcl_logging_rosout_remove_logger(
-  const char * logger_name)
-{
-  rosout_map_entry_t entry;
-  rcl_ret_t status = RCL_RET_OK;
-
-  // fini the publisher and remove the entry from the map
-  RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_get(&__logger_map, &logger_name, &entry));
-  if (RCL_RET_OK == status) {
-    status = rcl_publisher_fini(&entry.publisher, entry.node);
-  }
-  if (RCL_RET_OK == status) {
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &logger_name));
-  }
-
-  return status;
-}
-
 rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
   rcl_node_t * node)
 {
   RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  rosout_map_entry_t entry;
   const char * logger_name = NULL;
+  rcl_ret_t status = RCL_RET_OK;
 
   // Verify input and make sure it's initialized
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
@@ -272,12 +247,20 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
   if (NULL == logger_name) {
     return RCL_RET_ERROR;
   }
-
   if (!rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
     return RCL_RET_OK;
   }
 
-  return _rcl_logging_rosout_remove_logger(logger_name);
+  // fini the publisher and remove the entry from the map
+  RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_get(&__logger_map, &logger_name, &entry));
+  if (RCL_RET_OK == status && node == entry.node) {
+    status = rcl_publisher_fini(&entry.publisher, entry.node);
+  }
+  if (RCL_RET_OK == status) {
+    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &logger_name));
+  }
+
+  return status;
 }
 
 void rcl_logging_rosout_output_handler(
@@ -381,22 +364,33 @@ rcl_logging_rosout_add_sublogger(
   rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
   if (RCUTILS_RET_OK != rcutils_ret) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("The entry of logger '%s' not exist.", logger_name);
-    __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
-    return RCL_RET_ERROR;
+    status = RCL_RET_ERROR;
+    goto cleanup;
   }
 
   if (rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
-    __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
-    return RCL_RET_SUBLOGGER_ALREADY_EXIST;
+    status = RCL_RET_SUBLOGGER_ALREADY_EXIST;
+    goto cleanup;
   }
 
-  status = _rcl_logging_rosout_add_logger(entry.node, full_sublogger_name);
-
-  if (RCL_RET_OK == status) {
-    RCL_RET_FROM_RCUTIL_RET(
-      status, rcutils_array_list_add(&__sublogger_names, &full_sublogger_name));
+  RCL_RET_FROM_RCUTIL_RET(
+    status, rcutils_hash_map_set(&__logger_map, &full_sublogger_name, &entry));
+  if (RCL_RET_OK != status) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Failed to add publisher to map for logger '%s'.", full_sublogger_name);
+    goto cleanup;
   }
 
+  RCL_RET_FROM_RCUTIL_RET(
+    status, rcutils_array_list_add(&__sublogger_names, &full_sublogger_name));
+  if (RCL_RET_OK != status) {
+    goto cleanup;
+  }
+
+  return status;
+
+cleanup:
+  __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
   return status;
 }
 
@@ -417,13 +411,14 @@ rcl_logging_rosout_remove_sublogger(
     return status;
   }
 
+  // remove the entry from the map
   if (!rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Sub-logger '%s' not exist.", full_sublogger_name);
     __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
     return RCL_RET_ERROR;
   }
-  status = _rcl_logging_rosout_remove_logger(full_sublogger_name);
 
+  RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &full_sublogger_name));
   if (RCL_RET_OK == status) {
     // remove the corresponding name from __sublogger_names
     RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_get_size(&__sublogger_names, &array_size));

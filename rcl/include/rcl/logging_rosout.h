@@ -186,15 +186,15 @@ void rcl_logging_rosout_output_handler(
 
 /// Add a subordinate logger based on a logger
 /**
- * Calling this will create a new publisher based on
- * `logger_name+RCUTILS_LOGGING_SEPARATOR_STRING+sublogger_name` on a node that will be
- * used by the logging system to publish all log messages from that Node's logger.
+ * Calling this will use the existing publisher of `logger_name` on a node to create an subordinate
+ * logger that will be used by the logging system to publish all log messages from that Node's
+ * logger.
  *
- * If a publisher already exists for this node then a new publisher will NOT be created.
+ * If a subordinate logger already exists, it will NOT be created.
  *
- * It is expected that after creating a rosout publisher with this function
+ * It is expected that after creating a subordinate logger with this function
  * rcl_logging_rosout_remove_sublogger() will be called for the node to cleanup
- * the publisher while the Node is still valid.
+ * the subordinate logger while the publisher of `logger_name` is still valid.
  *
  *
  * <hr>
@@ -221,7 +221,7 @@ rcl_logging_rosout_add_sublogger(
 
 /// Remove a subordinate logger and cleans up allocated resources
 /**
- * Calling this will destroy the corresponding rosout publisher based on
+ * Calling this will destroy the subordinate logger based on
  * `logger_name+RCUTILS_LOGGING_SEPARATOR_STRING+sublogger_name` on that node and remove it from
  * the logging system so that no more Log messages are published to this function.
  *
