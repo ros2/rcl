@@ -494,11 +494,7 @@ _validate_name(const char * name, rcutils_allocator_t allocator)
   char * node_name = NULL;
   char * absolute_namespace = NULL;
   if (NULL == separator_pos) {
-    node_name = rcutils_strdup(name, allocator);
-    if (NULL == node_name) {
-      ret = RCUTILS_RET_BAD_ALLOC;
-      goto clean;
-    }
+    return RCUTILS_RET_INVALID_ARGUMENT;
   } else {
     // substring namespace including the last '/'
     char * namespace_ = rcutils_strndup(name, ((size_t) (separator_pos - name)) + 1, allocator);
@@ -507,12 +503,8 @@ _validate_name(const char * name, rcutils_allocator_t allocator)
       goto clean;
     }
     if (namespace_[0] != '/') {
-      absolute_namespace = rcutils_format_string(allocator, "/%s", namespace_);
-      allocator.deallocate(namespace_, allocator.state);
-      if (NULL == absolute_namespace) {
-        ret = RCUTILS_RET_BAD_ALLOC;
-        goto clean;
-      }
+      ret = RCUTILS_RET_INVALID_ARGUMENT;
+      goto clean;
     } else {
       absolute_namespace = namespace_;
     }
