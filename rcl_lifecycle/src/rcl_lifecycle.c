@@ -360,9 +360,9 @@ _trigger_transition(
   state_machine->current_state = transition->goal;
 
   if (publish_notification) {
-    rcl_ret_t ret = rcl_lifecycle_com_interface_publish_notification(
+    rcl_ret_t fcn_ret = rcl_lifecycle_com_interface_publish_notification(
       &state_machine->com_interface, transition->start, state_machine->current_state);
-    if (ret != RCL_RET_OK) {
+    if (fcn_ret != RCL_RET_OK) {
       rcl_error_string_t error_string = rcl_get_error_string();
       rcutils_reset_error();
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Could not publish transition: %s", error_string.str);
