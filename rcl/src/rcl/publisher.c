@@ -327,10 +327,11 @@ rcl_publisher_wait_for_all_acked(const rcl_publisher_t * publisher, rcl_duration
 
   rmw_ret_t ret = rmw_publisher_wait_for_all_acked(publisher->impl->rmw_handle, rmw_timeout);
   if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     if (ret == RMW_RET_TIMEOUT) {
       return RCL_RET_TIMEOUT;
-    } else if (ret == RMW_RET_UNSUPPORTED) {
+    }
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    if (ret == RMW_RET_UNSUPPORTED) {
       return RCL_RET_UNSUPPORTED;
     } else {
       return RCL_RET_ERROR;

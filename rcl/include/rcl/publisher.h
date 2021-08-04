@@ -439,7 +439,7 @@ rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher);
 /**
  * This function waits until all published message data were acknowledged by peer node or timeout.
  *
- * The unit of timeout is nanoseconds.
+ * The timeout unit is nanoseconds.
  * If the timeout is negative then this function will block indefinitely until all published message
  * data were acknowledged.
  * If the timeout is 0 then this function will be non-blocking; checking all published message data
@@ -449,7 +449,7 @@ rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher);
  * elapsed (return RCL_RET_TIMEOUT) or all published message data were acknowledged (return
  * RCL_RET_OK).
  *
- * This function only works effectively while QOS profile of publisher is set to RELIABLE.
+ * This function only waits for acknowledgments if the publisher's QOS profile is RELIABLE.
  * Otherwise this function will immediately return RCL_RET_OK.
  *
  * <hr>
@@ -464,7 +464,7 @@ rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher);
  * \param[in] timeout the duration to wait for all published message data were acknowledged, in
  *   nanoseconds.
  * \return #RCL_RET_OK if successful, or
- * \return #RCL_RET_TIMEOUT if wait timed out, or
+ * \return #RCL_RET_TIMEOUT if timed out, or
  * \return #RCL_RET_PUBLISHER_INVALID if publisher is invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs, or
  * \return #RCL_RET_UNSUPPORTED if the middleware does not support that feature.

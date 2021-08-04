@@ -51,9 +51,7 @@ public:
 
   void SetUp()
   {
-    is_fastdds = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
-    is_cyclonedds = (std::string(rmw_get_implementation_identifier()).find("rmw_cyclonedds") == 0);
-    is_connextdds = (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0);
+    bool is_fastdds = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
 
     if (is_fastdds) {
       // By default, fastdds use intraprocess mode in this scenario. But this leads to high-speed
@@ -100,13 +98,24 @@ public:
     delete this->context_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
-
-protected:
-  bool is_fastdds;
-  bool is_cyclonedds;
-  bool is_connextdds;
 };
 
+#define INIT_SUBSCRIPTION(idx) \
+  rcl_subscription_t subscription ## idx = rcl_get_zero_initialized_subscription(); \
+  ret = rcl_subscription_init( \
+    &subscription ## idx, \
+    this->node_ptr, \
+    ts, \
+    topic_name, \
+    &subscription_options); \
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT( \
+  { \
+    ret = rcl_subscription_fini(&subscription ## idx, this->node_ptr); \
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
+  });
+
+#define ONE_MEGABYTE (1024 * 1024)
 
 TEST_F(CLASSNAME(TestPublisherFixtureSpecial, RMW_IMPLEMENTATION), test_wait_for_all_acked) {
   rcl_ret_t ret;
@@ -129,29 +138,12 @@ TEST_F(CLASSNAME(TestPublisherFixtureSpecial, RMW_IMPLEMENTATION), test_wait_for
   subscription_options.qos.depth = 1;
   subscription_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
 
-#define INIT_SUBSCRIPTION(idx) \
-  rcl_subscription_t subscription ## idx = rcl_get_zero_initialized_subscription(); \
-  ret = rcl_subscription_init( \
-    &subscription ## idx, \
-    this->node_ptr, \
-    ts, \
-    topic_name, \
-    &subscription_options); \
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT( \
-  { \
-    ret = rcl_subscription_fini(&subscription ## idx, this->node_ptr); \
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
-  });
-
   INIT_SUBSCRIPTION(1)
   INIT_SUBSCRIPTION(2)
   INIT_SUBSCRIPTION(3)
 
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
 
-  // Prepare 1MB message
-#define ONE_MEGABYTE (1024 * 1024)
   char test_string[ONE_MEGABYTE];
   memset(test_string, 'a', ONE_MEGABYTE);
   test_string[ONE_MEGABYTE - 1] = '\0';
@@ -179,13 +171,8 @@ TEST_F(CLASSNAME(TestPublisherFixtureSpecial, RMW_IMPLEMENTATION), test_wait_for
   ret = rcl_publisher_wait_for_all_acked(
     &publisher,
     RCL_MS_TO_NS(500));
+  EXPECT_TRUE(ret == RCL_RET_OK || ret == RCL_RET_TIMEOUT);
 
-  if (is_cyclonedds) {
-    // cyclonedds use sync publish, so above scenario cannot lead to timeout.
-    EXPECT_EQ(RCL_RET_OK, ret);
-  } else {
-    EXPECT_EQ(RCL_RET_TIMEOUT, ret);
-  }
   ret = rcl_publisher_wait_for_all_acked(&publisher, -1);
   EXPECT_EQ(RCL_RET_OK, ret);
 }
@@ -209,57 +196,6 @@ TEST_F(
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-
-  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-  subscription_options.qos.depth = 1;
-  subscription_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-
-#define INIT_SUBSCRIPTION(idx) \
-  rcl_subscription_t subscription ## idx = rcl_get_zero_initialized_subscription(); \
-  ret = rcl_subscription_init( \
-    &subscription ## idx, \
-    this->node_ptr, \
-    ts, \
-    topic_name, \
-    &subscription_options); \
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT( \
-  { \
-    ret = rcl_subscription_fini(&subscription ## idx, this->node_ptr); \
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
-  });
-
-  INIT_SUBSCRIPTION(1)
-  INIT_SUBSCRIPTION(2)
-  INIT_SUBSCRIPTION(3)
-
-  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
-
-  // Prepare 1MB message
-#define ONE_MEGABYTE (1024 * 1024)
-  char test_string[ONE_MEGABYTE];
-  memset(test_string, 'a', ONE_MEGABYTE);
-  test_string[ONE_MEGABYTE - 1] = '\0';
-  test_msgs__msg__Strings msg;
-  test_msgs__msg__Strings__init(&msg);
-  ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    test_msgs__msg__Strings__fini(&msg);
-  });
-
-  ret = rcl_publish(&publisher, &msg, nullptr);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription1, context_ptr, 10, 100));
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription2, context_ptr, 10, 100));
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription3, context_ptr, 10, 100));
-
-  int i = 0;
-  for (; i < 500; i++) {
-    ret = rcl_publish(&publisher, &msg, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  }
 
   ret = rcl_publisher_wait_for_all_acked(
     &publisher,
