@@ -131,7 +131,9 @@ TEST_F(CLASSNAME(TestPublisherFixtureSpecial, RMW_IMPLEMENTATION), test_wait_for
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      FAIL() << rcl_get_error_string().str;
+    }
   });
 
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
@@ -191,14 +193,12 @@ TEST_F(
   publisher_options.qos.depth = 10000;
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
 
   ret = rcl_publisher_wait_for_all_acked(
     &publisher,
     RCL_MS_TO_NS(500));
   EXPECT_EQ(RCL_RET_OK, ret);
+
+  ret = rcl_publisher_fini(&publisher, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
