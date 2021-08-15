@@ -88,7 +88,7 @@ public:
 
   void TearDown()
   {
-    unsetenv("FASTRTPS_DEFAULT_PROFILES_FILE");
+    rcutils_set_env("FASTRTPS_DEFAULT_PROFILES_FILE", NULL);
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;

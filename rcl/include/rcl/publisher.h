@@ -469,8 +469,8 @@ rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher);
  * \return #RCL_RET_ERROR if an unspecified error occurs, or
  * \return #RCL_RET_UNSUPPORTED if the middleware does not support that feature.
  */
-RMW_PUBLIC
-RMW_WARN_UNUSED
+RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_publisher_wait_for_all_acked(
   const rcl_publisher_t * publisher,
