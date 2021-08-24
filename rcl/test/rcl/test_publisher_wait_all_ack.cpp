@@ -18,6 +18,7 @@
 #include <chrono>
 #include <string>
 
+#include "rcl/allocator.h"
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
 #include "rcpputils/filesystem_helper.hpp"
@@ -146,16 +147,19 @@ TEST_F(CLASSNAME(TestPublisherFixtureSpecial, RMW_IMPLEMENTATION), test_wait_for
 
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
 
-  char test_string[ONE_MEGABYTE];
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  char * test_string = static_cast<char *>(allocator.allocate(ONE_MEGABYTE, allocator.state));
+  ASSERT_TRUE(test_string != NULL);
   memset(test_string, 'a', ONE_MEGABYTE);
   test_string[ONE_MEGABYTE - 1] = '\0';
   test_msgs__msg__Strings msg;
   test_msgs__msg__Strings__init(&msg);
-  ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
+    allocator.deallocate(test_string, allocator.state);
     test_msgs__msg__Strings__fini(&msg);
   });
+  ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
 
   ret = rcl_publish(&publisher, &msg, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
