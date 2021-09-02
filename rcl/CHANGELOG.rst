@@ -2,6 +2,15 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add rcl_publisher_wait_for_all_acked support. (`#913 <https://github.com/ros2/rcl/issues/913>`_)
+* Add tracing instrumentation for rcl_take. (`#930 <https://github.com/ros2/rcl/issues/930>`_)
+* Fix #include in C++ typesupport example in rcl_subscription_init docblock. (`#927 <https://github.com/ros2/rcl/issues/927>`_)
+* Update includes after rcutils/get_env.h deprecation. (`#917 <https://github.com/ros2/rcl/issues/917>`_)
+* Use proper rcl_logging return value type and compare to constant. (`#916 <https://github.com/ros2/rcl/issues/916>`_)
+* Contributors: Barry Xu, Christophe Bedard
+
 3.1.2 (2021-04-26)
 ------------------
 * Fix up test_network_flow_endpoints. (`#912 <https://github.com/ros2/rcl/issues/912>`_)

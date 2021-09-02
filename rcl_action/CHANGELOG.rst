@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Wait for action server in rcl_action comm tests. (`#919 <https://github.com/ros2/rcl/issues/919>`_)
+* Contributors: Michel Hidalgo
+
 3.1.2 (2021-04-26)
 ------------------
 
