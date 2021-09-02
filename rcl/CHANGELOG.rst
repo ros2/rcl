@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.2.0 (2021-09-02)
+------------------
 * Add rcl_publisher_wait_for_all_acked support. (`#913 <https://github.com/ros2/rcl/issues/913>`_)
 * Add tracing instrumentation for rcl_take. (`#930 <https://github.com/ros2/rcl/issues/930>`_)
 * Fix #include in C++ typesupport example in rcl_subscription_init docblock. (`#927 <https://github.com/ros2/rcl/issues/927>`_)
