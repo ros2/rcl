@@ -362,7 +362,7 @@ TEST(TestRclLifecycle, state_machine) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
   state_machine.com_interface.srv_change_state.impl =
-    reinterpret_cast<rcl_service_impl_t *>(temp_function);
+    reinterpret_cast<struct rcl_service_impl_s *>(temp_function);
 
   ret = rcl_lifecycle_state_machine_fini(&state_machine, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
