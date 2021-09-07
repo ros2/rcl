@@ -32,14 +32,14 @@ extern "C"
 #include "rcl/types.h"
 #include "rmw/rmw.h"
 
-struct rcl_clock_t;
-struct rcl_timer_impl_t;
+struct rcl_clock_s;
+struct rcl_timer_impl_s;
 
 /// Structure which encapsulates a ROS Timer.
-typedef struct rcl_timer_t
+typedef struct rcl_timer_s
 {
   /// Private implementation pointer.
-  struct rcl_timer_impl_t * impl;
+  struct rcl_timer_impl_s * impl;
 } rcl_timer_t;
 
 /// User callback signature for timers.

@@ -26,7 +26,7 @@ extern "C"
 #endif
 
 /// \internal
-typedef struct rcl_arguments_impl_t
+typedef struct rcl_arguments_impl_s
 {
   /// Array of indices to unknown ROS specific arguments.
   int * unparsed_ros_args;

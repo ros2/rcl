@@ -32,17 +32,17 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-struct rcl_guard_condition_t;
-struct rcl_node_impl_t;
+struct rcl_guard_condition_s;
+struct rcl_node_impl_s;
 
 /// Structure which encapsulates a ROS Node.
-typedef struct rcl_node_t
+typedef struct rcl_node_s
 {
   /// Context associated with this node.
   rcl_context_t * context;
 
   /// Private implementation pointer.
-  struct rcl_node_impl_t * impl;
+  struct rcl_node_impl_s * impl;
 } rcl_node_t;
 
 /// Return a rcl_node_t struct with members initialized to `NULL`.
@@ -462,7 +462,7 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node);
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-const struct rcl_guard_condition_t *
+const struct rcl_guard_condition_s *
 rcl_node_get_graph_guard_condition(const rcl_node_t * node);
 
 /// Return the logger name of the node.

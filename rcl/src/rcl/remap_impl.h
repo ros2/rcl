@@ -36,7 +36,7 @@ typedef enum rcl_remap_type_t
   RCL_NAMESPACE_REMAP = 1u << 3
 } rcl_remap_type_t;
 
-typedef struct rcl_remap_impl_t
+typedef struct rcl_remap_impl_s
 {
   /// Bitmask indicating what type of rule this is.
   rcl_remap_type_t type;
