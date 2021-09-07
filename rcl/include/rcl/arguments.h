@@ -151,7 +151,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_parse_arguments(
   int argc,
-  const char ** const argv,
+  const char * const * argv,
   rcl_allocator_t allocator,
   rcl_arguments_t * args_output);
 
@@ -369,7 +369,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_remove_ros_arguments(
-  char const ** const argv,
+  const char * const * argv,
   const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int * nonros_argc,
