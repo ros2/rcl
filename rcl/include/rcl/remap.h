@@ -30,6 +30,8 @@ extern "C"
 
 struct rcl_remap_impl_s;
 
+typedef struct rcl_remap_impl_s rcl_remap_impl_t;
+
 /// Hold remapping rules.
 typedef struct rcl_remap_s
 {

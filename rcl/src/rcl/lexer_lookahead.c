@@ -15,7 +15,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/lexer_lookahead.h"
 
-typedef struct rcl_lexer_lookahead2_impl_s
+struct rcl_lexer_lookahead2_impl_s
 {
   // Text that is being analyzed for lexemes
   const char * text;
@@ -31,7 +31,7 @@ typedef struct rcl_lexer_lookahead2_impl_s
 
   // Allocator to use if an error occurrs
   rcl_allocator_t allocator;
-} rcl_lexer_lookahead2_impl_t;
+};
 
 rcl_lexer_lookahead2_t
 rcl_get_zero_initialized_lexer_lookahead2()

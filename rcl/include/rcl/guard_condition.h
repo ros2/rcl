@@ -31,6 +31,8 @@ extern "C"
 /// Internal rcl guard condition implementation struct.
 struct rcl_guard_condition_impl_s;
 
+typedef struct rcl_guard_condition_impl_s rcl_guard_condition_impl_t;
+
 /// Handle for a rcl guard condition.
 typedef struct rcl_guard_condition_s
 {

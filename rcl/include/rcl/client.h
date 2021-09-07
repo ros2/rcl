@@ -31,6 +31,8 @@ extern "C"
 /// Internal rcl client implementation struct.
 struct rcl_client_impl_s;
 
+typedef struct rcl_client_impl_s rcl_client_impl_t;
+
 /// Structure which encapsulates a ROS Client.
 typedef struct rcl_client_s
 {

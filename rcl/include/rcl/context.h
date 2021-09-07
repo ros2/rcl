@@ -45,6 +45,8 @@ typedef uint64_t rcl_context_instance_id_t;
 
 struct rcl_context_impl_s;
 
+typedef struct rcl_context_impl_s rcl_context_impl_t;
+
 /// Encapsulates the non-global state of an init/shutdown cycle.
 /**
  * The context is used in the creation of top level entities like nodes and

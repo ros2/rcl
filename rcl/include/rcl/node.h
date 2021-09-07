@@ -35,6 +35,8 @@ extern "C"
 struct rcl_guard_condition_s;
 struct rcl_node_impl_s;
 
+typedef struct rcl_node_impl_s rcl_node_impl_t;
+
 /// Structure which encapsulates a ROS Node.
 typedef struct rcl_node_s
 {

@@ -37,6 +37,8 @@ extern "C"
 
 struct rcl_wait_set_impl_s;
 
+typedef struct rcl_wait_set_impl_s rcl_wait_set_impl_t;
+
 /// Container for subscription's, guard condition's, etc to be waited on.
 typedef struct rcl_wait_set_s
 {

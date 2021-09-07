@@ -32,6 +32,8 @@ extern "C"
 /// Internal rcl publisher implementation struct.
 struct rcl_publisher_impl_s;
 
+typedef struct rcl_publisher_impl_s rcl_publisher_impl_t;
+
 /// Structure which encapsulates a ROS Publisher.
 typedef struct rcl_publisher_s
 {

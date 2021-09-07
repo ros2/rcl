@@ -52,14 +52,14 @@ extern "C"
 
 #include "./context_impl.h"
 
-typedef struct rcl_node_impl_s
+struct rcl_node_impl_s
 {
   rcl_node_options_t options;
   rmw_node_t * rmw_node_handle;
   rcl_guard_condition_t * graph_guard_condition;
   const char * logger_name;
   const char * fq_name;
-} rcl_node_impl_t;
+};
 
 
 /// Return the logger name associated with a node given the validated node name and namespace.
