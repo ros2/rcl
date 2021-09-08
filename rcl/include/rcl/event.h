@@ -47,7 +47,7 @@ typedef enum rcl_subscription_event_type_t
 } rcl_subscription_event_type_t;
 
 /// rmw struct.
-typedef struct rmw_event_t rmw_event_t;
+typedef struct rmw_event_s rmw_event_t;
 
 /// Internal rcl implementation struct.
 struct rcl_event_impl_t;
