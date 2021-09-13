@@ -33,7 +33,7 @@ extern "C"
 #include "rmw/rmw.h"
 
 struct rcl_clock_s;
-struct rcl_timer_impl_s;
+
 typedef struct rcl_timer_impl_s rcl_timer_impl_t;
 
 /// Structure which encapsulates a ROS Timer.

@@ -43,8 +43,6 @@ extern "C"
 /// A unique ID per context instance.
 typedef uint64_t rcl_context_instance_id_t;
 
-struct rcl_context_impl_s;
-
 typedef struct rcl_context_impl_s rcl_context_impl_t;
 
 /// Encapsulates the non-global state of an init/shutdown cycle.
@@ -148,10 +146,7 @@ typedef struct rcl_context_s
    * See this paper for an effort to make this possible in the future:
    *   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0943r1.html
    */
-  /// @cond Doxygen_Suppress
-  RCL_ALIGNAS(8)
-  /// @endcond
-  uint8_t instance_id_storage[RCL_CONTEXT_ATOMIC_INSTANCE_ID_STORAGE_SIZE];
+  RCL_ALIGNAS(8) uint8_t instance_id_storage[RCL_CONTEXT_ATOMIC_INSTANCE_ID_STORAGE_SIZE];
 } rcl_context_t;
 
 /// Return a zero initialization context object.

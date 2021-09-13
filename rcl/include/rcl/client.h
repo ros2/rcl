@@ -29,8 +29,6 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 /// Internal rcl client implementation struct.
-struct rcl_client_impl_s;
-
 typedef struct rcl_client_impl_s rcl_client_impl_t;
 
 /// Structure which encapsulates a ROS Client.

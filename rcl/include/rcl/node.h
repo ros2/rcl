@@ -33,7 +33,6 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 struct rcl_guard_condition_s;
-struct rcl_node_impl_s;
 
 typedef struct rcl_node_impl_s rcl_node_impl_t;
 

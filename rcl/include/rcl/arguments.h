@@ -29,8 +29,6 @@ extern "C"
 {
 #endif
 
-struct rcl_arguments_impl_s;
-
 typedef struct rcl_arguments_impl_s rcl_arguments_impl_t;
 
 /// Hold output of parsing command line arguments.

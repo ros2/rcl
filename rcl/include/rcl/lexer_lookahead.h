@@ -31,8 +31,6 @@ extern "C"
 #endif
 
 // Forward declaration
-struct rcl_lexer_lookahead2_impl_s;
-
 typedef struct rcl_lexer_lookahead2_impl_s rcl_lexer_lookahead2_impl_t;
 
 /// Track lexical analysis and allow looking ahead 2 lexemes.

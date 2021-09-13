@@ -30,8 +30,6 @@ extern "C"
 #include "rcl/time.h"
 
 /// Internal rcl publisher implementation struct.
-struct rcl_publisher_impl_s;
-
 typedef struct rcl_publisher_impl_s rcl_publisher_impl_t;
 
 /// Structure which encapsulates a ROS Publisher.

@@ -29,8 +29,6 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-struct rcl_init_options_impl_s;
-
 typedef struct rcl_init_options_impl_s rcl_init_options_impl_t;
 
 /// Encapsulation of init options and implementation defined init options.

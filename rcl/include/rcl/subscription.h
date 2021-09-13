@@ -31,8 +31,6 @@ extern "C"
 #include "rmw/message_sequence.h"
 
 /// Internal rcl implementation struct.
-struct rcl_subscription_impl_s;
-
 typedef struct rcl_subscription_impl_s rcl_subscription_impl_t;
 
 /// Structure which encapsulates a ROS Subscription.

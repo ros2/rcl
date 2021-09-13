@@ -29,8 +29,6 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 /// Internal rcl guard condition implementation struct.
-struct rcl_guard_condition_impl_s;
-
 typedef struct rcl_guard_condition_impl_s rcl_guard_condition_impl_t;
 
 /// Handle for a rcl guard condition.

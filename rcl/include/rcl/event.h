@@ -49,8 +49,6 @@ typedef enum rcl_subscription_event_type_e
 } rcl_subscription_event_type_t;
 
 /// Internal rcl implementation struct.
-struct rcl_event_impl_s;
-
 typedef struct rcl_event_impl_s rcl_event_impl_t;
 
 /// Structure which encapsulates a ROS QoS event handle.
