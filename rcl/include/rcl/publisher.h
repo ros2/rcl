@@ -36,7 +36,7 @@ typedef struct rcl_publisher_impl_s rcl_publisher_impl_t;
 typedef struct rcl_publisher_s
 {
   /// Pointer to the publisher implementation
-  struct rcl_publisher_impl_s * impl;
+  rcl_publisher_impl_t * impl;
 } rcl_publisher_t;
 
 /// Options available for a rcl publisher.

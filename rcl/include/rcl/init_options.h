@@ -35,7 +35,7 @@ typedef struct rcl_init_options_impl_s rcl_init_options_impl_t;
 typedef struct rcl_init_options_s
 {
   /// Implementation specific pointer.
-  struct rcl_init_options_impl_s * impl;
+  rcl_init_options_impl_t * impl;
 } rcl_init_options_t;
 
 /// Return a zero initialized rcl_init_options_t struct.

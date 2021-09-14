@@ -37,7 +37,7 @@ typedef struct rcl_subscription_impl_s rcl_subscription_impl_t;
 typedef struct rcl_subscription_s
 {
   /// Pointer to the subscription implementation
-  struct rcl_subscription_impl_s * impl;
+  rcl_subscription_impl_t * impl;
 } rcl_subscription_t;
 
 /// Options available for a rcl subscription.

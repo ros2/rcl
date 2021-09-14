@@ -35,7 +35,7 @@ typedef struct rcl_service_impl_s rcl_service_impl_t;
 typedef struct rcl_service_s
 {
   /// Pointer to the service implementation
-  struct rcl_service_impl_s * impl;
+  rcl_service_impl_t * impl;
 } rcl_service_t;
 
 /// Options available for a rcl service.

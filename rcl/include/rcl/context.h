@@ -117,7 +117,7 @@ typedef struct rcl_context_s
   rcl_arguments_t global_arguments;
 
   /// Implementation specific pointer.
-  struct rcl_context_impl_s * impl;
+  rcl_context_impl_t * impl;
 
   // The assumption that this is big enough for an atomic_uint_least64_t is
   // ensured with a static_assert in the context.c file.

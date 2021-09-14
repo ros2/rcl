@@ -65,7 +65,7 @@ typedef struct rcl_wait_set_s
   /// Number of events
   size_t size_of_events;
   /// Implementation specific storage.
-  struct rcl_wait_set_impl_s * impl;
+  rcl_wait_set_impl_t * impl;
 } rcl_wait_set_t;
 
 /// Return a rcl_wait_set_t struct with members set to `NULL`.

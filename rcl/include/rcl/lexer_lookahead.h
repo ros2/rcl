@@ -37,7 +37,7 @@ typedef struct rcl_lexer_lookahead2_impl_s rcl_lexer_lookahead2_impl_t;
 typedef struct rcl_lexer_lookahead2_s
 {
   /// Pointer to the lexer look ahead2 implementation
-  struct rcl_lexer_lookahead2_impl_s * impl;
+  rcl_lexer_lookahead2_impl_t * impl;
 } rcl_lexer_lookahead2_t;
 
 /// Get a zero initialized rcl_lexer_lookahead2_t instance.

@@ -35,7 +35,7 @@ typedef struct rcl_client_impl_s rcl_client_impl_t;
 typedef struct rcl_client_s
 {
   /// Pointer to the client implementation
-  struct rcl_client_impl_s * impl;
+  rcl_client_impl_t * impl;
 } rcl_client_t;
 
 /// Options available for a rcl_client_t.

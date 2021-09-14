@@ -55,7 +55,7 @@ typedef struct rcl_event_impl_s rcl_event_impl_t;
 typedef struct rcl_event_s
 {
   /// Pointer to the event implementation
-  struct rcl_event_impl_s * impl;
+  rcl_event_impl_t * impl;
 } rcl_event_t;
 
 /// Return a rcl_event_t struct with members set to `NULL`.
