@@ -22,6 +22,8 @@ extern "C"
 {
 #endif
 
+#include <rmw/event.h>
+
 #include "rcl/client.h"
 #include "rcl/macros.h"
 #include "rcl/publisher.h"
@@ -45,9 +47,6 @@ typedef enum rcl_subscription_event_type_t
   RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS,
   RCL_SUBSCRIPTION_MESSAGE_LOST,
 } rcl_subscription_event_type_t;
-
-/// rmw struct.
-typedef struct rmw_event_t rmw_event_t;
 
 /// Internal rcl implementation struct.
 struct rcl_event_impl_t;
