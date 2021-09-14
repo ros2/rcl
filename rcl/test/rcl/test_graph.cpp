@@ -852,6 +852,67 @@ check_graph_state(
   }
 }
 
+void
+check_entity_number(
+  const rcl_node_t * node_ptr,
+  std::string & topic_name,
+  size_t expected_publisher_count,
+  size_t expected_subscriber_count,
+  bool expected_in_tnat,
+  std::chrono::seconds timeout)
+{
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME,
+    "Expecting number of %zu publishers, %zu subscribers, and that the topic is%s in the graph.",
+    expected_publisher_count,
+    expected_subscriber_count,
+    expected_in_tnat ? "" : " not"
+  );
+  bool is_in_tnat = false;
+  rcl_names_and_types_t tnat {};
+  rcl_ret_t ret;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  size_t pub_count, sub_count;
+
+  // Check number of entities until timeout expires.
+  auto start_time = std::chrono::system_clock::now();
+  do {
+    ret = rcl_count_publishers(node_ptr, topic_name.c_str(), &pub_count);
+    ASSERT_EQ(ret, RCL_RET_OK);
+    ret = rcl_count_subscribers(node_ptr, topic_name.c_str(), &sub_count);
+    ASSERT_EQ(ret, RCL_RET_OK);
+    if ((expected_publisher_count == pub_count) &&
+      (expected_subscriber_count == sub_count))
+    {
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  } while (std::chrono::system_clock::now() - start_time < timeout);
+  EXPECT_EQ(expected_publisher_count, pub_count);
+  EXPECT_EQ(expected_subscriber_count, sub_count);
+
+  tnat = rcl_get_zero_initialized_names_and_types();
+  ret = rcl_get_topic_names_and_types(node_ptr, &allocator, false, &tnat);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  is_in_tnat = false;
+  for (size_t i = 0; i < tnat.names.size; ++i) {
+    if (topic_name == std::string(tnat.names.data[i])) {
+      ASSERT_FALSE(is_in_tnat) << "duplicates in the tnat";  // Found it more than once!
+      is_in_tnat = true;
+    }
+  }
+  if (RCL_RET_OK == ret) {
+    ret = rcl_names_and_types_fini(&tnat);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  if (expected_in_tnat) {
+    EXPECT_TRUE(is_in_tnat);
+  } else {
+    EXPECT_FALSE(is_in_tnat);
+  }
+}
+
 /**
  * Type define a get topics function.
  */
@@ -1195,7 +1256,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using topic name: %s", topic_name.c_str());
   rcl_ret_t ret;
   // First assert the "topic_name" is not in use.
-  check_graph_state(
+  check_entity_number(
     this->node_ptr,
     topic_name,
     0,    // expected publishers on topic
@@ -1210,7 +1271,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check the graph.
-  check_graph_state(
+  check_entity_number(
     this->node_ptr,
     topic_name,
     1,  // expected publishers on topic
@@ -1224,7 +1285,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check the graph again.
-  check_graph_state(
+  check_entity_number(
     this->node_ptr,
     topic_name,
     1,  // expected publishers on topic
@@ -1236,7 +1297,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check the graph again.
-  check_graph_state(
+  check_entity_number(
     this->node_ptr,
     topic_name,
     0,  // expected publishers on topic
@@ -1248,7 +1309,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check the graph again.
-  check_graph_state(
+  check_entity_number(
     this->node_ptr,
     topic_name,
     0,  // expected publishers on topic
