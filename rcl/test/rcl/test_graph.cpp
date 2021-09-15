@@ -853,7 +853,7 @@ check_graph_state(
 }
 
 void
-check_entity_number(
+check_entity_count(
   const rcl_node_t * node_ptr,
   std::string & topic_name,
   size_t expected_publisher_count,
@@ -1256,7 +1256,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Using topic name: %s", topic_name.c_str());
   rcl_ret_t ret;
   // First assert the "topic_name" is not in use.
-  check_entity_number(
+  check_entity_count(
     this->node_ptr,
     topic_name,
     0,    // expected publishers on topic
@@ -1271,7 +1271,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check the graph.
-  check_entity_number(
+  check_entity_count(
     this->node_ptr,
     topic_name,
     1,  // expected publishers on topic
@@ -1285,7 +1285,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check the graph again.
-  check_entity_number(
+  check_entity_count(
     this->node_ptr,
     topic_name,
     1,  // expected publishers on topic
@@ -1297,7 +1297,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check the graph again.
-  check_entity_number(
+  check_entity_count(
     this->node_ptr,
     topic_name,
     0,  // expected publishers on topic
@@ -1309,7 +1309,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // Check the graph again.
-  check_entity_number(
+  check_entity_count(
     this->node_ptr,
     topic_name,
     0,  // expected publishers on topic
