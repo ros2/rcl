@@ -33,12 +33,12 @@ extern "C"
 
 #include "./common.h"
 
-typedef struct rcl_client_impl_t
+struct rcl_client_impl_s
 {
   rcl_client_options_t options;
   rmw_client_t * rmw_handle;
   atomic_int_least64_t sequence_number;
-} rcl_client_impl_t;
+};
 
 rcl_client_t
 rcl_get_zero_initialized_client()

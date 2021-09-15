@@ -19,11 +19,11 @@
 
 #include "rcl/subscription.h"
 
-typedef struct rcl_subscription_impl_t
+struct rcl_subscription_impl_s
 {
   rcl_subscription_options_t options;
   rmw_qos_profile_t actual_qos;
   rmw_subscription_t * rmw_handle;
-} rcl_subscription_impl_t;
+};
 
 #endif  // RCL__SUBSCRIPTION_IMPL_H_

@@ -247,7 +247,7 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
 rcl_ret_t
 rcl_parse_arguments(
   int argc,
-  const char * const argv[],
+  const char * const * argv,
   rcl_allocator_t allocator,
   rcl_arguments_t * args_output)
 {
@@ -759,11 +759,11 @@ rcl_get_zero_initialized_arguments(void)
 
 rcl_ret_t
 rcl_remove_ros_arguments(
-  char const * const argv[],
+  const char * const * argv,
   const rcl_arguments_t * args,
   rcl_allocator_t allocator,
   int * nonros_argc,
-  const char ** nonros_argv[])
+  const char *** nonros_argv)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);

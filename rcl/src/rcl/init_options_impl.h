@@ -25,11 +25,11 @@ extern "C"
 #endif
 
 /// \internal
-typedef struct rcl_init_options_impl_t
+struct rcl_init_options_impl_s
 {
   rcl_allocator_t allocator;
   rmw_init_options_t rmw_init_options;
-} rcl_init_options_impl_t;
+};
 
 #ifdef __cplusplus
 }

@@ -25,7 +25,7 @@
 #include "rcutils/time.h"
 
 // Internal storage for RCL_ROS_TIME implementation
-typedef struct rcl_ros_clock_storage_t
+typedef struct rcl_ros_clock_storage_s
 {
   atomic_uint_least64_t current_time;
   bool active;
@@ -86,7 +86,7 @@ rcl_clock_valid(rcl_clock_t * clock)
 
 rcl_ret_t
 rcl_clock_init(
-  enum rcl_clock_type_t clock_type, rcl_clock_t * clock,
+  rcl_clock_type_t clock_type, rcl_clock_t * clock,
   rcl_allocator_t * allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
