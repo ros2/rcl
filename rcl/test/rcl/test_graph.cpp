@@ -797,62 +797,6 @@ TEST_F(
 }
 
 void
-check_graph_state(
-  const rcl_node_t * node_ptr,
-  std::string & topic_name,
-  size_t expected_publisher_count,
-  size_t expected_subscriber_count,
-  bool expected_in_tnat,
-  const std::chrono::nanoseconds & timeout)
-{
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME,
-    "Expecting %zu publishers, %zu subscribers, and that the topic is%s in the graph.",
-    expected_publisher_count,
-    expected_subscriber_count,
-    expected_in_tnat ? "" : " not"
-  );
-  bool is_in_tnat = false;
-  rcl_names_and_types_t tnat {};
-  rcl_ret_t ret;
-  rcl_allocator_t allocator = rcl_get_default_allocator();
-
-  // Wait for expected number of publishers
-  bool success = false;
-  ret = rcl_wait_for_publishers(
-    node_ptr, &allocator, topic_name.c_str(), expected_publisher_count, timeout.count(), &success);
-  ASSERT_EQ(ret, RCL_RET_OK);
-  EXPECT_TRUE(success);
-  // Wait for expected number of subscribers
-  success = false;
-  ret = rcl_wait_for_subscribers(
-    node_ptr, &allocator, topic_name.c_str(), expected_subscriber_count, timeout.count(), &success);
-  ASSERT_EQ(ret, RCL_RET_OK);
-  EXPECT_TRUE(success);
-
-  tnat = rcl_get_zero_initialized_names_and_types();
-  ret = rcl_get_topic_names_and_types(node_ptr, &allocator, false, &tnat);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  is_in_tnat = false;
-  for (size_t i = 0; RCL_RET_OK == ret && i < tnat.names.size; ++i) {
-    if (topic_name == std::string(tnat.names.data[i])) {
-      ASSERT_FALSE(is_in_tnat) << "duplicates in the tnat";  // Found it more than once!
-      is_in_tnat = true;
-    }
-  }
-  if (RCL_RET_OK == ret) {
-    ret = rcl_names_and_types_fini(&tnat);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  }
-
-  if (expected_in_tnat) {
-    EXPECT_TRUE(is_in_tnat);
-  } else {
-    EXPECT_FALSE(is_in_tnat);
-  }
-}
-
-void
 check_entity_count(
   const rcl_node_t * node_ptr,
   std::string & topic_name,
