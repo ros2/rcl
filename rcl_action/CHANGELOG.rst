@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix expired goals capacity of action server (`#931 <https://github.com/ros2/rcl/issues/931>`_)
+* Contributors: spiralray
+
 3.2.0 (2021-09-02)
 ------------------
 * Wait for action server in rcl_action comm tests. (`#919 <https://github.com/ros2/rcl/issues/919>`_)
