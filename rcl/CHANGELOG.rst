@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+4.0.0 (2021-09-16)
+------------------
 * Fix up documentation build for rcl when using rosdoc2 (`#932 <https://github.com/ros2/rcl/issues/932>`_)
 * Include rmw_event_t instead of forward declaring it (`#933 <https://github.com/ros2/rcl/issues/933>`_)
 * Contributors: Michel Hidalgo
