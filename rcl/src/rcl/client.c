@@ -36,6 +36,7 @@ extern "C"
 struct rcl_client_impl_s
 {
   rcl_client_options_t options;
+  rmw_qos_profile_t actual_qos;
   rmw_client_t * rmw_handle;
   atomic_int_least64_t sequence_number;
 };
@@ -108,6 +109,14 @@ rcl_client_init(
     remapped_service_name,
     &options->qos);
   if (!client->impl->rmw_handle) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+  // get actual qos, and store it
+  rmw_ret_t rmw_ret = rmw_client_get_actual_qos(
+    client->impl->rmw_handle,
+    &client->impl->actual_qos);
+  if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
@@ -279,6 +288,15 @@ rcl_client_is_valid(const rcl_client_t * client)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     client->impl->rmw_handle, "client's rmw handle is invalid", return false);
   return true;
+}
+
+const rmw_qos_profile_t *
+rcl_client_get_actual_qos(const rcl_client_t * client)
+{
+  if (!rcl_client_is_valid(client)) {
+    return NULL;
+  }
+  return &client->impl->actual_qos;
 }
 #ifdef __cplusplus
 }

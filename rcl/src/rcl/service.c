@@ -33,6 +33,7 @@ extern "C"
 struct rcl_service_impl_s
 {
   rcl_service_options_t options;
+  rmw_qos_profile_t actual_qos;
   rmw_service_t * rmw_handle;
 };
 
@@ -119,6 +120,14 @@ rcl_service_init(
     remapped_service_name,
     &options->qos);
   if (!service->impl->rmw_handle) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+  // get actual qos, and store it
+  rmw_ret_t rmw_ret = rmw_service_get_actual_qos(
+    service->impl->rmw_handle,
+    &service->impl->actual_qos);
+  if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
@@ -299,6 +308,15 @@ rcl_service_is_valid(const rcl_service_t * service)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service->impl->rmw_handle, "service's rmw handle is invalid", return false);
   return true;
+}
+
+const rmw_qos_profile_t *
+rcl_service_get_actual_qos(const rcl_service_t * service)
+{
+  if (!rcl_service_is_valid(service)) {
+    return NULL;
+  }
+  return &service->impl->actual_qos;
 }
 
 #ifdef __cplusplus
