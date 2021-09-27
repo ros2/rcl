@@ -367,7 +367,7 @@ add_executable(test_rmw_impl_id_check_exe
 target_link_libraries(test_rmw_impl_id_check_exe ${PROJECT_NAME})
 
 # This file is used by many tests, so build it just once
-add_library(wait_for_entity_helpers rcl/wait_for_entity_helpers.cpp)
+add_library(wait_for_entity_helpers STATIC rcl/wait_for_entity_helpers.cpp)
 target_include_directories(wait_for_entity_helpers PRIVATE
   ${osrf_testing_tools_cpp_INCLUDE_DIRS})
 target_link_libraries(wait_for_entity_helpers PUBLIC ${PROJECT_NAME})
