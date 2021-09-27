@@ -22,7 +22,7 @@ extern "C"
 #include "rcl/rcl.h"
 #include "rcl/error_handling.h"
 
-typedef struct rcl_action_goal_handle_impl_t
+typedef struct rcl_action_goal_handle_impl_s
 {
   rcl_action_goal_info_t info;
   rcl_action_goal_state_t state;

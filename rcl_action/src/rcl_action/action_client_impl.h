@@ -18,7 +18,7 @@
 #include "rcl_action/types.h"
 #include "rcl/rcl.h"
 
-typedef struct rcl_action_client_impl_t
+typedef struct rcl_action_client_impl_s
 {
   rcl_client_t goal_client;
   rcl_client_t cancel_client;
