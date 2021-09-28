@@ -35,11 +35,26 @@
 #include <type_traits>
 #include <utility>
 
+#ifndef SKIP_MIMICK
 #include "mimick/mimick.h"
+#endif
 
 #include "rcutils/error_handling.h"
 #include "rcutils/macros.h"
 
+/// Define a dummy operator `op` for a given `type`.
+/**
+ * Useful to enable patching functions that take arguments whose types
+ * do not define basic comparison operators, as required by Mimick.
+*/
+#define MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(type_, op) \
+  template<typename T> \
+  typename std::enable_if<std::is_same<T, type_>::value, bool>::type \
+  operator op(const T &, const T &) { \
+    return false; \
+  }
+
+#ifndef SKIP_MIMICK
 namespace mocking_utils
 {
 
@@ -415,18 +430,6 @@ auto make_patch(const std::string & target, std::function<SignatureT> proxy)
   return Patch<ID, SignatureT>(target, proxy);
 }
 
-/// Define a dummy operator `op` for a given `type`.
-/**
- * Useful to enable patching functions that take arguments whose types
- * do not define basic comparison operators, as required by Mimick.
-*/
-#define MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(type_, op) \
-  template<typename T> \
-  typename std::enable_if<std::is_same<T, type_>::value, bool>::type \
-  operator op(const T &, const T &) { \
-    return false; \
-  }
-
 /// Get the exact \ref mocking_utils::Patch type for a given `id` and `function`.
 /**
  * Useful to avoid ignored attribute warnings when using the \b decltype operator.
@@ -500,6 +503,6 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, ==)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, !=)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(va_list, >)
-#endif
-
+#endif  // MOCKING_UTILS_SUPPORT_VA_LIST
+#endif  // SKIP_MIMICK
 #endif  // MOCKING_UTILS__PATCH_HPP_

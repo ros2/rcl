@@ -53,6 +53,7 @@ TEST(TestGetDomainId, test_nominal) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_default_domain_id(nullptr));
 }
 
+#ifndef SKIP_MIMICK
 TEST(TestGetDomainId, test_mock_get_default_domain_id) {
   auto mock = mocking_utils::patch_and_return(
     "lib:rcl", rcutils_get_env, "argument env_name is null");
@@ -62,3 +63,4 @@ TEST(TestGetDomainId, test_mock_get_default_domain_id) {
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 }
+#endif  // SKIP_MIMICK
