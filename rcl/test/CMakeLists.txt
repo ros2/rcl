@@ -123,10 +123,10 @@ function(test_target_function)
   )
 
   rcl_add_custom_gtest(test_info_by_topic${target_suffix}
-    SRCS rcl/test_info_by_topic.cpp rcl/wait_for_entity_helpers.cpp
+    SRCS rcl/test_info_by_topic.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}
+    LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
@@ -213,27 +213,27 @@ function(test_target_function)
   )
 
   rcl_add_custom_gtest(test_publisher_wait_all_ack${target_suffix}
-    SRCS rcl/test_publisher_wait_all_ack.cpp rcl/wait_for_entity_helpers.cpp
+    SRCS rcl/test_publisher_wait_all_ack.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} mimick
+    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_gtest(test_service${target_suffix}
-    SRCS rcl/test_service.cpp rcl/wait_for_entity_helpers.cpp
+    SRCS rcl/test_service.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick
+    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_gtest(test_subscription${target_suffix}
-    SRCS rcl/test_subscription.cpp rcl/wait_for_entity_helpers.cpp
+    SRCS rcl/test_subscription.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick
+    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
   # TODO(asorbini) Enable message timestamp tests for rmw_connextdds on Windows
@@ -311,14 +311,14 @@ function(test_target_function)
   # Launch tests
 
   rcl_add_custom_executable(service_fixture${target_suffix}
-    SRCS rcl/service_fixture.cpp rcl/wait_for_entity_helpers.cpp
-    LIBRARIES ${PROJECT_NAME}
+    SRCS rcl/service_fixture.cpp
+    LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
   rcl_add_custom_executable(client_fixture${target_suffix}
-    SRCS rcl/client_fixture.cpp rcl/wait_for_entity_helpers.cpp
-    LIBRARIES ${PROJECT_NAME}
+    SRCS rcl/client_fixture.cpp
+    LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
@@ -365,6 +365,14 @@ endfunction()
 add_executable(test_rmw_impl_id_check_exe
   rcl/test_rmw_impl_id_check_exe.cpp)
 target_link_libraries(test_rmw_impl_id_check_exe ${PROJECT_NAME})
+
+# This file is used by many tests, so build it just once
+add_library(wait_for_entity_helpers STATIC rcl/wait_for_entity_helpers.cpp)
+target_include_directories(wait_for_entity_helpers PRIVATE
+  ${osrf_testing_tools_cpp_INCLUDE_DIRS})
+target_link_libraries(wait_for_entity_helpers PUBLIC ${PROJECT_NAME})
+target_link_libraries(wait_for_entity_helpers PRIVATE
+  rcutils::rcutils)
 
 call_for_each_rmw_implementation(test_target)
 
