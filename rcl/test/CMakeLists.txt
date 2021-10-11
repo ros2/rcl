@@ -443,3 +443,9 @@ rcl_add_custom_gtest(test_log_level
   LIBRARIES ${PROJECT_NAME} mimick
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
+
+rcl_add_custom_gtest(test_subscription_content_filtered_topic_options
+  SRCS rcl/test_subscription_content_filtered_topic_options.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+)
