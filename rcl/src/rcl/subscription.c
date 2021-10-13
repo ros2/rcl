@@ -420,16 +420,21 @@ rcl_subscription_set_cft_expression_parameters(
   }
 
   // copy options into subscription_options
-  ret = rmw_subscription_content_filtered_topic_options_copy(
-    options->rmw_subscription_content_filtered_topic_options,
-    allocator,
-    subscription->impl->options.rmw_subscription_options.content_filtered_topic_options);
-  if (RMW_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options =
+    options->rmw_subscription_content_filtered_topic_options;
+  size_t expression_parameters_size = 0;
+  const char ** expression_parameters = NULL;
+  if (content_filtered_topic_options->expression_parameters) {
+    expression_parameters_size = content_filtered_topic_options->expression_parameters->size;
+    expression_parameters =
+      (const char **)content_filtered_topic_options->expression_parameters->data;
   }
-
-  return RCL_RET_OK;
+  return rcl_subscription_options_set_content_filtered_topic_options(
+    content_filtered_topic_options->filter_expression,
+    expression_parameters_size,
+    expression_parameters,
+    &subscription->impl->options
+  );
 }
 
 rcl_ret_t
@@ -445,15 +450,37 @@ rcl_subscription_get_cft_expression_parameters(
     return RCL_RET_SUBSCRIPTION_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  rmw_ret_t ret = rmw_subscription_get_cft_expression_parameters(
-    subscription->impl->rmw_handle,
-    &options->allocator, options->rmw_subscription_content_filtered_topic_options);
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
-  if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  rcl_ret_t ret;
+  rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options =
+    allocator->allocate(
+      sizeof(rmw_subscription_content_filtered_topic_options_t), allocator->state);
+  if (!content_filtered_topic_options) {
+    RCL_SET_ERROR_MSG("allocating memory failed");
+    return RCL_RET_BAD_ALLOC;
   }
+  *content_filtered_topic_options = rmw_get_zero_initialized_content_filtered_topic_options();
+
+  rmw_ret_t rmw_ret = rmw_subscription_get_cft_expression_parameters(
+    subscription->impl->rmw_handle,
+    &options->allocator, content_filtered_topic_options);
+
+  if (rmw_ret != RMW_RET_OK) {
+    ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    goto failed;
+  }
+
+  options->rmw_subscription_content_filtered_topic_options = content_filtered_topic_options;
+
   return RCL_RET_OK;
+
+failed:
+  allocator->deallocate(content_filtered_topic_options, allocator->state);
+  return ret;
+
+
 }
 
 rcl_ret_t
