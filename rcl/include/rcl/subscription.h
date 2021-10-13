@@ -218,7 +218,21 @@ RCL_WARN_UNUSED
 rcl_subscription_options_t
 rcl_subscription_get_default_options(void);
 
-// TODO. comments
+/// Reclaim resources held inside rcl_subscription_options_t structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] option The structure which its resources have to be deallocated.
+ * \return `RCL_RET_OK` if the memory was successfully freed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
+ *  if its allocator is invalid and the structure contains initialized memory.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
@@ -281,7 +295,7 @@ rcl_subscription_content_filtered_topic_options_set(
   const char * expression_parameter_argv[],
   rcl_subscription_content_filtered_topic_options_t * options);
 
-/// Reclaim resources held inside rcl_subscription_options_t structure.
+/// Reclaim rcl_subscription_content_filtered_topic_options_t structure.
 /**
  * <hr>
  * Attribute          | Adherence
@@ -291,7 +305,7 @@ rcl_subscription_content_filtered_topic_options_set(
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] option The structure which its resources have to be deallocated.
+ * \param[in] options The structure which its resources have to be deallocated.
  * \return `RCL_RET_OK` if the memory was successfully freed, or
  * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
  *  if its allocator is invalid and the structure contains initialized memory.
