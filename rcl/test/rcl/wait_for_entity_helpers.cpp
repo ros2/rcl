@@ -236,3 +236,63 @@ wait_for_subscription_to_be_ready(
   }
   return false;
 }
+
+bool
+wait_for_graph_publication(
+  const rcl_node_t * node,
+  const char * topic_name,
+  size_t count_to_wait,
+  size_t max_tries,
+  int64_t period_ms)
+{
+  if (count_to_wait == 0) {
+    return true;  // Nothing to wait
+  }
+  size_t iteration = 0;
+  while (iteration < max_tries) {
+    ++iteration;
+    size_t count;
+    rcl_ret_t ret = rcl_count_publishers(node, topic_name, &count);
+    if (ret != RCL_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
+        "Error in rcl_count_publishers: %s", rcl_get_error_string().str);
+      return false;
+    }
+    if (count == count_to_wait) {
+      return true;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
+  }
+  return false;
+}
+
+bool
+wait_for_graph_subscription(
+  const rcl_node_t * node,
+  const char * topic_name,
+  size_t count_to_wait,
+  size_t max_tries,
+  int64_t period_ms)
+{
+  if (count_to_wait == 0) {
+    return true;  // Nothing to wait
+  }
+  size_t iteration = 0;
+  while (iteration < max_tries) {
+    ++iteration;
+    size_t count;
+    rcl_ret_t ret = rcl_count_subscribers(node, topic_name, &count);
+    if (ret != RCL_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
+        "Error in rcl_count_subscribers: %s", rcl_get_error_string().str);
+      return false;
+    }
+    if (count == count_to_wait) {
+      return true;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
+  }
+  return false;
+}
