@@ -54,7 +54,7 @@ typedef struct rcl_subscription_options_s
 
 typedef struct rcl_subscription_content_filtered_topic_options_s
 {
-  /// Custom allocator for the subscription, used for incidental allocations.
+  /// Custom allocator for the options, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
   /// rmw specific subscription content filtered topic options
@@ -231,14 +231,23 @@ rcl_subscription_get_default_options(void);
  * \param[in] option The structure which its resources have to be deallocated.
  * \return `RCL_RET_OK` if the memory was successfully freed, or
  * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
- *  if its allocator is invalid and the structure contains initialized memory.
+ * \returns `RCL_RET_BAD_ALLOC` if deallocating memory fails.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_options_fini(rcl_subscription_options_t * option);
 
-// TODO. comments
+/// Set the content filtered topic options for the given subscription options.
+/**
+ * \param[in] filter_expression The filter expression.
+ * \param[in] expression_parameters_argc The expression parameters argc.
+ * \param[in] expression_parameter_argv The expression parameters argv.
+ * \param[out] options The subscription options to be set.
+ * \return `RCL_RET_OK` if set options successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if arguments invalid, or
+ * \returns `RCL_RET_BAD_ALLOC` if allocating memory fails.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
@@ -372,7 +381,7 @@ rcl_subscription_set_cft_expression_parameters(
  * \param[in] subscription The subscription object to inspect.
  * \param[out] options The rcl content filtered topic options.
  *   It is up to the caller to finalize this options later on, using
- *   rcl_content_filtered_topic_options_fini().
+ *   rcl_subscription_content_filtered_topic_options_fini().
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `options` is NULL, or

@@ -855,8 +855,8 @@ TEST_F(
   CLASSNAME(
     TestSubscriptionFixture,
     RMW_IMPLEMENTATION), test_subscription_content_filtered) {
-  bool is_vendor_support_cft
-    = (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0
+  bool is_vendor_support_cft =
+  (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0
     // || std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0
     );
 
@@ -896,6 +896,8 @@ TEST_F(
     ASSERT_FALSE(rcl_subscription_is_cft_enabled(&subscription));
   }
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
+
+  // publish with a non-filtered data
   constexpr char test_string[] = "NotFilteredData";
   {
     test_msgs__msg__Strings msg;
@@ -1065,7 +1067,6 @@ TEST_F(
     }
   }
 
-
   // reset filter
   {
     rcl_subscription_content_filtered_topic_options_t options =
@@ -1095,7 +1096,7 @@ TEST_F(
     );
   }
 
-  // publish no filtered data again
+  // publish with a non-filtered data again
   {
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
@@ -1144,8 +1145,8 @@ TEST_F(
 TEST_F(
   CLASSNAME(
     TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_not_content_filtered_at_begin) {
-  bool is_vendor_support_cft
-    = (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0
+  bool is_vendor_support_cft =
+  (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0
     // || std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0
     );
 
@@ -1173,9 +1174,20 @@ TEST_F(
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   ASSERT_FALSE(rcl_subscription_is_cft_enabled(&subscription));
+
+  // failed to get filter
+  {
+    rcl_subscription_content_filtered_topic_options_t content_filtered_topic_options =
+      rcl_subscription_get_default_content_filtered_topic_options();
+
+    ret = rcl_subscription_get_cft_expression_parameters(
+      &subscription, &content_filtered_topic_options);
+    ASSERT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  }
+
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
 
-  // publish no filtered data
+  // publish with a non-filtered data
   constexpr char test_string[] = "NotFilteredData";
   {
     test_msgs__msg__Strings msg;
@@ -1205,7 +1217,7 @@ TEST_F(
   // set filter
   const char * filter_expression2 = "string_value MATCH %0";
   const char * expression_parameters2[] = {"'FilteredData'"};
-  size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char*);
+  size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
   {
     rcl_subscription_content_filtered_topic_options_t options =
       rcl_subscription_get_default_content_filtered_topic_options();

@@ -247,7 +247,7 @@ rcl_subscription_options_set_content_filtered_topic_options(
   rcl_ret_t ret;
   rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options =
     allocator->allocate(
-      sizeof(rmw_subscription_content_filtered_topic_options_t), allocator->state);
+    sizeof(rmw_subscription_content_filtered_topic_options_t), allocator->state);
   if (!content_filtered_topic_options) {
     RCL_SET_ERROR_MSG("allocating memory failed");
     return RCL_RET_BAD_ALLOC;
@@ -314,7 +314,7 @@ rcl_subscription_content_filtered_topic_options_init(
   rcl_ret_t ret;
   rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options =
     allocator->allocate(
-      sizeof(rmw_subscription_content_filtered_topic_options_t), allocator->state);
+    sizeof(rmw_subscription_content_filtered_topic_options_t), allocator->state);
   if (!content_filtered_topic_options) {
     RCL_SET_ERROR_MSG("allocating memory failed");
     return RCL_RET_BAD_ALLOC;
@@ -456,7 +456,7 @@ rcl_subscription_get_cft_expression_parameters(
   rcl_ret_t ret;
   rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options =
     allocator->allocate(
-      sizeof(rmw_subscription_content_filtered_topic_options_t), allocator->state);
+    sizeof(rmw_subscription_content_filtered_topic_options_t), allocator->state);
   if (!content_filtered_topic_options) {
     RCL_SET_ERROR_MSG("allocating memory failed");
     return RCL_RET_BAD_ALLOC;
@@ -479,8 +479,6 @@ rcl_subscription_get_cft_expression_parameters(
 failed:
   allocator->deallocate(content_filtered_topic_options, allocator->state);
   return ret;
-
-
 }
 
 rcl_ret_t
