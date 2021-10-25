@@ -330,8 +330,7 @@ rcl_subscription_content_filtered_topic_options_fini(
 /**
  * Depending on the middleware and whether cft is enabled in the subscription.
  *
- * It will return true if the middleware can support ContentFilteredTopic in the subscription
- * and the cft is enabled.
+ * \return `true` if the content filtered topic of `subscription` is enabled, otherwise `false`
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
