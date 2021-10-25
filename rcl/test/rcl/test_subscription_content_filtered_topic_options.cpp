@@ -63,8 +63,8 @@ TEST(TestSubscriptionContentFilteredTopicOptions, subscription_options_success)
         filter_expression1, 0, nullptr, &subscription_options)
     );
 
-    rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options
-      = subscription_options.rmw_subscription_options.content_filtered_topic_options;
+    rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options =
+      subscription_options.rmw_subscription_options.content_filtered_topic_options;
     ASSERT_NE(nullptr, content_filtered_topic_options);
     EXPECT_STREQ(filter_expression1, content_filtered_topic_options->filter_expression);
     EXPECT_EQ(nullptr, content_filtered_topic_options->expression_parameters);
@@ -74,7 +74,7 @@ TEST(TestSubscriptionContentFilteredTopicOptions, subscription_options_success)
   const char * expression_parameters2[] = {
     "'p1'", "'p2'", "'q1'",
   };
-  size_t expression_parameters_count2 = sizeof(expression_parameters2) / sizeof(char*);
+  size_t expression_parameters_count2 = sizeof(expression_parameters2) / sizeof(char *);
 
   {
     EXPECT_EQ(
@@ -84,12 +84,13 @@ TEST(TestSubscriptionContentFilteredTopicOptions, subscription_options_success)
         expression_parameters2, &subscription_options)
     );
 
-    rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options
-      = subscription_options.rmw_subscription_options.content_filtered_topic_options;
+    rmw_subscription_content_filtered_topic_options_t * content_filtered_topic_options =
+      subscription_options.rmw_subscription_options.content_filtered_topic_options;
     ASSERT_NE(nullptr, content_filtered_topic_options);
     EXPECT_STREQ(filter_expression2, content_filtered_topic_options->filter_expression);
     ASSERT_NE(nullptr, content_filtered_topic_options->expression_parameters);
-    ASSERT_EQ(expression_parameters_count2,
+    ASSERT_EQ(
+      expression_parameters_count2,
       content_filtered_topic_options->expression_parameters->size);
     for (size_t i = 0; i < expression_parameters_count2; ++i) {
       EXPECT_STREQ(
@@ -200,13 +201,13 @@ TEST(TestSubscriptionContentFilteredTopicOptions, content_filtered_topic_options
   const char * expression_parameters2[] = {
     "'p1'", "'p2'", "'q1'",
   };
-  size_t expression_parameters_count2 = sizeof(expression_parameters2) / sizeof(char*);
+  size_t expression_parameters_count2 = sizeof(expression_parameters2) / sizeof(char *);
 
   const char * filter_expression2_update = "(filter1=%0 AND filter1=%1) OR filter2=%2";
   const char * expression_parameters2_update[] = {
     "'p11'", "'p22'", "'q11'",
   };
-  size_t expression_parameters_count2_update = sizeof(expression_parameters2) / sizeof(char*);
+  size_t expression_parameters_count2_update = sizeof(expression_parameters2) / sizeof(char *);
 
   rcl_subscription_content_filtered_topic_options_t subscription_content_filtered_topic_options2 =
     rcl_subscription_get_default_content_filtered_topic_options();
@@ -224,7 +225,8 @@ TEST(TestSubscriptionContentFilteredTopicOptions, content_filtered_topic_options
     ASSERT_NE(nullptr, content_filtered_topic_options);
     EXPECT_STREQ(filter_expression2, content_filtered_topic_options->filter_expression);
     ASSERT_NE(nullptr, content_filtered_topic_options->expression_parameters);
-    ASSERT_EQ(expression_parameters_count2,
+    ASSERT_EQ(
+      expression_parameters_count2,
       content_filtered_topic_options->expression_parameters->size);
     for (size_t i = 0; i < expression_parameters_count2; ++i) {
       EXPECT_STREQ(
@@ -245,7 +247,8 @@ TEST(TestSubscriptionContentFilteredTopicOptions, content_filtered_topic_options
     ASSERT_NE(nullptr, content_filtered_topic_options);
     EXPECT_STREQ(filter_expression2_update, content_filtered_topic_options->filter_expression);
     ASSERT_NE(nullptr, content_filtered_topic_options->expression_parameters);
-    ASSERT_EQ(expression_parameters_count2_update,
+    ASSERT_EQ(
+      expression_parameters_count2_update,
       content_filtered_topic_options->expression_parameters->size);
     for (size_t i = 0; i < expression_parameters_count2_update; ++i) {
       EXPECT_STREQ(
