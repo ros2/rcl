@@ -72,7 +72,7 @@ TEST(TestSubscriptionContentFilteredTopicOptions, subscription_options_success)
 
   const char * filter_expression2 = "(filter1=%0 OR filter1=%1) AND filter2=%2";
   const char * expression_parameters2[] = {
-    "p1", "p2", "q1",
+    "'p1'", "'p2'", "'q1'",
   };
   size_t expression_parameters_count2 = sizeof(expression_parameters2) / sizeof(char*);
 
@@ -198,13 +198,13 @@ TEST(TestSubscriptionContentFilteredTopicOptions, content_filtered_topic_options
 
   const char * filter_expression2 = "(filter1=%0 OR filter1=%1) AND filter2=%2";
   const char * expression_parameters2[] = {
-    "p1", "p2", "q1",
+    "'p1'", "'p2'", "'q1'",
   };
   size_t expression_parameters_count2 = sizeof(expression_parameters2) / sizeof(char*);
 
   const char * filter_expression2_update = "(filter1=%0 AND filter1=%1) OR filter2=%2";
   const char * expression_parameters2_update[] = {
-    "p11", "p22", "q11",
+    "'p11'", "'p22'", "'q11'",
   };
   size_t expression_parameters_count2_update = sizeof(expression_parameters2) / sizeof(char*);
 

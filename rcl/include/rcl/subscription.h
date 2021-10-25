@@ -232,7 +232,7 @@ rcl_subscription_get_default_options(void);
  * \param[in] option The structure which its resources have to be deallocated.
  * \return `RCL_RET_OK` if the memory was successfully freed, or
  * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
- * \returns `RCL_RET_BAD_ALLOC` if deallocating memory fails.
+ * \return `RCL_RET_BAD_ALLOC` if deallocating memory fails.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -247,7 +247,7 @@ rcl_subscription_options_fini(rcl_subscription_options_t * option);
  * \param[out] options The subscription options to be set.
  * \return `RCL_RET_OK` if set options successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if arguments invalid, or
- * \returns `RCL_RET_BAD_ALLOC` if allocating memory fails.
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory fails.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
