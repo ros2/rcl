@@ -53,15 +53,14 @@ typedef struct rcl_subscription_options_s
   rmw_subscription_options_t rmw_subscription_options;
 } rcl_subscription_options_t;
 
-typedef struct rcl_subscription_content_filtered_topic_options_s
+typedef struct rcl_subscription_content_filter_options_s
 {
   /// Custom allocator for the options, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
-  /// rmw specific subscription content filtered topic options
-  rmw_subscription_content_filtered_topic_options_t *
-    rmw_subscription_content_filtered_topic_options;
-} rcl_subscription_content_filtered_topic_options_t;
+  /// rmw specific subscription content filter options
+  rmw_subscription_content_filter_options_t * rmw_subscription_content_filter_options;
+} rcl_subscription_content_filter_options_t;
 
 /// Return a rcl_subscription_t struct with members set to `NULL`.
 /**
@@ -239,7 +238,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_options_fini(rcl_subscription_options_t * option);
 
-/// Set the content filtered topic options for the given subscription options.
+/// Set the content filter options for the given subscription options.
 /**
  * \param[in] filter_expression The filter expression.
  * \param[in] expression_parameters_argc The expression parameters argc.
@@ -252,25 +251,25 @@ rcl_subscription_options_fini(rcl_subscription_options_t * option);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_subscription_options_set_content_filtered_topic_options(
+rcl_subscription_options_set_content_filter_options(
   const char * filter_expression,
   size_t expression_parameters_argc,
   const char * expression_parameter_argv[],
   rcl_subscription_options_t * options);
 
-/// Return the default subscription content filtered topic options.
+/// Return the default subscription content filter options.
 /**
  * The defaults are:
  *
  * - allocator = rcl_get_default_allocator()
- * - rmw_subscription_content_filtered_topic_options = NULL;
+ * - rmw_subscription_content_filter_options = NULL;
  *
  * \return A structure containing the default options for a subscription.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_subscription_content_filtered_topic_options_t
-rcl_subscription_get_default_content_filtered_topic_options(void);
+rcl_subscription_content_filter_options_t
+rcl_subscription_get_default_content_filter_options(void);
 
 /// Allocate.
 /**
@@ -290,22 +289,22 @@ rcl_subscription_get_default_content_filtered_topic_options(void);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_subscription_content_filtered_topic_options_init(
+rcl_subscription_content_filter_options_init(
   const char * filter_expression,
   size_t expression_parameters_argc,
   const char * expression_parameter_argv[],
-  rcl_subscription_content_filtered_topic_options_t * options);
+  rcl_subscription_content_filter_options_t * options);
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_subscription_content_filtered_topic_options_set(
+rcl_subscription_content_filter_options_set(
   const char * filter_expression,
   size_t expression_parameters_argc,
   const char * expression_parameter_argv[],
-  rcl_subscription_content_filtered_topic_options_t * options);
+  rcl_subscription_content_filter_options_t * options);
 
-/// Reclaim rcl_subscription_content_filtered_topic_options_t structure.
+/// Reclaim rcl_subscription_content_filter_options_t structure.
 /**
  * <hr>
  * Attribute          | Adherence
@@ -323,8 +322,8 @@ rcl_subscription_content_filtered_topic_options_set(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_subscription_content_filtered_topic_options_fini(
-  rcl_subscription_content_filtered_topic_options_t * options);
+rcl_subscription_content_filter_options_fini(
+  rcl_subscription_content_filter_options_t * options);
 
 /// Check if the content filtered topic feature is enabled in the subscription.
 /**
@@ -350,20 +349,20 @@ rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription);
  * Uses Atomics       | Maybe [1]
  * Lock-Free          | Maybe [1]
  *
- * \param[in] subscription The subscription to set content filtered topic options.
- * \param[in] options The rcl content filtered topic options.
+ * \param[in] subscription The subscription to set content filter options.
+ * \param[in] options The rcl content filter options.
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
- * \return `RCL_RET_INVALID_ARGUMENT` if `rcl_content_filtered_topic_options` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `rcl_content_filter_options` is NULL, or
  * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
  * \return `RCL_RET_ERROR` if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_subscription_set_cft_expression_parameters(
+rcl_subscription_set_content_filter(
   const rcl_subscription_t * subscription,
-  const rcl_subscription_content_filtered_topic_options_t * options
+  const rcl_subscription_content_filter_options_t * options
 );
 
 /// Retrieve the filter expression of the subscription.
@@ -379,9 +378,9 @@ rcl_subscription_set_cft_expression_parameters(
  * Lock-Free          | Maybe [1]
  *
  * \param[in] subscription The subscription object to inspect.
- * \param[out] options The rcl content filtered topic options.
+ * \param[out] options The rcl content filter options.
  *   It is up to the caller to finalize this options later on, using
- *   rcl_subscription_content_filtered_topic_options_fini().
+ *   rcl_subscription_content_filter_options_fini().
  * \return `RCL_RET_OK` if the query was successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `options` is NULL, or
@@ -392,9 +391,9 @@ rcl_subscription_set_cft_expression_parameters(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_subscription_get_cft_expression_parameters(
+rcl_subscription_get_content_filter(
   const rcl_subscription_t * subscription,
-  rcl_subscription_content_filtered_topic_options_t * options
+  rcl_subscription_content_filter_options_t * options
 );
 
 /// Take a ROS message from a topic using a rcl subscription.

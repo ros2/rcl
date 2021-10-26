@@ -917,7 +917,7 @@ TEST_F(
 
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_subscription_options_set_content_filtered_topic_options(
+    rcl_subscription_options_set_content_filter_options(
       filter_expression1, 0, nullptr, &subscription_options)
   );
 
@@ -995,17 +995,17 @@ TEST_F(
   const char * expression_parameters2[] = {"'FilteredOtherData'"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
   {
-    rcl_subscription_content_filtered_topic_options_t options =
-      rcl_subscription_get_default_content_filtered_topic_options();
+    rcl_subscription_content_filter_options_t options =
+      rcl_subscription_get_default_content_filter_options();
 
     EXPECT_EQ(
       RCL_RET_OK,
-      rcl_subscription_content_filtered_topic_options_init(
+      rcl_subscription_content_filter_options_init(
         filter_expression2, expression_parameters2_count, expression_parameters2,
         &options)
     );
 
-    ret = rcl_subscription_set_cft_expression_parameters(
+    ret = rcl_subscription_set_content_filter(
       &subscription, &options);
     if (is_vendor_support_cft) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -1015,7 +1015,7 @@ TEST_F(
 
     EXPECT_EQ(
       RCL_RET_OK,
-      rcl_subscription_content_filtered_topic_options_fini(
+      rcl_subscription_content_filter_options_fini(
         &options)
     );
   }
@@ -1076,16 +1076,16 @@ TEST_F(
 
   // get filter
   {
-    rcl_subscription_content_filtered_topic_options_t content_filtered_topic_options =
-      rcl_subscription_get_default_content_filtered_topic_options();
+    rcl_subscription_content_filter_options_t content_filter_options =
+      rcl_subscription_get_default_content_filter_options();
 
-    ret = rcl_subscription_get_cft_expression_parameters(
-      &subscription, &content_filtered_topic_options);
+    ret = rcl_subscription_get_content_filter(
+      &subscription, &content_filter_options);
     if (is_vendor_support_cft) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-      rmw_subscription_content_filtered_topic_options_t * options =
-        content_filtered_topic_options.rmw_subscription_content_filtered_topic_options;
+      rmw_subscription_content_filter_options_t * options =
+        content_filter_options.rmw_subscription_content_filter_options;
       ASSERT_NE(nullptr, options);
       ASSERT_STREQ(filter_expression2, options->filter_expression);
       ASSERT_NE(nullptr, options->expression_parameters);
@@ -1097,8 +1097,8 @@ TEST_F(
       }
       EXPECT_EQ(
         RCL_RET_OK,
-        rcl_subscription_content_filtered_topic_options_fini(
-          &content_filtered_topic_options)
+        rcl_subscription_content_filter_options_fini(
+          &content_filter_options)
       );
     } else {
       ASSERT_EQ(RCL_RET_UNSUPPORTED, ret);
@@ -1107,17 +1107,17 @@ TEST_F(
 
   // reset filter
   {
-    rcl_subscription_content_filtered_topic_options_t options =
-      rcl_subscription_get_default_content_filtered_topic_options();
+    rcl_subscription_content_filter_options_t options =
+      rcl_subscription_get_default_content_filter_options();
 
     EXPECT_EQ(
       RCL_RET_OK,
-      rcl_subscription_content_filtered_topic_options_init(
+      rcl_subscription_content_filter_options_init(
         "", 0, nullptr,
         &options)
     );
 
-    ret = rcl_subscription_set_cft_expression_parameters(
+    ret = rcl_subscription_set_content_filter(
       &subscription, &options);
     if (is_vendor_support_cft) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -1129,7 +1129,7 @@ TEST_F(
 
     EXPECT_EQ(
       RCL_RET_OK,
-      rcl_subscription_content_filtered_topic_options_fini(
+      rcl_subscription_content_filter_options_fini(
         &options)
     );
   }
@@ -1215,11 +1215,11 @@ TEST_F(
 
   // failed to get filter
   {
-    rcl_subscription_content_filtered_topic_options_t content_filtered_topic_options =
-      rcl_subscription_get_default_content_filtered_topic_options();
+    rcl_subscription_content_filter_options_t content_filter_options =
+      rcl_subscription_get_default_content_filter_options();
 
-    ret = rcl_subscription_get_cft_expression_parameters(
-      &subscription, &content_filtered_topic_options);
+    ret = rcl_subscription_get_content_filter(
+      &subscription, &content_filter_options);
     if (is_vendor_support_cft) {
       ASSERT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
     } else {
@@ -1261,17 +1261,17 @@ TEST_F(
   const char * expression_parameters2[] = {"'FilteredData'"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
   {
-    rcl_subscription_content_filtered_topic_options_t options =
-      rcl_subscription_get_default_content_filtered_topic_options();
+    rcl_subscription_content_filter_options_t options =
+      rcl_subscription_get_default_content_filter_options();
 
     EXPECT_EQ(
       RCL_RET_OK,
-      rcl_subscription_content_filtered_topic_options_init(
+      rcl_subscription_content_filter_options_init(
         filter_expression2, expression_parameters2_count, expression_parameters2,
         &options)
     );
 
-    ret = rcl_subscription_set_cft_expression_parameters(
+    ret = rcl_subscription_set_content_filter(
       &subscription, &options);
     if (is_vendor_support_cft) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -1281,7 +1281,7 @@ TEST_F(
 
     EXPECT_EQ(
       RCL_RET_OK,
-      rcl_subscription_content_filtered_topic_options_fini(
+      rcl_subscription_content_filter_options_fini(
         &options)
     );
   }
@@ -1599,33 +1599,33 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   rcl_reset_error();
 }
 
-/* Test for all failure modes in rcl_subscription_set_cft_expression_parameters function.
+/* Test for all failure modes in rcl_subscription_set_content_filter function.
  */
 TEST_F(
   CLASSNAME(
     TestSubscriptionFixtureInit,
-    RMW_IMPLEMENTATION), test_bad_rcl_subscription_set_cft_expression_parameters) {
+    RMW_IMPLEMENTATION), test_bad_rcl_subscription_set_content_filter) {
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
-    rcl_subscription_set_cft_expression_parameters(nullptr, nullptr));
+    rcl_subscription_set_content_filter(nullptr, nullptr));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
-    rcl_subscription_set_cft_expression_parameters(&subscription_zero_init, nullptr));
+    rcl_subscription_set_content_filter(&subscription_zero_init, nullptr));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_subscription_set_cft_expression_parameters(&subscription, nullptr));
+    rcl_subscription_set_content_filter(&subscription, nullptr));
   rcl_reset_error();
 
   // an options used later
-  rcl_subscription_content_filtered_topic_options_t options =
-    rcl_subscription_get_default_content_filtered_topic_options();
+  rcl_subscription_content_filter_options_t options =
+    rcl_subscription_get_default_content_filter_options();
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_subscription_content_filtered_topic_options_init(
+    rcl_subscription_content_filter_options_init(
       "data MATCH '0'",
       0,
       nullptr,
@@ -1636,71 +1636,71 @@ TEST_F(
   {
     EXPECT_EQ(
       RCL_RET_OK,
-      rcl_subscription_content_filtered_topic_options_fini(&options)
+      rcl_subscription_content_filter_options_fini(&options)
     );
   });
 
   {
     auto mock = mocking_utils::patch_and_return(
-      "lib:rcl", rmw_subscription_set_cft_expression_parameters, RMW_RET_UNSUPPORTED);
+      "lib:rcl", rmw_subscription_set_content_filter, RMW_RET_UNSUPPORTED);
     EXPECT_EQ(
       RMW_RET_UNSUPPORTED,
-      rcl_subscription_set_cft_expression_parameters(
+      rcl_subscription_set_content_filter(
         &subscription, &options));
     rcl_reset_error();
   }
 
   {
     auto mock = mocking_utils::patch_and_return(
-      "lib:rcl", rmw_subscription_set_cft_expression_parameters, RMW_RET_ERROR);
+      "lib:rcl", rmw_subscription_set_content_filter, RMW_RET_ERROR);
     EXPECT_EQ(
       RMW_RET_ERROR,
-      rcl_subscription_set_cft_expression_parameters(
+      rcl_subscription_set_content_filter(
         &subscription, &options));
     rcl_reset_error();
   }
 }
 
-/* Test for all failure modes in rcl_subscription_get_cft_expression_parameters function.
+/* Test for all failure modes in rcl_subscription_get_content_filter function.
  */
 TEST_F(
   CLASSNAME(
     TestSubscriptionFixtureInit,
-    RMW_IMPLEMENTATION), test_bad_rcl_subscription_get_cft_expression_parameters) {
+    RMW_IMPLEMENTATION), test_bad_rcl_subscription_get_content_filter) {
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
-    rcl_subscription_get_cft_expression_parameters(nullptr, nullptr));
+    rcl_subscription_get_content_filter(nullptr, nullptr));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
-    rcl_subscription_get_cft_expression_parameters(&subscription_zero_init, nullptr));
+    rcl_subscription_get_content_filter(&subscription_zero_init, nullptr));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_subscription_get_cft_expression_parameters(&subscription, nullptr));
+    rcl_subscription_get_content_filter(&subscription, nullptr));
   rcl_reset_error();
 
-  rcl_subscription_content_filtered_topic_options_t options =
-    rcl_subscription_get_default_content_filtered_topic_options();
+  rcl_subscription_content_filter_options_t options =
+    rcl_subscription_get_default_content_filter_options();
 
   {
     auto mock = mocking_utils::patch_and_return(
-      "lib:rcl", rmw_subscription_get_cft_expression_parameters, RMW_RET_UNSUPPORTED);
+      "lib:rcl", rmw_subscription_get_content_filter, RMW_RET_UNSUPPORTED);
     EXPECT_EQ(
       RMW_RET_UNSUPPORTED,
-      rcl_subscription_get_cft_expression_parameters(
+      rcl_subscription_get_content_filter(
         &subscription, &options));
     rcl_reset_error();
   }
 
   {
     auto mock = mocking_utils::patch_and_return(
-      "lib:rcl", rmw_subscription_get_cft_expression_parameters, RMW_RET_ERROR);
+      "lib:rcl", rmw_subscription_get_content_filter, RMW_RET_ERROR);
     EXPECT_EQ(
       RMW_RET_ERROR,
-      rcl_subscription_get_cft_expression_parameters(
+      rcl_subscription_get_content_filter(
         &subscription, &options));
     rcl_reset_error();
   }
