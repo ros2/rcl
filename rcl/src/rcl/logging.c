@@ -74,8 +74,10 @@ rcl_logging_configure_with_output_handler(
   g_rcl_logging_num_out_handlers = 0;
 
   if (log_levels) {
-    default_level = (int)log_levels->default_logger_level;
-    rcutils_logging_set_default_logger_level(default_level);
+    if (log_levels->default_logger_level != RCUTILS_LOG_SEVERITY_UNSET) {
+      default_level = (int)log_levels->default_logger_level;
+      rcutils_logging_set_default_logger_level(default_level);
+    }
 
     for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
       rcutils_ret_t rcutils_status = rcutils_logging_set_logger_level(
