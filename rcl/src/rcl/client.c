@@ -36,7 +36,8 @@ extern "C"
 struct rcl_client_impl_s
 {
   rcl_client_options_t options;
-  rmw_qos_profile_t actual_qos;
+  rmw_qos_profile_t actual_request_publisher_qos;
+  rmw_qos_profile_t actual_response_subscription_qos;
   rmw_client_t * rmw_handle;
   atomic_int_least64_t sequence_number;
 };
@@ -100,20 +101,6 @@ rcl_client_init(
     sizeof(rcl_client_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     client->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
-
-  // Check the qos profile. If some fields are set as system default,
-  // it can happen that the DDS chooses different QoS policies for entities
-  // belonging to the client. The QoS of the client should match the QoS of
-  // all entities belonging to it.
-  const rmw_qos_profile_t * qos = &options->qos;
-  if (qos->history == RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT ||
-    qos->reliability == RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT ||
-    qos->durability == RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT ||
-    qos->depth == RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT)
-  {
-    RCL_SET_ERROR_MSG("system default qos not supported on clients");
-    goto fail;
-  }
   // Fill out implementation struct.
   // rmw handle (create rmw client)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
@@ -126,20 +113,33 @@ rcl_client_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
-  // get actual qos, and store it
-  rmw_ret_t rmw_ret = rmw_client_get_actual_qos(
-    client->impl->rmw_handle,
-    &client->impl->actual_qos);
 
-  // ROS specific namespacing conventions avoidance
-  // is not retrieved by get_actual_qos
-  client->impl->actual_qos.avoid_ros_namespace_conventions =
-    options->qos.avoid_ros_namespace_conventions;
+  // get actual qos, and store it
+  rmw_ret_t rmw_ret = rmw_client_request_publisher_get_actual_qos(
+    client->impl->rmw_handle,
+    &client->impl->actual_request_publisher_qos);
 
   if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
+
+  rmw_ret = rmw_client_response_subscription_get_actual_qos(
+    client->impl->rmw_handle,
+    &client->impl->actual_response_subscription_qos);
+
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+
+  // ROS specific namespacing conventions avoidance
+  // is not retrieved by get_actual_qos
+  client->impl->actual_request_publisher_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
+  client->impl->actual_response_subscription_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
+
   // options
   client->impl->options = *options;
   atomic_init(&client->impl->sequence_number, 0);
@@ -311,12 +311,21 @@ rcl_client_is_valid(const rcl_client_t * client)
 }
 
 const rmw_qos_profile_t *
-rcl_client_get_actual_qos(const rcl_client_t * client)
+rcl_client_request_publisher_get_actual_qos(const rcl_client_t * client)
 {
   if (!rcl_client_is_valid(client)) {
     return NULL;
   }
-  return &client->impl->actual_qos;
+  return &client->impl->actual_request_publisher_qos;
+}
+
+const rmw_qos_profile_t *
+rcl_client_response_subscription_get_actual_qos(const rcl_client_t * client)
+{
+  if (!rcl_client_is_valid(client)) {
+    return NULL;
+  }
+  return &client->impl->actual_response_subscription_qos;
 }
 #ifdef __cplusplus
 }

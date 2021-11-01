@@ -33,7 +33,8 @@ extern "C"
 struct rcl_service_impl_s
 {
   rcl_service_options_t options;
-  rmw_qos_profile_t actual_qos;
+  rmw_qos_profile_t actual_request_subscription_qos;
+  rmw_qos_profile_t actual_response_publisher_qos;
   rmw_service_t * rmw_handle;
 };
 
@@ -111,19 +112,6 @@ rcl_service_init(
       "Warning: Setting QoS durability to 'transient local' for service servers "
       "can cause them to receive requests from clients that have since terminated.");
   }
-  // Check the qos profile. If some fields are set as system default,
-  // it can happen that the DDS chooses different QoS policies for entities
-  // belonging to the service. The QoS of the service should match the QoS of
-  // all entities belonging to it.
-  const rmw_qos_profile_t * qos = &options->qos;
-  if (qos->history == RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT ||
-    qos->reliability == RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT ||
-    qos->durability == RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT ||
-    qos->depth == RMW_QOS_POLICY_DEPTH_SYSTEM_DEFAULT)
-  {
-    RCL_SET_ERROR_MSG("system default qos not supported on clients");
-    goto fail;
-  }
   // Fill out implementation struct.
   // rmw handle (create rmw service)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
@@ -137,16 +125,28 @@ rcl_service_init(
     goto fail;
   }
   // get actual qos, and store it
-  rmw_ret_t rmw_ret = rmw_service_get_actual_qos(
+  rmw_ret_t rmw_ret = rmw_service_request_subscription_get_actual_qos(
     service->impl->rmw_handle,
-    &service->impl->actual_qos);
+    &service->impl->actual_request_subscription_qos);
+
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+
+  rmw_ret = rmw_service_response_publisher_get_actual_qos(
+    service->impl->rmw_handle,
+    &service->impl->actual_response_publisher_qos);
+
   if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
 
   // ROS specific namespacing conventions is not retrieved by get_actual_qos
-  service->impl->actual_qos.avoid_ros_namespace_conventions =
+  service->impl->actual_request_subscription_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
+  service->impl->actual_response_publisher_qos.avoid_ros_namespace_conventions =
     options->qos.avoid_ros_namespace_conventions;
 
   // options
@@ -329,12 +329,21 @@ rcl_service_is_valid(const rcl_service_t * service)
 }
 
 const rmw_qos_profile_t *
-rcl_service_get_actual_qos(const rcl_service_t * service)
+rcl_service_request_subscription_get_actual_qos(const rcl_service_t * service)
 {
   if (!rcl_service_is_valid(service)) {
     return NULL;
   }
-  return &service->impl->actual_qos;
+  return &service->impl->actual_request_subscription_qos;
+}
+
+const rmw_qos_profile_t *
+rcl_service_response_publisher_get_actual_qos(const rcl_service_t * service)
+{
+  if (!rcl_service_is_valid(service)) {
+    return NULL;
+  }
+  return &service->impl->actual_response_publisher_qos;
 }
 
 #ifdef __cplusplus
