@@ -33,6 +33,8 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
+extern const char * const RCL_DISABLE_LOAN_MSG_ENV_VAR;
+
 typedef struct rcl_node_impl_s rcl_node_impl_t;
 
 /// Structure which encapsulates a ROS Node.

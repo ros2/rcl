@@ -52,6 +52,8 @@ extern "C"
 
 #include "./context_impl.h"
 
+const char * const RCL_DISABLE_LOAN_MSG_ENV_VAR = "ROS_DISABLE_LOAN_MSG";
+
 struct rcl_node_impl_s
 {
   rcl_node_options_t options;
