@@ -275,9 +275,9 @@ rcl_clock_call_callbacks(
     rcl_jump_callback_info_t * info = &(clock->jump_callbacks[cb_idx]);
     if (
       (is_clock_change && info->threshold.on_clock_change) ||
-      (time_jump->delta.nanoseconds < 0 &&
+      (info->threshold.min_backward.nanoseconds < 0 &&
       time_jump->delta.nanoseconds <= info->threshold.min_backward.nanoseconds) ||
-      (time_jump->delta.nanoseconds > 0 &&
+      (info->threshold.min_forward.nanoseconds > 0 &&
       time_jump->delta.nanoseconds >= info->threshold.min_forward.nanoseconds))
     {
       info->callback(time_jump, before_jump, info->user_data);

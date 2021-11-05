@@ -549,6 +549,12 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_forward_jump_callbacks) {
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
 
+  // Jump backwards, no jump callbacks
+  ret = rcl_set_ros_time_override(&ros_clock, set_point1);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
   // disable no callbacks
   ret = rcl_disable_ros_time_override(&ros_clock);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -602,6 +608,12 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_backward_jump_callbacks) 
 
   // Setting same value as previous time, not a jump
   ret = rcl_set_ros_time_override(&ros_clock, set_point1);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_FALSE(pre_callback_called);
+  EXPECT_FALSE(post_callback_called);
+
+  // Jump forwards, no jump callbacks
+  ret = rcl_set_ros_time_override(&ros_clock, set_point2);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_FALSE(pre_callback_called);
   EXPECT_FALSE(post_callback_called);
