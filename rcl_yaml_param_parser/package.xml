@@ -4,11 +4,14 @@
   <name>rcl_yaml_param_parser</name>
   <version>4.0.0</version>
   <description>Parse a YAML parameter file and populate the C data structure.</description>
+
   <maintainer email="ivanpauno@ekumenlabs.com">Ivan Paunovic</maintainer>
-  <maintainer email="jacob@openrobotics.org">Jacob Perron</maintainer>
   <maintainer email="william@openrobotics.org">William Woodall</maintainer>
+
   <license>Apache License 2.0</license>
+
   <author email="anup.pemmaiah@apex.ai">Anup Pemmaiah</author>
+  <author email="jacob@openrobotics.org">Jacob Perron</author>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
