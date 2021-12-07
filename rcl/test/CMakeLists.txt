@@ -154,19 +154,24 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  # CentOS does not support mimick's inject_on_return functionality, which
-  # causes test_node to segfault when it runs.  Since CentOS is not a Tier 1
+  # RHEL does not support mimick's inject_on_return functionality, which
+  # causes test_node to segfault when it runs.  Since RHEL is not a Tier 1
   # platform, just disable the test since we are covering it elsewhere.
-  if(NOT "${DISTRIBUTION}" STREQUAL "\"centos\"")
-    rcl_add_custom_gtest(test_node${target_suffix}
-      SRCS rcl/test_node.cpp
-      ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
-      APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-      LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
-      AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
-      TIMEOUT 240  # Large timeout to wait for fault injection tests
-    )
+  if(
+    "${DISTRIBUTION}" STREQUAL "\"centos\"" OR
+    "${DISTRIBUTION}" STREQUAL "\"almalinux\"")
+    set(gtest_filter_env_var "GTEST_FILTER=-TestNodeFixture__*.test_rcl_node_init_with_internal_errors")
+  else()
+    set(gtest_filter_env_var "")
   endif()
+  rcl_add_custom_gtest(test_node${target_suffix}
+    SRCS rcl/test_node.cpp
+    ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var} ${gtest_filter_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
+    TIMEOUT 240  # Large timeout to wait for fault injection tests
+  )
 
   rcl_add_custom_gtest(test_arguments${target_suffix}
     SRCS rcl/test_arguments.cpp
