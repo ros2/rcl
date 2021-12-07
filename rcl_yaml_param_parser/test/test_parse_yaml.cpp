@@ -759,6 +759,8 @@ TEST(test_file_parser, correct_syntax_descriptors) {
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->string_value);
     EXPECT_STREQ("hello", param_value->string_value);
+    ASSERT_TRUE(NULL != param_descriptor->dynamic_typing);
+    EXPECT_TRUE(*param_descriptor->dynamic_typing);
 
     rcl_yaml_node_struct_print(params);
   }

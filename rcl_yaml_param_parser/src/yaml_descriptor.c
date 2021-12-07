@@ -32,6 +32,10 @@ void rcl_yaml_descriptor_fini(
     allocator.deallocate(param_descriptor->read_only, allocator.state);
     param_descriptor->read_only = NULL;
   }
+  if (NULL != param_descriptor->dynamic_typing) {
+    allocator.deallocate(param_descriptor->dynamic_typing, allocator.state);
+    param_descriptor->dynamic_typing = NULL;
+  }
   if (NULL != param_descriptor->type) {
     allocator.deallocate(param_descriptor->type, allocator.state);
     param_descriptor->type = NULL;
@@ -160,6 +164,14 @@ bool rcl_yaml_descriptor_copy(
       return false;
     }
     *(out_param_descriptor->read_only) = *(param_descriptor->read_only);
+  }
+  if (NULL != param_descriptor->dynamic_typing) {
+    out_param_descriptor->dynamic_typing = allocator.allocate(sizeof(bool), allocator.state);
+    if (NULL == out_param_descriptor->dynamic_typing) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
+      return false;
+    }
+    *(out_param_descriptor->dynamic_typing) = *(param_descriptor->dynamic_typing);
   }
   return true;
 }

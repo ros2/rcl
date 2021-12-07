@@ -30,3 +30,4 @@ node_ns:
           read_only: false
         baz:
           description: "another namespaced parameter"
+          dynamic_typing: true

@@ -528,6 +528,7 @@ rcutils_ret_t parse_descriptor(
     return RCUTILS_RET_ERROR;
   }
 
+  char * dt = "dynamic_typing";
   if (0 == strncmp(
       "additional_constraints", ns_tracker->descriptor_key_ns,
       strlen("additional_constraints")))
@@ -601,6 +602,15 @@ rcutils_ret_t parse_descriptor(
       RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Value type 'integer' or 'double' expected at line %d for "
         PARAMS_DESCRIPTORS_KEY " key: step",
+        line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  } else if (0 == strncmp(dt, ns_tracker->descriptor_key_ns, strlen(dt))) {
+    if (val_type == DATA_TYPE_BOOL) {
+      param_descriptor->dynamic_typing = (bool *)ret_val;
+    } else {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Value type 'bool' expected at line %d for " PARAMS_DESCRIPTORS_KEY " key: dynamic_typing",
         line_num);
       return RCUTILS_RET_ERROR;
     }

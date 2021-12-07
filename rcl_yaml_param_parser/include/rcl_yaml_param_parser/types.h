@@ -100,6 +100,7 @@ typedef struct rcl_node_params_s
 typedef struct rcl_param_descriptor_s
 {
   bool * read_only;
+  bool * dynamic_typing;
   uint8_t * type;
   char * description;
   char * additional_constraints;

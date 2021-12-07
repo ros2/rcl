@@ -592,6 +592,10 @@ void rcl_yaml_node_struct_print(
             printf("\n%*sread_only: ", param_col + 2, "");
             printf("%s", *(descriptor->read_only) ? "true" : "false");
           }
+          if (NULL != descriptor->dynamic_typing) {
+            printf("\n%*sdynamic_typing: ", param_col + 2, "");
+            printf("%s", *(descriptor->dynamic_typing) ? "true" : "false");
+          }
           printf("\n");
         }
       }

@@ -185,6 +185,26 @@ TEST(TestParse, parse_descriptor) {
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only = nullptr;
 
+  // dynamic_typing
+  ns_tracker.descriptor_key_ns = rcutils_strdup("dynamic_typing", allocator);
+  ASSERT_STREQ("dynamic_typing", ns_tracker.descriptor_key_ns);
+  event.data.scalar.value = bool_value;
+  event.data.scalar.length = bool_value_length;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(
+    nullptr,
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].dynamic_typing);
+  EXPECT_TRUE(
+    *params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].dynamic_typing);
+  allocator.deallocate(
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].dynamic_typing,
+    allocator.state);
+  allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
+  params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].dynamic_typing = nullptr;
+
   // min_value (int)
   ns_tracker.descriptor_key_ns = rcutils_strdup("min_value", allocator);
   ASSERT_STREQ("min_value", ns_tracker.descriptor_key_ns);
@@ -526,6 +546,23 @@ TEST(TestParse, parse_descriptor_bad_types) {
     allocator.state);
   allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
   params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].read_only = nullptr;
+  rcutils_reset_error();
+
+  // dynamic_typing
+  ns_tracker.descriptor_key_ns = rcutils_strdup("dynamic_typing", allocator);
+  ASSERT_STREQ("dynamic_typing", ns_tracker.descriptor_key_ns);
+  // dynamic_typing: catch invalid value type
+  event.data.scalar.value = double_value;
+  event.data.scalar.length = double_value_length;
+  EXPECT_NE(
+    RCUTILS_RET_OK,
+    parse_descriptor(&ns_tracker, event, is_seq, node_idx, parameter_idx, params_st)) <<
+    rcutils_get_error_string().str;
+  allocator.deallocate(
+    params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].dynamic_typing,
+    allocator.state);
+  allocator.deallocate(ns_tracker.descriptor_key_ns, allocator.state);
+  params_st->descriptors[node_idx].parameter_descriptors[parameter_idx].dynamic_typing = nullptr;
   rcutils_reset_error();
 
   // min_value
