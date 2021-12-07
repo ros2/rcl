@@ -23,12 +23,12 @@ TEST(TestNodeParamsDescriptors, init_fini) {
   EXPECT_EQ(RCUTILS_RET_OK, node_params_descriptors_init(&node_descriptors, allocator));
   EXPECT_NE(nullptr, node_descriptors.parameter_names);
   EXPECT_NE(nullptr, node_descriptors.parameter_descriptors);
-  EXPECT_EQ(0u, node_descriptors.num_params);
+  EXPECT_EQ(0u, node_descriptors.num_descriptors);
   EXPECT_EQ(128u, node_descriptors.capacity_descriptors);
   rcl_yaml_node_params_descriptors_fini(&node_descriptors, allocator);
   EXPECT_EQ(nullptr, node_descriptors.parameter_names);
   EXPECT_EQ(nullptr, node_descriptors.parameter_descriptors);
-  EXPECT_EQ(0u, node_descriptors.num_params);
+  EXPECT_EQ(0u, node_descriptors.num_descriptors);
   EXPECT_EQ(0u, node_descriptors.capacity_descriptors);
 
   // This function doesn't return anything, so just check it doesn't segfault on the second try
@@ -44,12 +44,12 @@ TEST(TestNodeParamsDescriptors, init_with_capacity_fini) {
       &node_descriptors, 1024, allocator));
   EXPECT_NE(nullptr, node_descriptors.parameter_names);
   EXPECT_NE(nullptr, node_descriptors.parameter_descriptors);
-  EXPECT_EQ(0u, node_descriptors.num_params);
+  EXPECT_EQ(0u, node_descriptors.num_descriptors);
   EXPECT_EQ(1024u, node_descriptors.capacity_descriptors);
   rcl_yaml_node_params_descriptors_fini(&node_descriptors, allocator);
   EXPECT_EQ(nullptr, node_descriptors.parameter_names);
   EXPECT_EQ(nullptr, node_descriptors.parameter_descriptors);
-  EXPECT_EQ(0u, node_descriptors.num_params);
+  EXPECT_EQ(0u, node_descriptors.num_descriptors);
   EXPECT_EQ(0u, node_descriptors.capacity_descriptors);
 
   // This function doesn't return anything, so just check it doesn't segfault on the second try
@@ -65,17 +65,17 @@ TEST(TestNodeParamsDescriptors, reallocate_with_capacity_fini) {
       &node_descriptors, 1024, allocator));
   EXPECT_NE(nullptr, node_descriptors.parameter_names);
   EXPECT_NE(nullptr, node_descriptors.parameter_descriptors);
-  EXPECT_EQ(0u, node_descriptors.num_params);
+  EXPECT_EQ(0u, node_descriptors.num_descriptors);
   EXPECT_EQ(1024u, node_descriptors.capacity_descriptors);
   EXPECT_EQ(RCUTILS_RET_OK, node_params_descriptors_reallocate(&node_descriptors, 2048, allocator));
   EXPECT_NE(nullptr, node_descriptors.parameter_names);
   EXPECT_NE(nullptr, node_descriptors.parameter_descriptors);
-  EXPECT_EQ(0u, node_descriptors.num_params);
+  EXPECT_EQ(0u, node_descriptors.num_descriptors);
   EXPECT_EQ(2048u, node_descriptors.capacity_descriptors);
   rcl_yaml_node_params_descriptors_fini(&node_descriptors, allocator);
   EXPECT_EQ(nullptr, node_descriptors.parameter_names);
   EXPECT_EQ(nullptr, node_descriptors.parameter_descriptors);
-  EXPECT_EQ(0u, node_descriptors.num_params);
+  EXPECT_EQ(0u, node_descriptors.num_descriptors);
   EXPECT_EQ(0u, node_descriptors.capacity_descriptors);
 
   // This function doesn't return anything, so just check it doesn't segfault on the second try

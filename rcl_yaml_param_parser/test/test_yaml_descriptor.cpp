@@ -84,9 +84,6 @@ TEST(TestYamlDescriptor, copy_string_fields) {
   rcl_param_descriptor_t dest_descriptor{};
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
-  char * tmp_name = rcutils_strdup("param_name", allocator);
-  ASSERT_STREQ("param_name", tmp_name);
-
   char * tmp_description = rcutils_strdup("param description", allocator);
   ASSERT_STREQ("param description", tmp_description);
 
@@ -95,24 +92,20 @@ TEST(TestYamlDescriptor, copy_string_fields) {
 
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    allocator.deallocate(tmp_name, allocator.state);
     allocator.deallocate(tmp_description, allocator.state);
     allocator.deallocate(tmp_additional_constraints, allocator.state);
   });
 
-  src_descriptor.name = tmp_name;
   src_descriptor.description = tmp_description;
   src_descriptor.additional_constraints = tmp_additional_constraints;
 
   EXPECT_TRUE(rcl_yaml_descriptor_copy(&dest_descriptor, &src_descriptor, allocator));
-  ASSERT_NE(nullptr, dest_descriptor.name);
   ASSERT_NE(nullptr, dest_descriptor.description);
   ASSERT_NE(nullptr, dest_descriptor.additional_constraints);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_yaml_descriptor_fini(&dest_descriptor, allocator);
   });
-  EXPECT_STREQ(tmp_name, dest_descriptor.name);
   EXPECT_STREQ(tmp_description, dest_descriptor.description);
   EXPECT_STREQ(tmp_additional_constraints, dest_descriptor.additional_constraints);
 }

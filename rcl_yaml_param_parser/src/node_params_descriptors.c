@@ -51,11 +51,11 @@ rcutils_ret_t node_params_descriptors_init_with_capacity(
   if (NULL == node_descriptors->parameter_descriptors) {
     allocator.deallocate(node_descriptors->parameter_names, allocator.state);
     node_descriptors->parameter_names = NULL;
-    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for node parameter values");
+    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for node parameter descriptors");
     return RCUTILS_RET_BAD_ALLOC;
   }
 
-  node_descriptors->num_params = 0U;
+  node_descriptors->num_descriptors = 0U;
   node_descriptors->capacity_descriptors = capacity;
   return RCUTILS_RET_OK;
 }
@@ -68,12 +68,12 @@ rcutils_ret_t node_params_descriptors_reallocate(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(node_descriptors, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
-  // invalid if new_capacity is less than num_params
-  if (new_capacity < node_descriptors->num_params) {
+  // invalid if new_capacity is less than num_descriptors
+  if (new_capacity < node_descriptors->num_descriptors) {
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "new capacity '%zu' must be greater than or equal to '%zu'",
       new_capacity,
-      node_descriptors->num_params);
+      node_descriptors->num_descriptors);
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
 
@@ -119,7 +119,7 @@ void rcl_yaml_node_params_descriptors_fini(
   }
 
   if (NULL != node_descriptors->parameter_names) {
-    for (size_t parameter_idx = 0U; parameter_idx < node_descriptors->num_params;
+    for (size_t parameter_idx = 0U; parameter_idx < node_descriptors->num_descriptors;
       parameter_idx++)
     {
       char * param_name = node_descriptors->parameter_names[parameter_idx];
@@ -132,7 +132,7 @@ void rcl_yaml_node_params_descriptors_fini(
   }
 
   if (NULL != node_descriptors->parameter_descriptors) {
-    for (size_t parameter_idx = 0U; parameter_idx < node_descriptors->num_params;
+    for (size_t parameter_idx = 0U; parameter_idx < node_descriptors->num_descriptors;
       parameter_idx++)
     {
       rcl_yaml_descriptor_fini(
@@ -143,6 +143,6 @@ void rcl_yaml_node_params_descriptors_fini(
     node_descriptors->parameter_descriptors = NULL;
   }
 
-  node_descriptors->num_params = 0;
+  node_descriptors->num_descriptors = 0;
   node_descriptors->capacity_descriptors = 0;
 }

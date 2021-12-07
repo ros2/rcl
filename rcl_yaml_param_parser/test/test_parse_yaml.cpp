@@ -709,8 +709,6 @@ TEST(test_file_parser, correct_syntax_descriptors) {
     rcl_param_descriptor_t * param_descriptor = NULL;
     param_descriptor = rcl_yaml_node_struct_get_descriptor("node_ns/node1", "param1", params);
     ASSERT_TRUE(NULL != param_descriptor);
-    ASSERT_TRUE(NULL != param_descriptor->name);
-    EXPECT_STREQ("param1", param_descriptor->name);
     ASSERT_TRUE(NULL != param_descriptor->description);
     EXPECT_STREQ("int parameter", param_descriptor->description);
     ASSERT_TRUE(NULL != param_descriptor->additional_constraints);
@@ -728,8 +726,6 @@ TEST(test_file_parser, correct_syntax_descriptors) {
 
     param_descriptor = rcl_yaml_node_struct_get_descriptor("node_ns/node1", "param2", params);
     ASSERT_TRUE(NULL != param_descriptor);
-    ASSERT_TRUE(NULL != param_descriptor->name);
-    EXPECT_STREQ("param2", param_descriptor->name);
     ASSERT_TRUE(NULL != param_descriptor->description);
     EXPECT_STREQ("double parameter", param_descriptor->description);
     ASSERT_TRUE(NULL != param_descriptor->min_value_double);
@@ -739,8 +735,6 @@ TEST(test_file_parser, correct_syntax_descriptors) {
 
     param_descriptor = rcl_yaml_node_struct_get_descriptor("node_ns/node2", "foo.bar", params);
     ASSERT_TRUE(NULL != param_descriptor);
-    ASSERT_TRUE(NULL != param_descriptor->name);
-    EXPECT_STREQ("foo.bar", param_descriptor->name);
     ASSERT_TRUE(NULL != param_descriptor->description);
     EXPECT_STREQ("namespaced parameter", param_descriptor->description);
     ASSERT_TRUE(NULL != param_descriptor->read_only);
@@ -748,8 +742,6 @@ TEST(test_file_parser, correct_syntax_descriptors) {
 
     param_descriptor = rcl_yaml_node_struct_get_descriptor("node_ns/node2", "foo.baz", params);
     ASSERT_TRUE(NULL != param_descriptor);
-    ASSERT_TRUE(NULL != param_descriptor->name);
-    EXPECT_STREQ("foo.baz", param_descriptor->name);
     ASSERT_TRUE(NULL != param_descriptor->description);
     EXPECT_STREQ("other namespaced parameter", param_descriptor->description);
 

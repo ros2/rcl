@@ -99,7 +99,6 @@ typedef struct rcl_node_params_s
 /// \brief param_descriptor_t stores the descriptor of a parameter
 typedef struct rcl_param_descriptor_s
 {
-  char * name;
   bool * read_only;
   uint8_t * type;
   char * description;
@@ -118,7 +117,7 @@ typedef struct rcl_node_params_descriptors_s
 {
   char ** parameter_names;  ///< Array of parameter names (keys)
   rcl_param_descriptor_t * parameter_descriptors;  ///< Array of corresponding parameter descriptors
-  size_t num_params;  ///< Number of parameters in the node
+  size_t num_descriptors;  ///< Number of parameters in the node
   size_t capacity_descriptors;  ///< Capacity of parameters in the node
 } rcl_node_params_descriptors_t;
 

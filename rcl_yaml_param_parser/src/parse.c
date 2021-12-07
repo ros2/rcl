@@ -495,6 +495,13 @@ rcutils_ret_t parse_descriptor(
   rcl_param_descriptor_t * param_descriptor =
     &(params_st->descriptors[node_idx].parameter_descriptors[parameter_idx]);
 
+  rcl_node_params_descriptors_t * node_descriptors_st = &(params_st->descriptors[node_idx]);
+
+  // Increase descriptor count only once when a new parameter descriptor value is parsed
+  if (parameter_idx == node_descriptors_st->num_descriptors) {
+    node_descriptors_st->num_descriptors++;
+  }
+
   data_types_t val_type;
   void * ret_val = get_value(value, style, &val_type, allocator);
   if (NULL == ret_val) {
@@ -508,19 +515,13 @@ rcutils_ret_t parse_descriptor(
       "Parameter assignment at line %d unallowed in " PARAMS_DESCRIPTORS_KEY, line_num);
     return RCUTILS_RET_ERROR;
   }
+
   // If parsing a yaml value, then current parameter namespace must be parameter name
   allocator.deallocate(
     params_st->descriptors[node_idx].parameter_names[parameter_idx],
     allocator.state);
   params_st->descriptors[node_idx].parameter_names[parameter_idx] =
     rcutils_strdup(ns_tracker->parameter_ns, allocator);
-
-  if (NULL == param_descriptor->name) {
-    param_descriptor->name =
-      rcutils_strdup(params_st->descriptors[node_idx].parameter_names[parameter_idx], allocator);
-    rcl_node_params_descriptors_t * node_descriptors_st = &(params_st->descriptors[node_idx]);
-    node_descriptors_st->num_params++;
-  }
 
   if (NULL == ns_tracker->descriptor_key_ns) {
     RCUTILS_SET_ERROR_MSG("Internal error: Invalid mem");
@@ -1312,19 +1313,32 @@ rcutils_ret_t find_descriptor(
   assert(node_idx < param_st->num_nodes);
 
   rcl_node_params_descriptors_t * node_descriptors_st = &(param_st->descriptors[node_idx]);
-  for (*parameter_idx = 0U; *parameter_idx < node_descriptors_st->num_params; (*parameter_idx)++) {
+  for (*parameter_idx = 0U; *parameter_idx < node_descriptors_st->num_descriptors;
+    (*parameter_idx)++)
+  {
     if (0 == strcmp(node_descriptors_st->parameter_names[*parameter_idx], parameter_name)) {
-      // Parameter found.
+      // Descriptor found.
       return RCUTILS_RET_OK;
     }
   }
-  // Parameter not found, add it.
+  // Descriptor not found, add it.
   rcutils_allocator_t allocator = param_st->allocator;
+  // Reallocate if necessary
+  if (node_descriptors_st->num_descriptors >= node_descriptors_st->capacity_descriptors) {
+    if (RCUTILS_RET_OK != node_params_descriptors_reallocate(
+        node_descriptors_st, node_descriptors_st->capacity_descriptors * 2, allocator))
+    {
+      return RCUTILS_RET_BAD_ALLOC;
+    }
+  }
+  if (NULL != node_descriptors_st->parameter_names[*parameter_idx]) {
+    param_st->allocator.deallocate(
+      node_descriptors_st->parameter_names[*parameter_idx], param_st->allocator.state);
+  }
   node_descriptors_st->parameter_names[*parameter_idx] = rcutils_strdup(parameter_name, allocator);
   if (NULL == node_descriptors_st->parameter_names[*parameter_idx]) {
     return RCUTILS_RET_BAD_ALLOC;
   }
-  // node_descriptors_st->num_params++;
   return RCUTILS_RET_OK;
 }
 

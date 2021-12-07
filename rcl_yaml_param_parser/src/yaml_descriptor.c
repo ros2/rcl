@@ -28,10 +28,6 @@ void rcl_yaml_descriptor_fini(
     return;
   }
 
-  if (NULL != param_descriptor->name) {
-    allocator.deallocate(param_descriptor->name, allocator.state);
-    param_descriptor->name = NULL;
-  }
   if (NULL != param_descriptor->read_only) {
     allocator.deallocate(param_descriptor->read_only, allocator.state);
     param_descriptor->read_only = NULL;
@@ -82,14 +78,7 @@ bool rcl_yaml_descriptor_copy(
   if (NULL == param_descriptor || NULL == out_param_descriptor) {
     return false;
   }
-  if (NULL != param_descriptor->name) {
-    out_param_descriptor->name =
-      rcutils_strdup(param_descriptor->name, allocator);
-    if (NULL == out_param_descriptor->name) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem");
-      return false;
-    }
-  }
+
   if (NULL != param_descriptor->description) {
     out_param_descriptor->description =
       rcutils_strdup(param_descriptor->description, allocator);

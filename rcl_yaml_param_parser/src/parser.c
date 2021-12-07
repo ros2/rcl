@@ -227,14 +227,14 @@ rcl_params_t * rcl_yaml_node_struct_copy(
       }
       goto fail;
     }
-    for (size_t desc_idx = 0U; desc_idx < node_params_descriptors_st->num_params; ++desc_idx) {
+    for (size_t desc_idx = 0U; desc_idx < node_params_descriptors_st->num_descriptors; ++desc_idx) {
       out_node_params_descriptors_st->parameter_names[desc_idx] =
         rcutils_strdup(node_params_descriptors_st->parameter_names[desc_idx], allocator);
       if (NULL == out_node_params_descriptors_st->parameter_names[desc_idx]) {
         RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating mem\n");
         goto fail;
       }
-      out_node_params_descriptors_st->num_params++;
+      out_node_params_descriptors_st->num_descriptors++;
 
       const rcl_param_descriptor_t * param_descriptor =
         &(node_params_descriptors_st->parameter_descriptors[desc_idx]);
@@ -542,7 +542,7 @@ void rcl_yaml_node_struct_print(
 
     if (NULL != params_st->descriptors) {
       rcl_node_params_descriptors_t * node_descriptors_st = &(params_st->descriptors[node_idx]);
-      for (size_t parameter_idx = 0U; parameter_idx < node_descriptors_st->num_params;
+      for (size_t parameter_idx = 0U; parameter_idx < node_descriptors_st->num_descriptors;
         parameter_idx++)
       {
         if (NULL != node_descriptors_st->parameter_names) {
@@ -552,10 +552,6 @@ void rcl_yaml_node_struct_print(
           }
           rcl_param_descriptor_t * descriptor =
             &(node_descriptors_st->parameter_descriptors[parameter_idx]);
-          if (NULL != descriptor->name) {
-            printf("\n%*sname: ", param_col + 2, "");
-            printf("%s", descriptor->name);
-          }
           if (NULL != descriptor->description) {
             printf("\n%*sdescription: ", param_col + 2, "");
             printf("%s", descriptor->description);
