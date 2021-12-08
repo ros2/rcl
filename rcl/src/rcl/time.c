@@ -231,7 +231,7 @@ rcl_system_clock_fini(
 
 rcl_ret_t
 rcl_difference_times(
-  rcl_time_point_t * start, rcl_time_point_t * finish, rcl_duration_t * delta)
+  const rcl_time_point_t * start, const rcl_time_point_t * finish, rcl_duration_t * delta)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(start, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(finish, RCL_RET_INVALID_ARGUMENT);
