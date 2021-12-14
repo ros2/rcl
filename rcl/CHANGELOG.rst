@@ -2,6 +2,17 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make rcl_difference_times args const (`#955 <https://github.com/ros2/rcl/issues/955>`_)
+* Update inject_on_return test skipping logic (`#953 <https://github.com/ros2/rcl/issues/953>`_)
+* Fix jump callbacks being called when zero time jump thresholds used (`#948 <https://github.com/ros2/rcl/issues/948>`_)
+* Only change the default logger level if default_logger_level is set (`#943 <https://github.com/ros2/rcl/issues/943>`_)
+* Add Library for wait_for_entity_helpers to deduplicate compilation (`#942 <https://github.com/ros2/rcl/issues/942>`_)
+* Increase Windows timeout 15 -> 25 ms (`#940 <https://github.com/ros2/rcl/issues/940>`_)
+* test should check specified number of entities. (`#935 <https://github.com/ros2/rcl/issues/935>`_)
+* Contributors: Jafar Abdi, Scott K Logan, Shane Loretz, Tomoya Fujita
+
 4.0.0 (2021-09-16)
 ------------------
 * Fix up documentation build for rcl when using rosdoc2 (`#932 <https://github.com/ros2/rcl/issues/932>`_)

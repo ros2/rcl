@@ -2,6 +2,12 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update maintainers to Ivan Paunovic and William Woodall (`#952 <https://github.com/ros2/rcl/issues/952>`_)
+* Tweak rcl_yaml_param_parser documentation (`#939 <https://github.com/ros2/rcl/issues/939>`_)
+* Contributors: Audrow Nash, Michel Hidalgo
+
 4.0.0 (2021-09-16)
 ------------------
 
