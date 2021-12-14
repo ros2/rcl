@@ -2,8 +2,8 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.0.0 (2021-12-14)
+------------------
 * Update maintainers to Ivan Paunovic and William Woodall (`#952 <https://github.com/ros2/rcl/issues/952>`_)
 * Fix up documentation build for rcl_lifecycle when using rosdoc2 (`#938 <https://github.com/ros2/rcl/issues/938>`_)
 * Contributors: Audrow Nash, Michel Hidalgo

@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.0.0 (2021-12-14)
+------------------
 * Make rcl_difference_times args const (`#955 <https://github.com/ros2/rcl/issues/955>`_)
 * Update inject_on_return test skipping logic (`#953 <https://github.com/ros2/rcl/issues/953>`_)
 * Fix jump callbacks being called when zero time jump thresholds used (`#948 <https://github.com/ros2/rcl/issues/948>`_)
