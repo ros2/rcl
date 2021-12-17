@@ -55,6 +55,8 @@ rcl_lifecycle_get_zero_initialized_com_interface()
   com_interface.srv_get_available_states = rcl_get_zero_initialized_service();
   com_interface.srv_get_available_transitions = rcl_get_zero_initialized_service();
   com_interface.srv_get_transition_graph = rcl_get_zero_initialized_service();
+  lifecycle_msgs__msg__TransitionEvent msg = {0};
+  com_interface.msg = msg;
   return com_interface;
 }
 
