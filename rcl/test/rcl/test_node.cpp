@@ -27,6 +27,7 @@
 #include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rcutils/env.h"
 #include "rcutils/testing/fault_injection.h"
 #include "rcl/error_handling.h"
 #include "rcl/logging.h"
@@ -996,4 +997,49 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   ASSERT_TRUE(final_name);
   EXPECT_STREQ("/ns/relative_ns/foo", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
+}
+
+/* Tests special case node_options
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_get_disable_loaned_message) {
+  {
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_disable_loaned_message(nullptr));
+    rcl_reset_error();
+  }
+
+  {
+    bool disable_loaned_message = false;
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_get_env, "internal error");
+    EXPECT_EQ(RCL_RET_ERROR, rcl_get_disable_loaned_message(&disable_loaned_message));
+    rcl_reset_error();
+  }
+
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "0"));
+    bool disable_loaned_message = true;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_disable_loaned_message(&disable_loaned_message));
+    EXPECT_FALSE(disable_loaned_message);
+  }
+
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
+    bool disable_loaned_message = false;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_disable_loaned_message(&disable_loaned_message));
+    EXPECT_TRUE(disable_loaned_message);
+  }
+
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "2"));
+    bool disable_loaned_message = true;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_disable_loaned_message(&disable_loaned_message));
+    EXPECT_FALSE(disable_loaned_message);
+  }
+
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "11"));
+    bool disable_loaned_message = true;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_disable_loaned_message(&disable_loaned_message));
+    EXPECT_FALSE(disable_loaned_message);
+  }
 }

@@ -433,19 +433,16 @@ rcl_subscription_get_actual_qos(const rcl_subscription_t * subscription)
 bool
 rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
 {
-  const char * env_val = NULL;
-
   if (!rcl_subscription_is_valid(subscription)) {
     return false;  // error message already set
   }
-  const char * env_error_str = rcutils_get_env(RCL_DISABLE_LOAN_MSG_ENV_VAR, &env_val);
-  if (NULL != env_error_str) {
-    RCUTILS_SAFE_FWRITE_TO_STDERR("Error getting env var: ");
-    RCUTILS_SAFE_FWRITE_TO_STDERR(RCL_DISABLE_LOAN_MSG_ENV_VAR);
-    RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
-  } else if (env_val != NULL && strcmp(env_val, "1") == 0) {
+
+  bool disable_loaned_message = false;
+  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
+  if (ret == RCL_RET_OK && disable_loaned_message) {
     return false;
   }
+
   return subscription->impl->rmw_handle->can_loan_messages;
 }
 

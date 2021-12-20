@@ -730,22 +730,22 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   });
 
   if (rcl_subscription_can_loan_messages(&subscription)) {
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOAN_MSG", "0"));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "0"));
     EXPECT_TRUE(rcl_subscription_can_loan_messages(&subscription));
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOAN_MSG", "1"));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
     EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOAN_MSG", "2"));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "2"));
     EXPECT_TRUE(rcl_subscription_can_loan_messages(&subscription));
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOAN_MSG", "Unexpected"));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "Unexpected"));
     EXPECT_TRUE(rcl_subscription_can_loan_messages(&subscription));
   } else {
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOAN_MSG", "0"));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "0"));
     EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOAN_MSG", "1"));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
     EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOAN_MSG", "2"));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "2"));
     EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOAN_MSG", "Unexpected"));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "Unexpected"));
     EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
   }
 }
