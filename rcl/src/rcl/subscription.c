@@ -23,7 +23,6 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
-#include "rcutils/env.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/validate_full_topic_name.h"
