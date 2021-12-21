@@ -61,7 +61,9 @@ rcl_subscription_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Initializing subscription for topic name '%s'", topic_name);
+    ROS_PACKAGE_NAME,
+    "Initializing subscription for topic name '%s' and type '%s'",
+    topic_name, type_support->typesupport_identifier);
   if (subscription->impl) {
     RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;

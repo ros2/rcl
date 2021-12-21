@@ -76,7 +76,8 @@ rcl_publisher_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(topic_name, RCL_RET_INVALID_ARGUMENT);
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Initializing publisher for topic name '%s'", topic_name);
+    ROS_PACKAGE_NAME, "Initializing publisher for topic name '%s' and type '%s'",
+    topic_name, type_support->typesupport_identifier);
 
   // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
