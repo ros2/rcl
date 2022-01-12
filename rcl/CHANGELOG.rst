@@ -2,6 +2,52 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.0 (2021-12-14)
+------------------
+* Make rcl_difference_times args const (`#955 <https://github.com/ros2/rcl/issues/955>`_)
+* Update inject_on_return test skipping logic (`#953 <https://github.com/ros2/rcl/issues/953>`_)
+* Fix jump callbacks being called when zero time jump thresholds used (`#948 <https://github.com/ros2/rcl/issues/948>`_)
+* Only change the default logger level if default_logger_level is set (`#943 <https://github.com/ros2/rcl/issues/943>`_)
+* Add Library for wait_for_entity_helpers to deduplicate compilation (`#942 <https://github.com/ros2/rcl/issues/942>`_)
+* Increase Windows timeout 15 -> 25 ms (`#940 <https://github.com/ros2/rcl/issues/940>`_)
+* test should check specified number of entities. (`#935 <https://github.com/ros2/rcl/issues/935>`_)
+* Contributors: Jafar Abdi, Scott K Logan, Shane Loretz, Tomoya Fujita
+
+4.0.0 (2021-09-16)
+------------------
+* Fix up documentation build for rcl when using rosdoc2 (`#932 <https://github.com/ros2/rcl/issues/932>`_)
+* Include rmw_event_t instead of forward declaring it (`#933 <https://github.com/ros2/rcl/issues/933>`_)
+* Contributors: Michel Hidalgo
+
+3.2.0 (2021-09-02)
+------------------
+* Add rcl_publisher_wait_for_all_acked support. (`#913 <https://github.com/ros2/rcl/issues/913>`_)
+* Add tracing instrumentation for rcl_take. (`#930 <https://github.com/ros2/rcl/issues/930>`_)
+* Fix #include in C++ typesupport example in rcl_subscription_init docblock. (`#927 <https://github.com/ros2/rcl/issues/927>`_)
+* Update includes after rcutils/get_env.h deprecation. (`#917 <https://github.com/ros2/rcl/issues/917>`_)
+* Use proper rcl_logging return value type and compare to constant. (`#916 <https://github.com/ros2/rcl/issues/916>`_)
+* Contributors: Barry Xu, Christophe Bedard
+
+3.1.2 (2021-04-26)
+------------------
+* Fix up test_network_flow_endpoints. (`#912 <https://github.com/ros2/rcl/issues/912>`_)
+* Contributors: Chris Lalancette
+
+3.1.1 (2021-04-12)
+------------------
+* Make test_two_timers_ready_before_timeout less flaky (`#911 <https://github.com/ros2/rcl/issues/911>`_)
+* Add publishing instrumentation (`#905 <https://github.com/ros2/rcl/issues/905>`_)
+* Contributors: Christophe Bedard, Ivan Santiago Paunovic
+
+3.1.0 (2021-04-06)
+------------------
+* Unique network flows (`#880 <https://github.com/ros2/rcl/issues/880>`_)
+* updating quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#909 <https://github.com/ros2/rcl/issues/909>`_)
+* Add functions for waiting for publishers and subscribers (`#907 <https://github.com/ros2/rcl/issues/907>`_)
+* Revert "Mark cyclonedds test_service test as flakey (`#648 <https://github.com/ros2/rcl/issues/648>`_)" (`#904 <https://github.com/ros2/rcl/issues/904>`_)
+* Guard against returning NULL or empty node names (`#570 <https://github.com/ros2/rcl/issues/570>`_)
+* Contributors: Ananya Muddukrishna, Jacob Perron, Michel Hidalgo, shonigmann
+
 3.0.1 (2021-03-25)
 ------------------
 * Remove exceptions for rmw_connext_cpp tests. (`#903 <https://github.com/ros2/rcl/issues/903>`_)

@@ -602,7 +602,7 @@ rcl_action_expire_goals(
   int64_t goal_time;
   size_t num_goal_handles = action_server->impl->num_goal_handles;
   for (size_t i = 0u; i < num_goal_handles; ++i) {
-    if (output_expired && i >= expired_goals_capacity) {
+    if (output_expired && num_goals_expired >= expired_goals_capacity) {
       // no more space to output expired goals, so stop expiring them
       break;
     }

@@ -481,7 +481,7 @@ _rcl_wait_for_entities(
   rcl_ret_t ret = RCL_RET_OK;
   *success = false;
 
-  // We can avoid waiting if there are already the expected number of publishers
+  // We can avoid waiting if there are already the expected number of entities
   size_t count = 0u;
   ret = count_entities_func(node, topic_name, &count);
   if (ret != RCL_RET_OK) {

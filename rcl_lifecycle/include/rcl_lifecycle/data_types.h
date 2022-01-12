@@ -19,15 +19,17 @@
 
 #include "rcl_lifecycle/visibility_control.h"
 
+#include "lifecycle_msgs/msg/transition_event.h"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-typedef struct rcl_lifecycle_transition_t rcl_lifecycle_transition_t;
+typedef struct rcl_lifecycle_transition_s rcl_lifecycle_transition_t;
 
 /// It contains the state of the lifecycle state machine
-typedef struct rcl_lifecycle_state_t
+typedef struct rcl_lifecycle_state_s
 {
   /// String with state name: Unconfigured, Inactive, Active or Finalized
   const char * label;
@@ -41,7 +43,7 @@ typedef struct rcl_lifecycle_state_t
 } rcl_lifecycle_state_t;
 
 /// It contains the transitions of the lifecycle state machine
-typedef struct rcl_lifecycle_transition_t
+typedef struct rcl_lifecycle_transition_s
 {
   /// String with transition name: configuring, cleaningup, activating, deactivating,
   /// errorprocessing or shuttingdown.
@@ -55,7 +57,7 @@ typedef struct rcl_lifecycle_transition_t
 } rcl_lifecycle_transition_t;
 
 /// It contains the transition map states and transitions
-typedef struct rcl_lifecycle_transition_map_t
+typedef struct rcl_lifecycle_transition_map_s
 {
   /// States used to generate the transition map
   rcl_lifecycle_state_t * states;
@@ -68,7 +70,7 @@ typedef struct rcl_lifecycle_transition_map_t
 } rcl_lifecycle_transition_map_t;
 
 /// It contains the communication interfac with the ROS world
-typedef struct rcl_lifecycle_com_interface_t
+typedef struct rcl_lifecycle_com_interface_s
 {
   /// Handle to the node used to create the publisher and the services
   rcl_node_t * node_handle;
@@ -84,10 +86,12 @@ typedef struct rcl_lifecycle_com_interface_t
   rcl_service_t srv_get_available_transitions;
   /// Service that allows to get transitions from the graph
   rcl_service_t srv_get_transition_graph;
+  /// Cached transition event message.
+  lifecycle_msgs__msg__TransitionEvent msg;
 } rcl_lifecycle_com_interface_t;
 
 /// It contains various options to configure the rcl_lifecycle_state_machine_t instance
-typedef struct rcl_lifecycle_state_machine_options_t
+typedef struct rcl_lifecycle_state_machine_options_s
 {
   /// Flag indicating whether the state machine shall be initialized with default states
   bool initialize_default_states;
@@ -98,7 +102,7 @@ typedef struct rcl_lifecycle_state_machine_options_t
 } rcl_lifecycle_state_machine_options_t;
 
 /// It contains the state machine data
-typedef struct rcl_lifecycle_state_machine_t
+typedef struct rcl_lifecycle_state_machine_s
 {
   /// Current state of the state machine
   const rcl_lifecycle_state_t * current_state;

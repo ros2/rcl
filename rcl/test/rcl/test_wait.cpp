@@ -42,7 +42,7 @@
 #ifndef _WIN32
 #define TOLERANCE RCL_MS_TO_NS(6)
 #else
-#define TOLERANCE RCL_MS_TO_NS(15)
+#define TOLERANCE RCL_MS_TO_NS(25)
 #endif
 
 class CLASSNAME (WaitSetTestFixture, RMW_IMPLEMENTATION) : public ::testing::Test

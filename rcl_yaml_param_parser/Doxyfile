@@ -4,7 +4,7 @@ PROJECT_NAME           = "rcl_yaml_param_parser"
 PROJECT_NUMBER         = master
 PROJECT_BRIEF          = "Parse a YAML parameter file and populate the C data structure."
 
-INPUT                  = ./include README.md
+INPUT                  = ./include README.md QUALITY_DECLARATION.md
 USE_MDFILE_AS_MAINPAGE = README.md
 RECURSIVE              = YES
 OUTPUT_DIRECTORY       = doc_output

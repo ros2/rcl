@@ -18,9 +18,9 @@
 
 #include "rcl/error_handling.h"
 
-#include "rcutils/logging_macros.h"
+#include "rcutils/env.h"
 #include "rcutils/filesystem.h"
-#include "rcutils/get_env.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 
 #include "rmw/security_options.h"

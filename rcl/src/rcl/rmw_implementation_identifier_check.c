@@ -23,7 +23,7 @@ extern "C"
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rcutils/get_env.h"
+#include "rcutils/env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rmw/rmw.h"

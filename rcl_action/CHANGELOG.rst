@@ -2,6 +2,32 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.0 (2021-12-14)
+------------------
+* Fix up documentation build for rcl_action when using rosdoc2 (`#937 <https://github.com/ros2/rcl/issues/937>`_)
+* Contributors: Michel Hidalgo
+
+4.0.0 (2021-09-16)
+------------------
+* Fix expired goals capacity of action server (`#931 <https://github.com/ros2/rcl/issues/931>`_)
+* Contributors: spiralray
+
+3.2.0 (2021-09-02)
+------------------
+* Wait for action server in rcl_action comm tests. (`#919 <https://github.com/ros2/rcl/issues/919>`_)
+* Contributors: Michel Hidalgo
+
+3.1.2 (2021-04-26)
+------------------
+
+3.1.1 (2021-04-12)
+------------------
+
+3.1.0 (2021-04-06)
+------------------
+* updating quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#909 <https://github.com/ros2/rcl/issues/909>`_)
+* Contributors: shonigmann
+
 3.0.1 (2021-03-25)
 ------------------
 

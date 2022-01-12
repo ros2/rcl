@@ -22,8 +22,8 @@
 #include "rcl/security.h"
 #include "rcl/error_handling.h"
 
+#include "rcutils/env.h"
 #include "rcutils/filesystem.h"
-#include "rcutils/get_env.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"

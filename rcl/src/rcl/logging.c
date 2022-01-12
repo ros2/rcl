@@ -74,8 +74,10 @@ rcl_logging_configure_with_output_handler(
   g_rcl_logging_num_out_handlers = 0;
 
   if (log_levels) {
-    default_level = (int)log_levels->default_logger_level;
-    rcutils_logging_set_default_logger_level(default_level);
+    if (log_levels->default_logger_level != RCUTILS_LOG_SEVERITY_UNSET) {
+      default_level = (int)log_levels->default_logger_level;
+      rcutils_logging_set_default_logger_level(default_level);
+    }
 
     for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
       rcutils_ret_t rcutils_status = rcutils_logging_set_logger_level(
@@ -100,11 +102,9 @@ rcl_logging_configure_with_output_handler(
   if (g_rcl_logging_ext_lib_enabled) {
     status = rcl_logging_external_initialize(config_file, g_logging_allocator);
     if (RCL_RET_OK == status) {
-      // TODO(dirk-thomas) the return value should be typed and compared to
-      // constants instead of zero
-      int logging_status = rcl_logging_external_set_logger_level(
+      rcl_logging_ret_t logging_status = rcl_logging_external_set_logger_level(
         NULL, default_level);
-      if (logging_status != 0) {
+      if (RCL_LOGGING_RET_OK != logging_status) {
         status = RCL_RET_ERROR;
       }
       g_rcl_logging_out_handlers[g_rcl_logging_num_out_handlers++] =

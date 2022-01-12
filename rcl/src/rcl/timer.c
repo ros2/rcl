@@ -27,7 +27,7 @@ extern "C"
 #include "rcutils/time.h"
 #include "tracetools/tracetools.h"
 
-typedef struct rcl_timer_impl_t
+struct rcl_timer_impl_s
 {
   // The clock providing time.
   rcl_clock_t * clock;
@@ -50,7 +50,7 @@ typedef struct rcl_timer_impl_t
   atomic_bool canceled;
   // The user supplied allocator.
   rcl_allocator_t allocator;
-} rcl_timer_impl_t;
+};
 
 rcl_timer_t
 rcl_get_zero_initialized_timer()
@@ -60,7 +60,7 @@ rcl_get_zero_initialized_timer()
 }
 
 void _rcl_timer_time_jump(
-  const struct rcl_time_jump_t * time_jump,
+  const rcl_time_jump_t * time_jump,
   bool before_jump,
   void * user_data)
 {

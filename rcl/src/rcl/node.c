@@ -37,7 +37,6 @@ extern "C"
 #include "rcutils/filesystem.h"
 #include "rcutils/find.h"
 #include "rcutils/format_string.h"
-#include "rcutils/get_env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rcutils/repl_str.h"
@@ -53,14 +52,14 @@ extern "C"
 
 #include "./context_impl.h"
 
-typedef struct rcl_node_impl_t
+struct rcl_node_impl_s
 {
   rcl_node_options_t options;
   rmw_node_t * rmw_node_handle;
   rcl_guard_condition_t * graph_guard_condition;
   const char * logger_name;
   const char * fq_name;
-} rcl_node_impl_t;
+};
 
 
 /// Return the logger name associated with a node given the validated node name and namespace.
@@ -497,7 +496,7 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node)
   return rcl_context_get_instance_id(node->context);
 }
 
-const struct rcl_guard_condition_t *
+const rcl_guard_condition_t *
 rcl_node_get_graph_guard_condition(const rcl_node_t * node)
 {
   if (!rcl_node_is_valid_except_context(node)) {

@@ -33,7 +33,7 @@ extern "C"
 
 #include "./context_impl.h"
 
-typedef struct rcl_wait_set_impl_t
+struct rcl_wait_set_impl_s
 {
   // number of subscriptions that have been added to the wait set
   size_t subscription_index;
@@ -58,7 +58,7 @@ typedef struct rcl_wait_set_impl_t
   rcl_context_t * context;
   // allocator used in the wait set
   rcl_allocator_t allocator;
-} rcl_wait_set_impl_t;
+};
 
 rcl_wait_set_t
 rcl_get_zero_initialized_wait_set()

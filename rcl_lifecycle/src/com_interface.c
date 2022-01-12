@@ -21,6 +21,7 @@ extern "C"
 
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 
 #include "lifecycle_msgs/msg/transition_event.h"
 
@@ -36,7 +37,6 @@ extern "C"
 
 #include "rcl_lifecycle/data_types.h"
 
-static lifecycle_msgs__msg__TransitionEvent msg;
 static const char * pub_transition_event_topic = "~/transition_event";
 static const char * srv_change_state_service = "~/change_state";
 static const char * srv_get_state_service = "~/get_state";
@@ -55,6 +55,8 @@ rcl_lifecycle_get_zero_initialized_com_interface()
   com_interface.srv_get_available_states = rcl_get_zero_initialized_service();
   com_interface.srv_get_available_transitions = rcl_get_zero_initialized_service();
   com_interface.srv_get_transition_graph = rcl_get_zero_initialized_service();
+  lifecycle_msgs__msg__TransitionEvent msg = {0};
+  com_interface.msg = msg;
   return com_interface;
 }
 
@@ -115,7 +117,7 @@ rcl_lifecycle_com_interface_publisher_init(
   }
 
   // initialize static message for notification
-  lifecycle_msgs__msg__TransitionEvent__init(&msg);
+  lifecycle_msgs__msg__TransitionEvent__init(&com_interface->msg);
 
   return RCL_RET_OK;
 
@@ -131,7 +133,7 @@ rcl_lifecycle_com_interface_publisher_fini(
   rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle)
 {
-  lifecycle_msgs__msg__TransitionEvent__fini(&msg);
+  lifecycle_msgs__msg__TransitionEvent__fini(&com_interface->msg);
 
   rcl_ret_t ret = rcl_publisher_fini(
     &com_interface->pub_transition_event, node_handle);
@@ -325,12 +327,12 @@ rcl_lifecycle_com_interface_publish_notification(
   rcl_lifecycle_com_interface_t * com_interface,
   const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal)
 {
-  msg.start_state.id = start->id;
-  rosidl_runtime_c__String__assign(&msg.start_state.label, start->label);
-  msg.goal_state.id = goal->id;
-  rosidl_runtime_c__String__assign(&msg.goal_state.label, goal->label);
+  com_interface->msg.start_state.id = start->id;
+  rosidl_runtime_c__String__assign(&com_interface->msg.start_state.label, start->label);
+  com_interface->msg.goal_state.id = goal->id;
+  rosidl_runtime_c__String__assign(&com_interface->msg.goal_state.label, goal->label);
 
-  return rcl_publish(&com_interface->pub_transition_event, &msg, NULL);
+  return rcl_publish(&com_interface->pub_transition_event, &com_interface->msg, NULL);
 }
 
 #ifdef __cplusplus
