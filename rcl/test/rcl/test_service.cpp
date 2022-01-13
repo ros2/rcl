@@ -93,6 +93,20 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_service_nominal) 
   ret = rcl_service_init(&service, this->node_ptr, ts, topic, &service_options);
   EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
 
+  const rmw_qos_profile_t * request_subscription_qos =
+    rcl_service_request_subscription_get_actual_qos(&service);
+  EXPECT_EQ(rmw_qos_profile_services_default.reliability, request_subscription_qos->reliability);
+  EXPECT_EQ(rmw_qos_profile_services_default.history, request_subscription_qos->history);
+  EXPECT_EQ(rmw_qos_profile_services_default.depth, request_subscription_qos->depth);
+  EXPECT_EQ(rmw_qos_profile_services_default.durability, request_subscription_qos->durability);
+
+  const rmw_qos_profile_t * response_publisher_qos =
+    rcl_service_response_publisher_get_actual_qos(&service);
+  EXPECT_EQ(rmw_qos_profile_services_default.reliability, response_publisher_qos->reliability);
+  EXPECT_EQ(rmw_qos_profile_services_default.history, response_publisher_qos->history);
+  EXPECT_EQ(rmw_qos_profile_services_default.depth, response_publisher_qos->depth);
+  EXPECT_EQ(rmw_qos_profile_services_default.durability, response_publisher_qos->durability);
+
   ret = rcl_service_fini(&service, this->node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -388,6 +402,8 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_bad_arguments) {
     RCL_RET_SERVICE_INVALID, rcl_send_response(nullptr, &header.request_id, &service_response));
   EXPECT_EQ(
     RCL_RET_SERVICE_INVALID, rcl_take_request(nullptr, &(header.request_id), &service_request));
+  EXPECT_EQ(nullptr, rcl_service_request_subscription_get_actual_qos(nullptr));
+  EXPECT_EQ(nullptr, rcl_service_response_publisher_get_actual_qos(nullptr));
 
   EXPECT_EQ(nullptr, rcl_service_get_service_name(&service));
   EXPECT_EQ(nullptr, rcl_service_get_options(&service));
@@ -404,6 +420,9 @@ TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_bad_arguments) {
     RCL_RET_BAD_ALLOC, rcl_service_init(
       &service, this->node_ptr, ts,
       topic, &service_options_bad_alloc)) << rcl_get_error_string().str;
+
+  EXPECT_EQ(nullptr, rcl_service_request_subscription_get_actual_qos(&service));
+  EXPECT_EQ(nullptr, rcl_service_response_publisher_get_actual_qos(&service));
 }
 
 /* Name failed tests
