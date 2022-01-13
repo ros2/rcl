@@ -1201,7 +1201,7 @@ TEST_F(
 
     ret = rcl_subscription_set_content_filter(
       &subscription, &options);
-    if(RCL_RET_UNSUPPORTED == RCL_RET_OK) {
+    if (RCL_RET_UNSUPPORTED == ret) {
       is_cft_support = false;
     } else {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
