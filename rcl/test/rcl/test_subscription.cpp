@@ -893,11 +893,6 @@ TEST_F(
   CLASSNAME(
     TestSubscriptionFixture,
     RMW_IMPLEMENTATION), test_subscription_content_filtered) {
-  bool is_vendor_support_cft =
-    (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0
-    // || std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0
-    );
-
   const char * filter_expression1 = "string_value MATCH 'FilteredData'";
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
@@ -928,11 +923,7 @@ TEST_F(
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
-  if (is_vendor_support_cft) {
-    ASSERT_TRUE(rcl_subscription_is_cft_enabled(&subscription));
-  } else {
-    ASSERT_FALSE(rcl_subscription_is_cft_enabled(&subscription));
-  }
+  bool is_cft_support = rcl_subscription_is_cft_enabled(&subscription);
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
 
   // publish with a non-filtered data
@@ -946,7 +937,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  if (is_vendor_support_cft) {
+  if (is_cft_support) {
     ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
   } else {
     ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
@@ -1007,7 +998,7 @@ TEST_F(
 
     ret = rcl_subscription_set_content_filter(
       &subscription, &options);
-    if (is_vendor_support_cft) {
+    if (is_cft_support) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     } else {
       ASSERT_EQ(RCL_RET_UNSUPPORTED, ret);
@@ -1030,7 +1021,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  if (is_vendor_support_cft) {
+  if (is_cft_support) {
     ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
   } else {
     ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
@@ -1081,7 +1072,7 @@ TEST_F(
 
     ret = rcl_subscription_get_content_filter(
       &subscription, &content_filter_options);
-    if (is_vendor_support_cft) {
+    if (is_cft_support) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
       rmw_subscription_content_filter_options_t * options =
@@ -1119,7 +1110,7 @@ TEST_F(
 
     ret = rcl_subscription_set_content_filter(
       &subscription, &options);
-    if (is_vendor_support_cft) {
+    if (is_cft_support) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
       ASSERT_FALSE(rcl_subscription_is_cft_enabled(&subscription));
@@ -1155,26 +1146,9 @@ TEST_F(
     });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    // it might take 'FilteredData' again, if so, contine to take data
-    std::string data = std::string(msg.string_value.data, msg.string_value.size);
-    if (is_vendor_support_cft) {
-      const int try_total_num = 3;
-      int i = 0;
-      while (data != test_string && i++ < try_total_num) {
-        ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
-        test_msgs__msg__Strings msg;
-        test_msgs__msg__Strings__init(&msg);
-        OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-        {
-          test_msgs__msg__Strings__fini(&msg);
-        });
-        ret = rcl_take(&subscription, &msg, nullptr, nullptr);
-        ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-        data = std::string(msg.string_value.data, msg.string_value.size);
-      }
-    }
-    ASSERT_EQ(std::string(test_string), data);
+    ASSERT_EQ(
+      std::string(test_string),
+      std::string(msg.string_value.data, msg.string_value.size));
   }
 }
 
@@ -1183,11 +1157,6 @@ TEST_F(
 TEST_F(
   CLASSNAME(
     TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_not_content_filtered_at_begin) {
-  bool is_vendor_support_cft =
-    (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0
-    // || std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0
-    );
-
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -1220,11 +1189,7 @@ TEST_F(
 
     ret = rcl_subscription_get_content_filter(
       &subscription, &content_filter_options);
-    if (is_vendor_support_cft) {
-      ASSERT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-    } else {
-      ASSERT_EQ(RCL_RET_UNSUPPORTED, ret) << rcl_get_error_string().str;
-    }
+    ASSERT_NE(RCL_RET_OK, ret);
   }
 
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
@@ -1260,6 +1225,7 @@ TEST_F(
   const char * filter_expression2 = "string_value MATCH %0";
   const char * expression_parameters2[] = {"'FilteredData'"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
+  bool is_cft_support{true};
   {
     rcl_subscription_content_filter_options_t options =
       rcl_subscription_get_default_content_filter_options();
@@ -1273,10 +1239,10 @@ TEST_F(
 
     ret = rcl_subscription_set_content_filter(
       &subscription, &options);
-    if (is_vendor_support_cft) {
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if(RCL_RET_UNSUPPORTED == RCL_RET_OK) {
+      is_cft_support = false;
     } else {
-      ASSERT_EQ(RCL_RET_UNSUPPORTED, ret);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     }
 
     EXPECT_EQ(
@@ -1296,7 +1262,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  if (is_vendor_support_cft) {
+  if (is_cft_support) {
     ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
   } else {
     ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
