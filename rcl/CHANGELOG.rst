@@ -2,6 +2,9 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.1 (2022-01-14)
+------------------
+
 5.0.0 (2021-12-14)
 ------------------
 * Make rcl_difference_times args const (`#955 <https://github.com/ros2/rcl/issues/955>`_)

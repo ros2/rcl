@@ -2,6 +2,9 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.1 (2022-01-14)
+------------------
+
 5.0.0 (2021-12-14)
 ------------------
 * Fix up documentation build for rcl_action when using rosdoc2 (`#937 <https://github.com/ros2/rcl/issues/937>`_)
