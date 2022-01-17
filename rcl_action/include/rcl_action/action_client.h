@@ -24,6 +24,7 @@ extern "C"
 #include "rcl_action/visibility_control.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
+#include "rcl/subscription.h"
 
 
 /// Internal action client implementation struct.
@@ -740,6 +741,64 @@ RCL_ACTION_PUBLIC
 bool
 rcl_action_client_is_valid(
   const rcl_action_client_t * action_client);
+
+/// Add a goal uuid.
+/**
+ * This function is to add a goal uuid to the map of rcl_action_client_t
+ * and then try to set content filtered topic if it is supported.
+ *
+ * The caller must provide a lock to call this interface
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] action_client handle to the client that will take the goal response
+ * \param[in] uuid pointer to a uuid which length is 16
+ * \return `RCL_RET_OK` if success on setting a goal uuid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
+ * \return `RCL_RET_UNSUPPORTED` if setting content filtered topic is not supported
+ *         in the middleware, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+rcl_ret_t rcl_action_add_goal_uuid(
+  const rcl_action_client_t * action_client,
+  const uint8_t * uuid);
+
+/// Remove a goal uuid.
+/**
+ * This function is to remove a goal uuid from the map of rcl_action_client_t
+ * and then try to reset content filtered topic if it is supported.
+ *
+ * The caller must provide a lock to call this interface
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] action_client handle to the client that will take the goal response
+ * \param[in] uuid pointer to a uuid which length is 16
+ * \return `RCL_RET_OK` if success on removing a goal uuid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
+ * \return `RCL_RET_UNSUPPORTED` if setting content filtered topic is not supported
+ *         in the middleware, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+rcl_ret_t rcl_action_remove_goal_uuid(
+  const rcl_action_client_t * action_client,
+  const uint8_t * uuid);
 
 #ifdef __cplusplus
 }
