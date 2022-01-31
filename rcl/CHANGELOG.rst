@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.12 (2022-01-31)
+-------------------
+* Add setter and getter for domain_id in rcl_init_options_t (`#678 <https://github.com/ros2/rcl/issues/678>`_) (`#946 <https://github.com/ros2/rcl/issues/946>`_)
+* Fix test_info_by_topic flaky (`#859 <https://github.com/ros2/rcl/issues/859>`_) (`#944 <https://github.com/ros2/rcl/issues/944>`_)
+* Contributors: Jacob Perron, Tomoya.Fujita
+
 1.1.11 (2021-04-14)
 -------------------
 * Update quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#910 <https://github.com/ros2/rcl/issues/910>`_)
