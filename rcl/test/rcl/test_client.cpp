@@ -97,6 +97,9 @@ TEST_F(TestClientFixture, test_client_nominal) {
   EXPECT_EQ(rmw_qos_profile_services_default.history, request_publisher_qos->history);
   EXPECT_EQ(rmw_qos_profile_services_default.depth, request_publisher_qos->depth);
   EXPECT_EQ(rmw_qos_profile_services_default.durability, request_publisher_qos->durability);
+  EXPECT_EQ(
+    rmw_qos_profile_services_default.avoid_ros_namespace_conventions,
+    request_publisher_qos->avoid_ros_namespace_conventions);
 
   const rmw_qos_profile_t * response_subscription_qos =
     rcl_client_response_subscription_get_actual_qos(&client);
@@ -104,6 +107,9 @@ TEST_F(TestClientFixture, test_client_nominal) {
   EXPECT_EQ(rmw_qos_profile_services_default.history, response_subscription_qos->history);
   EXPECT_EQ(rmw_qos_profile_services_default.depth, response_subscription_qos->depth);
   EXPECT_EQ(rmw_qos_profile_services_default.durability, response_subscription_qos->durability);
+  EXPECT_EQ(
+    rmw_qos_profile_services_default.avoid_ros_namespace_conventions,
+    response_subscription_qos->avoid_ros_namespace_conventions);
 
   // Check the return code of initialization and that the service name matches what's expected
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
