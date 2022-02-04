@@ -2,6 +2,9 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.13 (2022-02-04)
+-------------------
+
 1.1.12 (2022-01-31)
 -------------------
 * Add setter and getter for domain_id in rcl_init_options_t (`#678 <https://github.com/ros2/rcl/issues/678>`_) (`#946 <https://github.com/ros2/rcl/issues/946>`_)
