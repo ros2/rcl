@@ -45,7 +45,7 @@ add_library(
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 # specific order: dependents before dependencies
 ament_target_dependencies(rcl_lifecycle
@@ -125,10 +125,14 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-# specific order: dependents before dependencies
-ament_export_include_directories(include)
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(${PROJECT_NAME})
+
+# Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
+
+# specific order: dependents before dependencies
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(lifecycle_msgs)
 ament_export_dependencies(rcl)
@@ -139,4 +143,4 @@ ament_package()
 
 install(
   DIRECTORY include/
-  DESTINATION include)
+  DESTINATION include/${PROJECT_NAME})

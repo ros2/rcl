@@ -33,7 +33,7 @@ add_library(
   ${rcl_yaml_parser_sources})
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 ament_target_dependencies(${PROJECT_NAME} "libyaml_vendor" "rcutils" "rmw")
 
 # Set the visibility to hidden by default if possible
@@ -185,13 +185,17 @@ if(BUILD_TESTING)
   endif()
 endif()
 
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
+ament_export_libraries(${PROJECT_NAME})
+
+# Export modern CMake targets
+ament_export_targets(${PROJECT_NAME})
+
 ament_export_dependencies(ament_cmake libyaml_vendor)
 ament_export_dependencies(rmw)
-ament_export_include_directories(include)
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
-ament_export_libraries(${PROJECT_NAME})
-ament_export_targets(${PROJECT_NAME})
 ament_package()

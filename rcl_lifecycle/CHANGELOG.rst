@@ -2,6 +2,11 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.0.1 (2022-01-14)
+------------------
+* [rcl_lifecycle] Do not share transition event message between nodes (`#956 <https://github.com/ros2/rcl/issues/956>`_)
+* Contributors: Ivan Santiago Paunovic
+
 5.0.0 (2021-12-14)
 ------------------
 * Update maintainers to Ivan Paunovic and William Woodall (`#952 <https://github.com/ros2/rcl/issues/952>`_)
