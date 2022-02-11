@@ -440,6 +440,13 @@ rcl_publisher_can_loan_messages(const rcl_publisher_t * publisher)
   if (!rcl_publisher_is_valid(publisher)) {
     return false;  // error message already set
   }
+
+  bool disable_loaned_message = false;
+  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
+  if (ret == RCL_RET_OK && disable_loaned_message) {
+    return false;
+  }
+
   return publisher->impl->rmw_handle->can_loan_messages;
 }
 
