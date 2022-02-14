@@ -231,7 +231,7 @@ rcl_system_clock_fini(
 
 rcl_ret_t
 rcl_difference_times(
-  rcl_time_point_t * start, rcl_time_point_t * finish, rcl_duration_t * delta)
+  const rcl_time_point_t * start, const rcl_time_point_t * finish, rcl_duration_t * delta)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(start, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(finish, RCL_RET_INVALID_ARGUMENT);
@@ -275,9 +275,9 @@ rcl_clock_call_callbacks(
     rcl_jump_callback_info_t * info = &(clock->jump_callbacks[cb_idx]);
     if (
       (is_clock_change && info->threshold.on_clock_change) ||
-      (time_jump->delta.nanoseconds < 0 &&
+      (info->threshold.min_backward.nanoseconds < 0 &&
       time_jump->delta.nanoseconds <= info->threshold.min_backward.nanoseconds) ||
-      (time_jump->delta.nanoseconds > 0 &&
+      (info->threshold.min_forward.nanoseconds > 0 &&
       time_jump->delta.nanoseconds >= info->threshold.min_forward.nanoseconds))
     {
       info->callback(time_jump, before_jump, info->user_data);

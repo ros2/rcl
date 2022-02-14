@@ -69,7 +69,7 @@ set(${PROJECT_NAME}_sources
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
   "rcl_interfaces"
@@ -104,11 +104,13 @@ install(
 # This is overwritten each loop, but which one it points to doesn't really matter.
 set(rcl_lib_dir "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 
-# specific order: dependents before dependencies
-ament_export_include_directories(include)
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(${PROJECT_NAME})
+# Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
 
+# specific order: dependents before dependencies
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl_interfaces)
 ament_export_dependencies(rcl_logging_interface)
@@ -135,5 +137,5 @@ install(
 )
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
