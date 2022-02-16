@@ -802,15 +802,7 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
 
-  if (is_fastrtps) {
-    // Check not supported
-    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
-
-    // clean up and exit test early
-    return;
-  } else {
-    EXPECT_EQ(ret, RCL_RET_OK);
-  }
+  EXPECT_EQ(ret, RCL_RET_OK);
 
   // Can't reproduce reliably this event
   // Test that take_event is able to read the configured event
