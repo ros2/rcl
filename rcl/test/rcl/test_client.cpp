@@ -91,6 +91,26 @@ TEST_F(TestClientFixture, test_client_nominal) {
   EXPECT_EQ(rmw_qos_profile_services_default.depth, client_internal_options->qos.depth);
   EXPECT_EQ(rmw_qos_profile_services_default.durability, client_internal_options->qos.durability);
 
+  const rmw_qos_profile_t * request_publisher_qos =
+    rcl_client_request_publisher_get_actual_qos(&client);
+  EXPECT_EQ(rmw_qos_profile_services_default.reliability, request_publisher_qos->reliability);
+  EXPECT_EQ(rmw_qos_profile_services_default.history, request_publisher_qos->history);
+  EXPECT_EQ(rmw_qos_profile_services_default.depth, request_publisher_qos->depth);
+  EXPECT_EQ(rmw_qos_profile_services_default.durability, request_publisher_qos->durability);
+  EXPECT_EQ(
+    rmw_qos_profile_services_default.avoid_ros_namespace_conventions,
+    request_publisher_qos->avoid_ros_namespace_conventions);
+
+  const rmw_qos_profile_t * response_subscription_qos =
+    rcl_client_response_subscription_get_actual_qos(&client);
+  EXPECT_EQ(rmw_qos_profile_services_default.reliability, response_subscription_qos->reliability);
+  EXPECT_EQ(rmw_qos_profile_services_default.history, response_subscription_qos->history);
+  EXPECT_EQ(rmw_qos_profile_services_default.depth, response_subscription_qos->depth);
+  EXPECT_EQ(rmw_qos_profile_services_default.durability, response_subscription_qos->durability);
+  EXPECT_EQ(
+    rmw_qos_profile_services_default.avoid_ros_namespace_conventions,
+    response_subscription_qos->avoid_ros_namespace_conventions);
+
   // Check the return code of initialization and that the service name matches what's expected
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(strcmp(rcl_client_get_service_name(&client), expected_topic_name), 0);
@@ -261,6 +281,8 @@ TEST_F(TestClientFixture, test_client_bad_arguments) {
     RCL_RET_CLIENT_INVALID, rcl_send_request(
       nullptr, &client_request, &sequence_number)) << rcl_get_error_string().str;
   EXPECT_EQ(24, sequence_number);
+  EXPECT_EQ(nullptr, rcl_client_request_publisher_get_actual_qos(nullptr));
+  EXPECT_EQ(nullptr, rcl_client_response_subscription_get_actual_qos(nullptr));
 
   // Not init client
   EXPECT_EQ(nullptr, rcl_client_get_rmw_handle(&client));
@@ -277,6 +299,8 @@ TEST_F(TestClientFixture, test_client_bad_arguments) {
     RCL_RET_CLIENT_INVALID, rcl_send_request(
       &client, &client_request, &sequence_number)) << rcl_get_error_string().str;
   EXPECT_EQ(24, sequence_number);
+  EXPECT_EQ(nullptr, rcl_client_request_publisher_get_actual_qos(&client));
+  EXPECT_EQ(nullptr, rcl_client_response_subscription_get_actual_qos(&client));
 }
 
 TEST_F(TestClientFixture, test_client_init_fini_maybe_fail)
