@@ -66,8 +66,6 @@ class CLASSNAME (TestEventFixture, RMW_IMPLEMENTATION)
 public:
   void SetUp()
   {
-    is_fastrtps = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
-
     rcl_ret_t ret;
     {
       rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -237,7 +235,6 @@ protected:
   rcl_event_t publisher_event;
   rcl_subscription_t subscription;
   rcl_event_t subscription_event;
-  bool is_fastrtps;
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
 };
@@ -616,33 +613,9 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
   const auto & error_msg = input.error_msg;
 
   setup_publisher_subscriber(publisher_qos_profile, subscription_qos_profile);
-  if (is_fastrtps) {
-    rcl_ret_t ret;
-
-    // init publisher events
-    publisher_event = rcl_get_zero_initialized_event();
-    ret = rcl_publisher_event_init(
-      &publisher_event,
-      &publisher,
-      RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS);
-    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
-
-    // init subscription event
-    subscription_event = rcl_get_zero_initialized_event();
-    ret = rcl_subscription_event_init(
-      &subscription_event,
-      &subscription,
-      RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
-    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
-
-    // clean up and exit test early
-    tear_down_publisher_subscriber();
-    return;
-  } else {
-    setup_publisher_subscriber_events(
-      RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
-      RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
-  }
+  setup_publisher_subscriber_events(
+    RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
+    RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
 
   WaitConditionPredicate events_ready = [](
     const bool & /*msg_persist_ready*/,
@@ -802,15 +775,7 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
 
-  if (is_fastrtps) {
-    // Check not supported
-    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED);
-
-    // clean up and exit test early
-    return;
-  } else {
-    EXPECT_EQ(ret, RCL_RET_OK);
-  }
+  EXPECT_EQ(ret, RCL_RET_OK);
 
   // Can't reproduce reliably this event
   // Test that take_event is able to read the configured event
