@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <string>
 #include <thread>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
@@ -725,6 +726,106 @@ TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal
 
   test_msgs__action__Fibonacci_SendGoal_Request__fini(&outgoing_goal_request);
   test_msgs__action__Fibonacci_SendGoal_Request__fini(&incoming_goal_request);
+}
+
+TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_valid_feedback_comm_cft)
+{
+  #define FEEDBACK_SIZE 2
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback[FEEDBACK_SIZE];
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback[FEEDBACK_SIZE];
+  for (size_t i = 0; i < FEEDBACK_SIZE; ++i) {
+    test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback[i]);
+    test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback[i]);
+  }
+
+  uint8_t uuid[UUID_SIZE];
+  init_test_uuid0(uuid);
+  rcl_ret_t ret = rcl_action_add_goal_uuid(&this->action_client, uuid);
+  bool if_cft_supported = false;
+  if (ret != RMW_RET_OK) {
+    ASSERT_EQ(ret, RCL_RET_UNSUPPORTED) << rcl_get_error_string().str;
+  } else {
+    if_cft_supported = true;
+  }
+
+  // Initialize feedback
+  // set uuid of feedback with uuid0 if index is 0, otherwise the uuid of feedback is uuid1
+  for (size_t i = 0; i < FEEDBACK_SIZE; ++i) {
+    ASSERT_TRUE(
+      rosidl_runtime_c__int32__Sequence__init(
+        &outgoing_feedback[i].feedback.sequence, 3));
+    outgoing_feedback[i].feedback.sequence.data[0] = 0;
+    outgoing_feedback[i].feedback.sequence.data[1] = 1;
+    outgoing_feedback[i].feedback.sequence.data[2] = 2;
+    i == 0 ? init_test_uuid0(outgoing_feedback[i].goal_id.uuid) :
+    init_test_uuid1(outgoing_feedback[i].goal_id.uuid);
+  }
+
+  // Publish feedback with valid arguments
+  for (size_t i = 0; i < FEEDBACK_SIZE; ++i) {
+    ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback[i]);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+    ret = rcl_wait_set_clear(&this->wait_set);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+    ret = rcl_action_wait_set_add_action_client(
+      &this->wait_set, &this->action_client, NULL, NULL);
+    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+    ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
+    // if content filter is unsupported, the action client will receive different action feedback
+    // message, otherwise it will only receive the matched uuid0 feedback message.
+    if (!if_cft_supported || 0 == i) {
+      ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+      ret = rcl_action_client_wait_set_get_entities_ready(
+        &this->wait_set,
+        &this->action_client,
+        &this->is_feedback_ready,
+        &this->is_status_ready,
+        &this->is_goal_response_ready,
+        &this->is_cancel_response_ready,
+        &this->is_result_response_ready);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+      EXPECT_TRUE(this->is_feedback_ready);
+      EXPECT_FALSE(this->is_status_ready);
+      EXPECT_FALSE(this->is_result_response_ready);
+      EXPECT_FALSE(this->is_cancel_response_ready);
+      EXPECT_FALSE(this->is_goal_response_ready);
+
+      // Take feedback with valid arguments
+      ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback[i]);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+      // Check that feedback was received correctly
+      EXPECT_TRUE(
+        uuidcmp(
+          outgoing_feedback[i].goal_id.uuid,
+          incoming_feedback[i].goal_id.uuid));
+      ASSERT_EQ(
+        outgoing_feedback[i].feedback.sequence.size, incoming_feedback[i].feedback.sequence.size);
+      EXPECT_TRUE(
+        !memcmp(
+          outgoing_feedback[i].feedback.sequence.data,
+          incoming_feedback[i].feedback.sequence.data,
+          outgoing_feedback[i].feedback.sequence.size));
+    } else {
+      EXPECT_EQ(ret, RCL_RET_TIMEOUT) << rcl_get_error_string().str;
+    }
+  }
+
+  ret = rcl_action_remove_goal_uuid(&this->action_client, uuid);
+  if (if_cft_supported) {
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  } else {
+    EXPECT_EQ(ret, RCL_RET_UNSUPPORTED) << rcl_get_error_string().str;
+  }
+
+  for (size_t i = 0; i < FEEDBACK_SIZE; ++i) {
+    test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback[i]);
+    test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback[i]);
+  }
 }
 
 TEST_F(CLASSNAME(TestActionCommunication, RMW_IMPLEMENTATION), test_invalid_goal_response_opts)

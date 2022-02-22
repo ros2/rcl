@@ -27,6 +27,37 @@ extern "C"
 
 #define RCL_UNUSED(x) RCUTILS_UNUSED(x)
 
+#define RCL_RET_FROM_RCUTIL_RET(rcl_ret_var, rcutils_expr) \
+  { \
+    rcutils_ret_t rcutils_ret = rcutils_expr; \
+    if (RCUTILS_RET_OK != rcutils_ret) { \
+      if (rcutils_error_is_set()) { \
+        RCL_SET_ERROR_MSG(rcutils_get_error_string().str); \
+      } else { \
+        RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("rcutils_ret_t code: %i", rcutils_ret); \
+      } \
+    } \
+    switch (rcutils_ret) { \
+      case RCUTILS_RET_OK: \
+        rcl_ret_var = RCL_RET_OK; \
+        break; \
+      case RCUTILS_RET_ERROR: \
+        rcl_ret_var = RCL_RET_ERROR; \
+        break; \
+      case RCUTILS_RET_BAD_ALLOC: \
+        rcl_ret_var = RCL_RET_BAD_ALLOC; \
+        break; \
+      case RCUTILS_RET_INVALID_ARGUMENT: \
+        rcl_ret_var = RCL_RET_INVALID_ARGUMENT; \
+        break; \
+      case RCUTILS_RET_NOT_INITIALIZED: \
+        rcl_ret_var = RCL_RET_NOT_INIT; \
+        break; \
+      default: \
+        rcl_ret_var = RCUTILS_RET_ERROR; \
+    } \
+  }
+
 #ifdef __cplusplus
 }
 #endif

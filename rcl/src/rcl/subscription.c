@@ -24,7 +24,10 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/strdup.h"
+#include "rcutils/types/string_array.h"
 #include "rmw/error_handling.h"
+#include "rmw/subscription_content_filter_options.h"
 #include "rmw/validate_full_topic_name.h"
 #include "tracetools/tracetools.h"
 
@@ -88,8 +91,8 @@ rcl_subscription_init(
     ROS_PACKAGE_NAME, "Expanded and remapped topic name '%s'", remapped_topic_name);
 
   // Allocate memory for the implementation struct.
-  subscription->impl = (rcl_subscription_impl_t *)allocator->allocate(
-    sizeof(rcl_subscription_impl_t), allocator->state);
+  subscription->impl = (rcl_subscription_impl_t *)allocator->zero_allocate(
+    1, sizeof(rcl_subscription_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
   // Fill out the implemenation struct.
@@ -117,6 +120,7 @@ rcl_subscription_init(
     options->qos.avoid_ros_namespace_conventions;
   // options
   subscription->impl->options = *options;
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
   TRACEPOINT(
@@ -136,6 +140,12 @@ fail:
         RCUTILS_SAFE_FWRITE_TO_STDERR(rmw_get_error_string().str);
         RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
       }
+    }
+
+    ret = rcl_subscription_options_fini(&subscription->impl->options);
+    if (RCL_RET_OK != ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rmw_get_error_string().str);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
     }
 
     allocator->deallocate(subscription->impl, allocator->state);
@@ -174,6 +184,13 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
+    rcl_ret_t rcl_ret = rcl_subscription_options_fini(&subscription->impl->options);
+    if (RCL_RET_OK != rcl_ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+      result = RCL_RET_ERROR;
+    }
+
     allocator.deallocate(subscription->impl, allocator.state);
     subscription->impl = NULL;
   }
@@ -191,6 +208,277 @@ rcl_subscription_get_default_options()
   default_options.allocator = rcl_get_default_allocator();
   default_options.rmw_subscription_options = rmw_get_default_subscription_options();
   return default_options;
+}
+
+rcl_ret_t
+rcl_subscription_options_fini(rcl_subscription_options_t * option)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(option, RCL_RET_INVALID_ARGUMENT);
+  // fini rmw_subscription_options_t
+  const rcl_allocator_t * allocator = &option->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  if (option->rmw_subscription_options.content_filter_options) {
+    rmw_ret_t ret = rmw_subscription_content_filter_options_fini(
+      option->rmw_subscription_options.content_filter_options, allocator);
+    if (RCUTILS_RET_OK != ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to fini content filter options.\n");
+      return rcl_convert_rmw_ret_to_rcl_ret(ret);
+    }
+    allocator->deallocate(
+      option->rmw_subscription_options.content_filter_options, allocator->state);
+    option->rmw_subscription_options.content_filter_options = NULL;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_subscription_options_set_content_filter_options(
+  const char * filter_expression,
+  size_t expression_parameters_argc,
+  const char * expression_parameter_argv[],
+  rcl_subscription_options_t * options)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(filter_expression, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret;
+  rmw_subscription_content_filter_options_t * content_filter_options =
+    allocator->allocate(
+    sizeof(rmw_subscription_content_filter_options_t), allocator->state);
+  if (!content_filter_options) {
+    RCL_SET_ERROR_MSG("allocating memory failed");
+    return RCL_RET_BAD_ALLOC;
+  }
+
+  *content_filter_options = rmw_get_zero_initialized_content_filter_options();
+
+  rmw_ret_t rmw_ret = rmw_subscription_content_filter_options_set(
+    filter_expression,
+    expression_parameters_argc,
+    expression_parameter_argv,
+    allocator,
+    content_filter_options
+  );
+
+  if (rmw_ret != RMW_RET_OK) {
+    ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    goto failed;
+  }
+
+  if (options->rmw_subscription_options.content_filter_options) {
+    rmw_ret = rmw_subscription_content_filter_options_fini(
+      options->rmw_subscription_options.content_filter_options,
+      allocator
+    );
+
+    if (rmw_ret != RMW_RET_OK) {
+      return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    }
+
+    allocator->deallocate(
+      options->rmw_subscription_options.content_filter_options, allocator->state);
+    options->rmw_subscription_options.content_filter_options = NULL;
+  }
+  options->rmw_subscription_options.content_filter_options = content_filter_options;
+
+  return RCL_RET_OK;
+
+failed:
+  allocator->deallocate(content_filter_options, allocator->state);
+  return ret;
+}
+
+rcl_subscription_content_filter_options_t
+rcl_subscription_get_default_content_filter_options()
+{
+  static rcl_subscription_content_filter_options_t default_options;
+  default_options.allocator = rcl_get_default_allocator();
+  default_options.rmw_subscription_content_filter_options = NULL;
+  return default_options;
+}
+
+rcl_ret_t
+rcl_subscription_content_filter_options_init(
+  const char * filter_expression,
+  size_t expression_parameters_argc,
+  const char * expression_parameter_argv[],
+  rcl_subscription_content_filter_options_t * options)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret;
+  rmw_subscription_content_filter_options_t * content_filter_options =
+    allocator->allocate(
+    sizeof(rmw_subscription_content_filter_options_t), allocator->state);
+  if (!content_filter_options) {
+    RCL_SET_ERROR_MSG("allocating memory failed");
+    return RCL_RET_BAD_ALLOC;
+  }
+  *content_filter_options = rmw_get_zero_initialized_content_filter_options();
+
+  rmw_ret_t rmw_ret = rmw_subscription_content_filter_options_init(
+    filter_expression,
+    expression_parameters_argc,
+    expression_parameter_argv,
+    allocator,
+    content_filter_options
+  );
+  if (rmw_ret != RMW_RET_OK) {
+    ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    goto failed;
+  }
+  options->rmw_subscription_content_filter_options = content_filter_options;
+
+  return RCL_RET_OK;
+
+failed:
+  allocator->deallocate(content_filter_options, allocator->state);
+  return ret;
+}
+
+rcl_ret_t
+rcl_subscription_content_filter_options_set(
+  const char * filter_expression,
+  size_t expression_parameters_argc,
+  const char * expression_parameter_argv[],
+  rcl_subscription_content_filter_options_t * options)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(filter_expression, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rmw_ret_t ret = rmw_subscription_content_filter_options_set(
+    filter_expression,
+    expression_parameters_argc,
+    expression_parameter_argv,
+    allocator,
+    options->rmw_subscription_content_filter_options
+  );
+  return rcl_convert_rmw_ret_to_rcl_ret(ret);
+}
+
+rcl_ret_t
+rcl_subscription_content_filter_options_fini(
+  rcl_subscription_content_filter_options_t * options)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rmw_ret_t ret = rmw_subscription_content_filter_options_fini(
+    options->rmw_subscription_content_filter_options,
+    allocator
+  );
+
+  if (ret != RMW_RET_OK) {
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+
+  allocator->deallocate(options->rmw_subscription_content_filter_options, allocator->state);
+  return RCL_RET_OK;
+}
+
+bool
+rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    return false;
+  }
+  return subscription->impl->rmw_handle->is_cft_enabled;
+}
+
+rcl_ret_t
+rcl_subscription_set_content_filter(
+  const rcl_subscription_t * subscription,
+  const rcl_subscription_content_filter_options_t * options
+)
+{
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_SUBSCRIPTION_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
+
+  rcl_allocator_t * allocator = (rcl_allocator_t *)&subscription->impl->options.allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t ret = rmw_subscription_set_content_filter(
+    subscription->impl->rmw_handle,
+    options->rmw_subscription_content_filter_options);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+
+  // copy options into subscription_options
+  rmw_subscription_content_filter_options_t * content_filter_options =
+    options->rmw_subscription_content_filter_options;
+  size_t expression_parameters_size = 0;
+  const char ** expression_parameters = NULL;
+  if (content_filter_options->expression_parameters) {
+    expression_parameters_size = content_filter_options->expression_parameters->size;
+    expression_parameters =
+      (const char **)content_filter_options->expression_parameters->data;
+  }
+  return rcl_subscription_options_set_content_filter_options(
+    content_filter_options->filter_expression,
+    expression_parameters_size,
+    expression_parameters,
+    &subscription->impl->options
+  );
+}
+
+rcl_ret_t
+rcl_subscription_get_content_filter(
+  const rcl_subscription_t * subscription,
+  rcl_subscription_content_filter_options_t * options
+)
+{
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_SUBSCRIPTION_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret;
+  rmw_subscription_content_filter_options_t * content_filter_options =
+    allocator->allocate(
+    sizeof(rmw_subscription_content_filter_options_t), allocator->state);
+  if (!content_filter_options) {
+    RCL_SET_ERROR_MSG("allocating memory failed");
+    return RCL_RET_BAD_ALLOC;
+  }
+  *content_filter_options = rmw_get_zero_initialized_content_filter_options();
+
+  rmw_ret_t rmw_ret = rmw_subscription_get_content_filter(
+    subscription->impl->rmw_handle,
+    &options->allocator, content_filter_options);
+
+  if (rmw_ret != RMW_RET_OK) {
+    ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    goto failed;
+  }
+
+  options->rmw_subscription_content_filter_options = content_filter_options;
+
+  return RCL_RET_OK;
+
+failed:
+  allocator->deallocate(content_filter_options, allocator->state);
+  return ret;
 }
 
 rcl_ret_t
