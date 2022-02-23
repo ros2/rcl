@@ -34,6 +34,7 @@ extern "C"
 #include "rcl/remap.h"
 #include "rcl/security.h"
 
+#include "rcutils/env.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/find.h"
 #include "rcutils/format_string.h"
@@ -51,6 +52,8 @@ extern "C"
 #include "tracetools/tracetools.h"
 
 #include "./context_impl.h"
+
+const char * const RCL_DISABLE_LOANED_MESSAGES_ENV_VAR = "ROS_DISABLE_LOANED_MESSAGES";
 
 struct rcl_node_impl_s
 {
@@ -514,6 +517,25 @@ rcl_node_get_logger_name(const rcl_node_t * node)
   return node->impl->logger_name;
 }
 
+rcl_ret_t
+rcl_get_disable_loaned_message(bool * disable_loaned_message)
+{
+  const char * env_val = NULL;
+  const char * env_error_str = NULL;
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(disable_loaned_message, RCL_RET_INVALID_ARGUMENT);
+
+  env_error_str = rcutils_get_env(RCL_DISABLE_LOANED_MESSAGES_ENV_VAR, &env_val);
+  if (NULL != env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var: '" RCUTILS_STRINGIFY(RCL_DISABLE_LOANED_MESSAGES_ENV_VAR) "': %s\n",
+      env_error_str);
+    return RCL_RET_ERROR;
+  }
+
+  *disable_loaned_message = (strcmp(env_val, "1") == 0);
+  return RCL_RET_OK;
+}
 #ifdef __cplusplus
 }
 #endif

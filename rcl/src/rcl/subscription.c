@@ -435,6 +435,13 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
   if (!rcl_subscription_is_valid(subscription)) {
     return false;  // error message already set
   }
+
+  bool disable_loaned_message = false;
+  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
+  if (ret == RCL_RET_OK && disable_loaned_message) {
+    return false;
+  }
+
   return subscription->impl->rmw_handle->can_loan_messages;
 }
 

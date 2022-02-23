@@ -30,6 +30,8 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rcl/node.h"
+#include "rcutils/env.h"
 #include "wait_for_entity_helpers.hpp"
 
 #include "./allocator_testing_utils.h"
@@ -709,6 +711,42 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       std::string(msg_loaned->string_value.data, msg_loaned->string_value.size));
     ret = rcl_return_loaned_message_from_subscription(&subscription, msg_loaned);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+}
+
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loan_disable) {
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  constexpr char topic[] = "pod_msg";
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  rcl_ret_t ret =
+    rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  if (rcl_subscription_can_loan_messages(&subscription)) {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "0"));
+    EXPECT_TRUE(rcl_subscription_can_loan_messages(&subscription));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
+    EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "2"));
+    EXPECT_TRUE(rcl_subscription_can_loan_messages(&subscription));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "Unexpected"));
+    EXPECT_TRUE(rcl_subscription_can_loan_messages(&subscription));
+  } else {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "0"));
+    EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
+    EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "2"));
+    EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "Unexpected"));
+    EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
   }
 }
 
