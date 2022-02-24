@@ -445,6 +445,23 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
   return subscription->impl->rmw_handle->can_loan_messages;
 }
 
+rcl_ret_t
+rcl_subscription_set_on_new_message_callback(
+  const rcl_subscription_t * subscription,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  return rmw_subscription_set_on_new_message_callback(
+    subscription->impl->rmw_handle,
+    callback,
+    user_data);
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -327,6 +327,24 @@ rcl_client_response_subscription_get_actual_qos(const rcl_client_t * client)
   }
   return &client->impl->actual_response_subscription_qos;
 }
+
+rcl_ret_t
+rcl_client_set_on_new_response_callback(
+  const rcl_client_t * client,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_client_is_valid(client)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  return rmw_client_set_on_new_response_callback(
+    client->impl->rmw_handle,
+    callback,
+    user_data);
+}
+
 #ifdef __cplusplus
 }
 #endif

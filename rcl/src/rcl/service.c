@@ -346,6 +346,23 @@ rcl_service_response_publisher_get_actual_qos(const rcl_service_t * service)
   return &service->impl->actual_response_publisher_qos;
 }
 
+rcl_ret_t
+rcl_service_set_on_new_request_callback(
+  const rcl_service_t * service,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_service_is_valid(service)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  return rmw_service_set_on_new_request_callback(
+    service->impl->rmw_handle,
+    callback,
+    user_data);
+}
+
 #ifdef __cplusplus
 }
 #endif
