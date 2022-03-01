@@ -2,6 +2,12 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add Events Executor (`#839 <https://github.com/ros2/rcl/issues/839>`_)
+* Install includes it include/${PROJECT_NAME} (`#959 <https://github.com/ros2/rcl/issues/959>`_)
+* Contributors: Shane Loretz, iRobot ROS
+
 5.0.1 (2022-01-14)
 ------------------
 

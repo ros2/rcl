@@ -2,6 +2,11 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Install includes it include/${PROJECT_NAME} (`#959 <https://github.com/ros2/rcl/issues/959>`_)
+* Contributors: Shane Loretz
+
 5.0.1 (2022-01-14)
 ------------------
 * [rcl_lifecycle] Do not share transition event message between nodes (`#956 <https://github.com/ros2/rcl/issues/956>`_)

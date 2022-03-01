@@ -2,6 +2,15 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add Events Executor (`#839 <https://github.com/ros2/rcl/issues/839>`_)
+* Remove fastrtps customization on test_events (`#960 <https://github.com/ros2/rcl/issues/960>`_)
+* Add client/service QoS getters (`#941 <https://github.com/ros2/rcl/issues/941>`_)
+* introduce ROS_DISABLE_LOAN_MSG to disable can_loan_messages. (`#949 <https://github.com/ros2/rcl/issues/949>`_)
+* Install includes it include/${PROJECT_NAME} (`#959 <https://github.com/ros2/rcl/issues/959>`_)
+* Contributors: Miguel Company, Shane Loretz, Tomoya Fujita, iRobot ROS, mauropasse
+
 5.0.1 (2022-01-14)
 ------------------
 
