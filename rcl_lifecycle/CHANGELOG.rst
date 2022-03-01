@@ -2,8 +2,8 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.1.0 (2022-03-01)
+------------------
 * Install includes it include/${PROJECT_NAME} (`#959 <https://github.com/ros2/rcl/issues/959>`_)
 * Contributors: Shane Loretz
 

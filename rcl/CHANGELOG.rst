@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.1.0 (2022-03-01)
+------------------
 * Add Events Executor (`#839 <https://github.com/ros2/rcl/issues/839>`_)
 * Remove fastrtps customization on test_events (`#960 <https://github.com/ros2/rcl/issues/960>`_)
 * Add client/service QoS getters (`#941 <https://github.com/ros2/rcl/issues/941>`_)
