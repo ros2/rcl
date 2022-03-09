@@ -586,10 +586,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     temporary_timeout_storage.sec = 0;
     temporary_timeout_storage.nsec = 0;
     timeout_argument = &temporary_timeout_storage;
-    RCUTILS_LOG_DEBUG_NAMED(
-      ROS_PACKAGE_NAME,
-      "Waiting with timeout: %" PRIu64 "s + %" PRIu64 "ns, based on next scheduled timer: %d",
-      temporary_timeout_storage.sec, temporary_timeout_storage.nsec, is_timer_timeout);
   } else if (timeout > 0 || is_timer_timeout) {
     // If min_timeout was negative, we need to wake up immediately.
     if (min_timeout < 0) {
@@ -598,15 +594,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
     temporary_timeout_storage.nsec = min_timeout % 1000000000;
     timeout_argument = &temporary_timeout_storage;
-    RCUTILS_LOG_DEBUG_NAMED(
-      ROS_PACKAGE_NAME,
-      "Waiting with timeout: %" PRIu64 "s + %" PRIu64 "ns, based on next scheduled timer: %d",
-      temporary_timeout_storage.sec, temporary_timeout_storage.nsec, is_timer_timeout);
-  } else {
-    RCUTILS_LOG_DEBUG_NAMED(
-      ROS_PACKAGE_NAME,
-      "Waiting without timeout, based on next scheduled timer: %d",
-      is_timer_timeout);
   }
 
   // Wait.
@@ -634,7 +621,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     if (ret != RCL_RET_OK) {
       return ret;  // The rcl error state should already be set.
     }
-    RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Timer in wait set is ready");
     if (!is_ready) {
       wait_set->timers[i] = NULL;
     }
@@ -647,8 +633,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // Set corresponding rcl subscription handles NULL.
   for (i = 0; i < wait_set->size_of_subscriptions; ++i) {
     bool is_ready = wait_set->impl->rmw_subscriptions.subscribers[i] != NULL;
-    RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
-      is_ready, ROS_PACKAGE_NAME, "Subscription in wait set is ready");
     if (!is_ready) {
       wait_set->subscriptions[i] = NULL;
     }
@@ -656,8 +640,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // Set corresponding rcl guard_condition handles NULL.
   for (i = 0; i < wait_set->size_of_guard_conditions; ++i) {
     bool is_ready = wait_set->impl->rmw_guard_conditions.guard_conditions[i] != NULL;
-    RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
-      is_ready, ROS_PACKAGE_NAME, "Guard condition in wait set is ready");
     if (!is_ready) {
       wait_set->guard_conditions[i] = NULL;
     }
@@ -665,7 +647,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // Set corresponding rcl client handles NULL.
   for (i = 0; i < wait_set->size_of_clients; ++i) {
     bool is_ready = wait_set->impl->rmw_clients.clients[i] != NULL;
-    RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Client in wait set is ready");
     if (!is_ready) {
       wait_set->clients[i] = NULL;
     }
@@ -673,7 +654,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // Set corresponding rcl service handles NULL.
   for (i = 0; i < wait_set->size_of_services; ++i) {
     bool is_ready = wait_set->impl->rmw_services.services[i] != NULL;
-    RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Service in wait set is ready");
     if (!is_ready) {
       wait_set->services[i] = NULL;
     }
@@ -681,7 +661,6 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   // Set corresponding rcl event handles NULL.
   for (i = 0; i < wait_set->size_of_events; ++i) {
     bool is_ready = wait_set->impl->rmw_events.events[i] != NULL;
-    RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(is_ready, ROS_PACKAGE_NAME, "Event in wait set is ready");
     if (!is_ready) {
       wait_set->events[i] = NULL;
     }
