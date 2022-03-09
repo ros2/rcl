@@ -217,7 +217,7 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
 
 #define SET_ADD(Type) \
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT); \
-  if (!rcl_wait_set_is_valid(wait_set)) { \
+  if (!wait_set->impl) { \
     RCL_SET_ERROR_MSG("wait set is invalid"); \
     return RCL_RET_WAIT_SET_INVALID; \
   } \
