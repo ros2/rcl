@@ -586,6 +586,10 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     temporary_timeout_storage.sec = 0;
     temporary_timeout_storage.nsec = 0;
     timeout_argument = &temporary_timeout_storage;
+    RCUTILS_LOG_DEBUG_NAMED(
+      ROS_PACKAGE_NAME,
+      "Waiting with timeout: %" PRIu64 "s + %" PRIu64 "ns, based on next scheduled timer: %d",
+      temporary_timeout_storage.sec, temporary_timeout_storage.nsec, is_timer_timeout);
   } else if (timeout > 0 || is_timer_timeout) {
     // If min_timeout was negative, we need to wake up immediately.
     if (min_timeout < 0) {
@@ -594,16 +598,16 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     temporary_timeout_storage.sec = RCL_NS_TO_S(min_timeout);
     temporary_timeout_storage.nsec = min_timeout % 1000000000;
     timeout_argument = &temporary_timeout_storage;
+    RCUTILS_LOG_DEBUG_NAMED(
+      ROS_PACKAGE_NAME,
+      "Waiting with timeout: %" PRIu64 "s + %" PRIu64 "ns, based on next scheduled timer: %d",
+      temporary_timeout_storage.sec, temporary_timeout_storage.nsec, is_timer_timeout);
+  } else {
+    RCUTILS_LOG_DEBUG_NAMED(
+      ROS_PACKAGE_NAME,
+      "Waiting without timeout, based on next scheduled timer: %d",
+      is_timer_timeout);
   }
-  RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
-    !timeout_argument, ROS_PACKAGE_NAME, "Waiting without timeout");
-  RCUTILS_LOG_DEBUG_EXPRESSION_NAMED(
-    timeout_argument, ROS_PACKAGE_NAME,
-    "Waiting with timeout: %" PRIu64 "s + %" PRIu64 "ns",
-    temporary_timeout_storage.sec, temporary_timeout_storage.nsec);
-  RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Timeout calculated based on next scheduled timer: %s",
-    is_timer_timeout ? "true" : "false");
 
   // Wait.
   rmw_ret_t ret = rmw_wait(
