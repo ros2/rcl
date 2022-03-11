@@ -297,10 +297,13 @@ rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready)
   RCL_CHECK_ARGUMENT_FOR_NULL(is_ready, RCL_RET_INVALID_ARGUMENT);
   int64_t time_until_next_call;
   rcl_ret_t ret = rcl_timer_get_time_until_next_call(timer, &time_until_next_call);
-  if (ret != RCL_RET_OK) {
+  if (ret == RCL_RET_TIMER_CANCELED) {
+    *is_ready = false;
+    return RCL_RET_OK;
+  } else if (ret != RCL_RET_OK) {
     return ret;  // rcl error state should already be set.
   }
-  *is_ready = (time_until_next_call <= 0) && !rcutils_atomic_load_bool(&timer->impl->canceled);
+  *is_ready = (time_until_next_call <= 0);
   return RCL_RET_OK;
 }
 
@@ -309,6 +312,9 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(time_until_next_call, RCL_RET_INVALID_ARGUMENT);
+  if (rcutils_atomic_load_bool(&timer->impl->canceled)) {
+    return RCL_RET_TIMER_CANCELED;
+  }
   rcl_time_point_value_t now;
   rcl_ret_t ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (ret != RCL_RET_OK) {
