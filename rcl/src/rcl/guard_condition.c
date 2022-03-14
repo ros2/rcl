@@ -31,6 +31,7 @@ struct rcl_guard_condition_impl_s
   rmw_guard_condition_t * rmw_handle;
   bool allocated_rmw_guard_condition;
   rcl_guard_condition_options_t options;
+  rcl_guard_condition_callback_data_t callback_data;
 };
 
 rcl_guard_condition_t
@@ -105,7 +106,19 @@ rcl_guard_condition_init(
   const rcl_guard_condition_options_t options)
 {
   // NULL indicates "create a new rmw guard condition".
-  return __rcl_guard_condition_init_from_rmw_impl(guard_condition, NULL, context, options);
+  rcl_ret_t ret = __rcl_guard_condition_init_from_rmw_impl(
+    guard_condition, NULL, context, options);
+
+  if (ret != RCL_RET_OK) {
+    return ret;
+  }
+
+  // Empty init callback data
+  guard_condition->impl->callback_data.on_trigger_callback = NULL;
+  guard_condition->impl->callback_data.user_data = NULL;
+  guard_condition->impl->callback_data.trigger_count = 0;
+
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
@@ -161,6 +174,14 @@ rcl_trigger_guard_condition(rcl_guard_condition_t * guard_condition)
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
+
+  rcl_guard_condition_callback_data_t * cb_data = &guard_condition->impl->callback_data;
+
+  if (cb_data->on_trigger_callback) {
+    cb_data->on_trigger_callback(cb_data->user_data, 1);
+  } else {
+    cb_data->trigger_count++;
+  }
   return RCL_RET_OK;
 }
 
@@ -184,6 +205,31 @@ rcl_guard_condition_get_rmw_handle(const rcl_guard_condition_t * guard_condition
     return NULL;  // error already set
   }
   return guard_condition->impl->rmw_handle;
+}
+
+rcl_ret_t
+rcl_guard_condition_set_on_trigger_callback(
+  const rcl_guard_condition_t * guard_condition,
+  rcl_event_callback_t on_trigger_callback,
+  const void * user_data)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(guard_condition, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_guard_condition_callback_data_t * cb_data = &guard_condition->impl->callback_data;
+
+  if (on_trigger_callback) {
+    cb_data->on_trigger_callback = on_trigger_callback;
+    cb_data->user_data = user_data;
+    if (cb_data->trigger_count) {
+      cb_data->on_trigger_callback(user_data, cb_data->trigger_count);
+      cb_data->trigger_count = 0;
+    }
+  } else {
+    cb_data->on_trigger_callback = NULL;
+    cb_data->user_data = NULL;
+  }
+
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus

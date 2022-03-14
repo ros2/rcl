@@ -24,6 +24,7 @@ extern "C"
 
 #include "rcl/allocator.h"
 #include "rcl/context.h"
+#include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
@@ -47,6 +48,14 @@ typedef struct rcl_guard_condition_options_s
   /// Custom allocator for the guard condition, used for internal allocations.
   rcl_allocator_t allocator;
 } rcl_guard_condition_options_t;
+
+/// On trigger callback data
+typedef struct rcl_guard_condition_callback_data_s
+{
+  rcl_event_callback_t on_trigger_callback;
+  const void * user_data;
+  size_t trigger_count;
+} rcl_guard_condition_callback_data_t;
 
 /// Return a rcl_guard_condition_t struct with members set to `NULL`.
 RCL_PUBLIC
@@ -261,6 +270,34 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rmw_guard_condition_t *
 rcl_guard_condition_get_rmw_handle(const rcl_guard_condition_t * guard_condition);
+
+/// Set the on trigger callback function for the guard_condition.
+/**
+ * This API sets the callback function to be called whenever the
+ * guard_condition is triggered.
+ *
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] guard_condition The guard_condition on which to set the callback
+ * \param[in] on_trigger_callback The callback to be called when guard condition is triggered
+ * \param[in] user_data Given to the callback when called later, may be NULL
+ * \return `RCL_RET_OK` if successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `guard_condition` is NULL
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_guard_condition_set_on_trigger_callback(
+  const rcl_guard_condition_t * guard_condition,
+  rcl_event_callback_t on_trigger_callback,
+  const void * user_data);
 
 #ifdef __cplusplus
 }

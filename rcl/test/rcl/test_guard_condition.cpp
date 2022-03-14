@@ -251,3 +251,61 @@ TEST_F(
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_trigger_guard_condition(&zero_guard_condition));
   rcl_reset_error();
 }
+
+size_t global_trigger_count_ = 0;
+void guard_condition_on_trigger_callback(
+  const void * user_data,
+  size_t trigger_count)
+{
+  (void)user_data;
+  global_trigger_count_ = trigger_count;
+}
+
+/* Test rcl_guard_condition_set_on_trigger_callback
+ */
+TEST_F(
+  CLASSNAME(
+    TestGuardConditionFixture,
+    RMW_IMPLEMENTATION), test_rcl_guard_condition_on_trigger_callback) {
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
+  rcl_guard_condition_options_t default_options = rcl_guard_condition_get_default_options();
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  rcl_init(0, nullptr, &init_options, &context);
+  rcl_guard_condition_init(&guard_condition, &context, default_options);
+  // Set on trigger callback to null guard condition
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_guard_condition_set_on_trigger_callback(nullptr, nullptr, nullptr));
+  // Trigger 3 times, set callback and check global counter
+  size_t trigger_times = 3;
+  for (size_t i = 0; i < trigger_times; i++) {
+    rcl_trigger_guard_condition(&guard_condition);
+  }
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_guard_condition_set_on_trigger_callback(
+      &guard_condition,
+      guard_condition_on_trigger_callback,
+      nullptr));
+  EXPECT_EQ(global_trigger_count_, trigger_times);
+  // Trigger 1 time and check global counter
+  rcl_trigger_guard_condition(&guard_condition);
+  EXPECT_EQ(global_trigger_count_, static_cast<size_t>(1));
+  // Unset callback
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_guard_condition_set_on_trigger_callback(&guard_condition, nullptr, nullptr));
+  // Trigger 3 times, reset callback and check counter
+  for (size_t i = 0; i < trigger_times; i++) {
+    rcl_trigger_guard_condition(&guard_condition);
+  }
+  EXPECT_EQ(
+    RCL_RET_OK,
+    rcl_guard_condition_set_on_trigger_callback(
+      &guard_condition,
+      guard_condition_on_trigger_callback,
+      nullptr));
+  EXPECT_EQ(global_trigger_count_, trigger_times);
+}
