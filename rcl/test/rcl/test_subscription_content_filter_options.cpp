@@ -67,7 +67,8 @@ TEST(TestSubscriptionContentFilterOptions, subscription_options_success)
       subscription_options.rmw_subscription_options.content_filter_options;
     ASSERT_NE(nullptr, content_filter_options);
     EXPECT_STREQ(filter_expression1, content_filter_options->filter_expression);
-    EXPECT_EQ(nullptr, content_filter_options->expression_parameters);
+    EXPECT_EQ(0u, content_filter_options->expression_parameters.size);
+    EXPECT_EQ(nullptr, content_filter_options->expression_parameters.data);
   }
 
   const char * filter_expression2 = "(filter1=%0 OR filter1=%1) AND filter2=%2";
@@ -88,13 +89,12 @@ TEST(TestSubscriptionContentFilterOptions, subscription_options_success)
       subscription_options.rmw_subscription_options.content_filter_options;
     ASSERT_NE(nullptr, content_filter_options);
     EXPECT_STREQ(filter_expression2, content_filter_options->filter_expression);
-    ASSERT_NE(nullptr, content_filter_options->expression_parameters);
     ASSERT_EQ(
       expression_parameters_count2,
-      content_filter_options->expression_parameters->size);
+      content_filter_options->expression_parameters.size);
     for (size_t i = 0; i < expression_parameters_count2; ++i) {
       EXPECT_STREQ(
-        content_filter_options->expression_parameters->data[i],
+        content_filter_options->expression_parameters.data[i],
         expression_parameters2[i]);
     }
   }
@@ -181,7 +181,8 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
       subscription_content_filter_options.rmw_subscription_content_filter_options;
     ASSERT_NE(nullptr, content_filter_options);
     EXPECT_STREQ(filter_expression1, content_filter_options->filter_expression);
-    EXPECT_EQ(nullptr, content_filter_options->expression_parameters);
+    EXPECT_EQ(0u, content_filter_options->expression_parameters.size);
+    EXPECT_EQ(nullptr, content_filter_options->expression_parameters.data);
 
     // set with filter_expression1_update
     EXPECT_EQ(
@@ -194,7 +195,8 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
       subscription_content_filter_options.rmw_subscription_content_filter_options;
     ASSERT_NE(nullptr, content_filter_options);
     EXPECT_STREQ(filter_expression1_update, content_filter_options->filter_expression);
-    EXPECT_EQ(nullptr, content_filter_options->expression_parameters);
+    EXPECT_EQ(0u, content_filter_options->expression_parameters.size);
+    EXPECT_EQ(nullptr, content_filter_options->expression_parameters.data);
   }
 
   const char * filter_expression2 = "(filter1=%0 OR filter1=%1) AND filter2=%2";
@@ -224,13 +226,12 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
       subscription_content_filter_options2.rmw_subscription_content_filter_options;
     ASSERT_NE(nullptr, content_filter_options);
     EXPECT_STREQ(filter_expression2, content_filter_options->filter_expression);
-    ASSERT_NE(nullptr, content_filter_options->expression_parameters);
     ASSERT_EQ(
       expression_parameters_count2,
-      content_filter_options->expression_parameters->size);
+      content_filter_options->expression_parameters.size);
     for (size_t i = 0; i < expression_parameters_count2; ++i) {
       EXPECT_STREQ(
-        content_filter_options->expression_parameters->data[i],
+        content_filter_options->expression_parameters.data[i],
         expression_parameters2[i]);
     }
 
@@ -246,13 +247,12 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
       subscription_content_filter_options2.rmw_subscription_content_filter_options;
     ASSERT_NE(nullptr, content_filter_options);
     EXPECT_STREQ(filter_expression2_update, content_filter_options->filter_expression);
-    ASSERT_NE(nullptr, content_filter_options->expression_parameters);
     ASSERT_EQ(
       expression_parameters_count2_update,
-      content_filter_options->expression_parameters->size);
+      content_filter_options->expression_parameters.size);
     for (size_t i = 0; i < expression_parameters_count2_update; ++i) {
       EXPECT_STREQ(
-        content_filter_options->expression_parameters->data[i],
+        content_filter_options->expression_parameters.data[i],
         expression_parameters2_update[i]);
     }
   }

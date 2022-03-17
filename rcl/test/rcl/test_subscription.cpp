@@ -1079,11 +1079,10 @@ TEST_F(
         content_filter_options.rmw_subscription_content_filter_options;
       ASSERT_NE(nullptr, options);
       ASSERT_STREQ(filter_expression2, options->filter_expression);
-      ASSERT_NE(nullptr, options->expression_parameters);
-      ASSERT_EQ(expression_parameters2_count, options->expression_parameters->size);
+      ASSERT_EQ(expression_parameters2_count, options->expression_parameters.size);
       for (size_t i = 0; i < expression_parameters2_count; ++i) {
         EXPECT_STREQ(
-          options->expression_parameters->data[i],
+          options->expression_parameters.data[i],
           expression_parameters2[i]);
       }
       EXPECT_EQ(

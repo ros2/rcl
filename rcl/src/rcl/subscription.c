@@ -422,17 +422,10 @@ rcl_subscription_set_content_filter(
   // copy options into subscription_options
   rmw_subscription_content_filter_options_t * content_filter_options =
     options->rmw_subscription_content_filter_options;
-  size_t expression_parameters_size = 0;
-  const char ** expression_parameters = NULL;
-  if (content_filter_options->expression_parameters) {
-    expression_parameters_size = content_filter_options->expression_parameters->size;
-    expression_parameters =
-      (const char **)content_filter_options->expression_parameters->data;
-  }
   return rcl_subscription_options_set_content_filter_options(
     content_filter_options->filter_expression,
-    expression_parameters_size,
-    expression_parameters,
+    content_filter_options->expression_parameters.size,
+    (const char **)content_filter_options->expression_parameters.data,
     &subscription->impl->options
   );
 }
