@@ -165,8 +165,11 @@ static
 void
 rcl_logging_ext_lib_output_handler(
   const rcutils_log_location_t * location,
-  int severity, const char * name, rcutils_time_point_value_t timestamp,
-  const char * format, va_list * args)
+  int severity,
+  const char * name,
+  rcutils_time_point_value_t timestamp,
+  const char * format,
+  va_list * args)
 {
   rcl_ret_t status;
   char msg_buf[1024] = "";
@@ -188,7 +191,9 @@ rcl_logging_ext_lib_output_handler(
   };
 
   va_list args_clone;
-  va_copy(args_clone, *args);
+  // The args are initialized, but clang-tidy cannot tell.
+  // It may be related to this bug: https://bugs.llvm.org/show_bug.cgi?id=41311
+  va_copy(args_clone, *args);  // NOLINT(clang-analyzer-valist.Uninitialized)
   status = rcutils_char_array_vsprintf(&msg_array, format, args_clone);
   va_end(args_clone);
 

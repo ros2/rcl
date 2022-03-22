@@ -231,8 +231,11 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
 
 void rcl_logging_rosout_output_handler(
   const rcutils_log_location_t * location,
-  int severity, const char * name, rcutils_time_point_value_t timestamp,
-  const char * format, va_list * args)
+  int severity,
+  const char * name,
+  rcutils_time_point_value_t timestamp,
+  const char * format,
+  va_list * args)
 {
   rosout_map_entry_t entry;
   rcl_ret_t status = RCL_RET_OK;
@@ -251,7 +254,9 @@ void rcl_logging_rosout_output_handler(
     };
 
     va_list args_clone;
-    va_copy(args_clone, *args);
+    // The args are initialized, but clang-tidy cannot tell.
+    // It may be related to this bug: https://bugs.llvm.org/show_bug.cgi?id=41311
+    va_copy(args_clone, *args);  // NOLINT(clang-analyzer-valist.Uninitialized)
     RCL_RET_FROM_RCUTIL_RET(status, rcutils_char_array_vsprintf(&msg_array, format, args_clone));
     va_end(args_clone);
     if (RCL_RET_OK != status) {
