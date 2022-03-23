@@ -152,8 +152,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
   // TODO(ivanpauno): Currently, we're accepting `/`, as they're being accepted by qos overrides.
   //                  We might need to revisit qos overrides parameters names if ROS 2 URIs get
   //                  modified.
-  EXPECT_TRUE(are_known_ros_args(
-    {"--ros-args", "-p", "qos_overrides./foo/bar.publisher.history:=keep_last"}));
+  EXPECT_TRUE(
+    are_known_ros_args(
+      {"--ros-args", "-p", "qos_overrides./foo/bar.publisher.history:=keep_last"}));
   // TODO(hidmic): restore tests (and drop the following ones) when parameter names
   //               are standardized to use slashes in lieu of dots.
   // EXPECT_TRUE(are_known_ros_args({"--ros-args", "-p", "~/foo:=~/bar"}));
