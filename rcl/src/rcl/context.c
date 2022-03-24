@@ -105,6 +105,14 @@ rcl_context_get_rmw_context(rcl_context_t * context)
   return &(context->impl->rmw_context);
 }
 
+common_content_filter_factory_t *
+rcl_context_get_common_content_filter_factory(rcl_context_t * context)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(context->impl, "context is zero-initialized", return NULL);
+  return context->impl->common_content_filter_factory;
+}
+
 rcl_ret_t
 __cleanup_context(rcl_context_t * context)
 {
@@ -172,6 +180,9 @@ __cleanup_context(rcl_context_t * context)
       }
       allocator.deallocate(context->impl->argv, allocator.state);
     }
+
+    // TODO(iuhilnehc-ynos): finalize context->impl->common_content_filter_factory.
+
     allocator.deallocate(context->impl, allocator.state);
   }  // if (NULL != context->impl)
 

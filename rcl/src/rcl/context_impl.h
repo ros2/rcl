@@ -38,6 +38,8 @@ struct rcl_context_impl_s
   char ** argv;
   /// rmw context.
   rmw_context_t rmw_context;
+  /// Common content filter factory
+  common_content_filter_factory_t * common_content_filter_factory;
 };
 
 RCL_LOCAL

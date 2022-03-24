@@ -19,11 +19,15 @@
 
 #include "rcl/subscription.h"
 
+/// Common content filter. (Defined in other package)
+typedef struct common_content_filter_s common_content_filter_t;
+
 struct rcl_subscription_impl_s
 {
   rcl_subscription_options_t options;
   rmw_qos_profile_t actual_qos;
   rmw_subscription_t * rmw_handle;
+  common_content_filter_t * common_content_filter;
 };
 
 #endif  // RCL__SUBSCRIPTION_IMPL_H_

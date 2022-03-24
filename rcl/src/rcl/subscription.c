@@ -69,6 +69,7 @@ rcl_subscription_init(
     RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
   }
+  // TODO(iuhilnehc-ynos): check the expression_parameters_argc < 100 in content filter options.
 
   // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
@@ -120,6 +121,8 @@ rcl_subscription_init(
     options->qos.avoid_ros_namespace_conventions;
   // options
   subscription->impl->options = *options;
+  // TODO(iuhilnehc-ynos): initialize the `subscription->impl->common_content_filter` with
+  // common_content_filter_factory by rcl_context.
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
@@ -184,6 +187,8 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
+    // TODO(iuhilnehc-ynos): finalize the `subscription->impl->common_content_filter` with
+    // common_content_filter_factory by rcl_context.
     rcl_ret_t rcl_ret = rcl_subscription_options_fini(&subscription->impl->options);
     if (RCL_RET_OK != rcl_ret) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
@@ -240,6 +245,7 @@ rcl_subscription_options_set_content_filter_options(
   rcl_subscription_options_t * options)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(filter_expression, RCL_RET_INVALID_ARGUMENT);
+  // TODO(iuhilnehc-ynos): check the expression_parameters_argc < 100.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
@@ -415,6 +421,9 @@ rcl_subscription_set_content_filter(
     options->rmw_subscription_content_filter_options);
 
   if (ret != RMW_RET_OK) {
+    // TODO(iuhilnehc-ynos): to call common_content_filter_set_content_filter(...) of
+    // subscription->impl->common_content_filter.
+
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
@@ -461,6 +470,9 @@ rcl_subscription_get_content_filter(
     &options->allocator, content_filter_options);
 
   if (rmw_ret != RMW_RET_OK) {
+    // TODO(iuhilnehc-ynos): to call common_content_filter_get_content_filter(...) of
+    // subscription->impl->common_content_filter.
+
     ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
     goto failed;
   }
@@ -506,6 +518,9 @@ rcl_take(
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
+  // TODO(iuhilnehc-ynos): to call common_content_filter_evaluate(...) of
+  // subscription->impl->common_content_filter.
+
   return RCL_RET_OK;
 }
 
@@ -552,6 +567,8 @@ rcl_take_sequence(
   if (0u == taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
+  // TODO(iuhilnehc-ynos): to call common_content_filter_evaluate(...) of
+  // subscription->impl->common_content_filter.
   return RCL_RET_OK;
 }
 
@@ -621,6 +638,8 @@ rcl_take_loaned_message(
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
+  // TODO(iuhilnehc-ynos): to call common_content_filter_evaluate(...) of
+  // subscription->impl->common_content_filter.
   return RCL_RET_OK;
 }
 
