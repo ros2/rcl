@@ -2,6 +2,9 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.2.0 (2022-03-24)
+------------------
+
 5.1.0 (2022-03-01)
 ------------------
 * Add Events Executor (`#839 <https://github.com/ros2/rcl/issues/839>`_)

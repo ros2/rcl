@@ -2,6 +2,16 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.2.0 (2022-03-24)
+------------------
+* Allow forward slashes within a parameter name rule in argument parsing (`#860 <https://github.com/ros2/rcl/issues/860>`_)
+* Suppress false positive from clang-tidy (`#951 <https://github.com/ros2/rcl/issues/951>`_)
+* Fix missing terminating \0 in rcl_context_impl_t.argv (`#969 <https://github.com/ros2/rcl/issues/969>`_)
+* test_publisher_wait_all_ack depends on rcpputils (`#968 <https://github.com/ros2/rcl/issues/968>`_)
+* Micro-optimizations in rcl (`#965 <https://github.com/ros2/rcl/issues/965>`_)
+* If timer canceled, rcl_timer_get_time_until_next_call returns TIMER_CANCELED (`#963 <https://github.com/ros2/rcl/issues/963>`_)
+* Contributors: Chris Lalancette, Haowei Wen, Ivan Santiago Paunovic, Shane Loretz, William Woodall, mauropasse
+
 5.1.0 (2022-03-01)
 ------------------
 * Add Events Executor (`#839 <https://github.com/ros2/rcl/issues/839>`_)
