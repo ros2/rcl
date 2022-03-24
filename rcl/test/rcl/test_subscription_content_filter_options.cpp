@@ -107,7 +107,7 @@ TEST(TestSubscriptionContentFilterOptions, subscription_options_success)
 
 TEST(TestSubscriptionContentFilterOptions, content_filter_options_failure) {
   rcl_subscription_content_filter_options_t content_filter_options =
-    rcl_subscription_get_default_content_filter_options();
+    rcl_get_zero_initialized_subscription_content_filter_options();
 
   const char * filter_expression1 = "filter=1";
   EXPECT_EQ(
@@ -168,7 +168,7 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
   const char * filter_expression1_update = "filter=2";
 
   rcl_subscription_content_filter_options_t subscription_content_filter_options =
-    rcl_subscription_get_default_content_filter_options();
+    rcl_get_zero_initialized_subscription_content_filter_options();
   {
     // init with filter_expression1
     EXPECT_EQ(
@@ -178,8 +178,7 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
     );
 
     content_filter_options =
-      subscription_content_filter_options.rmw_subscription_content_filter_options;
-    ASSERT_NE(nullptr, content_filter_options);
+      &subscription_content_filter_options.rmw_subscription_content_filter_options;
     EXPECT_STREQ(filter_expression1, content_filter_options->filter_expression);
     EXPECT_EQ(0u, content_filter_options->expression_parameters.size);
     EXPECT_EQ(nullptr, content_filter_options->expression_parameters.data);
@@ -192,8 +191,7 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
     );
 
     content_filter_options =
-      subscription_content_filter_options.rmw_subscription_content_filter_options;
-    ASSERT_NE(nullptr, content_filter_options);
+      &subscription_content_filter_options.rmw_subscription_content_filter_options;
     EXPECT_STREQ(filter_expression1_update, content_filter_options->filter_expression);
     EXPECT_EQ(0u, content_filter_options->expression_parameters.size);
     EXPECT_EQ(nullptr, content_filter_options->expression_parameters.data);
@@ -212,7 +210,7 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
   size_t expression_parameters_count2_update = sizeof(expression_parameters2) / sizeof(char *);
 
   rcl_subscription_content_filter_options_t subscription_content_filter_options2 =
-    rcl_subscription_get_default_content_filter_options();
+    rcl_get_zero_initialized_subscription_content_filter_options();
   {
     // init with filter_expression2 and expression_parameters2
     EXPECT_EQ(
@@ -223,7 +221,7 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
     );
 
     content_filter_options =
-      subscription_content_filter_options2.rmw_subscription_content_filter_options;
+      &subscription_content_filter_options2.rmw_subscription_content_filter_options;
     ASSERT_NE(nullptr, content_filter_options);
     EXPECT_STREQ(filter_expression2, content_filter_options->filter_expression);
     ASSERT_EQ(
@@ -244,7 +242,7 @@ TEST(TestSubscriptionContentFilterOptions, content_filter_options_success)
     );
 
     content_filter_options =
-      subscription_content_filter_options2.rmw_subscription_content_filter_options;
+      &subscription_content_filter_options2.rmw_subscription_content_filter_options;
     ASSERT_NE(nullptr, content_filter_options);
     EXPECT_STREQ(filter_expression2_update, content_filter_options->filter_expression);
     ASSERT_EQ(

@@ -123,8 +123,6 @@ rcl_init(
     }
   }
 
-  // TODO(iuhilnehc-ynos): initialize context->impl->common_content_filter_factory.
-
   // Parse the ROS specific arguments.
   ret = rcl_parse_arguments(argc, argv, allocator, &context->global_arguments);
   if (RCL_RET_OK != ret) {

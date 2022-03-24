@@ -180,9 +180,6 @@ __cleanup_context(rcl_context_t * context)
       }
       allocator.deallocate(context->impl->argv, allocator.state);
     }
-
-    // TODO(iuhilnehc-ynos): finalize context->impl->common_content_filter_factory.
-
     allocator.deallocate(context->impl, allocator.state);
   }  // if (NULL != context->impl)
 

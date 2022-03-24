@@ -338,7 +338,6 @@ RCL_WARN_UNUSED
 common_content_filter_factory_t *
 rcl_context_get_common_content_filter_factory(rcl_context_t * context);
 
-
 #ifdef __cplusplus
 }
 #endif

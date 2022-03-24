@@ -59,7 +59,7 @@ typedef struct rcl_subscription_content_filter_options_s
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
   /// rmw specific subscription content filter options
-  rmw_subscription_content_filter_options_t * rmw_subscription_content_filter_options;
+  rmw_subscription_content_filter_options_t rmw_subscription_content_filter_options;
 } rcl_subscription_content_filter_options_t;
 
 /// Return a rcl_subscription_t struct with members set to `NULL`.
@@ -257,19 +257,11 @@ rcl_subscription_options_set_content_filter_options(
   const char * expression_parameter_argv[],
   rcl_subscription_options_t * options);
 
-/// Return the default subscription content filter options.
-/**
- * The defaults are:
- *
- * - allocator = rcl_get_default_allocator()
- * - rmw_subscription_content_filter_options = NULL;
- *
- * \return A structure containing the default options for a subscription.
- */
+/// Return the zero initialized subscription content filter options.
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_subscription_content_filter_options_t
-rcl_subscription_get_default_content_filter_options(void);
+rcl_get_zero_initialized_subscription_content_filter_options(void);
 
 /// Allocate.
 /**
@@ -324,17 +316,6 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_content_filter_options_fini(
   rcl_subscription_content_filter_options_t * options);
-
-/// Check if the content filtered topic feature is enabled in the subscription.
-/**
- * Depending on the middleware and whether cft is enabled in the subscription.
- *
- * \return `true` if the content filtered topic of `subscription` is enabled, otherwise `false`
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-bool
-rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription);
 
 /// Set the filter expression and expression parameters for the subscription.
 /**

@@ -69,7 +69,6 @@ rcl_subscription_init(
     RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
   }
-  // TODO(iuhilnehc-ynos): check the expression_parameters_argc < 100 in content filter options.
 
   // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
@@ -121,8 +120,6 @@ rcl_subscription_init(
     options->qos.avoid_ros_namespace_conventions;
   // options
   subscription->impl->options = *options;
-  // TODO(iuhilnehc-ynos): initialize the `subscription->impl->common_content_filter` with
-  // common_content_filter_factory by rcl_context.
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
@@ -187,8 +184,6 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
-    // TODO(iuhilnehc-ynos): finalize the `subscription->impl->common_content_filter` with
-    // common_content_filter_factory by rcl_context.
     rcl_ret_t rcl_ret = rcl_subscription_options_fini(&subscription->impl->options);
     if (RCL_RET_OK != rcl_ret) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
@@ -245,7 +240,6 @@ rcl_subscription_options_set_content_filter_options(
   rcl_subscription_options_t * options)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(filter_expression, RCL_RET_INVALID_ARGUMENT);
-  // TODO(iuhilnehc-ynos): check the expression_parameters_argc < 100.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
@@ -298,12 +292,13 @@ failed:
 }
 
 rcl_subscription_content_filter_options_t
-rcl_subscription_get_default_content_filter_options()
+rcl_get_zero_initialized_subscription_content_filter_options()
 {
-  static rcl_subscription_content_filter_options_t default_options;
-  default_options.allocator = rcl_get_default_allocator();
-  default_options.rmw_subscription_content_filter_options = NULL;
-  return default_options;
+  return (const rcl_subscription_content_filter_options_t) {
+           .allocator = rcl_get_default_allocator(),
+           .rmw_subscription_content_filter_options =
+             rmw_get_zero_initialized_content_filter_options()
+  };  // NOLINT(readability/braces): false positive
 }
 
 rcl_ret_t
@@ -317,34 +312,15 @@ rcl_subscription_content_filter_options_init(
   const rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
-  rcl_ret_t ret;
-  rmw_subscription_content_filter_options_t * content_filter_options =
-    allocator->allocate(
-    sizeof(rmw_subscription_content_filter_options_t), allocator->state);
-  if (!content_filter_options) {
-    RCL_SET_ERROR_MSG("allocating memory failed");
-    return RCL_RET_BAD_ALLOC;
-  }
-  *content_filter_options = rmw_get_zero_initialized_content_filter_options();
-
   rmw_ret_t rmw_ret = rmw_subscription_content_filter_options_init(
     filter_expression,
     expression_parameters_argc,
     expression_parameter_argv,
     allocator,
-    content_filter_options
+    &options->rmw_subscription_content_filter_options
   );
-  if (rmw_ret != RMW_RET_OK) {
-    ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
-    goto failed;
-  }
-  options->rmw_subscription_content_filter_options = content_filter_options;
 
-  return RCL_RET_OK;
-
-failed:
-  allocator->deallocate(content_filter_options, allocator->state);
-  return ret;
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 rcl_ret_t
@@ -364,7 +340,7 @@ rcl_subscription_content_filter_options_set(
     expression_parameters_argc,
     expression_parameter_argv,
     allocator,
-    options->rmw_subscription_content_filter_options
+    &options->rmw_subscription_content_filter_options
   );
   return rcl_convert_rmw_ret_to_rcl_ret(ret);
 }
@@ -378,25 +354,11 @@ rcl_subscription_content_filter_options_fini(
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   rmw_ret_t ret = rmw_subscription_content_filter_options_fini(
-    options->rmw_subscription_content_filter_options,
+    &options->rmw_subscription_content_filter_options,
     allocator
   );
 
-  if (ret != RMW_RET_OK) {
-    return rcl_convert_rmw_ret_to_rcl_ret(ret);
-  }
-
-  allocator->deallocate(options->rmw_subscription_content_filter_options, allocator->state);
-  return RCL_RET_OK;
-}
-
-bool
-rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription)
-{
-  if (!rcl_subscription_is_valid(subscription)) {
-    return false;
-  }
-  return subscription->impl->rmw_handle->is_cft_enabled;
+  return rcl_convert_rmw_ret_to_rcl_ret(ret);
 }
 
 rcl_ret_t
@@ -405,38 +367,10 @@ rcl_subscription_set_content_filter(
   const rcl_subscription_content_filter_options_t * options
 )
 {
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_SUBSCRIPTION_INVALID);
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  (void)subscription;
+  (void)options;
 
-  if (!rcl_subscription_is_valid(subscription)) {
-    return RCL_RET_SUBSCRIPTION_INVALID;
-  }
-
-  rcl_allocator_t * allocator = (rcl_allocator_t *)&subscription->impl->options.allocator;
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  rmw_ret_t ret = rmw_subscription_set_content_filter(
-    subscription->impl->rmw_handle,
-    options->rmw_subscription_content_filter_options);
-
-  if (ret != RMW_RET_OK) {
-    // TODO(iuhilnehc-ynos): to call common_content_filter_set_content_filter(...) of
-    // subscription->impl->common_content_filter.
-
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return rcl_convert_rmw_ret_to_rcl_ret(ret);
-  }
-
-  // copy options into subscription_options
-  rmw_subscription_content_filter_options_t * content_filter_options =
-    options->rmw_subscription_content_filter_options;
-  return rcl_subscription_options_set_content_filter_options(
-    content_filter_options->filter_expression,
-    content_filter_options->expression_parameters.size,
-    (const char **)content_filter_options->expression_parameters.data,
-    &subscription->impl->options
-  );
+  return RCL_RET_UNSUPPORTED;
 }
 
 rcl_ret_t
@@ -445,45 +379,10 @@ rcl_subscription_get_content_filter(
   rcl_subscription_content_filter_options_t * options
 )
 {
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_SUBSCRIPTION_INVALID);
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  (void)subscription;
+  (void)options;
 
-  if (!rcl_subscription_is_valid(subscription)) {
-    return RCL_RET_SUBSCRIPTION_INVALID;
-  }
-  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  const rcl_allocator_t * allocator = &options->allocator;
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-
-  rcl_ret_t ret;
-  rmw_subscription_content_filter_options_t * content_filter_options =
-    allocator->allocate(
-    sizeof(rmw_subscription_content_filter_options_t), allocator->state);
-  if (!content_filter_options) {
-    RCL_SET_ERROR_MSG("allocating memory failed");
-    return RCL_RET_BAD_ALLOC;
-  }
-  *content_filter_options = rmw_get_zero_initialized_content_filter_options();
-
-  rmw_ret_t rmw_ret = rmw_subscription_get_content_filter(
-    subscription->impl->rmw_handle,
-    &options->allocator, content_filter_options);
-
-  if (rmw_ret != RMW_RET_OK) {
-    // TODO(iuhilnehc-ynos): to call common_content_filter_get_content_filter(...) of
-    // subscription->impl->common_content_filter.
-
-    ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
-    goto failed;
-  }
-
-  options->rmw_subscription_content_filter_options = content_filter_options;
-
-  return RCL_RET_OK;
-
-failed:
-  allocator->deallocate(content_filter_options, allocator->state);
-  return ret;
+  return RCL_RET_UNSUPPORTED;
 }
 
 rcl_ret_t
@@ -518,8 +417,6 @@ rcl_take(
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
-  // TODO(iuhilnehc-ynos): to call common_content_filter_evaluate(...) of
-  // subscription->impl->common_content_filter.
 
   return RCL_RET_OK;
 }
@@ -567,8 +464,6 @@ rcl_take_sequence(
   if (0u == taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
-  // TODO(iuhilnehc-ynos): to call common_content_filter_evaluate(...) of
-  // subscription->impl->common_content_filter.
   return RCL_RET_OK;
 }
 
@@ -638,8 +533,6 @@ rcl_take_loaned_message(
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
-  // TODO(iuhilnehc-ynos): to call common_content_filter_evaluate(...) of
-  // subscription->impl->common_content_filter.
   return RCL_RET_OK;
 }
 
