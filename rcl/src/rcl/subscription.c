@@ -371,16 +371,50 @@ rcl_subscription_content_filter_options_fini(
   return rcl_convert_rmw_ret_to_rcl_ret(ret);
 }
 
+bool
+rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    return false;
+  }
+  return subscription->impl->rmw_handle->is_cft_enabled;
+}
+
 rcl_ret_t
 rcl_subscription_set_content_filter(
   const rcl_subscription_t * subscription,
   const rcl_subscription_content_filter_options_t * options
 )
 {
-  (void)subscription;
-  (void)options;
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_SUBSCRIPTION_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
 
-  return RCL_RET_UNSUPPORTED;
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
+
+  rcl_allocator_t * allocator = (rcl_allocator_t *)&subscription->impl->options.allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  rmw_ret_t ret = rmw_subscription_set_content_filter(
+    subscription->impl->rmw_handle,
+    &options->rmw_subscription_content_filter_options);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+
+  // copy options into subscription_options
+  rmw_subscription_content_filter_options_t * content_filter_options =
+    &options->rmw_subscription_content_filter_options;
+  return rcl_subscription_options_set_content_filter_options(
+    content_filter_options->filter_expression,
+    content_filter_options->expression_parameters.size,
+    (const char **)content_filter_options->expression_parameters.data,
+    &subscription->impl->options
+  );
 }
 
 rcl_ret_t
@@ -389,10 +423,22 @@ rcl_subscription_get_content_filter(
   rcl_subscription_content_filter_options_t * options
 )
 {
-  (void)subscription;
-  (void)options;
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_SUBSCRIPTION_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
 
-  return RCL_RET_UNSUPPORTED;
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  rmw_ret_t rmw_ret = rmw_subscription_get_content_filter(
+    subscription->impl->rmw_handle,
+    &options->allocator,
+    &options->rmw_subscription_content_filter_options);
+
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
 }
 
 rcl_ret_t

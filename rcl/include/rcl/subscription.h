@@ -357,6 +357,17 @@ rcl_ret_t
 rcl_subscription_content_filter_options_fini(
   rcl_subscription_content_filter_options_t * options);
 
+/// Check if the content filtered topic feature is enabled in the subscription.
+/**
+ * Depending on the middleware and whether cft is enabled in the subscription.
+ *
+ * \return `true` if the content filtered topic of `subscription` is enabled, otherwise `false`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+bool
+rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription);
+
 /// Set the filter expression and expression parameters for the subscription.
 /**
  * This function will set a filter expression and an array of expression parameters
