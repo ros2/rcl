@@ -999,6 +999,8 @@ TEST_F(
       &subscription, &options);
     if (is_cft_support) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      // waiting to allow for filter propagation
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     } else {
       ASSERT_EQ(RCL_RET_UNSUPPORTED, ret);
     }
@@ -1109,6 +1111,8 @@ TEST_F(
       &subscription, &options);
     if (is_cft_support) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      // waiting to allow for filter propagation
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
       ASSERT_FALSE(rcl_subscription_is_cft_enabled(&subscription));
     } else {
@@ -1240,6 +1244,8 @@ TEST_F(
       is_cft_support = false;
     } else {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      // waiting to allow for filter propagation
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     EXPECT_EQ(
