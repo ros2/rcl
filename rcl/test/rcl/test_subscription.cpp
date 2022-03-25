@@ -892,7 +892,7 @@ TEST_F(
   CLASSNAME(
     TestSubscriptionFixture,
     RMW_IMPLEMENTATION), test_subscription_content_filtered) {
-  const char * filter_expression1 = "string_value MATCH 'FilteredData'";
+  const char * filter_expression1 = "string_value = 'FilteredData'";
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -981,7 +981,7 @@ TEST_F(
   }
 
   // set filter
-  const char * filter_expression2 = "string_value MATCH %0";
+  const char * filter_expression2 = "string_value = %0";
   const char * expression_parameters2[] = {"'FilteredOtherData'"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
   {
@@ -1223,7 +1223,7 @@ TEST_F(
   }
 
   // set filter
-  const char * filter_expression2 = "string_value MATCH %0";
+  const char * filter_expression2 = "string_value = %0";
   const char * expression_parameters2[] = {"'FilteredData'"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
   bool is_cft_support{true};
