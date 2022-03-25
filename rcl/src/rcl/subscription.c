@@ -314,6 +314,10 @@ rcl_subscription_content_filter_options_init(
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  if (expression_parameters_argc > 100) {
+    RCL_SET_ERROR_MSG("The maximum of expression parameters argument number is 100");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
 
   rmw_ret_t rmw_ret = rmw_subscription_content_filter_options_init(
     filter_expression,
@@ -333,7 +337,10 @@ rcl_subscription_content_filter_options_set(
   const char * expression_parameter_argv[],
   rcl_subscription_content_filter_options_t * options)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(filter_expression, RCL_RET_INVALID_ARGUMENT);
+  if (expression_parameters_argc > 100) {
+    RCL_SET_ERROR_MSG("The maximum of expression parameters argument number is 100");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   const rcl_allocator_t * allocator = &options->allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
