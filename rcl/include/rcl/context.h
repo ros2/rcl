@@ -43,9 +43,6 @@ extern "C"
 /// A unique ID per context instance.
 typedef uint64_t rcl_context_instance_id_t;
 
-/// Common content filter factory (Defined in a new package)
-typedef struct common_content_filter_factory_s common_content_filter_factory_t;
-
 typedef struct rcl_context_impl_s rcl_context_impl_t;
 
 /// Encapsulates the non-global state of an init/shutdown cycle.
@@ -316,27 +313,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rmw_context_t *
 rcl_context_get_rmw_context(rcl_context_t * context);
-
-/// Return pointer to the common content filter factory
-/**
- * If context is `NULL`, then `NULL` is returned.
- * If context is zero-initialized, then `NULL` is returned.
- * If context is uninitialized, then it is undefined behavior.
- *
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | No
- *
- * \param[in] context object from which the common content filter factory should be retrieved.
- * \return pointer to common content filter factory if valid, otherwise `NULL`
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-common_content_filter_factory_t *
-rcl_context_get_common_content_filter_factory(rcl_context_t * context);
 
 #ifdef __cplusplus
 }

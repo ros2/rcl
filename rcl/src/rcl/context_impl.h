@@ -25,6 +25,9 @@ extern "C"
 {
 #endif
 
+/// Common content filter factory (Defined in a new package)
+typedef struct common_content_filter_factory_s common_content_filter_factory_t;
+
 /// \internal
 struct rcl_context_impl_s
 {

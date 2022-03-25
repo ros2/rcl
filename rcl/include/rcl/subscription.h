@@ -240,9 +240,12 @@ rcl_subscription_options_fini(rcl_subscription_options_t * option);
 
 /// Set the content filter options for the given subscription options.
 /**
- * \param[in] filter_expression The filter expression.
- * \param[in] expression_parameters_argc The expression parameters argc.
- * \param[in] expression_parameter_argv The expression parameters argv.
+ * \param[in] filter_expression The filter expression is similar to the WHERE part of an SQL clause.
+ * \param[in] expression_parameters_argc The maximum of expression parameters argc is 100.
+ * \param[in] expression_parameter_argv The expression parameters argv are the tokens placeholder
+ * ‘parameters’ (i.e., "%n" tokens begin from 0) in the filter_expression.
+ *
+ * It can be NULL if there is no "%n" tokens placeholder in filter_expression.
  * \param[out] options The subscription options to be set.
  * \return `RCL_RET_OK` if set options successfully, or
  * \return `RCL_RET_INVALID_ARGUMENT` if arguments invalid, or
