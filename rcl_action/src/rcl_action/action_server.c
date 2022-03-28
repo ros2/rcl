@@ -453,8 +453,8 @@ _recalculate_expire_timer(
       return ret;
     }
     // Make timer fire when next goal expires
-    int64_t old_period;
-    ret = rcl_timer_exchange_period(expire_timer, minimum_period, &old_period);
+    uint64_t old_period;
+    ret = rcl_timer_exchange_period(expire_timer, (uint64_t)minimum_period, &old_period);
     if (RCL_RET_OK != ret) {
       return ret;
     }

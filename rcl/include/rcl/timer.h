@@ -362,7 +362,7 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, int64_t * time_sin
 /**
  * This function retrieves the period and copies it into the given variable.
  *
- * The period argument must be a pointer to an already allocated int64_t.
+ * The period argument must be a pointer to an already allocated uint64_t.
  *
  * <hr>
  * Attribute          | Adherence
@@ -371,10 +371,10 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, int64_t * time_sin
  * Thread-Safe        | Yes
  * Uses Atomics       | Yes
  * Lock-Free          | Yes [1]
- * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] timer the handle to the timer which is being queried
- * \param[out] period the int64_t in which the period is stored
+ * \param[out] period the uint64_t in which the period is stored
  * \return #RCL_RET_OK if the period was retrieved successfully, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_ERROR an unspecified error occur.
@@ -382,7 +382,7 @@ rcl_timer_get_time_since_last_call(const rcl_timer_t * timer, int64_t * time_sin
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period);
+rcl_timer_get_period(const rcl_timer_t * timer, uint64_t * period);
 
 /// Exchange the period of the timer and return the previous period.
 /**
@@ -391,7 +391,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period);
  *
  * Exchanging (changing) the period will not affect already waiting wait sets.
  *
- * The old_period argument must be a pointer to an already allocated int64_t.
+ * The old_period argument must be a pointer to an already allocated uint64_t.
  *
  * <hr>
  * Attribute          | Adherence
@@ -400,11 +400,11 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period);
  * Thread-Safe        | Yes
  * Uses Atomics       | Yes
  * Lock-Free          | Yes [1]
- * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
  *
  * \param[in] timer the handle to the timer which is being modified
- * \param[out] new_period the int64_t to exchange into the timer
- * \param[out] old_period the int64_t in which the previous period is stored
+ * \param[in] new_period the uint64_t to exchange into the timer
+ * \param[out] old_period the uint64_t in which the previous period is stored
  * \return #RCL_RET_OK if the period was retrieved successfully, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_ERROR an unspecified error occur.
@@ -412,7 +412,7 @@ rcl_timer_get_period(const rcl_timer_t * timer, int64_t * period);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_exchange_period(const rcl_timer_t * timer, int64_t new_period, int64_t * old_period);
+rcl_timer_exchange_period(const rcl_timer_t * timer, uint64_t new_period, uint64_t * old_period);
 
 /// Return the current timer callback.
 /**
