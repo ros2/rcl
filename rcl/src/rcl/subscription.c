@@ -252,7 +252,7 @@ rcl_subscription_options_set_content_filter_options(
     allocator->allocate(
     sizeof(rmw_subscription_content_filter_options_t), allocator->state);
   if (!content_filter_options) {
-    RCL_SET_ERROR_MSG("allocating memory failed");
+    RCL_SET_ERROR_MSG("failed to allocate memory");
     return RCL_RET_BAD_ALLOC;
   }
 
@@ -393,9 +393,6 @@ rcl_subscription_set_content_filter(
     return RCL_RET_SUBSCRIPTION_INVALID;
   }
 
-  rcl_allocator_t * allocator = (rcl_allocator_t *)&subscription->impl->options.allocator;
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
-
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
   rmw_ret_t ret = rmw_subscription_set_content_filter(
     subscription->impl->rmw_handle,
@@ -407,7 +404,7 @@ rcl_subscription_set_content_filter(
   }
 
   // copy options into subscription_options
-  rmw_subscription_content_filter_options_t * content_filter_options =
+  const rmw_subscription_content_filter_options_t * content_filter_options =
     &options->rmw_subscription_content_filter_options;
   return rcl_subscription_options_set_content_filter_options(
     content_filter_options->filter_expression,
