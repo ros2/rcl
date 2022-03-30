@@ -1157,11 +1157,12 @@ TEST_F(
  */
 TEST_F(
   CLASSNAME(
-    TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_not_content_filtered_at_begin) {
+    TestSubscriptionFixture,
+    RMW_IMPLEMENTATION), test_subscription_not_initialized_with_content_filtering) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   constexpr char topic[] = "rcl_test_subscription_not_begin_content_filtered_chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic, &publisher_options);
@@ -1196,35 +1197,33 @@ TEST_F(
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
 
   // publish with a non-filtered data
-  constexpr char test_string[] = "NotFilteredData";
+  int32_t test_value = 3;
   {
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+    test_msgs__msg__BasicTypes msg;
+    test_msgs__msg__BasicTypes__init(&msg);
+    msg.int32_value = test_value;
     ret = rcl_publish(&publisher, &msg, nullptr);
-    test_msgs__msg__Strings__fini(&msg);
+    test_msgs__msg__BasicTypes__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
 
   {
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
+    test_msgs__msg__BasicTypes msg;
+    test_msgs__msg__BasicTypes__init(&msg);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
-      test_msgs__msg__Strings__fini(&msg);
+      test_msgs__msg__BasicTypes__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(
-      std::string(test_string),
-      std::string(msg.string_value.data, msg.string_value.size));
+    ASSERT_TRUE(test_value == msg.int32_value);
   }
 
   // set filter
-  const char * filter_expression2 = "string_value = %0";
-  const char * expression_parameters2[] = {"'FilteredData'"};
+  const char * filter_expression2 = "int32_value = %0";
+  const char * expression_parameters2[] = {"4"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
   bool is_cft_support{true};
   {
@@ -1257,11 +1256,11 @@ TEST_F(
 
   // publish no filtered data again
   {
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+    test_msgs__msg__BasicTypes msg;
+    test_msgs__msg__BasicTypes__init(&msg);
+    msg.int32_value = test_value;
     ret = rcl_publish(&publisher, &msg, nullptr);
-    test_msgs__msg__Strings__fini(&msg);
+    test_msgs__msg__BasicTypes__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
@@ -1270,44 +1269,40 @@ TEST_F(
   } else {
     ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
 
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
+    test_msgs__msg__BasicTypes msg;
+    test_msgs__msg__BasicTypes__init(&msg);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
-      test_msgs__msg__Strings__fini(&msg);
+      test_msgs__msg__BasicTypes__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(
-      std::string(test_string),
-      std::string(msg.string_value.data, msg.string_value.size));
+    ASSERT_TRUE(test_value == msg.int32_value);
   }
 
   // publish filtered data
-  constexpr char test_filtered_string[] = "FilteredData";
+  int32_t test_filtered_value = 4;
   {
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_filtered_string));
+    test_msgs__msg__BasicTypes msg;
+    test_msgs__msg__BasicTypes__init(&msg);
+    msg.int32_value = test_filtered_value;
     ret = rcl_publish(&publisher, &msg, nullptr);
-    test_msgs__msg__Strings__fini(&msg);
+    test_msgs__msg__BasicTypes__fini(&msg);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
 
   {
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
+    test_msgs__msg__BasicTypes msg;
+    test_msgs__msg__BasicTypes__init(&msg);
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
-      test_msgs__msg__Strings__fini(&msg);
+      test_msgs__msg__BasicTypes__fini(&msg);
     });
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(
-      std::string(test_filtered_string),
-      std::string(msg.string_value.data, msg.string_value.size));
+    ASSERT_TRUE(test_filtered_value == msg.int32_value);
   }
 }
 
