@@ -1228,7 +1228,9 @@ TEST_F(
   const char * filter_expression2 = "int32_value = %0";
   const char * expression_parameters2[] = {"4"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
-  bool is_cft_support{true};
+  bool is_cft_support =
+    (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0 ||
+    std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps_cpp") == 0);
   {
     rcl_subscription_content_filter_options_t options =
       rcl_get_zero_initialized_subscription_content_filter_options();
@@ -1243,8 +1245,8 @@ TEST_F(
 
     ret = rcl_subscription_set_content_filter(
       &subscription, &options);
-    if (RCL_RET_UNSUPPORTED == ret) {
-      is_cft_support = false;
+    if (!is_cft_support) {
+      ASSERT_EQ(RCL_RET_UNSUPPORTED, ret);
     } else {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       // waiting to allow for filter propagation
