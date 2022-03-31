@@ -248,22 +248,40 @@ rcl_subscription_options_set_content_filter_options(
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t ret;
-  rmw_subscription_content_filter_options_t * content_filter_options =
-    allocator->allocate(
-    sizeof(rmw_subscription_content_filter_options_t), allocator->state);
-  if (!content_filter_options) {
-    RCL_SET_ERROR_MSG("failed to allocate memory");
-    return RCL_RET_BAD_ALLOC;
+  rmw_ret_t rmw_ret;
+  rmw_subscription_content_filter_options_t * original_content_filter_options =
+    options->rmw_subscription_options.content_filter_options;
+  rmw_subscription_content_filter_options_t content_filter_options_backup =
+    rmw_get_zero_initialized_content_filter_options();
+
+  if (original_content_filter_options) {
+    // make a backup, restore the data if failure happened
+    rmw_ret = rmw_subscription_content_filter_options_copy(
+      original_content_filter_options,
+      allocator,
+      &content_filter_options_backup
+    );
+    if (rmw_ret != RMW_RET_OK) {
+      return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    }
+  } else {
+    options->rmw_subscription_options.content_filter_options =
+      allocator->allocate(
+      sizeof(rmw_subscription_content_filter_options_t), allocator->state);
+    if (!options->rmw_subscription_options.content_filter_options) {
+      RCL_SET_ERROR_MSG("failed to allocate memory");
+      return RCL_RET_BAD_ALLOC;
+    }
+    *options->rmw_subscription_options.content_filter_options =
+      rmw_get_zero_initialized_content_filter_options();
   }
 
-  *content_filter_options = rmw_get_zero_initialized_content_filter_options();
-
-  rmw_ret_t rmw_ret = rmw_subscription_content_filter_options_set(
+  rmw_ret = rmw_subscription_content_filter_options_set(
     filter_expression,
     expression_parameters_argc,
     expression_parameter_argv,
     allocator,
-    content_filter_options
+    options->rmw_subscription_options.content_filter_options
   );
 
   if (rmw_ret != RMW_RET_OK) {
@@ -271,27 +289,52 @@ rcl_subscription_options_set_content_filter_options(
     goto failed;
   }
 
-  if (options->rmw_subscription_options.content_filter_options) {
-    rmw_ret = rmw_subscription_content_filter_options_fini(
-      options->rmw_subscription_options.content_filter_options,
-      allocator
-    );
-
-    if (rmw_ret != RMW_RET_OK) {
-      ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
-      goto failed;
-    }
-
-    allocator->deallocate(
-      options->rmw_subscription_options.content_filter_options, allocator->state);
-    options->rmw_subscription_options.content_filter_options = NULL;
+  rmw_ret = rmw_subscription_content_filter_options_fini(
+    &content_filter_options_backup,
+    allocator
+  );
+  if (rmw_ret != RMW_RET_OK) {
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
-  options->rmw_subscription_options.content_filter_options = content_filter_options;
 
-  return RCL_RET_OK;
+  return RMW_RET_OK;
 
 failed:
-  allocator->deallocate(content_filter_options, allocator->state);
+
+  if (original_content_filter_options == NULL) {
+    if (options->rmw_subscription_options.content_filter_options) {
+      rmw_ret = rmw_subscription_content_filter_options_fini(
+        options->rmw_subscription_options.content_filter_options,
+        allocator
+      );
+
+      if (rmw_ret != RMW_RET_OK) {
+        return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+      }
+
+      allocator->deallocate(
+        options->rmw_subscription_options.content_filter_options, allocator->state);
+      options->rmw_subscription_options.content_filter_options = NULL;
+    }
+  } else {
+    rmw_ret = rmw_subscription_content_filter_options_copy(
+      &content_filter_options_backup,
+      allocator,
+      options->rmw_subscription_options.content_filter_options
+    );
+    if (rmw_ret != RMW_RET_OK) {
+      return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    }
+
+    rmw_ret = rmw_subscription_content_filter_options_fini(
+      &content_filter_options_backup,
+      allocator
+    );
+    if (rmw_ret != RMW_RET_OK) {
+      return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    }
+  }
+
   return ret;
 }
 
