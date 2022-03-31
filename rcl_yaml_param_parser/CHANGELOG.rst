@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 5.2.0 (2022-03-24)
 ------------------
 
