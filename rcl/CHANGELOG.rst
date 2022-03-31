@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.2.1 (2022-03-31)
+------------------
 * Add additional null check for timer argument (`#973 <https://github.com/ros2/rcl/issues/973>`_)
 * Contributors: NoyZuberi
 
