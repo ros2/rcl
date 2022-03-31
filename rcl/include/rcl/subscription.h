@@ -55,10 +55,6 @@ typedef struct rcl_subscription_options_s
 
 typedef struct rcl_subscription_content_filter_options_s
 {
-  /// Custom allocator for the options, used for incidental allocations.
-  /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
-  rcl_allocator_t allocator;
-  /// rmw specific subscription content filter options
   rmw_subscription_content_filter_options_t rmw_subscription_content_filter_options;
 } rcl_subscription_content_filter_options_t;
 
@@ -284,6 +280,7 @@ rcl_get_zero_initialized_subscription_content_filter_options(void);
  * Uses Atomics       | No
  * Lock-Free          | No
  *
+ * \param[in] subscription the handle to the subscription.
  * \param[in] filter_expression The filter expression is similar to the WHERE part of an SQL clause,
  * use empty ("") can reset (or clear) the content filter setting of a subscription.
  * \param[in] expression_parameters_argc The maximum of expression parameters argc is 100.
@@ -293,6 +290,7 @@ rcl_get_zero_initialized_subscription_content_filter_options(void);
  * It can be NULL if there is no "%n" tokens placeholder in filter_expression.
  * \param[out] options The subscription options to be set.
  * \return `RCL_RET_OK` if set options successfully, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if subscription is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if arguments invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory fails.
  */
@@ -300,6 +298,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_content_filter_options_init(
+  const rcl_subscription_t * subscription,
   const char * filter_expression,
   size_t expression_parameters_argc,
   const char * expression_parameter_argv[],
@@ -315,6 +314,7 @@ rcl_subscription_content_filter_options_init(
  * Uses Atomics       | No
  * Lock-Free          | No
  *
+ * \param[in] subscription the handle to the subscription.
  * \param[in] filter_expression The filter expression is similar to the WHERE part of an SQL clause,
  * use empty ("") can reset (or clear) the content filter setting of a subscription.
  * \param[in] expression_parameters_argc The maximum of expression parameters argc is 100.
@@ -324,6 +324,7 @@ rcl_subscription_content_filter_options_init(
  * It can be NULL if there is no "%n" tokens placeholder in filter_expression.
  * \param[out] options The subscription options to be set.
  * \return `RCL_RET_OK` if set options successfully, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if subscription is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if arguments invalid, or
  * \return `RCL_RET_BAD_ALLOC` if allocating memory fails.
  */
@@ -331,6 +332,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_content_filter_options_set(
+  const rcl_subscription_t * subscription,
   const char * filter_expression,
   size_t expression_parameters_argc,
   const char * expression_parameter_argv[],
@@ -346,8 +348,10 @@ rcl_subscription_content_filter_options_set(
  * Uses Atomics       | No
  * Lock-Free          | No
  *
+ * \param[in] subscription the handle to the subscription.
  * \param[in] options The structure which its resources have to be deallocated.
  * \return `RCL_RET_OK` if the memory was successfully freed, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if subscription is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
  *  if its allocator is invalid and the structure contains initialized memory.
  */
@@ -355,6 +359,7 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_subscription_content_filter_options_fini(
+  const rcl_subscription_t * subscription,
   rcl_subscription_content_filter_options_t * options);
 
 /// Check if the content filtered topic feature is enabled in the subscription.

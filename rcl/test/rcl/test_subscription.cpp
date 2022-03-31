@@ -991,6 +991,7 @@ TEST_F(
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_init(
+        &subscription,
         filter_expression2, expression_parameters2_count, expression_parameters2,
         &options)
     );
@@ -1008,7 +1009,7 @@ TEST_F(
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_fini(
-        &options)
+        &subscription, &options)
     );
   }
 
@@ -1088,6 +1089,7 @@ TEST_F(
       EXPECT_EQ(
         RCL_RET_OK,
         rcl_subscription_content_filter_options_fini(
+          &subscription,
           &content_filter_options)
       );
     } else {
@@ -1103,6 +1105,7 @@ TEST_F(
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_init(
+        &subscription,
         "", 0, nullptr,
         &options)
     );
@@ -1122,7 +1125,7 @@ TEST_F(
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_fini(
-        &options)
+        &subscription, &options)
     );
   }
 
@@ -1233,6 +1236,7 @@ TEST_F(
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_init(
+        &subscription,
         filter_expression2, expression_parameters2_count, expression_parameters2,
         &options)
     );
@@ -1250,7 +1254,7 @@ TEST_F(
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_fini(
-        &options)
+        &subscription, &options)
     );
   }
 
@@ -1590,6 +1594,7 @@ TEST_F(
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_subscription_content_filter_options_init(
+      &subscription,
       "data = '0'",
       0,
       nullptr,
@@ -1600,7 +1605,7 @@ TEST_F(
   {
     EXPECT_EQ(
       RCL_RET_OK,
-      rcl_subscription_content_filter_options_fini(&options)
+      rcl_subscription_content_filter_options_fini(&subscription, &options)
     );
   });
 

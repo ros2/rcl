@@ -278,7 +278,8 @@ rcl_subscription_options_set_content_filter_options(
     );
 
     if (rmw_ret != RMW_RET_OK) {
-      return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+      ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+      goto failed;
     }
 
     allocator->deallocate(
@@ -298,7 +299,6 @@ rcl_subscription_content_filter_options_t
 rcl_get_zero_initialized_subscription_content_filter_options()
 {
   return (const rcl_subscription_content_filter_options_t) {
-           .allocator = rcl_get_default_allocator(),
            .rmw_subscription_content_filter_options =
              rmw_get_zero_initialized_content_filter_options()
   };  // NOLINT(readability/braces): false positive
@@ -306,13 +306,17 @@ rcl_get_zero_initialized_subscription_content_filter_options()
 
 rcl_ret_t
 rcl_subscription_content_filter_options_init(
+  const rcl_subscription_t * subscription,
   const char * filter_expression,
   size_t expression_parameters_argc,
   const char * expression_parameter_argv[],
   rcl_subscription_content_filter_options_t * options)
 {
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  const rcl_allocator_t * allocator = &options->allocator;
+  const rcl_allocator_t * allocator = &subscription->impl->options.allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   if (expression_parameters_argc > 100) {
     RCL_SET_ERROR_MSG("The maximum of expression parameters argument number is 100");
@@ -332,17 +336,21 @@ rcl_subscription_content_filter_options_init(
 
 rcl_ret_t
 rcl_subscription_content_filter_options_set(
+  const rcl_subscription_t * subscription,
   const char * filter_expression,
   size_t expression_parameters_argc,
   const char * expression_parameter_argv[],
   rcl_subscription_content_filter_options_t * options)
 {
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
   if (expression_parameters_argc > 100) {
     RCL_SET_ERROR_MSG("The maximum of expression parameters argument number is 100");
     return RCL_RET_INVALID_ARGUMENT;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  const rcl_allocator_t * allocator = &options->allocator;
+  const rcl_allocator_t * allocator = &subscription->impl->options.allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   rmw_ret_t ret = rmw_subscription_content_filter_options_set(
@@ -357,10 +365,14 @@ rcl_subscription_content_filter_options_set(
 
 rcl_ret_t
 rcl_subscription_content_filter_options_fini(
+  const rcl_subscription_t * subscription,
   rcl_subscription_content_filter_options_t * options)
 {
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  const rcl_allocator_t * allocator = &options->allocator;
+  const rcl_allocator_t * allocator = &subscription->impl->options.allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   rmw_ret_t ret = rmw_subscription_content_filter_options_fini(
@@ -427,12 +439,12 @@ rcl_subscription_get_content_filter(
     return RCL_RET_SUBSCRIPTION_INVALID;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
-  const rcl_allocator_t * allocator = &options->allocator;
+  rcl_allocator_t * allocator = &subscription->impl->options.allocator;
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   rmw_ret_t rmw_ret = rmw_subscription_get_content_filter(
     subscription->impl->rmw_handle,
-    &options->allocator,
+    allocator,
     &options->rmw_subscription_content_filter_options);
 
   return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
