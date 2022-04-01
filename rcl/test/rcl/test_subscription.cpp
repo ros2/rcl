@@ -923,7 +923,7 @@ TEST_F(
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   bool is_cft_support = rcl_subscription_is_cft_enabled(&subscription);
-  ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
+  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 1000));
 
   // publish with a non-filtered data
   constexpr char test_string[] = "NotFilteredData";
@@ -937,9 +937,9 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
   } else {
-    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
@@ -964,7 +964,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
   {
     test_msgs__msg__Strings msg;
@@ -1001,7 +1001,7 @@ TEST_F(
     if (is_cft_support) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       // waiting to allow for filter propagation
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::this_thread::sleep_for(std::chrono::seconds(10));
     } else {
       ASSERT_EQ(RCL_RET_UNSUPPORTED, ret);
     }
@@ -1024,9 +1024,9 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
   } else {
-    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
@@ -1051,7 +1051,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
   {
     test_msgs__msg__Strings msg;
@@ -1115,8 +1115,8 @@ TEST_F(
     if (is_cft_support) {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       // waiting to allow for filter propagation
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
+      std::this_thread::sleep_for(std::chrono::seconds(10));
+      ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 1000));
       ASSERT_FALSE(rcl_subscription_is_cft_enabled(&subscription));
     } else {
       ASSERT_EQ(RCL_RET_UNSUPPORTED, ret);
@@ -1139,7 +1139,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
   {
     test_msgs__msg__Strings msg;
@@ -1197,7 +1197,7 @@ TEST_F(
     ASSERT_NE(RCL_RET_OK, ret);
   }
 
-  ASSERT_TRUE(wait_for_established_subscription(&publisher, 30, 100));
+  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 1000));
 
   // publish with a non-filtered data
   int32_t test_value = 3;
@@ -1210,7 +1210,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
   {
     test_msgs__msg__BasicTypes msg;
@@ -1250,7 +1250,7 @@ TEST_F(
     } else {
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       // waiting to allow for filter propagation
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 
     EXPECT_EQ(
@@ -1271,9 +1271,9 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
   } else {
-    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
     test_msgs__msg__BasicTypes msg;
     test_msgs__msg__BasicTypes__init(&msg);
@@ -1297,7 +1297,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 30, 100));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
   {
     test_msgs__msg__BasicTypes msg;
