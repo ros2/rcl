@@ -245,6 +245,7 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+    TIMEOUT 120
   )
   # TODO(asorbini) Enable message timestamp tests for rmw_connextdds on Windows
   # once clock incompatibilities are resolved.
@@ -442,4 +443,11 @@ rcl_add_custom_gtest(test_log_level
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME} mimick
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
+)
+
+rcl_add_custom_gtest(test_subscription_content_filter_options
+  SRCS rcl/test_subscription_content_filter_options.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+  AMENT_DEPENDENCIES "osrf_testing_tools_cpp" "test_msgs"
 )
