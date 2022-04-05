@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.3.0 (2022-04-05)
+------------------
+* add content-filtered-topic interfaces (`#894 <https://github.com/ros2/rcl/issues/894>`_)
+* Contributors: Chen Lihui
+
 5.2.1 (2022-03-31)
 ------------------
 * Add additional null check for timer argument (`#973 <https://github.com/ros2/rcl/issues/973>`_)
