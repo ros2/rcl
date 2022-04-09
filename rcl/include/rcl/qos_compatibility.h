@@ -36,10 +36,11 @@ extern "C"
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
- * Allocates Memory   | No
+ * Allocates Memory   | Yes
  * Thread-Safe        | No
  * Uses Atomics       | No
- * Lock-Free          | Yes
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
  *
  * \param[in] node The node to use to query the graph.
  * \param[in] topic_name Name of the topic to query for endpoints.
