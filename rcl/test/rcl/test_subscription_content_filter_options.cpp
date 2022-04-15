@@ -115,9 +115,9 @@ TEST(TestSubscriptionOptionsContentFilter, subscription_options_success)
 class TestSubscriptionContentFilterOptions : public ::testing::Test
 {
 public:
-  rcl_context_t * context_ptr;
-  rcl_node_t * node_ptr;
-  rcl_subscription_t * subscription_ptr;
+  std::unique_ptr<rcl_context_t> context_;
+  std::unique_ptr<rcl_node_t> node_;
+  std::unique_ptr<rcl_subscription_t> subscription_;
   void SetUp()
   {
     rcl_ret_t ret;
@@ -129,41 +129,39 @@ public:
       {
         EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
       });
-      this->context_ptr = new rcl_context_t;
-      *this->context_ptr = rcl_get_zero_initialized_context();
-      ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
+      context_ = std::make_unique<rcl_context_t>();
+      *context_ = rcl_get_zero_initialized_context();
+      ret = rcl_init(0, nullptr, &init_options, &*context_);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     }
-    this->node_ptr = new rcl_node_t;
-    *this->node_ptr = rcl_get_zero_initialized_node();
+    node_ = std::make_unique<rcl_node_t>();
+    *node_ = rcl_get_zero_initialized_node();
     constexpr char name[] = "test_subscription_content_filter_options_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
+    ret = rcl_node_init(&*node_, name, "", &*context_, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     const rosidl_message_type_support_t * ts =
       ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
     constexpr char topic[] = "chatter";
 
-    this->subscription_ptr = new rcl_subscription_t;
-    *this->subscription_ptr = rcl_get_zero_initialized_subscription();
+    subscription_ = std::make_unique<rcl_subscription_t>();
+    *subscription_ = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     ret = rcl_subscription_init(
-      this->subscription_ptr, this->node_ptr, ts, topic, &subscription_options);
+      &*subscription_, &*node_, ts, topic, &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void TearDown()
   {
-    rcl_ret_t ret = rcl_subscription_fini(this->subscription_ptr, this->node_ptr);
+    rcl_ret_t ret = rcl_subscription_fini(&*subscription_, &*node_);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_node_fini(this->node_ptr);
-    delete this->node_ptr;
+    ret = rcl_node_fini(&*node_);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_shutdown(this->context_ptr);
+    ret = rcl_shutdown(&*context_);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_context_fini(this->context_ptr);
-    delete this->context_ptr;
+    ret = rcl_context_fini(&*context_);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 };
@@ -183,21 +181,21 @@ TEST_F(TestSubscriptionContentFilterOptions, content_filter_options_failure) {
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_subscription_content_filter_options_init(
-      this->subscription_ptr, nullptr, 0, nullptr, nullptr)
+      &*subscription_, nullptr, 0, nullptr, nullptr)
   );
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_subscription_content_filter_options_init(
-      this->subscription_ptr, filter_expression1, 0, nullptr, nullptr)
+      &*subscription_, filter_expression1, 0, nullptr, nullptr)
   );
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_subscription_content_filter_options_init(
-      this->subscription_ptr, filter_expression1, 1, nullptr, &content_filter_options)
+      &*subscription_, filter_expression1, 1, nullptr, &content_filter_options)
   );
   rcl_reset_error();
 
@@ -212,21 +210,21 @@ TEST_F(TestSubscriptionContentFilterOptions, content_filter_options_failure) {
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_subscription_content_filter_options_set(
-      this->subscription_ptr, nullptr, 0, nullptr, nullptr)
+      &*subscription_, nullptr, 0, nullptr, nullptr)
   );
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_subscription_content_filter_options_set(
-      this->subscription_ptr, filter_expression1, 0, nullptr, nullptr)
+      &*subscription_, filter_expression1, 0, nullptr, nullptr)
   );
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_subscription_content_filter_options_set(
-      this->subscription_ptr, filter_expression1, 1, nullptr, &content_filter_options)
+      &*subscription_, filter_expression1, 1, nullptr, &content_filter_options)
   );
   rcl_reset_error();
 
@@ -240,7 +238,7 @@ TEST_F(TestSubscriptionContentFilterOptions, content_filter_options_failure) {
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_subscription_content_filter_options_fini(
-      this->subscription_ptr, nullptr)
+      &*subscription_, nullptr)
   );
   rcl_reset_error();
 }
@@ -258,7 +256,7 @@ TEST_F(TestSubscriptionContentFilterOptions, content_filter_options_success)
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_init(
-        this->subscription_ptr, filter_expression1, 0, nullptr,
+        &*subscription_, filter_expression1, 0, nullptr,
         &subscription_content_filter_options)
     );
 
@@ -272,7 +270,7 @@ TEST_F(TestSubscriptionContentFilterOptions, content_filter_options_success)
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_set(
-        this->subscription_ptr, filter_expression1_update, 0, nullptr,
+        &*subscription_, filter_expression1_update, 0, nullptr,
         &subscription_content_filter_options)
     );
 
@@ -302,7 +300,7 @@ TEST_F(TestSubscriptionContentFilterOptions, content_filter_options_success)
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_init(
-        this->subscription_ptr, filter_expression2, expression_parameters_count2,
+        &*subscription_, filter_expression2, expression_parameters_count2,
         expression_parameters2, &subscription_content_filter_options2)
     );
 
@@ -323,7 +321,7 @@ TEST_F(TestSubscriptionContentFilterOptions, content_filter_options_success)
     EXPECT_EQ(
       RCL_RET_OK,
       rcl_subscription_content_filter_options_set(
-        this->subscription_ptr, filter_expression2_update, expression_parameters_count2_update,
+        &*subscription_, filter_expression2_update, expression_parameters_count2_update,
         expression_parameters2_update, &subscription_content_filter_options2)
     );
 
@@ -344,11 +342,11 @@ TEST_F(TestSubscriptionContentFilterOptions, content_filter_options_success)
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_subscription_content_filter_options_fini(
-      this->subscription_ptr, &subscription_content_filter_options)
+      &*subscription_, &subscription_content_filter_options)
   );
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_subscription_content_filter_options_fini(
-      this->subscription_ptr, &subscription_content_filter_options2)
+      &*subscription_, &subscription_content_filter_options2)
   );
 }
