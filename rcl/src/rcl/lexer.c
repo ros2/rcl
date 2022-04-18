@@ -650,10 +650,11 @@ rcl_lexer_analyze(
       movement = state->else_movement;
     }
 
-    // Move the lexer to another character in the string
     if (0u == movement) {
-      // Go forwards 1 char
-      ++(*length);
+      if ('\0' != current_char) {
+        // Go forwards 1 char as long as the end hasn't been reached
+        ++(*length);
+      }
     } else {
       // Go backwards N chars
       if (movement - 1u > *length) {

@@ -141,6 +141,12 @@ rcl_lexer_lookahead2_peek2(
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(next_type2, RCL_RET_INVALID_ARGUMENT);
 
+  if (RCL_LEXEME_NONE == *next_type1 || RCL_LEXEME_EOF == *next_type1) {
+    // No need to peek further
+    *next_type2 = *next_type1;
+    return ret;
+  }
+
   size_t length;
 
   if (buffer->impl->text_idx >= buffer->impl->end[1]) {
