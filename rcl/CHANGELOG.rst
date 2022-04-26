@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.3.1 (2022-04-26)
+------------------
 * Fix buffer overflow in argument parsing caused by lexer returning length beyond length of string (`#979 <https://github.com/ros2/rcl/issues/979>`_)
 * Fix leak in test_subscription_content_filter_options.cpp (`#978 <https://github.com/ros2/rcl/issues/978>`_)
 * Contributors: Shane Loretz
