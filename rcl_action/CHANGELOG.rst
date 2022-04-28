@@ -2,6 +2,11 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix expired goals capacity of action server (`#931 <https://github.com/ros2/rcl/issues/931>`_) (`#958 <https://github.com/ros2/rcl/issues/958>`_)
+* Contributors: mergify[bot]
+
 3.1.2 (2021-04-26)
 ------------------
 

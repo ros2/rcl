@@ -2,6 +2,9 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 3.1.2 (2021-04-26)
 ------------------
 * Fix up test_network_flow_endpoints. (`#912 <https://github.com/ros2/rcl/issues/912>`_)
