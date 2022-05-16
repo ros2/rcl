@@ -248,11 +248,6 @@ rcl_node_init(
     node->impl->fq_name = rcutils_format_string(*allocator, "%s/%s", local_namespace_, name);
   }
 
-  // node logger name
-  node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->logger_name, "creating logger name failed", goto fail);
-
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Using domain ID of '%zu'", context->impl->rmw_context.actual_domain_id);
 
@@ -284,6 +279,12 @@ rcl_node_init(
     // error message already set
     goto fail;
   }
+
+  // node logger name
+  node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl->logger_name, "creating logger name failed", goto fail);
+
   // The initialization for the rosout publisher requires the node to be in initialized to a point
   // that it can create new topic publishers
   if (rcl_logging_rosout_enabled() && node->impl->options.enable_rosout) {
