@@ -96,6 +96,8 @@ rcl_subscription_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
   // Fill out the implemenation struct.
+  // node
+  subscription->impl->node = node;
   // rmw_handle
   // TODO(wjwwood): pass allocator once supported in rmw api.
   subscription->impl->rmw_handle = rmw_create_subscription(
@@ -172,6 +174,10 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
     return RCL_RET_NODE_INVALID;  // error already set
   }
   if (subscription->impl) {
+    if (node != subscription->impl->node) {
+      RCL_SET_ERROR_MSG("fini called with incorrect node");
+      return RCL_RET_INCORRECT_NODE;
+    }
     rcl_allocator_t allocator = subscription->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);
     if (!rmw_node) {

@@ -175,7 +175,7 @@ rcl_subscription_init(
  *
  * After calling, calls to rcl_wait and rcl_take will fail when using this
  * subscription.
- * Additioanlly rcl_wait will be interrupted if currently blocking.
+ * Additionally, rcl_wait will be interrupted if currently blocking.
  * However, the given node handle is still valid.
  *
  * <hr>
@@ -192,6 +192,7 @@ rcl_subscription_init(
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_SUBSCRIPTION_INVALID if the subscription is invalid, or
  * \return #RCL_RET_NODE_INVALID if the node is invalid, or
+ * \return #RCL_RET_INCORRECT_NODE if the node is not the node used to create the subscription, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC

@@ -180,6 +180,7 @@ rcl_publisher_init(
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_PUBLISHER_INVALID if the publisher is invalid, or
  * \return #RCL_RET_NODE_INVALID if the node is invalid, or
+ * \return #RCL_RET_INCORRECT_NODE if the node is not the node used to create the publisher, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
