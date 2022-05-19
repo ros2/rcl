@@ -105,6 +105,8 @@ rcl_publisher_init(
     publisher->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
 
   // Fill out implementation struct.
+  // node
+  publisher->impl->node = node;
   // rmw handle (create rmw publisher)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
   publisher->impl->rmw_handle = rmw_create_publisher(
@@ -176,6 +178,10 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Finalizing publisher");
   if (publisher->impl) {
+    if (node != publisher->impl->node) {
+      RCL_SET_ERROR_MSG("fini called with incorrect node");
+      return RCL_RET_INVALID_ARGUMENT;
+    }
     rcl_allocator_t allocator = publisher->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);
     if (!rmw_node) {

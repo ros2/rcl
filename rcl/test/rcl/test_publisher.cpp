@@ -45,6 +45,7 @@ class CLASSNAME (TestPublisherFixture, RMW_IMPLEMENTATION) : public ::testing::T
 public:
   rcl_context_t * context_ptr;
   rcl_node_t * node_ptr;
+  rcl_node_t * different_node_ptr;
   void SetUp()
   {
     rcl_ret_t ret;
@@ -67,12 +68,23 @@ public:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    this->different_node_ptr = new rcl_node_t;
+    *this->different_node_ptr = rcl_get_zero_initialized_node();
+    constexpr char different_name[] = "different_test_publisher_node";
+    ret = rcl_node_init(
+      this->different_node_ptr, different_name, "", this->context_ptr,
+      &node_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void TearDown()
   {
     rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_node_fini(this->different_node_ptr);
+    delete this->different_node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(this->context_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -241,18 +253,30 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
   // Try init a publisher already init
   ret = rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &default_publisher_options);
   EXPECT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
-  ret = rcl_publisher_fini(&publisher, this->node_ptr);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
 
   // Pass invalid node to fini
   ret = rcl_publisher_fini(&publisher, nullptr);
   EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
+  // Pass a different node to fini
+  ret = rcl_publisher_fini(&publisher, this->different_node_ptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
   // Pass nullptr publisher to fini
   ret = rcl_publisher_fini(nullptr, this->node_ptr);
   EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Pass a valid publisher to fini
+  ret = rcl_publisher_fini(&publisher, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Pass an already fini'd publisher to fini
+  ret = rcl_publisher_fini(&publisher, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Try passing null for publisher in init.
