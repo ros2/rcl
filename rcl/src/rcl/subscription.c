@@ -176,7 +176,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
   if (subscription->impl) {
     if (node != subscription->impl->node) {
       RCL_SET_ERROR_MSG("fini called with incorrect node");
-      return RCL_RET_INVALID_ARGUMENT;
+      return RCL_RET_INCORRECT_NODE;
     }
     rcl_allocator_t allocator = subscription->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);

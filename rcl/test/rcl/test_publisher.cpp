@@ -261,7 +261,7 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_init_
 
   // Pass a different node to fini
   ret = rcl_publisher_fini(&publisher, this->different_node_ptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_INCORRECT_NODE, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   // Pass nullptr publisher to fini

@@ -180,7 +180,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
   if (publisher->impl) {
     if (node != publisher->impl->node) {
       RCL_SET_ERROR_MSG("fini called with incorrect node");
-      return RCL_RET_INVALID_ARGUMENT;
+      return RCL_RET_INCORRECT_NODE;
     }
     rcl_allocator_t allocator = publisher->impl->options.allocator;
     rmw_node_t * rmw_node = rcl_node_get_rmw_handle(node);

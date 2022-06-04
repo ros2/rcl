@@ -269,7 +269,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_subscription_fini(&subscription, &invalid_node));
   rcl_reset_error();
   EXPECT_EQ(
-    RCL_RET_INVALID_ARGUMENT, rcl_subscription_fini(
+    RCL_RET_INCORRECT_NODE, rcl_subscription_fini(
       &subscription,
       this->different_node_ptr));
   rcl_reset_error();
