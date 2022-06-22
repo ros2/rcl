@@ -92,10 +92,23 @@ if(BUILD_TESTING AND NOT RCUTILS_DISABLE_FAULT_INJECTION)
   target_compile_definitions(${PROJECT_NAME} PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
 endif()
 
+find_package(test_msgs REQUIRED)
+add_executable(service_events_scratch src/scratch.c)
+target_link_libraries(service_events_scratch ${PROJECT_NAME})
+ament_target_dependencies(service_events_scratch
+  "rcl_interfaces"
+  "rosidl_runtime_c"
+  "test_msgs"
+)
+
 install(
   TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
+
+install(
+  TARGETS service_events_scratch
   RUNTIME DESTINATION bin)
 
 # rcl_lib_dir is passed as APPEND_LIBRARY_DIRS for each ament_add_gtest call so
