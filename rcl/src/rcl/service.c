@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rcl/time.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -19,16 +20,24 @@ extern "C"
 
 #include "rcl/service.h"
 
+#include "rcl/types.h"
 #include <stdio.h>
 #include <string.h>
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#include "rcl/publisher.h"
+#include <rosidl_runtime_c/message_type_support_struct.h>
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "tracetools/tracetools.h"
+#include "rcl_interfaces/msg/service_event.h"
+// #include "rcl_interfaces/msg/service_event.h" // why does it complain here?? 
+#include "builtin_interfaces/msg/time.h"
+#include "rosidl_runtime_c/string_functions.h"
+#include "rosidl_runtime_c/primitives_sequence_functions.h"
 
 struct rcl_service_impl_s
 {
@@ -36,6 +45,8 @@ struct rcl_service_impl_s
   rmw_qos_profile_t actual_request_subscription_qos;
   rmw_qos_profile_t actual_response_publisher_qos;
   rmw_service_t * rmw_handle;
+  rcl_publisher_t * service_event_publisher;
+  rcl_clock_t * clock;
 };
 
 rcl_service_t
@@ -124,6 +135,46 @@ rcl_service_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
+
+
+  // build service event publisher
+  char* service_event_name = allocator->allocate(sizeof(char) * (strlen(remapped_service_name)
+        + strlen("/_service_event") + 1), allocator->state);
+  strcpy(service_event_name, remapped_service_name);
+  strcat(service_event_name, "/_service_event");
+  *service->impl->service_event_publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * service_event_typesupport =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, ServiceEvent);
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(service->impl->service_event_publisher, node,
+    service_event_typesupport, service_event_name, &publisher_options);
+
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    goto fail;
+  }
+
+
+  // make a clock
+  ret = rcl_clock_init(RCL_STEADY_TIME, service->impl->clock, &allocator);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    goto fail;
+  }
+
+
+  // what needs to be done:
+  // In rcl_service_init:
+    // - get the rcl_message_type_support_t from the rcl_service_type_support_t
+    // - create rcl_publishers_options from given things
+    // - decide on how to overhaul rosidl to support thisj
+  // Hook into send/take
+    // - build a new message on request send/recieve/etc
+    // - pub it out
+  // Other: 
+    // Parameters
+  
+
   // get actual qos, and store it
   rmw_ret_t rmw_ret = rmw_service_request_subscription_get_actual_qos(
     service->impl->rmw_handle,
@@ -169,6 +220,7 @@ fail:
   // Fall through to clean up
 cleanup:
   allocator->deallocate(remapped_service_name, allocator->state);
+  allocator->deallocate(service_event_name, allocator->state);
   return ret;
 }
 
@@ -201,6 +253,10 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
     allocator.deallocate(service->impl, allocator.state);
     service->impl = NULL;
   }
+
+  rcl_publisher_fini(service->impl->service_event_publisher, node);
+  rcl_clock_fini(service->impl->clock);
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service finalized");
   return result;
 }
@@ -293,6 +349,78 @@ rcl_take_request(
   return ret;
 }
 
+
+rcl_ret_t 
+send_introspection_message(
+  rcl_service_t * service,
+  void * ros_response_request,
+  rmw_request_id_t * header,
+  rcl_allocator_t * allocator)
+{
+  // need a copy of this function for request/response (?) and also in client.c unless there's 
+  // a utils.c or something...
+  
+  rcl_ret_t ret;
+  rcl_serialized_message_t serialized_message = rmw_get_zero_initialized_serialized_message();
+  ret = rmw_serialized_message_init(&serialized_message, 0u, allocator); // why is this 0u?
+  if (RMW_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+  
+  // how to get type from service_payload? 
+  rosidl_message_type_support_t * type_support = ROSIDL_GET_MSG_TYPE_SUPPORT(PkgName, MsgSubfolder, MsgName);
+
+  ret = rmw_serialize(ros_response_request, typesupport, &serialized_message)
+
+
+
+  rcl_time_point_value_t now;
+  ret = rcl_clock_get_now(service->impl->clock, &now)
+  if (RMW_RET_OK != ret) { // there has to be a macro for this right?
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+
+  rcl_interfaces__msg__ServiceEvent msg;
+  rcl_interfaces__msg__ServiceEvent__init(msg);
+
+
+
+
+  
+  builtin_interfaces__msg__Time timestamp;
+  builtin_interfaces__msg__Time__init(&timestamp);
+  timestamp.nanosec = now;
+  // is there a rcl method for getting the seconds too?
+  msg.event_type;
+  msg.client_id = header->writer_guid;
+  msg.sequence_number = header->sequence_number;
+  msg.stamp = timestamp;
+
+  rosidl_runtime_c__String__assign(&msg.service_name, rcl_service_get_service_name(service));
+  rosidl_runtime_c__String__assign(&msg.event_name, rcl_service_get); // ..._{Request, Response}); // TODO(ihasdapie): impl this
+  rosidl_runtime_c__octet__Sequence__init(&msg.serialized_event, serialized_message.buffer_length);
+  memcpy(msg.serialized_event.data, serialized_message.buffer, serialized_message.buffer_length);
+
+  ret = rcl_publish(service->impl->service_event_publisher, &serialized_message, NULL);
+  if (RMW_RET_OK != ret) { // there has to be a macro for this right?
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+
+  ret = rmw_serialized_message_fini(&serialized_message);
+  if (RMW_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+
+  // have to fini the request/response message here as well
+  rcl_interfaces__msg__ServiceEvent__fini(&msg);
+
+  return ret;
+}
+
 rcl_ret_t
 rcl_send_response(
   const rcl_service_t * service,
@@ -308,8 +436,25 @@ rcl_send_response(
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
+  // publish out the introspected content
+  send_introspection_message(
+    service,
+    ros_response,
+    request_header,
+    &options->allocator);
+  
+
+
+
   if (rmw_send_response(
       service->impl->rmw_handle, request_header, ros_response) != RMW_RET_OK)
+  {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+
+  // need a message form of ros_response as well. We have a response here but we want to be able to publish
+  // out a message as well. For now let's hardcode one in?
   {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
