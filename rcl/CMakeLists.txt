@@ -11,6 +11,7 @@ find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
+find_package(service_msgs REQUIRED)
 find_package(tracetools REQUIRED)
 
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
@@ -59,6 +60,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/rmw_implementation_identifier_check.c
   src/rcl/security.c
   src/rcl/service.c
+  src/rcl/service_event_publisher.c
   src/rcl/subscription.c
   src/rcl/time.c
   src/rcl/timer.c
@@ -70,6 +72,7 @@ set(${PROJECT_NAME}_sources
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
@@ -81,6 +84,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rmw_implementation"
   ${RCL_LOGGING_IMPL}
   "rosidl_runtime_c"
+  "service_msgs"
   "tracetools"
 )
 
@@ -121,6 +125,7 @@ ament_export_dependencies(rmw)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(${RCL_LOGGING_IMPL})
 ament_export_dependencies(rosidl_runtime_c)
+ament_export_dependencies(service_msgs)
 ament_export_dependencies(tracetools)
 
 if(BUILD_TESTING)

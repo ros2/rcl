@@ -24,10 +24,15 @@ extern "C"
 
 #include "rosidl_runtime_c/service_type_support_struct.h"
 
+#include "rcl/allocator.h"
 #include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
+#include "rcl/publisher.h"
+#include "rcl/time.h"
 #include "rcl/visibility_control.h"
+
+#include "rmw/types.h"
 
 /// Internal rcl implementation struct.
 typedef struct rcl_service_impl_s rcl_service_impl_t;
@@ -44,9 +49,15 @@ typedef struct rcl_service_options_s
 {
   /// Middleware quality of service settings for the service.
   rmw_qos_profile_t qos;
+  /// Publisher options for the service event publisher
+  rcl_publisher_options_t event_publisher_options;
   /// Custom allocator for the service, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
+  /// Enable/Disable service introspection features
+  bool enable_service_introspection;
+  /// The clock to use for service introspection message timestamps
+  rcl_clock_t * clock;
 } rcl_service_options_t;
 
 /// Return a rcl_service_t struct with members set to `NULL`.
@@ -105,7 +116,7 @@ rcl_get_zero_initialized_service(void);
  *
  * The options struct allows the user to set the quality of service settings as
  * well as a custom allocator which is used when initializing/finalizing the
- * client to allocate space for incidentals, e.g. the service name string.
+ * service to allocate space for incidentals, e.g. the service name string.
  *
  * Expected usage (for C services):
  *
@@ -197,7 +208,10 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node);
  * The defaults are:
  *
  * - qos = rmw_qos_profile_services_default
+ * - event_publisher_options = rcl_publisher_get_default_options()
  * - allocator = rcl_get_default_allocator()
+ * - enable_service_introspection = False
+ * - clock = NULL
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -523,6 +537,58 @@ rcl_service_set_on_new_request_callback(
   const rcl_service_t * service,
   rcl_event_callback_t callback,
   const void * user_data);
+
+/// Configure service introspection features for the service
+/**
+ * Enables or disables service introspection features for this service.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] rmw implementation defined</i>
+ *
+ * \param[in] server The server on which to enable service introspection
+ * \param[in] node The node for which the service event publisher is to be associated to
+ * \param[in] enable Whether to enable or disable service introspection
+ * \return `RCL_RET_ERROR` if the event publisher is invalid, or
+ * \return `RCL_RET_NODE_INVALID` if the given node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the client or node structure is invalid,
+ * \return `RCL_RET_BAD_ALLOC` if a memory allocation failed, or
+ * \return `RCL_RET_OK` if the call was successful
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_service_introspection_configure_server_service_events(
+  rcl_service_t * service,
+  rcl_node_t * node,
+  bool enable);
+
+/// Configure if the payload (server response) is included in service event messages.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] server The server on which to enable/disable payload for service event messages.
+ * \param[in] enable Whether to enable or disable including the payload in the event message.
+ * \return `RCL_RET_INVALID_ARGUMENT` if the service structure is invalid,
+ * \return `RCL_RET_OK` if the call was successful
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_service_introspection_configure_server_service_event_message_payload(
+  rcl_service_t * service,
+  bool enable);
 
 #ifdef __cplusplus
 }

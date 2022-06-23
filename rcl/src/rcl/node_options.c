@@ -36,6 +36,7 @@ rcl_node_get_default_options()
     .arguments = rcl_get_zero_initialized_arguments(),
     .enable_rosout = true,
     .rosout_qos = rcl_qos_profile_rosout_default,
+    .enable_service_introspection = false,
   };
   return default_options;
 }
@@ -61,6 +62,7 @@ rcl_node_options_copy(
   options_out->use_global_arguments = options->use_global_arguments;
   options_out->enable_rosout = options->enable_rosout;
   options_out->rosout_qos = options->rosout_qos;
+  options_out->enable_service_introspection = options->enable_service_introspection;
   if (NULL != options->arguments.impl) {
     return rcl_arguments_copy(&(options->arguments), &(options_out->arguments));
   }

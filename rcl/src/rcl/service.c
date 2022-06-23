@@ -17,32 +17,92 @@ extern "C"
 {
 #endif
 
-#include "rcl/service.h"
-
 #include <stdio.h>
 #include <string.h>
 
 #include "rcl/error_handling.h"
+#include "rcl/graph.h"
 #include "rcl/node.h"
+#include "rcl/publisher.h"
+#include "rcl/time.h"
+#include "rcl/types.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
+#include "service_msgs/msg/service_event_info.h"
 #include "tracetools/tracetools.h"
 
-struct rcl_service_impl_s
-{
-  rcl_service_options_t options;
-  rmw_qos_profile_t actual_request_subscription_qos;
-  rmw_qos_profile_t actual_response_publisher_qos;
-  rmw_service_t * rmw_handle;
-};
+#include "rosidl_runtime_c/service_type_support_struct.h"
+#include "rosidl_runtime_c/message_type_support_struct.h"
+
+#include "./common.h"
+#include "./service_event_publisher.h"
+#include "./service_impl.h"
+
 
 rcl_service_t
 rcl_get_zero_initialized_service()
 {
   static rcl_service_t null_service = {0};
   return null_service;
+}
+
+static
+rcl_ret_t
+unconfigure_service_introspection(
+  rcl_node_t * node,
+  struct rcl_service_impl_s * service_impl,
+  rcl_allocator_t * allocator)
+{
+  if (!service_impl->service_event_publisher) {
+    return RCL_RET_OK;
+  }
+
+  rcl_ret_t ret = rcl_service_event_publisher_fini(service_impl->service_event_publisher, node);
+
+  allocator->deallocate(service_impl->service_event_publisher, allocator->state);
+  service_impl->service_event_publisher = NULL;
+
+  return ret;
+}
+
+static
+rcl_ret_t
+configure_service_introspection(
+  const rcl_node_t * node,
+  struct rcl_service_impl_s * service_impl,
+  rcl_allocator_t * allocator,
+  const rcl_service_options_t * options,
+  const rosidl_service_type_support_t * type_support,
+  const char * remapped_service_name)
+{
+  if (!rcl_node_get_options(node)->enable_service_introspection) {
+    return RCL_RET_OK;
+  }
+
+  service_impl->service_event_publisher = allocator->zero_allocate(
+    1, sizeof(rcl_service_event_publisher_t), allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    service_impl->service_event_publisher, "allocating memory failed", return RCL_RET_BAD_ALLOC;);
+
+  rcl_service_event_publisher_options_t service_event_options =
+    rcl_service_event_publisher_get_default_options();
+  service_event_options.publisher_options = options->event_publisher_options;
+  service_event_options.clock = options->clock;
+
+  *service_impl->service_event_publisher = rcl_get_zero_initialized_service_event_publisher();
+  rcl_ret_t ret = rcl_service_event_publisher_init(
+    service_impl->service_event_publisher, node, &service_event_options,
+    remapped_service_name, type_support);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    allocator->deallocate(service_impl->service_event_publisher, allocator->state);
+    service_impl->service_event_publisher = NULL;
+    return ret;
+  }
+
+  return RCL_RET_OK;
 }
 
 rcl_ret_t
@@ -95,16 +155,17 @@ rcl_service_init(
     } else if (ret != RCL_RET_BAD_ALLOC) {
       ret = RCL_RET_ERROR;
     }
-    goto cleanup;
+    return ret;
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Expanded and remapped service name '%s'", remapped_service_name);
 
   // Allocate space for the implementation struct.
-  service->impl = (rcl_service_impl_t *)allocator->allocate(
-    sizeof(rcl_service_impl_t), allocator->state);
+  service->impl = (rcl_service_impl_t *)allocator->zero_allocate(
+    1, sizeof(rcl_service_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    service->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
+    service->impl, "allocating memory failed",
+    ret = RCL_RET_BAD_ALLOC; goto free_remapped_service_name);
 
   if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == options->qos.durability) {
     RCUTILS_LOG_WARN_NAMED(
@@ -122,25 +183,33 @@ rcl_service_init(
     &options->qos);
   if (!service->impl->rmw_handle) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    goto fail;
+    ret = RCL_RET_ERROR;
+    goto free_service_impl;
   }
+
+  ret = configure_service_introspection(
+    node, service->impl, allocator, options, type_support, remapped_service_name);
+  if (RCL_RET_OK != ret) {
+    goto destroy_service;
+  }
+
   // get actual qos, and store it
   rmw_ret_t rmw_ret = rmw_service_request_subscription_get_actual_qos(
     service->impl->rmw_handle,
     &service->impl->actual_request_subscription_qos);
-
   if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    goto fail;
+    ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    goto unconfigure_introspection;
   }
 
   rmw_ret = rmw_service_response_publisher_get_actual_qos(
     service->impl->rmw_handle,
     &service->impl->actual_response_publisher_qos);
-
   if (RMW_RET_OK != rmw_ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    goto fail;
+    ret = rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    goto unconfigure_introspection;
   }
 
   // ROS specific namespacing conventions is not retrieved by get_actual_qos
@@ -159,15 +228,29 @@ rcl_service_init(
     (const void *)node,
     (const void *)service->impl->rmw_handle,
     remapped_service_name);
-  goto cleanup;
-fail:
-  if (service->impl) {
-    allocator->deallocate(service->impl, allocator->state);
-    service->impl = NULL;
+
+  goto free_remapped_service_name;
+
+unconfigure_introspection:
+  // TODO(clalancette): I don't love casting away the const from node here,
+  // but the cleanup path goes deep and I didn't want to change 6 or so
+  // different signatures.
+  fail_ret = unconfigure_service_introspection((rcl_node_t *)node, service->impl, allocator);
+  if (RCL_RET_OK != fail_ret) {
+    // TODO(clalancette): print the error message here
   }
-  ret = fail_ret;
-  // Fall through to clean up
-cleanup:
+
+destroy_service:
+  rmw_ret = rmw_destroy_service(rcl_node_get_rmw_handle(node), service->impl->rmw_handle);
+  if (RMW_RET_OK != rmw_ret) {
+    // TODO(clalancette): print the error message here
+  }
+
+free_service_impl:
+  allocator->deallocate(service->impl, allocator->state);
+  service->impl = NULL;
+
+free_remapped_service_name:
   allocator->deallocate(remapped_service_name, allocator->state);
   return ret;
 }
@@ -193,11 +276,19 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
     if (!rmw_node) {
       return RCL_RET_INVALID_ARGUMENT;
     }
+
+    rcl_ret_t rcl_ret = unconfigure_service_introspection(node, service->impl, &allocator);
+    if (RCL_RET_OK != rcl_ret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      result = rcl_ret;
+    }
+
     rmw_ret_t ret = rmw_destroy_service(rmw_node, service->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
+
     allocator.deallocate(service->impl, allocator.state);
     service->impl = NULL;
   }
@@ -212,7 +303,10 @@ rcl_service_get_default_options()
   static rcl_service_options_t default_options;
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_services_default;
+  default_options.event_publisher_options = rcl_publisher_get_default_options();
   default_options.allocator = rcl_get_default_allocator();
+  default_options.enable_service_introspection = false;
+  default_options.clock = NULL;
   return default_options;
 }
 
@@ -277,6 +371,18 @@ rcl_take_request_with_info(
   if (!taken) {
     return RCL_RET_SERVICE_TAKE_FAILED;
   }
+  if (rcl_service_get_options(service)->enable_service_introspection) {
+    rcl_ret_t rclret = rcl_send_service_event_message(
+      service->impl->service_event_publisher,
+      service_msgs__msg__ServiceEventInfo__REQUEST_RECEIVED,
+      ros_request,
+      request_header->request_id.sequence_number,
+      request_header->request_id.writer_guid);
+    if (RCL_RET_OK != rclret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      return rclret;
+    }
+  }
   return RCL_RET_OK;
 }
 
@@ -313,6 +419,20 @@ rcl_send_response(
   {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
+  }
+
+  // publish out the introspected content
+  if (rcl_service_get_options(service)->enable_service_introspection) {
+    rcl_ret_t ret = rcl_send_service_event_message(
+      service->impl->service_event_publisher,
+      service_msgs__msg__ServiceEventInfo__RESPONSE_SENT,
+      ros_response,
+      request_header->sequence_number,
+      request_header->writer_guid);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      return ret;
+    }
   }
   return RCL_RET_OK;
 }
@@ -361,6 +481,35 @@ rcl_service_set_on_new_request_callback(
     service->impl->rmw_handle,
     callback,
     user_data);
+}
+
+rcl_ret_t
+rcl_service_introspection_configure_server_service_events(
+  rcl_service_t * service,
+  rcl_node_t * node,
+  bool enable)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service->impl, RCL_RET_INVALID_ARGUMENT);
+
+  if (enable) {
+    return rcl_service_introspection_enable(service->impl->service_event_publisher, node);
+  }
+  return rcl_service_introspection_disable(service->impl->service_event_publisher, node);
+}
+
+rcl_ret_t
+rcl_service_introspection_configure_server_service_event_message_payload(
+  rcl_service_t * service,
+  bool enable)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service->impl, RCL_RET_INVALID_ARGUMENT);
+
+  service->impl->service_event_publisher->impl->options._content_enabled = enable;
+
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus
