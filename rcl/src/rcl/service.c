@@ -32,16 +32,16 @@ extern "C"
 #include "rcutils/macros.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
+#include "rcl/graph.h"
 #include "tracetools/tracetools.h"
-#include "rcl_interfaces/msg/service_event.h"
-// #include "rcl_interfaces/msg/service_event.h" // why does it complain here?? 
+#include "rcl_interfaces/msg/service_event_type.h"
 #include "builtin_interfaces/msg/time.h"
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
+#include "rcl_interfaces/msg/service_event.h"
 
 struct rcl_service_impl_s
 {
-  rcl_service_options_t options;
   rmw_qos_profile_t actual_request_subscription_qos;
   rmw_qos_profile_t actual_response_publisher_qos;
   rmw_service_t * rmw_handle;
@@ -354,6 +354,7 @@ rcl_ret_t
 send_introspection_message(
   rcl_service_t * service,
   void * ros_response_request,
+  uint8_t event_type,
   rmw_request_id_t * header,
   rcl_allocator_t * allocator)
 {
@@ -368,15 +369,16 @@ send_introspection_message(
     return RCL_RET_ERROR;
   }
   
-  // how to get type from service_payload? 
-  rosidl_message_type_support_t * type_support = ROSIDL_GET_MSG_TYPE_SUPPORT(PkgName, MsgSubfolder, MsgName);
+  // TODO: how to get the message_type_support for a request/response?
+  // We could get the service_type_support but how to build a message_type_support from that?
+  rosidl_message_type_support_t * type_support = NULL;
 
-  ret = rmw_serialize(ros_response_request, typesupport, &serialized_message)
+  ret = rmw_serialize(ros_response_request, type_support, &serialized_message)
 
 
 
   rcl_time_point_value_t now;
-  ret = rcl_clock_get_now(service->impl->clock, &now)
+  ret = rcl_clock_get_now(service->impl->clock, &now);
   if (RMW_RET_OK != ret) { // there has to be a macro for this right?
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
@@ -384,27 +386,33 @@ send_introspection_message(
 
   rcl_interfaces__msg__ServiceEvent msg;
   rcl_interfaces__msg__ServiceEvent__init(msg);
-
-
-
-
   
   builtin_interfaces__msg__Time timestamp;
   builtin_interfaces__msg__Time__init(&timestamp);
   timestamp.nanosec = now;
   // is there a rcl method for getting the seconds too?
-  msg.event_type;
+  msg.event_type = event_type;
   msg.client_id = header->writer_guid;
   msg.sequence_number = header->sequence_number;
   msg.stamp = timestamp;
 
   rosidl_runtime_c__String__assign(&msg.service_name, rcl_service_get_service_name(service));
-  rosidl_runtime_c__String__assign(&msg.event_name, rcl_service_get); // ..._{Request, Response}); // TODO(ihasdapie): impl this
+
+
+
+  // ..._{Request, Response}); // TODO(ihasdapie): figure out how to get the message name. Type is in event_type
+  rosidl_runtime_c__String__assign(&msg.event_name, "ServiceEvent__{Request, Response}");
   rosidl_runtime_c__octet__Sequence__init(&msg.serialized_event, serialized_message.buffer_length);
   memcpy(msg.serialized_event.data, serialized_message.buffer, serialized_message.buffer_length);
 
   ret = rcl_publish(service->impl->service_event_publisher, &serialized_message, NULL);
   if (RMW_RET_OK != ret) { // there has to be a macro for this right?
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+
+  ret = rmw_serialized_message_fini(&serialized_message);
+  if (RMW_RET_OK != ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
@@ -439,6 +447,7 @@ rcl_send_response(
   // publish out the introspected content
   send_introspection_message(
     service,
+    rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT;
     ros_response,
     request_header,
     &options->allocator);
