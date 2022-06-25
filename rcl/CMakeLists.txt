@@ -64,6 +64,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/validate_enclave_name.c
   src/rcl/validate_topic_name.c
   src/rcl/wait.c
+  src/rcl/introspection.c
 )
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})
