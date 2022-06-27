@@ -30,15 +30,34 @@ typedef struct rcl_service_introspection_utils_s {
   rcl_publisher_t * publisher;
   rosidl_message_type_support_t * request_type_support;
   rosidl_message_type_support_t * response_type_support;
+  char * service_name;
 } rcl_service_introspection_utils_t;
 
+rcl_service_introspection_utils_t
+rcl_get_zero_initialized_introspection_utils();
+
+rcl_ret_t
+rcl_service_introspection_init(
+  rcl_service_introspection_utils_t * introspection_utils,
+  const rosidl_service_type_support_t * service_type_support,
+  const char * service_name,
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator);
+
+
+
+rcl_ret_t
+rcl_service_introspection_fini(
+  rcl_service_introspection_utils_t * introspection_utils,
+  rcl_allocator_t * allocator,
+  rcl_node_t * node);
 
 rcl_ret_t 
-send_introspection_message(
-  const rcl_service_t * service,
-  uint8_t event_type,
-  void * ros_response_request,
-  rmw_request_id_t * header,
+rcl_introspection_send_message(
+  const rcl_service_introspection_utils_t * introspection_utils,
+  const uint8_t event_type,
+  const void * ros_response_request,
+  const rmw_request_id_t * header,
   const rcl_service_options_t * options);
 
 

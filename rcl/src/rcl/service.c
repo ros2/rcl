@@ -94,8 +94,6 @@ rcl_service_init(
 
   // Expand and remap the given service name.
   char * remapped_service_name = NULL;
-  char * service_event_name = NULL;
-  // Preallocate space for for service_event_name
 
   rcl_ret_t ret = rcl_node_resolve_name(
     node,
@@ -144,58 +142,21 @@ rcl_service_init(
     goto fail;
   }
 
-  // TODO(ihasdapie): Wrap this up as a fn introspection.c w/ `initialize_introspection_utils` and _fini, etc
   service->impl->introspection_utils = (rcl_service_introspection_utils_t *) allocator->allocate(
       sizeof(rcl_service_introspection_utils_t), allocator->state);
-  // rcl_service_introspection_utils_t * iutils = service->impl->introspection_utils;
-  
-  // the reason why we can't use a macro and concatenate the Type to get what we want is 
-  // because there we had always {goal status result} but here we can have any service type name...
-  // TODO(ihasdapie): Need to get the package and message name somehow
-  char * tsfile = "libexample_interfaces__rosidl_typesupport_c.so";
-  void* tslib = dlopen(tsfile, RTLD_LAZY);
-  RCL_CHECK_FOR_NULL_WITH_MSG(tslib, "dlopen failed", ret = RCL_RET_ERROR; goto cleanup);
-  // there are macros for building these in rosidl_typesupport_interface but still need the msg package name
-  const char* ts_req_func_name = "rosidl_typesupport_c__get_message_type_support_handle__example_interfaces__srv__AddTwoInts_Request";
-  const char* ts_resp_func_name = "rosidl_typesupport_c__get_message_type_support_handle__example_interfaces__srv__AddTwoInts_Response";
+  *service->impl->introspection_utils = rcl_get_zero_initialized_introspection_utils();
+  ret = rcl_service_introspection_init(
+      service->impl->introspection_utils,
+      type_support,
+      remapped_service_name,
+      node,
+      allocator
+      );
 
-  // TODO(ihasdapie): squash warning  "ISO C forbids conversion of function pointer to object pointer type"
-  rosidl_message_type_support_t* (* ts_func_handle)() = (rosidl_message_type_support_t*(*)()) dlsym(tslib, ts_resp_func_name);
-  RCL_CHECK_FOR_NULL_WITH_MSG(ts_func_handle, "looking up response type support failed", ret = RCL_RET_ERROR; goto cleanup);
-  service->impl->introspection_utils->response_type_support = ts_func_handle();
-  ts_func_handle = (rosidl_message_type_support_t*(*)()) dlsym(tslib, ts_req_func_name);
-  RCL_CHECK_FOR_NULL_WITH_MSG(ts_func_handle, "looking up response type support failed", ret = RCL_RET_ERROR; goto cleanup);
-  service->impl->introspection_utils->request_type_support = ts_func_handle();
-
-  service_event_name = (char*) allocator->zero_allocate(
-      strlen(remapped_service_name) + strlen(RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX) + 1,
-      sizeof(char), allocator->state);
-  strcpy(service_event_name, remapped_service_name);
-  strcat(service_event_name, RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX);
-
-  // Make a publisher
-  service->impl->introspection_utils->publisher = allocator->allocate(sizeof(rcl_publisher_t), allocator->state);
-  *service->impl->introspection_utils->publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * service_event_typesupport = 
-    ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, ServiceEvent);  // ROSIDL_GET_MSG_TYPE_SUPPORT gives an int?? And complier warns that it is being converted to a ptr
-  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(service->impl->introspection_utils->publisher, node,
-    service_event_typesupport, service_event_name, &publisher_options);
-
-  // there has to be a macro for this, right?
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG(rcl_get_error_string().str);
     goto fail;
   }
-
-  // make a clock
-  service->impl->introspection_utils->clock = allocator->allocate(sizeof(rcl_clock_t), allocator->state);
-  ret = rcl_clock_init(RCL_STEADY_TIME, service->impl->introspection_utils->clock, allocator);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-    goto fail;
-  }
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Clock initialized");
 
   // get actual qos, and store it
   rmw_ret_t rmw_ret = rmw_service_request_subscription_get_actual_qos(
@@ -245,7 +206,6 @@ fail:
   // Fall through to clean up
 cleanup:
   allocator->deallocate(remapped_service_name, allocator->state);
-  allocator->deallocate(service_event_name, allocator->state);
   return ret;
 }
 
@@ -275,19 +235,17 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
+    rcl_service_introspection_fini(service->impl->introspection_utils, &allocator, node);
     allocator.deallocate(service->impl->introspection_utils, allocator.state);
+
     allocator.deallocate(service->impl, allocator.state);
-    service->impl->introspection_utils = NULL;
     service->impl = NULL;
 
-    ret = rcl_publisher_fini(service->impl->introspection_utils->publisher, node);
-    ret = rcl_clock_fini(service->impl->introspection_utils->clock);
     if (ret != RCL_RET_OK) {
       RCL_SET_ERROR_MSG(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }
   }
-
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service finalized");
   return result;
@@ -405,8 +363,8 @@ rcl_send_response(
   RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
   // publish out the introspected content
-  send_introspection_message(
-    service,
+  rcl_introspection_send_message(
+    service->impl->introspection_utils,
     rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT,
     ros_response,
     request_header,

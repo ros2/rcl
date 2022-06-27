@@ -21,6 +21,7 @@
 
 #include "rcl/error_handling.h"
 #include "rmw/error_handling.h"
+#include "dlfcn.h"
 
 #include "rcutils/macros.h"
 #include "rcutils/logging_macros.h"
@@ -33,18 +34,136 @@
 #include "rcl_interfaces/msg/service_event_type.h"
 
 
+rcl_service_introspection_utils_t
+rcl_get_zero_initialized_introspection_utils ()
+{
+  static rcl_service_introspection_utils_t null_introspection_utils = {
+    .response_type_support = NULL,
+    .request_type_support = NULL,
+    .publisher = NULL,
+    .clock = NULL,
+    .service_name = NULL
+  };
+  return null_introspection_utils;
+}
+
+rcl_ret_t
+rcl_service_introspection_init(
+  rcl_service_introspection_utils_t * introspection_utils,
+  const rosidl_service_type_support_t * service_type_support,
+  const char * service_name,
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator
+  )
+{
+  
+  // the reason why we can't use a macro and concatenate the Type to get what we want is 
+  // because there we had always {goal status result} but here we can have any service type name...
+  // TODO(ihasdapie): Need to get the package and message name somehow
+  // probably hook into rosidl
+  rcl_ret_t ret;
+
+  introspection_utils->service_name = allocator->allocate(
+      strlen(service_name) + 1, allocator->state);
+  strcpy(introspection_utils->service_name, service_name);
+
+
+
+
+  char * tsfile = "libexample_interfaces__rosidl_typesupport_c.so";
+  void* tslib = dlopen(tsfile, RTLD_LAZY);
+  RCL_CHECK_FOR_NULL_WITH_MSG(tslib, "dlopen failed", return RCL_RET_ERROR);
+
+
+  // there are macros for building these in rosidl_typesupport_interface but still need the msg package name
+  const char* ts_req_func_name = "rosidl_typesupport_c__get_message_type_support_handle__example_interfaces__srv__AddTwoInts_Request";
+  const char* ts_resp_func_name = "rosidl_typesupport_c__get_message_type_support_handle__example_interfaces__srv__AddTwoInts_Response";
+
+  // TODO(ihasdapie): squash warning  "ISO C forbids conversion of function pointer to object pointer type"
+  rosidl_message_type_support_t* (* ts_func_handle)() = (rosidl_message_type_support_t*(*)()) dlsym(tslib, ts_resp_func_name);
+  RCL_CHECK_FOR_NULL_WITH_MSG(ts_func_handle, "looking up response type support failed", return RCL_RET_ERROR);
+  introspection_utils->response_type_support = ts_func_handle();
+  ts_func_handle = (rosidl_message_type_support_t*(*)()) dlsym(tslib, ts_req_func_name);
+  RCL_CHECK_FOR_NULL_WITH_MSG(ts_func_handle, "looking up response type support failed", return RCL_RET_ERROR);
+  introspection_utils->request_type_support = ts_func_handle();
+
+  char * service_event_name = (char*) allocator->zero_allocate(
+      strlen(service_name) + strlen(RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX) + 1,
+      sizeof(char), allocator->state);
+  strcpy(service_event_name, service_name);
+  strcat(service_event_name, RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX);
+
+  // Make a publisher
+  introspection_utils->publisher = allocator->allocate(sizeof(rcl_publisher_t), allocator->state);
+  *introspection_utils->publisher = rcl_get_zero_initialized_publisher();
+  const rosidl_message_type_support_t * service_event_typesupport = 
+    ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, ServiceEvent);  // ROSIDL_GET_MSG_TYPE_SUPPORT gives an int?? And complier warns that it is being converted to a ptr
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  ret = rcl_publisher_init(introspection_utils->publisher, node,
+    service_event_typesupport, service_event_name, &publisher_options);
+
+
+  // there has to be a macro for this, right?
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+
+  // make a clock
+  introspection_utils->clock = allocator->allocate(sizeof(rcl_clock_t), allocator->state);
+  ret = rcl_clock_init(RCL_STEADY_TIME, introspection_utils->clock, allocator);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "Clock initialized");
+
+  allocator->deallocate(service_event_name, allocator->state);
+
+  return RCL_RET_OK;
+}
+
+
+rcl_ret_t
+rcl_service_introspection_fini(
+  rcl_service_introspection_utils_t * introspection_utils,
+  rcl_allocator_t * allocator,
+  rcl_node_t * node)
+{
+  rcl_ret_t ret;
+  ret = rcl_publisher_fini(introspection_utils->publisher, node);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+  ret = rcl_clock_fini(introspection_utils->clock);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+
+  allocator->deallocate(introspection_utils->publisher, allocator->state);
+  allocator->deallocate(introspection_utils->clock, allocator->state);
+  allocator->deallocate(introspection_utils->service_name, allocator->state);
+
+
+  return RCL_RET_OK;
+
+}
+
+
 
 rcl_ret_t 
-send_introspection_message(
-  const rcl_service_t * service,
-  uint8_t event_type,
-  void * ros_response_request,
-  rmw_request_id_t * header,
+rcl_introspection_send_message(
+  const rcl_service_introspection_utils_t * introspection_utils,
+  const uint8_t event_type,
+  const void * ros_response_request,
+  const rmw_request_id_t * header,
   const rcl_service_options_t * options)
 {
   // need a copy of this function for request/response (?) and also in client.c unless there's 
   // a utils.c or something...
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Sending introspection message -----------------");
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Sending introspection message -----------------");
   
   rcl_ret_t ret;
   rcl_serialized_message_t serialized_message = rmw_get_zero_initialized_serialized_message();
@@ -54,24 +173,25 @@ send_introspection_message(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message -----------------");
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message -----------------");
   rcl_interfaces__msg__ServiceEvent msg;
   rcl_interfaces__msg__ServiceEvent__init(&msg);
   msg.event_type = event_type;
   msg.sequence_number = header->sequence_number;
-  rosidl_runtime_c__String__assign(&msg.service_name, rcl_service_get_service_name(service));
-  printf("sequence_number: %ld\n", msg.sequence_number);
+  rosidl_runtime_c__String__assign(&msg.service_name, introspection_utils->service_name);
+
+  /* printf("sequence_number: %ld\n", msg.sequence_number);
   printf("service_name: %s\n", msg.service_name.data);
-  printf("event_type: %d\n", msg.event_type);
+  printf("event_type: %d\n", msg.event_type); */
    
   rosidl_runtime_c__String__assign(&msg.event_name, "AddTwoInts"); // TODO(ihasdapie): get this properly, the type name is hardcoded throughout right now
 
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message: Building time message -----------------");
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message: Building time message -----------------");
   builtin_interfaces__msg__Time timestamp;
   builtin_interfaces__msg__Time__init(&timestamp);
 
   rcl_time_point_value_t now;
-  ret = rcl_clock_get_now(service->impl->introspection_utils->clock, &now);
+  ret = rcl_clock_get_now(introspection_utils->clock, &now);
   if (RMW_RET_OK != ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
@@ -81,27 +201,27 @@ send_introspection_message(
   timestamp.nanosec = now % (1000LL * 1000LL * 1000LL);
   msg.stamp = timestamp;
 
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message: Building UUID message -----------------");
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message: Building UUID message -----------------");
   unique_identifier_msgs__msg__UUID uuid;
   unique_identifier_msgs__msg__UUID__init(&uuid);
   memcpy(uuid.uuid, header->writer_guid, 16 * sizeof(uint8_t));
   msg.client_id = uuid;
 
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message: Serializing introspected message -----------------");
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message: Serializing introspected message -----------------");
 
   rosidl_message_type_support_t * serialized_message_ts;
   switch (event_type) {
     case rcl_interfaces__msg__ServiceEventType__REQUEST_RECEIVED:
-      serialized_message_ts = service->impl->introspection_utils->request_type_support;
+      serialized_message_ts = introspection_utils->request_type_support;
       break;
     case rcl_interfaces__msg__ServiceEventType__REQUEST_SENT:
-      serialized_message_ts = service->impl->introspection_utils->response_type_support;
+      serialized_message_ts = introspection_utils->response_type_support;
       break;
     case rcl_interfaces__msg__ServiceEventType__RESPONSE_RECEIVED:
-      serialized_message_ts = service->impl->introspection_utils->response_type_support;
+      serialized_message_ts = introspection_utils->response_type_support;
       break;
     case rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT:
-      serialized_message_ts = service->impl->introspection_utils->request_type_support;
+      serialized_message_ts = introspection_utils->request_type_support;
       break;
     default:
       RCL_SET_ERROR_MSG("Invalid event type");
@@ -109,8 +229,8 @@ send_introspection_message(
   }
 
   ret = rmw_serialize(ros_response_request, serialized_message_ts, &serialized_message);
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message: memcpying introspected message -----------------");
-  printf("serialized_message.buffer_length: %zu, serialized_message size: %zu\n", serialized_message.buffer_length, serialized_message.buffer_capacity);
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Building ServiceEvent Message: memcpying introspected message -----------------");
+  // printf("serialized_message.buffer_length: %zu, serialized_message size: %zu\n", serialized_message.buffer_length, serialized_message.buffer_capacity);
   rosidl_runtime_c__octet__Sequence__init(&msg.serialized_event, serialized_message.buffer_length);
 
   // This segfaults, but thought this should be ok? since serialized_message.buffer is a uint8_t* which _should_ be the same as a byte array
@@ -119,14 +239,14 @@ send_introspection_message(
   memcpy(msg.serialized_event.data, serialized_message.buffer, serialized_message.buffer_length);
 
 
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Publishing ServiceEvent Message -----------------");
-  ret = rcl_publish(service->impl->introspection_utils->publisher, &msg, NULL);
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Publishing ServiceEvent Message -----------------");
+  ret = rcl_publish(introspection_utils->publisher, &msg, NULL);
   if (RMW_RET_OK != ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
 
-  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Cleanup -----------------");
+  // RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Send Introspection Message: Cleanup -----------------");
 
   unique_identifier_msgs__msg__UUID__fini(&uuid);
   builtin_interfaces__msg__Time__fini(&timestamp);
@@ -139,6 +259,27 @@ send_introspection_message(
   rcl_interfaces__msg__ServiceEvent__fini(&msg);
   return RCL_RET_OK;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #endif // RCL_INTROSPECTION_H_
