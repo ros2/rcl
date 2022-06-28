@@ -200,7 +200,6 @@ fail:
     allocator->deallocate(service->impl, allocator->state);
     service->impl->introspection_utils = NULL;
     service->impl = NULL;
-    // iutils= NULL;
   }
   ret = fail_ret;
   // Fall through to clean up

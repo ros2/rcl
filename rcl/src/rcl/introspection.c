@@ -21,10 +21,12 @@
 
 #include "rcl/error_handling.h"
 #include "rmw/error_handling.h"
+
 #include "dlfcn.h"
 
 #include "rcutils/macros.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/shared_library.h"
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 
@@ -32,6 +34,11 @@
 #include "builtin_interfaces/msg/time.h"
 #include "rcl_interfaces/msg/service_event.h"
 #include "rcl_interfaces/msg/service_event_type.h"
+
+#include "rosidl_typesupport_introspection_c/service_introspection.h"
+
+#include "rosidl_typesupport_introspection_c/identifier.h"
+
 
 
 rcl_service_introspection_utils_t
@@ -69,23 +76,54 @@ rcl_service_introspection_init(
 
 
 
+  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Typesupport -----------------");
 
-  char * tsfile = "libexample_interfaces__rosidl_typesupport_c.so";
-  void* tslib = dlopen(tsfile, RTLD_LAZY);
-  RCL_CHECK_FOR_NULL_WITH_MSG(tslib, "dlopen failed", return RCL_RET_ERROR);
+  printf("Service typesupport identifier: %s\n", service_type_support->typesupport_identifier);
+
+  const rosidl_service_type_support_t * introspection_type_support = get_service_typesupport_handle(
+      service_type_support, 
+      // "rosidl_typesupport_introspection_cpp" // this will "work" and then segfault when trying to serialize
+      rosidl_typesupport_introspection_c__identifier);
+  
+
+  if (!introspection_type_support) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to get introspection typesupport handle");
+    return RCL_RET_ERROR;
+  }
+
+  // printf("Typesupport identifier: %s\n", introspection_type_support->typesupport_identifier);
 
 
-  // there are macros for building these in rosidl_typesupport_interface but still need the msg package name
-  const char* ts_req_func_name = "rosidl_typesupport_c__get_message_type_support_handle__example_interfaces__srv__AddTwoInts_Request";
-  const char* ts_resp_func_name = "rosidl_typesupport_c__get_message_type_support_handle__example_interfaces__srv__AddTwoInts_Response";
 
-  // TODO(ihasdapie): squash warning  "ISO C forbids conversion of function pointer to object pointer type"
-  rosidl_message_type_support_t* (* ts_func_handle)() = (rosidl_message_type_support_t*(*)()) dlsym(tslib, ts_resp_func_name);
-  RCL_CHECK_FOR_NULL_WITH_MSG(ts_func_handle, "looking up response type support failed", return RCL_RET_ERROR);
-  introspection_utils->response_type_support = ts_func_handle();
-  ts_func_handle = (rosidl_message_type_support_t*(*)()) dlsym(tslib, ts_req_func_name);
-  RCL_CHECK_FOR_NULL_WITH_MSG(ts_func_handle, "looking up response type support failed", return RCL_RET_ERROR);
-  introspection_utils->request_type_support = ts_func_handle();
+  rosidl_typesupport_introspection_c__ServiceMembers * members;
+
+  if (strcmp(introspection_type_support->typesupport_identifier, "rosidl_typesupport_introspection_c") == 0) {
+  members = (rosidl_typesupport_introspection_c__ServiceMembers *) introspection_type_support->data;
+
+  } else if (strcmp(introspection_type_support->typesupport_identifier, "rosidl_typesupport_introspection_cpp") == 0) {
+    // TODO(ihasdapie): Grabbing cpp members  (?)
+    /* ServiceMembers * members = 
+      (ServiceMembers *) introspection_type_support->data; */
+  members = (rosidl_typesupport_introspection_c__ServiceMembers *) introspection_type_support->data;
+  } 
+  else {
+    printf("Unknown typesupport identifier: %s\n", introspection_type_support->typesupport_identifier);
+    return RCL_RET_ERROR;
+    // unknown ts
+  }
+
+  const rosidl_message_type_support_t * request_ts = members->request_members_->members_->members_;
+  const rosidl_message_type_support_t * response_ts = members->response_members_->members_->members_;
+  introspection_utils->request_type_support = request_ts;
+  introspection_utils->response_type_support = response_ts;
+
+
+  RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "--------------- Typesupport DONE -----------------");
+
+
+
+
+
 
   char * service_event_name = (char*) allocator->zero_allocate(
       strlen(service_name) + strlen(RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX) + 1,
