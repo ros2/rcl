@@ -361,6 +361,16 @@ RCL_WARN_UNUSED
 const char *
 rcl_service_get_service_name(const rcl_service_t * service);
 
+/// Get the service type name for the service
+/**
+ 
+ * TODO(ihasdapie): document this function
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const char *
+rcl_service_get_service_type_name(const rosidl_service_type_support_t * service_type_support);
+
 /// Return the rcl service options.
 /**
  * This function returns the service's internal options struct.

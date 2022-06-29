@@ -17,7 +17,6 @@ extern "C"
 {
 #endif
 
-#include <dlfcn.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -43,7 +42,8 @@ extern "C"
 #include "rosidl_runtime_c/message_type_support_struct.h"
 
 #include "rcl_interfaces/msg/service_event_type.h"
-#include "rcl_interfaces/msg/service_event.h"
+
+#include "rosidl_typesupport_c/type_support_map.h"
 
 
 
@@ -234,7 +234,11 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
-    rcl_service_introspection_fini(service->impl->introspection_utils, &allocator, node);
+    ret = rcl_service_introspection_fini(service->impl->introspection_utils, &allocator, node);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      result = RCL_RET_ERROR;
+    }
     allocator.deallocate(service->impl->introspection_utils, allocator.state);
 
     allocator.deallocate(service->impl, allocator.state);
@@ -274,6 +278,18 @@ rcl_service_get_service_name(const rcl_service_t * service)
 
 #define _service_get_options(service) & service->impl->options
 
+const char *
+rcl_service_get_service_type_name(const rosidl_service_type_support_t * service_type_support)
+{
+  type_support_map_t * map = (type_support_map_t *)service_type_support->data;
+  // By inspection all of the symbol_name(s) end in the service type name
+  // We can do this because underscores not allowed in service/msg/action names
+  char* service_type_name = strrchr(map->symbol_name[0], '_');
+  service_type_name++;
+  return service_type_name;
+}
+
+
 const rcl_service_options_t *
 rcl_service_get_options(const rcl_service_t * service)
 {
@@ -307,12 +323,6 @@ rcl_take_request_with_info(
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
-  /* send_introspection_message(
-    service,
-    rcl_interfaces__msg__ServiceEventType__REQUEST_RECEIVED,
-    ros_request,
-    request_header,
-    options); */
 
   bool taken = false;
   rmw_ret_t ret = rmw_take_request(
@@ -328,6 +338,18 @@ rcl_take_request_with_info(
     ROS_PACKAGE_NAME, "Service take request succeeded: %s", taken ? "true" : "false");
   if (!taken) {
     return RCL_RET_SERVICE_TAKE_FAILED;
+  }
+
+  rcl_ret_t rclret = rcl_introspection_send_message(
+    service->impl->introspection_utils,
+    rcl_interfaces__msg__ServiceEventType__REQUEST_RECEIVED,
+    ros_request,
+    request_header->request_id.sequence_number,
+    request_header->request_id.writer_guid,
+    &options->allocator);
+  if (RCL_RET_OK != rclret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
 }
@@ -361,18 +383,24 @@ rcl_send_response(
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
-  // publish out the introspected content
-  rcl_introspection_send_message(
-    service->impl->introspection_utils,
-    rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT,
-    ros_response,
-    request_header,
-    options);
   
   if (rmw_send_response(
       service->impl->rmw_handle, request_header, ros_response) != RMW_RET_OK)
   {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
+
+  // publish out the introspected content
+  rcl_ret_t ret = rcl_introspection_send_message(
+    service->impl->introspection_utils,
+    rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT,
+    ros_response,
+    request_header->sequence_number,
+    request_header->writer_guid,
+    &options->allocator);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
     return RCL_RET_ERROR;
   }
   return RCL_RET_OK;

@@ -30,7 +30,9 @@ extern "C"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "tracetools/tracetools.h"
+#include "rcl_interfaces/msg/service_event_type.h"
 
+#include "./introspection.h"
 #include "./common.h"
 
 struct rcl_client_impl_s
@@ -40,6 +42,7 @@ struct rcl_client_impl_s
   rmw_qos_profile_t actual_response_subscription_qos;
   rmw_client_t * rmw_handle;
   atomic_int_least64_t sequence_number;
+  rcl_service_introspection_utils_t * introspection_utils;
 };
 
 rcl_client_t
@@ -113,6 +116,14 @@ rcl_client_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
+
+  client->impl->introspection_utils = (rcl_service_introspection_utils_t *) allocator->allocate(
+      sizeof(rcl_service_introspection_utils_t), allocator->state);
+
+  *client->impl->introspection_utils = rcl_get_zero_initialized_introspection_utils();
+  ret = rcl_service_introspection_init(
+      client->impl->introspection_utils, type_support,
+      remapped_service_name, node, allocator);
 
   // get actual qos, and store it
   rmw_ret_t rmw_ret = rmw_client_request_publisher_get_actual_qos(
@@ -252,6 +263,22 @@ rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t 
     return RCL_RET_ERROR;
   }
   rcutils_atomic_exchange_int64_t(&client->impl->sequence_number, *sequence_number);
+
+  // TODO(ihasdapie): Writ
+  uint8_t tmp_writer_guid[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  rcl_ret_t rclret = rcl_introspection_send_message(
+    client->impl->introspection_utils,
+    rcl_interfaces__msg__ServiceEventType__REQUEST_SENT,
+    ros_request,
+    *sequence_number,
+    tmp_writer_guid,
+    // request_header->request_id.writer_guid,
+    &client->impl->options.allocator);
+
+  if (RCL_RET_OK != rclret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    return RCL_RET_ERROR;
+  }
   return RCL_RET_OK;
 }
 
@@ -282,6 +309,19 @@ rcl_take_response_with_info(
     ROS_PACKAGE_NAME, "Client take response succeeded: %s", taken ? "true" : "false");
   if (!taken) {
     return RCL_RET_CLIENT_TAKE_FAILED;
+  }
+
+  rcl_ret_t rclret = rcl_introspection_send_message(
+    client->impl->introspection_utils,
+    rcl_interfaces__msg__ServiceEventType__RESPONSE_RECEIVED,
+    ros_response,
+    request_header->request_id.sequence_number,
+    request_header->request_id.writer_guid,
+    &client->impl->options.allocator);
+
+  if (RCL_RET_OK != rclret) {
+    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+    return RCL_RET_ERROR;
   }
   return RCL_RET_OK;
 }

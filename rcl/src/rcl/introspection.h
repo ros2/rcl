@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #ifndef RCL__SERVICE_INTROSPECTION_H_
 #define RCL__SERVICE_INTROSPECTION_H_
 
-#include "rcl/time.h"
 #include "rcl/publisher.h"
 #include "rcl/service.h"
+#include "rcl/time.h"
 #include "rmw/rmw.h"
-
-
 
 #define RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX "/_service_event"
 
@@ -31,11 +28,16 @@ typedef struct rcl_service_introspection_utils_s {
   rosidl_message_type_support_t * request_type_support;
   rosidl_message_type_support_t * response_type_support;
   char * service_name;
+  char * service_type_name;
 } rcl_service_introspection_utils_t;
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_service_introspection_utils_t
 rcl_get_zero_initialized_introspection_utils();
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_service_introspection_init(
   rcl_service_introspection_utils_t * introspection_utils,
@@ -44,21 +46,37 @@ rcl_service_introspection_init(
   const rcl_node_t * node,
   rcl_allocator_t * allocator);
 
-
-
+RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_service_introspection_fini(
   rcl_service_introspection_utils_t * introspection_utils,
   rcl_allocator_t * allocator,
-  rcl_node_t * node);
+  rcl_node_t *  node);
 
-rcl_ret_t 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
 rcl_introspection_send_message(
   const rcl_service_introspection_utils_t * introspection_utils,
   const uint8_t event_type,
   const void * ros_response_request,
-  const rmw_request_id_t * header,
-  const rcl_service_options_t * options);
+  const int64_t sequence_number,
+  const uint8_t uuid[16], // uuid is uint8_t but the guid is int8_t
+  const rcl_allocator_t * allocator);
+
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_service_introspection_disable(rcl_service_t * service);
+
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_service_introspection_enable(rcl_service_t * service);
+
 
 
 #endif // RCL__SERVICE_INTROSPECTION_H_
