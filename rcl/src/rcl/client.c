@@ -264,15 +264,12 @@ rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t 
   }
   rcutils_atomic_exchange_int64_t(&client->impl->sequence_number, *sequence_number);
 
-  // TODO(ihasdapie): Writ
-  uint8_t tmp_writer_guid[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   rcl_ret_t rclret = rcl_introspection_send_message(
     client->impl->introspection_utils,
     rcl_interfaces__msg__ServiceEventType__REQUEST_SENT,
     ros_request,
     *sequence_number,
-    tmp_writer_guid,
-    // request_header->request_id.writer_guid,
+    client->impl->rmw_handle->writer_guid,
     &client->impl->options.allocator);
 
   if (RCL_RET_OK != rclret) {
@@ -316,7 +313,7 @@ rcl_take_response_with_info(
     rcl_interfaces__msg__ServiceEventType__RESPONSE_RECEIVED,
     ros_response,
     request_header->request_id.sequence_number,
-    request_header->request_id.writer_guid,
+    client->impl->rmw_handle->writer_guid,
     &client->impl->options.allocator);
 
   if (RCL_RET_OK != rclret) {
