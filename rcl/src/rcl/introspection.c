@@ -225,22 +225,23 @@ rcl_introspection_send_message(
   ret = rmw_serialized_message_init(&serialized_message, 0u, allocator);
   rosidl_message_type_support_t * serialized_message_ts;
   switch (event_type) {
+    case rcl_interfaces__msg__ServiceEventType__REQUEST_SENT:
+      serialized_message_ts = introspection_utils->request_type_support;
+      break;
     case rcl_interfaces__msg__ServiceEventType__REQUEST_RECEIVED:
       serialized_message_ts = introspection_utils->request_type_support;
       break;
-    case rcl_interfaces__msg__ServiceEventType__REQUEST_SENT:
+    case rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT:
       serialized_message_ts = introspection_utils->response_type_support;
       break;
     case rcl_interfaces__msg__ServiceEventType__RESPONSE_RECEIVED:
       serialized_message_ts = introspection_utils->response_type_support;
       break;
-    case rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT:
-      serialized_message_ts = introspection_utils->request_type_support;
-      break;
     default:
       RCL_SET_ERROR_MSG("Invalid event type");
       return RCL_RET_ERROR;
   }
+
 
   ret = rmw_serialize(ros_response_request, serialized_message_ts, &serialized_message);
   if (RMW_RET_OK != ret) {
@@ -251,7 +252,6 @@ rcl_introspection_send_message(
   memcpy(msg.serialized_event.data, serialized_message.buffer, serialized_message.buffer_length);
 
   // populate info message
-
   msg_info.event_type = event_type;
   msg_info.sequence_number = sequence_number;
   rosidl_runtime_c__String__assign(&msg_info.service_name, introspection_utils->service_name);
@@ -275,6 +275,8 @@ rcl_introspection_send_message(
   memcpy(uuid_msg.uuid, uuid, 16 * sizeof(uint8_t));
   msg_info.client_id = uuid_msg;
 
+  msg.info = msg_info;
+
   // and publish it out!
   ret = rcl_publish(introspection_utils->publisher, &msg, NULL);
   if (RMW_RET_OK != ret) {
@@ -290,8 +292,8 @@ rcl_introspection_send_message(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
-  rcl_interfaces__msg__ServiceEventInfo__fini(&msg_info);
-  rcl_interfaces__msg__ServiceEvent__fini(&msg);
+  // rcl_interfaces__msg__ServiceEventInfo__fini(&msg_info);
+  // rcl_interfaces__msg__ServiceEvent__fini(&msg);
   return RCL_RET_OK;
 }
 
