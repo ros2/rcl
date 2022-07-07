@@ -12,10 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_INTROSPECTION_H_
-#define RCL_INTROSPECTION_H_
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#include "rcl/introspection.h"
 
 #include "./service_impl.h"
+#include "./client_impl.h"
 
 #include "rcl/error_handling.h"
 #include "rmw/error_handling.h"
@@ -297,4 +302,6 @@ rcl_introspection_send_message(
   return RCL_RET_OK;
 }
 
-#endif // RCL_INTROSPECTION_H_
+#ifdef __cplusplus
+}
+#endif

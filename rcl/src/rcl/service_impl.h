@@ -18,7 +18,8 @@
 
 
 #include "rcl/service.h"
-#include "./introspection.h"
+
+#include "rcl/introspection.h"
 
 struct rcl_service_impl_s
 {

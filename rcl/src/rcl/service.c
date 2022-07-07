@@ -37,6 +37,7 @@ extern "C"
 
 #include "tracetools/tracetools.h"
 
+#include "rcl/introspection.h"
 
 #include "rosidl_runtime_c/service_type_support_struct.h"
 #include "rosidl_runtime_c/message_type_support_struct.h"
@@ -141,7 +142,8 @@ rcl_service_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
-
+  
+  // enabled by default
   service->impl->introspection_utils = (rcl_service_introspection_utils_t *) allocator->allocate(
       sizeof(rcl_service_introspection_utils_t), allocator->state);
   *service->impl->introspection_utils = rcl_get_zero_initialized_introspection_utils();
