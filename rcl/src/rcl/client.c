@@ -26,24 +26,16 @@ extern "C"
 #include "rcl/node.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
-#include "rcutils/stdatomic_helper.h"
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
 #include "tracetools/tracetools.h"
 #include "rcl_interfaces/msg/service_event_type.h"
 
-#include "./introspection.h"
-#include "./common.h"
 
-struct rcl_client_impl_s
-{
-  rcl_client_options_t options;
-  rmw_qos_profile_t actual_request_publisher_qos;
-  rmw_qos_profile_t actual_response_subscription_qos;
-  rmw_client_t * rmw_handle;
-  atomic_int_least64_t sequence_number;
-  rcl_service_introspection_utils_t * introspection_utils;
-};
+#include "rcl/introspection.h"
+
+#include "./common.h"
+#include "./client_impl.h"
 
 rcl_client_t
 rcl_get_zero_initialized_client()
