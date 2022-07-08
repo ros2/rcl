@@ -225,18 +225,14 @@ rcl_ret_t rcl_introspection_send_message(
   rcl_serialized_message_t serialized_message = rmw_get_zero_initialized_serialized_message();
   if (introspection_utils->_content_enabled) {
     // build serialized message
-    ret = rmw_serialized_message_init(&serialized_message, 0u, allocator);
+    ret = rmw_serialized_message_init(&serialized_message, 0U, allocator);
     rosidl_message_type_support_t * serialized_message_ts;
     switch (event_type) {
       case rcl_interfaces__msg__ServiceEventType__REQUEST_SENT:
-        serialized_message_ts = introspection_utils->request_type_support;
-        break;
       case rcl_interfaces__msg__ServiceEventType__REQUEST_RECEIVED:
         serialized_message_ts = introspection_utils->request_type_support;
         break;
       case rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT:
-        serialized_message_ts = introspection_utils->response_type_support;
-        break;
       case rcl_interfaces__msg__ServiceEventType__RESPONSE_RECEIVED:
         serialized_message_ts = introspection_utils->response_type_support;
         break;
