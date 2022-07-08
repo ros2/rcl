@@ -119,22 +119,17 @@ rcl_service_introspection_disable(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_service_introspection_enable_service_events(rcl_service_t * service, rcl_node_t * node);
+rcl_service_introspection_configure_service_events(
+    rcl_service_t * service,
+    rcl_node_t * node,
+    bool enable);
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_service_introspection_disable_service_events(rcl_service_t * service, rcl_node_t * node);
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_service_introspection_enable_client_events(rcl_client_t * client, rcl_node_t * node);
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_service_introspection_disable_client_events(rcl_client_t * client, rcl_node_t * node);
+rcl_service_introspection_configure_client_events(rcl_client_t * client,
+    rcl_node_t * node,
+    bool enable);
 
 
 /*
@@ -142,23 +137,15 @@ rcl_service_introspection_disable_client_events(rcl_client_t * client, rcl_node_
  */
 RCL_PUBLIC
 void
-rcl_service_introspection_enable_client_content(rcl_client_t * client);
+rcl_service_introspection_configure_client_content(rcl_client_t * client, bool enable);
 
 RCL_PUBLIC
 void
-rcl_service_introspection_enable_service_content(rcl_service_t * service);
-
-RCL_PUBLIC
-void
-rcl_service_introspection_disable_client_content(rcl_client_t * client);
-
-RCL_PUBLIC
-void
-rcl_service_introspection_disable_service_content(rcl_service_t * service);
+rcl_service_introspection_configure_service_content(rcl_service_t * service, bool enable);
 
 
 
-// TODO(ihasdapie): Do we want some getters for if content and/or introspection is enabled/disabled?
+// TODO(ihasdapie): Do we want some getters for if content and/or introspection enabled/disabled?
 
 
 

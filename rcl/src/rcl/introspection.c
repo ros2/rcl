@@ -354,39 +354,39 @@ rcl_ret_t rcl_service_introspection_disable(
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_service_introspection_enable_service_events(
-  rcl_service_t * service, rcl_node_t * node)
+rcl_ret_t rcl_service_introspection_configure_service_events(
+  rcl_service_t * service, rcl_node_t * node, bool enable)
 {
   rcl_service_introspection_utils_t * introspection_utils = service->impl->introspection_utils;
-  rcl_ret_t ret =
-    rcl_service_introspection_enable(introspection_utils, node, &service->impl->options.allocator);
+  rcl_ret_t ret;
+
+  if (enable) {
+    ret = rcl_service_introspection_enable(
+      introspection_utils, node, &service->impl->options.allocator);
+  } else {
+    ret = rcl_service_introspection_disable(
+      introspection_utils, node, &service->impl->options.allocator);
+  }
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
-
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_service_introspection_disable_service_events(
-  rcl_service_t * service, rcl_node_t * node)
-{
-  rcl_service_introspection_utils_t * introspection_utils = service->impl->introspection_utils;
-  rcl_ret_t ret =
-    rcl_service_introspection_disable(introspection_utils, node, &service->impl->options.allocator);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return RCL_RET_ERROR;
-  }
-
-  return RCL_RET_OK;
-}
-
-rcl_ret_t rcl_service_introspection_enable_client_events(rcl_client_t * client, rcl_node_t * node)
+rcl_ret_t rcl_service_introspection_configure_client_events(
+  rcl_client_t * client, rcl_node_t * node, bool enable)
 {
   rcl_service_introspection_utils_t * introspection_utils = client->impl->introspection_utils;
-  rcl_ret_t ret =
-    rcl_service_introspection_enable(introspection_utils, node, &client->impl->options.allocator);
+  rcl_ret_t ret;
+
+  if (enable) {
+    ret =
+      rcl_service_introspection_enable(introspection_utils, node, &client->impl->options.allocator);
+  } else {
+    ret = rcl_service_introspection_disable(
+      introspection_utils, node, &client->impl->options.allocator);
+  }
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;
@@ -394,36 +394,14 @@ rcl_ret_t rcl_service_introspection_enable_client_events(rcl_client_t * client, 
   return RCL_RET_OK;
 }
 
-rcl_ret_t rcl_service_introspection_disable_client_events(rcl_client_t * client, rcl_node_t * node)
+void rcl_service_introspection_configure_client_content(rcl_client_t * client, bool enable)
 {
-  rcl_service_introspection_utils_t * introspection_utils = client->impl->introspection_utils;
-  rcl_ret_t ret =
-    rcl_service_introspection_disable(introspection_utils, node, &client->impl->options.allocator);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return RCL_RET_ERROR;
-  }
-  return RCL_RET_OK;
+  client->impl->introspection_utils->_content_enabled = enable;
 }
 
-void rcl_service_introspection_enable_client_content(rcl_client_t * client)
+void rcl_service_introspection_configure_service_content(rcl_service_t * service, bool enable)
 {
-  client->impl->introspection_utils->_content_enabled = true;
-}
-
-void rcl_service_introspection_enable_service_content(rcl_service_t * service)
-{
-  service->impl->introspection_utils->_content_enabled = true;
-}
-
-void rcl_service_introspection_disable_client_content(rcl_client_t * client)
-{
-  client->impl->introspection_utils->_content_enabled = false;
-}
-
-void rcl_service_introspection_disable_service_content(rcl_service_t * service)
-{
-  service->impl->introspection_utils->_content_enabled = false;
+  service->impl->introspection_utils->_content_enabled = enable;
 }
 
 #ifdef __cplusplus
