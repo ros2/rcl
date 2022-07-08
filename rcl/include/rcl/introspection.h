@@ -142,11 +142,20 @@ rcl_service_introspection_disable_client_events(rcl_client_t * client, rcl_node_
  */
 RCL_PUBLIC
 void
-rcl_service_introspection_configure_client_event_content(rcl_client_t * client, bool enable);
+rcl_service_introspection_enable_client_content(rcl_client_t * client);
 
 RCL_PUBLIC
 void
-rcl_service_introspection_configure_service_event_content(rcl_service_t * service, bool enable);
+rcl_service_introspection_enable_service_content(rcl_service_t * service);
+
+RCL_PUBLIC
+void
+rcl_service_introspection_disable_client_content(rcl_client_t * client);
+
+RCL_PUBLIC
+void
+rcl_service_introspection_disable_service_content(rcl_service_t * service);
+
 
 
 // TODO(ihasdapie): Do we want some getters for if content and/or introspection is enabled/disabled?
