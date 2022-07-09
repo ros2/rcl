@@ -630,7 +630,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_take_loaned_message(
   const rcl_subscription_t * subscription,
-  void ** loaned_message,
+  const void ** loaned_message,
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation);
 
@@ -662,7 +662,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_return_loaned_message_from_subscription(
   const rcl_subscription_t * subscription,
-  void * loaned_message);
+  const void * loaned_message);
 
 /// Get the topic name for the subscription.
 /**

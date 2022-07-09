@@ -703,9 +703,9 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
         });
     }
 
-    test_msgs__msg__Strings * msg_loaned = nullptr;
+    const test_msgs__msg__Strings * msg_loaned = nullptr;
     ret = rcl_take_loaned_message(
-      &subscription, reinterpret_cast<void **>(&msg_loaned), nullptr, nullptr);
+      &subscription, reinterpret_cast<const void **>(&msg_loaned), nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     EXPECT_EQ(
       std::string(test_string),
@@ -764,8 +764,9 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loa
     &subscription_options);
   ASSERT_EQ(RMW_RET_OK, ret) << rcl_get_error_string().str;
 
-  test_msgs__msg__Strings * loaned_message = nullptr;
-  void ** type_erased_loaned_message_pointer = reinterpret_cast<void **>(&loaned_message);
+  const test_msgs__msg__Strings * loaned_message = nullptr;
+  const void ** type_erased_loaned_message_pointer =
+    reinterpret_cast<const void **>(&loaned_message);
   rmw_message_info_t * message_info = nullptr;  // is a valid argument
   rmw_subscription_allocation_t * allocation = nullptr;  // is a valid argument
   EXPECT_EQ(
