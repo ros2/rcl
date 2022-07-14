@@ -27,6 +27,7 @@ extern "C"
 #include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
+#include "rcl/time.h"
 #include "rcl/visibility_control.h"
 
 /// Internal rcl client implementation struct.
@@ -47,6 +48,10 @@ typedef struct rcl_client_options_s
   /// Custom allocator for the client, used for incidental allocations.
   /** For default behavior (malloc/free), use: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
+  /// Enable/Disable service introspection features
+  bool enable_service_introspection;
+  /// The clock to use for service introspection message timestampes
+  rcl_clock_t * clock;
 } rcl_client_options_t;
 
 /// Return a rcl_client_t struct with members set to `NULL`.

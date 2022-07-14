@@ -108,14 +108,17 @@ rcl_client_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
+  
+  client->impl->introspection_utils = NULL;
+  if (options->enable_service_introspection) {
+    client->impl->introspection_utils = (rcl_service_introspection_utils_t *) allocator->allocate(
+        sizeof(rcl_service_introspection_utils_t), allocator->state);
+    *client->impl->introspection_utils = rcl_get_zero_initialized_introspection_utils();
+    ret = rcl_service_introspection_init(
+        client->impl->introspection_utils, type_support,
+        remapped_service_name, node, options->clock, allocator);
+  }
 
-  client->impl->introspection_utils = (rcl_service_introspection_utils_t *) allocator->allocate(
-      sizeof(rcl_service_introspection_utils_t), allocator->state);
-
-  *client->impl->introspection_utils = rcl_get_zero_initialized_introspection_utils();
-  ret = rcl_service_introspection_init(
-      client->impl->introspection_utils, type_support,
-      remapped_service_name, node, allocator);
 
   // get actual qos, and store it
   rmw_ret_t rmw_ret = rmw_client_request_publisher_get_actual_qos(
@@ -156,6 +159,10 @@ rcl_client_init(
     remapped_service_name);
   goto cleanup;
 fail:
+  if (client->impl->introspection_utils) {
+    allocator->deallocate(client->impl->introspection_utils, allocator->state);
+    client->impl->introspection_utils = NULL;
+  }
   if (client->impl) {
     allocator->deallocate(client->impl, allocator->state);
     client->impl = NULL;
@@ -206,6 +213,8 @@ rcl_client_get_default_options()
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_services_default;
   default_options.allocator = rcl_get_default_allocator();
+  default_options.clock = NULL;
+  default_options.enable_service_introspection = false;
   return default_options;
 }
 
@@ -256,18 +265,22 @@ rcl_send_request(const rcl_client_t * client, const void * ros_request, int64_t 
   }
   rcutils_atomic_exchange_int64_t(&client->impl->sequence_number, *sequence_number);
 
-  rcl_ret_t rclret = rcl_introspection_send_message(
-    client->impl->introspection_utils,
-    rcl_interfaces__msg__ServiceEventType__REQUEST_SENT,
-    ros_request,
-    *sequence_number,
-    client->impl->rmw_handle->writer_guid,
-    &client->impl->options.allocator);
+  
+  if (rcl_client_get_options(client)->enable_service_introspection) {
+    rcl_ret_t ret = rcl_introspection_send_message(
+        client->impl->introspection_utils,
+        rcl_interfaces__msg__ServiceEventType__REQUEST_SENT,
+        ros_request,
+        *sequence_number,
+        client->impl->rmw_handle->writer_guid,
+        &client->impl->options.allocator);
 
-  if (RCL_RET_OK != rclret) {
-    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-    return RCL_RET_ERROR;
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      return RCL_RET_ERROR;
+    }
   }
+
   return RCL_RET_OK;
 }
 
@@ -300,18 +313,21 @@ rcl_take_response_with_info(
     return RCL_RET_CLIENT_TAKE_FAILED;
   }
 
-  rcl_ret_t rclret = rcl_introspection_send_message(
-    client->impl->introspection_utils,
-    rcl_interfaces__msg__ServiceEventType__RESPONSE_RECEIVED,
-    ros_response,
-    request_header->request_id.sequence_number,
-    client->impl->rmw_handle->writer_guid,
-    &client->impl->options.allocator);
+  if (rcl_client_get_options(client)->enable_service_introspection) {
+    rcl_ret_t ret = rcl_introspection_send_message(
+      client->impl->introspection_utils,
+      rcl_interfaces__msg__ServiceEventType__RESPONSE_RECEIVED,
+      ros_response,
+      request_header->request_id.sequence_number,
+      client->impl->rmw_handle->writer_guid,
+      &client->impl->options.allocator);
 
-  if (RCL_RET_OK != rclret) {
-    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-    return RCL_RET_ERROR;
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      return RCL_RET_ERROR;
+    }
   }
+
   return RCL_RET_OK;
 }
 

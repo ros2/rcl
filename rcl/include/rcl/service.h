@@ -17,6 +17,7 @@
 #ifndef RCL__SERVICE_H_
 #define RCL__SERVICE_H_
 
+#include "rcl/time.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -28,6 +29,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
+// #include "rcl/introspection.h" // TODO(ihasdapie): Dependency cycle. Instead let's just put the clock into service_options.
 
 /// Internal rcl implementation struct.
 typedef struct rcl_service_impl_s rcl_service_impl_t;
@@ -47,6 +49,11 @@ typedef struct rcl_service_options_s
   /// Custom allocator for the service, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
+  /// Enable/Disable service introspection features
+  bool enable_service_introspection;
+
+  /// The clock to use for service introspection message timestampes
+  rcl_clock_t * clock;
 } rcl_service_options_t;
 
 /// Return a rcl_service_t struct with members set to `NULL`.
@@ -198,6 +205,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node);
  *
  * - qos = rmw_qos_profile_services_default
  * - allocator = rcl_get_default_allocator()
+ * - 
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

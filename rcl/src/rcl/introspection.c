@@ -35,8 +35,6 @@ extern "C" {
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 #include "rosidl_runtime_c/string_functions.h"
 #include "rosidl_typesupport_c/type_support_map.h"
-#include "rosidl_typesupport_introspection_c/identifier.h"
-#include "rosidl_typesupport_introspection_c/service_introspection.h"
 #include "unique_identifier_msgs/msg/uuid.h"
 
 rcl_service_introspection_utils_t rcl_get_zero_initialized_introspection_utils()
@@ -58,7 +56,8 @@ rcl_service_introspection_utils_t rcl_get_zero_initialized_introspection_utils()
 rcl_ret_t rcl_service_typesupport_to_message_typesupport(
   const rosidl_service_type_support_t * service_typesupport,
   rosidl_message_type_support_t ** request_typesupport,
-  rosidl_message_type_support_t ** response_typesupport, const rcl_allocator_t * allocator)
+  rosidl_message_type_support_t ** response_typesupport,
+  const rcl_allocator_t * allocator)
 {
   rcutils_ret_t ret;
   type_support_map_t * map = (type_support_map_t *)service_typesupport->data;
@@ -117,8 +116,11 @@ rcl_ret_t rcl_service_typesupport_to_message_typesupport(
 
 rcl_ret_t rcl_service_introspection_init(
   rcl_service_introspection_utils_t * introspection_utils,
-  const rosidl_service_type_support_t * service_type_support, const char * service_name,
-  const rcl_node_t * node, rcl_allocator_t * allocator)
+  const rosidl_service_type_support_t * service_type_support,
+  const char * service_name,
+  const rcl_node_t * node,
+  const rcl_clock_t * clock,
+  rcl_allocator_t * allocator)
 {
   rcl_ret_t ret;
 
@@ -162,13 +164,7 @@ rcl_ret_t rcl_service_introspection_init(
   }
 
   // make a clock
-  introspection_utils->clock = allocator->allocate(sizeof(rcl_clock_t), allocator->state);
-  ret = rcl_clock_init(RCL_STEADY_TIME, introspection_utils->clock, allocator);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-    return RCL_RET_ERROR;
-  }
-
+  introspection_utils->clock = clock;
   allocator->deallocate(service_event_topic_name, allocator->state);
 
   return RCL_RET_OK;
@@ -184,20 +180,13 @@ rcl_ret_t rcl_service_introspection_fini(
     RCL_SET_ERROR_MSG(rcl_get_error_string().str);
     return RCL_RET_ERROR;
   }
-  ret = rcl_clock_fini(introspection_utils->clock);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-    return RCL_RET_ERROR;
-  }
 
   allocator->deallocate(introspection_utils->publisher, allocator->state);
-  allocator->deallocate(introspection_utils->clock, allocator->state);
   allocator->deallocate(introspection_utils->service_name, allocator->state);
   allocator->deallocate(introspection_utils->service_event_topic_name, allocator->state);
   allocator->deallocate(introspection_utils->service_type_name, allocator->state);
 
   introspection_utils->publisher = NULL;
-  introspection_utils->clock = NULL;
   introspection_utils->service_name = NULL;
   introspection_utils->service_event_topic_name = NULL;
   introspection_utils->service_type_name = NULL;
@@ -317,13 +306,6 @@ rcl_ret_t rcl_service_introspection_enable(
     return RCL_RET_ERROR;
   }
 
-  introspection_utils->clock = allocator->allocate(sizeof(rcl_clock_t), allocator->state);
-  ret = rcl_clock_init(RCL_STEADY_TIME, introspection_utils->clock, allocator);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-    return RCL_RET_ERROR;
-  }
-
   introspection_utils->_enabled = true;
   return RCL_RET_OK;
 }
@@ -339,16 +321,8 @@ rcl_ret_t rcl_service_introspection_disable(
     return RCL_RET_ERROR;
   }
 
-  ret = rcl_clock_fini(introspection_utils->clock);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return RCL_RET_ERROR;
-  }
-
   allocator->deallocate(introspection_utils->publisher, allocator->state);
-  allocator->deallocate(introspection_utils->clock, allocator->state);
   introspection_utils->publisher = NULL;
-  introspection_utils->clock = NULL;
 
   introspection_utils->_enabled = false;
   return RCL_RET_OK;

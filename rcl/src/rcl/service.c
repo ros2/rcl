@@ -27,7 +27,6 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcl/graph.h"
-#include "rcl/publisher.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/rmw.h"
@@ -64,7 +63,8 @@ rcl_service_init(
   const rcl_node_t * node,
   const rosidl_service_type_support_t * type_support,
   const char * service_name,
-  const rcl_service_options_t * options)
+  const rcl_service_options_t * options
+  ) // user provide clock
 {
   RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
   RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ALREADY_INIT);
@@ -142,18 +142,22 @@ rcl_service_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
+
+  service->impl->introspection_utils = NULL;
+  if (options->enable_service_introspection) {
+    service->impl->introspection_utils = (rcl_service_introspection_utils_t *) allocator->allocate(
+        sizeof(rcl_service_introspection_utils_t), allocator->state);
+    *service->impl->introspection_utils = rcl_get_zero_initialized_introspection_utils();
+    ret = rcl_service_introspection_init(
+        service->impl->introspection_utils,
+        type_support,
+        remapped_service_name,
+        node,
+        options->clock,
+        allocator
+        );
+  }
   
-  // enabled by default
-  service->impl->introspection_utils = (rcl_service_introspection_utils_t *) allocator->allocate(
-      sizeof(rcl_service_introspection_utils_t), allocator->state);
-  *service->impl->introspection_utils = rcl_get_zero_initialized_introspection_utils();
-  ret = rcl_service_introspection_init(
-      service->impl->introspection_utils,
-      type_support,
-      remapped_service_name,
-      node,
-      allocator
-      );
 
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG(rcl_get_error_string().str);
@@ -198,9 +202,11 @@ rcl_service_init(
   goto cleanup;
 fail:
   if (service->impl) {
-    allocator->deallocate(service->impl->introspection_utils, allocator->state);
+    if (service->impl->introspection_utils) {
+      allocator->deallocate(service->impl->introspection_utils, allocator->state);
+      service->impl->introspection_utils = NULL;
+    }
     allocator->deallocate(service->impl, allocator->state);
-    service->impl->introspection_utils = NULL;
     service->impl = NULL;
   }
   ret = fail_ret;
@@ -236,16 +242,19 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
-    ret = rcl_service_introspection_fini(service->impl->introspection_utils, &allocator, node);
-    if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-      result = RCL_RET_ERROR;
+    
+    if (service->impl->introspection_utils) {
+      ret = rcl_service_introspection_fini(service->impl->introspection_utils, &allocator, node);
+      if (RCL_RET_OK != ret) {
+        RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+        result = RCL_RET_ERROR;
+      }
+      allocator.deallocate(service->impl->introspection_utils, allocator.state);
+      service->impl->introspection_utils = NULL;
     }
-    allocator.deallocate(service->impl->introspection_utils, allocator.state);
 
     allocator.deallocate(service->impl, allocator.state);
     service->impl = NULL;
-
     if (ret != RCL_RET_OK) {
       RCL_SET_ERROR_MSG(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
@@ -264,6 +273,8 @@ rcl_service_get_default_options()
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_services_default;
   default_options.allocator = rcl_get_default_allocator();
+  default_options.clock = NULL;
+  default_options.enable_service_introspection = false;
   return default_options;
 }
 
@@ -342,16 +353,18 @@ rcl_take_request_with_info(
     return RCL_RET_SERVICE_TAKE_FAILED;
   }
 
-  rcl_ret_t rclret = rcl_introspection_send_message(
-    service->impl->introspection_utils,
-    rcl_interfaces__msg__ServiceEventType__REQUEST_RECEIVED,
-    ros_request,
-    request_header->request_id.sequence_number,
-    request_header->request_id.writer_guid,
-    &options->allocator);
-  if (RCL_RET_OK != rclret) {
-    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-    return RCL_RET_ERROR;
+  if (rcl_service_get_options(service)->enable_service_introspection) {
+    rcl_ret_t rclret = rcl_introspection_send_message(
+        service->impl->introspection_utils,
+        rcl_interfaces__msg__ServiceEventType__REQUEST_RECEIVED,
+        ros_request,
+        request_header->request_id.sequence_number,
+        request_header->request_id.writer_guid,
+        &options->allocator);
+    if (RCL_RET_OK != rclret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      return RCL_RET_ERROR;
+    }
   }
   return RCL_RET_OK;
 }
@@ -394,16 +407,19 @@ rcl_send_response(
   }
 
   // publish out the introspected content
-  rcl_ret_t ret = rcl_introspection_send_message(
-    service->impl->introspection_utils,
-    rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT,
-    ros_response,
-    request_header->sequence_number,
-    request_header->writer_guid,
-    &options->allocator);
-  if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-    return RCL_RET_ERROR;
+
+  if (rcl_service_get_options(service)->enable_service_introspection) {
+    rcl_ret_t ret = rcl_introspection_send_message(
+        service->impl->introspection_utils,
+        rcl_interfaces__msg__ServiceEventType__RESPONSE_SENT,
+        ros_response,
+        request_header->sequence_number,
+        request_header->writer_guid,
+        &options->allocator);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      return RCL_RET_ERROR;
+    }
   }
   return RCL_RET_OK;
 }

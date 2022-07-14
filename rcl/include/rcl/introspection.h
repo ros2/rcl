@@ -22,9 +22,10 @@ extern "C"
 
 #include "rcl/publisher.h"
 #include "rcl/service.h"
+#include "rcl/client.h"
 #include "rcl/time.h"
 #include "rmw/rmw.h"
-#include "rcl/client.h"
+#include "stdbool.h"
 
 #define RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX "/_service_event"
 
@@ -36,9 +37,14 @@ typedef struct rcl_service_introspection_utils_s {
   char * service_name;
   char * service_type_name;
   char * service_event_topic_name;
+  
+
+  // enable/disable service introspection during runtime
   bool _enabled;
+  // enable/disable passing along service introspection content during runtime
   bool _content_enabled;
 } rcl_service_introspection_utils_t;
+
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -53,6 +59,7 @@ rcl_service_introspection_init(
   const rosidl_service_type_support_t * service_type_support,
   const char * service_name,
   const rcl_node_t * node,
+  const rcl_clock_t * clock,
   rcl_allocator_t * allocator);
 
 RCL_PUBLIC
@@ -68,9 +75,9 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_introspection_send_message(
   const rcl_service_introspection_utils_t * introspection_utils,
-  const uint8_t event_type,
+  uint8_t event_type,
   const void * ros_response_request,
-  const int64_t sequence_number,
+  int64_t sequence_number,
   const uint8_t uuid[16], // uuid is uint8_t but the guid is int8_t
   const rcl_allocator_t * allocator);
 
@@ -127,7 +134,8 @@ rcl_service_introspection_configure_service_events(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_service_introspection_configure_client_events(rcl_client_t * client,
+rcl_service_introspection_configure_client_events(
+    rcl_client_t * client,
     rcl_node_t * node,
     bool enable);
 
