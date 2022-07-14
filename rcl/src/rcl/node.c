@@ -54,7 +54,7 @@ extern "C"
 #include "./context_impl.h"
 
 const char * const RCL_DISABLE_LOANED_MESSAGES_ENV_VAR = "ROS_DISABLE_LOANED_MESSAGES";
-const char * const RCL_NAMESPACE_ENV_VAR = "ROS2_NAMESPACE";
+const char * const RCL_NAMESPACE_ENV_VAR = "ROS_NAMESPACE";
 
 struct rcl_node_impl_s
 {
