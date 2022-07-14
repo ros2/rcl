@@ -126,7 +126,6 @@ ament_export_dependencies(rcutils)
 ament_export_dependencies(${RCL_LOGGING_IMPL})
 ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(tracetools)
-ament_export_dependencies(rosidl_typesupport_introspection_c)
 ament_export_dependencies(rosidl_typesupport_c)
 
 if(BUILD_TESTING)
