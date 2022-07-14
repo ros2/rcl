@@ -139,7 +139,7 @@ rcl_node_init(
       env_error_str);
     return RCL_RET_ERROR;
   }
-  if (NULL != env_val or 0 != strlen(env_val)) {
+  if (NULL != env_val && 0 != strlen(env_val)) {
     namespace_ = env_val;
   }
 
