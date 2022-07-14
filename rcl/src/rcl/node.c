@@ -122,8 +122,6 @@ rcl_node_init(
   rcl_context_t * context,
   const rcl_node_options_t * options)
 {
-  const char * env_error_str = NULL;
-  const char * env_val = NULL;
 
   const rmw_guard_condition_t * rmw_graph_guard_condition = NULL;
   rcl_guard_condition_options_t graph_guard_condition_options =
@@ -132,6 +130,8 @@ rcl_node_init(
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   char * remapped_node_name = NULL;
 
+  const char * env_error_str = NULL;
+  const char * env_val = NULL;
   env_error_str = rcutils_get_env(RCL_NAMESPACE_ENV_VAR, &env_val);
   if (NULL != env_error_str) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
