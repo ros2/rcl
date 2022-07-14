@@ -1043,3 +1043,45 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_get_disable_loan
     EXPECT_FALSE(disable_loaned_message);
   }
 }
+
+/* Tests node namespace override
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_namespace_override) {
+  {
+    const char * expected_namespace = "/bar/foo";
+    ASSERT_TRUE(rcutils_set_env("ROS2_NAMESPACE", expected_namespace));
+
+    osrf_testing_tools_cpp::memory_tools::enable_monitoring_in_all_threads();
+    rcl_ret_t ret;
+    // Initialize rcl with rcl_init().
+    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+    ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+    });
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_set_domain_id(&init_options, 42));
+    const char * name = "test_rcl_node_namespace_override";
+    const char * namespace_ = "/ns";
+    rcl_node_options_t default_options = rcl_node_get_default_options();
+    rcl_context_t context = rcl_get_zero_initialized_context();
+    ret = rcl_init(0, nullptr, &init_options, &context);
+    ASSERT_EQ(RCL_RET_OK, ret);
+    // Create a normal node.
+    rcl_node_t node = rcl_get_zero_initialized_node();
+    ret = rcl_node_init(&node, name, namespace_, &context, &default_options);
+    ASSERT_EQ(RCL_RET_OK, ret);
+
+    // Check that the node namespace is overridden
+    ASSERT_STREQ(expected_namespace, rcl_node_get_namespace(&node));
+
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+      ASSERT_EQ(RCL_RET_OK, rcl_node_fini(&node));
+      ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+      ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+    });
+  }
+}
