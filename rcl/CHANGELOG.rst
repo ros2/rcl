@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.14 (2022-07-25)
+-------------------
+* Fix buffer overflow in argument parsing caused by lexer returning length beyond length of string (`#979 <https://github.com/ros2/rcl/issues/979>`_) (`#981 <https://github.com/ros2/rcl/issues/981>`_)
+* Contributors: Shane Loretz
+
 1.1.13 (2022-02-04)
 -------------------
 
