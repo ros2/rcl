@@ -18,6 +18,8 @@
 #include <string>
 #include <thread>
 
+#include "common_content_filter/api.h"
+
 #include "rcl/subscription.h"
 #include "rcl/rcl.h"
 #include "rmw/rmw.h"
@@ -937,7 +939,19 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    // this event can be triggered if using the common content filter
+    bool ready = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000);
+    if (ready) {
+      test_msgs__msg__Strings msg;
+      test_msgs__msg__Strings__init(&msg);
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+      {
+        test_msgs__msg__Strings__fini(&msg);
+      });
+      // data filtered inside rcl_take, expect the result with RCL_RET_SUBSCRIPTION_TAKE_FAILED
+      ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+      ASSERT_EQ(RCL_RET_SUBSCRIPTION_TAKE_FAILED, ret) << rcl_get_error_string().str;
+    }
   } else {
     ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
@@ -1024,7 +1038,17 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    bool ready = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000);
+    if (ready) {
+      test_msgs__msg__Strings msg;
+      test_msgs__msg__Strings__init(&msg);
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+      {
+        test_msgs__msg__Strings__fini(&msg);
+      });
+      ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+      ASSERT_EQ(RCL_RET_SUBSCRIPTION_TAKE_FAILED, ret) << rcl_get_error_string().str;
+    }
   } else {
     ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
@@ -1228,9 +1252,8 @@ TEST_F(
   const char * filter_expression2 = "int32_value = %0";
   const char * expression_parameters2[] = {"4"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
-  bool is_cft_support =
-    (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0 ||
-    std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps_cpp") == 0);
+  // common content filter will be the fallback if content filter is unsupported on DDS
+  bool is_cft_support = true;
   {
     rcl_subscription_content_filter_options_t options =
       rcl_get_zero_initialized_subscription_content_filter_options();
@@ -1271,7 +1294,18 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    //  It will be triggered if using the common content filter.
+    bool ready = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000);
+    if (ready) {
+      test_msgs__msg__BasicTypes msg;
+      test_msgs__msg__BasicTypes__init(&msg);
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+      {
+        test_msgs__msg__BasicTypes__fini(&msg);
+      });
+      ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+      ASSERT_EQ(RCL_RET_SUBSCRIPTION_TAKE_FAILED, ret) << rcl_get_error_string().str;
+    }
   } else {
     ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
 
@@ -1597,7 +1631,7 @@ TEST_F(
     RCL_RET_OK,
     rcl_subscription_content_filter_options_init(
       &subscription,
-      "data = '0'",
+      "int32_value = 0",
       0,
       nullptr,
       &options
@@ -1615,7 +1649,7 @@ TEST_F(
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_subscription_set_content_filter, RMW_RET_UNSUPPORTED);
     EXPECT_EQ(
-      RMW_RET_UNSUPPORTED,
+      RMW_RET_OK,
       rcl_subscription_set_content_filter(
         &subscription, &options));
     rcl_reset_error();
@@ -1624,6 +1658,8 @@ TEST_F(
   {
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_subscription_set_content_filter, RMW_RET_ERROR);
+    auto mock2 = mocking_utils::patch_and_return(
+      "lib:rcl", common_content_filter_set, false);
     EXPECT_EQ(
       RMW_RET_ERROR,
       rcl_subscription_set_content_filter(
@@ -1655,20 +1691,67 @@ TEST_F(
 
   rcl_subscription_content_filter_options_t options =
     rcl_get_zero_initialized_subscription_content_filter_options();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(
+      RCL_RET_OK,
+      rcl_subscription_content_filter_options_fini(&subscription, &options)
+    );
+  });
 
   {
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_subscription_get_content_filter, RMW_RET_UNSUPPORTED);
     EXPECT_EQ(
-      RMW_RET_UNSUPPORTED,
+      RMW_RET_ERROR,
       rcl_subscription_get_content_filter(
         &subscription, &options));
     rcl_reset_error();
   }
 
   {
+    // set content filter options
+    rcl_subscription_content_filter_options_t options2 =
+      rcl_get_zero_initialized_subscription_content_filter_options();
+    EXPECT_EQ(
+      RCL_RET_OK,
+      rcl_subscription_content_filter_options_init(
+        &subscription,
+        "int32_value = 0",
+        0,
+        nullptr,
+        &options2
+      )
+    );
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(
+        RCL_RET_OK,
+        rcl_subscription_content_filter_options_fini(&subscription, &options2)
+      );
+    });
+
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_subscription_set_content_filter, RMW_RET_UNSUPPORTED);
+    EXPECT_EQ(
+      RMW_RET_OK,
+      rcl_subscription_set_content_filter(
+        &subscription, &options2));
+
+    auto mock2 = mocking_utils::patch_and_return(
+      "lib:rcl", rmw_subscription_get_content_filter, RMW_RET_UNSUPPORTED);
+
+    EXPECT_EQ(
+      RMW_RET_OK,
+      rcl_subscription_get_content_filter(
+        &subscription, &options));
+  }
+
+  {
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_subscription_get_content_filter, RMW_RET_ERROR);
+    auto mock2 = mocking_utils::patch_and_return(
+      "lib:rcl", common_content_filter_get, false);
     EXPECT_EQ(
       RMW_RET_ERROR,
       rcl_subscription_get_content_filter(
