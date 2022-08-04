@@ -603,6 +603,7 @@ rcl_timer_get_guard_condition(const rcl_timer_t * timer);
 /**
  * This API sets the callback function to be called whenever the
  * timer is reset.
+ * If the timer has already been reset, the callback will be called.
  *
  * <hr>
  * Attribute          | Adherence
