@@ -28,6 +28,7 @@ extern "C"
 #include "tracetools/tracetools.h"
 
 #include "rcl/arguments.h"
+#include "rcl/discovery_params.h"
 #include "rcl/domain_id.h"
 #include "rcl/error_handling.h"
 #include "rcl/localhost.h"
@@ -158,6 +159,31 @@ rcl_init(
   if (RMW_LOCALHOST_ONLY_DEFAULT == *localhost_only) {
     // Get actual localhost_only value based on environment variable, if needed.
     ret = rcl_get_localhost_only(localhost_only);
+    if (RCL_RET_OK != ret) {
+      fail_ret = ret;
+      goto fail;
+    }
+  }
+  if (RMW_LOCALHOST_ONLY_DEFAULT != *localhost_only) {
+    RCUTILS_LOG_WARN_NAMED(
+      ROS_PACKAGE_NAME,
+      "ROS_LOCALHOST_ONLY is deprecated. Use ROS_AUTOMATIC_DISCOVERY_RANGE_DEFAULT and "
+      "ROS_STATIC_PEERS instead.");
+  }
+
+  rmw_discovery_params_t * discovery_params =
+    &context->impl->init_options.impl->rmw_init_options.discovery_params;
+  if (RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT == discovery_params->automatic_discovery_range) {
+    // Get actual multicast discovery value based on environment variable, if needed
+    ret = rcl_get_discovery_automatic_range(discovery_params);
+    if (RCL_RET_OK != ret) {
+      fail_ret = ret;
+      goto fail;
+    }
+  }
+  if (0 == discovery_params->static_peers_count) {
+    // Get actual multicast discovery value based on environment variable, if needed
+    ret = rcl_get_discovery_static_peers(discovery_params);
     if (RCL_RET_OK != ret) {
       fail_ret = ret;
       goto fail;

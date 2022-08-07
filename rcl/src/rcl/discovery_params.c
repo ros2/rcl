@@ -22,48 +22,68 @@
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
-const char * const RCL_PEERS_ENV_VAR = "ROS_PEERS";
-const char * const RCL_MULTICAST_DISCOVERY_ENV_VAR = "ROS_USE_MULTICAST_DISCOVERY";
+const char * const RCL_STATIC_PEERS_ENV_VAR = "ROS_STATIC_PEERS";
+const char * const RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR = "ROS_AUTOMATIC_DISCOVERY_RANGE";
 
 rcl_ret_t
-rcl_get_discovery_params(rmw_discovery_params_t * discovery_params)
+rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params)
 {
-  const char * ros_peers_env_val = NULL;
-  const char * ros_multicast_discovery_env_val = NULL;
+  const char * ros_automatic_discovery_range_env_val = NULL;
   const char * get_env_error_str = NULL;
 
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
   RCL_CHECK_ARGUMENT_FOR_NULL(discovery_params, RCL_RET_INVALID_ARGUMENT);
 
-  get_env_error_str = rcutils_get_env(RCL_PEERS_ENV_VAR, &ros_peers_env_val);
+  get_env_error_str = rcutils_get_env(
+    RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR,
+    &ros_automatic_discovery_range_env_val);
   if (NULL != get_env_error_str) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Error getting env var '" RCUTILS_STRINGIFY(RCL_PEERS_ENV_VAR) "': %s\n",
+      "Error getting env var '" RCUTILS_STRINGIFY(RCL_MULTICAST_DISCOVERY_RANGE_ENV_VAR) "': %s\n",
       get_env_error_str);
     return RCL_RET_ERROR;
   }
-  discovery_params->peers_count = 0;
+  if (ros_automatic_discovery_range_env_val == NULL) {
+    discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
+  } else if (strcmp(ros_automatic_discovery_range_env_val, "1") == 0) {
+    discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_OFF;
+  } else if (strcmp(ros_automatic_discovery_range_env_val, "2") == 0) {
+    discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
+  } else if (strcmp(ros_automatic_discovery_range_env_val, "3") == 0) {
+    discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET;
+  } else {
+    discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
+  }
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_get_discovery_static_peers(rmw_discovery_params_t * discovery_params)
+{
+  const char * ros_peers_env_val = NULL;
+  const char * get_env_error_str = NULL;
+
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
+  RCL_CHECK_ARGUMENT_FOR_NULL(discovery_params, RCL_RET_INVALID_ARGUMENT);
+
+  get_env_error_str = rcutils_get_env(RCL_STATIC_PEERS_ENV_VAR, &ros_peers_env_val);
+  if (NULL != get_env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var '" RCUTILS_STRINGIFY(RCL_STATIC_PEERS_ENV_VAR) "': %s\n",
+      get_env_error_str);
+    return RCL_RET_ERROR;
+  }
+  discovery_params->static_peers_count = 0;
   char * state = NULL;
   char * token = strtok_r(ros_peers_env_val, ";", &state);
-  while (NULL != token && discovery_params->peers_count < 32) {
-    strncpy(discovery_params->peers[discovery_params->peers_count], token, 256);
-    discovery_params->peers[discovery_params->peers_count++][255] = '\0';
+  while (NULL != token && discovery_params->static_peers_count < 32) {
+    strncpy(discovery_params->static_peers[discovery_params->static_peers_count], token, 256);
+    discovery_params->static_peers[discovery_params->static_peers_count++][255] = '\0';
     token = strtok_r(NULL, ";", &state);
   }
 
-  get_env_error_str = rcutils_get_env(
-    RCL_MULTICAST_DISCOVERY_ENV_VAR,
-    &ros_multicast_discovery_env_val);
-  if (NULL != get_env_error_str) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Error getting env var '" RCUTILS_STRINGIFY(RCL_MULTICAST_DISCOVERY_ENV_VAR) "': %s\n",
-      get_env_error_str);
-    return RCL_RET_ERROR;
-  }
-  discovery_params->use_multicast = (ros_multicast_discovery_env_val != NULL &&
-    strcmp(
-      ros_multicast_discovery_env_val,
-      "1") == 0) ? RMW_MULTICAST_DISCOVERY_ENABLED : RMW_MULTICAST_DISCOVERY_DISABLED;
   return RCL_RET_OK;
 }

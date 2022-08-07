@@ -26,15 +26,29 @@ extern "C"
 #include "rcl/visibility_control.h"
 #include "rmw/discovery_params.h"
 
-extern const char * const RCL_PEERS_ENV_VAR;
-extern const char * const RCL_MULTICAST_DISCOVERY_ENV_VAR;
+extern const char * const RCL_STATIC_PEERS_ENV_VAR;
+extern const char * const RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR;
 
-/// Determine how the user wishes to discover other ROS nodes.
+/// Determine how the user wishes to discover other ROS nodes automatically.
 /**
- * Checks environment variables to determine the hosts that the user wants to communicate with,
- * in addition to localhost, and whether to use multicast discovery or not.
- * TODO(gbiggs): How does "multicast discovery" work for RMW implementations that use a middleware
- * without multicast discovery?
+ * Checks an environment variable to determine how far automatic discovery should be allowed to
+ * propagate: not at all, the local machine only, or however far the automatic discovery mechanism
+ * used by the RMW implementation can propagate on the network (e.g. for multicast-based discovery,
+ * this will be the local subnet).
+ *
+ * \param[out] discovery_params Must not be NULL.
+ * \return #RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
+ * \return #RCL_RET_ERROR if an unexpected error happened, or
+ * \return #RCL_RET_OK.
+ */
+RCL_PUBLIC
+rcl_ret_t
+rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params);
+
+/// Determine how the user wishes to discover other ROS nodes via statically-configured peers.
+/**
+ * Checks an environment variable to determine the hosts that the user wants to communicate with,
+ * in addition to localhost.
  * TODO(gbiggs): Where should the IPs be validated?
  *
  * \param[out] discovery_params Must not be NULL.
@@ -44,7 +58,7 @@ extern const char * const RCL_MULTICAST_DISCOVERY_ENV_VAR;
  */
 RCL_PUBLIC
 rcl_ret_t
-rcl_get_discovery_params(rmw_discovery_params_t * discovery_params);
+rcl_get_discovery_static_peers(rmw_discovery_params_t * discovery_params);
 
 #ifdef __cplusplus
 }
