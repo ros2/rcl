@@ -189,7 +189,8 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
   ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator(),
+    true);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -306,7 +307,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_overrun_t
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
   ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, 0, nullptr, rcl_get_default_allocator());
+    &timer, &clock, this->context_ptr, 0, nullptr, rcl_get_default_allocator(), true);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -364,7 +365,7 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   rcl_timer_t canceled_timer = rcl_get_zero_initialized_timer();
   ret = rcl_timer_init(
     &canceled_timer, &clock, this->context_ptr,
-    RCL_MS_TO_NS(1), nullptr, rcl_get_default_allocator());
+    RCL_MS_TO_NS(1), nullptr, rcl_get_default_allocator(), true);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
