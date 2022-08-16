@@ -49,3 +49,7 @@ intel:
   ros__parameters:
     num_cores: 8
     arch: x86_64
+light:
+  ros__parameters:
+    is_on: yes
+    on_status: !!str yes

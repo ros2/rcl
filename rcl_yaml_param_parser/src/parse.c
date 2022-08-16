@@ -74,6 +74,7 @@ _validate_name(const char * name, rcutils_allocator_t allocator);
 void * get_value(
   const char * const value,
   yaml_scalar_style_t style,
+  const yaml_char_t * const tag,
   data_types_t * val_type,
   const rcutils_allocator_t allocator)
 {
@@ -89,7 +90,8 @@ void * get_value(
 
   /// Check if it is bool
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
-    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
+    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
+    (tag == NULL || strcmp(YAML_STR_TAG, (char *)tag) != 0))
   {
     if ((0 == strcmp(value, "Y")) ||
       (0 == strcmp(value, "y")) ||
@@ -136,7 +138,8 @@ void * get_value(
 
   /// Check for int
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
-    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
+    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
+    (tag == NULL || strcmp(YAML_STR_TAG, (char *)tag) != 0))
   {
     errno = 0;
     ival = strtol(value, &endptr, 0);
@@ -157,7 +160,8 @@ void * get_value(
 
   /// Check for float
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
-    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
+    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
+    (tag == NULL || strcmp(YAML_STR_TAG, (char *)tag) != 0))
   {
     errno = 0;
     endptr = NULL;
@@ -233,6 +237,7 @@ rcutils_ret_t parse_value(
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
   yaml_scalar_style_t style = event.data.scalar.style;
+  const yaml_char_t * const tag = event.data.scalar.tag;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
@@ -254,7 +259,7 @@ rcutils_ret_t parse_value(
   rcl_variant_t * param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
 
   data_types_t val_type;
-  void * ret_val = get_value(value, style, &val_type, allocator);
+  void * ret_val = get_value(value, style, tag, &val_type, allocator);
   if (NULL == ret_val) {
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Error parsing value %s at line %d", value, line_num);
