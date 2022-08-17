@@ -91,8 +91,9 @@ rcl_subscription_init(
     ROS_PACKAGE_NAME, "Expanded and remapped topic name '%s'", remapped_topic_name);
 
   // Allocate memory for the implementation struct.
-  subscription->impl = (rcl_subscription_impl_t *)allocator->zero_allocate(
-    1, sizeof(rcl_subscription_impl_t), allocator->state);
+  subscription->impl = (rcl_subscription_impl_t *)allocator->allocate(
+    sizeof(rcl_subscription_impl_t), allocator->state);
+  memset(subscription->impl, 0, sizeof(rcl_subscription_impl_t));
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
   // Fill out the implemenation struct.
