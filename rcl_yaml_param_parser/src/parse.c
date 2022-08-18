@@ -88,10 +88,12 @@ void * get_value(
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "allocator is invalid", return NULL);
 
+  bool str_tag_enabled = tag != NULL && strcmp(YAML_STR_TAG, (char *)tag) == 0;
+
   /// Check if it is bool
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
-    (tag == NULL || strcmp(YAML_STR_TAG, (char *)tag) != 0))
+    !str_tag_enabled)
   {
     if ((0 == strcmp(value, "Y")) ||
       (0 == strcmp(value, "y")) ||
@@ -139,7 +141,7 @@ void * get_value(
   /// Check for int
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
-    (tag == NULL || strcmp(YAML_STR_TAG, (char *)tag) != 0))
+    !str_tag_enabled)
   {
     errno = 0;
     ival = strtol(value, &endptr, 0);
@@ -161,7 +163,7 @@ void * get_value(
   /// Check for float
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE &&
-    (tag == NULL || strcmp(YAML_STR_TAG, (char *)tag) != 0))
+    !str_tag_enabled)
   {
     errno = 0;
     endptr = NULL;

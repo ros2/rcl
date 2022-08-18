@@ -194,14 +194,18 @@ TEST(test_parser, correct_syntax) {
     ASSERT_EQ(1U, param_value->string_array_value->size);
     EXPECT_STREQ("Mobius", param_value->string_array_value->data[0]);
 
-    param_value = rcl_yaml_node_struct_get("light", "is_on", params);
-    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
-    ASSERT_TRUE(NULL != param_value->bool_value);
-    EXPECT_TRUE(param_value->bool_value);
-    param_value = rcl_yaml_node_struct_get("light", "on_status", params);
+    param_value = rcl_yaml_node_struct_get("string_tag", "string_bool", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->string_value);
     EXPECT_STREQ("yes", param_value->string_value);
+    param_value = rcl_yaml_node_struct_get("string_tag", "string_int", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_value);
+    EXPECT_STREQ("1234", param_value->string_value);
+    param_value = rcl_yaml_node_struct_get("string_tag", "string_double", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_value);
+    EXPECT_STREQ("12.34", param_value->string_value);
 
     rcl_yaml_node_struct_print(params);
   }
