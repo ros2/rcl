@@ -316,6 +316,7 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
   RCL_CHECK_ARGUMENT_FOR_NULL(timer->impl, RCL_RET_TIMER_INVALID);
   RCL_CHECK_ARGUMENT_FOR_NULL(time_until_next_call, RCL_RET_INVALID_ARGUMENT);
   if (rcutils_atomic_load_bool(&timer->impl->canceled)) {
+    RCL_SET_ERROR_MSG("failed load atomic bool");
     return RCL_RET_TIMER_CANCELED;
   }
   rcl_time_point_value_t now;
