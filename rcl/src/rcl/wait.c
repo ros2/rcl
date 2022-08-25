@@ -667,6 +667,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   }
 
   if (RMW_RET_TIMEOUT == ret && !is_timer_timeout) {
+    RCL_SET_ERROR_MSG("rmw time out");
     return RCL_RET_TIMEOUT;
   }
   return RCL_RET_OK;
