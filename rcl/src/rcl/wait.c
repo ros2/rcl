@@ -570,6 +570,13 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       // use timer time to to set the rmw_wait timeout
       // TODO(sloretz) fix spurious wake-ups on ROS_TIME timers with ROS_TIME enabled
       int64_t timer_timeout = INT64_MAX;
+
+      // reset timer (prevent timer cancelled)
+      ret = rcl_timer_reset(wait_set->timers[i]);
+      if (ret != RCL_RET_OK) {
+        return ret;  // The rcl error state should already be set.
+      }
+
       ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
       if (ret != RCL_RET_OK) {
         return ret;  // The rcl error state should already be set.
