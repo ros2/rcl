@@ -487,6 +487,43 @@ TEST_F(TestTimerFixture, test_timer_with_zero_period) {
   EXPECT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
 }
 
+TEST_F(TestTimerFixture, test_timer_init_state) {
+  rcl_ret_t ret;
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+
+  ret = rcl_timer_init(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), nullptr, rcl_get_default_allocator(),
+    false);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  bool is_canceled = false;
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(is_canceled);
+
+  ret = rcl_timer_init(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), nullptr, rcl_get_default_allocator(),
+    true);
+  ASSERT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
+
+  timer = rcl_get_zero_initialized_timer();
+
+  ret = rcl_timer_init(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), nullptr, rcl_get_default_allocator(),
+    true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_canceled);
+}
+
 TEST_F(TestTimerFixture, test_canceled_timer) {
   rcl_ret_t ret;
 
