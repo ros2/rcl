@@ -22,7 +22,6 @@ extern "C"
 #include <inttypes.h>
 
 #include "rcl/error_handling.h"
-#include "rcutils/logging_macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rcutils/time.h"
 #include "tracetools/tracetools.h"
@@ -125,6 +124,20 @@ void _rcl_timer_time_jump(
 
 rcl_ret_t
 rcl_timer_init(
+  rcl_timer_t * timer,
+  rcl_clock_t * clock,
+  rcl_context_t * context,
+  int64_t period,
+  const rcl_timer_callback_t callback,
+  rcl_allocator_t allocator)
+{
+  rcl_timer_init2(
+    timer, clock, context, period, callback,
+    allocator, true);
+}
+
+rcl_ret_t
+rcl_timer_init2(
   rcl_timer_t * timer,
   rcl_clock_t * clock,
   rcl_context_t * context,

@@ -30,6 +30,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/time.h"
 #include "rcl/types.h"
+#include "rcutils/logging_macros.h"
 #include "rmw/rmw.h"
 
 typedef struct rcl_timer_impl_s rcl_timer_impl_t;
@@ -152,7 +153,7 @@ rcl_get_zero_initialized_timer(void);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_init(
+rcl_timer_init2(
   rcl_timer_t * timer,
   rcl_clock_t * clock,
   rcl_context_t * context,
@@ -160,6 +161,21 @@ rcl_timer_init(
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator,
   bool autostart);
+
+/**
+ * \deprecated `rcl_timer_init` implementation was removed.
+ *   Refer to `rcl_timer_init2`.
+ */
+RCL_PUBLIC
+RCUTILS_DEPRECATED_WITH_MSG("Calling rcl_timer_init2")
+rcl_ret_t
+rcl_timer_init(
+  rcl_timer_t * timer,
+  rcl_clock_t * clock,
+  rcl_context_t * context,
+  int64_t period,
+  const rcl_timer_callback_t callback,
+  rcl_allocator_t allocator);
 
 /// Finalize a timer.
 /**
