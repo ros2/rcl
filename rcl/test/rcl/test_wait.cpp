@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Suppress deprecated function warning
+#ifndef _WIN32
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#else  // defined(_WIN32)
+# pragma warning(disable: 4996)
+#endif
+
 #include <algorithm>  // for std::max
 #include <atomic>
 #include <chrono>
