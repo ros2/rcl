@@ -117,7 +117,7 @@ rcl_get_zero_initialized_timer(void);
  * // ... error handling
  *
  * rcl_timer_t timer = rcl_get_zero_initialized_timer();
- * ret = rcl_timer_init(
+ * ret = rcl_timer_init2(
  *   &timer, &clock, context, RCL_MS_TO_NS(100), my_timer_callback, allocator);
  * // ... error handling, use the timer with a wait set, or poll it manually, then cleanup
  * ret = rcl_timer_fini(&timer);

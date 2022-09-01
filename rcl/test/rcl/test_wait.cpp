@@ -12,13 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Suppress deprecated function warning
-#ifndef _WIN32
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#else  // defined(_WIN32)
-# pragma warning(disable: 4996)
-#endif
-
 #include <algorithm>  // for std::max
 #include <atomic>
 #include <chrono>
@@ -195,8 +188,9 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), negative_timeout) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator());
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator(),
+    true);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -312,8 +306,9 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), zero_timeout_overrun_t
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init(
-    &timer, &clock, this->context_ptr, 0, nullptr, rcl_get_default_allocator());
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, 0, nullptr, rcl_get_default_allocator(),
+    true);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
@@ -369,9 +364,9 @@ TEST_F(CLASSNAME(WaitSetTestFixture, RMW_IMPLEMENTATION), canceled_timer) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   rcl_timer_t canceled_timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init(
+  ret = rcl_timer_init2(
     &canceled_timer, &clock, this->context_ptr,
-    RCL_MS_TO_NS(1), nullptr, rcl_get_default_allocator());
+    RCL_MS_TO_NS(1), nullptr, rcl_get_default_allocator(), true);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {

@@ -174,21 +174,9 @@ rcl_action_server_init(
   action_server->impl->clock = clock;
 
 // Initialize Timer
-// Suppress deprecated function warning
-#ifndef _WIN32
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#else  // defined(_WIN32)
-# pragma warning(disable: 4996)
-#endif
-  ret = rcl_timer_init(
+  ret = rcl_timer_init2(
     &action_server->impl->expire_timer, action_server->impl->clock, node->context,
-    options->result_timeout.nanoseconds, NULL, allocator);
-#ifndef _WIN32
-# pragma GCC diagnostic pop
-#else  // defined(_WIN32)
-# pragma warning(pop)
-#endif
+    options->result_timeout.nanoseconds, NULL, allocator, true);
   if (RCL_RET_OK != ret) {
     goto fail;
   }
