@@ -131,7 +131,7 @@ rcl_timer_init(
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator)
 {
-  rcl_timer_init2(
+  return rcl_timer_init2(
     timer, clock, context, period, callback,
     allocator, true);
 }
