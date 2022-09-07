@@ -59,6 +59,51 @@ rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params)
   return RCL_RET_OK;
 }
 
+RCL_PUBLIC
+rcl_ret_t
+rcl_automatic_discovery_range_to_string(
+  char * destination,
+  size_t size,
+  rmw_discovery_params_t * discovery_params)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(discovery_params, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(destination, RCL_RET_INVALID_ARGUMENT);
+
+  switch (discovery_params->automatic_discovery_range) {
+    case RMW_AUTOMATIC_DISCOVERY_RANGE_OFF:
+      snprintf(
+        destination,
+        size,
+        "RMW_AUTOMATIC_DISCOVERY_RANGE_OFF (%d)",
+        discovery_params->automatic_discovery_range);
+      break;
+    case RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST:
+      snprintf(
+        destination,
+        size,
+        "RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST (%d)",
+        discovery_params->automatic_discovery_range);
+      break;
+    case RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET:
+      snprintf(
+        destination,
+        size,
+        "RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET (%d)",
+        discovery_params->automatic_discovery_range);
+      break;
+    case RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT:
+    default:
+      snprintf(
+        destination,
+        size,
+        "RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT (%d)",
+        discovery_params->automatic_discovery_range);
+      break;
+  };
+
+  return RCL_RET_OK;
+}
+
 rcl_ret_t
 rcl_get_discovery_static_peers(rmw_discovery_params_t * discovery_params)
 {
@@ -78,7 +123,8 @@ rcl_get_discovery_static_peers(rmw_discovery_params_t * discovery_params)
   }
   discovery_params->static_peers_count = 0;
   char * state = NULL;
-  char * token = strtok_r(ros_peers_env_val, ";", &state);
+  char * ros_peers_env_val_non_const = (char *)ros_peers_env_val;
+  char * token = strtok_r(ros_peers_env_val_non_const, ";", &state);
   while (NULL != token && discovery_params->static_peers_count < 32) {
     strncpy(discovery_params->static_peers[discovery_params->static_peers_count], token, 256);
     discovery_params->static_peers[discovery_params->static_peers_count++][255] = '\0';

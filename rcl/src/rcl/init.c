@@ -190,6 +190,22 @@ rcl_init(
     }
   }
 
+  char discovery_range_string[41];  // TODO(gbiggs) Is constexpr available in C11?
+  rcl_automatic_discovery_range_to_string(discovery_range_string, 41, discovery_params);
+  RCUTILS_LOG_INFO_NAMED(
+    ROS_PACKAGE_NAME,
+    "Automatic discovery range is %s",
+    discovery_range_string);
+  RCUTILS_LOG_INFO_NAMED(
+    ROS_PACKAGE_NAME,
+    "Static peers count is %lu",
+    discovery_params->static_peers_count);
+  for (size_t ii = 0; ii < discovery_params->static_peers_count; ++ii) {
+    RCUTILS_LOG_INFO_NAMED(
+      ROS_PACKAGE_NAME,
+      "\t%s", discovery_params->static_peers[ii]);
+  }
+
   if (context->global_arguments.impl->enclave) {
     context->impl->init_options.impl->rmw_init_options.enclave = rcutils_strdup(
       context->global_arguments.impl->enclave,

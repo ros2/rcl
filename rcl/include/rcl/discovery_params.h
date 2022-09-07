@@ -45,6 +45,25 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params);
 
+/// Convert the automatic discovery range value to a string for easy printing.
+/**
+ * The string buffer passed to this function should be at least 40 bytes. If it is less (as
+ * indicated by the size parameter) the stringified enumeration value will be truncated.
+ *
+ * \param[in] destination The string buffer to print into. Must not be NULL.
+ * \param[in] size Must be the size of the destination buffer, including space for a NULL byte.
+ * \param[in] discovery_params Must not be NULL.
+ * \return #RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
+ * \return #RCL_RET_ERROR if an unexpected error happened, or
+ * \return #RCL_RET_OK.
+ */
+RCL_PUBLIC
+rcl_ret_t
+rcl_automatic_discovery_range_to_string(
+  char * destination,
+  size_t size,
+  rmw_discovery_params_t * discovery_params);
+
 /// Determine how the user wishes to discover other ROS nodes via statically-configured peers.
 /**
  * Checks an environment variable to determine the hosts that the user wants to communicate with,
