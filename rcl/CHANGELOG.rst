@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.3.2 (2022-09-08)
+------------------
+* fixed rcl_wait return error when timer cancelled (`#1003 <https://github.com/ros2/rcl/issues/1003>`_) (`#1006 <https://github.com/ros2/rcl/issues/1006>`_)
+* Contributors: mergify[bot]
+
 5.3.1 (2022-04-26)
 ------------------
 * Fix buffer overflow in argument parsing caused by lexer returning length beyond length of string (`#979 <https://github.com/ros2/rcl/issues/979>`_)
