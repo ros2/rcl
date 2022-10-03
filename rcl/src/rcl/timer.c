@@ -38,7 +38,8 @@ struct rcl_timer_impl_s
   rcl_guard_condition_t guard_condition;
   // The user supplied callback.
   atomic_uintptr_t callback;
-  // This is a duration in nanoseconds.
+  // This is a duration in nanoseconds, which is initialized as int64_t
+  // to be used for internal time calculation.
   atomic_int_least64_t period;
   // This is a time in nanoseconds since an unspecified time.
   atomic_int_least64_t last_call_time;
