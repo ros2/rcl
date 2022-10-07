@@ -28,51 +28,42 @@
 #include "rcutils/types/rcutils_ret.h"
 #include "rosidl_runtime_c/string_functions.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #define ROSOUT_TOPIC_NAME "/rosout"
 
-/* Return RCL_RET_OK from this macro because we won't check throughout rcl if rosout is
- * initialized or not and in the case it's not we want things to continue working.
- */
-#define RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED \
-  if (!__is_initialized) { \
-    return RCL_RET_OK; \
+static rcl_ret_t rcl_ret_from_rcutils_ret(rcutils_ret_t rcutils_ret)
+{
+  rcl_ret_t rcl_ret_var;
+
+  if (RCUTILS_RET_OK != rcutils_ret) {
+    if (rcutils_error_is_set()) {
+      RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
+    } else {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("rcutils_ret_t code: %i", rcutils_ret);
+    }
   }
 
-#define RCL_RET_FROM_RCUTIL_RET(rcl_ret_var, rcutils_expr) \
-  { \
-    rcutils_ret_t rcutils_ret = rcutils_expr; \
-    if (RCUTILS_RET_OK != rcutils_ret) { \
-      if (rcutils_error_is_set()) { \
-        RCL_SET_ERROR_MSG(rcutils_get_error_string().str); \
-      } else { \
-        RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("rcutils_ret_t code: %i", rcutils_ret); \
-      } \
-    } \
-    switch (rcutils_ret) { \
-      case RCUTILS_RET_OK: \
-        rcl_ret_var = RCL_RET_OK; \
-        break; \
-      case RCUTILS_RET_ERROR: \
-        rcl_ret_var = RCL_RET_ERROR; \
-        break; \
-      case RCUTILS_RET_BAD_ALLOC: \
-        rcl_ret_var = RCL_RET_BAD_ALLOC; \
-        break; \
-      case RCUTILS_RET_INVALID_ARGUMENT: \
-        rcl_ret_var = RCL_RET_INVALID_ARGUMENT; \
-        break; \
-      case RCUTILS_RET_NOT_INITIALIZED: \
-        rcl_ret_var = RCL_RET_NOT_INIT; \
-        break; \
-      default: \
-        rcl_ret_var = RCUTILS_RET_ERROR; \
-    } \
+  switch (rcutils_ret) {
+    case RCUTILS_RET_OK:
+      rcl_ret_var = RCL_RET_OK;
+      break;
+    case RCUTILS_RET_ERROR:
+      rcl_ret_var = RCL_RET_ERROR;
+      break;
+    case RCUTILS_RET_BAD_ALLOC:
+      rcl_ret_var = RCL_RET_BAD_ALLOC;
+      break;
+    case RCUTILS_RET_INVALID_ARGUMENT:
+      rcl_ret_var = RCL_RET_INVALID_ARGUMENT;
+      break;
+    case RCUTILS_RET_NOT_INITIALIZED:
+      rcl_ret_var = RCL_RET_NOT_INIT;
+      break;
+    default:
+      rcl_ret_var = RCUTILS_RET_ERROR;
   }
+
+  return rcl_ret_var;
+}
 
 typedef struct rosout_map_entry_t
 {
@@ -84,8 +75,7 @@ static rcutils_hash_map_t __logger_map;
 static bool __is_initialized = false;
 static rcl_allocator_t __rosout_allocator;
 
-rcl_ret_t rcl_logging_rosout_init(
-  const rcl_allocator_t * allocator)
+rcl_ret_t rcl_logging_rosout_init(const rcl_allocator_t * allocator)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
   rcl_ret_t status = RCL_RET_OK;
@@ -93,8 +83,7 @@ rcl_ret_t rcl_logging_rosout_init(
     return RCL_RET_OK;
   }
   __logger_map = rcutils_get_zero_initialized_hash_map();
-  RCL_RET_FROM_RCUTIL_RET(
-    status,
+  status = rcl_ret_from_rcutils_ret(
     rcutils_hash_map_init(
       &__logger_map, 2, sizeof(const char *), sizeof(rosout_map_entry_t),
       rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, allocator));
@@ -107,7 +96,9 @@ rcl_ret_t rcl_logging_rosout_init(
 
 rcl_ret_t rcl_logging_rosout_fini()
 {
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  if (!__is_initialized) {
+    return RCL_RET_OK;
+  }
   rcl_ret_t status = RCL_RET_OK;
   char * key = NULL;
   rosout_map_entry_t entry;
@@ -120,7 +111,7 @@ rcl_ret_t rcl_logging_rosout_fini()
     status = rcl_publisher_fini(&entry.publisher, entry.node);
 
     if (RCL_RET_OK == status) {
-      RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &key));
+      status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &key));
     }
 
     if (RCL_RET_OK == status) {
@@ -128,11 +119,11 @@ rcl_ret_t rcl_logging_rosout_fini()
     }
   }
   if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != hashmap_ret) {
-    RCL_RET_FROM_RCUTIL_RET(status, hashmap_ret);
+    status = rcl_ret_from_rcutils_ret(hashmap_ret);
   }
 
   if (RCL_RET_OK == status) {
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_fini(&__logger_map));
+    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_fini(&__logger_map));
   }
 
   if (RCL_RET_OK == status) {
@@ -141,10 +132,12 @@ rcl_ret_t rcl_logging_rosout_fini()
   return status;
 }
 
-rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
-  rcl_node_t * node)
+rcl_ret_t rcl_logging_rosout_init_publisher_for_node(rcl_node_t * node)
 {
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  if (!__is_initialized) {
+    return RCL_RET_OK;
+  }
+
   const char * logger_name = NULL;
   rosout_map_entry_t new_entry;
   rcl_ret_t status = RCL_RET_OK;
@@ -186,7 +179,8 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   // Add the new publisher to the map
   if (RCL_RET_OK == status) {
     new_entry.node = node;
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_set(&__logger_map, &logger_name, &new_entry));
+    status = rcl_ret_from_rcutils_ret(
+      rcutils_hash_map_set(&__logger_map, &logger_name, &new_entry));
     if (RCL_RET_OK != status) {
       RCL_SET_ERROR_MSG("Failed to add publisher to map.");
       // We failed to add to the map so destroy the publisher that we created
@@ -199,10 +193,12 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(
   return status;
 }
 
-rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
-  rcl_node_t * node)
+rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(rcl_node_t * node)
 {
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  if (!__is_initialized) {
+    return RCL_RET_OK;
+  }
+
   rosout_map_entry_t entry;
   const char * logger_name = NULL;
   rcl_ret_t status = RCL_RET_OK;
@@ -218,12 +214,12 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(
   }
 
   // fini the publisher and remove the entry from the map
-  RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_get(&__logger_map, &logger_name, &entry));
+  status = rcl_ret_from_rcutils_ret(rcutils_hash_map_get(&__logger_map, &logger_name, &entry));
   if (RCL_RET_OK == status) {
     status = rcl_publisher_fini(&entry.publisher, entry.node);
   }
   if (RCL_RET_OK == status) {
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &logger_name));
+    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &logger_name));
   }
 
   return status;
@@ -257,7 +253,7 @@ void rcl_logging_rosout_output_handler(
     // The args are initialized, but clang-tidy cannot tell.
     // It may be related to this bug: https://bugs.llvm.org/show_bug.cgi?id=41311
     va_copy(args_clone, *args);  // NOLINT(clang-analyzer-valist.Uninitialized)
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_char_array_vsprintf(&msg_array, format, args_clone));
+    status = rcl_ret_from_rcutils_ret(rcutils_char_array_vsprintf(&msg_array, format, args_clone));
     va_end(args_clone);
     if (RCL_RET_OK != status) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to format log string: ");
@@ -287,7 +283,7 @@ void rcl_logging_rosout_output_handler(
       }
     }
 
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_char_array_fini(&msg_array));
+    status = rcl_ret_from_rcutils_ret(rcutils_char_array_fini(&msg_array));
     if (RCL_RET_OK != status) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("failed to fini char_array: ");
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
@@ -296,8 +292,3 @@ void rcl_logging_rosout_output_handler(
     }
   }
 }
-
-
-#ifdef __cplusplus
-}
-#endif
