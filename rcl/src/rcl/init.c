@@ -188,7 +188,7 @@ rcl_init(
   }
   if (0 == discovery_params->static_peers_count) {
     // Get actual multicast discovery value based on environment variable, if needed
-    ret = rcl_get_discovery_static_peers(discovery_params);
+    ret = rcl_get_discovery_static_peers(discovery_params, &allocator);
     if (RCL_RET_OK != ret) {
       fail_ret = ret;
       goto fail;

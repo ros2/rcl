@@ -17,7 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "rcutils/allocator.h"
 #include "rcutils/env.h"
+#include "rcutils/logging_macros.h"
+#include "rcutils/split.h"
+#include "rcutils/types/string_array.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
@@ -53,6 +57,12 @@ rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params)
   } else if (strcmp(ros_automatic_discovery_range_env_val, "3") == 0) {
     discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET;
   } else {
+    RCUTILS_LOG_WARN_NAMED(
+      ROS_PACKAGE_NAME,
+      "Invalid value %s specified for '" RCUTILS_STRINGIFY(
+        RCL_MULTICAST_DISCOVERY_RANGE_ENV_VAR) "'; assuming localhost only",
+      ros_automatic_discovery_range_env_val);
+
     discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
   }
 
@@ -99,13 +109,15 @@ rcl_automatic_discovery_range_to_string(
         "RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT (%d)",
         discovery_params->automatic_discovery_range);
       break;
-  };
+  }
 
   return RCL_RET_OK;
 }
 
 rcl_ret_t
-rcl_get_discovery_static_peers(rmw_discovery_params_t * discovery_params)
+rcl_get_discovery_static_peers(
+  rmw_discovery_params_t * discovery_params,
+  rcutils_allocator_t * allocator)
 {
   const char * ros_peers_env_val = NULL;
   const char * get_env_error_str = NULL;
@@ -113,6 +125,7 @@ rcl_get_discovery_static_peers(rmw_discovery_params_t * discovery_params)
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
   RCL_CHECK_ARGUMENT_FOR_NULL(discovery_params, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
 
   get_env_error_str = rcutils_get_env(RCL_STATIC_PEERS_ENV_VAR, &ros_peers_env_val);
   if (NULL != get_env_error_str) {
@@ -121,14 +134,47 @@ rcl_get_discovery_static_peers(rmw_discovery_params_t * discovery_params)
       get_env_error_str);
     return RCL_RET_ERROR;
   }
+
   discovery_params->static_peers_count = 0;
-  char * state = NULL;
-  char * ros_peers_env_val_non_const = (char *)ros_peers_env_val;
-  char * token = strtok_r(ros_peers_env_val_non_const, ";", &state);
-  while (NULL != token && discovery_params->static_peers_count < 32) {
-    strncpy(discovery_params->static_peers[discovery_params->static_peers_count], token, 256);
-    discovery_params->static_peers[discovery_params->static_peers_count++][255] = '\0';
-    token = strtok_r(NULL, ";", &state);
+  if (ros_peers_env_val != NULL) {
+    rcutils_string_array_t array = rcutils_get_zero_initialized_string_array();
+    rcutils_ret_t split_ret = rcutils_split(ros_peers_env_val, ';', *allocator, &array);
+    if (RCUTILS_RET_OK != split_ret) {
+      RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
+      return RCL_RET_ERROR;
+    }
+
+    if (array.size > RMW_DISCOVERY_PARAMS_MAX_PEERS) {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Too many peers specified in '" RCUTILS_STRINGIFY(
+          RCL_STATIC_PEERS_ENV_VAR) "' (maximum of %d)", RMW_DISCOVERY_PARAMS_MAX_PEERS);
+      if (RCUTILS_RET_OK != rcutils_string_array_fini(&array)) {
+        // Don't do anything here; we are failing anyway
+      }
+      return RCL_RET_ERROR;
+    }
+
+    for (size_t i = 0; i < array.size; ++i) {
+      if (strlen(array.data[i]) > (RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH - 1)) {
+        RCUTILS_LOG_WARN_NAMED(
+          ROS_PACKAGE_NAME,
+          "Static peer %s specified to '" RCUTILS_STRINGIFY(
+            RCL_MULTICAST_DISCOVERY_RANGE_ENV_VAR) "' is too long (maximum of %d); skipping",
+          array.data[i], RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH - 1);
+        continue;
+      }
+      strncpy(
+        discovery_params->static_peers[discovery_params->static_peers_count], array.data[i],
+        RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH);
+      discovery_params->static_peers[discovery_params->static_peers_count][
+        RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH - 1] = '\0';
+      discovery_params->static_peers_count++;
+    }
+
+    if (RCUTILS_RET_OK != rcutils_string_array_fini(&array)) {
+      RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
+      // We don't fail here because we got the work done, we will just leak memory
+    }
   }
 
   return RCL_RET_OK;

@@ -24,6 +24,9 @@ extern "C"
 
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
+
+#include "rcutils/allocator.h"
+
 #include "rmw/discovery_params.h"
 
 extern const char * const RCL_STATIC_PEERS_ENV_VAR;
@@ -77,7 +80,9 @@ rcl_automatic_discovery_range_to_string(
  */
 RCL_PUBLIC
 rcl_ret_t
-rcl_get_discovery_static_peers(rmw_discovery_params_t * discovery_params);
+rcl_get_discovery_static_peers(
+  rmw_discovery_params_t * discovery_params,
+  rcutils_allocator_t * allocator);
 
 #ifdef __cplusplus
 }
