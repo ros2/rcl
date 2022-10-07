@@ -41,9 +41,10 @@ rcl_get_localhost_only(rmw_localhost_only_t * localhost_only)
       get_env_error_str);
     return RCL_RET_ERROR;
   }
-  *localhost_only = (ros_local_host_env_val != NULL &&
-    strcmp(
-      ros_local_host_env_val,
-      "1") == 0) ? RMW_LOCALHOST_ONLY_ENABLED : RMW_LOCALHOST_ONLY_DISABLED;
+  if (ros_local_host_env_val == NULL || ros_local_host_env_val[0] == '\0') {
+    *localhost_only = RMW_LOCALHOST_ONLY_DEFAULT;
+  } else {
+    *localhost_only = strcmp(ros_local_host_env_val, "1") == 0 ? RMW_LOCALHOST_ONLY_ENABLED : RMW_LOCALHOST_ONLY_DISABLED;
+  }
   return RCL_RET_OK;
 }

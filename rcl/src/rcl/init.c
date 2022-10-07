@@ -156,19 +156,24 @@ rcl_init(
 
   rmw_localhost_only_t * localhost_only =
     &context->impl->init_options.impl->rmw_init_options.localhost_only;
-  if (RMW_LOCALHOST_ONLY_DEFAULT == *localhost_only) {
+  if (RMW_LOCALHOST_ONLY_DEFAULT != *localhost_only) {
+    RCUTILS_LOG_WARN_NAMED(
+      ROS_PACKAGE_NAME,
+      "'localhost_only' init option is deprecated. Use 'automatic_discovery_range' and "
+      "'static_peers' instead.");
+  } else {
     // Get actual localhost_only value based on environment variable, if needed.
     ret = rcl_get_localhost_only(localhost_only);
     if (RCL_RET_OK != ret) {
       fail_ret = ret;
       goto fail;
     }
-  }
-  if (RMW_LOCALHOST_ONLY_DEFAULT != *localhost_only) {
-    RCUTILS_LOG_WARN_NAMED(
-      ROS_PACKAGE_NAME,
-      "ROS_LOCALHOST_ONLY is deprecated. Use ROS_AUTOMATIC_DISCOVERY_RANGE_DEFAULT and "
-      "ROS_STATIC_PEERS instead.");
+    if (RMW_LOCALHOST_ONLY_DEFAULT != *localhost_only) {
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME,
+        "ROS_LOCALHOST_ONLY is deprecated. Use ROS_AUTOMATIC_DISCOVERY_RANGE_DEFAULT and "
+        "ROS_STATIC_PEERS instead.");
+    }
   }
 
   rmw_discovery_params_t * discovery_params =
