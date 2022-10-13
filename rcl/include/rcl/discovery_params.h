@@ -29,9 +29,6 @@ extern "C"
 
 #include "rmw/discovery_params.h"
 
-extern const char * const RCL_STATIC_PEERS_ENV_VAR;
-extern const char * const RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR;
-
 /// Determine how the user wishes to discover other ROS nodes automatically.
 /**
  * Checks an environment variable to determine how far automatic discovery should be allowed to

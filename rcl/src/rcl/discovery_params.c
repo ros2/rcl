@@ -26,8 +26,8 @@
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
-const char * const RCL_STATIC_PEERS_ENV_VAR = "ROS_STATIC_PEERS";
-const char * const RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR = "ROS_AUTOMATIC_DISCOVERY_RANGE";
+static const char * const RCL_STATIC_PEERS_ENV_VAR = "ROS_STATIC_PEERS";
+static const char * const RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR = "ROS_AUTOMATIC_DISCOVERY_RANGE";
 
 rcl_ret_t
 rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params)
@@ -44,7 +44,7 @@ rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params)
     &ros_automatic_discovery_range_env_val);
   if (NULL != get_env_error_str) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Error getting env var '" RCUTILS_STRINGIFY(RCL_MULTICAST_DISCOVERY_RANGE_ENV_VAR) "': %s\n",
+      "Error getting env var '%s': %s", RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR,
       get_env_error_str);
     return RCL_RET_ERROR;
   }
@@ -59,9 +59,9 @@ rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params)
   } else {
     RCUTILS_LOG_WARN_NAMED(
       ROS_PACKAGE_NAME,
-      "Invalid value %s specified for '" RCUTILS_STRINGIFY(
-        RCL_MULTICAST_DISCOVERY_RANGE_ENV_VAR) "'; assuming localhost only",
-      ros_automatic_discovery_range_env_val);
+      "Invalid value %s specified for '%s''; assuming localhost only",
+      ros_automatic_discovery_range_env_val,
+      RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR);
 
     discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
   }
@@ -130,8 +130,8 @@ rcl_get_discovery_static_peers(
   get_env_error_str = rcutils_get_env(RCL_STATIC_PEERS_ENV_VAR, &ros_peers_env_val);
   if (NULL != get_env_error_str) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-      "Error getting env var '" RCUTILS_STRINGIFY(RCL_STATIC_PEERS_ENV_VAR) "': %s\n",
-      get_env_error_str);
+      "Error getting env var '%s': %s",
+      RCL_STATIC_PEERS_ENV_VAR, get_env_error_str);
     return RCL_RET_ERROR;
   }
 
@@ -146,8 +146,8 @@ rcl_get_discovery_static_peers(
 
     if (array.size > RMW_DISCOVERY_PARAMS_MAX_PEERS) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Too many peers specified in '" RCUTILS_STRINGIFY(
-          RCL_STATIC_PEERS_ENV_VAR) "' (maximum of %d)", RMW_DISCOVERY_PARAMS_MAX_PEERS);
+        "Too many peers specified in '%s' (maximum of %d)",
+        RCL_STATIC_PEERS_ENV_VAR, RMW_DISCOVERY_PARAMS_MAX_PEERS);
       if (RCUTILS_RET_OK != rcutils_string_array_fini(&array)) {
         // Don't do anything here; we are failing anyway
       }
@@ -158,9 +158,8 @@ rcl_get_discovery_static_peers(
       if (strlen(array.data[i]) > (RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH - 1)) {
         RCUTILS_LOG_WARN_NAMED(
           ROS_PACKAGE_NAME,
-          "Static peer %s specified to '" RCUTILS_STRINGIFY(
-            RCL_MULTICAST_DISCOVERY_RANGE_ENV_VAR) "' is too long (maximum of %d); skipping",
-          array.data[i], RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH - 1);
+          "Static peer %s specified to '%s' is too long (maximum of %d); skipping",
+          array.data[i], RCL_STATIC_PEERS_ENV_VAR, RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH - 1);
         continue;
       }
       strncpy(
