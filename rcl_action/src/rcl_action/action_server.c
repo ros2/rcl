@@ -173,7 +173,7 @@ rcl_action_server_init(
   // Store reference to clock
   action_server->impl->clock = clock;
 
-// Initialize Timer
+  // Initialize Timer
   ret = rcl_timer_init(
     &action_server->impl->expire_timer, action_server->impl->clock, node->context,
     options->result_timeout.nanoseconds, NULL, allocator);
@@ -267,7 +267,7 @@ rcl_action_server_get_default_options(void)
   default_options.feedback_topic_qos = rmw_qos_profile_default;
   default_options.status_topic_qos = rcl_action_qos_profile_status_default;
   default_options.allocator = rcl_get_default_allocator();
-  default_options.result_timeout.nanoseconds = RCUTILS_S_TO_NS(15 * 60);  // 15 minutes
+  default_options.result_timeout.nanoseconds = RCUTILS_S_TO_NS(10);  // 10 seconds
   return default_options;
 }
 
