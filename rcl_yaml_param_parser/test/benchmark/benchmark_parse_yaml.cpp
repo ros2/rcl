@@ -22,7 +22,6 @@
 
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
-#include "rcutils/filesystem.h"
 
 using performance_test_fixture::PerformanceTest;
 

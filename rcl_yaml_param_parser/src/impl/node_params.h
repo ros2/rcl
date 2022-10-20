@@ -15,6 +15,10 @@
 #ifndef IMPL__NODE_PARAMS_H_
 #define IMPL__NODE_PARAMS_H_
 
+#include "rcutils/allocator.h"
+#include "rcutils/macros.h"
+#include "rcutils/types/rcutils_ret.h"
+
 #include "rcl_yaml_param_parser/types.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
 

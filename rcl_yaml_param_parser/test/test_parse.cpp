@@ -16,14 +16,16 @@
 
 #include <yaml.h>
 
-#include <string>
-#include <vector>
-
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl_yaml_param_parser/parser.h"
 #include "../src/impl/parse.h"
 #include "../src/impl/node_params.h"
+
+#include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/filesystem.h"
+#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/types/string_array.h"
 
 #include "./mocking_utils/patch.hpp"
 

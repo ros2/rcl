@@ -17,9 +17,9 @@
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <depend>libyaml_vendor</depend>
-  <depend>yaml</depend>
+  <depend>rcutils</depend>
   <depend>rmw</depend>
-  <build_depend>rcutils</build_depend>
+  <depend>yaml</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_common</test_depend>

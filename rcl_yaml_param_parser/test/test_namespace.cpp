@@ -14,16 +14,14 @@
 
 #include <gtest/gtest.h>
 
-#include <yaml.h>
-
-#include <string>
-#include <vector>
-
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl_yaml_param_parser/parser.h"
 #include "../src/impl/namespace.h"
+
 #include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/rcutils_ret.h"
 
 TEST(TestNamespace, add_name_to_ns) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
