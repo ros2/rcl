@@ -266,7 +266,9 @@ TEST_F(
   // Get network flow endpoints of publisher with unique network flow endpoints
   rcl_network_flow_endpoint_array_t network_flow_endpoint_array_2 =
     rcl_get_zero_initialized_network_flow_endpoint_array();
-  if (rcl_publisher_is_valid(&this->publisher_2)) {
+  bool pub_2_is_valid = rcl_publisher_is_valid(&this->publisher_2);
+  rcl_reset_error();
+  if (pub_2_is_valid) {
     rcl_network_flow_endpoint_array_t network_flow_endpoint_array_2 =
       rcl_get_zero_initialized_network_flow_endpoint_array();
     ret_2 = rcl_publisher_get_network_flow_endpoints(
@@ -305,7 +307,9 @@ TEST_F(
 
   // Release resources
   rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_1);
+  rcl_reset_error();
   rcl_network_flow_endpoint_array_fini(&network_flow_endpoint_array_2);
+  rcl_reset_error();
 }
 
 TEST_F(

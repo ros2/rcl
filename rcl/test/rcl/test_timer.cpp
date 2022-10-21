@@ -842,6 +842,7 @@ TEST_F(TestPreInitTimer, test_timer_reset) {
 
   ASSERT_EQ(RCL_RET_OK, rcl_timer_cancel(&timer)) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_RET_TIMER_CANCELED, rcl_timer_call(&timer));
+  rcl_reset_error();
   EXPECT_EQ(times_called, 2);
   ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
   EXPECT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;

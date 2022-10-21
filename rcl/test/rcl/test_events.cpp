@@ -686,6 +686,7 @@ TEST_F(TestEventFixture, test_bad_event_ini)
     &publisher,
     unknown_pub_type);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
 
   subscription_event = rcl_get_zero_initialized_event();
   ret = rcl_subscription_event_init(
@@ -693,6 +694,7 @@ TEST_F(TestEventFixture, test_bad_event_ini)
     &subscription,
     unknown_sub_type);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
 
   tear_down_publisher_subscriber();
 }
@@ -744,12 +746,16 @@ TEST_F(TestEventFixture, test_event_is_invalid) {
   // nullptr
   rmw_offered_deadline_missed_status_t deadline_status;
   EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(NULL, &deadline_status));
+  rcl_reset_error();
   EXPECT_EQ(NULL, rcl_event_get_rmw_handle(NULL));
+  rcl_reset_error();
 
   // Zero Init, invalid
   rcl_event_t publisher_event_test = rcl_get_zero_initialized_event();
   EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(&publisher_event_test, &deadline_status));
+  rcl_reset_error();
   EXPECT_EQ(NULL, rcl_event_get_rmw_handle(&publisher_event_test));
+  rcl_reset_error();
 }
 
 /*
