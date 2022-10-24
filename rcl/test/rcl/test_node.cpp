@@ -28,6 +28,7 @@
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcutils/env.h"
+#include "rcutils/logging.h"
 #include "rcutils/testing/fault_injection.h"
 #include "rcl/error_handling.h"
 #include "rcl/logging.h"
@@ -428,6 +429,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
 }
 
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_init_with_internal_errors) {
+  // We always call rcutils_logging_shutdown(), even if we didn't explicitly
+  // initialize it.  That's because some internals of rcl may implicitly
+  // initialize it, so we have to do this not to leak memory.  It doesn't
+  // hurt to call it if it was never initialized.
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCUTILS_RET_OK, rcutils_logging_shutdown());
+  });
+
   rcl_ret_t ret;
   rcl_context_t context = rcl_get_zero_initialized_context();
   rcl_node_t node = rcl_get_zero_initialized_node();
