@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.5.0 (2022-11-02)
+------------------
 * Small cleanups to rcl (`#1013 <https://github.com/ros2/rcl/issues/1013>`_)
 * use int64_t for period. (`#1010 <https://github.com/ros2/rcl/issues/1010>`_)
 * Contributors: Chris Lalancette, Tomoya Fujita
