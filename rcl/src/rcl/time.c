@@ -81,8 +81,7 @@ rcl_time_point_value_valid(rcl_time_point_value_t time_point_value)
 bool
 rcl_time_point_valid(rcl_time_point_t * time_point)
 {
-  if (time_point == NULL)
-  {
+  if (time_point == NULL) {
     return false;
   }
   return rcl_time_point_value_valid(time_point->nanoseconds);
