@@ -73,6 +73,22 @@ rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
 }
 
 bool
+rcl_time_point_value_valid(rcl_time_point_value_t time_point_value)
+{
+  return time_point_value > 0;
+}
+
+bool
+rcl_time_point_valid(rcl_time_point_t * time_point)
+{
+  if (time_point == NULL)
+  {
+    return false;
+  }
+  return rcl_time_point_value_valid(time_point->nanoseconds);
+}
+
+bool
 rcl_clock_valid(rcl_clock_t * clock)
 {
   if (clock == NULL ||
