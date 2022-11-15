@@ -5,6 +5,7 @@
   <version>5.5.0</version>
   <description>Parse a YAML parameter file and populate the C data structure.</description>
 
+  <maintainer email="audrow@openrobotics.org">Audrow Nash</maintainer>
   <maintainer email="ivanpauno@ekumenlabs.com">Ivan Paunovic</maintainer>
   <maintainer email="william@openrobotics.org">William Woodall</maintainer>
 
