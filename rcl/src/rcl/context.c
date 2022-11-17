@@ -48,6 +48,7 @@ rcl_get_zero_initialized_context(void)
 rcl_ret_t
 rcl_context_fini(rcl_context_t * context)
 {
+  printf("rcl_context_fini\n");
   RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);
   if (!context->impl) {
     // Context is zero-initialized
@@ -108,6 +109,7 @@ rcl_context_get_rmw_context(rcl_context_t * context)
 rcl_ret_t
 __cleanup_context(rcl_context_t * context)
 {
+  RCUTILS_SAFE_FWRITE_TO_STDERR("__cleanup_context - enter\n");
   rcl_ret_t ret = RCL_RET_OK;
   // reset the instance id to 0 to indicate "invalid" (should already be 0, but this is defensive)
   rcutils_atomic_store((atomic_uint_least64_t *)(&context->instance_id_storage), 0);
@@ -178,6 +180,7 @@ __cleanup_context(rcl_context_t * context)
   // zero-initialize the context
   *context = rcl_get_zero_initialized_context();
 
+  RCUTILS_SAFE_FWRITE_TO_STDERR("__cleanup_context - exit\n");
   return ret;
 }
 
