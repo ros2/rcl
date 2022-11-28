@@ -183,6 +183,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), topic_and_service_name_n
       NULL, &global_arguments, NULL, "NodeName", "/", rcl_get_default_allocator(), &output);
     EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
     ASSERT_EQ(NULL, output);
+    rcl_reset_error();
   }
   {
     char * output = NULL;
@@ -190,6 +191,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), topic_and_service_name_n
       NULL, &global_arguments, NULL, "NodeName", "/", rcl_get_default_allocator(), &output);
     EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
     EXPECT_EQ(NULL, output);
+    rcl_reset_error();
   }
 }
 
