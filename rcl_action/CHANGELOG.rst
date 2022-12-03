@@ -2,6 +2,9 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.1.4 (2022-12-02)
+------------------
+
 3.1.3 (2022-04-28)
 ------------------
 * fix expired goals capacity of action server (`#931 <https://github.com/ros2/rcl/issues/931>`_) (`#958 <https://github.com/ros2/rcl/issues/958>`_)
