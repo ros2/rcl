@@ -186,7 +186,7 @@ typedef struct rcl_time_point_s
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] clock the handle to the click which is being queried
+ * \param[in] clock the handle to the clock which is being queried
  * \return true if the clock has started, otherwise return false.
  */
 RCL_PUBLIC
