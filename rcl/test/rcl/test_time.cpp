@@ -318,6 +318,38 @@ TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), specific_clock_instantiation) {
   }
 }
 
+TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_clock_time_started) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  {
+    rcl_clock_t ros_clock;
+    rcl_ret_t ret = rcl_clock_init(RCL_ROS_TIME, &ros_clock, &allocator);
+    // At this point, the ROS clock is reading system time since the ROS time override isn't on
+    // So we expect it to be started (it's extremely unlikely that system time is at epoch start)
+    ASSERT_TRUE(rcl_clock_time_started(&ros_clock));
+    ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&ros_clock)) << rcl_get_error_string().str;
+    ASSERT_FALSE(rcl_clock_time_started(&ros_clock));
+    ret = rcl_set_ros_time_override(&ros_clock, 1);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    ASSERT_TRUE(rcl_clock_time_started(&ros_clock));
+    ret = rcl_clock_fini(&ros_clock);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  }
+  {
+    rcl_clock_t system_clock;
+    rcl_ret_t ret = rcl_clock_init(RCL_SYSTEM_TIME, &system_clock, &allocator);
+    ASSERT_TRUE(rcl_clock_time_started(&system_clock));  // As long as system time isn't 0
+    ret = rcl_clock_fini(&system_clock);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  }
+  {
+    rcl_clock_t steady_clock;
+    rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &steady_clock, &allocator);
+    ASSERT_TRUE(rcl_clock_time_started(&steady_clock));
+    ret = rcl_clock_fini(&steady_clock);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  }
+}
+
 TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), rcl_time_difference) {
   rcl_ret_t ret;
   rcl_time_point_t a, b;
