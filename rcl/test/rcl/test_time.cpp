@@ -205,29 +205,6 @@ TEST_F(CLASSNAME(TestTimeFixture, RMW_IMPLEMENTATION), test_ros_clock_initially_
   EXPECT_EQ(0, query_now);
 }
 
-TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), time_point_validation) {
-  ASSERT_FALSE(rcl_time_point_valid(NULL));
-
-  rcl_time_point_t uninitialized;
-  (void) uninitialized;
-  // Not reliably detectable due to random values.
-  // ASSERT_FALSE(rcl_clock_valid(&uninitialized));
-
-  rcl_time_point_t valid, invalid;
-
-  valid.nanoseconds = 1000;
-  valid.clock_type = RCL_ROS_TIME;
-
-  invalid.nanoseconds = 0;
-  invalid.clock_type = RCL_ROS_TIME;
-
-  ASSERT_TRUE(rcl_time_point_valid(&valid));
-  ASSERT_TRUE(rcl_time_point_value_valid(valid.nanoseconds));
-
-  ASSERT_FALSE(rcl_time_point_valid(&invalid));
-  ASSERT_FALSE(rcl_time_point_value_valid(invalid.nanoseconds));
-}
-
 TEST(CLASSNAME(rcl_time, RMW_IMPLEMENTATION), clock_validation) {
   ASSERT_FALSE(rcl_clock_valid(NULL));
   rcl_clock_t uninitialized;
