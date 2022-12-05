@@ -115,14 +115,6 @@ void _rcl_timer_time_jump(
         RCUTILS_LOG_ERROR_NAMED(
           ROS_PACKAGE_NAME, "Failed to get trigger guard condition in jump callback");
       }
-
-      rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->callback_data;
-
-      if (cb_data->on_reset_callback) {
-        cb_data->on_reset_callback(cb_data->user_data, 1);
-      } else {
-        cb_data->reset_counter++;
-      }
     } else if (now < last_call_time) {
       // Post backwards time jump that went further back than 1 period
       // next callback should happen after 1 period
