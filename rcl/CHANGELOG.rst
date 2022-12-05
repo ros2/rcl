@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.6.0 (2022-12-05)
+------------------
 * Implement rcl_clock_time_started (`#1021 <https://github.com/ros2/rcl/issues/1021>`_)
 * Make sure to reset errors more places in the tests. (`#1020 <https://github.com/ros2/rcl/issues/1020>`_)
   This makes it so we don't get as many warnings when the
