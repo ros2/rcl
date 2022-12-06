@@ -17,6 +17,8 @@ find_package(tracetools REQUIRED)
 find_package(type_description_interfaces REQUIRED)
 find_package(yaml REQUIRED)
 
+find_package(evolving_serialization_lib REQUIRED)  # TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY
+
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 include(cmake/get_default_rcl_logging_implementation.cmake)
 get_default_rcl_logging_implementation(RCL_LOGGING_IMPL)
@@ -37,6 +39,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(${PROJECT_NAME}_sources
+  src/rcl/rcl_typesupport_runtime_type_introspection_c/identifier.c
+  src/rcl/rcl_typesupport_runtime_type_introspection_c/message_introspection.c
+
   src/rcl/arguments.c
   src/rcl/client.c
   src/rcl/common.c
@@ -137,6 +142,7 @@ ament_export_dependencies(rmw)
 ament_export_dependencies(rmw_implementation)
 ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(type_description_interfaces)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
