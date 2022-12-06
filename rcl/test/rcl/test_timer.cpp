@@ -81,7 +81,7 @@ static void callback_function_changed(rcl_timer_t * timer, int64_t last_call)
   times_called--;
 }
 
-static uint8_t times_reset = 0;
+static size_t times_reset = 0;
 static void on_reset_callback_function(const void * timer, size_t n)
 {
   (void) timer;
