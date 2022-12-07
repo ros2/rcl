@@ -890,14 +890,14 @@ TEST_F(TestPreInitTimer, test_on_reset_timer_callback) {
   ASSERT_EQ(
     RCL_RET_OK, rcl_timer_set_on_reset_callback(
       &timer, on_reset_callback_function, nullptr)) << rcl_get_error_string().str;
-  EXPECT_EQ(times_reset, 2);
+  EXPECT_EQ(times_reset, static_cast<size_t>(2));
 
   // Assign a new on_reset callback
   ASSERT_EQ(
     RCL_RET_OK, rcl_timer_set_on_reset_callback(
       &timer, on_reset_callback_function_changed, nullptr)) << rcl_get_error_string().str;
   ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer)) << rcl_get_error_string().str;
-  EXPECT_EQ(times_reset, 1);
+  EXPECT_EQ(times_reset, static_cast<size_t>(1));
 }
 
 TEST_F(TestPreInitTimer, test_invalid_get_guard) {
