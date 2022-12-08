@@ -1,0 +1,33 @@
+# config/test_yaml
+---
+
+node_ns:
+  node1:
+    ros__parameter_descriptors:
+      param1:
+        type: 2
+        min_value: 5
+        max_value: 100
+        step: 5
+        read_only: false
+        description: "int parameter"
+        additional_constraints: "only multiples of 5"
+      param2:
+        min_value: 1.0
+        max_value: 10.0
+        description: "double parameter"
+    ros__parameters:
+      param1: 28
+  node2:
+    ros__parameters:
+      foo:
+        bar: 10
+        baz: "hello"
+    ros__parameter_descriptors:
+      foo:
+        bar:
+          description: "namespaced parameter"
+          read_only: false
+        baz:
+          description: "another namespaced parameter"
+          dynamic_typing: true

@@ -28,6 +28,7 @@ extern "C"
 #endif
 
 #define PARAMS_KEY "ros__parameters"
+#define PARAMS_DESCRIPTORS_KEY "ros__parameter_descriptors"
 #define NODE_NS_SEPERATOR "/"
 #define PARAMETER_NS_SEPERATOR "."
 
@@ -36,6 +37,7 @@ typedef enum yaml_map_lvl_e
   MAP_UNINIT_LVL = 0U,
   MAP_NODE_NAME_LVL = 1U,
   MAP_PARAMS_LVL = 2U,
+  MAP_PARAMS_DESCRIPTORS_LVL = 3U,
 } yaml_map_lvl_t;
 
 /// Basic supported data types in the yaml file
@@ -51,7 +53,8 @@ typedef enum data_types_e
 typedef enum namespace_type_e
 {
   NS_TYPE_NODE = 1U,
-  NS_TYPE_PARAM = 2U
+  NS_TYPE_PARAM = 2U,
+  NS_TYPE_DESCRIPTOR = 3U
 } namespace_type_t;
 
 /// Keep track of node and parameter name spaces
@@ -61,6 +64,8 @@ typedef struct namespace_tracker_s
   uint32_t num_node_ns;
   char * parameter_ns;
   uint32_t num_parameter_ns;
+  char * descriptor_key_ns;
+  uint32_t num_descriptor_key_ns;
 } namespace_tracker_t;
 
 #ifdef __cplusplus

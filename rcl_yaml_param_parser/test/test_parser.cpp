@@ -117,7 +117,7 @@ TEST(RclYamlParamParser, node_copy) {
   set_time_bomb_allocator_calloc_count(params_st->allocator, 1);
   EXPECT_EQ(nullptr, rcl_yaml_node_struct_copy(params_st));
 
-  constexpr int expected_num_calloc_calls = 5;
+  constexpr int expected_num_calloc_calls = 8;
   for (int i = 0; i < expected_num_calloc_calls; ++i) {
     // Check various locations for allocation failures
     set_time_bomb_allocator_calloc_count(params_st->allocator, i);
