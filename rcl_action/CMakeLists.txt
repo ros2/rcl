@@ -45,7 +45,7 @@ add_library(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 ament_target_dependencies(${PROJECT_NAME}
   "action_msgs"
@@ -62,7 +62,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "RCL_ACTION_BUILDING_DLL")
 
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
@@ -85,7 +85,6 @@ if(BUILD_TESTING)
   )
   if(TARGET test_action_client)
     target_include_directories(test_action_client PUBLIC
-      include
       src
     )
     target_link_libraries(test_action_client
@@ -119,9 +118,6 @@ if(BUILD_TESTING)
         PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
         target_compile_definitions(${target}${target_suffix}
           PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
-      target_include_directories(${target}${target_suffix} PUBLIC
-        include
-      )
       target_link_libraries(${target}${target_suffix}
         ${PROJECT_NAME}
       )
@@ -151,7 +147,6 @@ if(BUILD_TESTING)
   )
   if(TARGET test_action_server)
     target_include_directories(test_action_server PUBLIC
-      include
       src
     )
     target_link_libraries(test_action_server
@@ -168,9 +163,6 @@ if(BUILD_TESTING)
     test/rcl_action/test_goal_handle.cpp
   )
   if(TARGET test_goal_handle)
-    target_include_directories(test_goal_handle PUBLIC
-      include
-    )
     target_link_libraries(test_goal_handle
       ${PROJECT_NAME}
     )
@@ -189,9 +181,6 @@ if(BUILD_TESTING)
     test/rcl_action/test_types.cpp
   )
   if(TARGET test_types)
-    target_include_directories(test_types PUBLIC
-      include
-    )
     target_link_libraries(test_types
       ${PROJECT_NAME}
     )
@@ -224,10 +213,14 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-# specific order: dependents before dependencies
-ament_export_include_directories(include)
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(${PROJECT_NAME})
+
+# Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
+
+# specific order: dependents before dependencies
 ament_export_dependencies(action_msgs)
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl)

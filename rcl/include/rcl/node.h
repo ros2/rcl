@@ -27,22 +27,24 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/arguments.h"
 #include "rcl/context.h"
+#include "rcl/guard_condition.h"
 #include "rcl/macros.h"
 #include "rcl/node_options.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-struct rcl_guard_condition_t;
-struct rcl_node_impl_t;
+extern const char * const RCL_DISABLE_LOANED_MESSAGES_ENV_VAR;
+
+typedef struct rcl_node_impl_s rcl_node_impl_t;
 
 /// Structure which encapsulates a ROS Node.
-typedef struct rcl_node_t
+typedef struct rcl_node_s
 {
   /// Context associated with this node.
   rcl_context_t * context;
 
   /// Private implementation pointer.
-  struct rcl_node_impl_t * impl;
+  rcl_node_impl_t * impl;
 } rcl_node_t;
 
 /// Return a rcl_node_t struct with members initialized to `NULL`.
@@ -462,7 +464,7 @@ rcl_node_get_rcl_instance_id(const rcl_node_t * node);
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-const struct rcl_guard_condition_t *
+const rcl_guard_condition_t *
 rcl_node_get_graph_guard_condition(const rcl_node_t * node);
 
 /// Return the logger name of the node.
@@ -532,6 +534,20 @@ rcl_node_resolve_name(
   bool is_service,
   bool only_expand,
   char ** output_name);
+
+/// Check if loaned message is disabled, according to the environment variable.
+/**
+ * If the `ROS_DISABLE_LOANED_MESSAGES` environment variable is set to "1",
+ * `disable_loaned_message` will be set to true.
+ *
+ * \param[out] disable_loaned_message Must not be NULL.
+ * \return #RCL_RET_INVALID_ARGUMENT if an argument is not valid, or
+ * \return #RCL_RET_ERROR if an unexpected error happened, or
+ * \return #RCL_RET_OK.
+ */
+RCL_PUBLIC
+rcl_ret_t
+rcl_get_disable_loaned_message(bool * disable_loaned_message);
 
 #ifdef __cplusplus
 }

@@ -30,11 +30,13 @@ extern "C"
 #include "rmw/rmw.h"
 #include "tracetools/tracetools.h"
 
-typedef struct rcl_service_impl_t
+struct rcl_service_impl_s
 {
   rcl_service_options_t options;
+  rmw_qos_profile_t actual_request_subscription_qos;
+  rmw_qos_profile_t actual_response_publisher_qos;
   rmw_service_t * rmw_handle;
-} rcl_service_impl_t;
+};
 
 rcl_service_t
 rcl_get_zero_initialized_service()
@@ -122,6 +124,31 @@ rcl_service_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
+  // get actual qos, and store it
+  rmw_ret_t rmw_ret = rmw_service_request_subscription_get_actual_qos(
+    service->impl->rmw_handle,
+    &service->impl->actual_request_subscription_qos);
+
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+
+  rmw_ret = rmw_service_response_publisher_get_actual_qos(
+    service->impl->rmw_handle,
+    &service->impl->actual_response_publisher_qos);
+
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+
+  // ROS specific namespacing conventions is not retrieved by get_actual_qos
+  service->impl->actual_request_subscription_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
+  service->impl->actual_response_publisher_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
+
   // options
   service->impl->options = *options;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service initialized");
@@ -299,6 +326,41 @@ rcl_service_is_valid(const rcl_service_t * service)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service->impl->rmw_handle, "service's rmw handle is invalid", return false);
   return true;
+}
+
+const rmw_qos_profile_t *
+rcl_service_request_subscription_get_actual_qos(const rcl_service_t * service)
+{
+  if (!rcl_service_is_valid(service)) {
+    return NULL;
+  }
+  return &service->impl->actual_request_subscription_qos;
+}
+
+const rmw_qos_profile_t *
+rcl_service_response_publisher_get_actual_qos(const rcl_service_t * service)
+{
+  if (!rcl_service_is_valid(service)) {
+    return NULL;
+  }
+  return &service->impl->actual_response_publisher_qos;
+}
+
+rcl_ret_t
+rcl_service_set_on_new_request_callback(
+  const rcl_service_t * service,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_service_is_valid(service)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  return rmw_service_set_on_new_request_callback(
+    service->impl->rmw_handle,
+    callback,
+    user_data);
 }
 
 #ifdef __cplusplus

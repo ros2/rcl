@@ -74,8 +74,10 @@ rcl_logging_configure_with_output_handler(
   g_rcl_logging_num_out_handlers = 0;
 
   if (log_levels) {
-    default_level = (int)log_levels->default_logger_level;
-    rcutils_logging_set_default_logger_level(default_level);
+    if (log_levels->default_logger_level != RCUTILS_LOG_SEVERITY_UNSET) {
+      default_level = (int)log_levels->default_logger_level;
+      rcutils_logging_set_default_logger_level(default_level);
+    }
 
     for (size_t i = 0; i < log_levels->num_logger_settings; ++i) {
       rcutils_ret_t rcutils_status = rcutils_logging_set_logger_level(
@@ -163,8 +165,11 @@ static
 void
 rcl_logging_ext_lib_output_handler(
   const rcutils_log_location_t * location,
-  int severity, const char * name, rcutils_time_point_value_t timestamp,
-  const char * format, va_list * args)
+  int severity,
+  const char * name,
+  rcutils_time_point_value_t timestamp,
+  const char * format,
+  va_list * args)
 {
   rcl_ret_t status;
   char msg_buf[1024] = "";
@@ -186,7 +191,9 @@ rcl_logging_ext_lib_output_handler(
   };
 
   va_list args_clone;
-  va_copy(args_clone, *args);
+  // The args are initialized, but clang-tidy cannot tell.
+  // It may be related to this bug: https://bugs.llvm.org/show_bug.cgi?id=41311
+  va_copy(args_clone, *args);  // NOLINT(clang-analyzer-valist.Uninitialized)
   status = rcutils_char_array_vsprintf(&msg_array, format, args_clone);
   va_end(args_clone);
 

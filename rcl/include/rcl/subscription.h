@@ -24,6 +24,7 @@ extern "C"
 
 #include "rosidl_runtime_c/message_type_support_struct.h"
 
+#include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
@@ -31,17 +32,17 @@ extern "C"
 #include "rmw/message_sequence.h"
 
 /// Internal rcl implementation struct.
-struct rcl_subscription_impl_t;
+typedef struct rcl_subscription_impl_s rcl_subscription_impl_t;
 
 /// Structure which encapsulates a ROS Subscription.
-typedef struct rcl_subscription_t
+typedef struct rcl_subscription_s
 {
   /// Pointer to the subscription implementation
-  struct rcl_subscription_impl_t * impl;
+  rcl_subscription_impl_t * impl;
 } rcl_subscription_t;
 
 /// Options available for a rcl subscription.
-typedef struct rcl_subscription_options_t
+typedef struct rcl_subscription_options_s
 {
   /// Middleware quality of service settings for the subscription.
   rmw_qos_profile_t qos;
@@ -51,6 +52,11 @@ typedef struct rcl_subscription_options_t
   /// rmw specific subscription options, e.g. the rmw implementation specific payload.
   rmw_subscription_options_t rmw_subscription_options;
 } rcl_subscription_options_t;
+
+typedef struct rcl_subscription_content_filter_options_s
+{
+  rmw_subscription_content_filter_options_t rmw_subscription_content_filter_options;
+} rcl_subscription_content_filter_options_t;
 
 /// Return a rcl_subscription_t struct with members set to `NULL`.
 /**
@@ -87,7 +93,7 @@ rcl_get_zero_initialized_subscription(void);
  * For C++ a template function is used:
  *
  * ```cpp
- * #include <rosidl_runtime_cpp/message_type_support.hpp>
+ * #include <rosidl_typesupport_cpp/message_type_support.hpp>
  * #include <std_msgs/msgs/string.hpp>
  * using rosidl_typesupport_cpp::get_message_type_support_handle;
  * const rosidl_message_type_support_t * string_ts =
@@ -207,6 +213,225 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_subscription_options_t
 rcl_subscription_get_default_options(void);
+
+/// Reclaim resources held inside rcl_subscription_options_t structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] option The structure which its resources have to be deallocated.
+ * \return `RCL_RET_OK` if the memory was successfully freed, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
+ * \return `RCL_RET_BAD_ALLOC` if deallocating memory fails.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_options_fini(rcl_subscription_options_t * option);
+
+/// Set the content filter options for the given subscription options.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] filter_expression The filter expression is similar to the WHERE part of an SQL clause.
+ * \param[in] expression_parameters_argc The maximum of expression parameters argc is 100.
+ * \param[in] expression_parameter_argv The expression parameters argv are the tokens placeholder
+ * ‘parameters’ (i.e., "%n" tokens begin from 0) in the filter_expression.
+ *
+ * It can be NULL if there is no "%n" tokens placeholder in filter_expression.
+ * \param[out] options The subscription options to be set.
+ * \return `RCL_RET_OK` if set options successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if arguments invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory fails.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_options_set_content_filter_options(
+  const char * filter_expression,
+  size_t expression_parameters_argc,
+  const char * expression_parameter_argv[],
+  rcl_subscription_options_t * options);
+
+/// Return the zero initialized subscription content filter options.
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_subscription_content_filter_options_t
+rcl_get_zero_initialized_subscription_content_filter_options(void);
+
+/// Initialize the content filter options for the given subscription options.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] subscription the handle to the subscription.
+ * \param[in] filter_expression The filter expression is similar to the WHERE part of an SQL clause,
+ * use empty ("") can reset (or clear) the content filter setting of a subscription.
+ * \param[in] expression_parameters_argc The maximum of expression parameters argc is 100.
+ * \param[in] expression_parameter_argv The expression parameters argv are the tokens placeholder
+ * ‘parameters’ (i.e., "%n" tokens begin from 0) in the filter_expression.
+ *
+ * It can be NULL if there is no "%n" tokens placeholder in filter_expression.
+ * \param[out] options The subscription options to be set.
+ * \return `RCL_RET_OK` if set options successfully, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if subscription is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if arguments invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory fails.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_content_filter_options_init(
+  const rcl_subscription_t * subscription,
+  const char * filter_expression,
+  size_t expression_parameters_argc,
+  const char * expression_parameter_argv[],
+  rcl_subscription_content_filter_options_t * options);
+
+/// Set the content filter options for the given subscription options.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] subscription the handle to the subscription.
+ * \param[in] filter_expression The filter expression is similar to the WHERE part of an SQL clause,
+ * use empty ("") can reset (or clear) the content filter setting of a subscription.
+ * \param[in] expression_parameters_argc The maximum of expression parameters argc is 100.
+ * \param[in] expression_parameter_argv The expression parameters argv are the tokens placeholder
+ * ‘parameters’ (i.e., "%n" tokens begin from 0) in the filter_expression.
+ *
+ * It can be NULL if there is no "%n" tokens placeholder in filter_expression.
+ * \param[out] options The subscription options to be set.
+ * \return `RCL_RET_OK` if set options successfully, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if subscription is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if arguments invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory fails.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_content_filter_options_set(
+  const rcl_subscription_t * subscription,
+  const char * filter_expression,
+  size_t expression_parameters_argc,
+  const char * expression_parameter_argv[],
+  rcl_subscription_content_filter_options_t * options);
+
+/// Reclaim rcl_subscription_content_filter_options_t structure.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] subscription the handle to the subscription.
+ * \param[in] options The structure which its resources have to be deallocated.
+ * \return `RCL_RET_OK` if the memory was successfully freed, or
+ * \return `RCL_RET_SUBSCRIPTION_INVALID` if subscription is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if option is NULL, or
+ *  if its allocator is invalid and the structure contains initialized memory.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_content_filter_options_fini(
+  const rcl_subscription_t * subscription,
+  rcl_subscription_content_filter_options_t * options);
+
+/// Check if the content filtered topic feature is enabled in the subscription.
+/**
+ * Depending on the middleware and whether cft is enabled in the subscription.
+ *
+ * \return `true` if the content filtered topic of `subscription` is enabled, otherwise `false`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+bool
+rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription);
+
+/// Set the filter expression and expression parameters for the subscription.
+/**
+ * This function will set a filter expression and an array of expression parameters
+ * for the given subscription.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ *
+ * \param[in] subscription The subscription to set content filter options.
+ * \param[in] options The rcl content filter options.
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `options` is NULL, or
+ * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_set_content_filter(
+  const rcl_subscription_t * subscription,
+  const rcl_subscription_content_filter_options_t * options
+);
+
+/// Retrieve the filter expression of the subscription.
+/**
+ * This function will return an filter expression by the given subscription.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ *
+ * \param[in] subscription The subscription object to inspect.
+ * \param[out] options The rcl content filter options.
+ *   It is up to the caller to finalize this options later on, using
+ *   rcl_subscription_content_filter_options_fini().
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `options` is NULL, or
+ * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RCL_RET_UNSUPPORTED` if the implementation does not support content filter topic, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_get_content_filter(
+  const rcl_subscription_t * subscription,
+  rcl_subscription_content_filter_options_t * options
+);
 
 /// Take a ROS message from a topic using a rcl subscription.
 /**
@@ -610,6 +835,38 @@ rcl_subscription_get_actual_qos(const rcl_subscription_t * subscription);
 RCL_PUBLIC
 bool
 rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
+
+/// Set the on new message callback function for the subscription.
+/**
+ * This API sets the callback function to be called whenever the
+ * subscription is notified about a new message.
+ *
+ * \sa rmw_subscription_set_on_new_message_callback for details about this
+ * function.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] rmw implementation defined</i>
+ *
+ * \param[in] subscription The subscription on which to set the callback
+ * \param[in] callback The callback to be called when new messages arrive, may be NULL
+ * \param[in] user_data Given to the callback when called later, may be NULL
+ * \return `RCL_RET_OK` if successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
+ * \return `RCL_RET_UNSUPPORTED` if the API is not implemented in the dds implementation
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_set_on_new_message_callback(
+  const rcl_subscription_t * subscription,
+  rcl_event_callback_t callback,
+  const void * user_data);
 
 #ifdef __cplusplus
 }

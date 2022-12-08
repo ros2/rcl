@@ -70,7 +70,7 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_init_not_z
 {
   rcl_lexer_lookahead2_t buffer;
   int not_zero = 1;
-  buffer.impl = reinterpret_cast<rcl_lexer_lookahead2_impl_t *>(&not_zero);
+  buffer.impl = reinterpret_cast<struct rcl_lexer_lookahead2_impl_s *>(&not_zero);
   rcl_ret_t ret = rcl_lexer_lookahead2_init(&buffer, "foobar", rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
@@ -116,6 +116,51 @@ TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_peek2)
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_LEXEME_TOKEN, lexeme1);
   EXPECT_EQ(RCL_LEXEME_FORWARD_SLASH, lexeme2);
+}
+
+TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_peek2_no_lexeme)
+{
+  rcl_ret_t ret;
+  rcl_lexer_lookahead2_t buffer;
+  SCOPE_LOOKAHEAD2(buffer, "~foo");
+
+  rcl_lexeme_t lexeme1 = RCL_LEXEME_NONE;
+  rcl_lexeme_t lexeme2 = RCL_LEXEME_NONE;
+
+  ret = rcl_lexer_lookahead2_peek2(&buffer, &lexeme1, &lexeme2);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_LEXEME_NONE, lexeme1);
+  EXPECT_EQ(RCL_LEXEME_NONE, lexeme2);
+}
+
+TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_peek2_no_lexeme_eof)
+{
+  rcl_ret_t ret;
+  rcl_lexer_lookahead2_t buffer;
+  SCOPE_LOOKAHEAD2(buffer, "~");
+
+  rcl_lexeme_t lexeme1 = RCL_LEXEME_NONE;
+  rcl_lexeme_t lexeme2 = RCL_LEXEME_NONE;
+
+  ret = rcl_lexer_lookahead2_peek2(&buffer, &lexeme1, &lexeme2);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_LEXEME_NONE, lexeme1);
+  EXPECT_EQ(RCL_LEXEME_NONE, lexeme2);
+}
+
+TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_peek2_eof)
+{
+  rcl_ret_t ret;
+  rcl_lexer_lookahead2_t buffer;
+  SCOPE_LOOKAHEAD2(buffer, "");
+
+  rcl_lexeme_t lexeme1 = RCL_LEXEME_NONE;
+  rcl_lexeme_t lexeme2 = RCL_LEXEME_NONE;
+
+  ret = rcl_lexer_lookahead2_peek2(&buffer, &lexeme1, &lexeme2);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_LEXEME_EOF, lexeme1);
+  EXPECT_EQ(RCL_LEXEME_EOF, lexeme2);
 }
 
 TEST_F(CLASSNAME(TestLexerLookaheadFixture, RMW_IMPLEMENTATION), test_eof)

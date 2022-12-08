@@ -113,7 +113,7 @@ rcl_init(
       fail_ret = RCL_RET_BAD_ALLOC; goto fail);
     int64_t i;
     for (i = 0; i < argc; ++i) {
-      size_t argv_i_length = strlen(argv[i]);
+      size_t argv_i_length = strlen(argv[i]) + 1;
       context->impl->argv[i] = (char *)allocator.allocate(argv_i_length, allocator.state);
       RCL_CHECK_FOR_NULL_WITH_MSG(
         context->impl->argv[i],

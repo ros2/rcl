@@ -22,22 +22,23 @@ extern "C"
 
 #include "rcl_action/types.h"
 #include "rcl_action/visibility_control.h"
+#include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 
 
 /// Internal action client implementation struct.
-struct rcl_action_client_impl_t;
+typedef struct rcl_action_client_impl_s rcl_action_client_impl_t;
 
 /// Structure which encapsulates a ROS action client.
-typedef struct rcl_action_client_t
+typedef struct rcl_action_client_s
 {
   /// Pointer to the action client implementation
-  struct rcl_action_client_impl_t * impl;
+  rcl_action_client_impl_t * impl;
 } rcl_action_client_t;
 
 /// Options available for a rcl_action_client_t.
-typedef struct rcl_action_client_options_t
+typedef struct rcl_action_client_options_s
 {
   /// Middleware quality of service settings for the action client.
   /// Goal service quality of service
@@ -740,6 +741,46 @@ RCL_ACTION_PUBLIC
 bool
 rcl_action_client_is_valid(
   const rcl_action_client_t * action_client);
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_client_set_goal_client_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data);
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_client_set_cancel_client_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data);
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_client_set_result_client_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data);
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_client_set_feedback_subscription_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data);
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_client_set_status_subscription_callback(
+  const rcl_action_client_t * action_client,
+  rcl_event_callback_t callback,
+  const void * user_data);
 
 #ifdef __cplusplus
 }

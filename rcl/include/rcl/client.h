@@ -24,22 +24,23 @@ extern "C"
 
 #include "rosidl_runtime_c/service_type_support_struct.h"
 
+#include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
 
 /// Internal rcl client implementation struct.
-struct rcl_client_impl_t;
+typedef struct rcl_client_impl_s rcl_client_impl_t;
 
 /// Structure which encapsulates a ROS Client.
-typedef struct rcl_client_t
+typedef struct rcl_client_s
 {
   /// Pointer to the client implementation
-  struct rcl_client_impl_t * impl;
+  rcl_client_impl_t * impl;
 } rcl_client_t;
 
 /// Options available for a rcl_client_t.
-typedef struct rcl_client_options_t
+typedef struct rcl_client_options_s
 {
   /// Middleware quality of service settings for the client.
   rmw_qos_profile_t qos;
@@ -408,6 +409,89 @@ rcl_client_get_rmw_handle(const rcl_client_t * client);
 RCL_PUBLIC
 bool
 rcl_client_is_valid(const rcl_client_t * client);
+
+/// Get the actual qos settings of the client's request publisher.
+/**
+ * Used to get the actual qos settings of the client's request publisher.
+ * The actual configuration applied when using RMW_*_SYSTEM_DEFAULT
+ * can only be resolved after the creation of the client, and it
+ * depends on the underlying rmw implementation.
+ * If the underlying setting in use can't be represented in ROS terms,
+ * it will be set to RMW_*_UNKNOWN.
+ * The returned struct is only valid as long as the rcl_client_t is valid.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] client pointer to the rcl client
+ * \return qos struct if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const rmw_qos_profile_t *
+rcl_client_request_publisher_get_actual_qos(const rcl_client_t * client);
+
+/// Get the actual qos settings of the client's response subscription.
+/**
+ * Used to get the actual qos settings of the client's response subscription.
+ * The actual configuration applied when using RMW_*_SYSTEM_DEFAULT
+ * can only be resolved after the creation of the client, and it
+ * depends on the underlying rmw implementation.
+ * If the underlying setting in use can't be represented in ROS terms,
+ * it will be set to RMW_*_UNKNOWN.
+ * The returned struct is only valid as long as the rcl_client_t is valid.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] client pointer to the rcl client
+ * \return qos struct if successful, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+const rmw_qos_profile_t *
+rcl_client_response_subscription_get_actual_qos(const rcl_client_t * client);
+
+/// Set the on new response callback function for the client.
+/**
+ * This API sets the callback function to be called whenever the
+ * client is notified about a new response.
+ *
+ * \sa rmw_client_set_on_new_response_callback for details about this function.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] rmw implementation defined</i>
+ *
+ * \param[in] client The client on which to set the callback
+ * \param[in] callback The callback to be called when new responses arrive, may be NULL
+ * \param[in] user_data Given to the callback when called later, may be NULL
+ * \return `RCL_RET_OK` if callback was set to the listener, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if `client` is NULL, or
+ * \return `RCL_RET_UNSUPPORTED` if the API is not implemented in the dds implementation
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_client_set_on_new_response_callback(
+  const rcl_client_t * client,
+  rcl_event_callback_t callback,
+  const void * user_data);
 
 #ifdef __cplusplus
 }

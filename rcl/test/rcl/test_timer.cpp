@@ -497,6 +497,10 @@ TEST_F(TestTimerFixture, test_canceled_timer) {
   ret = rcl_timer_cancel(&timer);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
+  int64_t time_until_next_call = 0;
+  ret = rcl_timer_get_time_until_next_call(&timer, &time_until_next_call);
+  EXPECT_EQ(RCL_RET_TIMER_CANCELED, ret) << rcl_get_error_string().str;
+
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   ret = rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -838,6 +842,7 @@ TEST_F(TestPreInitTimer, test_timer_reset) {
 
   ASSERT_EQ(RCL_RET_OK, rcl_timer_cancel(&timer)) << rcl_get_error_string().str;
   EXPECT_EQ(RCL_RET_TIMER_CANCELED, rcl_timer_call(&timer));
+  rcl_reset_error();
   EXPECT_EQ(times_called, 2);
   ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
   EXPECT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;

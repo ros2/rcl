@@ -140,7 +140,7 @@ digraph remapping_lexer {
 
 /// Represents a transition from one state to another
 /// \internal
-typedef struct rcl_lexer_transition_t
+typedef struct rcl_lexer_transition_s
 {
   /// Index of a state to transition to
   const unsigned char to_state;
@@ -152,7 +152,7 @@ typedef struct rcl_lexer_transition_t
 
 /// Represents a non-terminal state
 /// \internal
-typedef struct rcl_lexer_state_t
+typedef struct rcl_lexer_state_s
 {
   /// Transition to this state if no other transition matches
   const unsigned char else_state;
@@ -650,10 +650,11 @@ rcl_lexer_analyze(
       movement = state->else_movement;
     }
 
-    // Move the lexer to another character in the string
     if (0u == movement) {
-      // Go forwards 1 char
-      ++(*length);
+      if ('\0' != current_char) {
+        // Go forwards 1 char as long as the end hasn't been reached
+        ++(*length);
+      }
     } else {
       // Go backwards N chars
       if (movement - 1u > *length) {

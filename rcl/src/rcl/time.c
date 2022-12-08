@@ -25,7 +25,7 @@
 #include "rcutils/time.h"
 
 // Internal storage for RCL_ROS_TIME implementation
-typedef struct rcl_ros_clock_storage_t
+typedef struct rcl_ros_clock_storage_s
 {
   atomic_uint_least64_t current_time;
   bool active;
@@ -73,6 +73,16 @@ rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
 }
 
 bool
+rcl_clock_time_started(rcl_clock_t * clock)
+{
+  rcl_time_point_value_t query_now;
+  if (rcl_clock_get_now(clock, &query_now) == RCL_RET_OK) {
+    return query_now > 0;
+  }
+  return false;
+}
+
+bool
 rcl_clock_valid(rcl_clock_t * clock)
 {
   if (clock == NULL ||
@@ -86,7 +96,7 @@ rcl_clock_valid(rcl_clock_t * clock)
 
 rcl_ret_t
 rcl_clock_init(
-  enum rcl_clock_type_t clock_type, rcl_clock_t * clock,
+  rcl_clock_type_t clock_type, rcl_clock_t * clock,
   rcl_allocator_t * allocator)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
@@ -231,7 +241,7 @@ rcl_system_clock_fini(
 
 rcl_ret_t
 rcl_difference_times(
-  rcl_time_point_t * start, rcl_time_point_t * finish, rcl_duration_t * delta)
+  const rcl_time_point_t * start, const rcl_time_point_t * finish, rcl_duration_t * delta)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(start, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(finish, RCL_RET_INVALID_ARGUMENT);
@@ -275,9 +285,9 @@ rcl_clock_call_callbacks(
     rcl_jump_callback_info_t * info = &(clock->jump_callbacks[cb_idx]);
     if (
       (is_clock_change && info->threshold.on_clock_change) ||
-      (time_jump->delta.nanoseconds < 0 &&
+      (info->threshold.min_backward.nanoseconds < 0 &&
       time_jump->delta.nanoseconds <= info->threshold.min_backward.nanoseconds) ||
-      (time_jump->delta.nanoseconds > 0 &&
+      (info->threshold.min_forward.nanoseconds > 0 &&
       time_jump->delta.nanoseconds >= info->threshold.min_forward.nanoseconds))
     {
       info->callback(time_jump, before_jump, info->user_data);

@@ -33,12 +33,14 @@ extern "C"
 
 #include "./common.h"
 
-typedef struct rcl_client_impl_t
+struct rcl_client_impl_s
 {
   rcl_client_options_t options;
+  rmw_qos_profile_t actual_request_publisher_qos;
+  rmw_qos_profile_t actual_response_subscription_qos;
   rmw_client_t * rmw_handle;
   atomic_int_least64_t sequence_number;
-} rcl_client_impl_t;
+};
 
 rcl_client_t
 rcl_get_zero_initialized_client()
@@ -111,6 +113,33 @@ rcl_client_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
+
+  // get actual qos, and store it
+  rmw_ret_t rmw_ret = rmw_client_request_publisher_get_actual_qos(
+    client->impl->rmw_handle,
+    &client->impl->actual_request_publisher_qos);
+
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+
+  rmw_ret = rmw_client_response_subscription_get_actual_qos(
+    client->impl->rmw_handle,
+    &client->impl->actual_response_subscription_qos);
+
+  if (RMW_RET_OK != rmw_ret) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+
+  // ROS specific namespacing conventions avoidance
+  // is not retrieved by get_actual_qos
+  client->impl->actual_request_publisher_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
+  client->impl->actual_response_subscription_qos.avoid_ros_namespace_conventions =
+    options->qos.avoid_ros_namespace_conventions;
+
   // options
   client->impl->options = *options;
   atomic_init(&client->impl->sequence_number, 0);
@@ -280,6 +309,42 @@ rcl_client_is_valid(const rcl_client_t * client)
     client->impl->rmw_handle, "client's rmw handle is invalid", return false);
   return true;
 }
+
+const rmw_qos_profile_t *
+rcl_client_request_publisher_get_actual_qos(const rcl_client_t * client)
+{
+  if (!rcl_client_is_valid(client)) {
+    return NULL;
+  }
+  return &client->impl->actual_request_publisher_qos;
+}
+
+const rmw_qos_profile_t *
+rcl_client_response_subscription_get_actual_qos(const rcl_client_t * client)
+{
+  if (!rcl_client_is_valid(client)) {
+    return NULL;
+  }
+  return &client->impl->actual_response_subscription_qos;
+}
+
+rcl_ret_t
+rcl_client_set_on_new_response_callback(
+  const rcl_client_t * client,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_client_is_valid(client)) {
+    // error state already set
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  return rmw_client_set_on_new_response_callback(
+    client->impl->rmw_handle,
+    callback,
+    user_data);
+}
+
 #ifdef __cplusplus
 }
 #endif

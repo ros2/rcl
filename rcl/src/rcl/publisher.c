@@ -27,6 +27,8 @@ extern "C"
 #include "rcl/node.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
+#include "rcl/time.h"
+#include "rmw/time.h"
 #include "rmw/error_handling.h"
 #include "tracetools/tracetools.h"
 
@@ -304,6 +306,41 @@ rcl_publisher_assert_liveliness(const rcl_publisher_t * publisher)
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_publisher_wait_for_all_acked(const rcl_publisher_t * publisher, rcl_duration_value_t timeout)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;  // error already set
+  }
+
+  rmw_time_t rmw_timeout;
+  if (timeout > 0) {
+    rmw_timeout.sec = RCL_NS_TO_S(timeout);
+    rmw_timeout.nsec = timeout % 1000000000;
+  } else if (timeout < 0) {
+    rmw_time_t infinite = RMW_DURATION_INFINITE;
+    rmw_timeout = infinite;
+  } else {
+    rmw_time_t zero = RMW_DURATION_UNSPECIFIED;
+    rmw_timeout = zero;
+  }
+
+  rmw_ret_t ret = rmw_publisher_wait_for_all_acked(publisher->impl->rmw_handle, rmw_timeout);
+  if (ret != RMW_RET_OK) {
+    if (ret == RMW_RET_TIMEOUT) {
+      return RCL_RET_TIMEOUT;
+    }
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    if (ret == RMW_RET_UNSUPPORTED) {
+      return RCL_RET_UNSUPPORTED;
+    } else {
+      return RCL_RET_ERROR;
+    }
+  }
+
+  return RCL_RET_OK;
+}
+
 const char *
 rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
 {
@@ -403,6 +440,13 @@ rcl_publisher_can_loan_messages(const rcl_publisher_t * publisher)
   if (!rcl_publisher_is_valid(publisher)) {
     return false;  // error message already set
   }
+
+  bool disable_loaned_message = false;
+  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
+  if (ret == RCL_RET_OK && disable_loaned_message) {
+    return false;
+  }
+
   return publisher->impl->rmw_handle->can_loan_messages;
 }
 

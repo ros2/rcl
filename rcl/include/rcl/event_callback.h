@@ -1,4 +1,4 @@
-// Copyright 2020 Open Source Robotics Foundation, Inc.
+// Copyright 2021 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__EVENT_IMPL_H_
-#define RCL__EVENT_IMPL_H_
+#ifndef RCL__EVENT_CALLBACK_H_
+#define RCL__EVENT_CALLBACK_H_
 
-#include "rmw/rmw.h"
+#include "rmw/event_callback_type.h"
 
-#include "rcl/event.h"
-
-struct rcl_event_impl_s
+#ifdef __cplusplus
+extern "C"
 {
-  rmw_event_t rmw_handle;
-  rcl_allocator_t allocator;
-};
+#endif
 
-#endif  // RCL__EVENT_IMPL_H_
+typedef rmw_event_callback_t rcl_event_callback_t;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // RCL__EVENT_CALLBACK_H_

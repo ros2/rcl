@@ -27,6 +27,8 @@
 #include "./failing_allocator_functions.hpp"
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rcutils/env.h"
+#include "rcutils/logging.h"
 #include "rcutils/testing/fault_injection.h"
 #include "rcl/error_handling.h"
 #include "rcl/logging.h"
@@ -427,6 +429,15 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_life_cycle)
 }
 
 TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_init_with_internal_errors) {
+  // We always call rcutils_logging_shutdown(), even if we didn't explicitly
+  // initialize it.  That's because some internals of rcl may implicitly
+  // initialize it, so we have to do this not to leak memory.  It doesn't
+  // hurt to call it if it was never initialized.
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCUTILS_RET_OK, rcutils_logging_shutdown());
+  });
+
   rcl_ret_t ret;
   rcl_context_t context = rcl_get_zero_initialized_context();
   rcl_node_t node = rcl_get_zero_initialized_node();
@@ -533,6 +544,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_init_with_i
       ASSERT_TRUE(rcl_node_is_valid(&node));
       EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
     } else {
+      rcl_reset_error();
       ASSERT_FALSE(rcl_node_is_valid(&node));
       rcl_reset_error();
     }
@@ -858,8 +870,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
   EXPECT_TRUE(rcutils_allocator_is_valid(&(default_options.allocator)));
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(nullptr, &default_options));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, nullptr));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, &default_options));
+  rcl_reset_error();
 
   const char * argv[] = {
     "process_name", "--ros-args", "/foo/bar:=", "-r", "bar:=/fiz/buz", "}bar:=fiz", "--", "arg"};
@@ -882,6 +897,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options) {
     rcl_arguments_get_count_unparsed_ros(&(not_ini_options.arguments)));
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_fini(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&default_options));
   EXPECT_EQ(RCL_RET_OK, rcl_node_options_fini(&not_ini_options));
 }
@@ -898,6 +914,7 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_options_fai
 
   rcl_node_options_t default_options = rcl_node_get_default_options();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(&default_options, &prev_ini_options));
+  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&prev_ini_options.arguments));
 }
@@ -912,9 +929,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_node_resolve_name(NULL, "my_topic", default_allocator, false, false, &final_name));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_ERROR,
     rcl_node_resolve_name(&node, "my_topic", default_allocator, false, false, &final_name));
+  rcl_reset_error();
 
   // Initialize rcl with rcl_init().
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -957,9 +976,11 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_node_resolve_name(&node, NULL, default_allocator, false, false, &final_name));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_node_resolve_name(&node, "my_topic", default_allocator, false, false, NULL));
+  rcl_reset_error();
 
   // Some valid options, test_remap and test_expand_topic_name already have good coverage
   EXPECT_EQ(
@@ -996,4 +1017,49 @@ TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_node_resolve_nam
   ASSERT_TRUE(final_name);
   EXPECT_STREQ("/ns/relative_ns/foo", final_name);
   default_allocator.deallocate(final_name, default_allocator.state);
+}
+
+/* Tests special case node_options
+ */
+TEST_F(CLASSNAME(TestNodeFixture, RMW_IMPLEMENTATION), test_rcl_get_disable_loaned_message) {
+  {
+    EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_disable_loaned_message(nullptr));
+    rcl_reset_error();
+  }
+
+  {
+    bool disable_loaned_message = false;
+    auto mock = mocking_utils::patch_and_return(
+      "lib:rcl", rcutils_get_env, "internal error");
+    EXPECT_EQ(RCL_RET_ERROR, rcl_get_disable_loaned_message(&disable_loaned_message));
+    rcl_reset_error();
+  }
+
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "0"));
+    bool disable_loaned_message = true;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_disable_loaned_message(&disable_loaned_message));
+    EXPECT_FALSE(disable_loaned_message);
+  }
+
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
+    bool disable_loaned_message = false;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_disable_loaned_message(&disable_loaned_message));
+    EXPECT_TRUE(disable_loaned_message);
+  }
+
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "2"));
+    bool disable_loaned_message = true;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_disable_loaned_message(&disable_loaned_message));
+    EXPECT_FALSE(disable_loaned_message);
+  }
+
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "11"));
+    bool disable_loaned_message = true;
+    EXPECT_EQ(RCL_RET_OK, rcl_get_disable_loaned_message(&disable_loaned_message));
+    EXPECT_FALSE(disable_loaned_message);
+  }
 }

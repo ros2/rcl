@@ -2,6 +2,57 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.6.0 (2022-12-05)
+------------------
+* Reduce result_timeout to 10 seconds. (`#1012 <https://github.com/ros2/rcl/issues/1012>`_)
+* [rolling] Update maintainers - 2022-11-07 (`#1017 <https://github.com/ros2/rcl/issues/1017>`_)
+* Contributors: Audrow Nash, Chris Lalancette
+
+5.5.0 (2022-11-02)
+------------------
+
+5.4.1 (2022-09-13)
+------------------
+
+5.4.0 (2022-04-29)
+------------------
+
+5.3.1 (2022-04-26)
+------------------
+
+5.3.0 (2022-04-05)
+------------------
+
+5.2.1 (2022-03-31)
+------------------
+
+5.2.0 (2022-03-24)
+------------------
+
+5.1.0 (2022-03-01)
+------------------
+* Add Events Executor (`#839 <https://github.com/ros2/rcl/issues/839>`_)
+* Install includes it include/${PROJECT_NAME} (`#959 <https://github.com/ros2/rcl/issues/959>`_)
+* Contributors: Shane Loretz, iRobot ROS
+
+5.0.1 (2022-01-14)
+------------------
+
+5.0.0 (2021-12-14)
+------------------
+* Fix up documentation build for rcl_action when using rosdoc2 (`#937 <https://github.com/ros2/rcl/issues/937>`_)
+* Contributors: Michel Hidalgo
+
+4.0.0 (2021-09-16)
+------------------
+* Fix expired goals capacity of action server (`#931 <https://github.com/ros2/rcl/issues/931>`_)
+* Contributors: spiralray
+
+3.2.0 (2021-09-02)
+------------------
+* Wait for action server in rcl_action comm tests. (`#919 <https://github.com/ros2/rcl/issues/919>`_)
+* Contributors: Michel Hidalgo
+
 3.1.2 (2021-04-26)
 ------------------
 

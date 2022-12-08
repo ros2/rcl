@@ -657,7 +657,7 @@ rcl_ret_t
 rcl_lifecycle_init_default_state_machine(
   rcl_lifecycle_state_machine_t * state_machine, const rcutils_allocator_t * allocator)
 {
-  rcl_ret_t ret = RCL_RET_ERROR;
+  rcl_ret_t fcn_ret = RCL_RET_ERROR;
   // Used for concatenating error messages in the fail: block.
   // The cause or error which leads to jump to fail:
   char * fail_error_message = NULL;
@@ -668,24 +668,24 @@ rcl_lifecycle_init_default_state_machine(
   // ***************************
   // register all primary states
   // ***************************
-  ret = _register_primary_states(&state_machine->transition_map, allocator);
-  if (ret != RCL_RET_OK) {
+  fcn_ret = _register_primary_states(&state_machine->transition_map, allocator);
+  if (fcn_ret != RCL_RET_OK) {
     goto fail;
   }
 
   // ******************************
   // register all transition states
   // ******************************
-  ret = _register_transition_states(&state_machine->transition_map, allocator);
-  if (ret != RCL_RET_OK) {
+  fcn_ret = _register_transition_states(&state_machine->transition_map, allocator);
+  if (fcn_ret != RCL_RET_OK) {
     goto fail;
   }
 
   // ************************
   // register all transitions
   // ************************
-  ret = _register_transitions(&state_machine->transition_map, allocator);
-  if (ret != RCL_RET_OK) {
+  fcn_ret = _register_transitions(&state_machine->transition_map, allocator);
+  if (fcn_ret != RCL_RET_OK) {
     goto fail;
   }
 
@@ -695,7 +695,7 @@ rcl_lifecycle_init_default_state_machine(
   state_machine->current_state = rcl_lifecycle_get_state(
     &state_machine->transition_map, lifecycle_msgs__msg__State__PRIMARY_STATE_UNCONFIGURED);
 
-  return ret;
+  return fcn_ret;
 
 fail:
   // If rcl_lifecycle_transition_map_fini() fails, it will clobber the error string here.

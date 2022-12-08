@@ -15,7 +15,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/lexer_lookahead.h"
 
-struct rcl_lexer_lookahead2_impl_t
+struct rcl_lexer_lookahead2_impl_s
 {
   // Text that is being analyzed for lexemes
   const char * text;
@@ -59,7 +59,7 @@ rcl_lexer_lookahead2_init(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  buffer->impl = allocator.allocate(sizeof(struct rcl_lexer_lookahead2_impl_t), allocator.state);
+  buffer->impl = allocator.allocate(sizeof(rcl_lexer_lookahead2_impl_t), allocator.state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     buffer->impl, "Failed to allocate lookahead impl", return RCL_RET_BAD_ALLOC);
 
@@ -140,6 +140,12 @@ rcl_lexer_lookahead2_peek2(
     return ret;
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(next_type2, RCL_RET_INVALID_ARGUMENT);
+
+  if (RCL_LEXEME_NONE == *next_type1 || RCL_LEXEME_EOF == *next_type1) {
+    // No need to peek further
+    *next_type2 = *next_type1;
+    return ret;
+  }
 
   size_t length;
 

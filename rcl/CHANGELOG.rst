@@ -2,6 +2,94 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.6.0 (2022-12-05)
+------------------
+* Implement rcl_clock_time_started (`#1021 <https://github.com/ros2/rcl/issues/1021>`_)
+* Make sure to reset errors more places in the tests. (`#1020 <https://github.com/ros2/rcl/issues/1020>`_)
+  This makes it so we don't get as many warnings when the
+  tests are running.
+* [rolling] Update maintainers - 2022-11-07 (`#1017 <https://github.com/ros2/rcl/issues/1017>`_)
+* Contributors: Audrow Nash, Chris Lalancette, methylDragon
+
+5.5.0 (2022-11-02)
+------------------
+* Small cleanups to rcl (`#1013 <https://github.com/ros2/rcl/issues/1013>`_)
+* use int64_t for period. (`#1010 <https://github.com/ros2/rcl/issues/1010>`_)
+* Contributors: Chris Lalancette, Tomoya Fujita
+
+5.4.1 (2022-09-13)
+------------------
+* fixed rcl_wait return error when timer cancelled (`#1003 <https://github.com/ros2/rcl/issues/1003>`_)
+* remove duplicate packages in find_package and reorder (`#994 <https://github.com/ros2/rcl/issues/994>`_)
+* Contributors: Chen Lihui, 정찬희
+
+5.4.0 (2022-04-29)
+------------------
+
+5.3.1 (2022-04-26)
+------------------
+* Fix buffer overflow in argument parsing caused by lexer returning length beyond length of string (`#979 <https://github.com/ros2/rcl/issues/979>`_)
+* Fix leak in test_subscription_content_filter_options.cpp (`#978 <https://github.com/ros2/rcl/issues/978>`_)
+* Contributors: Shane Loretz
+
+5.3.0 (2022-04-05)
+------------------
+* add content-filtered-topic interfaces (`#894 <https://github.com/ros2/rcl/issues/894>`_)
+* Contributors: Chen Lihui
+
+5.2.1 (2022-03-31)
+------------------
+* Add additional null check for timer argument (`#973 <https://github.com/ros2/rcl/issues/973>`_)
+* Contributors: NoyZuberi
+
+5.2.0 (2022-03-24)
+------------------
+* Allow forward slashes within a parameter name rule in argument parsing (`#860 <https://github.com/ros2/rcl/issues/860>`_)
+* Suppress false positive from clang-tidy (`#951 <https://github.com/ros2/rcl/issues/951>`_)
+* Fix missing terminating \0 in rcl_context_impl_t.argv (`#969 <https://github.com/ros2/rcl/issues/969>`_)
+* test_publisher_wait_all_ack depends on rcpputils (`#968 <https://github.com/ros2/rcl/issues/968>`_)
+* Micro-optimizations in rcl (`#965 <https://github.com/ros2/rcl/issues/965>`_)
+* If timer canceled, rcl_timer_get_time_until_next_call returns TIMER_CANCELED (`#963 <https://github.com/ros2/rcl/issues/963>`_)
+* Contributors: Chris Lalancette, Haowei Wen, Ivan Santiago Paunovic, Shane Loretz, William Woodall, mauropasse
+
+5.1.0 (2022-03-01)
+------------------
+* Add Events Executor (`#839 <https://github.com/ros2/rcl/issues/839>`_)
+* Remove fastrtps customization on test_events (`#960 <https://github.com/ros2/rcl/issues/960>`_)
+* Add client/service QoS getters (`#941 <https://github.com/ros2/rcl/issues/941>`_)
+* introduce ROS_DISABLE_LOAN_MSG to disable can_loan_messages. (`#949 <https://github.com/ros2/rcl/issues/949>`_)
+* Install includes it include/${PROJECT_NAME} (`#959 <https://github.com/ros2/rcl/issues/959>`_)
+* Contributors: Miguel Company, Shane Loretz, Tomoya Fujita, iRobot ROS, mauropasse
+
+5.0.1 (2022-01-14)
+------------------
+
+5.0.0 (2021-12-14)
+------------------
+* Make rcl_difference_times args const (`#955 <https://github.com/ros2/rcl/issues/955>`_)
+* Update inject_on_return test skipping logic (`#953 <https://github.com/ros2/rcl/issues/953>`_)
+* Fix jump callbacks being called when zero time jump thresholds used (`#948 <https://github.com/ros2/rcl/issues/948>`_)
+* Only change the default logger level if default_logger_level is set (`#943 <https://github.com/ros2/rcl/issues/943>`_)
+* Add Library for wait_for_entity_helpers to deduplicate compilation (`#942 <https://github.com/ros2/rcl/issues/942>`_)
+* Increase Windows timeout 15 -> 25 ms (`#940 <https://github.com/ros2/rcl/issues/940>`_)
+* test should check specified number of entities. (`#935 <https://github.com/ros2/rcl/issues/935>`_)
+* Contributors: Jafar Abdi, Scott K Logan, Shane Loretz, Tomoya Fujita
+
+4.0.0 (2021-09-16)
+------------------
+* Fix up documentation build for rcl when using rosdoc2 (`#932 <https://github.com/ros2/rcl/issues/932>`_)
+* Include rmw_event_t instead of forward declaring it (`#933 <https://github.com/ros2/rcl/issues/933>`_)
+* Contributors: Michel Hidalgo
+
+3.2.0 (2021-09-02)
+------------------
+* Add rcl_publisher_wait_for_all_acked support. (`#913 <https://github.com/ros2/rcl/issues/913>`_)
+* Add tracing instrumentation for rcl_take. (`#930 <https://github.com/ros2/rcl/issues/930>`_)
+* Fix #include in C++ typesupport example in rcl_subscription_init docblock. (`#927 <https://github.com/ros2/rcl/issues/927>`_)
+* Update includes after rcutils/get_env.h deprecation. (`#917 <https://github.com/ros2/rcl/issues/917>`_)
+* Use proper rcl_logging return value type and compare to constant. (`#916 <https://github.com/ros2/rcl/issues/916>`_)
+* Contributors: Barry Xu, Christophe Bedard
+
 3.1.2 (2021-04-26)
 ------------------
 * Fix up test_network_flow_endpoints. (`#912 <https://github.com/ros2/rcl/issues/912>`_)

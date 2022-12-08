@@ -173,7 +173,7 @@ rcl_action_server_init(
   // Store reference to clock
   action_server->impl->clock = clock;
 
-// Initialize Timer
+  // Initialize Timer
   ret = rcl_timer_init(
     &action_server->impl->expire_timer, action_server->impl->clock, node->context,
     options->result_timeout.nanoseconds, NULL, allocator);
@@ -267,7 +267,7 @@ rcl_action_server_get_default_options(void)
   default_options.feedback_topic_qos = rmw_qos_profile_default;
   default_options.status_topic_qos = rcl_action_qos_profile_status_default;
   default_options.allocator = rcl_get_default_allocator();
-  default_options.result_timeout.nanoseconds = RCUTILS_S_TO_NS(15 * 60);  // 15 minutes
+  default_options.result_timeout.nanoseconds = RCUTILS_S_TO_NS(10);  // 10 seconds
   return default_options;
 }
 
@@ -602,7 +602,7 @@ rcl_action_expire_goals(
   int64_t goal_time;
   size_t num_goal_handles = action_server->impl->num_goal_handles;
   for (size_t i = 0u; i < num_goal_handles; ++i) {
-    if (output_expired && i >= expired_goals_capacity) {
+    if (output_expired && num_goals_expired >= expired_goals_capacity) {
       // no more space to output expired goals, so stop expiring them
       break;
     }
@@ -1052,6 +1052,60 @@ rcl_action_server_wait_set_get_entities_ready(
   *is_result_request_ready = (&impl->result_service == result_service);
   *is_goal_expired = (&impl->expire_timer == expire_timer);
   return RCL_RET_OK;
+}
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_server_set_goal_service_callback(
+  const rcl_action_server_t * action_server,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
+
+  return rcl_service_set_on_new_request_callback(
+    &action_server->impl->goal_service,
+    callback,
+    user_data);
+}
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_server_set_result_service_callback(
+  const rcl_action_server_t * action_server,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
+
+  return rcl_service_set_on_new_request_callback(
+    &action_server->impl->result_service,
+    callback,
+    user_data);
+}
+
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_server_set_cancel_service_callback(
+  const rcl_action_server_t * action_server,
+  rcl_event_callback_t callback,
+  const void * user_data)
+{
+  if (!rcl_action_server_is_valid_except_context(action_server)) {
+    return RCL_RET_ACTION_SERVER_INVALID;
+  }
+
+  return rcl_service_set_on_new_request_callback(
+    &action_server->impl->cancel_service,
+    callback,
+    user_data);
 }
 
 #ifdef __cplusplus
