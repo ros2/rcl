@@ -94,12 +94,11 @@ rcl_ret_t rcl_logging_rosout_init(const rcl_allocator_t * allocator)
   }
 
   __sublogger_names = rcutils_get_zero_initialized_array_list();
-  RCL_RET_FROM_RCUTIL_RET(
-    status,
+  status = rcl_ret_from_rcutils_ret(
     rcutils_array_list_init(
       &__sublogger_names, 2, sizeof(const char **), allocator));
   if (RCL_RET_OK != status) {
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_fini(&__logger_map));
+    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_fini(&__logger_map));
     return status;
   }
 
@@ -144,11 +143,11 @@ rcl_ret_t rcl_logging_rosout_fini()
     status = rcl_ret_from_rcutils_ret(rcutils_hash_map_fini(&__logger_map));
   }
 
-  RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_get_size(&__sublogger_names, &array_size));
+  status = rcl_ret_from_rcutils_ret(rcutils_array_list_get_size(&__sublogger_names, &array_size));
   if (RCL_RET_OK == status) {
     for (size_t i = 0; i < array_size; ++i) {
-      RCL_RET_FROM_RCUTIL_RET(
-        status, rcutils_array_list_get(&__sublogger_names, i, &sublogger_name));
+      status = rcl_ret_from_rcutils_ret(
+        rcutils_array_list_get(&__sublogger_names, i, &sublogger_name));
       if (RCL_RET_OK == status) {
         __rosout_allocator.deallocate(sublogger_name, __rosout_allocator.state);
         sublogger_name = NULL;
@@ -157,7 +156,7 @@ rcl_ret_t rcl_logging_rosout_fini()
   }
 
   if (RCL_RET_OK == status) {
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_fini(&__sublogger_names));
+    status = rcl_ret_from_rcutils_ret(rcutils_array_list_fini(&__sublogger_names));
   }
 
   if (RCL_RET_OK == status) {
@@ -350,7 +349,9 @@ rcl_ret_t
 rcl_logging_rosout_add_sublogger(
   const char * logger_name, const char * sublogger_name)
 {
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  if (!__is_initialized) {
+    return RCL_RET_OK;
+  }
   rcl_ret_t status = RCL_RET_OK;
   char * full_sublogger_name = NULL;
   rosout_map_entry_t entry;
@@ -374,16 +375,16 @@ rcl_logging_rosout_add_sublogger(
     goto cleanup;
   }
 
-  RCL_RET_FROM_RCUTIL_RET(
-    status, rcutils_hash_map_set(&__logger_map, &full_sublogger_name, &entry));
+  status = rcl_ret_from_rcutils_ret(
+    rcutils_hash_map_set(&__logger_map, &full_sublogger_name, &entry));
   if (RCL_RET_OK != status) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Failed to add publisher to map for logger '%s'.", full_sublogger_name);
     goto cleanup;
   }
 
-  RCL_RET_FROM_RCUTIL_RET(
-    status, rcutils_array_list_add(&__sublogger_names, &full_sublogger_name));
+  status = rcl_ret_from_rcutils_ret(
+    rcutils_array_list_add(&__sublogger_names, &full_sublogger_name));
   if (RCL_RET_OK != status) {
     goto cleanup;
   }
@@ -399,7 +400,9 @@ rcl_ret_t
 rcl_logging_rosout_remove_sublogger(
   const char * logger_name, const char * sublogger_name)
 {
-  RCL_LOGGING_ROSOUT_VERIFY_INITIALIZED
+  if (!__is_initialized) {
+    return RCL_RET_OK;
+  }
   rcl_ret_t status = RCL_RET_OK;
   char * full_sublogger_name = NULL;
   size_t array_size;
@@ -419,19 +422,19 @@ rcl_logging_rosout_remove_sublogger(
     return RCL_RET_ERROR;
   }
 
-  RCL_RET_FROM_RCUTIL_RET(status, rcutils_hash_map_unset(&__logger_map, &full_sublogger_name));
+  status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &full_sublogger_name));
   if (RCL_RET_OK == status) {
     // remove the corresponding name from __sublogger_names
-    RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_get_size(&__sublogger_names, &array_size));
+    status = rcl_ret_from_rcutils_ret(rcutils_array_list_get_size(&__sublogger_names, &array_size));
     if (RCL_RET_OK == status) {
       for (size_t i = 0; i < array_size; ++i) {
-        RCL_RET_FROM_RCUTIL_RET(
-          status, rcutils_array_list_get(&__sublogger_names, i, &sublogger_name_removed));
+        status = rcl_ret_from_rcutils_ret(
+          rcutils_array_list_get(&__sublogger_names, i, &sublogger_name_removed));
         if (RCL_RET_OK == status) {
           if (strcmp(full_sublogger_name, sublogger_name_removed) == 0) {
             __rosout_allocator.deallocate(sublogger_name_removed, __rosout_allocator.state);
             sublogger_name_removed = NULL;
-            RCL_RET_FROM_RCUTIL_RET(status, rcutils_array_list_remove(&__sublogger_names, i));
+            status = rcl_ret_from_rcutils_ret(rcutils_array_list_remove(&__sublogger_names, i));
             break;
           }
         }
