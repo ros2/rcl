@@ -109,6 +109,32 @@ rcl_ret_t rcl_logging_rosout_init(const rcl_allocator_t * allocator)
   return status;
 }
 
+static rcl_ret_t
+_rcl_logging_rosout_remove_logger_map(rcl_node_t * node)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t status = RCL_RET_OK;
+  char * previous_key = NULL;
+  char * key = NULL;
+  rosout_map_entry_t entry;
+  rcutils_ret_t hashmap_ret = rcutils_hash_map_get_next_key_and_data(
+    &__logger_map, NULL, &key, &entry);
+  while (RCL_RET_OK == status && RCUTILS_RET_OK == hashmap_ret) {
+    if (entry.node == node) {
+      status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &key));
+      previous_key = NULL;
+    } else {
+      previous_key = key;
+    }
+    if (RCL_RET_OK == status) {
+      hashmap_ret = rcutils_hash_map_get_next_key_and_data(
+        &__logger_map, previous_key ? &previous_key : NULL, &key, &entry);
+    }
+  }
+  return RCL_RET_OK;
+}
+
 rcl_ret_t rcl_logging_rosout_fini()
 {
   if (!__is_initialized) {
@@ -128,7 +154,8 @@ rcl_ret_t rcl_logging_rosout_fini()
     status = rcl_publisher_fini(&entry.publisher, entry.node);
 
     if (RCL_RET_OK == status) {
-      status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &key));
+      // delete all entries using this node
+      status = rcl_ret_from_rcutils_ret(_rcl_logging_rosout_remove_logger_map(entry.node));
     }
 
     if (RCL_RET_OK == status) {
@@ -252,7 +279,8 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(rcl_node_t * node)
     status = rcl_publisher_fini(&entry.publisher, entry.node);
   }
   if (RCL_RET_OK == status) {
-    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &logger_name));
+    // delete all entries using this node
+    status = rcl_ret_from_rcutils_ret(_rcl_logging_rosout_remove_logger_map(entry.node));
   }
 
   return status;
