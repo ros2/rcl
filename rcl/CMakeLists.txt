@@ -17,7 +17,8 @@ find_package(tracetools REQUIRED)
 find_package(type_description_interfaces REQUIRED)
 find_package(yaml REQUIRED)
 
-find_package(evolving_serialization_lib REQUIRED)  # TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY
+# TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY WHEN WE HAVE A TYPE DESCRIPTION MESSAGE IN RMW
+find_package(serialization_support_lib REQUIRED)
 
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 include(cmake/get_default_rcl_logging_implementation.cmake)
@@ -39,7 +40,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(${PROJECT_NAME}_sources
-  src/rcl/rcl_typesupport_runtime_type_introspection_c/identifier.c
   src/rcl/rcl_typesupport_runtime_type_introspection_c/message_introspection.c
 
   src/rcl/arguments.c

@@ -15,7 +15,7 @@
 #ifndef RCL_TYPESUPPORT_RUNTIME_TYPE_INTROSPECTION_C__MESSAGE_INTROSPECTION_H_
 #define RCL_TYPESUPPORT_RUNTIME_TYPE_INTROSPECTION_C__MESSAGE_INTROSPECTION_H_
 
-#include "evolving_serialization_lib/description.h"
+#include "serialization_support_lib/description.h"
 
 #include "rosidl_runtime_c/message_type_support_struct.h"
 #include "rcl/macros.h"
@@ -27,22 +27,26 @@ extern "C" {
 #endif
 
 
-// TODO(methylDragon): Put this in a .c eventually...
 // TODO(methylDragon): !!! Document that the user is in charge of the lifetime of the struct...
 // TODO(methylDragon): ...
-// NOTE(methylDragon): My use of the evolving_serialization_lib::type_description_t struct is for
+// NOTE(methylDragon): My use of the serialization_support_lib::type_description_t struct is for
 //                     convenience only. We should be passing the TypeDescription message
+
+/// If the user passes a NULL desc, it is deferred instead, the middleware is responsibile for
+/// populating the fields on type discovery!!!
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rosidl_message_type_support_t *
-rcl_get_runtime_type_message_typesupport_handle(type_description_t * desc);
-
+rcl_get_runtime_type_message_typesupport_handle(
+  const char * serialization_lib_name,
+  type_description_t * desc);
 
 /// Finalize a rosidl_message_type_support_t obtained with
 /// rcl_get_runtime_type_message_typesupport_handle
 RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
-rcl_runtime_type_message_typesupport_handle_fini(rosidl_message_type_support_t * type_support);
+rcl_runtime_type_message_typesupport_handle_fini(rosidl_message_type_support_t * ts);
 
 
 #ifdef __cplusplus

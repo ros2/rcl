@@ -15,15 +15,14 @@
 #ifndef RCL_TYPESUPPORT_RUNTIME_TYPE_INTROSPECTION_C__IDENTIFIER_H_
 #define RCL_TYPESUPPORT_RUNTIME_TYPE_INTROSPECTION_C__IDENTIFIER_H_
 
-#include "rcl/visibility_control.h"
+#include "rmw/runtime_type.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/// String identifying the typesupport introspection implementation in use.
-RCL_PUBLIC
-extern const char * rcl_typesupport_runtime_type_introspection_c__identifier;
+#define rcl_typesupport_runtime_type_introspection_c__identifier \
+  rmw_typesupport_runtime_type_introspection_c__identifier
 
 #ifdef __cplusplus
 }
