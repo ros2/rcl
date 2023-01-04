@@ -74,6 +74,7 @@ _validate_name(const char * name, rcutils_allocator_t allocator);
 void * get_value(
   const char * const value,
   yaml_scalar_style_t style,
+  const yaml_char_t * const tag,
   data_types_t * val_type,
   const rcutils_allocator_t allocator)
 {
@@ -86,6 +87,12 @@ void * get_value(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(val_type, NULL);
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "allocator is invalid", return NULL);
+
+  /// Check for yaml string tag
+  if (tag != NULL && strcmp(YAML_STR_TAG, (char *)tag) == 0) {
+    *val_type = DATA_TYPE_STRING;
+    return rcutils_strdup(value, allocator);
+  }
 
   /// Check if it is bool
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
@@ -233,6 +240,7 @@ rcutils_ret_t parse_value(
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
   yaml_scalar_style_t style = event.data.scalar.style;
+  const yaml_char_t * const tag = event.data.scalar.tag;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
@@ -254,7 +262,7 @@ rcutils_ret_t parse_value(
   rcl_variant_t * param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
 
   data_types_t val_type;
-  void * ret_val = get_value(value, style, &val_type, allocator);
+  void * ret_val = get_value(value, style, tag, &val_type, allocator);
   if (NULL == ret_val) {
     RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
       "Error parsing value %s at line %d", value, line_num);

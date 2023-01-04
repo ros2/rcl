@@ -49,3 +49,8 @@ intel:
   ros__parameters:
     num_cores: 8
     arch: x86_64
+string_tag:
+  ros__parameters:
+    string_bool: !!str yes
+    string_int: !!str 1234
+    string_double: !!str 12.34
