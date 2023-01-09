@@ -549,6 +549,11 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_get_disable_loaned_message(bool * disable_loaned_message);
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_notify_participant_dynamic_network_interface(rcl_context_t * context);
+
 #ifdef __cplusplus
 }
 #endif

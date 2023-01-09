@@ -536,6 +536,16 @@ rcl_get_disable_loaned_message(bool * disable_loaned_message)
   *disable_loaned_message = (strcmp(env_val, "1") == 0);
   return RCL_RET_OK;
 }
+
+rcl_ret_t
+rcl_notify_participant_dynamic_network_interface(rcl_context_t * context)
+{
+  if(!rcl_context_is_valid(context))
+  {
+    return RCL_RET_NODE_INVALID;
+  }
+  return rmw_notify_participant_dynamic_network_interface(&(context->impl->rmw_context));
+}
 #ifdef __cplusplus
 }
 #endif
