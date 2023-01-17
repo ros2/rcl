@@ -28,6 +28,7 @@
   <depend>rosidl_runtime_c</depend>
   <depend>service_msgs</depend>
   <depend>tracetools</depend>
+  <depend>type_description_interfaces</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
