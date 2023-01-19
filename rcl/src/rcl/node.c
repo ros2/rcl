@@ -542,7 +542,7 @@ rcl_notify_participant_dynamic_network_interface(rcl_context_t * context)
 {
   if(!rcl_context_is_valid(context))
   {
-    return RCL_RET_NODE_INVALID;
+    return RCL_RET_ERROR;
   }
   return rmw_notify_participant_dynamic_network_interface(&(context->impl->rmw_context));
 }

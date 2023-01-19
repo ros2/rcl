@@ -549,6 +549,12 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_get_disable_loaned_message(bool * disable_loaned_message);
 
+/// Notify middleware to refresh available network interfaces.
+/**
+ * \param[in] context Has to be valid.
+ * \return #RCL_RET_ERROR if the context is not valid, or
+ * \return #RCL_RET_OK.
+ */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
