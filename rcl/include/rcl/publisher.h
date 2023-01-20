@@ -37,6 +37,8 @@ typedef struct rcl_publisher_s
 {
   /// Pointer to the publisher implementation
   rcl_publisher_impl_t * impl;
+  /// Disable flag to loan messages
+  bool disable_loaned_message;
 } rcl_publisher_t;
 
 /// Options available for a rcl publisher.

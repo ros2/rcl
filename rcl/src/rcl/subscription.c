@@ -95,6 +95,14 @@ rcl_subscription_init(
     1, sizeof(rcl_subscription_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     subscription->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
+
+  // Cache disable flag to loan messasges on this subscription
+  bool disable_loaned_message = false;
+  ret = rcl_get_disable_loaned_message(&disable_loaned_message);
+  if (ret == RCL_RET_OK && disable_loaned_message) {
+    subscription->disable_loaned_message = true;
+  }
+
   // Fill out the implemenation struct.
   // rmw_handle
   // TODO(wjwwood): pass allocator once supported in rmw api.
@@ -736,9 +744,7 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
     return false;  // error message already set
   }
 
-  bool disable_loaned_message = false;
-  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
-  if (ret == RCL_RET_OK && disable_loaned_message) {
+  if (subscription->disable_loaned_message) {
     return false;
   }
 
