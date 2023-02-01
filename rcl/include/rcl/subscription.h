@@ -51,6 +51,8 @@ typedef struct rcl_subscription_options_s
   rcl_allocator_t allocator;
   /// rmw specific subscription options, e.g. the rmw implementation specific payload.
   rmw_subscription_options_t rmw_subscription_options;
+  /// Disable flag to LoanedMessage, initialized via environmental variable.
+  bool disable_loaned_message;
 } rcl_subscription_options_t;
 
 typedef struct rcl_subscription_content_filter_options_s

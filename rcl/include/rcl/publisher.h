@@ -49,6 +49,8 @@ typedef struct rcl_publisher_options_s
   rcl_allocator_t allocator;
   /// rmw specific publisher options, e.g. the rmw implementation specific payload.
   rmw_publisher_options_t rmw_publisher_options;
+  /// Disable flag to LoanedMessage, initialized via environmental variable.
+  bool disable_loaned_message;
 } rcl_publisher_options_t;
 
 /// Return a rcl_publisher_t struct with members set to `NULL`.
