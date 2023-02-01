@@ -104,13 +104,6 @@ rcl_publisher_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     publisher->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
 
-  // Cache disable flag to loan messasges on this publisher
-  bool disable_loaned_message = false;
-  ret = rcl_get_disable_loaned_message(&disable_loaned_message);
-  if (ret == RCL_RET_OK && disable_loaned_message) {
-    publisher->disable_loaned_message = true;
-  }
-
   // Fill out implementation struct.
   // rmw handle (create rmw publisher)
   // TODO(wjwwood): pass along the allocator to rmw when it supports it
@@ -448,7 +441,9 @@ rcl_publisher_can_loan_messages(const rcl_publisher_t * publisher)
     return false;  // error message already set
   }
 
-  if (publisher->disable_loaned_message) {
+  bool disable_loaned_message = false;
+  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
+  if (ret == RCL_RET_OK && disable_loaned_message) {
     return false;
   }
 

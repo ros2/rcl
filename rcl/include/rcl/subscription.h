@@ -39,8 +39,6 @@ typedef struct rcl_subscription_s
 {
   /// Pointer to the subscription implementation
   rcl_subscription_impl_t * impl;
-  /// Disable flag to loan messages
-  bool disable_loaned_message;
 } rcl_subscription_t;
 
 /// Options available for a rcl subscription.
