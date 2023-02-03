@@ -606,7 +606,6 @@ _validate_tag(const char * tag, uint32_t line_num)
     (0 == strcmp(tag, YAML_STR_TAG)) ||
     (0 == strcmp(tag, YAML_INT_TAG)) ||
     (0 == strcmp(tag, YAML_FLOAT_TAG)) ||
-    (0 == strcmp(tag, YAML_TIMESTAMP_TAG)) ||
     (0 == strcmp(tag, YAML_SEQ_TAG)) ||
     (0 == strcmp(tag, YAML_MAP_TAG)))
   {
@@ -625,8 +624,6 @@ _validate_bool_value(
   void ** ret_val,
   const rcutils_allocator_t allocator)
 {
-  rcutils_ret_t ret = RCUTILS_RET_ERROR;
-
   if ((0 == strcmp(value, "Y")) ||
     (0 == strcmp(value, "y")) ||
     (0 == strcmp(value, "yes")) ||
@@ -644,8 +641,7 @@ _validate_bool_value(
     if (NULL != *ret_val) {
       *((bool *)*ret_val) = true;
     }
-    ret = RCUTILS_RET_OK;
-    goto final;
+    return RCUTILS_RET_OK;
   }
 
   if ((0 == strcmp(value, "N")) ||
@@ -665,12 +661,10 @@ _validate_bool_value(
     if (NULL != *ret_val) {
       *((bool *)*ret_val) = false;
     }
-    ret = RCUTILS_RET_OK;
-    goto final;
+    return RCUTILS_RET_OK;
   }
 
-final:
-  return ret;
+  return RCUTILS_RET_ERROR;
 }
 
 rcutils_ret_t
@@ -683,7 +677,6 @@ _validate_int_value(
   errno = 0;
   int64_t ival;
   char * endptr = NULL;
-  rcutils_ret_t ret = RCUTILS_RET_ERROR;
 
   ival = strtol(value, &endptr, 0);
   if ((0 == errno) && (NULL != endptr)) {
@@ -694,12 +687,12 @@ _validate_int_value(
         if (NULL != *ret_val) {
           *((int64_t *)*ret_val) = ival;
         }
-        ret = RCUTILS_RET_OK;
+        return RCUTILS_RET_OK;
       }
     }
   }
 
-  return ret;
+  return RCUTILS_RET_ERROR;
 }
 
 rcutils_ret_t
@@ -713,7 +706,6 @@ _validate_float_value(
   double dval;
   char * endptr = NULL;
   const char * iter_ptr = NULL;
-  rcutils_ret_t ret = RCUTILS_RET_ERROR;
 
   if ((0 == strcmp(value, ".nan")) ||
     (0 == strcmp(value, ".NaN")) ||
@@ -746,12 +738,12 @@ _validate_float_value(
         if (NULL != *ret_val) {
           *((double *)*ret_val) = dval;
         }
-        ret = RCUTILS_RET_OK;
+        return RCUTILS_RET_OK;
       }
     }
   }
 
-  return ret;
+  return RCUTILS_RET_ERROR;
 }
 
 ///
