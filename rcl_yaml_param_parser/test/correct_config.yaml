@@ -62,10 +62,6 @@ bool_tag:
     bool_false: !!bool false
     bool_no: !!bool no
     bool_off: !!bool off
-null_tag:
-  ros__parameters:
-    null_null: !!null null
-    null_none: !!null none
 int_tag:
   ros__parameters:
     int_pos: !!int 10
@@ -80,3 +76,12 @@ float_tag:
     float_inf: !!float .inf
     float_infn: !!float +.inf
     float_infp: !!float -.inf
+seq_tag:
+  ros__parameters:
+    seq_string: !!seq [ab, bc, cd, de]
+    seq_bool: !!seq [true, yes, on, false, no, off]
+    seq_int: !!seq [10, 0, -10]
+    seq_float: !!seq [1.1, 0.0, -1.122, .nan, .inf, +.inf, -.inf]
+map_tag:
+  ros__parameters:
+    map_test: !!map {str: string, bool: true, int: 10, float: 1.1}

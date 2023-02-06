@@ -232,15 +232,6 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value->bool_value);
     EXPECT_FALSE(*param_value->bool_value);
 
-    param_value = rcl_yaml_node_struct_get("null_tag", "null_null", params);
-    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
-    ASSERT_TRUE(NULL != param_value->string_value);
-    EXPECT_STREQ("null", param_value->string_value);
-    param_value = rcl_yaml_node_struct_get("null_tag", "null_none", params);
-    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
-    ASSERT_TRUE(NULL != param_value->string_value);
-    EXPECT_STREQ("null", param_value->string_value);
-
     param_value = rcl_yaml_node_struct_get("int_tag", "int_pos", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->integer_value);
@@ -282,6 +273,63 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->double_value);
     EXPECT_DOUBLE_EQ(-INFINITY, *param_value->double_value);
+
+    param_value = rcl_yaml_node_struct_get("seq_tag", "seq_string", params_hdl);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_array_value);
+    ASSERT_EQ(4U, param_value->string_array_value->size);
+    EXPECT_STREQ("ab", param_value->string_array_value->data[0]);
+    EXPECT_STREQ("bc", param_value->string_array_value->data[1]);
+    EXPECT_STREQ("cd", param_value->string_array_value->data[2]);
+    EXPECT_STREQ("de", param_value->string_array_value->data[3]);
+
+    param_value = rcl_yaml_node_struct_get("seq_tag", "seq_bool", params_hdl);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->bool_array_value);
+    ASSERT_EQ(6U, param_value->bool_array_value->size);
+    EXPECT_TRUE(param_value->bool_array_value->values[0]);
+    EXPECT_TRUE(param_value->bool_array_value->values[1]);
+    EXPECT_TRUE(param_value->bool_array_value->values[2]);
+    EXPECT_FALSE(param_value->bool_array_value->values[3]);
+    EXPECT_FALSE(param_value->bool_array_value->values[4]);
+    EXPECT_FALSE(param_value->bool_array_value->values[5]);
+
+    param_value = rcl_yaml_node_struct_get("seq_tag", "seq_int", params_hdl);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_array_value);
+    ASSERT_EQ(3U, param_value->integer_array_value->size);
+    EXPECT_EQ(10, param_value->integer_array_value->values[0]);
+    EXPECT_EQ(0, param_value->integer_array_value->values[1]);
+    EXPECT_EQ(-10, param_value->integer_array_value->values[2]);
+
+    param_value = rcl_yaml_node_struct_get("seq_tag", "seq_float", params_hdl);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->double_array_value);
+    ASSERT_EQ(7U, param_value->double_array_value->size);
+    EXPECT_DOUBLE_EQ(1.1, param_value->double_array_value->values[0]);
+    EXPECT_DOUBLE_EQ(0.0, param_value->double_array_value->values[1]);
+    EXPECT_DOUBLE_EQ(-1.122, param_value->double_array_value->values[2]);
+    EXPECT_TRUE(std::isnan(param_value->double_array_value->values[3]));
+    EXPECT_DOUBLE_EQ(INFINITY, param_value->double_array_value->values[4]);
+    EXPECT_DOUBLE_EQ(INFINITY, param_value->double_array_value->values[5]);
+    EXPECT_DOUBLE_EQ(-INFINITY, param_value->double_array_value->values[6]);
+
+    param_value = rcl_yaml_node_struct_get("map_tag", "map_test.str", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->string_value);
+    EXPECT_STREQ("string", param_value->string_value);
+    param_value = rcl_yaml_node_struct_get("map_tag", "map_test.bool", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->bool_value);
+    EXPECT_TRUE(*param_value->bool_value);
+    param_value = rcl_yaml_node_struct_get("map_tag", "map_test.int", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->integer_value);
+    EXPECT_EQ(10, *param_value->integer_value);
+    param_value = rcl_yaml_node_struct_get("map_tag", "map_test.float", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->double_value);
+    EXPECT_DOUBLE_EQ(1.1, *param_value->double_value);
 
     rcl_yaml_node_struct_print(params);
   }

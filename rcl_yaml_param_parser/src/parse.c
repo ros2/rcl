@@ -70,7 +70,12 @@ _validate_name(const char * name, rcutils_allocator_t allocator);
 ///
 /// Check a tag whether it is valid
 ///
-/// \param tag the tag to check
+/// \param tag the tag to check, include tags:
+///            YAML_BOOL_TAG, YAML_STR_TAG, YAML_INT_TAG,
+///            YAML_FLOAT_TAG, YAML_SEQ_TAG, YAML_MAP_TAG
+///            NOTE: YAML_NULL_TAG & YAML_TIMESTAMP_TAG are
+///            not supported by ROS2 Parameters, so they are
+///            excluded.
 /// \param line_num the line number error happened
 /// \return RCUTILS_RET_OK if tag is valid, or
 /// \return RCUTILS_RET_ERROR if tag is not valid
@@ -79,48 +84,48 @@ rcutils_ret_t
 _validate_tag(const char * tag, uint32_t line_num);
 
 ///
-/// Check a bool value whether it is valid
+/// Get a bool value when it is valid
 ///
-/// \param value the bool value to check
+/// \param value the bool value to get
 /// \param val_type the value type
 /// \param ret_val the converted value when value is valid
 /// \return RCUTILS_RET_OK if value is valid, or
 /// \return RCUTILS_RET_ERROR if value is not valid
 RCL_YAML_PARAM_PARSER_LOCAL
 rcutils_ret_t
-_validate_bool_value(
+_get_bool_value(
   const char * const value,
   data_types_t * val_type,
   void ** ret_val,
   const rcutils_allocator_t allocator);
 
 ///
-/// Check a int value whether it is valid
+/// Get a int value when it is valid
 ///
-/// \param value the int value to check
+/// \param value the int value to get
 /// \param val_type the value type
 /// \param ret_val the converted value when value is valid
 /// \return RCUTILS_RET_OK if value is valid, or
 /// \return RCUTILS_RET_ERROR if value is not valid
 RCL_YAML_PARAM_PARSER_LOCAL
 rcutils_ret_t
-_validate_int_value(
+_get_int_value(
   const char * const value,
   data_types_t * val_type,
   void ** ret_val,
   const rcutils_allocator_t allocator);
 
 ///
-/// Check a float value whether it is valid
+/// Get a float value when it is valid
 ///
-/// \param value the float value to check
+/// \param value the float value to get
 /// \param val_type the value type
 /// \param ret_val the converted value when value is valid
 /// \return RCUTILS_RET_OK if value is valid, or
 /// \return RCUTILS_RET_ERROR if value is not valid
 RCL_YAML_PARAM_PARSER_LOCAL
 rcutils_ret_t
-_validate_float_value(
+_get_float_value(
   const char * const value,
   data_types_t * val_type,
   void ** ret_val,
@@ -150,22 +155,9 @@ void * get_value(
     return rcutils_strdup(value, allocator);
   }
 
-  /// Check for yaml null tag
-  if (tag != NULL && strcmp(YAML_NULL_TAG, (char *)tag) == 0) {
-    *val_type = DATA_TYPE_STRING;
-    if ((0 == strcmp(value, "null")) ||
-      (0 == strcmp(value, "Null")) ||
-      (0 == strcmp(value, "none")) ||
-      (0 == strcmp(value, "None")))
-    {
-      return rcutils_strdup("null", allocator);
-    }
-    return NULL;
-  }
-
   /// Check for yaml bool tag
   if (tag != NULL && strcmp(YAML_BOOL_TAG, (char *)tag) == 0) {
-    if (_validate_bool_value(value, val_type, &ret_val, allocator) == RCUTILS_RET_OK) {
+    if (_get_bool_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     } else {
       return NULL;
@@ -174,7 +166,7 @@ void * get_value(
 
   /// Check for yaml int tag
   if (tag != NULL && strcmp(YAML_INT_TAG, (char *)tag) == 0) {
-    if (_validate_int_value(value, val_type, &ret_val, allocator) == RCUTILS_RET_OK) {
+    if (_get_int_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     } else {
       return NULL;
@@ -183,7 +175,7 @@ void * get_value(
 
   /// Check for yaml float tag
   if (tag != NULL && strcmp(YAML_FLOAT_TAG, (char *)tag) == 0) {
-    if (_validate_float_value(value, val_type, &ret_val, allocator) == RCUTILS_RET_OK) {
+    if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     } else {
       return NULL;
@@ -194,7 +186,7 @@ void * get_value(
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
-    if (_validate_bool_value(value, val_type, &ret_val, allocator) == RCUTILS_RET_OK) {
+    if (_get_bool_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     }
   }
@@ -203,7 +195,7 @@ void * get_value(
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
-    if (_validate_int_value(value, val_type, &ret_val, allocator) == RCUTILS_RET_OK) {
+    if (_get_int_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     }
   }
@@ -212,7 +204,7 @@ void * get_value(
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
-    if (_validate_float_value(value, val_type, &ret_val, allocator) == RCUTILS_RET_OK) {
+    if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     }
   }
@@ -601,8 +593,7 @@ _validate_tag(const char * tag, uint32_t line_num)
     return RCUTILS_RET_ERROR;
   }
 
-  if ((0 == strcmp(tag, YAML_NULL_TAG)) ||
-    (0 == strcmp(tag, YAML_BOOL_TAG)) ||
+  if ((0 == strcmp(tag, YAML_BOOL_TAG)) ||
     (0 == strcmp(tag, YAML_STR_TAG)) ||
     (0 == strcmp(tag, YAML_INT_TAG)) ||
     (0 == strcmp(tag, YAML_FLOAT_TAG)) ||
@@ -618,7 +609,7 @@ _validate_tag(const char * tag, uint32_t line_num)
 }
 
 rcutils_ret_t
-_validate_bool_value(
+_get_bool_value(
   const char * const value,
   data_types_t * val_type,
   void ** ret_val,
@@ -638,9 +629,10 @@ _validate_bool_value(
   {
     *val_type = DATA_TYPE_BOOL;
     *ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
-    if (NULL != *ret_val) {
-      *((bool *)*ret_val) = true;
+    if (NULL == *ret_val) {
+      return RCUTILS_RET_BAD_ALLOC;
     }
+    *((bool *)*ret_val) = true;
     return RCUTILS_RET_OK;
   }
 
@@ -658,9 +650,10 @@ _validate_bool_value(
   {
     *val_type = DATA_TYPE_BOOL;
     *ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
-    if (NULL != *ret_val) {
-      *((bool *)*ret_val) = false;
+    if (NULL == *ret_val) {
+      return RCUTILS_RET_BAD_ALLOC;
     }
+    *((bool *)*ret_val) = false;
     return RCUTILS_RET_OK;
   }
 
@@ -668,7 +661,7 @@ _validate_bool_value(
 }
 
 rcutils_ret_t
-_validate_int_value(
+_get_int_value(
   const char * const value,
   data_types_t * val_type,
   void ** ret_val,
@@ -684,9 +677,10 @@ _validate_int_value(
       if (('\0' != *value) && ('\0' == *endptr)) {
         *val_type = DATA_TYPE_INT64;
         *ret_val = allocator.zero_allocate(1U, sizeof(int64_t), allocator.state);
-        if (NULL != *ret_val) {
-          *((int64_t *)*ret_val) = ival;
+        if (NULL == *ret_val) {
+          return RCUTILS_RET_BAD_ALLOC;
         }
+        *((int64_t *)*ret_val) = ival;
         return RCUTILS_RET_OK;
       }
     }
@@ -696,7 +690,7 @@ _validate_int_value(
 }
 
 rcutils_ret_t
-_validate_float_value(
+_get_float_value(
   const char * const value,
   data_types_t * val_type,
   void ** ret_val,
@@ -735,9 +729,10 @@ _validate_float_value(
       if (('\0' != *value) && ('\0' == *endptr)) {
         *val_type = DATA_TYPE_DOUBLE;
         *ret_val = allocator.zero_allocate(1U, sizeof(double), allocator.state);
-        if (NULL != *ret_val) {
-          *((double *)*ret_val) = dval;
+        if (NULL == *ret_val) {
+          return RCUTILS_RET_BAD_ALLOC;
         }
+        *((double *)*ret_val) = dval;
         return RCUTILS_RET_OK;
       }
     }

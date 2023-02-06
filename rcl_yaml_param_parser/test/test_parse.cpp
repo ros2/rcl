@@ -497,6 +497,7 @@ TEST(TestParse, parse_file_events_mock_yaml_parser_parse) {
     "lib:rcl_yaml_param_parser", yaml_parser_parse, [](yaml_parser_t *, yaml_event_t * event) {
       event->start_mark.line = 0u;
       event->type = YAML_NO_EVENT;
+      event->data.scalar.tag = NULL;
       return 1;
     });
   EXPECT_EQ(RCUTILS_RET_ERROR, parse_file_events(&parser, &ns_tracker, params_hdl));
@@ -518,6 +519,7 @@ TEST(TestParse, parse_value_events_mock_yaml_parser_parse) {
     "lib:rcl_yaml_param_parser", yaml_parser_parse, [](yaml_parser_t *, yaml_event_t * event) {
       event->start_mark.line = 0u;
       event->type = YAML_NO_EVENT;
+      event->data.scalar.tag = NULL;
       return 1;
     });
   EXPECT_FALSE(rcl_parse_yaml_value(node_name, param_name, yaml_value, params_st));
