@@ -50,11 +50,11 @@ rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params)
   }
   if (ros_automatic_discovery_range_env_val == NULL) {
     discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
-  } else if (strcmp(ros_automatic_discovery_range_env_val, "1") == 0) {
+  } else if (strcmp(ros_automatic_discovery_range_env_val, "OFF") == 0) {
     discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_OFF;
-  } else if (strcmp(ros_automatic_discovery_range_env_val, "2") == 0) {
+  } else if (strcmp(ros_automatic_discovery_range_env_val, "LOCALHOST") == 0) {
     discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
-  } else if (strcmp(ros_automatic_discovery_range_env_val, "3") == 0) {
+  } else if (strcmp(ros_automatic_discovery_range_env_val, "SUBNET") == 0) {
     discovery_params->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET;
   } else {
     RCUTILS_LOG_WARN_NAMED(
