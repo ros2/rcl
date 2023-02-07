@@ -400,14 +400,16 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_optio
 }
 
 TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan_disable) {
+  bool is_fastdds = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   constexpr char topic_name[] = "pod_msg";
 
   {
-    bool is_fastdds = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
+    // Default only Fast-DDS can enable loan messages
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+    EXPECT_FALSE(publisher_options.disable_loaned_message);
     rcl_ret_t ret =
       rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -424,9 +426,10 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan_
   }
 
   {
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
     rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
     rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+    EXPECT_FALSE(publisher_options.disable_loaned_message);
+    publisher_options.disable_loaned_message = true;
     rcl_ret_t ret =
       rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -436,6 +439,25 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_publisher_loan_
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     });
     EXPECT_FALSE(rcl_publisher_can_loan_messages(&publisher));
+  }
+
+  {
+    rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+    rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+    EXPECT_FALSE(publisher_options.disable_loaned_message);
+    rcl_ret_t ret =
+      rcl_publisher_init(&publisher, this->node_ptr, ts, topic_name, &publisher_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    });
+    if (is_fastdds) {
+      EXPECT_TRUE(rcl_publisher_can_loan_messages(&publisher));
+    } else {
+      EXPECT_FALSE(rcl_publisher_can_loan_messages(&publisher));
+    }
   }
 }
 

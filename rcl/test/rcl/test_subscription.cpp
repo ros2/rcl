@@ -740,14 +740,16 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 }
 
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loan_disable) {
+  bool is_fastdds = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   constexpr char topic[] = "pod_msg";
 
   {
-    bool is_fastdds = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
+    // Default only Fast-DDS can enable loan messages
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    EXPECT_FALSE(subscription_options.disable_loaned_message);
     rcl_ret_t ret =
       rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -764,9 +766,10 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   }
 
   {
-    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
     rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    EXPECT_FALSE(subscription_options.disable_loaned_message);
+    subscription_options.disable_loaned_message = true;
     rcl_ret_t ret =
       rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -776,6 +779,25 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     });
     EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
+  }
+
+  {
+    rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+    rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    EXPECT_FALSE(subscription_options.disable_loaned_message);
+    rcl_ret_t ret =
+      rcl_subscription_init(&subscription, this->node_ptr, ts, topic, &subscription_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    });
+    if (is_fastdds) {
+      EXPECT_TRUE(rcl_subscription_can_loan_messages(&subscription));
+    } else {
+      EXPECT_FALSE(rcl_subscription_can_loan_messages(&subscription));
+    }
   }
 }
 
