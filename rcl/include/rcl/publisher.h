@@ -196,6 +196,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node);
  * - qos = rmw_qos_profile_default
  * - allocator = rcl_get_default_allocator()
  * - rmw_publisher_options = rmw_get_default_publisher_options()
+ * - disable_loaned_message = false, true only if ROS_DISABLE_LOANED_MESSAGES=1
  *
  * \return A structure with the default publisher options.
  */

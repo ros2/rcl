@@ -210,6 +210,9 @@ rcl_publisher_get_default_options()
   if (ret == RCL_RET_OK) {
     default_options.disable_loaned_message = disable_loaned_message;
   } else {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to get disable_loaned_message: ");
+    RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+    rcl_reset_error();
     default_options.disable_loaned_message = false;
   }
 
