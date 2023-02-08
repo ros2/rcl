@@ -798,6 +798,43 @@ TEST(test_file_parser, wildcards_partial) {
   }
 }
 
+TEST(test_file_parser, tag_incorrect_config) {
+  rcutils_reset_error();
+  EXPECT_TRUE(rcutils_get_cwd(cur_dir, 1024));
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  char * test_path = rcutils_join_path(cur_dir, "test", allocator);
+  ASSERT_TRUE(NULL != test_path) << rcutils_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    allocator.deallocate(test_path, allocator.state);
+  });
+  const std::vector<std::string> filenames = {
+    "tag_incorrect_config_01.yaml",
+    "tag_incorrect_config_02.yaml",
+    "tag_incorrect_config_03.yaml",
+    "tag_incorrect_config_04.yaml",
+    "tag_incorrect_config_05.yaml"
+  };
+
+  for (auto & filename : filenames) {
+    char * path = rcutils_join_path(test_path, filename.c_str(), allocator);
+    ASSERT_TRUE(NULL != path) << rcutils_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      allocator.deallocate(path, allocator.state);
+    });
+    EXPECT_TRUE(rcutils_exists(path));
+    rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
+    ASSERT_TRUE(NULL != params_hdl) << rcutils_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      rcl_yaml_node_struct_fini(params_hdl);
+    });
+    bool res = rcl_parse_yaml_file(path, params_hdl);
+    EXPECT_FALSE(res);
+  }
+}
+
 int32_t main(int32_t argc, char ** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

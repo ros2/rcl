@@ -1,0 +1,3 @@
+seq_tag:
+  ros__parameters:
+    test: !!seq {a: 1, b: 2}

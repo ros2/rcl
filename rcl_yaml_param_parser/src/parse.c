@@ -589,10 +589,6 @@ clean:
 rcutils_ret_t
 _validate_tag(const char * tag, uint32_t line_num)
 {
-  if (tag == NULL) {
-    return RCUTILS_RET_ERROR;
-  }
-
   if ((0 == strcmp(tag, YAML_BOOL_TAG)) ||
     (0 == strcmp(tag, YAML_STR_TAG)) ||
     (0 == strcmp(tag, YAML_INT_TAG)) ||
