@@ -81,6 +81,18 @@ static void callback_function_changed(rcl_timer_t * timer, int64_t last_call)
   times_called--;
 }
 
+static size_t times_reset = 0;
+static void on_reset_callback_function(const void * timer, size_t n)
+{
+  (void) timer;
+  times_reset += n;
+}
+static void on_reset_callback_function_changed(const void * timer, size_t n)
+{
+  (void) timer;
+  times_reset -= n;
+}
+
 class TestPreInitTimer : public TestTimerFixture
 {
 public:
@@ -859,6 +871,34 @@ TEST_F(TestPreInitTimer, test_timer_exchange_callback) {
 
   ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
   EXPECT_EQ(times_called, 0);
+}
+
+TEST_F(TestPreInitTimer, test_on_reset_timer_callback) {
+  // Set callback to an invalid timer
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_timer_set_on_reset_callback(nullptr, nullptr, nullptr));
+
+  // Set a null on reset callback to a valid timer
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_timer_set_on_reset_callback(
+      &timer, nullptr, nullptr)) << rcl_get_error_string().str;
+
+  // Reset 2 times, then set callback and check times_reset
+  times_reset = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer)) << rcl_get_error_string().str;
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_timer_set_on_reset_callback(
+      &timer, on_reset_callback_function, nullptr)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_reset, static_cast<size_t>(2));
+
+  // Assign a new on_reset callback
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_timer_set_on_reset_callback(
+      &timer, on_reset_callback_function_changed, nullptr)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_reset, static_cast<size_t>(1));
 }
 
 TEST_F(TestPreInitTimer, test_invalid_get_guard) {

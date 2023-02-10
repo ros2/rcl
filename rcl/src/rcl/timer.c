@@ -51,6 +51,8 @@ struct rcl_timer_impl_s
   atomic_bool canceled;
   // The user supplied allocator.
   rcl_allocator_t allocator;
+  // The user supplied on reset callback data.
+  rcl_timer_on_reset_callback_data_t callback_data;
 };
 
 rcl_timer_t
@@ -182,6 +184,12 @@ rcl_timer_init(
   atomic_init(&impl.next_call_time, now + period);
   atomic_init(&impl.canceled, false);
   impl.allocator = allocator;
+
+  // Empty init on reset callback data
+  impl.callback_data.on_reset_callback = NULL;
+  impl.callback_data.user_data = NULL;
+  impl.callback_data.reset_counter = 0;
+
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
   if (NULL == timer->impl) {
     if (RCL_RET_OK != rcl_guard_condition_fini(&(impl.guard_condition))) {
@@ -429,6 +437,15 @@ rcl_timer_reset(rcl_timer_t * timer)
   rcutils_atomic_store(&timer->impl->next_call_time, now + period);
   rcutils_atomic_store(&timer->impl->canceled, false);
   rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
+
+  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->callback_data;
+
+  if (cb_data->on_reset_callback) {
+    cb_data->on_reset_callback(cb_data->user_data, 1);
+  } else {
+    cb_data->reset_counter++;
+  }
+
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
   }
@@ -451,6 +468,31 @@ rcl_timer_get_guard_condition(const rcl_timer_t * timer)
     return NULL;
   }
   return &timer->impl->guard_condition;
+}
+
+rcl_ret_t
+rcl_timer_set_on_reset_callback(
+  const rcl_timer_t * timer,
+  rcl_event_callback_t on_reset_callback,
+  const void * user_data)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->callback_data;
+
+  if (on_reset_callback) {
+    cb_data->on_reset_callback = on_reset_callback;
+    cb_data->user_data = user_data;
+    if (cb_data->reset_counter) {
+      cb_data->on_reset_callback(user_data, cb_data->reset_counter);
+      cb_data->reset_counter = 0;
+    }
+  } else {
+    cb_data->on_reset_callback = NULL;
+    cb_data->user_data = NULL;
+  }
+
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus
