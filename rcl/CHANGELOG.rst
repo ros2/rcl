@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.7.0 (2023-02-13)
+------------------
 * Add timer on reset callback (`#995 <https://github.com/ros2/rcl/issues/995>`_)
 * Update rcl to C++17. (`#1031 <https://github.com/ros2/rcl/issues/1031>`_)
 * Make sure to check the return value of rcl_clock_init in tests. (`#1030 <https://github.com/ros2/rcl/issues/1030>`_)

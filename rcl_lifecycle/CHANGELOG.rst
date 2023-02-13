@@ -2,8 +2,8 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.7.0 (2023-02-13)
+------------------
 * Update rcl to C++17. (`#1031 <https://github.com/ros2/rcl/issues/1031>`_)
 * Contributors: Chris Lalancette
 
