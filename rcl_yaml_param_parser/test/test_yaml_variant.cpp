@@ -14,17 +14,19 @@
 
 #include <gtest/gtest.h>
 
-#include <yaml.h>
-
-#include <string>
-#include <vector>
+#include <type_traits>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 #include "rcl_yaml_param_parser/parser.h"
+
 #include "../src/impl/yaml_variant.h"
+
 #include "rcutils/allocator.h"
 #include "rcutils/strdup.h"
 #include "rcutils/testing/fault_injection.h"
+#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/types/string_array.h"
 
 #define TEST_VARIANT_COPY(field, tmp_var) \
   do { \

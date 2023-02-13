@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <yaml.h>
 
 #include "rcl_yaml_param_parser/parser.h"
@@ -28,7 +29,7 @@
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
 #include "rcutils/strdup.h"
-#include "rcutils/types.h"
+#include "rcutils/types/rcutils_ret.h"
 
 #include "./impl/types.h"
 #include "./impl/parse.h"

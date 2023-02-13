@@ -17,9 +17,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <yaml.h>
+
 #include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/format_string.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/types/string_array.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/validate_namespace.h"

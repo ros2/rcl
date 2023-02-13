@@ -14,15 +14,11 @@
 
 #include <gtest/gtest.h>
 
-#include <yaml.h>
-
-#include <string>
-#include <vector>
-
-#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl_yaml_param_parser/parser.h"
 #include "../src/impl/node_params.h"
+
 #include "rcutils/allocator.h"
+#include "rcutils/types/rcutils_ret.h"
 
 TEST(TestNodeParams, init_fini) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();

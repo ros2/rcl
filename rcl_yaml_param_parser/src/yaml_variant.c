@@ -13,8 +13,9 @@
 // limitations under the License.
 
 #include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/strdup.h"
-#include "rcutils/types.h"
+#include "rcutils/types/string_array.h"
 
 #include "./impl/types.h"
 #include "./impl/yaml_variant.h"

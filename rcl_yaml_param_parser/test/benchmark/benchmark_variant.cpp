@@ -23,8 +23,8 @@
 
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
-#include "rcutils/filesystem.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/string_array.h"
 
 #include "../src/impl/yaml_variant.h"
 
