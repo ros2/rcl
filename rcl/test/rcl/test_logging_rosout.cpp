@@ -370,6 +370,10 @@ TEST_F(
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_add_sublogger(logger_name, nullptr));
   rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_add_sublogger(logger_name, ""));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_add_sublogger("", "child"));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_ERROR, rcl_logging_rosout_add_sublogger("no_exist", "child"));
   rcl_reset_error();
 
@@ -378,6 +382,10 @@ TEST_F(
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger(nullptr, "child"));
   rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger(logger_name, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger(logger_name, ""));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger("", "child"));
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child"));

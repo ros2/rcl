@@ -170,20 +170,22 @@ rcl_ret_t rcl_logging_rosout_fini()
     status = rcl_ret_from_rcutils_ret(rcutils_hash_map_fini(&__logger_map));
   }
 
-  status = rcl_ret_from_rcutils_ret(rcutils_array_list_get_size(&__sublogger_names, &array_size));
   if (RCL_RET_OK == status) {
-    for (size_t i = 0; i < array_size; ++i) {
-      status = rcl_ret_from_rcutils_ret(
-        rcutils_array_list_get(&__sublogger_names, i, &sublogger_name));
-      if (RCL_RET_OK == status) {
-        __rosout_allocator.deallocate(sublogger_name, __rosout_allocator.state);
-        sublogger_name = NULL;
+    status = rcl_ret_from_rcutils_ret(rcutils_array_list_get_size(&__sublogger_names, &array_size));
+    if (RCL_RET_OK == status) {
+      for (size_t i = 0; i < array_size; ++i) {
+        status = rcl_ret_from_rcutils_ret(
+          rcutils_array_list_get(&__sublogger_names, i, &sublogger_name));
+        if (RCL_RET_OK == status) {
+          __rosout_allocator.deallocate(sublogger_name, __rosout_allocator.state);
+          sublogger_name = NULL;
+        }
       }
     }
-  }
 
-  if (RCL_RET_OK == status) {
-    status = rcl_ret_from_rcutils_ret(rcutils_array_list_fini(&__sublogger_names));
+    if (RCL_RET_OK == status) {
+      status = rcl_ret_from_rcutils_ret(rcutils_array_list_fini(&__sublogger_names));
+    }
   }
 
   if (RCL_RET_OK == status) {
@@ -361,6 +363,11 @@ _rcl_logging_rosout_get_sublogger_name(
   RCL_CHECK_ARGUMENT_FOR_NULL(logger_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(sublogger_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(full_sublogger_name, RCL_RET_INVALID_ARGUMENT);
+
+  if (logger_name[0] == '\0' || sublogger_name[0] == '\0') {
+    RCL_SET_ERROR_MSG("logger name or sub-logger name can't be empty.");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
 
   *full_sublogger_name = rcutils_format_string(
     __rosout_allocator, "%s%s%s",
