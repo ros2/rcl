@@ -183,7 +183,7 @@ _rcl_logging_rosout_clear_hashmap(
   rcutils_ret_t hashmap_ret = rcutils_hash_map_get_next_key_and_data(
     map, NULL, &key, entry);
   while (RCUTILS_RET_OK == hashmap_ret) {
-    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__sublogger_map, &key));
+    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(map, &key));
     if (RCL_RET_OK != status) {
       break;
     }
