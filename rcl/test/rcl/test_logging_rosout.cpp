@@ -74,12 +74,12 @@ protected:
   {
     rcl_ret_t ret;
     rcl_allocator_t allocator = rcl_get_default_allocator();
-    init_options_ = rcl_get_zero_initialized_init_options();
-    ret = rcl_init_options_init(&init_options_, allocator);
+    init_options = rcl_get_zero_initialized_init_options();
+    ret = rcl_init_options_init(&init_options, allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
-      EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options_)) << rcl_get_error_string().str;
+      EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
     });
     this->context_ptr = new rcl_context_t;
     *this->context_ptr = rcl_get_zero_initialized_context();
@@ -91,7 +91,7 @@ protected:
     ) << rcl_get_error_string().str;
 
     // create node
-    node_options_ = rcl_node_get_default_options();
+    node_options = rcl_node_get_default_options();
     update_node_option();
     const char * name = "test_rcl_node_logging_rosout";
     const char * namespace_ = "/ns";
@@ -99,7 +99,7 @@ protected:
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     ret = rcl_node_init(
-      this->node_ptr, name, namespace_, this->context_ptr, &node_options_);
+      this->node_ptr, name, namespace_, this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     // create rosout subscription
@@ -132,14 +132,14 @@ protected:
 
   virtual void call_rcl_init()
   {
-    rcl_ret_t ret = rcl_init(0, NULL, &init_options_, this->context_ptr);
+    rcl_ret_t ret = rcl_init(0, NULL, &init_options, this->context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   virtual void update_node_option() {}
 
-  rcl_init_options_t init_options_;
-  rcl_node_options_t node_options_;
+  rcl_init_options_t init_options;
+  rcl_node_options_t node_options;
   rcl_context_t * context_ptr;
   rcl_node_t * node_ptr;
   rcl_subscription_t * subscription_ptr;
@@ -157,14 +157,14 @@ protected:
 
   void call_rcl_init()
   {
-    rcl_ret_t ret = rcl_init(param_.argc, param_.argv, &init_options_, this->context_ptr);
+    rcl_ret_t ret = rcl_init(param_.argc, param_.argv, &init_options, this->context_ptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void update_node_option()
   {
     if (!param_.enable_node_option_rosout) {
-      node_options_.enable_rosout = param_.enable_node_option_rosout;
+      node_options.enable_rosout = param_.enable_node_option_rosout;
     }
   }
 
@@ -399,6 +399,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child2"));
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child2"));
   EXPECT_EQ(RCL_RET_ERROR, rcl_logging_rosout_remove_sublogger(logger_name, "child2"));
+  rcl_reset_error();
 }
 
 /* Testing rosout message while adding and removing sublogger
