@@ -168,9 +168,11 @@ static rcl_ret_t
 _rcl_logging_rosout_clear_sublogger_map_item(void * value)
 {
   rosout_sublogger_entry_t * entry = (rosout_sublogger_entry_t *)value;
+  rcl_ret_t status = rcl_ret_from_rcutils_ret(
+    rcutils_hash_map_unset(&__sublogger_map, &entry->name));
   __rosout_allocator.deallocate(entry->name, __rosout_allocator.state);
 
-  return RCL_RET_OK;
+  return status;
 }
 
 static rcl_ret_t
@@ -183,17 +185,12 @@ _rcl_logging_rosout_clear_hashmap(
   rcutils_ret_t hashmap_ret = rcutils_hash_map_get_next_key_and_data(
     map, NULL, &key, entry);
   while (RCUTILS_RET_OK == hashmap_ret) {
-    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(map, &key));
-    if (RCL_RET_OK != status) {
-      break;
-    }
-
     status = predicate(entry);
     if (RCL_RET_OK != status) {
       break;
     }
 
-    hashmap_ret = rcutils_hash_map_get_next_key_and_data(map, NULL, &key, &entry);
+    hashmap_ret = rcutils_hash_map_get_next_key_and_data(map, NULL, &key, entry);
   }
   if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != hashmap_ret) {
     status = rcl_ret_from_rcutils_ret(hashmap_ret);
@@ -216,13 +213,13 @@ rcl_ret_t rcl_logging_rosout_fini()
   rosout_sublogger_entry_t sublogger_entry;
 
   status = _rcl_logging_rosout_clear_hashmap(
-    &__sublogger_map, _rcl_logging_rosout_clear_sublogger_map_item, &sublogger_entry);
+    &__logger_map, _rcl_logging_rosout_clear_logger_map_item, &entry);
   if (RCL_RET_OK != status) {
     goto exit;
   }
 
   status = _rcl_logging_rosout_clear_hashmap(
-    &__logger_map, _rcl_logging_rosout_clear_logger_map_item, &entry);
+    &__sublogger_map, _rcl_logging_rosout_clear_sublogger_map_item, &sublogger_entry);
   if (RCL_RET_OK != status) {
     goto exit;
   }
