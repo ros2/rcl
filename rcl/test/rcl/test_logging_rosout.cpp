@@ -392,8 +392,9 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child"));
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child1"));
-  EXPECT_EQ(
-    RCL_RET_SUBLOGGER_ALREADY_EXIST, rcl_logging_rosout_add_sublogger(logger_name, "child1"));
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child1"));
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child1"));
+  // contine to remove it immediately or call rcl_logging_fini later
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child1"));
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child2"));
@@ -430,6 +431,46 @@ TEST_F(
   EXPECT_EQ(
     RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, sublogger_name));
   // not to get the message after removing the sublogger
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_FALSE(expected);
+}
+
+/* Testing rosout message while adding and removing sublogger multiple times
+ */
+TEST_F(
+  CLASSNAME(TestLogRosoutFixtureGeneral, RMW_IMPLEMENTATION),
+  test_multi_add_remove_sublogger_message)
+{
+  const char * logger_name = rcl_node_get_logger_name(this->node_ptr);
+  const char * sublogger_name = "child";
+  std::string full_sublogger_name =
+    logger_name + std::string(RCUTILS_LOGGING_SEPARATOR_STRING) + sublogger_name;
+  bool expected;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, sublogger_name));
+
+  // add sublogger twice, expect RCL_RET_OK
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, sublogger_name));
+
+  // to get the message after adding the sublogger
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_TRUE(expected);
+
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, sublogger_name));
+  // to get the message after removing the sublogger if remove sublogger once
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_TRUE(expected);
+
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, sublogger_name));
+  // to get the message after removing the sublogger
   check_if_rosout_subscription_gets_a_message(
     full_sublogger_name.c_str(), this->subscription_ptr,
     this->context_ptr, 30, 100, expected);

@@ -81,7 +81,7 @@ typedef struct rosout_sublogger_entry_t
   // name is to store the allocated memory, and then finalize it at the end
   char * name;
   // count is something like a reference count that removes the entry if it is 0
-  uint64_t count;
+  uint64_t * count;
 } rosout_sublogger_entry_t;
 
 static rcutils_hash_map_t __sublogger_map;
@@ -171,6 +171,7 @@ _rcl_logging_rosout_clear_sublogger_map_item(void * value)
   rcl_ret_t status = rcl_ret_from_rcutils_ret(
     rcutils_hash_map_unset(&__sublogger_map, &entry->name));
   __rosout_allocator.deallocate(entry->name, __rosout_allocator.state);
+  __rosout_allocator.deallocate(entry->count, __rosout_allocator.state);
 
   return status;
 }
@@ -432,6 +433,7 @@ rcl_logging_rosout_add_sublogger(
 
   rcl_ret_t status = RCL_RET_OK;
   char * full_sublogger_name = NULL;
+  uint64_t * sublogger_count = NULL;
   rosout_map_entry_t entry;
   rosout_sublogger_entry_t sublogger_entry;
 
@@ -458,15 +460,7 @@ rcl_logging_rosout_add_sublogger(
         "Failed to get item from sublogger map for '%s'.", full_sublogger_name);
       goto cleanup;
     }
-    sublogger_entry.count++;
-    status = rcl_ret_from_rcutils_ret(
-      rcutils_hash_map_set(&__sublogger_map, &full_sublogger_name, &sublogger_entry));
-    if (RCL_RET_OK != status) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Failed to set sublogger map for '%s'.", full_sublogger_name);
-      goto cleanup;
-    }
-    status = RCL_RET_SUBLOGGER_ALREADY_EXIST;
+    *sublogger_entry.count += 1;
     goto cleanup;
   }
 
@@ -479,7 +473,15 @@ rcl_logging_rosout_add_sublogger(
   }
 
   sublogger_entry.name = full_sublogger_name;
-  sublogger_entry.count = 1;
+  sublogger_count = __rosout_allocator.allocate(sizeof(uint64_t), __rosout_allocator.state);
+  if (!sublogger_count) {
+    RCL_SET_ERROR_MSG(
+      "Failed to allocate memory for count of sublogger entry.");
+    goto cleanup;
+  }
+  sublogger_entry.count = sublogger_count;
+  *sublogger_entry.count = 1;
+
   status = rcl_ret_from_rcutils_ret(
     rcutils_hash_map_set(&__sublogger_map, &full_sublogger_name, &sublogger_entry));
   if (RCL_RET_OK != status) {
@@ -491,11 +493,13 @@ rcl_logging_rosout_add_sublogger(
       rcl_reset_error();
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
     }
-    goto cleanup;
+    goto cleanup_count;
   }
 
   return status;
 
+cleanup_count:
+  __rosout_allocator.deallocate(sublogger_count, __rosout_allocator.state);
 cleanup:
   __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
 exit:
@@ -536,12 +540,14 @@ rcl_logging_rosout_remove_sublogger(
     goto cleanup;
   }
 
-  if (sublogger_entry.count == 1) {
+  *sublogger_entry.count -= 1;
+  if (*sublogger_entry.count == 0) {
     status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &full_sublogger_name));
     if (RCL_RET_OK == status) {
       status =
         rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__sublogger_map, &full_sublogger_name));
       __rosout_allocator.deallocate(sublogger_entry.name, __rosout_allocator.state);
+      __rosout_allocator.deallocate(sublogger_entry.count, __rosout_allocator.state);
     }
   }
 
