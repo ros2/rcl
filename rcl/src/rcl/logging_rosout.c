@@ -434,7 +434,7 @@ rcl_logging_rosout_add_sublogger(
     _rcl_logging_rosout_get_full_sublogger_name(logger_name, sublogger_name, &full_sublogger_name);
   if (RCL_RET_OK != status) {
     // Error already set
-    goto exit;
+    return status;
   }
 
   rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
@@ -495,7 +495,6 @@ cleanup_count:
   __rosout_allocator.deallocate(sublogger_count, __rosout_allocator.state);
 cleanup:
   __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
-exit:
   return status;
 }
 
@@ -515,7 +514,7 @@ rcl_logging_rosout_remove_sublogger(
     _rcl_logging_rosout_get_full_sublogger_name(logger_name, sublogger_name, &full_sublogger_name);
   if (RCL_RET_OK != status) {
     // Error already set
-    goto exit;
+    return status;
   }
 
   // remove the entry from the map
@@ -546,6 +545,5 @@ rcl_logging_rosout_remove_sublogger(
 
 cleanup:
   __rosout_allocator.deallocate(full_sublogger_name, __rosout_allocator.state);
-exit:
   return status;
 }
