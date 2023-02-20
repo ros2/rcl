@@ -216,20 +216,17 @@ rcl_ret_t rcl_logging_rosout_fini()
   status = _rcl_logging_rosout_clear_hashmap(
     &__logger_map, _rcl_logging_rosout_clear_logger_map_item, &entry);
   if (RCL_RET_OK != status) {
-    goto exit;
+    return status;
   }
 
   status = _rcl_logging_rosout_clear_hashmap(
     &__sublogger_map, _rcl_logging_rosout_clear_sublogger_map_item, &sublogger_entry);
   if (RCL_RET_OK != status) {
-    goto exit;
+    return status;
   }
 
-  if (RCL_RET_OK == status) {
-    __is_initialized = false;
-  }
+  __is_initialized = false;
 
-exit:
   return status;
 }
 
@@ -247,10 +244,6 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
   logger_name = rcl_node_get_logger_name(node);
   if (NULL == logger_name) {
-    // Prevent from printing an extra error information in some tests
-    if (rcutils_error_is_set()) {
-      rcl_reset_error();
-    }
     RCL_SET_ERROR_MSG("Logger name was null.");
     return RCL_RET_ERROR;
   }
