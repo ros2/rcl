@@ -29,6 +29,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/publisher.h"
+#include "rcl/service_introspection.h"
 #include "rcl/time.h"
 #include "rcl/visibility_control.h"
 
@@ -49,15 +50,9 @@ typedef struct rcl_service_options_s
 {
   /// Middleware quality of service settings for the service.
   rmw_qos_profile_t qos;
-  /// Publisher options for the service event publisher
-  rcl_publisher_options_t event_publisher_options;
   /// Custom allocator for the service, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
-  /// Enable/Disable service introspection features
-  bool enable_service_introspection;
-  /// The clock to use for service introspection message timestamps
-  rcl_clock_t * clock;
 } rcl_service_options_t;
 
 /// Return a rcl_service_t struct with members set to `NULL`.
@@ -208,10 +203,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node);
  * The defaults are:
  *
  * - qos = rmw_qos_profile_services_default
- * - event_publisher_options = rcl_publisher_get_default_options()
  * - allocator = rcl_get_default_allocator()
- * - enable_service_introspection = False
- * - clock = NULL
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -538,9 +530,13 @@ rcl_service_set_on_new_request_callback(
   rcl_event_callback_t callback,
   const void * user_data);
 
-/// Configure service introspection features for the service
+/// Configure service introspection features for the service.
 /**
  * Enables or disables service introspection features for this service.
+ * If the introspection state is RCL_SERVICE_INTROSPECTION_OFF, then introspection will
+ * be disabled.  If the state is RCL_SERVICE_INTROSPECTION_METADATA, the client metadata
+ * will be published.  If the state is RCL_SERVICE_INTROSPECTION_CONTENTS, then the client
+ * metadata and service request and response contents will be published.
  *
  * <hr>
  * Attribute          | Adherence
@@ -551,44 +547,29 @@ rcl_service_set_on_new_request_callback(
  * Lock-Free          | Maybe [1]
  * <i>[1] rmw implementation defined</i>
  *
- * \param[in] server The server on which to enable service introspection
- * \param[in] node The node for which the service event publisher is to be associated to
- * \param[in] enable Whether to enable or disable service introspection
- * \return `RCL_RET_ERROR` if the event publisher is invalid, or
- * \return `RCL_RET_NODE_INVALID` if the given node is invalid, or
- * \return `RCL_RET_INVALID_ARGUMENT` if the client or node structure is invalid,
- * \return `RCL_RET_BAD_ALLOC` if a memory allocation failed, or
- * \return `RCL_RET_OK` if the call was successful
+ * \param[in] service service on which to configure service introspection
+ * \param[in] node valid rcl_node_t to use to create the introspection publisher
+ * \param[in] clock valid rcl_clock_t to use to generate the introspection timestamps
+ * \param[in] type_support type support library associated with this service
+ * \param[in] publisher_options options to use when creating the introspection publisher
+ * \param[in] introspection_state rcl_service_introspection_state_t describing whether
+ *            introspection should be OFF, METADATA, or CONTENTS
+ * \return #RCL_RET_OK if the call was successful, or
+ * \return #RCL_RET_ERROR if the event publisher is invalid, or
+ * \return #RCL_RET_NODE_INVALID if the given node is invalid, or
+ * \return #RCL_RET_INVALID_ARGUMENT if the client or node structure is invalid,
+ * \return #RCL_RET_BAD_ALLOC if a memory allocation failed
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_service_introspection_configure_server_service_events(
+rcl_service_configure_service_introspection(
   rcl_service_t * service,
   rcl_node_t * node,
-  bool enable);
-
-/// Configure if the payload (server response) is included in service event messages.
-/**
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] server The server on which to enable/disable payload for service event messages.
- * \param[in] enable Whether to enable or disable including the payload in the event message.
- * \return `RCL_RET_INVALID_ARGUMENT` if the service structure is invalid,
- * \return `RCL_RET_OK` if the call was successful
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_service_introspection_configure_server_service_event_message_payload(
-  rcl_service_t * service,
-  bool enable);
+  rcl_clock_t * clock,
+  const rosidl_service_type_support_t * type_support,
+  const rcl_publisher_options_t publisher_options,
+  rcl_service_introspection_state_t introspection_state);
 
 #ifdef __cplusplus
 }
