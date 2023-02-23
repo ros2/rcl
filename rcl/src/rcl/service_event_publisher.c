@@ -170,7 +170,7 @@ rcl_ret_t rcl_service_event_publisher_fini(
     return RCL_RET_ERROR;
   }
 
-  if (!rcl_node_is_valid(node)) {
+  if (!rcl_node_is_valid_except_context(node)) {
     return RCL_RET_NODE_INVALID;
   }
 
