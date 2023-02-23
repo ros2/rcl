@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+5.8.0 (2023-02-23)
+------------------
 * use parent logger (`#921 <https://github.com/ros2/rcl/issues/921>`_)
 * Contributors: Chen Lihui
 
