@@ -185,6 +185,33 @@ wait_for_established_subscription(
 }
 
 bool
+wait_for_established_publisher(
+  const rcl_subscription_t * subscription,
+  size_t max_tries,
+  int64_t period_ms)
+{
+  size_t iteration = 0;
+  rcl_ret_t ret = RCL_RET_OK;
+  size_t publisher_count = 0;
+  while (iteration < max_tries) {
+    ++iteration;
+    ret = rcl_subscription_get_publisher_count(subscription, &publisher_count);
+    if (ret != RCL_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
+        "Error in rcl_subscription_get_publisher_count: %s",
+        rcl_get_error_string().str);
+      return false;
+    }
+    if (publisher_count > 0) {
+      return true;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(period_ms));
+  }
+  return false;
+}
+
+bool
 wait_for_subscription_to_be_ready(
   rcl_subscription_t * subscription,
   rcl_context_t * context,

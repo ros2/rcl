@@ -47,49 +47,63 @@
 class CLASSNAME (TestServiceEventPublisherFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
-  rcl_context_t * context_ptr;
-  rcl_node_t * node_ptr;
-  rcl_allocator_t allocator;
-  rcl_ret_t ret;
-  const rosidl_service_type_support_t * srv_ts =
-    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
-
   void SetUp() override
   {
     rcl_ret_t ret;
     allocator = rcl_get_default_allocator();
+
+    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+    ret = rcl_init_options_init(&init_options, allocator);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
-      rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-      ret = rcl_init_options_init(&init_options, allocator);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-      {
-        EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
-      });
-      this->context_ptr = new rcl_context_t;
-      *this->context_ptr = rcl_get_zero_initialized_context();
-      ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    }
+      EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+    });
+
+    this->context_ptr = new rcl_context_t;
+    *this->context_ptr = rcl_get_zero_initialized_context();
+    ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
-    const char * name = "test_service_event_publisher_node";
+    constexpr char name[] = "test_service_event_publisher_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    this->clock_ptr = new rcl_clock_t;
+    ret = rcl_clock_init(RCL_STEADY_TIME, clock_ptr, &allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   void TearDown() override
   {
-    rcl_ret_t ret = rcl_node_fini(this->node_ptr);
+    rcl_ret_t ret;
+
+    ret = rcl_clock_fini(this->clock_ptr);
+    delete this->clock_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_shutdown(this->context_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_context_fini(this->context_ptr);
     delete this->context_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
+
+protected:
+  rcl_context_t * context_ptr;
+  rcl_node_t * node_ptr;
+  rcl_clock_t * clock_ptr;
+  rcl_allocator_t allocator;
+  const rosidl_service_type_support_t * srv_ts =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
 };
 
 /* Basic nominal test of service introspection features covering init, fini, and sending a message
@@ -100,13 +114,10 @@ TEST_F(
 {
   rcl_service_event_publisher_t service_event_publisher =
     rcl_get_zero_initialized_service_event_publisher();
-  rcl_clock_t clock;
-
-  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_ret_t ret;
 
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, this->node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, this->node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     "test_service_event_publisher", srv_ts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -139,6 +150,7 @@ TEST_F(
   rcl_service_event_publisher_t service_event_publisher =
     rcl_get_zero_initialized_service_event_publisher();
   rcl_clock_t clock;
+  rcl_ret_t ret;
 
   ret = rcl_service_event_publisher_init(
     &service_event_publisher, nullptr, &clock, rcl_publisher_get_default_options(),
@@ -152,10 +164,8 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
 
-  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     "test_service_event_publisher", srv_ts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -168,14 +178,14 @@ TEST_F(
 
   service_event_publisher = rcl_get_zero_initialized_service_event_publisher();
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     "123test_service_event_publisher<>h", srv_ts);
   EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
 
   service_event_publisher = rcl_get_zero_initialized_service_event_publisher();
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     "test_service_event_publisher", srv_ts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -187,7 +197,7 @@ TEST_F(
   auto mock = mocking_utils::patch_to_fail(
     "lib:rcl", rcl_publisher_init, "patch rcl_publisher_init to fail", RCL_RET_ERROR);
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     "test_service_event_publisher", srv_ts);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
@@ -203,15 +213,13 @@ TEST_F(
   auto sub_opts = rcl_subscription_get_default_options();
   std::string topic = "test_service_event_publisher";
   std::string service_event_topic = topic + RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX;
+  rcl_ret_t ret;
 
   rcl_service_event_publisher_t service_event_publisher =
     rcl_get_zero_initialized_service_event_publisher();
-  rcl_clock_t clock;
-  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     topic.c_str(), srv_ts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -233,6 +241,8 @@ TEST_F(
     ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
+
+  ASSERT_TRUE(wait_for_established_subscription(service_event_publisher.publisher, 10, 100));
 
   test_msgs__srv__BasicTypes_Request test_req;
   memset(&test_req, 0, sizeof(test_msgs__srv__BasicTypes_Request));
@@ -268,16 +278,17 @@ TEST_F(
   CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
   test_service_event_publisher_send_message_return_codes)
 {
+  rcl_ret_t ret;
+
   rcl_service_event_publisher_t service_event_publisher =
     rcl_get_zero_initialized_service_event_publisher();
 
   uint8_t guid[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
   char topic[] = "test_service_event_publisher";
-  rcl_clock_t clock;
-  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(), topic, srv_ts);
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
+    topic, srv_ts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_service_event_publisher_change_state(
@@ -318,13 +329,13 @@ TEST_F(
   CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
   test_service_event_publisher_utils)
 {
+  rcl_ret_t ret;
+
   rcl_service_event_publisher_t service_event_publisher =
     rcl_get_zero_initialized_service_event_publisher();
-  rcl_clock_t clock;
-  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     "test_service_event_publisher", srv_ts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -338,7 +349,7 @@ TEST_F(
 
   service_event_publisher = rcl_get_zero_initialized_service_event_publisher();
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     "test_service_event_publisher", srv_ts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -349,7 +360,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
   rcutils_reset_error();
 
-  service_event_publisher.clock = &clock;
+  service_event_publisher.clock = clock_ptr;
   ret = rcl_service_event_publisher_fini(&service_event_publisher, node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
@@ -358,13 +369,13 @@ TEST_F(
   CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
   test_service_event_publisher_enable_and_disable_return_codes)
 {
+  rcl_ret_t ret;
+
   rcl_service_event_publisher_t service_event_publisher =
     rcl_get_zero_initialized_service_event_publisher();
-  rcl_clock_t clock;
-  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
   ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, &clock, rcl_publisher_get_default_options(),
+    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
     "test_service_event_publisher", srv_ts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
@@ -399,74 +410,97 @@ public:
   {
     rcl_allocator_t allocator = rcl_get_default_allocator();
     rcl_ret_t ret;
+    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+    ret = rcl_init_options_init(&init_options, allocator);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
-      rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-      ret = rcl_init_options_init(&init_options, allocator);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-      {
-        EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
-      });
-      this->context_ptr = new rcl_context_t;
-      *this->context_ptr = rcl_get_zero_initialized_context();
-      ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    }
+      EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options)) << rcl_get_error_string().str;
+    });
+
+    this->context_ptr = new rcl_context_t;
+    *this->context_ptr = rcl_get_zero_initialized_context();
+    ret = rcl_init(0, nullptr, &init_options, this->context_ptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
     const char * name = "test_service_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    srv_ts =
-      ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
 
-    // rcl_clock_t clock;
-    ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+    this->clock_ptr = new rcl_clock_t;
+    ret = rcl_clock_init(RCL_STEADY_TIME, clock_ptr, &allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     std::string srv_name = "test_service_introspection_service";
     std::string service_event_topic = srv_name + RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX;
 
-    service = rcl_get_zero_initialized_service();
+    this->service_ptr = new rcl_service_t;
+    *this->service_ptr = rcl_get_zero_initialized_service();
     rcl_service_options_t service_options = rcl_service_get_default_options();
-    ret = rcl_service_init(&service, this->node_ptr, srv_ts, srv_name.c_str(), &service_options);
+    ret = rcl_service_init(
+      this->service_ptr, this->node_ptr, srv_ts, srv_name.c_str(), &service_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     ret = rcl_service_configure_service_introspection(
-      &service, this->node_ptr, &clock, srv_ts, rcl_publisher_get_default_options(),
+      this->service_ptr, this->node_ptr, clock_ptr, srv_ts, rcl_publisher_get_default_options(),
       RCL_SERVICE_INTROSPECTION_CONTENTS);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-    client = rcl_get_zero_initialized_client();
+    this->client_ptr = new rcl_client_t;
+    *this->client_ptr = rcl_get_zero_initialized_client();
     rcl_client_options_t client_options = rcl_client_get_default_options();
-    ret = rcl_client_init(&client, this->node_ptr, srv_ts, srv_name.c_str(), &client_options);
+    ret = rcl_client_init(
+      this->client_ptr, this->node_ptr, srv_ts, srv_name.c_str(), &client_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     ret = rcl_client_configure_service_introspection(
-      &client, this->node_ptr, &clock, srv_ts, rcl_publisher_get_default_options(),
+      this->client_ptr, this->node_ptr, clock_ptr, srv_ts, rcl_publisher_get_default_options(),
       RCL_SERVICE_INTROSPECTION_CONTENTS);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-    subscription = rcl_get_zero_initialized_subscription();
+    this->subscription_ptr = new rcl_subscription_t;
+    *this->subscription_ptr = rcl_get_zero_initialized_subscription();
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     ret = rcl_subscription_init(
-      &subscription, this->node_ptr, srv_ts->event_typesupport, service_event_topic.c_str(),
-      &subscription_options);
+      this->subscription_ptr, this->node_ptr, srv_ts->event_typesupport,
+      service_event_topic.c_str(), &subscription_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ASSERT_TRUE(wait_for_established_publisher(this->subscription_ptr, 10, 100));
+
+    ASSERT_TRUE(wait_for_server_to_be_available(this->node_ptr, this->client_ptr, 10, 1000));
   }
 
   void TearDown()
   {
-    rcl_ret_t ret = rcl_service_fini(&service, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;  // not ok, error
-    ret = rcl_client_fini(&client, this->node_ptr);
+    rcl_ret_t ret;
+
+    ret = rcl_subscription_fini(this->subscription_ptr, this->node_ptr);
+    delete this->subscription_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_client_fini(this->client_ptr, this->node_ptr);
+    delete this->client_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_service_fini(this->service_ptr, this->node_ptr);
+    delete this->service_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_clock_fini(this->clock_ptr);
+    delete this->clock_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_shutdown(this->context_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_context_fini(this->context_ptr);
     delete this->context_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -475,11 +509,12 @@ public:
 protected:
   rcl_context_t * context_ptr;
   rcl_node_t * node_ptr;
-  rcl_service_t service;
-  rcl_client_t client;
-  rcl_clock_t clock;
-  rcl_subscription_t subscription;
-  const rosidl_service_type_support_t * srv_ts;
+  rcl_service_t * service_ptr;
+  rcl_client_t * client_ptr;
+  rcl_clock_t * clock_ptr;
+  rcl_subscription_t * subscription_ptr;
+  const rosidl_service_type_support_t * srv_ts =
+    ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
 };
 
 /* Whole test of service event publisher with service, client, and subscription
@@ -492,26 +527,27 @@ TEST_F(
   rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
   test_msgs__srv__BasicTypes_Event event_msg;
   test_msgs__srv__BasicTypes_Event__init(&event_msg);
-
-  ASSERT_TRUE(wait_for_server_to_be_available(this->node_ptr, &client, 10, 1000));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({test_msgs__srv__BasicTypes_Event__fini(&event_msg);});
 
   test_msgs__srv__BasicTypes_Request client_request;
   memset(&client_request, 0, sizeof(test_msgs__srv__BasicTypes_Request));
   test_msgs__srv__BasicTypes_Request__init(&client_request);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({test_msgs__srv__BasicTypes_Request__fini(&client_request);});
   client_request.bool_value = false;
   client_request.uint8_value = 1;
   client_request.uint32_value = 2;
+
   int64_t sequence_number;
-  ret = rcl_send_request(&client, &client_request, &sequence_number);
+  ret = rcl_send_request(this->client_ptr, &client_request, &sequence_number);
   EXPECT_NE(sequence_number, 0);
-  test_msgs__srv__BasicTypes_Request__fini(&client_request);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ASSERT_TRUE(wait_for_service_to_be_ready(&service, context_ptr, 10, 100));
+  ASSERT_TRUE(wait_for_service_to_be_ready(this->service_ptr, this->context_ptr, 10, 100));
 
   // expect a REQUEST_SENT event
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
-  ret = rcl_take(&subscription, &event_msg, &message_info, nullptr);
+  ASSERT_TRUE(
+    wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100));
+  ret = rcl_take(this->subscription_ptr, &event_msg, &message_info, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_SENT, event_msg.info.event_type);
 
@@ -524,49 +560,53 @@ TEST_F(
   test_msgs__srv__BasicTypes_Request service_request;
   memset(&service_request, 0, sizeof(test_msgs__srv__BasicTypes_Request));
   test_msgs__srv__BasicTypes_Request__init(&service_request);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {test_msgs__srv__BasicTypes_Request__fini(&service_request);});
 
   rmw_service_info_t header;
   ret = rcl_take_request(
-    &service, &(header.request_id), &service_request);
+    this->service_ptr, &(header.request_id), &service_request);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_EQ(2U, service_request.uint32_value);
 
   // expect a REQUEST_RECEIVED event
-  ret = rcl_take(&subscription, &event_msg, &message_info, nullptr);
+  ASSERT_TRUE(
+    wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100));
+  ret = rcl_take(this->subscription_ptr, &event_msg, &message_info, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_RECEIVED, event_msg.info.event_type);
 
   service_response.uint32_value = 2;
   service_response.uint8_value = 3;
-  ret = rcl_send_response(&service, &header.request_id, &service_response);
+  ret = rcl_send_response(this->service_ptr, &header.request_id, &service_response);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // expect a RESPONSE_SEND event
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({test_msgs__srv__BasicTypes_Event__fini(&event_msg);});
-  ret = rcl_take(&subscription, &event_msg, &message_info, nullptr);
+  ASSERT_TRUE(
+    wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100));
+  ret = rcl_take(this->subscription_ptr, &event_msg, &message_info, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_EQ(service_msgs__msg__ServiceEventInfo__RESPONSE_SENT, event_msg.info.event_type);
-  test_msgs__srv__BasicTypes_Request__fini(&service_request);
-
-  ASSERT_TRUE(
-    wait_for_client_to_be_ready(&client, context_ptr, 10, 100));
 
   test_msgs__srv__BasicTypes_Response client_response;
   memset(&client_response, 0, sizeof(test_msgs__srv__BasicTypes_Response));
   test_msgs__srv__BasicTypes_Response__init(&client_response);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {test_msgs__srv__BasicTypes_Response__fini(&client_response);});
 
-  ret = rcl_take_response(&client, &(header.request_id), &client_response);
+  ASSERT_TRUE(
+    wait_for_client_to_be_ready(this->client_ptr, this->context_ptr, 10, 100));
+  ret = rcl_take_response(this->client_ptr, &(header.request_id), &client_response);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  test_msgs__srv__BasicTypes_Response__fini(&client_response);
 
   // expect a RESPONSE_RECEIVED event
-  ret = rcl_take(&subscription, &event_msg, &message_info, nullptr);
+  ASSERT_TRUE(
+    wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100));
+  ret = rcl_take(this->subscription_ptr, &event_msg, &message_info, nullptr);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_EQ(service_msgs__msg__ServiceEventInfo__RESPONSE_RECEIVED, event_msg.info.event_type);
   ASSERT_EQ(1U, event_msg.response.size);
   ASSERT_EQ(2U, event_msg.response.data[0].uint32_value);
-
-  test_msgs__srv__BasicTypes_Event__fini(&event_msg);
 }
 
 /* Integration level test with disabling service events
@@ -579,88 +619,82 @@ TEST_F(
   rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
   test_msgs__srv__BasicTypes_Event event_msg;
   test_msgs__srv__BasicTypes_Event__init(&event_msg);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({test_msgs__srv__BasicTypes_Event__fini(&event_msg);});
 
   ret = rcl_service_configure_service_introspection(
-    &service, node_ptr, &clock, srv_ts, rcl_publisher_get_default_options(),
+    this->service_ptr, this->node_ptr, this->clock_ptr, srv_ts, rcl_publisher_get_default_options(),
     RCL_SERVICE_INTROSPECTION_OFF);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-  ASSERT_TRUE(wait_for_server_to_be_available(this->node_ptr, &client, 10, 1000));
 
   test_msgs__srv__BasicTypes_Request client_request;
   memset(&client_request, 0, sizeof(test_msgs__srv__BasicTypes_Request));
   test_msgs__srv__BasicTypes_Request__init(&client_request);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({test_msgs__srv__BasicTypes_Request__fini(&client_request);});
   client_request.bool_value = false;
   client_request.uint8_value = 1;
   client_request.uint32_value = 2;
+
   int64_t sequence_number;
-  ret = rcl_send_request(&client, &client_request, &sequence_number);
+  ret = rcl_send_request(this->client_ptr, &client_request, &sequence_number);
   EXPECT_NE(sequence_number, 0);
-  test_msgs__srv__BasicTypes_Request__fini(&client_request);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-  ASSERT_TRUE(wait_for_service_to_be_ready(&service, context_ptr, 10, 100));
+  ASSERT_TRUE(wait_for_service_to_be_ready(this->service_ptr, this->context_ptr, 10, 100));
 
-  {  // expect a REQUEST_SENT event
-    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
-    ret = rcl_take(&subscription, &event_msg, &message_info, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_SENT, event_msg.info.event_type);
-  }
-
-  {
-    test_msgs__srv__BasicTypes_Response service_response;
-    memset(&service_response, 0, sizeof(test_msgs__srv__BasicTypes_Response));
-    test_msgs__srv__BasicTypes_Response__init(&service_response);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-      {test_msgs__srv__BasicTypes_Response__fini(&service_response);});
-
-    test_msgs__srv__BasicTypes_Request service_request;
-    memset(&service_request, 0, sizeof(test_msgs__srv__BasicTypes_Request));
-    test_msgs__srv__BasicTypes_Request__init(&service_request);
-
-    rmw_service_info_t header;
-    ret = rcl_take_request(
-      &service, &(header.request_id), &service_request);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(2U, service_request.uint32_value);
-
-    {  // expect take to fail since no introspection message should be published
-      ret = rcl_take(&subscription, &event_msg, &message_info, nullptr);
-      ASSERT_EQ(RCL_RET_SUBSCRIPTION_TAKE_FAILED, ret) << rcl_get_error_string().str;
-    }
-
-    service_response.uint32_value = 2;
-    service_response.uint8_value = 3;
-    ret = rcl_send_response(&service, &header.request_id, &service_response);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-    {  // expect take to fail since no introspection message should be published
-      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({test_msgs__srv__BasicTypes_Event__fini(&event_msg);});
-      ret = rcl_take(&subscription, &event_msg, &message_info, nullptr);
-      ASSERT_EQ(RCL_RET_SUBSCRIPTION_TAKE_FAILED, ret) << rcl_get_error_string().str;
-    }
-    test_msgs__srv__BasicTypes_Request__fini(&service_request);
-  }
-
+  // expect a REQUEST_SENT event
   ASSERT_TRUE(
-    wait_for_client_to_be_ready(&client, context_ptr, 10, 100));
+    wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100));
+  ret = rcl_take(this->subscription_ptr, &event_msg, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_SENT, event_msg.info.event_type);
+
+  test_msgs__srv__BasicTypes_Response service_response;
+  memset(&service_response, 0, sizeof(test_msgs__srv__BasicTypes_Response));
+  test_msgs__srv__BasicTypes_Response__init(&service_response);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {test_msgs__srv__BasicTypes_Response__fini(&service_response);});
+
+  test_msgs__srv__BasicTypes_Request service_request;
+  memset(&service_request, 0, sizeof(test_msgs__srv__BasicTypes_Request));
+  test_msgs__srv__BasicTypes_Request__init(&service_request);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {test_msgs__srv__BasicTypes_Request__fini(&service_request);});
+
+  rmw_service_info_t header;
+  ret = rcl_take_request(
+    this->service_ptr, &(header.request_id), &service_request);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(2U, service_request.uint32_value);
+
+  // expect take to fail since no introspection message should be published
+  ret = rcl_take(this->subscription_ptr, &event_msg, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_SUBSCRIPTION_TAKE_FAILED, ret) << rcl_get_error_string().str;
+
+  service_response.uint32_value = 2;
+  service_response.uint8_value = 3;
+  ret = rcl_send_response(this->service_ptr, &header.request_id, &service_response);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // expect take to fail since no introspection message should be published
+  ret = rcl_take(this->subscription_ptr, &event_msg, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_SUBSCRIPTION_TAKE_FAILED, ret) << rcl_get_error_string().str;
 
   test_msgs__srv__BasicTypes_Response client_response;
   memset(&client_response, 0, sizeof(test_msgs__srv__BasicTypes_Response));
   test_msgs__srv__BasicTypes_Response__init(&client_response);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {test_msgs__srv__BasicTypes_Response__fini(&client_response);});
 
-  rmw_service_info_t header;
-  ret = rcl_take_response(&client, &(header.request_id), &client_response);
+  ASSERT_TRUE(
+    wait_for_client_to_be_ready(this->client_ptr, this->context_ptr, 10, 100));
+  ret = rcl_take_response(this->client_ptr, &(header.request_id), &client_response);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  test_msgs__srv__BasicTypes_Response__fini(&client_response);
 
-  {  // expect a RESPONSE_RECEIVED event
-    ret = rcl_take(&subscription, &event_msg, &message_info, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(service_msgs__msg__ServiceEventInfo__RESPONSE_RECEIVED, event_msg.info.event_type);
-    ASSERT_EQ(2U, event_msg.response.data[0].uint32_value);
-  }
-
-  test_msgs__srv__BasicTypes_Event__fini(&event_msg);
+  // expect a RESPONSE_RECEIVED event
+  ASSERT_TRUE(
+    wait_for_subscription_to_be_ready(this->subscription_ptr, this->context_ptr, 10, 100));
+  ret = rcl_take(this->subscription_ptr, &event_msg, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(service_msgs__msg__ServiceEventInfo__RESPONSE_RECEIVED, event_msg.info.event_type);
+  ASSERT_EQ(2U, event_msg.response.data[0].uint32_value);
 }
