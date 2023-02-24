@@ -194,13 +194,15 @@ TEST_F(
 
   service_event_publisher = rcl_get_zero_initialized_service_event_publisher();
 
-  auto mock = mocking_utils::patch_to_fail(
-    "lib:rcl", rcl_publisher_init, "patch rcl_publisher_init to fail", RCL_RET_ERROR);
-  ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
-    "test_service_event_publisher", srv_ts);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-  rcutils_reset_error();
+  {
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rmw_create_publisher, "patch rmw_create_publisher to fail", nullptr);
+    ret = rcl_service_event_publisher_init(
+      &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
+      "test_service_event_publisher", srv_ts);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcutils_reset_error();
+  }
 }
 
 /* Test sending service introspection message via service_event_publisher.h
