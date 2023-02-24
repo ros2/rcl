@@ -2,6 +2,39 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.8.0 (2023-02-23)
+------------------
+* use parent logger (`#921 <https://github.com/ros2/rcl/issues/921>`_)
+* Contributors: Chen Lihui
+
+5.7.0 (2023-02-13)
+------------------
+* Add timer on reset callback (`#995 <https://github.com/ros2/rcl/issues/995>`_)
+* Update rcl to C++17. (`#1031 <https://github.com/ros2/rcl/issues/1031>`_)
+* Make sure to check the return value of rcl_clock_init in tests. (`#1030 <https://github.com/ros2/rcl/issues/1030>`_)
+* Contributors: Chris Lalancette, mauropasse
+
+5.6.0 (2022-12-05)
+------------------
+* Implement rcl_clock_time_started (`#1021 <https://github.com/ros2/rcl/issues/1021>`_)
+* Make sure to reset errors more places in the tests. (`#1020 <https://github.com/ros2/rcl/issues/1020>`_)
+  This makes it so we don't get as many warnings when the
+  tests are running.
+* [rolling] Update maintainers - 2022-11-07 (`#1017 <https://github.com/ros2/rcl/issues/1017>`_)
+* Contributors: Audrow Nash, Chris Lalancette, methylDragon
+
+5.5.0 (2022-11-02)
+------------------
+* Small cleanups to rcl (`#1013 <https://github.com/ros2/rcl/issues/1013>`_)
+* use int64_t for period. (`#1010 <https://github.com/ros2/rcl/issues/1010>`_)
+* Contributors: Chris Lalancette, Tomoya Fujita
+
+5.4.1 (2022-09-13)
+------------------
+* fixed rcl_wait return error when timer cancelled (`#1003 <https://github.com/ros2/rcl/issues/1003>`_)
+* remove duplicate packages in find_package and reorder (`#994 <https://github.com/ros2/rcl/issues/994>`_)
+* Contributors: Chen Lihui, 정찬희
+
 5.4.0 (2022-04-29)
 ------------------
 

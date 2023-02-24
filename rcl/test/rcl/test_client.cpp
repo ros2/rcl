@@ -250,10 +250,13 @@ TEST_F(TestClientFixture, test_client_bad_arguments) {
     RCL_RET_SERVICE_NAME_INVALID, rcl_client_init(
       &client, this->node_ptr, ts,
       "invalid name", &default_client_options)) << rcl_get_error_string().str;
+  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_client_fini(&client, nullptr));
+  rcl_reset_error();
   rcl_node_t not_valid_node = rcl_get_zero_initialized_node();
   EXPECT_EQ(RCL_RET_NODE_INVALID, rcl_client_fini(&client, &not_valid_node));
+  rcl_reset_error();
 
   rmw_service_info_t header;
   int64_t sequence_number = 24;
@@ -268,39 +271,55 @@ TEST_F(TestClientFixture, test_client_bad_arguments) {
   });
 
   EXPECT_EQ(nullptr, rcl_client_get_rmw_handle(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_client_get_service_name(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_client_get_service_name(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_client_get_options(nullptr));
   EXPECT_EQ(
     RCL_RET_CLIENT_INVALID, rcl_take_response_with_info(
       nullptr, &header, &client_response)) << rcl_get_error_string().str;
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_CLIENT_INVALID, rcl_take_response(
       nullptr, &(header.request_id), &client_response)) << rcl_get_error_string().str;
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_CLIENT_INVALID, rcl_send_request(
       nullptr, &client_request, &sequence_number)) << rcl_get_error_string().str;
+  rcl_reset_error();
   EXPECT_EQ(24, sequence_number);
   EXPECT_EQ(nullptr, rcl_client_request_publisher_get_actual_qos(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_client_response_subscription_get_actual_qos(nullptr));
+  rcl_reset_error();
 
   // Not init client
   EXPECT_EQ(nullptr, rcl_client_get_rmw_handle(&client));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_client_get_service_name(&client));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_client_get_service_name(&client));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_client_get_options(&client));
   EXPECT_EQ(
     RCL_RET_CLIENT_INVALID, rcl_take_response_with_info(
       &client, &header, &client_response)) << rcl_get_error_string().str;
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_CLIENT_INVALID, rcl_take_response(
       &client, &(header.request_id), &client_response)) << rcl_get_error_string().str;
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_CLIENT_INVALID, rcl_send_request(
       &client, &client_request, &sequence_number)) << rcl_get_error_string().str;
+  rcl_reset_error();
   EXPECT_EQ(24, sequence_number);
   EXPECT_EQ(nullptr, rcl_client_request_publisher_get_actual_qos(&client));
+  rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_client_response_subscription_get_actual_qos(&client));
+  rcl_reset_error();
 }
 
 TEST_F(TestClientFixture, test_client_init_fini_maybe_fail)

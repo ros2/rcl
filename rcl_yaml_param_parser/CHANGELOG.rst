@@ -2,6 +2,27 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.8.0 (2023-02-23)
+------------------
+
+5.7.0 (2023-02-13)
+------------------
+* Cleanup the dependencies in rcl_yaml_param_parser. (`#1014 <https://github.com/ros2/rcl/issues/1014>`_)
+* Update rcl to C++17. (`#1031 <https://github.com/ros2/rcl/issues/1031>`_)
+* Support yaml string tag '!!str' (`#999 <https://github.com/ros2/rcl/issues/999>`_)
+* Contributors: Barry Xu, Chris Lalancette
+
+5.6.0 (2022-12-05)
+------------------
+* [rolling] Update maintainers - 2022-11-07 (`#1017 <https://github.com/ros2/rcl/issues/1017>`_)
+* Contributors: Audrow Nash
+
+5.5.0 (2022-11-02)
+------------------
+
+5.4.1 (2022-09-13)
+------------------
+
 5.4.0 (2022-04-29)
 ------------------
 

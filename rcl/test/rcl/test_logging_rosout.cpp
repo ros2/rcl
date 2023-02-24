@@ -67,16 +67,14 @@ std::ostream & operator<<(
 
 class CLASSNAME (TestLogRosoutFixtureNotParam, RMW_IMPLEMENTATION) : public ::testing::Test {};
 
-class TEST_FIXTURE_P_RMW (TestLoggingRosoutFixture)
-  : public ::testing::TestWithParam<TestParameters>
+class TestLoggingRosout : public ::testing::Test
 {
-public:
+protected:
   void SetUp()
   {
-    auto param = GetParam();
     rcl_ret_t ret;
     rcl_allocator_t allocator = rcl_get_default_allocator();
-    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+    init_options = rcl_get_zero_initialized_init_options();
     ret = rcl_init_options_init(&init_options, allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -85,9 +83,7 @@ public:
     });
     this->context_ptr = new rcl_context_t;
     *this->context_ptr = rcl_get_zero_initialized_context();
-
-    ret = rcl_init(param.argc, param.argv, &init_options, this->context_ptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    call_rcl_init();
 
     EXPECT_EQ(
       RCL_RET_OK,
@@ -95,15 +91,15 @@ public:
     ) << rcl_get_error_string().str;
 
     // create node
-    rcl_node_options_t node_options = rcl_node_get_default_options();
-    if (!param.enable_node_option_rosout) {
-      node_options.enable_rosout = param.enable_node_option_rosout;
-    }
+    node_options = rcl_node_get_default_options();
+    update_node_option();
     const char * name = "test_rcl_node_logging_rosout";
     const char * namespace_ = "/ns";
+
     this->node_ptr = new rcl_node_t;
     *this->node_ptr = rcl_get_zero_initialized_node();
-    ret = rcl_node_init(this->node_ptr, name, namespace_, this->context_ptr, &node_options);
+    ret = rcl_node_init(
+      this->node_ptr, name, namespace_, this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     // create rosout subscription
@@ -134,11 +130,48 @@ public:
     EXPECT_EQ(RCL_RET_OK, rcl_logging_fini()) << rcl_get_error_string().str;
   }
 
-protected:
+  virtual void call_rcl_init()
+  {
+    rcl_ret_t ret = rcl_init(0, NULL, &init_options, this->context_ptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  virtual void update_node_option() {}
+
+  rcl_init_options_t init_options;
+  rcl_node_options_t node_options;
   rcl_context_t * context_ptr;
   rcl_node_t * node_ptr;
   rcl_subscription_t * subscription_ptr;
 };
+
+class TEST_FIXTURE_P_RMW (TestLoggingRosoutFixture)
+  : public TestLoggingRosout, public ::testing::WithParamInterface<TestParameters>
+{
+protected:
+  void SetUp()
+  {
+    param_ = GetParam();
+    TestLoggingRosout::SetUp();
+  }
+
+  void call_rcl_init()
+  {
+    rcl_ret_t ret = rcl_init(param_.argc, param_.argv, &init_options, this->context_ptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  void update_node_option()
+  {
+    if (!param_.enable_node_option_rosout) {
+      node_options.enable_rosout = param_.enable_node_option_rosout;
+    }
+  }
+
+  TestParameters param_;
+};
+
+class CLASSNAME (TestLogRosoutFixtureGeneral, RMW_IMPLEMENTATION) : public TestLoggingRosout {};
 
 void
 check_if_rosout_subscription_gets_a_message(
@@ -159,8 +192,9 @@ check_if_rosout_subscription_gets_a_message(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   size_t iteration = 0;
+  const char * message = "SOMETHING";
+  RCUTILS_LOG_INFO_NAMED(logger_name, message);
   do {
-    RCUTILS_LOG_INFO_NAMED(logger_name, "SOMETHING");
     ++iteration;
     ret = rcl_wait_set_clear(&wait_set);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -173,8 +207,16 @@ check_if_rosout_subscription_gets_a_message(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
       if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
-        success = true;
-        return;
+        rcl_interfaces__msg__Log * log_message = rcl_interfaces__msg__Log__create();
+        OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+        {
+          rcl_interfaces__msg__Log__destroy(log_message);
+        });
+        ret = rcl_take(subscription, log_message, nullptr, nullptr);
+        if (RCL_RET_OK == ret && strcmp(message, log_message->msg.data) == 0) {
+          success = true;
+          return;
+        }
       }
     }
   } while (iteration < max_tries);
@@ -314,4 +356,123 @@ TEST_F(
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_fini());
+}
+
+/* Testing basic of adding and removing sublogger
+ */
+TEST_F(
+  CLASSNAME(TestLogRosoutFixtureGeneral, RMW_IMPLEMENTATION), test_add_remove_sublogger_basic)
+{
+  const char * logger_name = rcl_node_get_logger_name(this->node_ptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_add_sublogger(nullptr, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_add_sublogger(nullptr, "child"));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_add_sublogger(logger_name, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_add_sublogger(logger_name, ""));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_add_sublogger("", "child"));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_ERROR, rcl_logging_rosout_add_sublogger("no_exist", "child"));
+  rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger(nullptr, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger(nullptr, "child"));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger(logger_name, nullptr));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger(logger_name, ""));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_rosout_remove_sublogger("", "child"));
+  rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child"));
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child"));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child1"));
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child1"));
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child1"));
+  // contine to remove it immediately or call rcl_logging_fini later
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child1"));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, "child2"));
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, "child2"));
+  EXPECT_EQ(RCL_RET_ERROR, rcl_logging_rosout_remove_sublogger(logger_name, "child2"));
+  rcl_reset_error();
+}
+
+/* Testing rosout message while adding and removing sublogger
+ */
+TEST_F(
+  CLASSNAME(TestLogRosoutFixtureGeneral, RMW_IMPLEMENTATION), test_add_remove_sublogger_message)
+{
+  const char * logger_name = rcl_node_get_logger_name(this->node_ptr);
+  const char * sublogger_name = "child";
+  std::string full_sublogger_name =
+    logger_name + std::string(RCUTILS_LOGGING_SEPARATOR_STRING) + sublogger_name;
+
+  // not to get the message before adding the sublogger
+  bool expected;
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_FALSE(expected);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, sublogger_name));
+
+  // to get the message after adding the sublogger
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_TRUE(expected);
+
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, sublogger_name));
+  // not to get the message after removing the sublogger
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_FALSE(expected);
+}
+
+/* Testing rosout message while adding and removing sublogger multiple times
+ */
+TEST_F(
+  CLASSNAME(TestLogRosoutFixtureGeneral, RMW_IMPLEMENTATION),
+  test_multi_add_remove_sublogger_message)
+{
+  const char * logger_name = rcl_node_get_logger_name(this->node_ptr);
+  const char * sublogger_name = "child";
+  std::string full_sublogger_name =
+    logger_name + std::string(RCUTILS_LOGGING_SEPARATOR_STRING) + sublogger_name;
+  bool expected;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, sublogger_name));
+
+  // add sublogger twice, expect RCL_RET_OK
+  EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, sublogger_name));
+
+  // to get the message after adding the sublogger
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_TRUE(expected);
+
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, sublogger_name));
+  // to get the message after removing the sublogger if remove sublogger once
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_TRUE(expected);
+
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_logging_rosout_remove_sublogger(logger_name, sublogger_name));
+  // to get the message after removing the sublogger
+  check_if_rosout_subscription_gets_a_message(
+    full_sublogger_name.c_str(), this->subscription_ptr,
+    this->context_ptr, 30, 100, expected);
+  EXPECT_FALSE(expected);
 }

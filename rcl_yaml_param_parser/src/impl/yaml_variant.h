@@ -16,6 +16,7 @@
 #define IMPL__YAML_VARIANT_H_
 
 #include "rcutils/allocator.h"
+#include "rcutils/macros.h"
 
 #include "./types.h"
 #include "rcl_yaml_param_parser/types.h"

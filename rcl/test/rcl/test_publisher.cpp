@@ -457,7 +457,6 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_invalid_publish
   EXPECT_NE(nullptr, rcl_publisher_get_rmw_handle(&publisher));
   EXPECT_NE(nullptr, rcl_publisher_get_actual_qos(&publisher));
   EXPECT_NE(nullptr, rcl_publisher_get_options(&publisher));
-  rcl_reset_error();
   EXPECT_FALSE(rcl_publisher_is_valid(&publisher));
   rcl_reset_error();
   EXPECT_EQ(nullptr, rcl_publisher_get_context(&publisher));
@@ -816,18 +815,22 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
     EXPECT_EQ(
       RCL_RET_PUBLISHER_INVALID,
       rcl_publish_loaned_message(nullptr, &msg, null_allocation_is_valid_arg));
+    rcl_reset_error();
     EXPECT_EQ(
       RCL_RET_PUBLISHER_INVALID,
       rcl_publish_loaned_message(&not_init_publisher, &msg, null_allocation_is_valid_arg));
+    rcl_reset_error();
     EXPECT_EQ(
       RCL_RET_INVALID_ARGUMENT,
       rcl_publish_loaned_message(&publisher, nullptr, null_allocation_is_valid_arg));
+    rcl_reset_error();
   }
   {
     // mocked, failure publish
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_publish_loaned_message, RMW_RET_ERROR);
     EXPECT_EQ(RCL_RET_ERROR, rcl_publish_loaned_message(&publisher, &msg, nullptr));
+    rcl_reset_error();
   }
   {
     // mocked, borrow loaned nominal usage
@@ -837,8 +840,10 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
   {
     // bad params borrow loaned
     EXPECT_EQ(RCL_RET_PUBLISHER_INVALID, rcl_borrow_loaned_message(nullptr, ts, &msg_pointer));
+    rcl_reset_error();
     EXPECT_EQ(
       RCL_RET_PUBLISHER_INVALID, rcl_borrow_loaned_message(&not_init_publisher, ts, &msg_pointer));
+    rcl_reset_error();
   }
   {
     // mocked, nominal return loaned message
@@ -851,12 +856,15 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_loaned_fun
     EXPECT_EQ(
       RCL_RET_PUBLISHER_INVALID,
       rcl_return_loaned_message_from_publisher(nullptr, &msg));
+    rcl_reset_error();
     EXPECT_EQ(
       RCL_RET_PUBLISHER_INVALID,
       rcl_return_loaned_message_from_publisher(&not_init_publisher, &msg));
+    rcl_reset_error();
     EXPECT_EQ(
       RCL_RET_INVALID_ARGUMENT,
       rcl_return_loaned_message_from_publisher(&publisher, nullptr));
+    rcl_reset_error();
   }
 
   test_msgs__msg__BasicTypes__fini(&msg);
@@ -931,4 +939,5 @@ TEST_F(CLASSNAME(TestPublisherFixture, RMW_IMPLEMENTATION), test_mock_publisher_
   auto mock = mocking_utils::patch_and_return("lib:rcl", rmw_destroy_publisher, RMW_RET_ERROR);
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
 }

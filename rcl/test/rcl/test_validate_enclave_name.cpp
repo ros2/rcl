@@ -35,14 +35,17 @@ TEST(TestValidateEnclaveName, test_validate) {
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT,
     rcl_validate_enclave_name(nullptr, &validation_result, &invalid_index));
+  rcl_reset_error();
 
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT,
     rcl_validate_enclave_name_with_size(nullptr, 20, &validation_result, &invalid_index));
+  rcl_reset_error();
 
   EXPECT_EQ(
     RMW_RET_INVALID_ARGUMENT,
     rcl_validate_enclave_name_with_size("/foo", 20, nullptr, &invalid_index));
+  rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_OK,

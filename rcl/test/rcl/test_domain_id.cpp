@@ -51,6 +51,7 @@ TEST(TestGetDomainId, test_nominal) {
   EXPECT_EQ(RCL_DEFAULT_DOMAIN_ID, domain_id);
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_default_domain_id(nullptr));
+  rcl_reset_error();
 }
 
 TEST(TestGetDomainId, test_mock_get_default_domain_id) {
