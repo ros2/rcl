@@ -173,7 +173,8 @@ rcl_subscription_init(
   subscription->impl->type_support = type_support;
 
   if (options->rmw_subscription_options.content_filter_options) {
-    // Content filter topic not supported (or not enabled as some failed cases) on DDS.
+    // Content filter topic not supported (or not enabled as some failed cases) on rmw
+    // implementation.
     // TODO(iuhilnehc-ynos): enable common content filter with an environment variable
     // (e.g. FORCE_COMMON_CONTENT_FILTER) regardless of whether cft is enabled on DDS.
     if (!subscription->impl->rmw_handle->is_cft_enabled) {
@@ -570,7 +571,8 @@ rcl_subscription_get_content_filter(
     subscription->impl->rmw_handle,
     allocator,
     &options->rmw_subscription_content_filter_options);
-  // If options can be get from DDS, it's unnecessary to get them from common content filter.
+  // If options can be get from rmw implementation, it's unnecessary to get them from common
+  // content filter.
   if (rmw_ret != RMW_RET_OK) {
     rcl_reset_error();
     if (!common_content_filter_get(
