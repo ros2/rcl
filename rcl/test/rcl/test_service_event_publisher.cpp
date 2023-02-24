@@ -205,7 +205,7 @@ TEST_F(
   fprintf(stderr, "CHRIS: Before rcl_service_event_publisher_init patch to fail\n");
   {
     auto mock = mocking_utils::patch_to_fail(
-      "lib:rcl", rcl_publisher_init, "patch rcl_publisher_init to fail", RCL_RET_ERROR);
+      "lib:rcl", rmw_create_publisher, "patch rmw_create_publisher to fail", nullptr);
     ret = rcl_service_event_publisher_init(
       &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
       "test_service_event_publisher", srv_ts);
