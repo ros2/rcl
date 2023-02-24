@@ -203,11 +203,13 @@ TEST_F(
   service_event_publisher = rcl_get_zero_initialized_service_event_publisher();
 
   fprintf(stderr, "CHRIS: Before rcl_service_event_publisher_init patch to fail\n");
-  auto mock = mocking_utils::patch_to_fail(
-    "lib:rcl", rcl_publisher_init, "patch rcl_publisher_init to fail", RCL_RET_ERROR);
-  ret = rcl_service_event_publisher_init(
-    &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
-    "test_service_event_publisher", srv_ts);
-  EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
-  rcutils_reset_error();
+  {
+    auto mock = mocking_utils::patch_to_fail(
+      "lib:rcl", rcl_publisher_init, "patch rcl_publisher_init to fail", RCL_RET_ERROR);
+    ret = rcl_service_event_publisher_init(
+      &service_event_publisher, node_ptr, clock_ptr, rcl_publisher_get_default_options(),
+      "test_service_event_publisher", srv_ts);
+    EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+    rcutils_reset_error();
+  }
 }
