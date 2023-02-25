@@ -234,7 +234,7 @@ rcl_ret_t rcl_send_service_event_message(
 
   rosidl_service_introspection_info_t info = {
     .event_type = event_type,
-    .stamp_sec = RCL_NS_TO_S(now),
+    .stamp_sec = (int32_t)RCL_NS_TO_S(now),
     .stamp_nanosec = now % (1000LL * 1000LL * 1000LL),
     .sequence_number = sequence_number,
   };
