@@ -54,11 +54,11 @@ rcl_subscription_rcl_content_filter_fallback_set(
     subscription->impl->rcl_content_filter_fallback =
       rcl_content_filter_fallback_create(subscription->impl->type_support);
     if (!subscription->impl->rcl_content_filter_fallback) {
-      RCL_SET_ERROR_MSG("Failed to create common content filter");
+      RCL_SET_ERROR_MSG("Failed to create rcl content filter fallback");
       return false;
     }
     RCUTILS_LOG_DEBUG_NAMED(
-      ROS_PACKAGE_NAME, "common content filter is created for topic '%s'",
+      ROS_PACKAGE_NAME, "rcl content filter fallback is created for topic '%s'",
       rcl_subscription_get_topic_name(subscription));
   }
 
@@ -66,7 +66,7 @@ rcl_subscription_rcl_content_filter_fallback_set(
       subscription->impl->rcl_content_filter_fallback,
       options))
   {
-    RCL_SET_ERROR_MSG("Failed to set common content filter");
+    RCL_SET_ERROR_MSG("Failed to set options for rcl content filter fallback");
     return false;
   }
 
@@ -175,7 +175,7 @@ rcl_subscription_init(
   if (options->rmw_subscription_options.content_filter_options) {
     // Content filter topic not supported (or not enabled as some failed cases) on rmw
     // implementation.
-    // TODO(iuhilnehc-ynos): enable common content filter with an environment variable
+    // TODO(iuhilnehc-ynos): enable rcl content filter fallback with an environment variable
     // (e.g. FORCE_COMMON_CONTENT_FILTER) regardless of whether cft is enabled on DDS.
     if (!subscription->impl->rmw_handle->is_cft_enabled) {
       if (!rcl_subscription_rcl_content_filter_fallback_set(
@@ -571,8 +571,8 @@ rcl_subscription_get_content_filter(
     subscription->impl->rmw_handle,
     allocator,
     &options->rmw_subscription_content_filter_options);
-  // If options can be get from rmw implementation, it's unnecessary to get them from common
-  // content filter.
+  // If options can be get from rmw implementation, it's unnecessary to get them from rcl
+  // content filter fallback.
   if (rmw_ret != RMW_RET_OK) {
     rcl_reset_error();
     if (!rcl_content_filter_fallback_get(
@@ -580,7 +580,7 @@ rcl_subscription_get_content_filter(
         allocator,
         &options->rmw_subscription_content_filter_options))
     {
-      RCL_SET_ERROR_MSG("Failed to get content filter");
+      RCL_SET_ERROR_MSG("Failed to get options from rcl content filter fallback");
       return RMW_RET_ERROR;
     }
   }
@@ -620,7 +620,7 @@ rcl_take(
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
 
-  // filter ros message with common content filter
+  // filter ros message with rcl content filter fallback
   if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
       subscription,
       ros_message,
@@ -709,7 +709,7 @@ rcl_take_serialized_message(
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
 
-  // filter ros message with common content filter
+  // filter ros message with rcl content filter fallback
   if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
       subscription,
       serialized_message,
@@ -755,7 +755,7 @@ rcl_take_loaned_message(
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
 
-  // filter ros message with common content filter
+  // filter ros message with rcl content filter fallback
   if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
       subscription,
       *loaned_message,

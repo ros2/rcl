@@ -943,7 +943,7 @@ TEST_F(
   }
 
   {
-    // this event can be triggered if using the common content filter
+    // this event can be triggered if using the rcl content filter fallback
     bool ready = wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000);
     if (ready) {
       test_msgs__msg__Strings msg;
