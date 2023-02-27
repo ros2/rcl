@@ -206,6 +206,19 @@ rcl_subscription_get_default_options()
   default_options.qos = rmw_qos_profile_default;
   default_options.allocator = rcl_get_default_allocator();
   default_options.rmw_subscription_options = rmw_get_default_subscription_options();
+
+  // Load disable flag to LoanedMessage via environmental variable.
+  bool disable_loaned_message = false;
+  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
+  if (ret == RCL_RET_OK) {
+    default_options.disable_loaned_message = disable_loaned_message;
+  } else {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to get disable_loaned_message: ");
+    RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+    rcl_reset_error();
+    default_options.disable_loaned_message = false;
+  }
+
   return default_options;
 }
 
@@ -736,9 +749,7 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
     return false;  // error message already set
   }
 
-  bool disable_loaned_message = false;
-  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
-  if (ret == RCL_RET_OK && disable_loaned_message) {
+  if (subscription->impl->options.disable_loaned_message) {
     return false;
   }
 
