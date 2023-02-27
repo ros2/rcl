@@ -18,7 +18,7 @@
 #include <string>
 #include <thread>
 
-#include "rcl_content_filter_fallback/api.h"
+#include "rcl_content_filter_fallback/rcl_content_filter_fallback.h"
 
 #include "rcl/subscription.h"
 #include "rcl/rcl.h"
