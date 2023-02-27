@@ -30,6 +30,8 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 #include "rmw/message_sequence.h"
+#include "rmw/dynamic_typesupport.h"
+
 
 /// Internal rcl implementation struct.
 typedef struct rcl_subscription_impl_s rcl_subscription_impl_t;
@@ -596,6 +598,43 @@ rcl_ret_t
 rcl_take_serialized_message(
   const rcl_subscription_t * subscription,
   rcl_serialized_message_t * serialized_message,
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation);
+
+/// Take a runtime type message from a topic using a rcl subscription.
+/**
+ * In contrast to rcl_take(), this function takes a runtime type message with dynamic data taken
+ * directly from the middleware.
+ * It is the job of the caller to ensure that the type associated with the subscription
+ * matches, and that the subscription uses the runtime type rosidl_message_type_support_t.
+ *
+ * Apart from the differences above, this function behaves like rcl_take().
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] subscription the handle to the subscription from which to take
+ * \param[inout] dynamic_message pointer to a (pre-allocated) runtime type message.
+ * \param[out] message_info rmw struct which contains meta-data for the message
+ * \param[in] allocation structure pointer used for memory preallocation (may be NULL)
+ * \return #RCL_RET_OK if the message was taken, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_SUBSCRIPTION_INVALID if the subscription is invalid, or
+ * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
+ * \return #RCL_RET_SUBSCRIPTION_TAKE_FAILED if take failed but no error
+ *         occurred in the middleware, or
+ * \return #RCL_RET_ERROR if an unspecified error occurs.
+ */
+rcl_ret_t
+rcl_take_dynamic_message(
+  const rcl_subscription_t * subscription,
+  // TODO(methylDragon): Replace this with rcl_dynamic_message_t
+  rosidl_dynamic_typesupport_dynamic_data_t * dynamic_message,
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation);
 

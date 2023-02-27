@@ -17,30 +17,30 @@ extern "C"
 {
 #endif
 
-#include "serialization_support_lib/description.h"
-#include "rmw/runtime_type.h"
+#include "rosidl_dynamic_typesupport/description.h"
+#include "rmw/dynamic_typesupport.h"
 
 #include "rcl/types.h"
 #include "rcl/error_handling.h"
-#include "rcl/rcl_typesupport_runtime_type_introspection_c/identifier.h"
-#include "rcl/rcl_typesupport_runtime_type_introspection_c/message_introspection.h"
+#include "rcl/rcl_dynamic_typesupport_c/identifier.h"
+#include "rcl/rcl_dynamic_typesupport_c/message_introspection.h"
 
 #include "rcutils/logging_macros.h"
 #include "rosidl_runtime_c/message_type_support_struct.h"
 
 
-// NOTE(methylDragon): My use of the serialization_support_lib::type_description_t struct is for
+// NOTE(methylDragon): My use of the rosidl_dynamic_typesupport::type_description_t struct is for
 //                     convenience only. We should be passing the TypeDescription message
 
 /// Create a rosidl_message_type_support_t from a TypeDescription message
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rosidl_message_type_support_t *
-rcl_get_runtime_type_message_typesupport_handle(
+rcl_get_dynamic_message_typesupport_handle(
   const char * serialization_lib_name,
   type_description_t * desc)
 {
-  return rmw_get_runtime_type_message_typesupport_handle(
+  return rmw_get_dynamic_message_typesupport_handle(
     rmw_get_serialization_support(serialization_lib_name),
     rmw_feature_supported(RMW_MIDDLEWARE_SUPPORTS_TYPE_DISCOVERY),
     rmw_feature_supported(RMW_MIDDLEWARE_CAN_TAKE_DYNAMIC_DATA),
@@ -50,10 +50,10 @@ rcl_get_runtime_type_message_typesupport_handle(
 
 
 rcl_ret_t
-rcl_runtime_type_message_typesupport_handle_fini(rosidl_message_type_support_t * ts)
+rcl_dynamic_message_typesupport_handle_fini(rosidl_message_type_support_t * ts)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(ts, RCL_RET_INVALID_ARGUMENT);
-  return rmw_runtime_type_message_typesupport_handle_fini(ts);
+  return rmw_dynamic_message_typesupport_handle_fini(ts);
 }
 
 #ifdef __cplusplus

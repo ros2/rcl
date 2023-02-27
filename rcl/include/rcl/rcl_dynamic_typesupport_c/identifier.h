@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_TYPESUPPORT_RUNTIME_TYPE_INTROSPECTION_C__IDENTIFIER_H_
-#define RCL_TYPESUPPORT_RUNTIME_TYPE_INTROSPECTION_C__IDENTIFIER_H_
+#ifndef RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
+#define RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
 
-#include "rmw/runtime_type.h"
+#include "rmw/dynamic_typesupport.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define rcl_typesupport_runtime_type_introspection_c__identifier \
-  rmw_typesupport_runtime_type_introspection_c__identifier
+#define rcl_dynamic_typesupport_c__identifier \
+  rmw_dynamic_typesupport_c__identifier
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // RCL_TYPESUPPORT_RUNTIME_TYPE_INTROSPECTION_C__IDENTIFIER_H_
+#endif  // RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
