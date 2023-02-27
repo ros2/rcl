@@ -21,7 +21,7 @@ extern "C"
 
 #include <stdio.h>
 
-#include "rcl_content_filter_fallback/api.h"
+#include "rcl_content_filter_fallback/rcl_content_filter_fallback.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
