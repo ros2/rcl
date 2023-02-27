@@ -18,7 +18,7 @@
 #include <string>
 #include <thread>
 
-#include "common_content_filter/api.h"
+#include "rcl_content_filter_fallback/api.h"
 
 #include "rcl/subscription.h"
 #include "rcl/rcl.h"
@@ -1614,7 +1614,7 @@ TEST_F(
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_subscription_set_content_filter, RMW_RET_ERROR);
     auto mock2 = mocking_utils::patch_and_return(
-      "lib:rcl", common_content_filter_set, false);
+      "lib:rcl", rcl_content_filter_fallback_set, false);
     EXPECT_EQ(
       RMW_RET_ERROR,
       rcl_subscription_set_content_filter(
@@ -1706,7 +1706,7 @@ TEST_F(
     auto mock = mocking_utils::patch_and_return(
       "lib:rcl", rmw_subscription_get_content_filter, RMW_RET_ERROR);
     auto mock2 = mocking_utils::patch_and_return(
-      "lib:rcl", common_content_filter_get, false);
+      "lib:rcl", rcl_content_filter_fallback_get, false);
     EXPECT_EQ(
       RMW_RET_ERROR,
       rcl_subscription_get_content_filter(

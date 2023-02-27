@@ -21,7 +21,7 @@ extern "C"
 
 #include <stdio.h>
 
-#include "common_content_filter/api.h"
+#include "rcl_content_filter_fallback/api.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
@@ -46,14 +46,14 @@ rcl_get_zero_initialized_subscription()
 
 static
 bool
-rcl_subscription_common_content_filter_set(
+rcl_subscription_rcl_content_filter_fallback_set(
   const rcl_subscription_t * subscription,
   const rmw_subscription_content_filter_options_t * options)
 {
-  if (!subscription->impl->common_content_filter) {
-    subscription->impl->common_content_filter =
-      common_content_filter_create(subscription->impl->type_support);
-    if (!subscription->impl->common_content_filter) {
+  if (!subscription->impl->rcl_content_filter_fallback) {
+    subscription->impl->rcl_content_filter_fallback =
+      rcl_content_filter_fallback_create(subscription->impl->type_support);
+    if (!subscription->impl->rcl_content_filter_fallback) {
       RCL_SET_ERROR_MSG("Failed to create common content filter");
       return false;
     }
@@ -62,8 +62,8 @@ rcl_subscription_common_content_filter_set(
       rcl_subscription_get_topic_name(subscription));
   }
 
-  if (!common_content_filter_set(
-      subscription->impl->common_content_filter,
+  if (!rcl_content_filter_fallback_set(
+      subscription->impl->rcl_content_filter_fallback,
       options))
   {
     RCL_SET_ERROR_MSG("Failed to set common content filter");
@@ -75,16 +75,16 @@ rcl_subscription_common_content_filter_set(
 
 static
 bool
-rcl_subscription_common_content_filter_is_relevant(
+rcl_subscription_rcl_content_filter_fallback_is_relevant(
   const rcl_subscription_t * subscription,
   void * data,
   bool serialized)
 {
-  if (subscription->impl->common_content_filter &&
-    common_content_filter_is_enabled(subscription->impl->common_content_filter))
+  if (subscription->impl->rcl_content_filter_fallback &&
+    rcl_content_filter_fallback_is_enabled(subscription->impl->rcl_content_filter_fallback))
   {
-    return common_content_filter_evaluate(
-      subscription->impl->common_content_filter,
+    return rcl_content_filter_fallback_evaluate(
+      subscription->impl->rcl_content_filter_fallback,
       data,
       serialized);
   }
@@ -178,7 +178,7 @@ rcl_subscription_init(
     // TODO(iuhilnehc-ynos): enable common content filter with an environment variable
     // (e.g. FORCE_COMMON_CONTENT_FILTER) regardless of whether cft is enabled on DDS.
     if (!subscription->impl->rmw_handle->is_cft_enabled) {
-      if (!rcl_subscription_common_content_filter_set(
+      if (!rcl_subscription_rcl_content_filter_fallback_set(
           subscription,
           options->rmw_subscription_options.content_filter_options))
       {
@@ -214,8 +214,8 @@ fail:
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
     }
 
-    if (subscription->impl->common_content_filter) {
-      common_content_filter_destroy(subscription->impl->common_content_filter);
+    if (subscription->impl->rcl_content_filter_fallback) {
+      rcl_content_filter_fallback_destroy(subscription->impl->rcl_content_filter_fallback);
     }
 
     allocator->deallocate(subscription->impl, allocator->state);
@@ -261,8 +261,8 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
 
-    if (subscription->impl->common_content_filter) {
-      common_content_filter_destroy(subscription->impl->common_content_filter);
+    if (subscription->impl->rcl_content_filter_fallback) {
+      rcl_content_filter_fallback_destroy(subscription->impl->rcl_content_filter_fallback);
     }
 
     allocator.deallocate(subscription->impl, allocator.state);
@@ -508,8 +508,8 @@ rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription)
     return false;
   }
   return subscription->impl->rmw_handle->is_cft_enabled ||
-         (subscription->impl->common_content_filter &&
-         common_content_filter_is_enabled(subscription->impl->common_content_filter));
+         (subscription->impl->rcl_content_filter_fallback &&
+         rcl_content_filter_fallback_is_enabled(subscription->impl->rcl_content_filter_fallback));
 }
 
 rcl_ret_t
@@ -532,7 +532,7 @@ rcl_subscription_set_content_filter(
 
   if (ret != RMW_RET_OK) {
     rcl_reset_error();
-    if (!rcl_subscription_common_content_filter_set(
+    if (!rcl_subscription_rcl_content_filter_fallback_set(
         subscription,
         &options->rmw_subscription_content_filter_options))
     {
@@ -575,8 +575,8 @@ rcl_subscription_get_content_filter(
   // content filter.
   if (rmw_ret != RMW_RET_OK) {
     rcl_reset_error();
-    if (!common_content_filter_get(
-        subscription->impl->common_content_filter,
+    if (!rcl_content_filter_fallback_get(
+        subscription->impl->rcl_content_filter_fallback,
         allocator,
         &options->rmw_subscription_content_filter_options))
     {
@@ -621,7 +621,7 @@ rcl_take(
   }
 
   // filter ros message with common content filter
-  if (!rcl_subscription_common_content_filter_is_relevant(
+  if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
       subscription,
       ros_message,
       false))
@@ -710,7 +710,7 @@ rcl_take_serialized_message(
   }
 
   // filter ros message with common content filter
-  if (!rcl_subscription_common_content_filter_is_relevant(
+  if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
       subscription,
       serialized_message,
       true))
@@ -756,7 +756,7 @@ rcl_take_loaned_message(
   }
 
   // filter ros message with common content filter
-  if (!rcl_subscription_common_content_filter_is_relevant(
+  if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
       subscription,
       *loaned_message,
       false))

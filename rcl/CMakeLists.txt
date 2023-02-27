@@ -4,6 +4,7 @@ project(rcl)
 
 find_package(ament_cmake_ros REQUIRED)
 
+find_package(rcl_content_filter_fallback REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rcl_logging_interface REQUIRED)
 find_package(rcl_yaml_param_parser REQUIRED)
@@ -12,7 +13,6 @@ find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(tracetools REQUIRED)
-find_package(common_content_filter REQUIRED)
 
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 include(cmake/get_default_rcl_logging_implementation.cmake)
@@ -74,6 +74,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
+  "rcl_content_filter_fallback"
   "rcl_interfaces"
   "rcl_logging_interface"
   "rcl_yaml_param_parser"
@@ -83,7 +84,6 @@ ament_target_dependencies(${PROJECT_NAME}
   ${RCL_LOGGING_IMPL}
   "rosidl_runtime_c"
   "tracetools"
-  "common_content_filter"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -115,6 +115,7 @@ ament_export_targets(${PROJECT_NAME})
 
 # specific order: dependents before dependencies
 ament_export_dependencies(ament_cmake)
+ament_export_dependencies(rcl_content_filter_fallback)
 ament_export_dependencies(rcl_interfaces)
 ament_export_dependencies(rcl_logging_interface)
 ament_export_dependencies(rcl_yaml_param_parser)
@@ -124,7 +125,6 @@ ament_export_dependencies(rcutils)
 ament_export_dependencies(${RCL_LOGGING_IMPL})
 ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(tracetools)
-ament_export_dependencies(common_content_filter)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
