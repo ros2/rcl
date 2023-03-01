@@ -54,6 +54,14 @@ wait_for_established_subscription(
   size_t max_tries,
   int64_t period_ms);
 
+/// Wait for a subscription to get one or more established publishers
+/// by trying at most `max_tries` times with a `period_ms` period.
+bool
+wait_for_established_publisher(
+  const rcl_subscription_t * subscription,
+  size_t max_tries,
+  int64_t period_ms);
+
 /// Wait a subscription to be ready, i.e. a message is ready to be handled,
 /// by trying at least `max_tries` times with a `period_ms` period.
 bool
