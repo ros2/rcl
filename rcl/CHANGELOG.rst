@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Service introspection (`#997 <https://github.com/ros2/rcl/issues/997>`_)
+* Cache disable flag to avoid reading environmental variable. (`#1029 <https://github.com/ros2/rcl/issues/1029>`_)
+* Contributors: Brian, Tomoya Fujita
+
 5.8.0 (2023-02-23)
 ------------------
 * use parent logger (`#921 <https://github.com/ros2/rcl/issues/921>`_)
