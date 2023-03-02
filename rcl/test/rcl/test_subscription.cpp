@@ -1250,7 +1250,7 @@ TEST_F(
   const char * filter_expression2 = "int32_value = %0";
   const char * expression_parameters2[] = {"4"};
   size_t expression_parameters2_count = sizeof(expression_parameters2) / sizeof(char *);
-  // rcl CFT will be the fallback if rmw CFT is unsupported on DDS
+  // rcl CFT will be the fallback if rmw CFT is unsupported on implementation
   {
     rcl_subscription_content_filter_options_t options =
       rcl_get_zero_initialized_subscription_content_filter_options();

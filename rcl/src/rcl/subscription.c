@@ -176,7 +176,7 @@ rcl_subscription_init(
     // Content filter topic not supported (or not enabled as some failed cases) on rmw
     // implementation.
     // TODO(iuhilnehc-ynos): enable rcl content filter fallback with an environment variable
-    // (e.g. FORCE_COMMON_CONTENT_FILTER) regardless of whether cft is enabled on DDS.
+    // (e.g. FORCE_RCL_CONTENT_FILTER) regardless of whether cft is enabled on RMW implementation.
     if (!subscription->impl->rmw_handle->is_cft_enabled) {
       if (!rcl_subscription_rcl_content_filter_fallback_set(
           subscription,
