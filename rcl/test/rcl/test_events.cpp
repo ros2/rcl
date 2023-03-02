@@ -1155,10 +1155,10 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
   }
 }
 
-TEST_F(TestEventFixture, test_pub_no_matched_unmatched_event)
+TEST_F(TestEventFixture, test_pub_previous_matched_unmatched_event)
 {
-  // Registered callback for matched/unmatched event should not be triggered for previous
-  // matched/unmatched event.
+  // While registering callback for matched/unmatched event, exist previous matched/unmatched event
+  // will trigger callback at once.
 
   // rmw_connextdds doesn't support rmw_event_set_callback() interface
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0) {
@@ -1222,8 +1222,7 @@ TEST_F(TestEventFixture, test_pub_no_matched_unmatched_event)
   ret = rcl_event_set_callback(&pub_matched_event, event_callback, &matched_data);
   ASSERT_EQ(RMW_RET_OK, ret);
 
-  std::this_thread::sleep_for(200ms);
-  EXPECT_EQ(*matched_data.event_count, 0);
+  EXPECT_EQ(*matched_data.event_count, 1);
 
   // Delete subscriber
   ret = rcl_subscription_fini(&subscription, this->node_ptr);
@@ -1249,14 +1248,13 @@ TEST_F(TestEventFixture, test_pub_no_matched_unmatched_event)
   ret = rcl_event_set_callback(&pub_unmatched_event, event_callback, &unmatched_data);
   ASSERT_EQ(RMW_RET_OK, ret);
 
-  std::this_thread::sleep_for(200ms);
-  EXPECT_EQ(*unmatched_data.event_count, 0);
+  EXPECT_EQ(*unmatched_data.event_count, 1);
 }
 
-TEST_F(TestEventFixture, test_sub_no_matched_unmatched_event)
+TEST_F(TestEventFixture, test_sub_previous_matched_unmatched_event)
 {
-  // Registered callback for matched/unmatched event should not be triggered for previous
-  // matched/unmatched event.
+  // While registering callback for matched/unmatched event, exist previous matched/unmatched event
+  // will trigger callback at once.
 
   // rmw_connextdds doesn't support rmw_event_set_callback() interface
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0) {
@@ -1323,8 +1321,7 @@ TEST_F(TestEventFixture, test_sub_no_matched_unmatched_event)
   ret = rcl_event_set_callback(&sub_matched_event, event_callback, &matched_data);
   ASSERT_EQ(RMW_RET_OK, ret);
 
-  std::this_thread::sleep_for(200ms);
-  EXPECT_EQ(*matched_data.event_count, 0);
+  EXPECT_EQ(*matched_data.event_count, 1);
 
   // Delete publisher
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
@@ -1350,6 +1347,5 @@ TEST_F(TestEventFixture, test_sub_no_matched_unmatched_event)
   ret = rcl_event_set_callback(&sub_unmatched_event, event_callback, &unmatched_data);
   ASSERT_EQ(RMW_RET_OK, ret);
 
-  std::this_thread::sleep_for(200ms);
-  EXPECT_EQ(*unmatched_data.event_count, 0);
+  EXPECT_EQ(*unmatched_data.event_count, 1);
 }
