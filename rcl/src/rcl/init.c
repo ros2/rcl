@@ -205,10 +205,11 @@ rcl_init(
     ROS_PACKAGE_NAME,
     "Static peers count is %lu",
     discovery_params->static_peers_count);
+
   for (size_t ii = 0; ii < discovery_params->static_peers_count; ++ii) {
     RCUTILS_LOG_INFO_NAMED(
       ROS_PACKAGE_NAME,
-      "\t%s", discovery_params->static_peers[ii]);
+      "\t%s", discovery_params->static_peers[ii].peer_address);
   }
 
   if (context->global_arguments.impl->enclave) {

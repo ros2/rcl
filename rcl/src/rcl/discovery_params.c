@@ -144,15 +144,11 @@ rcl_get_discovery_static_peers(
       return RCL_RET_ERROR;
     }
 
-    if (array.size > RMW_DISCOVERY_PARAMS_MAX_PEERS) {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Too many peers specified in '%s' (maximum of %d)",
-        RCL_STATIC_PEERS_ENV_VAR, RMW_DISCOVERY_PARAMS_MAX_PEERS);
-      if (RCUTILS_RET_OK != rcutils_string_array_fini(&array)) {
-        // Don't do anything here; we are failing anyway
-      }
-      return RCL_RET_ERROR;
-    }
+    discovery_params->static_peers =
+      allocator->zero_allocate(
+        array.size, 
+        sizeof(peer_address_t),
+        allocator->state);
 
     for (size_t i = 0; i < array.size; ++i) {
       if (strlen(array.data[i]) > (RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH - 1)) {
@@ -163,9 +159,9 @@ rcl_get_discovery_static_peers(
         continue;
       }
       strncpy(
-        discovery_params->static_peers[discovery_params->static_peers_count], array.data[i],
+        discovery_params->static_peers[discovery_params->static_peers_count].peer_address, array.data[i],
         RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH);
-      discovery_params->static_peers[discovery_params->static_peers_count][
+      discovery_params->static_peers[discovery_params->static_peers_count].peer_address[
         RMW_DISCOVERY_PARAMS_PEER_MAX_LENGTH - 1] = '\0';
       discovery_params->static_peers_count++;
     }
