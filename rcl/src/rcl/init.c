@@ -186,13 +186,26 @@ rcl_init(
       goto fail;
     }
   }
-  if (0 == discovery_params->static_peers_count) {
-    // Get actual multicast discovery value based on environment variable, if needed
+
+  if (0 == discovery_params->static_peers_count &&
+    discovery_params->automatic_discovery_range != RMW_AUTOMATIC_DISCOVERY_RANGE_OFF) {
+    // Get static peers.
+    // If off is set, it makes sense to not get any static peers.
     ret = rcl_get_discovery_static_peers(discovery_params, &allocator);
     if (RCL_RET_OK != ret) {
       fail_ret = ret;
       goto fail;
     }
+  }
+
+  if (discovery_params->static_peers_count > 0 &&
+    discovery_params->automatic_discovery_range == RMW_AUTOMATIC_DISCOVERY_RANGE_OFF)
+  {
+    RCUTILS_LOG_WARN_NAMED(
+      ROS_PACKAGE_NAME,
+      "Note: ROS_AUTOMATIC_DISCOVERY_RANGE is set to OFF, but " 
+      "found static peers in ROS_STATIC_PEERS. "
+      "Your settings ROS_STATIC_PEERS will be ignored."); 
   }
 
   char discovery_range_string[41];  // TODO(gbiggs) Is constexpr available in C11?
