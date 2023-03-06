@@ -878,6 +878,7 @@ TEST_F(TestPreInitTimer, test_on_reset_timer_callback) {
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_timer_set_on_reset_callback(nullptr, nullptr, nullptr));
+  rcl_reset_error();
 
   // Set a null on reset callback to a valid timer
   ASSERT_EQ(
@@ -903,6 +904,7 @@ TEST_F(TestPreInitTimer, test_on_reset_timer_callback) {
 
 TEST_F(TestPreInitTimer, test_invalid_get_guard) {
   ASSERT_EQ(NULL, rcl_timer_get_guard_condition(nullptr));
+  rcl_reset_error();
 }
 
 TEST_F(TestPreInitTimer, test_invalid_init_fini) {
