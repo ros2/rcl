@@ -414,7 +414,7 @@ TEST_F(
     logger_name + std::string(RCUTILS_LOGGING_SEPARATOR_STRING) + sublogger_name;
 
   // not to get the message before adding the sublogger
-  bool expected;
+  bool expected = false;
   check_if_rosout_subscription_gets_a_message(
     full_sublogger_name.c_str(), this->subscription_ptr,
     this->context_ptr, 30, 100, expected);
@@ -447,7 +447,7 @@ TEST_F(
   const char * sublogger_name = "child";
   std::string full_sublogger_name =
     logger_name + std::string(RCUTILS_LOGGING_SEPARATOR_STRING) + sublogger_name;
-  bool expected;
+  bool expected = false;
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, sublogger_name));
 
