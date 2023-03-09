@@ -14,8 +14,8 @@
 
 /// @file
 
-#ifndef RCL__DISCOVERY_PARAMS_H_
-#define RCL__DISCOVERY_PARAMS_H_
+#ifndef RCL__DISCOVERY_OPTIONS_H_
+#define RCL__DISCOVERY_OPTIONS_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -27,7 +27,7 @@ extern "C"
 
 #include "rcutils/allocator.h"
 
-#include "rmw/discovery_params.h"
+#include "rmw/discovery_options.h"
 
 /// Determine how the user wishes to discover other ROS nodes automatically.
 /**
@@ -36,14 +36,14 @@ extern "C"
  * used by the RMW implementation can propagate on the network (e.g. for multicast-based discovery,
  * this will be the local subnet).
  *
- * \param[out] discovery_params Must not be NULL.
+ * \param[out] discovery_options Must not be NULL.
  * \return #RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
  * \return #RCL_RET_ERROR if an unexpected error happened, or
  * \return #RCL_RET_OK.
  */
 RCL_PUBLIC
 rcl_ret_t
-rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params);
+rcl_get_discovery_automatic_range(rmw_discovery_options_t * discovery_options);
 
 /// Convert the automatic discovery range value to a string for easy printing.
 /**
@@ -52,7 +52,7 @@ rcl_get_discovery_automatic_range(rmw_discovery_params_t * discovery_params);
  *
  * \param[in] destination The string buffer to print into. Must not be NULL.
  * \param[in] size Must be the size of the destination buffer, including space for a NULL byte.
- * \param[in] discovery_params Must not be NULL.
+ * \param[in] discovery_options Must not be NULL.
  * \return #RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
  * \return #RCL_RET_ERROR if an unexpected error happened, or
  * \return #RCL_RET_OK.
@@ -62,7 +62,7 @@ rcl_ret_t
 rcl_automatic_discovery_range_to_string(
   char * destination,
   size_t size,
-  rmw_discovery_params_t * discovery_params);
+  rmw_discovery_options_t * discovery_options);
 
 /// Determine how the user wishes to discover other ROS nodes via statically-configured peers.
 /**
@@ -70,7 +70,7 @@ rcl_automatic_discovery_range_to_string(
  * in addition to localhost.
  * TODO(gbiggs): Where should the IPs be validated?
  *
- * \param[out] discovery_params Must not be NULL.
+ * \param[out] discovery_options Must not be NULL.
  * \return #RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
  * \return #RCL_RET_ERROR if an unexpected error happened, or
  * \return #RCL_RET_OK.
@@ -78,11 +78,11 @@ rcl_automatic_discovery_range_to_string(
 RCL_PUBLIC
 rcl_ret_t
 rcl_get_discovery_static_peers(
-  rmw_discovery_params_t * discovery_params,
+  rmw_discovery_options_t * discovery_options,
   rcutils_allocator_t * allocator);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // RCL__DISCOVERY_PARAMS_H_
+#endif  // RCL__DISCOVERY_OPTIONS_H_

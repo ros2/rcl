@@ -28,7 +28,7 @@ extern "C"
 #include "tracetools/tracetools.h"
 
 #include "rcl/arguments.h"
-#include "rcl/discovery_params.h"
+#include "rcl/discovery_options.h"
 #include "rcl/domain_id.h"
 #include "rcl/error_handling.h"
 #include "rcl/localhost.h"
@@ -176,40 +176,40 @@ rcl_init(
     }
   }
 
-  rmw_discovery_params_t * discovery_params =
-    &context->impl->init_options.impl->rmw_init_options.discovery_params;
-  if (RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT == discovery_params->automatic_discovery_range) {
+  rmw_discovery_options_t * discovery_options =
+    &context->impl->init_options.impl->rmw_init_options.discovery_options;
+  if (RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT == discovery_options->automatic_discovery_range) {
     // Get actual multicast discovery value based on environment variable, if needed
-    ret = rcl_get_discovery_automatic_range(discovery_params);
+    ret = rcl_get_discovery_automatic_range(discovery_options);
     if (RCL_RET_OK != ret) {
       fail_ret = ret;
       goto fail;
     }
   }
 
-  if (0 == discovery_params->static_peers_count &&
-    discovery_params->automatic_discovery_range != RMW_AUTOMATIC_DISCOVERY_RANGE_OFF) {
+  if (0 == discovery_options->static_peers_count &&
+    discovery_options->automatic_discovery_range != RMW_AUTOMATIC_DISCOVERY_RANGE_OFF) {
     // Get static peers.
     // If off is set, it makes sense to not get any static peers.
-    ret = rcl_get_discovery_static_peers(discovery_params, &allocator);
+    ret = rcl_get_discovery_static_peers(discovery_options, &allocator);
     if (RCL_RET_OK != ret) {
       fail_ret = ret;
       goto fail;
     }
   }
 
-  if (discovery_params->static_peers_count > 0 &&
-    discovery_params->automatic_discovery_range == RMW_AUTOMATIC_DISCOVERY_RANGE_OFF)
+  if (discovery_options->static_peers_count > 0 &&
+    discovery_options->automatic_discovery_range == RMW_AUTOMATIC_DISCOVERY_RANGE_OFF)
   {
     RCUTILS_LOG_WARN_NAMED(
       ROS_PACKAGE_NAME,
-      "Note: ROS_AUTOMATIC_DISCOVERY_RANGE is set to OFF, but " 
+      "Note: ROS_AUTOMATIC_DISCOVERY_RANGE is set to OFF, but "
       "found static peers in ROS_STATIC_PEERS. "
-      "Your settings ROS_STATIC_PEERS will be ignored."); 
+      "Your settings ROS_STATIC_PEERS will be ignored.");
   }
 
   char discovery_range_string[41];  // TODO(gbiggs) Is constexpr available in C11?
-  rcl_automatic_discovery_range_to_string(discovery_range_string, 41, discovery_params);
+  rcl_automatic_discovery_range_to_string(discovery_range_string, 41, discovery_options);
   RCUTILS_LOG_INFO_NAMED(
     ROS_PACKAGE_NAME,
     "Automatic discovery range is %s",
@@ -217,12 +217,12 @@ rcl_init(
   RCUTILS_LOG_INFO_NAMED(
     ROS_PACKAGE_NAME,
     "Static peers count is %lu",
-    discovery_params->static_peers_count);
+    discovery_options->static_peers_count);
 
-  for (size_t ii = 0; ii < discovery_params->static_peers_count; ++ii) {
+  for (size_t ii = 0; ii < discovery_options->static_peers_count; ++ii) {
     RCUTILS_LOG_INFO_NAMED(
       ROS_PACKAGE_NAME,
-      "\t%s", discovery_params->static_peers[ii].peer_address);
+      "\t%s", discovery_options->static_peers[ii].peer_address);
   }
 
   if (context->global_arguments.impl->enclave) {
