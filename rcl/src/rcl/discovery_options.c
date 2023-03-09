@@ -146,20 +146,22 @@ rcl_get_discovery_static_peers(
 
     discovery_options->static_peers =
       allocator->zero_allocate(
-        array.size,
-        sizeof(rmw_peer_address_t),
-        allocator->state);
+      array.size,
+      sizeof(rmw_peer_address_t),
+      allocator->state);
 
     for (size_t i = 0; i < array.size; ++i) {
       if (strlen(array.data[i]) > (RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH - 1)) {
         RCUTILS_LOG_WARN_NAMED(
           ROS_PACKAGE_NAME,
           "Static peer %s specified to '%s' is too long (maximum of %d); skipping",
-          array.data[i], RCL_STATIC_PEERS_ENV_VAR, RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH - 1);
+          array.data[i], RCL_STATIC_PEERS_ENV_VAR,
+          RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH - 1);
         continue;
       }
       strncpy(
-        discovery_options->static_peers[discovery_options->static_peers_count].peer_address, array.data[i],
+        discovery_options->static_peers[discovery_options->static_peers_count].peer_address,
+        array.data[i],
         RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH);
       discovery_options->static_peers[discovery_options->static_peers_count].peer_address[
         RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH - 1] = '\0';

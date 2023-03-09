@@ -188,7 +188,8 @@ rcl_init(
   }
 
   if (0 == discovery_options->static_peers_count &&
-    discovery_options->automatic_discovery_range != RMW_AUTOMATIC_DISCOVERY_RANGE_OFF) {
+    discovery_options->automatic_discovery_range != RMW_AUTOMATIC_DISCOVERY_RANGE_OFF)
+  {
     // Get static peers.
     // If off is set, it makes sense to not get any static peers.
     ret = rcl_get_discovery_static_peers(discovery_options, &allocator);
