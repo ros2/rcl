@@ -42,7 +42,8 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(1u, discovery_options_var.static_peers_count);
-  EXPECT_STREQ("ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
+  EXPECT_STREQ(
+    "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[0].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
 
@@ -60,7 +61,8 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(2u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
-  EXPECT_STREQ("ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
+  EXPECT_STREQ(
+    "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[1].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
 
@@ -69,7 +71,8 @@ TEST(TestDiscoveryInfo, test_get_peers) {
     rcutils_set_env("ROS_STATIC_PEERS", "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3;192.168.0.1"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(2u, discovery_options_var.static_peers_count);
-  EXPECT_STREQ("ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
+  EXPECT_STREQ(
+    "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[0].peer_address);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[1].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
@@ -193,7 +196,8 @@ TEST(TestDiscoveryInfo, test_get_both) {
     discovery_options_var.automatic_discovery_range);
   EXPECT_EQ(2u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
-  EXPECT_STREQ("ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
+  EXPECT_STREQ(
+    "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[1].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
 
@@ -206,7 +210,8 @@ TEST(TestDiscoveryInfo, test_get_both) {
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, discovery_options_var.automatic_discovery_range);
   EXPECT_EQ(2u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
-  EXPECT_STREQ("ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
+  EXPECT_STREQ(
+    "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[1].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
 
