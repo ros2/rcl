@@ -17,9 +17,6 @@ find_package(tracetools REQUIRED)
 find_package(type_description_interfaces REQUIRED)
 find_package(yaml REQUIRED)
 
-# TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY WHEN WE HAVE A TYPE DESCRIPTION MESSAGE IN RMW
-find_package(rosidl_dynamic_typesupport REQUIRED)
-
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 include(cmake/get_default_rcl_logging_implementation.cmake)
 get_default_rcl_logging_implementation(RCL_LOGGING_IMPL)

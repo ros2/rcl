@@ -17,7 +17,6 @@ extern "C"
 {
 #endif
 
-#include "rosidl_dynamic_typesupport/description.h"
 #include "rmw/dynamic_typesupport.h"
 
 #include "rcl/types.h"
@@ -25,12 +24,11 @@ extern "C"
 #include "rcl/rcl_dynamic_typesupport_c/identifier.h"
 #include "rcl/rcl_dynamic_typesupport_c/message_introspection.h"
 
-#include "rcutils/logging_macros.h"
-#include "rosidl_runtime_c/message_type_support_struct.h"
+#include <rcutils/logging_macros.h>
+#include <rosidl_runtime_c/message_type_support_struct.h>
+#include <rosidl_runtime_c/type_description/type_description__struct.h>  // TEMPORARY
+// #include <type_description_interfaces/msg/type_description.h>  // Use this when conversion is ok
 
-
-// NOTE(methylDragon): My use of the rosidl_dynamic_typesupport::type_description_t struct is for
-//                     convenience only. We should be passing the TypeDescription message
 
 /// Create a rosidl_message_type_support_t from a TypeDescription message
 RCL_PUBLIC
@@ -38,13 +36,16 @@ RCL_WARN_UNUSED
 rosidl_message_type_support_t *
 rcl_get_dynamic_message_typesupport_handle(
   const char * serialization_lib_name,
-  type_description_t * desc)
+  // TODO(methylDragon): This should be type_description_interfaces__msg__TypeDescription
+  rosidl_runtime_c__type_description__TypeDescription * description)
 {
   return rmw_get_dynamic_message_typesupport_handle(
     rmw_get_serialization_support(serialization_lib_name),
     rmw_feature_supported(RMW_MIDDLEWARE_SUPPORTS_TYPE_DISCOVERY),
     rmw_feature_supported(RMW_MIDDLEWARE_CAN_TAKE_DYNAMIC_DATA),
-    desc
+    // TODO(methylDragon): We need convert type_description_interfaces__msg__TypeDescription to
+    //                     rosidl_runtime_c__type_description__TypeDescription here
+    description
   );
 }
 

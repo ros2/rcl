@@ -601,12 +601,12 @@ rcl_take_serialized_message(
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation);
 
-/// Take a runtime type message from a topic using a rcl subscription.
+/// Take a dynamic type message from a topic using a rcl subscription.
 /**
- * In contrast to rcl_take(), this function takes a runtime type message with dynamic data taken
+ * In contrast to rcl_take(), this function takes a dynamic type message with dynamic data taken
  * directly from the middleware.
  * It is the job of the caller to ensure that the type associated with the subscription
- * matches, and that the subscription uses the runtime type rosidl_message_type_support_t.
+ * matches, and that the subscription uses the dynamic type rosidl_message_type_support_t.
  *
  * Apart from the differences above, this function behaves like rcl_take().
  *
@@ -619,7 +619,7 @@ rcl_take_serialized_message(
  * Lock-Free          | Yes
  *
  * \param[in] subscription the handle to the subscription from which to take
- * \param[inout] dynamic_message pointer to a (pre-allocated) runtime type message.
+ * \param[inout] dynamic_message pointer to a (pre-allocated) dynamic type message.
  * \param[out] message_info rmw struct which contains meta-data for the message
  * \param[in] allocation structure pointer used for memory preallocation (may be NULL)
  * \return #RCL_RET_OK if the message was taken, or

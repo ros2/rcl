@@ -630,7 +630,7 @@ rcl_take_dynamic_message(
   rmw_subscription_allocation_t * allocation
 )
 {
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking runtime type message");
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking dynamic message");
   if (!rcl_subscription_is_valid(subscription)) {
     return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
   }
@@ -648,7 +648,7 @@ rcl_take_dynamic_message(
     return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Subscription runtime type take succeeded: %s", taken ? "true" : "false");
+    ROS_PACKAGE_NAME, "Subscription dynamic take succeeded: %s", taken ? "true" : "false");
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }

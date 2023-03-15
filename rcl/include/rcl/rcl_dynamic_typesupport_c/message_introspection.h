@@ -15,12 +15,13 @@
 #ifndef RCL_DYNAMIC_TYPESUPPORT_C__MESSAGE_INTROSPECTION_H_
 #define RCL_DYNAMIC_TYPESUPPORT_C__MESSAGE_INTROSPECTION_H_
 
-#include "rosidl_dynamic_typesupport/description.h"
-
 #include "rosidl_runtime_c/message_type_support_struct.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
+
+#include <rosidl_runtime_c/type_description/type_description__struct.h>  // TEMPORARY
+// #include <type_description_interfaces/msg/type_description.h>  // Use this when conversion is ok
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,8 +30,6 @@ extern "C" {
 
 // TODO(methylDragon): !!! Document that the user is in charge of the lifetime of the struct...
 // TODO(methylDragon): ...
-// NOTE(methylDragon): My use of the rosidl_dynamic_typesupport::type_description_t struct is for
-//                     convenience only. We should be passing the TypeDescription message
 
 /// If the user passes a NULL desc, it is deferred instead, the middleware is responsibile for
 /// populating the fields on type discovery!!!
@@ -39,7 +38,8 @@ RCL_WARN_UNUSED
 rosidl_message_type_support_t *
 rcl_get_dynamic_message_typesupport_handle(
   const char * serialization_lib_name,
-  type_description_t * desc);
+  // TODO(methylDragon): This should be type_description_interfaces__msg__TypeDescription
+  rosidl_runtime_c__type_description__TypeDescription * desc);
 
 /// Finalize a rosidl_message_type_support_t obtained with
 /// rcl_get_dynamic_message_typesupport_handle
