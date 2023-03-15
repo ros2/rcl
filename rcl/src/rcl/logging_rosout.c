@@ -270,6 +270,7 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(rcl_node_t * node)
   RCL_CHECK_FOR_NULL_WITH_MSG(node_options, "Node options was null.", return RCL_RET_ERROR);
 
   options.qos = node_options->rosout_qos;
+  options.allocator = node_options->allocator;
   new_entry.publisher = rcl_get_zero_initialized_publisher();
   status =
     rcl_publisher_init(&new_entry.publisher, node, type_support, ROSOUT_TOPIC_NAME, &options);
