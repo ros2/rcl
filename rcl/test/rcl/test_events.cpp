@@ -872,7 +872,7 @@ void event_callback(const void * user_data, size_t number_of_events)
 }
 
 /*
- * Basic test of publisher matched/unmatched event
+ * Basic test of publisher matched event
  */
 TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
 {
@@ -895,42 +895,24 @@ TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
     ret = rcl_event_fini(&pub_matched_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
-  rcl_event_t pub_unmatched_event = rcl_get_zero_initialized_event();
-  ret = rcl_publisher_event_init(&pub_unmatched_event, &publisher, RCL_PUBLISHER_UNMATCHED);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    ret = rcl_event_fini(&pub_unmatched_event);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  });
 
   // init event callback
   struct EventUserData matched_data;
   matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
-  struct EventUserData unmatched_data;
-  unmatched_data.event_count = std::make_shared<std::atomic_size_t>(0);
 
-  // rmw_connextdds doesn't support rmw_event_set_callback() interface
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
     ret = rcl_event_set_callback(&pub_matched_event, event_callback, &matched_data);
     ASSERT_EQ(RMW_RET_OK, ret);
-
-    ret = rcl_event_set_callback(&pub_unmatched_event, event_callback, &unmatched_data);
-    ASSERT_EQ(RMW_RET_OK, ret);
   }
 
-  // to take event if there is no subscription
-  {
-    rmw_matched_status_t matched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
-    EXPECT_EQ(0, matched_status.current_matched_count);
-    EXPECT_EQ(0, matched_status.current_count_change);
-
-    rmw_unmatched_status_t unmatched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_unmatched_event, &unmatched_status));
-    EXPECT_EQ(0, unmatched_status.current_matched_count);
-    EXPECT_EQ(0, unmatched_status.current_count_change);
-  }
+  // to take event while there is no subscription
+  rmw_matched_status_t matched_status;
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
+  EXPECT_EQ(0, matched_status.total_count);
+  EXPECT_EQ(0, matched_status.total_count_change);
+  EXPECT_EQ(0, matched_status.current_count);
+  EXPECT_EQ(0, matched_status.current_count_change);
 
   // Create one subscriber
   setup_subscriber(default_qos_profile);
@@ -952,25 +934,19 @@ TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
     ASSERT_EQ(pub_event_ready, true);
   }
 
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
     EXPECT_EQ(*matched_data.event_count, 1);
-    EXPECT_EQ(*unmatched_data.event_count, 0);
-
-    *matched_data.event_count = 0;
   }
 
-  // Check matched & unmatched status
-  {
-    rmw_matched_status_t matched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
-    EXPECT_EQ(1, matched_status.current_matched_count);
-    EXPECT_EQ(1, matched_status.current_count_change);
+  *matched_data.event_count = 0;
 
-    rmw_unmatched_status_t unmatched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_unmatched_event, &unmatched_status));
-    EXPECT_EQ(1, unmatched_status.current_matched_count);
-    EXPECT_EQ(0, unmatched_status.current_count_change);
-  }
+  // check matched status
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
+  EXPECT_EQ(1, matched_status.total_count);
+  EXPECT_EQ(1, matched_status.total_count_change);
+  EXPECT_EQ(1, matched_status.current_count);
+  EXPECT_EQ(1, matched_status.current_count_change);
 
   // Delete subscriber
   ret = rcl_subscription_fini(&subscription, this->node_ptr);
@@ -985,7 +961,7 @@ TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
       context_ptr,
       nullptr,
       nullptr,
-      &pub_unmatched_event,
+      &pub_matched_event,
       &msg_ready,
       &sub_event_ready,
       &pub_event_ready);
@@ -993,27 +969,21 @@ TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
     ASSERT_EQ(pub_event_ready, true);
   }
 
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
-    EXPECT_EQ(*matched_data.event_count, 0);
-    EXPECT_EQ(*unmatched_data.event_count, 1);
+    EXPECT_EQ(*matched_data.event_count, 1);
   }
 
   // Check unmatched status
-  {
-    rmw_matched_status_t matched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
-    EXPECT_EQ(0, matched_status.current_matched_count);
-    EXPECT_EQ(0, matched_status.current_count_change);
-
-    rmw_unmatched_status_t unmatched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_unmatched_event, &unmatched_status));
-    EXPECT_EQ(0, unmatched_status.current_matched_count);
-    EXPECT_EQ(1, unmatched_status.current_count_change);
-  }
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
+  EXPECT_EQ(1, matched_status.total_count);
+  EXPECT_EQ(0, matched_status.total_count_change);
+  EXPECT_EQ(0, matched_status.current_count);
+  EXPECT_EQ(-1, matched_status.current_count_change);
 }
 
 /*
- * Basic test of subscription matched/unmatched event
+ * Basic test of subscription matched event
  */
 TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
 {
@@ -1036,45 +1006,24 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
     ret = rcl_event_fini(&sub_matched_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
-  rcl_event_t sub_unmatched_event = rcl_get_zero_initialized_event();
-  ret = rcl_subscription_event_init(
-    &sub_unmatched_event,
-    &subscription,
-    RCL_SUBSCRIPTION_UNMATCHED);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    ret = rcl_event_fini(&sub_unmatched_event);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  });
 
   // init event callback
   struct EventUserData matched_data;
   matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
-  struct EventUserData unmatched_data;
-  unmatched_data.event_count = std::make_shared<std::atomic_size_t>(0);
 
-  // rmw_connextdds doesn't support rmw_event_set_callback() interface
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
     ret = rcl_event_set_callback(&sub_matched_event, event_callback, &matched_data);
-    ASSERT_EQ(RMW_RET_OK, ret);
-
-    ret = rcl_event_set_callback(&sub_unmatched_event, event_callback, &unmatched_data);
     ASSERT_EQ(RMW_RET_OK, ret);
   }
 
   // to take event if there is no subscription
-  {
-    rmw_matched_status_t matched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
-    EXPECT_EQ(0, matched_status.current_matched_count);
-    EXPECT_EQ(0, matched_status.current_count_change);
-
-    rmw_unmatched_status_t unmatched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_unmatched_event, &unmatched_status));
-    EXPECT_EQ(0, unmatched_status.current_matched_count);
-    EXPECT_EQ(0, unmatched_status.current_count_change);
-  }
+  rmw_matched_status_t matched_status;
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
+  EXPECT_EQ(0, matched_status.total_count);
+  EXPECT_EQ(0, matched_status.total_count_change);
+  EXPECT_EQ(0, matched_status.current_count);
+  EXPECT_EQ(0, matched_status.current_count_change);
 
   // Create one publisher
   setup_publisher(default_qos_profile);
@@ -1096,25 +1045,18 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
     ASSERT_EQ(sub_event_ready, true);
   }
 
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
     EXPECT_EQ(*matched_data.event_count, 1);
-    EXPECT_EQ(*unmatched_data.event_count, 0);
-
-    *matched_data.event_count = 0;
   }
+  *matched_data.event_count = 0;
 
   // Check matched status
-  {
-    rmw_matched_status_t matched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
-    EXPECT_EQ(1, matched_status.current_matched_count);
-    EXPECT_EQ(1, matched_status.current_count_change);
-
-    rmw_unmatched_status_t unmatched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_unmatched_event, &unmatched_status));
-    EXPECT_EQ(1, unmatched_status.current_matched_count);
-    EXPECT_EQ(0, unmatched_status.current_count_change);
-  }
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
+  EXPECT_EQ(1, matched_status.total_count);
+  EXPECT_EQ(1, matched_status.total_count_change);
+  EXPECT_EQ(1, matched_status.current_count);
+  EXPECT_EQ(1, matched_status.total_count_change);
 
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -1127,7 +1069,7 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
     ret = wait_for_msgs_and_events(
       context_ptr,
       nullptr,
-      &sub_unmatched_event,
+      &sub_matched_event,
       nullptr,
       &msg_ready,
       &sub_event_ready,
@@ -1136,28 +1078,33 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
     ASSERT_EQ(sub_event_ready, true);
   }
 
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
-    EXPECT_EQ(*matched_data.event_count, 0);
-    EXPECT_EQ(*unmatched_data.event_count, 1);
+    EXPECT_EQ(*matched_data.event_count, 1);
   }
 
-  // Check unmatched status
-  {
-    rmw_matched_status_t matched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
-    EXPECT_EQ(0, matched_status.current_matched_count);
-    EXPECT_EQ(0, matched_status.current_count_change);
-
-    rmw_matched_status_t unmatched_status;
-    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_unmatched_event, &unmatched_status));
-    EXPECT_EQ(0, unmatched_status.current_matched_count);
-    EXPECT_EQ(1, unmatched_status.current_count_change);
-  }
+  // Check matched status change
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
+  EXPECT_EQ(1, matched_status.total_count);
+  EXPECT_EQ(0, matched_status.total_count_change);
+  EXPECT_EQ(0, matched_status.current_count);
+  EXPECT_EQ(-1, matched_status.current_count_change);
 }
 
-TEST_F(TestEventFixture, test_pub_previous_matched_unmatched_event)
+extern "C"
 {
-  // While registering callback for matched/unmatched event, exist previous matched/unmatched event
+void event_callback2(const void * user_data, size_t number_of_events)
+{
+  (void)number_of_events;
+  const struct EventUserData * data = static_cast<const struct EventUserData *>(user_data);
+  ASSERT_NE(nullptr, data);
+  *data->event_count = number_of_events;
+}
+}
+
+TEST_F(TestEventFixture, test_pub_previous_matched_event)
+{
+  // While registering callback for matched event, exist previous matched event
   // will trigger callback at once.
 
   // rmw_connextdds doesn't support rmw_event_set_callback() interface
@@ -1184,14 +1131,6 @@ TEST_F(TestEventFixture, test_pub_previous_matched_unmatched_event)
     ret = rcl_event_fini(&pub_matched_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
-  rcl_event_t pub_unmatched_event = rcl_get_zero_initialized_event();
-  ret = rcl_publisher_event_init(&pub_unmatched_event, &publisher, RCL_PUBLISHER_UNMATCHED);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    ret = rcl_event_fini(&pub_unmatched_event);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  });
 
   // Create one subscriber
   setup_subscriber(default_qos_profile);
@@ -1213,17 +1152,6 @@ TEST_F(TestEventFixture, test_pub_previous_matched_unmatched_event)
     ASSERT_EQ(pub_event_ready, true);
   }
 
-  // init event callback
-  struct EventUserData matched_data;
-  matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
-  struct EventUserData unmatched_data;
-  unmatched_data.event_count = std::make_shared<std::atomic_size_t>(0);
-
-  ret = rcl_event_set_callback(&pub_matched_event, event_callback, &matched_data);
-  ASSERT_EQ(RMW_RET_OK, ret);
-
-  EXPECT_EQ(*matched_data.event_count, 1);
-
   // Delete subscriber
   ret = rcl_subscription_fini(&subscription, this->node_ptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -1237,7 +1165,7 @@ TEST_F(TestEventFixture, test_pub_previous_matched_unmatched_event)
       context_ptr,
       nullptr,
       nullptr,
-      &pub_unmatched_event,
+      &pub_matched_event,
       &msg_ready,
       &sub_event_ready,
       &pub_event_ready);
@@ -1245,15 +1173,19 @@ TEST_F(TestEventFixture, test_pub_previous_matched_unmatched_event)
     ASSERT_EQ(pub_event_ready, true);
   }
 
-  ret = rcl_event_set_callback(&pub_unmatched_event, event_callback, &unmatched_data);
+  // init event callback
+  struct EventUserData matched_data;
+  matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
+  ret = rcl_event_set_callback(&pub_matched_event, event_callback2, &matched_data);
   ASSERT_EQ(RMW_RET_OK, ret);
 
-  EXPECT_EQ(*unmatched_data.event_count, 1);
+  // matched event happen twice. One for connection and another for disconnection.
+  EXPECT_EQ(*matched_data.event_count, 2);
 }
 
-TEST_F(TestEventFixture, test_sub_previous_matched_unmatched_event)
+TEST_F(TestEventFixture, test_sub_previous_matched_event)
 {
-  // While registering callback for matched/unmatched event, exist previous matched/unmatched event
+  // While registering callback for matched event, exist previous matched event
   // will trigger callback at once.
 
   // rmw_connextdds doesn't support rmw_event_set_callback() interface
@@ -1280,23 +1212,6 @@ TEST_F(TestEventFixture, test_sub_previous_matched_unmatched_event)
     ret = rcl_event_fini(&sub_matched_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
-  rcl_event_t sub_unmatched_event = rcl_get_zero_initialized_event();
-  ret = rcl_subscription_event_init(
-    &sub_unmatched_event,
-    &subscription,
-    RCL_SUBSCRIPTION_UNMATCHED);
-  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    ret = rcl_event_fini(&sub_unmatched_event);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  });
-
-  // init event callback
-  struct EventUserData matched_data;
-  matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
-  struct EventUserData unmatched_data;
-  unmatched_data.event_count = std::make_shared<std::atomic_size_t>(0);
 
   // Create one publisher
   setup_publisher(default_qos_profile);
@@ -1318,11 +1233,6 @@ TEST_F(TestEventFixture, test_sub_previous_matched_unmatched_event)
     ASSERT_EQ(sub_event_ready, true);
   }
 
-  ret = rcl_event_set_callback(&sub_matched_event, event_callback, &matched_data);
-  ASSERT_EQ(RMW_RET_OK, ret);
-
-  EXPECT_EQ(*matched_data.event_count, 1);
-
   // Delete publisher
   ret = rcl_publisher_fini(&publisher, this->node_ptr);
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -1335,7 +1245,7 @@ TEST_F(TestEventFixture, test_sub_previous_matched_unmatched_event)
     ret = wait_for_msgs_and_events(
       context_ptr,
       nullptr,
-      &sub_unmatched_event,
+      &sub_matched_event,
       nullptr,
       &msg_ready,
       &sub_event_ready,
@@ -1344,8 +1254,11 @@ TEST_F(TestEventFixture, test_sub_previous_matched_unmatched_event)
     ASSERT_EQ(sub_event_ready, true);
   }
 
-  ret = rcl_event_set_callback(&sub_unmatched_event, event_callback, &unmatched_data);
+  // init event callback
+  struct EventUserData matched_data;
+  matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
+  ret = rcl_event_set_callback(&sub_matched_event, event_callback2, &matched_data);
   ASSERT_EQ(RMW_RET_OK, ret);
 
-  EXPECT_EQ(*unmatched_data.event_count, 1);
+  EXPECT_EQ(*matched_data.event_count, 2);
 }
