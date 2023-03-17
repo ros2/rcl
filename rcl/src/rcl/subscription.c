@@ -624,11 +624,9 @@ rcl_take_serialized_message(
 rcl_ret_t
 rcl_take_dynamic_message(
   const rcl_subscription_t * subscription,
-  // TODO(methylDragon): Replace this with rclcpp::DynamicMessage
   rosidl_dynamic_typesupport_dynamic_data_t * dynamic_message,
   rmw_message_info_t * message_info,
-  rmw_subscription_allocation_t * allocation
-)
+  rmw_subscription_allocation_t * allocation)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking dynamic message");
   if (!rcl_subscription_is_valid(subscription)) {

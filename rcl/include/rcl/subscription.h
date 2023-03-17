@@ -630,10 +630,11 @@ rcl_take_serialized_message(
  *         occurred in the middleware, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
+RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_take_dynamic_message(
   const rcl_subscription_t * subscription,
-  // TODO(methylDragon): Replace this with rcl_dynamic_message_t
   rosidl_dynamic_typesupport_dynamic_data_t * dynamic_message,
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation);

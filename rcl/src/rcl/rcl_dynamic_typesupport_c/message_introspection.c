@@ -36,8 +36,8 @@ RCL_WARN_UNUSED
 rosidl_message_type_support_t *
 rcl_get_dynamic_message_typesupport_handle(
   const char * serialization_lib_name,
-  // TODO(methylDragon): This should be type_description_interfaces__msg__TypeDescription
-  rosidl_runtime_c__type_description__TypeDescription * description)
+  // TODO(methylDragon): This should be const type_description_interfaces__msg__TypeDescription
+  const rosidl_runtime_c__type_description__TypeDescription * description)
 {
   return rmw_get_dynamic_message_typesupport_handle(
     rmw_get_serialization_support(serialization_lib_name),
