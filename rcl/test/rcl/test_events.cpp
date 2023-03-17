@@ -1180,7 +1180,10 @@ TEST_F(TestEventFixture, test_pub_previous_matched_event)
   ASSERT_EQ(RMW_RET_OK, ret);
 
   // matched event happen twice. One for connection and another for disconnection.
-  EXPECT_EQ(*matched_data.event_count, 2);
+  // Note that different DDS have different implementation.
+  // This behavior isn't defined in DDS specification.
+  // So check if event count >= 1
+  EXPECT_GE(*matched_data.event_count, 1);
 }
 
 TEST_F(TestEventFixture, test_sub_previous_matched_event)
@@ -1260,5 +1263,9 @@ TEST_F(TestEventFixture, test_sub_previous_matched_event)
   ret = rcl_event_set_callback(&sub_matched_event, event_callback2, &matched_data);
   ASSERT_EQ(RMW_RET_OK, ret);
 
-  EXPECT_EQ(*matched_data.event_count, 2);
+  // matched event happen twice. One for connection and another for disconnection.
+  // Note that different DDS have different implementation.
+  // This behavior isn't defined in DDS specification.
+  // So check if event count >= 1.
+  EXPECT_GE(*matched_data.event_count, 1);
 }
