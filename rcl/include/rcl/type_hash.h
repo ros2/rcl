@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__TYPE_VERSION_HASH_H_
-#define RCL__TYPE_VERSION_HASH_H_
+#ifndef RCL__TYPE_HASH_H_
+#define RCL__TYPE_HASH_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -28,7 +28,7 @@ extern "C"
 
 /// Given a TypeDescription, output a string of the hashable JSON representation of that data.
 /**
- * The output here is generally hashed via rcl_calculate_type_version_hash below.
+ * The output here is generally hashed via rcl_calculate_type_hash below.
  * Compare this reference implementation with rosidl_parser.type_hash.idl_to_hashable_json.
  * Both must produce the same output for the same types, providing a stable reference for
  * external implementations of the ROS 2 Type Version Hash.
@@ -65,7 +65,7 @@ rcl_type_description_to_hashable_json(
  */
 RCL_PUBLIC
 rcl_ret_t
-rcl_calculate_type_version_hash(
+rcl_calculate_type_hash(
   const type_description_interfaces__msg__TypeDescription * type_description,
   rosidl_type_hash_t * out_type_hash);
 
@@ -73,4 +73,4 @@ rcl_calculate_type_version_hash(
 }
 #endif
 
-#endif  // RCL__TYPE_VERSION_HASH_H_
+#endif  // RCL__TYPE_HASH_H_

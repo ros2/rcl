@@ -19,15 +19,16 @@
 #include "type_description_interfaces/msg/field.h"
 #include "rosidl_runtime_c/string_functions.h"
 #include "rcl/allocator.h"
-#include "rcl/type_version_hash.h"
+#include "rcl/type_hash.h"
 
 // Copied directly from generated code
-static const rosidl_type_hash_t sensor_msgs__msg__PointCloud2__TYPE_VERSION_HASH__copy = {1, {
-  0xaf, 0x49, 0x7e, 0x7c, 0x94, 0x3f, 0xf7, 0xf8,
-  0xdb, 0x1d, 0x50, 0x1d, 0xb0, 0x9d, 0x0a, 0xad,
-  0x44, 0x12, 0x4e, 0xd7, 0xdf, 0x43, 0xc1, 0xe8,
-  0x6c, 0x64, 0x26, 0x02, 0xd0, 0x6c, 0xbb, 0x7c,
-}};
+static const rosidl_type_hash_t sensor_msgs__msg__PointCloud2__TYPE_HASH__copy = {1, {
+    0x91, 0x98, 0xca, 0xbf, 0x7d, 0xa3, 0x79, 0x6a,
+    0xe6, 0xfe, 0x19, 0xc4, 0xcb, 0x3b, 0xdd, 0x35,
+    0x25, 0x49, 0x29, 0x88, 0xc7, 0x05, 0x22, 0x62,
+    0x8a, 0xf5, 0xda, 0xa1, 0x24, 0xba, 0xe2, 0xb5,
+  }};
+
 
 static void init_individual_type_description(
   type_description_interfaces__msg__IndividualTypeDescription * itd,
@@ -50,7 +51,7 @@ static void init_individual_type_description(
   }
 }
 
-TEST(TestTypeVersionHash, smoke_check) {
+TEST(TestTypeVersionHash, field_type_from_install) {
   rcl_ret_t res = RCL_RET_OK;
   type_description_interfaces__msg__TypeDescription * td_msg =
     type_description_interfaces__msg__TypeDescription__create();
@@ -59,13 +60,17 @@ TEST(TestTypeVersionHash, smoke_check) {
     &td_msg->type_description,
     "type_description_interfaces/msg/FieldType", {
     {"type_id", type_description_interfaces__msg__FieldType__FIELD_TYPE_UINT8, NULL},
-    {"length", type_description_interfaces__msg__FieldType__FIELD_TYPE_UINT64, NULL},
-    {"string_length", type_description_interfaces__msg__FieldType__FIELD_TYPE_UINT64, NULL},
-    {"nested_type_name", type_description_interfaces__msg__FieldType__FIELD_TYPE_STRING, NULL}}
+    {"capacity", type_description_interfaces__msg__FieldType__FIELD_TYPE_UINT64, NULL},
+    {"string_capacity", type_description_interfaces__msg__FieldType__FIELD_TYPE_UINT64, NULL},
+    {
+      "nested_type_name",
+      type_description_interfaces__msg__FieldType__FIELD_TYPE_BOUNDED_STRING,
+      NULL}}
   );
+  td_msg->type_description.fields.data[3].type.string_capacity = 255;
 
   rosidl_type_hash_t direct_hash;
-  res = rcl_calculate_type_version_hash(td_msg, &direct_hash);
+  res = rcl_calculate_type_hash(td_msg, &direct_hash);
   ASSERT_EQ(res, RCL_RET_OK);
 
   rosidl_type_hash_t hash_from_repr;
@@ -87,7 +92,7 @@ TEST(TestTypeVersionHash, smoke_check) {
   }
 
   // NOTE: testing this against the actual installed one, forces an up to date test
-  auto validation_hash = type_description_interfaces__msg__FieldType__TYPE_VERSION_HASH;
+  auto validation_hash = type_description_interfaces__msg__FieldType__TYPE_HASH;
   ASSERT_EQ(direct_hash.version, hash_from_repr.version);
   ASSERT_EQ(direct_hash.version, validation_hash.version);
   ASSERT_EQ(0, memcmp(direct_hash.value, hash_from_repr.value, ROSIDL_TYPE_HASH_SIZE));
@@ -95,7 +100,7 @@ TEST(TestTypeVersionHash, smoke_check) {
 }
 
 
-TEST(TestTypeVersionHash, nested_types) {
+TEST(TestTypeVersionHash, nested_real_type) {
   rcl_ret_t res = RCL_RET_OK;
   type_description_interfaces__msg__TypeDescription * td_msg =
     type_description_interfaces__msg__TypeDescription__create();
@@ -184,10 +189,11 @@ TEST(TestTypeVersionHash, nested_types) {
   );
 
   rosidl_type_hash_t direct_hash;
-  res = rcl_calculate_type_version_hash(td_msg, &direct_hash);
+  res = rcl_calculate_type_hash(td_msg, &direct_hash);
   ASSERT_EQ(res, RCL_RET_OK);
 
   rosidl_type_hash_t hash_from_repr;
+  hash_from_repr.version = 1;
   {
     rcutils_sha256_ctx_t sha;
     rcutils_char_array_t msg_repr = rcutils_get_zero_initialized_char_array();
@@ -204,7 +210,7 @@ TEST(TestTypeVersionHash, nested_types) {
     ASSERT_EQ(res, RCL_RET_OK);
   }
 
-  auto validation_hash = sensor_msgs__msg__PointCloud2__TYPE_VERSION_HASH__copy;
+  auto validation_hash = sensor_msgs__msg__PointCloud2__TYPE_HASH__copy;
   ASSERT_EQ(direct_hash.version, hash_from_repr.version);
   ASSERT_EQ(direct_hash.version, validation_hash.version);
   ASSERT_EQ(0, memcmp(direct_hash.value, hash_from_repr.value, ROSIDL_TYPE_HASH_SIZE));

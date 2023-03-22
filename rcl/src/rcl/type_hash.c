@@ -16,7 +16,7 @@
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rcl/type_version_hash.h"
+#include "rcl/type_hash.h"
 #include "rcutils/types/char_array.h"
 #include "rcutils/sha256.h"
 #include "type_description_interfaces/msg/type_description.h"
@@ -237,7 +237,7 @@ error:
 }
 
 rcl_ret_t
-rcl_calculate_type_version_hash(
+rcl_calculate_type_hash(
   const type_description_interfaces__msg__TypeDescription * type_description,
   rosidl_type_hash_t * output_hash)
 {
