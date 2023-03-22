@@ -57,7 +57,7 @@ rcl_type_description_to_hashable_json(
  * For design motivations leading to this implementation, see REP-2011.
  *
  * This convenience wrapper calls rcl_type_description_to_hashable_json,
- * then runs sha256 hash on the result
+ * then runs sha256 hash on the result.
  *
  * \param[in] msg Prefilled TypeDescription message describing the type to be hashed
  * \param[out] message_digest Preallocated buffer, to be filled with calculated checksum

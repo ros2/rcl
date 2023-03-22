@@ -14,12 +14,17 @@
 
 #include <gtest/gtest.h>
 
+#include <cstring>
+#include <tuple>
+#include <vector>
+
 #include "type_description_interfaces/msg/type_description.h"
 #include "type_description_interfaces/msg/individual_type_description.h"
 #include "type_description_interfaces/msg/field.h"
 #include "rosidl_runtime_c/string_functions.h"
 #include "rcl/allocator.h"
 #include "rcl/type_hash.h"
+#include "rcutils/sha256.h"
 
 // Copied directly from generated code
 static const rosidl_type_hash_t sensor_msgs__msg__PointCloud2__TYPE_HASH__copy = {1, {
