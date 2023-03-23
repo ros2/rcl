@@ -43,7 +43,8 @@ extern "C"
  *   the JSON representation of type_description. Note that output_repr will have a
  *   terminating null character, which should be omitted from hashing. To do so, use
  *   (output_repr.buffer_length - 1) or strlen(output_repr.buffer) for the size of data to hash.
- * \return RCL_RET_OK on success, RCL_RET_ERROR if any problems occur in translation
+ * \return #RCL_RET_OK on success, or
+ * \return #RCL_RET_ERROR if any problems occur in translation.
  */
 RCL_PUBLIC
 rcl_ret_t
@@ -61,7 +62,8 @@ rcl_type_description_to_hashable_json(
  *
  * \param[in] msg Prefilled TypeDescription message describing the type to be hashed
  * \param[out] message_digest Preallocated buffer, to be filled with calculated checksum
- * \return RCL_RET_OK on success, RCL_RET_ERROR if any problems occur while hashing
+ * \return #RCL_RET_OK on success, or
+ * \return #RCL_RET_ERROR if any problems occur while hashing.
  */
 RCL_PUBLIC
 rcl_ret_t

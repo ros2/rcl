@@ -4,6 +4,7 @@ project(rcl)
 
 find_package(ament_cmake_ros REQUIRED)
 
+find_package(libyaml_vendor REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rcl_logging_interface REQUIRED)
 find_package(rcl_yaml_param_parser REQUIRED)
@@ -14,6 +15,7 @@ find_package(rosidl_runtime_c REQUIRED)
 find_package(service_msgs REQUIRED)
 find_package(tracetools REQUIRED)
 find_package(type_description_interfaces REQUIRED)
+find_package(yaml REQUIRED)
 
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 include(cmake/get_default_rcl_logging_implementation.cmake)
@@ -89,6 +91,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "service_msgs"
   "tracetools"
   "type_description_interfaces"
+  "yaml"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
