@@ -54,16 +54,29 @@ rcl_logging_ext_lib_output_handler(
   const char * format, va_list * args);
 
 rcl_ret_t
+rcl_logging_allocator_initialize(const rcl_allocator_t * allocator)
+{
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  if (rcutils_allocator_is_valid(&g_logging_allocator)) {
+    return RCL_RET_OK;
+  }
+  g_logging_allocator = *allocator;
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 rcl_logging_configure_with_output_handler(
   const rcl_arguments_t * global_args,
   const rcl_allocator_t * allocator,
   rcl_logging_output_handler_t output_handler)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_handler, RCL_RET_INVALID_ARGUMENT);
-  RCUTILS_LOGGING_AUTOINIT_WITH_ALLOCATOR(*allocator);
-  g_logging_allocator = *allocator;
+  if (rcl_logging_allocator_initialize(allocator) != RCL_RET_OK) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   int default_level = -1;
   rcl_log_levels_t * log_levels = &global_args->impl->log_levels;
   const char * config_file = global_args->impl->external_log_config_file;

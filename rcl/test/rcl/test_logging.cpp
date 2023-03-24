@@ -37,6 +37,19 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 
+TEST(TestLogging, test_logging_allocator_initialization) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_allocator_t invalid_allocator =
+    (rcl_allocator_t)rcutils_get_zero_initialized_allocator();
+
+  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_allocator_initialize(NULL));
+  ASSERT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_logging_allocator_initialize(&invalid_allocator));
+
+  ASSERT_EQ(RCL_RET_OK, rcl_logging_allocator_initialize(&allocator));
+  // 2nd time will also succeed.
+  ASSERT_EQ(RCL_RET_OK, rcl_logging_allocator_initialize(&allocator));
+}
+
 TEST(TestLogging, test_configure_with_bad_arguments) {
   rcl_allocator_t default_allocator = rcl_get_default_allocator();
   const char * argv[] = {"test_logging"};
