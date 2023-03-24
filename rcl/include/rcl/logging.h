@@ -60,6 +60,29 @@ rcl_logging_configure(
   const rcl_arguments_t * global_args,
   const rcl_allocator_t * allocator);
 
+/// Initialize the logging allocator.
+/**
+ * This function should be called during the ROS initialization process.
+ * Initialize the logging allocator only if it is not initialized yet.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] allocator Used to allocate memory used by the logging system
+ * \return #RCL_RET_OK if successfully initialized, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_logging_allocator_initialize(
+  const rcl_allocator_t * allocator);
+
 /// Configure the logging system with the provided output handler.
 /**
  * Similar to rcl_logging_configure, but it uses the provided output handler.
