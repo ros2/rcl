@@ -28,8 +28,9 @@ extern "C"
 
 /// Given a TypeDescription, output a string of the hashable JSON representation of that data.
 /**
- * The output here is generally hashed via rcl_calculate_type_hash below.
- * Compare this reference implementation with rosidl_parser.type_hash.idl_to_hashable_json.
+ * The output here is generally hashed via rcl_calculate_type_hash() below.
+ * Compare this reference implementation with the .json output files from
+ * `rosidl_generator_type_description.generate_type_hash`.
  * Both must produce the same output for the same types, providing a stable reference for
  * external implementations of the ROS 2 Type Version Hash.
  *
