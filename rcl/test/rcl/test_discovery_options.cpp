@@ -127,31 +127,31 @@ TEST(TestDiscoveryInfo, test_get_automatic_discovery_range) {
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "0"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(
     RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST,
     discovery_options_var.automatic_discovery_range);
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "OFF"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_OFF, discovery_options_var.automatic_discovery_range);
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "LOCALHOST"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(
     RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST,
     discovery_options_var.automatic_discovery_range);
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, discovery_options_var.automatic_discovery_range);
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "Unexpected"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(
     RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST,
     discovery_options_var.automatic_discovery_range);
@@ -160,7 +160,7 @@ TEST(TestDiscoveryInfo, test_get_automatic_discovery_range) {
 TEST(TestDiscoveryInfo, test_bad_argument) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_discovery_automatic_range(nullptr));
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_automatic_discovery_range(nullptr));
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_discovery_static_peers(nullptr, &allocator));
 
   rmw_discovery_options_t discovery_options_var = rmw_get_zero_initialized_discovery_options();
@@ -177,7 +177,7 @@ TEST(TestDiscoveryInfo, test_get_both) {
 
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ""));
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "0"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(
     RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST,
@@ -189,7 +189,7 @@ TEST(TestDiscoveryInfo, test_get_both) {
   ASSERT_TRUE(
     rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3"));
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "LOCALHOST"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(
     RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST,
@@ -205,7 +205,7 @@ TEST(TestDiscoveryInfo, test_get_both) {
   ASSERT_TRUE(
     rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3"));
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, discovery_options_var.automatic_discovery_range);
   EXPECT_EQ(2u, discovery_options_var.static_peers_count);
@@ -218,7 +218,7 @@ TEST(TestDiscoveryInfo, test_get_both) {
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ""));
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
-  EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_automatic_range(&discovery_options_var));
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, discovery_options_var.automatic_discovery_range);
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
