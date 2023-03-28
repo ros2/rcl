@@ -121,7 +121,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 }
 
-TEST(TestDiscoveryInfo, test_get_multicast) {
+TEST(TestDiscoveryInfo, test_get_automatic_discovery_range) {
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ""));
   rmw_discovery_options_t discovery_options_var = rmw_get_zero_initialized_discovery_options();
 
