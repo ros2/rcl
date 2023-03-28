@@ -172,7 +172,7 @@ rcl_get_discovery_static_peers(
 
     if (RCUTILS_RET_OK != rcutils_string_array_fini(&array)) {
       RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-      // We don't fail here because we got the work done, we will just leak memory
+      return RCL_RET_ERROR;
     }
   }
 
