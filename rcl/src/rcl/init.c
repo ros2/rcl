@@ -209,7 +209,7 @@ rcl_init(
       "Your settings ROS_STATIC_PEERS will be ignored.");
   }
 
-  char discovery_range_string[41];  // TODO(gbiggs) Is constexpr available in C11?
+  char discovery_range_string[41];
   rcl_automatic_discovery_range_to_string(discovery_range_string, 41, discovery_options);
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
