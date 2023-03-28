@@ -180,7 +180,7 @@ rcl_init(
     &context->impl->init_options.impl->rmw_init_options.discovery_options;
   if (RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT == discovery_options->automatic_discovery_range) {
     // Get actual multicast discovery value based on environment variable, if needed
-    ret = rcl_get_discovery_automatic_range(discovery_options);
+    ret = rcl_get_automatic_discovery_range(discovery_options);
     if (RCL_RET_OK != ret) {
       fail_ret = ret;
       goto fail;
@@ -206,7 +206,7 @@ rcl_init(
       ROS_PACKAGE_NAME,
       "Note: ROS_AUTOMATIC_DISCOVERY_RANGE is set to OFF, but "
       "found static peers in ROS_STATIC_PEERS. "
-      "Your settings ROS_STATIC_PEERS will be ignored.");
+      "ROS_STATIC_PEERS will be ignored.");
   }
 
   char discovery_range_string[41];

@@ -34,7 +34,7 @@ static const char * const RCL_STATIC_PEERS_ENV_VAR = "ROS_STATIC_PEERS";
 static const char * const RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR = "ROS_AUTOMATIC_DISCOVERY_RANGE";
 
 rcl_ret_t
-rcl_get_discovery_automatic_range(rmw_discovery_options_t * discovery_options)
+rcl_get_automatic_discovery_range(rmw_discovery_options_t * discovery_options)
 {
   const char * ros_automatic_discovery_range_env_val = NULL;
   const char * get_env_error_str = NULL;

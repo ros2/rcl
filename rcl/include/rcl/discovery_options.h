@@ -43,7 +43,7 @@ extern "C"
  */
 RCL_PUBLIC
 rcl_ret_t
-rcl_get_discovery_automatic_range(rmw_discovery_options_t * discovery_options);
+rcl_get_automatic_discovery_range(rmw_discovery_options_t * discovery_options);
 
 /// Convert the automatic discovery range value to a string for easy printing.
 /**
