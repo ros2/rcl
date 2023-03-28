@@ -80,6 +80,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
+  "libyaml_vendor"
   "rcl_interfaces"
   "rcl_logging_interface"
   "rcl_yaml_param_parser"
@@ -91,7 +92,6 @@ ament_target_dependencies(${PROJECT_NAME}
   "service_msgs"
   "tracetools"
   "type_description_interfaces"
-  "yaml"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
