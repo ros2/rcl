@@ -29,14 +29,14 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ""));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(1u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3"));
@@ -45,7 +45,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ(
     "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[0].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;10.0.0.2"));
@@ -53,7 +53,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_EQ(2u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
   EXPECT_STREQ("10.0.0.2", discovery_options_var.static_peers[1].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(
@@ -64,7 +64,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ(
     "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[1].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(
@@ -75,7 +75,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
     "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[0].peer_address);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[1].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "10.1.2.3;192.168.0.0/24"));
@@ -83,34 +83,34 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_EQ(2u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("10.1.2.3", discovery_options_var.static_peers[0].peer_address);
   EXPECT_STREQ("192.168.0.0/24", discovery_options_var.static_peers[1].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ";"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(1u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ";192.168.0.1"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(1u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "example.com"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(1u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("example.com", discovery_options_var.static_peers[0].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "example.com;192.168.0.1"));
@@ -118,7 +118,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_EQ(2u, discovery_options_var.static_peers_count);
   EXPECT_STREQ("example.com", discovery_options_var.static_peers[0].peer_address);
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[1].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 }
 
 TEST(TestDiscoveryInfo, test_get_multicast) {
@@ -167,7 +167,7 @@ TEST(TestDiscoveryInfo, test_bad_argument) {
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_get_discovery_static_peers(&discovery_options_var, nullptr));
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 }
 
 // Since the two functions operate on the same variable instance, make sure they don't interfere
@@ -183,7 +183,7 @@ TEST(TestDiscoveryInfo, test_get_both) {
     RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST,
     discovery_options_var.automatic_discovery_range);
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(
@@ -199,7 +199,7 @@ TEST(TestDiscoveryInfo, test_get_both) {
   EXPECT_STREQ(
     "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[1].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(
@@ -213,7 +213,7 @@ TEST(TestDiscoveryInfo, test_get_both) {
   EXPECT_STREQ(
     "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3",
     discovery_options_var.static_peers[1].peer_address);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ""));
@@ -222,5 +222,5 @@ TEST(TestDiscoveryInfo, test_get_both) {
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, discovery_options_var.automatic_discovery_range);
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
-  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var, allocator));
+  EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 }

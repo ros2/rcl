@@ -26,6 +26,10 @@
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
+#include "rmw/error_handling.h"
+
+#include "./common.h"
+
 static const char * const RCL_STATIC_PEERS_ENV_VAR = "ROS_STATIC_PEERS";
 static const char * const RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR = "ROS_AUTOMATIC_DISCOVERY_RANGE";
 
@@ -135,7 +139,6 @@ rcl_get_discovery_static_peers(
     return RCL_RET_ERROR;
   }
 
-  discovery_options->static_peers_count = 0;
   if (ros_peers_env_val != NULL) {
     rcutils_string_array_t array = rcutils_get_zero_initialized_string_array();
     rcutils_ret_t split_ret = rcutils_split(ros_peers_env_val, ';', *allocator, &array);
@@ -144,11 +147,11 @@ rcl_get_discovery_static_peers(
       return RCL_RET_ERROR;
     }
 
-    discovery_options->static_peers =
-      allocator->zero_allocate(
-      array.size,
-      sizeof(rmw_peer_address_t),
-      allocator->state);
+    rmw_ret_t rmw_ret = rmw_discovery_options_init(discovery_options, array.size, allocator);
+    if (RMW_RET_OK != rmw_ret) {
+      RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+      return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+    }
 
     for (size_t i = 0; i < array.size; ++i) {
       if (strlen(array.data[i]) > (RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH - 1)) {
@@ -160,12 +163,11 @@ rcl_get_discovery_static_peers(
         continue;
       }
       strncpy(
-        discovery_options->static_peers[discovery_options->static_peers_count].peer_address,
+        discovery_options->static_peers[i].peer_address,
         array.data[i],
         RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH);
-      discovery_options->static_peers[discovery_options->static_peers_count].peer_address[
+      discovery_options->static_peers[i].peer_address[
         RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH - 1] = '\0';
-      discovery_options->static_peers_count++;
     }
 
     if (RCUTILS_RET_OK != rcutils_string_array_fini(&array)) {
