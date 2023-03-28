@@ -20,6 +20,7 @@
 #include "rcutils/allocator.h"
 #include "rcutils/env.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/snprintf.h"
 #include "rcutils/split.h"
 #include "rcutils/types/string_array.h"
 
@@ -85,21 +86,21 @@ rcl_automatic_discovery_range_to_string(
 
   switch (discovery_options->automatic_discovery_range) {
     case RMW_AUTOMATIC_DISCOVERY_RANGE_OFF:
-      snprintf(
+      rcutils_snprintf(
         destination,
         size,
         "RMW_AUTOMATIC_DISCOVERY_RANGE_OFF (%d)",
         discovery_options->automatic_discovery_range);
       break;
     case RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST:
-      snprintf(
+      rcutils_snprintf(
         destination,
         size,
         "RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST (%d)",
         discovery_options->automatic_discovery_range);
       break;
     case RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET:
-      snprintf(
+      rcutils_snprintf(
         destination,
         size,
         "RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET (%d)",
@@ -107,7 +108,7 @@ rcl_automatic_discovery_range_to_string(
       break;
     case RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT:
     default:
-      snprintf(
+      rcutils_snprintf(
         destination,
         size,
         "RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT (%d)",
