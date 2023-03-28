@@ -134,6 +134,7 @@ ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(service_msgs)
 ament_export_dependencies(tracetools)
 ament_export_dependencies(type_description_interfaces)
+ament_export_dependencies(libyaml_vendor)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
