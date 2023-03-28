@@ -47,8 +47,9 @@ rcl_get_automatic_discovery_range(rmw_discovery_options_t * discovery_options);
 
 /// Convert the automatic discovery range value to a string for easy printing.
 /**
- * The string buffer passed to this function should be at least 40 bytes. If it is less (as
- * indicated by the size parameter) the stringified enumeration value will be truncated.
+ * The string buffer passed to this function should be at least 40 bytes. 
+ * If it is less (as indicated by the size parameter) the stringified enumeration value will be
+ * truncated.
  *
  * \param[in] destination The string buffer to print into. Must not be NULL.
  * \param[in] size Must be the size of the destination buffer, including space for a NULL byte.
