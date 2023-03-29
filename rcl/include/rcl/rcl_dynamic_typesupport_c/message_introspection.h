@@ -33,16 +33,20 @@ extern "C" {
 
 /// If the user passes a NULL desc, it is deferred instead, the middleware is responsibile for
 /// populating the fields on type discovery!!!
+///
+/// Does not take ownership of description (copies)
+/// Allocates the `ts` arg. The caller takes ownership of the `ts` arg.
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rosidl_message_type_support_t *
-rcl_get_dynamic_message_typesupport_handle(
+rcl_ret_t
+rcl_dynamic_message_typesupport_handle_init(
   const char * serialization_lib_name,
   // TODO(methylDragon): This should be const type_description_interfaces__msg__TypeDescription
-  const rosidl_runtime_c__type_description__TypeDescription * desc);
+  const rosidl_runtime_c__type_description__TypeDescription * desc,
+  rosidl_message_type_support_t ** ts);
 
 /// Finalize a rosidl_message_type_support_t obtained with
-/// rcl_get_dynamic_message_typesupport_handle
+/// rcl_dynamic_message_typesupport_handle_init
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t

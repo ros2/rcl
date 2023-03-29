@@ -30,7 +30,7 @@ extern "C"
 #include "rcl/visibility_control.h"
 
 #include "rmw/message_sequence.h"
-#include "rmw/dynamic_typesupport.h"
+#include "rmw/dynamic_message_typesupport.h"
 
 
 /// Internal rcl implementation struct.

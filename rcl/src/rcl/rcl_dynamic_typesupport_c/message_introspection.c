@@ -17,7 +17,7 @@ extern "C"
 {
 #endif
 
-#include "rmw/dynamic_typesupport.h"
+#include "rmw/dynamic_message_typesupport.h"
 
 #include "rcl/types.h"
 #include "rcl/error_handling.h"
@@ -33,23 +33,31 @@ extern "C"
 /// Create a rosidl_message_type_support_t from a TypeDescription message
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rosidl_message_type_support_t *
-rcl_get_dynamic_message_typesupport_handle(
+rcl_ret_t
+rcl_dynamic_message_typesupport_handle_init(
   const char * serialization_lib_name,
   // TODO(methylDragon): This should be const type_description_interfaces__msg__TypeDescription
-  const rosidl_runtime_c__type_description__TypeDescription * description)
+  const rosidl_runtime_c__type_description__TypeDescription * description,
+  rosidl_message_type_support_t ** ts)
 {
-  return rmw_get_dynamic_message_typesupport_handle(
+  *ts = rmw_dynamic_message_typesupport_handle_init(
     rmw_get_serialization_support(serialization_lib_name),
     rmw_feature_supported(RMW_MIDDLEWARE_SUPPORTS_TYPE_DISCOVERY),
-    rmw_feature_supported(RMW_MIDDLEWARE_CAN_TAKE_DYNAMIC_DATA),
-    // TODO(methylDragon): We need convert type_description_interfaces__msg__TypeDescription to
+    // TODO(methylDragon): We need to convert type_description_interfaces__msg__TypeDescription to
     //                     rosidl_runtime_c__type_description__TypeDescription here
     description
   );
+
+  if (!ts) {
+    RCL_SET_ERROR_MSG("failed to init rosidl_message_type_support");
+    return RCL_RET_ERROR;
+  }
+  return RCL_RET_OK;
 }
 
 
+RCL_PUBLIC
+RCL_WARN_UNUSED
 rcl_ret_t
 rcl_dynamic_message_typesupport_handle_fini(rosidl_message_type_support_t * ts)
 {
