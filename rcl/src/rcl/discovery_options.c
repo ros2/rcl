@@ -61,6 +61,8 @@ rcl_get_automatic_discovery_range(rmw_discovery_options_t * discovery_options)
     discovery_options->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
   } else if (strcmp(ros_automatic_discovery_range_env_val, "SUBNET") == 0) {
     discovery_options->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET;
+  } else if (strcmp(ros_automatic_discovery_range_env_val, "SYSTEM_DEFAULT") == 0) {
+    discovery_options->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_SYSTEM_DEFAULT;
   } else {
     RCUTILS_LOG_WARN_NAMED(
       ROS_PACKAGE_NAME,
@@ -86,6 +88,13 @@ rcl_automatic_discovery_range_to_string(
 
   int err = -1;
   switch (discovery_options->automatic_discovery_range) {
+    case RMW_AUTOMATIC_DISCOVERY_RANGE_NOT_SET:
+      err = rcutils_snprintf(
+        destination,
+        size,
+        "RMW_AUTOMATIC_DISCOVERY_RANGE_NOT_SET (%d)",
+        discovery_options->automatic_discovery_range);
+      break;
     case RMW_AUTOMATIC_DISCOVERY_RANGE_OFF:
       err = rcutils_snprintf(
         destination,
@@ -107,12 +116,12 @@ rcl_automatic_discovery_range_to_string(
         "RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET (%d)",
         discovery_options->automatic_discovery_range);
       break;
-    case RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT:
+    case RMW_AUTOMATIC_DISCOVERY_RANGE_SYSTEM_DEFAULT:
     default:
       err =rcutils_snprintf(
         destination,
         size,
-        "RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT (%d)",
+        "RMW_AUTOMATIC_DISCOVERY_RANGE_SYSTEM_DEFAULT (%d)",
         discovery_options->automatic_discovery_range);
       break;
   }

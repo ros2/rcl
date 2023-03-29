@@ -171,14 +171,14 @@ rcl_init(
     if (RMW_LOCALHOST_ONLY_DEFAULT != *localhost_only) {
       RCUTILS_LOG_WARN_NAMED(
         ROS_PACKAGE_NAME,
-        "ROS_LOCALHOST_ONLY is deprecated. Use ROS_AUTOMATIC_DISCOVERY_RANGE_DEFAULT and "
+        "ROS_LOCALHOST_ONLY is deprecated. Use ROS_AUTOMATIC_DISCOVERY_RANGE and "
         "ROS_STATIC_PEERS instead.");
     }
   }
 
   rmw_discovery_options_t * discovery_options =
     &context->impl->init_options.impl->rmw_init_options.discovery_options;
-  if (RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT == discovery_options->automatic_discovery_range) {
+  if (RMW_AUTOMATIC_DISCOVERY_RANGE_NOT_SET == discovery_options->automatic_discovery_range) {
     // Get actual discovery range option based on environment variable, if needed
     ret = rcl_get_automatic_discovery_range(discovery_options);
     if (RCL_RET_OK != ret) {
