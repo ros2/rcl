@@ -53,6 +53,7 @@ extern "C"
 
 #include "./context_impl.h"
 #include "./node_impl.h"
+#include "./node_type_cache_init.h"
 
 const char * const RCL_DISABLE_LOANED_MESSAGES_ENV_VAR = "ROS_DISABLE_LOANED_MESSAGES";
 
@@ -198,6 +199,7 @@ rcl_node_init(
   node->impl->logger_name = NULL;
   node->impl->fq_name = NULL;
   node->impl->options = rcl_node_get_default_options();
+  node->impl->registered_types_by_type_hash = rcutils_get_zero_initialized_hash_map();
   node->context = context;
   // Initialize node impl.
   ret = rcl_node_options_copy(options, &(node->impl->options));
@@ -275,6 +277,12 @@ rcl_node_init(
     // error message already set
     goto fail;
   }
+  // Initialize the node type cache hash map
+  ret = rcl_node_type_cache_init(node);
+  if (ret != RCL_RET_OK) {
+    // error message already set
+    goto fail;
+  }
   // The initialization for the rosout publisher requires the node to be in initialized to a point
   // that it can create new topic publishers
   if (rcl_logging_rosout_enabled() && node->impl->options.enable_rosout) {
@@ -301,6 +309,11 @@ rcl_node_init(
   goto cleanup;
 fail:
   if (node->impl) {
+    ret = rcl_node_type_cache_fini(node);
+    RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+      (ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT), ROS_PACKAGE_NAME,
+      "Failed to fini node_type_cache for node: %i", ret);
+
     if (rcl_logging_rosout_enabled() &&
       node->impl->options.enable_rosout &&
       node->impl->logger_name)
@@ -377,6 +390,11 @@ rcl_node_fini(rcl_node_t * node)
       RCL_SET_ERROR_MSG("Unable to fini publisher for node.");
       result = RCL_RET_ERROR;
     }
+  }
+  rcl_ret = rcl_node_type_cache_fini(node);
+  if (rcl_ret != RCL_RET_OK && rcl_ret != RCL_RET_NOT_INIT) {
+    RCL_SET_ERROR_MSG("Unable to fini type cache for node.");
+    result = RCL_RET_ERROR;
   }
   rmw_ret_t rmw_ret = rmw_destroy_node(node->impl->rmw_node_handle);
   if (rmw_ret != RMW_RET_OK) {
