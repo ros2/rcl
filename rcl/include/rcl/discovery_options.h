@@ -69,7 +69,15 @@ rcl_automatic_discovery_range_to_string(
 /**
  * Checks an environment variable to determine the hosts that the user wants to communicate with,
  * in addition to localhost.
- * TODO(gbiggs): Where should the IPs be validated?
+ *
+ * Values for the static peers are not validated beyond basic string checks,
+ * avoiding empty strings, etc.
+ * Any validation of IP addresses or hostnames is left up to the
+ * rmw implementation, and therefore what is and is not acceptable in these
+ * fields is dependent on it.
+ *
+ * The general expectation, however, is that IP addresses and hostnames are
+ * acceptable.
  *
  * \param[out] discovery_options Must not be NULL.
  * \return #RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
