@@ -46,7 +46,7 @@ rcl_get_localhost_only(rmw_localhost_only_t * localhost_only)
   } else {
     *localhost_only =
       strncmp(ros_local_host_env_val, "1", 1) == 0 ?
-        RMW_LOCALHOST_ONLY_ENABLED : RMW_LOCALHOST_ONLY_DISABLED;
+      RMW_LOCALHOST_ONLY_ENABLED : RMW_LOCALHOST_ONLY_DISABLED;
   }
   return RCL_RET_OK;
 }
