@@ -137,6 +137,7 @@ TEST(TestDiscoveryInfo, test_get_automatic_discovery_range) {
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ""));
   rmw_discovery_options_t discovery_options_var = rmw_get_zero_initialized_discovery_options();
 
+  // Set unexpected discovery range. Should default to LOCALHOST
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "0"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
@@ -144,11 +145,13 @@ TEST(TestDiscoveryInfo, test_get_automatic_discovery_range) {
     RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST,
     discovery_options_var.automatic_discovery_range);
 
+  // Set discovery range to OFF
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "OFF"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_OFF, discovery_options_var.automatic_discovery_range);
 
+  // Set discovery range to LOCALHOST
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "LOCALHOST"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
@@ -156,11 +159,13 @@ TEST(TestDiscoveryInfo, test_get_automatic_discovery_range) {
     RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST,
     discovery_options_var.automatic_discovery_range);
 
+  // Set discovery range to SUBNET
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, discovery_options_var.automatic_discovery_range);
 
+  // Set unexpected discovery range. Should default to LOCALHOST
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "Unexpected"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
