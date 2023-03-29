@@ -63,7 +63,7 @@ rcl_ret_t
 rcl_automatic_discovery_range_to_string(
   char * destination,
   size_t size,
-  rmw_discovery_options_t * discovery_options);
+  const rmw_discovery_options_t * discovery_options);
 
 /// Determine how the user wishes to discover other ROS nodes via statically-configured peers.
 /**

@@ -79,28 +79,29 @@ rcl_ret_t
 rcl_automatic_discovery_range_to_string(
   char * destination,
   size_t size,
-  rmw_discovery_options_t * discovery_options)
+  const rmw_discovery_options_t * discovery_options)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(discovery_options, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(destination, RCL_RET_INVALID_ARGUMENT);
 
+  int err = -1;
   switch (discovery_options->automatic_discovery_range) {
     case RMW_AUTOMATIC_DISCOVERY_RANGE_OFF:
-      rcutils_snprintf(
+      err = rcutils_snprintf(
         destination,
         size,
         "RMW_AUTOMATIC_DISCOVERY_RANGE_OFF (%d)",
         discovery_options->automatic_discovery_range);
       break;
     case RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST:
-      rcutils_snprintf(
+      err = rcutils_snprintf(
         destination,
         size,
         "RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST (%d)",
         discovery_options->automatic_discovery_range);
       break;
     case RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET:
-      rcutils_snprintf(
+      err = rcutils_snprintf(
         destination,
         size,
         "RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET (%d)",
@@ -108,13 +109,16 @@ rcl_automatic_discovery_range_to_string(
       break;
     case RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT:
     default:
-      rcutils_snprintf(
+      err =rcutils_snprintf(
         destination,
         size,
         "RMW_AUTOMATIC_DISCOVERY_RANGE_DEFAULT (%d)",
         discovery_options->automatic_discovery_range);
       break;
   }
+
+  if (err != 0)
+    return RCL_RET_ERROR;
 
   return RCL_RET_OK;
 }
