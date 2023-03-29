@@ -209,8 +209,11 @@ rcl_init(
       "ROS_STATIC_PEERS will be ignored.");
   }
 
-  char discovery_range_string[41];
-  rcl_automatic_discovery_range_to_string(discovery_range_string, 41, discovery_options);
+  const char * discovery_range_string =
+    rcl_automatic_discovery_range_to_string(discovery_options->automatic_discovery_range);
+  if (NULL == discovery_range_string) {
+    discovery_range_string = "not set";
+  }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
     "Automatic discovery range is %s",
