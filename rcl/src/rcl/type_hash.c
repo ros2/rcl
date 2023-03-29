@@ -67,7 +67,9 @@ static int emit_key(yaml_emitter_t * emitter, const char * key)
   yaml_event_t event;
   return
     yaml_scalar_event_initialize(
-    &event, NULL, NULL, (yaml_char_t *)key, strlen(key), 0, 1, YAML_DOUBLE_QUOTED_SCALAR_STYLE) &&
+    &event, NULL, NULL,
+    (yaml_char_t *)key, (int)strlen(key),
+    0, 1, YAML_DOUBLE_QUOTED_SCALAR_STYLE) &&
     yaml_emitter_emit(emitter, &event);
 }
 
@@ -88,7 +90,7 @@ static int emit_int(yaml_emitter_t * emitter, size_t val, const char * fmt)
   return
     yaml_scalar_event_initialize(
     &event, NULL, NULL,
-    (yaml_char_t *)decimal_buf, strlen(decimal_buf),
+    (yaml_char_t *)decimal_buf, (int)strlen(decimal_buf),
     1, 0, YAML_PLAIN_SCALAR_STYLE) &&
     yaml_emitter_emit(emitter, &event);
 }
@@ -99,7 +101,7 @@ static int emit_str(yaml_emitter_t * emitter, const rosidl_runtime_c__String * v
   return
     yaml_scalar_event_initialize(
     &event, NULL, NULL,
-    (yaml_char_t *)val->data, val->size,
+    (yaml_char_t *)val->data, (int)val->size,
     0, 1, YAML_DOUBLE_QUOTED_SCALAR_STYLE) &&
     yaml_emitter_emit(emitter, &event);
 }
