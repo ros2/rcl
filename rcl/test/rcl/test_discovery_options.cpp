@@ -26,11 +26,13 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rmw_discovery_options_t discovery_options_var = rmw_get_zero_initialized_discovery_options();
 
+  // Retrieve peers if peer list is empty
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ""));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peers if peer list has one IPv4 peer
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
@@ -38,6 +40,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peers if peer list has one IPv6 peer
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
@@ -47,6 +50,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
     discovery_options_var.static_peers[0].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peers if peer list has two IPv4 peers
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;10.0.0.2"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
@@ -55,6 +59,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ("10.0.0.2", discovery_options_var.static_peers[1].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peers if peer list has one IPv6 peer and one IPv4 peer (order reversed)
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(
     rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3"));
@@ -66,6 +71,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
     discovery_options_var.static_peers[1].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peers if peer list has one IPv6 peer and one IPv4 peer
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(
     rcutils_set_env("ROS_STATIC_PEERS", "ceab:78ee:b73a:ec05:0898:0b2c:5ce5:8ed3;192.168.0.1"));
@@ -77,6 +83,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[1].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peers if peer list has one two IPv4 peers with subnet mask
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "10.1.2.3;192.168.0.0/24"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
@@ -85,12 +92,14 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ("192.168.0.0/24", discovery_options_var.static_peers[1].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peers if peer list is empty
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ";"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peer with trailing ;
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
@@ -98,6 +107,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peer with starting ;
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", ";192.168.0.1"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
@@ -105,6 +115,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ("192.168.0.1", discovery_options_var.static_peers[0].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peer with FQDN
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "example.com"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
@@ -112,6 +123,7 @@ TEST(TestDiscoveryInfo, test_get_peers) {
   EXPECT_STREQ("example.com", discovery_options_var.static_peers[0].peer_address);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 
+  // Retrieve peer with FQDN and IPv4
   discovery_options_var = rmw_get_zero_initialized_discovery_options();
   ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "example.com;192.168.0.1"));
   EXPECT_EQ(RCL_RET_OK, rcl_get_discovery_static_peers(&discovery_options_var, &allocator));
