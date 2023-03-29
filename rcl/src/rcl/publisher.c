@@ -25,6 +25,7 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#include "rcl/node_type_cache.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rcl/time.h"
@@ -78,6 +79,16 @@ rcl_publisher_init(
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Initializing publisher for topic name '%s'", topic_name);
 
+  // Register type.
+  if (RCL_RET_OK !=
+    rcl_node_type_cache_register_type(
+      node, type_support->type_hash,
+      type_support->type_description, type_support->type_description_sources))
+  {
+    RCL_SET_ERROR_MSG("Failed to register type for publication");
+    goto fail;
+  }
+
   // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
   rcl_ret_t ret = rcl_node_resolve_name(
@@ -127,6 +138,8 @@ rcl_publisher_init(
     options->qos.avoid_ros_namespace_conventions;
   // options
   publisher->impl->options = *options;
+  // type hash
+  publisher->impl->type_hash = *type_support->type_hash;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
   // context
   publisher->impl->context = node->context;
@@ -185,6 +198,11 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
       rmw_destroy_publisher(rmw_node, publisher->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+      result = RCL_RET_ERROR;
+    }
+    // Unregister type
+    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &publisher->impl->type_hash)) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }
     allocator.deallocate(publisher->impl, allocator.state);

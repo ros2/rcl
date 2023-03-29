@@ -27,6 +27,7 @@ extern "C"
 #include "rcl_action/wait.h"
 
 #include "rcl/error_handling.h"
+#include "rcl/node_type_cache.h"
 #include "rcl/rcl.h"
 #include "rcl/time.h"
 
@@ -141,6 +142,16 @@ rcl_action_server_init(
     return RCL_RET_ALREADY_INIT;
   }
 
+  // Register type.
+  if (RCL_RET_OK !=
+    rcl_node_type_cache_register_type(
+      node, type_support->type_hash,
+      type_support->type_description, type_support->type_description_sources))
+  {
+    RCL_SET_ERROR_MSG("Failed to register type for action");
+    return RCL_RET_ERROR;
+  }
+
   // Allocate for action server
   action_server->impl = (rcl_action_server_impl_t *)allocator.allocate(
     sizeof(rcl_action_server_impl_t), allocator.state);
@@ -172,6 +183,8 @@ rcl_action_server_init(
 
   // Store reference to clock
   action_server->impl->clock = clock;
+  // Store type support
+  action_server->impl->type_hash = *type_support->type_hash;
 
   // Initialize Timer
   ret = rcl_timer_init(
@@ -249,6 +262,10 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
     }
     allocator.deallocate(action_server->impl->goal_handles, allocator.state);
     action_server->impl->goal_handles = NULL;
+    // Unregister type
+    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &action_server->impl->type_hash)) {
+      ret = RCL_RET_ERROR;
+    }
     // Deallocate struct
     allocator.deallocate(action_server->impl, allocator.state);
     action_server->impl = NULL;

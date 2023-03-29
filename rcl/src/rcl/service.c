@@ -24,6 +24,7 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#include "rcl/node_type_cache.h"
 #include "rcl/publisher.h"
 #include "rcl/time.h"
 #include "rcl/types.h"
@@ -47,6 +48,7 @@ struct rcl_service_impl_s
   rmw_service_t * rmw_handle;
   rcl_service_event_publisher_t * service_event_publisher;
   char * remapped_service_name;
+  rosidl_type_hash_t type_hash;
 };
 
 rcl_service_t
@@ -119,6 +121,16 @@ rcl_service_init(
     service->impl, "allocating memory failed",
     return RCL_RET_BAD_ALLOC;);
 
+  // Register type.
+  if (RCL_RET_OK !=
+    rcl_node_type_cache_register_type(
+      node, type_support->type_hash,
+      type_support->type_description, type_support->type_description_sources))
+  {
+    RCL_SET_ERROR_MSG("Failed to register type for service");
+    return RCL_RET_ERROR;
+  }
+
   // Expand and remap the given service name.
   rcl_ret_t ret = rcl_node_resolve_name(
     node,
@@ -186,6 +198,8 @@ rcl_service_init(
 
   // options
   service->impl->options = *options;
+  // type hash
+  service->impl->type_hash = *type_support->type_hash;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service initialized");
   TRACEPOINT(
     rcl_service_init,
@@ -245,6 +259,12 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
     rmw_ret_t ret = rmw_destroy_service(rmw_node, service->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+      result = RCL_RET_ERROR;
+    }
+
+    // Unregister type
+    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &service->impl->type_hash)) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }
 
