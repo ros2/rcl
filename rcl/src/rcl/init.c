@@ -212,12 +212,13 @@ rcl_init(
   const char * discovery_range_string =
     rcl_automatic_discovery_range_to_string(discovery_options->automatic_discovery_range);
   if (NULL == discovery_range_string) {
-    discovery_range_string = "not set";
+    discovery_range_string = "not recognized";
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
-    "Automatic discovery range is %s",
-    discovery_range_string);
+    "Automatic discovery range is %s (%d)",
+    discovery_range_string,
+    discovery_options->automatic_discovery_range);
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
     "Static peers count is %lu",
