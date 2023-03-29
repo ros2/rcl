@@ -4,6 +4,7 @@ project(rcl)
 
 find_package(ament_cmake_ros REQUIRED)
 
+find_package(libyaml_vendor REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rcl_logging_interface REQUIRED)
 find_package(rcl_yaml_param_parser REQUIRED)
@@ -13,6 +14,8 @@ find_package(rmw_implementation REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(service_msgs REQUIRED)
 find_package(tracetools REQUIRED)
+find_package(type_description_interfaces REQUIRED)
+find_package(yaml REQUIRED)
 
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 include(cmake/get_default_rcl_logging_implementation.cmake)
@@ -64,6 +67,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/subscription.c
   src/rcl/time.c
   src/rcl/timer.c
+  src/rcl/type_hash.c
   src/rcl/validate_enclave_name.c
   src/rcl/validate_topic_name.c
   src/rcl/wait.c
@@ -76,6 +80,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
+  "libyaml_vendor"
   "rcl_interfaces"
   "rcl_logging_interface"
   "rcl_yaml_param_parser"
@@ -86,6 +91,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rosidl_runtime_c"
   "service_msgs"
   "tracetools"
+  "type_description_interfaces"
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -127,6 +133,8 @@ ament_export_dependencies(${RCL_LOGGING_IMPL})
 ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(service_msgs)
 ament_export_dependencies(tracetools)
+ament_export_dependencies(type_description_interfaces)
+ament_export_dependencies(libyaml_vendor)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
