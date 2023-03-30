@@ -125,7 +125,8 @@ rcl_service_init(
   if (RCL_RET_OK !=
     rcl_node_type_cache_register_type(
       node, type_support->type_hash,
-      type_support->type_description, type_support->type_description_sources))
+      type_support->get_type_description_func(),
+      type_support->get_type_description_sources_func()))
   {
     RCL_SET_ERROR_MSG("Failed to register type for service");
     return RCL_RET_ERROR;

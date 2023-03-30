@@ -25,7 +25,7 @@ TEST(TestTypeDescriptionConversions, type_description_conversion_round_trip) {
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
 
   type_description_interfaces__msg__TypeDescription * type_description_msg =
-    rcl_convert_type_description_runtime_to_msg(ts->type_description);
+    rcl_convert_type_description_runtime_to_msg(ts->get_type_description_func());
   EXPECT_TRUE(NULL != type_description_msg);
 
   rosidl_runtime_c__type_description__TypeDescription * type_description_rt =
@@ -34,7 +34,7 @@ TEST(TestTypeDescriptionConversions, type_description_conversion_round_trip) {
 
   EXPECT_TRUE(
     rosidl_runtime_c__type_description__TypeDescription__are_equal(
-      type_description_rt, ts->type_description));
+      type_description_rt, ts->get_type_description_func()));
 
   type_description_interfaces__msg__TypeDescription__destroy(
     type_description_msg);
@@ -52,7 +52,7 @@ TEST(TestTypeDescriptionConversions, type_source_sequence_conversion_round_trip)
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
 
   type_description_interfaces__msg__TypeSource__Sequence * type_sources_msg =
-    rcl_convert_type_source_sequence_runtime_to_msg(ts->type_description_sources);
+    rcl_convert_type_source_sequence_runtime_to_msg(ts->get_type_description_sources_func());
   EXPECT_TRUE(NULL != type_sources_msg);
 
   rosidl_runtime_c__type_description__TypeSource__Sequence * type_sources_rt =
@@ -61,7 +61,7 @@ TEST(TestTypeDescriptionConversions, type_source_sequence_conversion_round_trip)
 
   EXPECT_TRUE(
     rosidl_runtime_c__type_description__TypeSource__Sequence__are_equal(
-      type_sources_rt, ts->type_description_sources));
+      type_sources_rt, ts->get_type_description_sources_func()));
 
   type_description_interfaces__msg__TypeSource__Sequence__destroy(
     type_sources_msg);
