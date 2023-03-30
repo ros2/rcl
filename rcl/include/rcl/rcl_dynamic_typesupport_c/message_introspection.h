@@ -15,6 +15,10 @@
 #ifndef RCL_DYNAMIC_TYPESUPPORT_C__MESSAGE_INTROSPECTION_H_
 #define RCL_DYNAMIC_TYPESUPPORT_C__MESSAGE_INTROSPECTION_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "rosidl_runtime_c/message_type_support_struct.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
@@ -22,10 +26,6 @@
 
 #include <rosidl_runtime_c/type_description/type_description__struct.h>  // TEMPORARY
 // #include <type_description_interfaces/msg/type_description.h>  // Use this when conversion is ok
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 // TODO(methylDragon): !!! Document that the user is in charge of the lifetime of the struct...

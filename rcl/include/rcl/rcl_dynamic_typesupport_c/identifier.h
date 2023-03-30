@@ -15,11 +15,12 @@
 #ifndef RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
 #define RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
 
-#include "rmw/dynamic_message_typesupport.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "rmw/dynamic_message_typesupport.h"
+
 
 #define rcl_dynamic_typesupport_c__identifier \
   rmw_dynamic_typesupport_c__identifier
