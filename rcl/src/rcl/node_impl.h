@@ -31,7 +31,7 @@ struct rcl_node_impl_s
   const char * logger_name;
   const char * fq_name;
   rcutils_hash_map_t registered_types_by_type_hash;
-  rcl_service_t * get_type_description_service;
+  rcl_service_t get_type_description_service;
 };
 
 /// Initialize the node's type cache.
