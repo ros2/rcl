@@ -59,7 +59,6 @@ extern "C"
 
 #include "./context_impl.h"
 #include "./node_impl.h"
-#include "./node_type_cache_init.h"
 
 const char * const RCL_DISABLE_LOANED_MESSAGES_ENV_VAR = "ROS_DISABLE_LOANED_MESSAGES";
 

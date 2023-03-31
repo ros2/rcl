@@ -21,7 +21,6 @@
 
 #include "./context_impl.h"
 #include "./node_impl.h"
-#include "./node_type_cache_init.h"
 
 typedef struct rcl_type_info_with_registration_count_t
 {
