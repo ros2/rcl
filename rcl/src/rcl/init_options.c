@@ -75,6 +75,12 @@ rcl_init_options_init(rcl_init_options_t * init_options, rcl_allocator_t allocat
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
   }
+
+  // rmw defaults discovery range to LOCALHOST
+  // Intentionally set discovery options to NOT_SET so we can determine
+  // if a user intentionally sets them later
+  init_options->impl->rmw_init_options.discovery_options.automatic_discovery_range =
+    RMW_AUTOMATIC_DISCOVERY_RANGE_NOT_SET;
   return RCL_RET_OK;
 }
 

@@ -176,10 +176,16 @@ rcl_init(
     }
   }
 
+  const rmw_discovery_options_t original_discovery_options =
+    options->impl->rmw_init_options.discovery_options;
   rmw_discovery_options_t * discovery_options =
     &context->impl->init_options.impl->rmw_init_options.discovery_options;
-  if (RMW_AUTOMATIC_DISCOVERY_RANGE_NOT_SET == discovery_options->automatic_discovery_range) {
-    // Get actual discovery range option based on environment variable, if needed
+
+  // Get actual discovery range option based on environment variable, if not given
+  // to original options passed to function
+  if (
+    RMW_AUTOMATIC_DISCOVERY_RANGE_NOT_SET == original_discovery_options.automatic_discovery_range
+  ) {
     ret = rcl_get_automatic_discovery_range(discovery_options);
     if (RCL_RET_OK != ret) {
       fail_ret = ret;
