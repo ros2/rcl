@@ -419,7 +419,8 @@ rcl_add_custom_gtest(test_localhost
 rcl_add_custom_gtest(test_logging
   SRCS rcl/test_logging.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME} mimick
+  LIBRARIES ${PROJECT_NAME} mimick ${rcl_interfaces_TARGETS}
+    rcl_logging_interface::rcl_logging_interface ${RCL_LOGGING_IMPL}::${RCL_LOGGING_IMPL}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
@@ -461,4 +462,10 @@ rcl_add_custom_gtest(test_subscription_content_filter_options
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp" "test_msgs"
+)
+
+rcl_add_custom_gtest(test_type_hash
+  SRCS rcl/test_type_hash.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
 )
