@@ -147,12 +147,20 @@ rcl_get_discovery_static_peers(
         RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH - 1);
       continue;
     }
+#ifdef _WIN32
+    strncpy_s(
+      discovery_options->static_peers[i].peer_address,
+      RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH,
+      array.data[i],
+      RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH);
+#else
     strncpy(
       discovery_options->static_peers[i].peer_address,
       array.data[i],
       RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH);
     discovery_options->static_peers[i].peer_address[
       RMW_DISCOVERY_OPTIONS_STATIC_PEERS_MAX_LENGTH - 1] = '\0';
+#endif
   }
 
   if (RCUTILS_RET_OK != rcutils_string_array_fini(&array)) {
