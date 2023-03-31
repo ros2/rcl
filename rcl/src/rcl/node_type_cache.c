@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "rcl/node_type_cache.h"
 #include "rcl/type_description_conversions.h"
 
@@ -243,7 +239,3 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
 
   return RCL_RET_OK;
 }
-
-#ifdef __cplusplus
-}
-#endif

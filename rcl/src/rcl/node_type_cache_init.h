@@ -19,10 +19,6 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /// Initialize the node's type cache.
 /**
  * This function initializes hash map of the node's type cache such that types
@@ -68,9 +64,5 @@ rcl_ret_t rcl_node_type_cache_init(rcl_node_t * node);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_fini(rcl_node_t * node);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  // RCL__NODE_TYPE_CACHE_INIT_H_

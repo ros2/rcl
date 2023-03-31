@@ -22,10 +22,6 @@
 #include "type_description_interfaces/msg/detail/field__functions.h"
 #include "type_description_interfaces/msg/individual_type_description.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static bool individual_type_description_runtime_to_msg(
   const rosidl_runtime_c__type_description__IndividualTypeDescription * in,
   type_description_interfaces__msg__IndividualTypeDescription * out)
@@ -326,7 +322,3 @@ fail:
   rosidl_runtime_c__type_description__TypeSource__Sequence__destroy(out);
   return NULL;
 }
-
-#ifdef __cplusplus
-}
-#endif
