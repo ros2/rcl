@@ -626,7 +626,7 @@ static void rcl_node_get_type_description_service_callback(
     }
   } else {
     response.successful = false;
-    RCUTILS_LOG_ERROR_NAMED(
+    RCUTILS_LOG_INFO_NAMED(
       ROS_PACKAGE_NAME,
       "Type '%s' not found in type cache",
       request.type_hash.data);
