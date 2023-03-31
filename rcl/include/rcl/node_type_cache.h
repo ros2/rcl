@@ -79,7 +79,7 @@ rcl_ret_t rcl_node_type_cache_register_type(
  * Lock-Free          | Yes
  *
  * \param[in] node the handle to the node whose type cache should be finalized
- * \param[in] type_hash type hash handle
+ * \param[in] type_hash type hash
  * \return #RCL_RET_OK if the type was successfully registered, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or

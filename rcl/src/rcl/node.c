@@ -633,7 +633,7 @@ static void rcl_node_get_type_description_service_callback(
       request.type_hash.data);
     rosidl_runtime_c__String__assign(
       &response.failure_reason,
-      "Type or hash not found in type cache");
+      "Type not currently used by this node");
   }
 
   if (RCL_RET_OK != rcl_send_response(

@@ -41,7 +41,7 @@ extern "C" {
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] in the handle to the runtime type description struct
+ * \param[in] runtime_description the pointer to the runtime type description struct
  * \return a valid type_description_interfaces/msg/TypeDescription pointer, or
  * \return NULL if an unspecified error occurs.
  */

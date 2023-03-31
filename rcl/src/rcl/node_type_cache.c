@@ -40,14 +40,12 @@ size_t get_type_hash_hashmap_key(const void * key)
 {
   // Reinterpret-cast the first sizeof(size_t) bytes of the hash value
   const rosidl_type_hash_t * type_hash = key;
-  return (size_t)type_hash->value[0];
+  return *(size_t *)type_hash->value;
 }
 
 int cmp_type_hash(const void * val1, const void * val2)
 {
-  const rosidl_type_hash_t * hash1 = val1;
-  const rosidl_type_hash_t * hash2 = val2;
-  return memcmp(hash1->value, hash2->value, ROSIDL_TYPE_HASH_SIZE);
+  return memcmp(val1, val2, sizeof(rosidl_type_hash_t));
 }
 
 rcl_ret_t rcl_node_type_cache_init(rcl_node_t * node)
