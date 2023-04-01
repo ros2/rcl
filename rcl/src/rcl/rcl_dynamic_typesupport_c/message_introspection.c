@@ -17,6 +17,11 @@ extern "C"
 {
 #endif
 
+#include <rcutils/logging_macros.h>
+#include <rosidl_runtime_c/message_type_support_struct.h>
+#include <rosidl_runtime_c/type_description/type_description__struct.h>  // TEMPORARY
+// #include <type_description_interfaces/msg/type_description.h>  // Use this when conversion is ok
+
 #include "rmw/dynamic_message_typesupport.h"
 
 #include "rcl/common.h"
@@ -24,11 +29,6 @@ extern "C"
 #include "rcl/rcl_dynamic_typesupport_c/identifier.h"
 #include "rcl/rcl_dynamic_typesupport_c/message_introspection.h"
 #include "rcl/types.h"
-
-#include <rcutils/logging_macros.h>
-#include <rosidl_runtime_c/message_type_support_struct.h>
-#include <rosidl_runtime_c/type_description/type_description__struct.h>  // TEMPORARY
-// #include <type_description_interfaces/msg/type_description.h>  // Use this when conversion is ok
 
 
 /// Create a rosidl_message_type_support_t from a TypeDescription message

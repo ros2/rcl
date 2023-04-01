@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
-#define RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
+#ifndef RCL__RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
+#define RCL__RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,4 +29,4 @@ extern "C" {
 }
 #endif
 
-#endif  // RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
+#endif  // RCL__RCL_DYNAMIC_TYPESUPPORT_C__IDENTIFIER_H_
