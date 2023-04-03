@@ -82,9 +82,9 @@ rcl_publisher_init(
   // Register type.
   if (RCL_RET_OK !=
     rcl_node_type_cache_register_type(
-      node, type_support->type_hash,
-      type_support->get_type_description_func(),
-      type_support->get_type_description_sources_func()))
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
   {
     RCL_SET_ERROR_MSG("Failed to register type for publication");
     goto fail;
@@ -140,7 +140,7 @@ rcl_publisher_init(
   // options
   publisher->impl->options = *options;
   // type hash
-  publisher->impl->type_hash = *type_support->type_hash;
+  publisher->impl->type_hash = *type_support->get_type_hash_func(type_support);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
   // context
   publisher->impl->context = node->context;

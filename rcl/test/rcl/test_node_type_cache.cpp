@@ -88,27 +88,27 @@ TEST_F(
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_node_type_cache_register_type(
-      NULL, ts->type_hash,
-      ts->get_type_description_func(), ts->get_type_description_sources_func()));
+      NULL, ts->get_type_hash_func(ts),
+      ts->get_type_description_func(ts), ts->get_type_description_sources_func(ts)));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_node_type_cache_register_type(
       this->node_ptr, NULL,
-      ts->get_type_description_func(), ts->get_type_description_sources_func()));
+      ts->get_type_description_func(ts), ts->get_type_description_sources_func(ts)));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_register_type(
-      this->node_ptr, ts->type_hash, NULL, ts->get_type_description_sources_func()));
+      this->node_ptr, ts->get_type_hash_func(ts), NULL, ts->get_type_description_sources_func(ts)));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_register_type(
-      this->node_ptr, ts->type_hash, ts->get_type_description_func(), NULL));
+      this->node_ptr, ts->get_type_hash_func(ts), ts->get_type_description_func(ts), NULL));
   rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_node_type_cache_unregister_type(NULL, ts->type_hash));
+    rcl_node_type_cache_unregister_type(NULL, ts->get_type_hash_func(ts)));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
@@ -117,7 +117,7 @@ TEST_F(
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
-    rcl_node_type_cache_get_type_info(NULL, ts->type_hash, &type_info));
+    rcl_node_type_cache_get_type_info(NULL, ts->get_type_hash_func(ts), &type_info));
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_get_type_info(
@@ -125,7 +125,7 @@ TEST_F(
   rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_node_type_cache_get_type_info(
-      this->node_ptr, ts->type_hash, NULL));
+      this->node_ptr, ts->get_type_hash_func(ts), NULL));
   rcl_reset_error();
 }
 
@@ -140,38 +140,38 @@ TEST_F(
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_node_type_cache_register_type(
-      this->node_ptr, ts->type_hash,
-      ts->get_type_description_func(), ts->get_type_description_sources_func()));
+      this->node_ptr, ts->get_type_hash_func(ts),
+      ts->get_type_description_func(ts), ts->get_type_description_sources_func(ts)));
   EXPECT_EQ(
     RCL_RET_OK, rcl_node_type_cache_get_type_info(
-      this->node_ptr, ts->type_hash, &type_info));
+      this->node_ptr, ts->get_type_hash_func(ts), &type_info));
 
   // Unregister once and confirm that it got removed from the type cache
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
+    rcl_node_type_cache_unregister_type(this->node_ptr, ts->get_type_hash_func(ts)));
   EXPECT_EQ(
     RCL_RET_ERROR, rcl_node_type_cache_get_type_info(
-      this->node_ptr, ts->type_hash, &type_info));
+      this->node_ptr, ts->get_type_hash_func(ts), &type_info));
   rcl_reset_error();
 
   // Register twice and unregister once. Type info should still be available
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_node_type_cache_register_type(
-      this->node_ptr, ts->type_hash,
-      ts->get_type_description_func(), ts->get_type_description_sources_func()));
+      this->node_ptr, ts->get_type_hash_func(ts),
+      ts->get_type_description_func(ts), ts->get_type_description_sources_func(ts)));
   EXPECT_EQ(
     RCL_RET_OK,
     rcl_node_type_cache_register_type(
-      this->node_ptr, ts->type_hash,
-      ts->get_type_description_func(), ts->get_type_description_sources_func()));
+      this->node_ptr, ts->get_type_hash_func(ts),
+      ts->get_type_description_func(ts), ts->get_type_description_sources_func(ts)));
   EXPECT_EQ(
     RCL_RET_OK,
-    rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
+    rcl_node_type_cache_unregister_type(this->node_ptr, ts->get_type_hash_func(ts)));
   EXPECT_EQ(
     RCL_RET_OK, rcl_node_type_cache_get_type_info(
-      this->node_ptr, ts->type_hash, &type_info));
+      this->node_ptr, ts->get_type_hash_func(ts), &type_info));
 }
 
 TEST_F(
@@ -181,6 +181,6 @@ TEST_F(
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   EXPECT_EQ(
     RCL_RET_ERROR,
-    rcl_node_type_cache_unregister_type(this->node_ptr, ts->type_hash));
+    rcl_node_type_cache_unregister_type(this->node_ptr, ts->get_type_hash_func(ts)));
   rcl_reset_error();
 }

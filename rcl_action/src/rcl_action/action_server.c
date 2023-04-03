@@ -145,9 +145,9 @@ rcl_action_server_init(
   // Register type.
   if (RCL_RET_OK !=
     rcl_node_type_cache_register_type(
-      node, type_support->type_hash,
-      type_support->get_type_description_func(),
-      type_support->get_type_description_sources_func()))
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
   {
     RCL_SET_ERROR_MSG("Failed to register type for action");
     return RCL_RET_ERROR;
@@ -185,7 +185,7 @@ rcl_action_server_init(
   // Store reference to clock
   action_server->impl->clock = clock;
   // Store type support
-  action_server->impl->type_hash = *type_support->type_hash;
+  action_server->impl->type_hash = *type_support->get_type_hash_func(type_support);
 
   // Initialize Timer
   ret = rcl_timer_init(
