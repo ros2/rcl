@@ -120,18 +120,6 @@ rcl_service_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service->impl, "allocating memory failed",
     return RCL_RET_BAD_ALLOC;);
-
-  // Register type.
-  if (RCL_RET_OK !=
-    rcl_node_type_cache_register_type(
-      node, type_support->get_type_hash_func(type_support),
-      type_support->get_type_description_func(type_support),
-      type_support->get_type_description_sources_func(type_support)))
-  {
-    RCL_SET_ERROR_MSG("Failed to register type for service");
-    return RCL_RET_ERROR;
-  }
-
   // Expand and remap the given service name.
   rcl_ret_t ret = rcl_node_resolve_name(
     node,
@@ -151,6 +139,18 @@ rcl_service_init(
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Expanded and remapped service name '%s'",
     service->impl->remapped_service_name);
+  // Register type.
+  if (RCL_RET_OK !=
+    rcl_node_type_cache_register_type(
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
+  {
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG("Failed to register type for service");
+    ret = RCL_RET_ERROR;
+    goto free_remapped_service_name;
+  }
 
   if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == options->qos.durability) {
     RCUTILS_LOG_WARN_NAMED(

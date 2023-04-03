@@ -79,17 +79,6 @@ rcl_publisher_init(
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Initializing publisher for topic name '%s'", topic_name);
 
-  // Register type.
-  if (RCL_RET_OK !=
-    rcl_node_type_cache_register_type(
-      node, type_support->get_type_hash_func(type_support),
-      type_support->get_type_description_func(type_support),
-      type_support->get_type_description_sources_func(type_support)))
-  {
-    RCL_SET_ERROR_MSG("Failed to register type for publication");
-    goto fail;
-  }
-
   // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
   rcl_ret_t ret = rcl_node_resolve_name(
@@ -127,6 +116,17 @@ rcl_publisher_init(
     &(options->rmw_publisher_options));
   RCL_CHECK_FOR_NULL_WITH_MSG(
     publisher->impl->rmw_handle, rmw_get_error_string().str, goto fail);
+  // Register type.
+  if (RCL_RET_OK !=
+    rcl_node_type_cache_register_type(
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
+  {
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG("Failed to register type for subscription");
+    goto fail;
+  }
   // get actual qos, and store it
   rmw_ret_t rmw_ret = rmw_publisher_get_actual_qos(
     publisher->impl->rmw_handle,

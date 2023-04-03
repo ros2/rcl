@@ -675,7 +675,7 @@ rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node)
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG(
       "Failed to construct ~/get_type_description service name");
-    goto fail;
+    goto cleanup;
   }
 
   // Initialize service
@@ -685,7 +685,7 @@ rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node)
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG(
       "Failed to initialize ~/get_type_description service");
-    goto fail;
+    goto cleanup;
   }
 
   // Set service callback
@@ -693,22 +693,19 @@ rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node)
     &node->impl->get_type_description_service,
     rcl_node_get_type_description_service_callback, node);
   if (RCL_RET_OK != ret) {
+    rcutils_reset_error();
+    if (RCL_RET_OK !=
+      rcl_service_fini(&node->impl->get_type_description_service, node))
+    {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME,
+        "Failed to deinitialize ~/get_type_description service.");
+    }
+    node->impl->get_type_description_service = rcl_get_zero_initialized_service();
+    rcutils_reset_error();
     RCL_SET_ERROR_MSG(
       "Failed to set callback for ~/get_type_description service");
-    goto fail;
   }
-
-  goto cleanup;
-
-fail:
-  if (RCL_RET_OK !=
-    rcl_service_fini(&node->impl->get_type_description_service, node))
-  {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME,
-      "Failed to deinitialize ~/get_type_description service.");
-  }
-  node->impl->get_type_description_service = rcl_get_zero_initialized_service();
 
 cleanup:
   if (serviceName) {

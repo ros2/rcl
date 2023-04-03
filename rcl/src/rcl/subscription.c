@@ -72,16 +72,6 @@ rcl_subscription_init(
     RCL_SET_ERROR_MSG("subscription already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
   }
-  // Register type.
-  if (RCL_RET_OK !=
-    rcl_node_type_cache_register_type(
-      node, type_support->get_type_hash_func(type_support),
-      type_support->get_type_description_func(type_support),
-      type_support->get_type_description_sources_func(type_support)))
-  {
-    RCL_SET_ERROR_MSG("Failed to register type for subscription");
-    goto fail;
-  }
 
   // Expand and remap the given topic name.
   char * remapped_topic_name = NULL;
@@ -119,6 +109,17 @@ rcl_subscription_init(
     &(options->rmw_subscription_options));
   if (!subscription->impl->rmw_handle) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    goto fail;
+  }
+  // Register type.
+  if (RCL_RET_OK !=
+    rcl_node_type_cache_register_type(
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
+  {
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG("Failed to register type for subscription");
     goto fail;
   }
   // get actual qos, and store it
