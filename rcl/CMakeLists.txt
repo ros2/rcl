@@ -37,13 +37,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(${PROJECT_NAME}_sources
-  src/rcl/rcl_dynamic_typesupport_c/message_introspection.c
-
   src/rcl/arguments.c
   src/rcl/client.c
   src/rcl/common.c
   src/rcl/context.c
   src/rcl/domain_id.c
+  src/rcl/dynamic_message_type_support.c
   src/rcl/event.c
   src/rcl/expand_topic_name.c
   src/rcl/graph.c

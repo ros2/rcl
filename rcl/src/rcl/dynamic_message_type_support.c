@@ -26,8 +26,7 @@ extern "C"
 
 #include "rcl/common.h"
 #include "rcl/error_handling.h"
-#include "rcl/rcl_dynamic_typesupport_c/identifier.h"
-#include "rcl/rcl_dynamic_typesupport_c/message_introspection.h"
+#include "rcl/dynamic_message_type_support.h"
 #include "rcl/type_hash.h"
 #include "rcl/types.h"
 

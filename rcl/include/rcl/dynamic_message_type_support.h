@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__RCL_DYNAMIC_TYPESUPPORT_C__MESSAGE_INTROSPECTION_H_
-#define RCL__RCL_DYNAMIC_TYPESUPPORT_C__MESSAGE_INTROSPECTION_H_
+#ifndef RCL__DYNAMIC_MESSAGE_TYPE_SUPPORT_H_
+#define RCL__DYNAMIC_MESSAGE_TYPE_SUPPORT_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,4 +57,4 @@ rcl_dynamic_message_type_support_handle_fini(rosidl_message_type_support_t * ts)
 }
 #endif
 
-#endif  // RCL__RCL_DYNAMIC_TYPESUPPORT_C__MESSAGE_INTROSPECTION_H_
+#endif  // RCL__DYNAMIC_MESSAGE_TYPE_SUPPORT_H_
