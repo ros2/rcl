@@ -103,10 +103,10 @@ rcl_dynamic_message_type_support_handle_init(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_type_support_handle_fini(rosidl_message_type_support_t * ts)
+rcl_dynamic_message_type_support_handle_destroy(rosidl_message_type_support_t * ts)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(ts, RCL_RET_INVALID_ARGUMENT);
-  return rcl_convert_rmw_ret_to_rcl_ret(rmw_dynamic_message_type_support_handle_fini(ts));
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_dynamic_message_type_support_handle_destroy(ts));
 }
 
 #ifdef __cplusplus

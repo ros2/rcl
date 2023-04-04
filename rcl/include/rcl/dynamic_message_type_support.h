@@ -50,7 +50,7 @@ rcl_dynamic_message_type_support_handle_init(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_type_support_handle_fini(rosidl_message_type_support_t * ts);
+rcl_dynamic_message_type_support_handle_destroy(rosidl_message_type_support_t * ts);
 
 
 #ifdef __cplusplus
