@@ -22,12 +22,13 @@ extern "C"
 #include <rosidl_runtime_c/type_description/type_description__struct.h>  // TEMPORARY
 // #include <type_description_interfaces/msg/type_description.h>  // Use this when conversion is ok
 
-#include "rmw/dynamic_message_typesupport.h"
+#include "rmw/dynamic_message_type_support.h"
 
 #include "rcl/common.h"
 #include "rcl/error_handling.h"
 #include "rcl/rcl_dynamic_typesupport_c/identifier.h"
 #include "rcl/rcl_dynamic_typesupport_c/message_introspection.h"
+#include "rcl/type_hash.h"
 #include "rcl/types.h"
 
 
@@ -35,7 +36,7 @@ extern "C"
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_typesupport_handle_init(
+rcl_dynamic_message_type_support_handle_init(
   const char * serialization_lib_name,
   // TODO(methylDragon): This should be const type_description_interfaces__msg__TypeDescription
   const rosidl_runtime_c__type_description__TypeDescription * description,
@@ -53,19 +54,43 @@ rcl_dynamic_message_typesupport_handle_init(
     }
   }
 
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  rosidl_type_hash_t * type_hash = allocator.zero_allocate(
+    1, sizeof(rosidl_type_hash_t), &allocator.state);
+  if (!type_hash) {
+    RCUTILS_SET_ERROR_MSG("Could not allocate type hash");
+    return RCL_RET_ERROR;
+  }
+
+  ret = rcl_calculate_type_hash(
+    // TODO(methylDragon): Replace this cast with the conversion function when it is ready
+    (const type_description_interfaces__msg__TypeDescription *) description, type_hash);
+  if (ret != RCL_RET_OK || type_hash == NULL) {
+    RCL_SET_ERROR_MSG("failed to get type hash");
+    allocator.deallocate(type_hash, &allocator.state);
+    if (ret == RCL_RET_OK) {
+      return RCL_RET_ERROR;
+    } else {
+      return ret;
+    }
+  }
+
   ret = rcl_convert_rmw_ret_to_rcl_ret(
-    rmw_dynamic_message_typesupport_handle_init(
+    rmw_dynamic_message_type_support_handle_init(
       serialization_support,
       rmw_feature_supported(RMW_MIDDLEWARE_SUPPORTS_TYPE_DISCOVERY),
       // TODO(methylDragon): We need to convert type_description_interfaces__msg__TypeDescription to
       //                     rosidl_runtime_c__type_description__TypeDescription here
-      description,
+      type_hash,    // type_hash
+      description,  // type_description
+      NULL,         // type_description_sources
       ts
     )
   );
 
   if (!ts) {
     RCL_SET_ERROR_MSG("failed to init rosidl_message_type_support");
+    allocator.deallocate(type_hash, &allocator.state);
     if (ret == RCL_RET_OK) {
       return RCL_RET_ERROR;
     } else {
@@ -79,10 +104,10 @@ rcl_dynamic_message_typesupport_handle_init(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_typesupport_handle_fini(rosidl_message_type_support_t * ts)
+rcl_dynamic_message_type_support_handle_fini(rosidl_message_type_support_t * ts)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(ts, RCL_RET_INVALID_ARGUMENT);
-  return rcl_convert_rmw_ret_to_rcl_ret(rmw_dynamic_message_typesupport_handle_fini(ts));
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_dynamic_message_type_support_handle_fini(ts));
 }
 
 #ifdef __cplusplus

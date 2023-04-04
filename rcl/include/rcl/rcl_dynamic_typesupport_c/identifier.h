@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#include "rmw/dynamic_message_typesupport.h"
+#include "rmw/dynamic_message_type_support_identifier.h"
 
 
 #define rcl_dynamic_typesupport_c__identifier \
