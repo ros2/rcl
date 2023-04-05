@@ -654,7 +654,6 @@ rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
 
   if (rcl_service_is_valid(&node->impl->get_type_description_service)) {
-    RCL_SET_ERROR_MSG("Service already initialized");
     return RCL_RET_ALREADY_INIT;
   }
   rcl_reset_error();  // Reset the error message set by rcl_service_is_valid()
@@ -719,7 +718,7 @@ rcl_ret_t rcl_node_type_description_service_fini(rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
   if (!rcl_service_is_valid(&node->impl->get_type_description_service)) {
-    RCL_SET_ERROR_MSG("Service not initialized");
+    rcl_reset_error();
     return RCL_RET_NOT_INIT;
   }
 
