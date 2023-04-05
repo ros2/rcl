@@ -615,7 +615,7 @@ static void rcl_node_get_type_description_service_callback(
       type_info.type_description, &response.type_description);
 
     if (request.include_type_sources) {
-      response.successful = type_description_interfaces__msg__TypeSource__Sequence__copy(
+      response.successful &= type_description_interfaces__msg__TypeSource__Sequence__copy(
         type_info.type_sources, &response.type_sources);
     }
 
@@ -664,7 +664,6 @@ rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node)
     ROSIDL_GET_SRV_TYPE_SUPPORT(
     type_description_interfaces, srv,
     GetTypeDescription);
-  // TODO(achim-k): Pass in as argument?
   rcl_service_options_t service_ops = rcl_service_get_default_options();
   rcl_allocator_t allocator = node->context->impl->allocator;
 
