@@ -46,6 +46,12 @@ extern "C"
  * The option indicated by the environment variable will be stored in the
  * automatic_discovery_range field of the given discovery_options struct.
  *
+ * If the environment variable isn't set, then the default discovery range
+ * will be the value of the preprocessor definition
+ * `RCL_DEFAULT_DISCOVERY_RANGE`.
+ * If the definition is undefined, then the default will be SUBNET.
+ * It is intended that the default will be LOCALHOST in future versions of ROS.
+ *
  * \param[out] discovery_options Must not be NULL.
  * \return #RCL_RET_INVALID_ARGUMENT if an argument is invalid, or
  * \return #RCL_RET_ERROR if an unexpected error happened, or

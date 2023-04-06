@@ -34,6 +34,11 @@
 static const char * const RCL_STATIC_PEERS_ENV_VAR = "ROS_STATIC_PEERS";
 static const char * const RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR = "ROS_AUTOMATIC_DISCOVERY_RANGE";
 
+#define GET_RMW_DISCOVERY_RANGE(x) \
+  _GET_DEFAULT_DISCOVERY_RANGE(x)
+#define _GET_DEFAULT_DISCOVERY_RANGE(x) \
+  RMW_AUTOMATIC_DISCOVERY_RANGE_ ## x
+
 rcl_ret_t
 rcl_get_automatic_discovery_range(rmw_discovery_options_t * discovery_options)
 {
@@ -54,7 +59,12 @@ rcl_get_automatic_discovery_range(rmw_discovery_options_t * discovery_options)
     return RCL_RET_ERROR;
   }
   if (strcmp(ros_automatic_discovery_range_env_val, "") == 0) {
-    discovery_options->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
+#ifdef RCL_DEFAULT_DISCOVERY_RANGE
+    discovery_options->automatic_discovery_range =
+      GET_RMW_DISCOVERY_RANGE(RCL_DEFAULT_DISCOVERY_RANGE);
+#else
+    discovery_options->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET;
+#endif
   } else if (strcmp(ros_automatic_discovery_range_env_val, "OFF") == 0) {
     discovery_options->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_OFF;
   } else if (strcmp(ros_automatic_discovery_range_env_val, "LOCALHOST") == 0) {
