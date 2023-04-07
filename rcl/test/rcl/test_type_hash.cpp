@@ -21,6 +21,7 @@
 #include "type_description_interfaces/msg/type_description.h"
 #include "type_description_interfaces/msg/individual_type_description.h"
 #include "type_description_interfaces/msg/field.h"
+#include "type_description_interfaces/msg/field_type.h"
 #include "rosidl_runtime_c/string_functions.h"
 #include "rcl/allocator.h"
 #include "rcl/type_hash.h"
@@ -97,11 +98,12 @@ TEST(TestTypeVersionHash, field_type_from_install) {
   }
 
   // NOTE: testing this against the actual installed one, forces an up to date test
-  auto validation_hash = type_description_interfaces__msg__FieldType__TYPE_HASH;
+  const rosidl_type_hash_t * validation_hash =
+    type_description_interfaces__msg__FieldType__get_type_hash(NULL);
   ASSERT_EQ(direct_hash.version, hash_from_repr.version);
-  ASSERT_EQ(direct_hash.version, validation_hash.version);
+  ASSERT_EQ(direct_hash.version, validation_hash->version);
   ASSERT_EQ(0, memcmp(direct_hash.value, hash_from_repr.value, ROSIDL_TYPE_HASH_SIZE));
-  ASSERT_EQ(0, memcmp(direct_hash.value, validation_hash.value, ROSIDL_TYPE_HASH_SIZE));
+  ASSERT_EQ(0, memcmp(direct_hash.value, validation_hash->value, ROSIDL_TYPE_HASH_SIZE));
 }
 
 
