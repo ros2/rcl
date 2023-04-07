@@ -39,14 +39,14 @@ extern "C" {
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_type_support_handle_init(
+rcl_dynamic_message_type_support_handle_create(
   const char * serialization_lib_name,
   // TODO(methylDragon): This should be const type_description_interfaces__msg__TypeDescription
   const rosidl_runtime_c__type_description__TypeDescription * desc,
   rosidl_message_type_support_t ** ts);  // OUT
 
 /// Finalize a rosidl_message_type_support_t obtained with
-/// rcl_dynamic_message_type_support_handle_init
+/// `rcl_dynamic_message_type_support_handle_create()`
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t

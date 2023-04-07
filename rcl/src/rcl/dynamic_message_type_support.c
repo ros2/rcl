@@ -35,7 +35,7 @@ extern "C"
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_type_support_handle_init(
+rcl_dynamic_message_type_support_handle_create(
   const char * serialization_lib_name,
   // TODO(methylDragon): This should be const type_description_interfaces__msg__TypeDescription
   const rosidl_runtime_c__type_description__TypeDescription * description,
@@ -75,7 +75,7 @@ rcl_dynamic_message_type_support_handle_init(
   }
 
   ret = rcl_convert_rmw_ret_to_rcl_ret(
-    rmw_dynamic_message_type_support_handle_init(
+    rmw_dynamic_message_type_support_handle_create(
       serialization_support,
       rmw_feature_supported(RMW_MIDDLEWARE_SUPPORTS_TYPE_DISCOVERY),
       // TODO(methylDragon): We need to convert type_description_interfaces__msg__TypeDescription to
