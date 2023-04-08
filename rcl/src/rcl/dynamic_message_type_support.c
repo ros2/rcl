@@ -41,12 +41,36 @@ rcl_dynamic_message_type_support_handle_create(
   const rosidl_runtime_c__type_description__TypeDescription * description,
   rosidl_message_type_support_t ** ts)
 {
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(ts, RCUTILS_RET_INVALID_ARGUMENT);
+
+  // TODO(methylDragon): Remove if and when the deferred description path is supported
+  if (description == NULL) {
+    RCUTILS_SET_ERROR_MSG(
+      "Deferred type description is not currently supported. You must provide a type description.");
+    return RCUTILS_RET_INVALID_ARGUMENT;
+  }
+
+  bool middleware_supports_type_discovery = rmw_feature_supported(
+    RMW_MIDDLEWARE_SUPPORTS_TYPE_DISCOVERY);
+  if (!middleware_supports_type_discovery && description == NULL) {
+    RCL_SET_ERROR_MSG(
+      "Middleware does not support type discovery. Deferred dynamic type message type support will "
+      "never be populated. You must provide a type description.");
+    return RCUTILS_RET_INVALID_ARGUMENT;
+  }
+  // TODO(methylDragon): Remove if and when the deferred description path is supported
+  if (description == NULL) {
+    RCL_SET_ERROR_MSG(
+      "Deferred type description is not currently supported. You must provide a type description.");
+    return RCUTILS_RET_INVALID_ARGUMENT;
+  }
+
   rosidl_dynamic_typesupport_serialization_support_t * serialization_support = NULL;
   rcl_ret_t ret = rcl_convert_rmw_ret_to_rcl_ret(
     rmw_get_serialization_support(serialization_lib_name, &serialization_support));
   if (ret != RCL_RET_OK || serialization_support == NULL) {
     RCL_SET_ERROR_MSG("failed to get serialization support");
-    if (ret == RCL_RET_OK) {
+    if (ret == RCL_RET_OK) {  // It means serialization support was NULL
       return RCL_RET_ERROR;
     } else {
       return ret;
@@ -74,10 +98,9 @@ rcl_dynamic_message_type_support_handle_create(
     }
   }
 
-  ret = rcl_convert_rmw_ret_to_rcl_ret(
-    rmw_dynamic_message_type_support_handle_create(
+  ret = rcl_convert_rcutils_ret_to_rcl_ret(
+    rosidl_dynamic_message_type_support_handle_create(
       serialization_support,
-      rmw_feature_supported(RMW_MIDDLEWARE_SUPPORTS_TYPE_DISCOVERY),
       // TODO(methylDragon): We need to convert type_description_interfaces__msg__TypeDescription to
       //                     rosidl_runtime_c__type_description__TypeDescription here
       type_hash,    // type_hash
@@ -106,7 +129,7 @@ rcl_ret_t
 rcl_dynamic_message_type_support_handle_destroy(rosidl_message_type_support_t * ts)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(ts, RCL_RET_INVALID_ARGUMENT);
-  return rcl_convert_rmw_ret_to_rcl_ret(rmw_dynamic_message_type_support_handle_destroy(ts));
+  return rcl_convert_rcutils_ret_to_rcl_ret(rosidl_dynamic_message_type_support_handle_destroy(ts));
 }
 
 #ifdef __cplusplus

@@ -30,6 +30,7 @@ extern "C"
 #include "rmw/dynamic_message_type_support.h"
 #include "rmw/subscription_content_filter_options.h"
 #include "rmw/validate_full_topic_name.h"
+#include "rosidl_dynamic_typesupport/identifier.h"
 #include "tracetools/tracetools.h"
 
 #include "./common.h"
