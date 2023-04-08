@@ -43,6 +43,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/context.c
   src/rcl/discovery_options.c
   src/rcl/domain_id.c
+  src/rcl/dynamic_message_type_support.c
   src/rcl/event.c
   src/rcl/expand_topic_name.c
   src/rcl/graph.c

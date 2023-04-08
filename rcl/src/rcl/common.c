@@ -43,6 +43,25 @@ rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret)
   }
 }
 
+rcl_ret_t
+rcl_convert_rcutils_ret_to_rcl_ret(rcutils_ret_t rcutils_ret)
+{
+  switch (rcutils_ret) {
+    case RCUTILS_RET_OK:
+      return RCL_RET_OK;
+    case RCUTILS_RET_ERROR:
+      return RCL_RET_ERROR;
+    case RCUTILS_RET_BAD_ALLOC:
+      return RCL_RET_BAD_ALLOC;
+    case RCUTILS_RET_INVALID_ARGUMENT:
+      return RCL_RET_INVALID_ARGUMENT;
+    case RCUTILS_RET_NOT_INITIALIZED:
+      return RCL_RET_NOT_INIT;
+    default:
+      return RCL_RET_ERROR;
+  }
+}
+
 #ifdef __cplusplus
 }
 #endif
