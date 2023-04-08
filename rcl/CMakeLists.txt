@@ -41,6 +41,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/client.c
   src/rcl/common.c
   src/rcl/context.c
+  src/rcl/discovery_options.c
   src/rcl/domain_id.c
   src/rcl/event.c
   src/rcl/expand_topic_name.c
@@ -97,6 +98,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   tracetools::tracetools
   yaml
 )
+
+# Allow configuring the default discovery range
+if(DEFINED RCL_DEFAULT_DISCOVERY_RANGE)
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  "RCL_DEFAULT_DISCOVERY_RANGE=${RCL_DEFAULT_DISCOVERY_RANGE}")
+endif()
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.

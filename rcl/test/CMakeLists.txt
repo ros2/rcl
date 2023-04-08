@@ -398,6 +398,12 @@ rcl_add_custom_gtest(test_validate_enclave_name
   LIBRARIES ${PROJECT_NAME} mimick
 )
 
+rcl_add_custom_gtest(test_discovery_options
+  SRCS rcl/test_discovery_options.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+)
+
 rcl_add_custom_gtest(test_domain_id
   SRCS rcl/test_domain_id.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
