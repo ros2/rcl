@@ -29,9 +29,8 @@ extern "C"
 #include "rcl/node.h"
 #include "rcl/visibility_control.h"
 
-#include "rmw/message_sequence.h"
 #include "rmw/dynamic_message_type_support.h"
-
+#include "rmw/message_sequence.h"
 
 /// Internal rcl implementation struct.
 typedef struct rcl_subscription_impl_s rcl_subscription_impl_t;

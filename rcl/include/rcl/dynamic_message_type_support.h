@@ -19,21 +19,13 @@
 extern "C" {
 #endif
 
-#include <rosidl_runtime_c/type_description/type_description__struct.h>  // TEMPORARY
-// #include <type_description_interfaces/msg/type_description.h>  // Use this when conversion is ok
+#include <rosidl_runtime_c/type_description/type_description__struct.h>
+#include <rosidl_runtime_c/message_type_support_struct.h>
 
-#include "rosidl_runtime_c/message_type_support_struct.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-
-// TODO(methylDragon): !!! Document that the user is in charge of the lifetime of the struct...
-// TODO(methylDragon): ...
-
-/// If the user passes a NULL desc, it is deferred instead, the middleware is responsibile for
-/// populating the fields on type discovery!!!
-///
 /// Does not take ownership of description (copies)
 /// Allocates the `ts` arg. The caller takes ownership of the `ts` arg.
 RCL_PUBLIC
@@ -41,7 +33,6 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_dynamic_message_type_support_handle_create(
   const char * serialization_lib_name,
-  // TODO(methylDragon): This should be const type_description_interfaces__msg__TypeDescription
   const rosidl_runtime_c__type_description__TypeDescription * desc,
   rosidl_message_type_support_t ** ts);  // OUT
 
@@ -51,7 +42,6 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_dynamic_message_type_support_handle_destroy(rosidl_message_type_support_t * ts);
-
 
 #ifdef __cplusplus
 }

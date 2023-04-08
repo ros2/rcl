@@ -19,8 +19,7 @@ extern "C"
 
 #include <rcutils/logging_macros.h>
 #include <rosidl_runtime_c/message_type_support_struct.h>
-#include <rosidl_runtime_c/type_description/type_description__struct.h>  // TEMPORARY
-// #include <type_description_interfaces/msg/type_description.h>  // Use this when conversion is ok
+#include <rosidl_runtime_c/type_description/type_description__struct.h>
 
 #include "rmw/dynamic_message_type_support.h"
 
@@ -37,7 +36,6 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_dynamic_message_type_support_handle_create(
   const char * serialization_lib_name,
-  // TODO(methylDragon): This should be const type_description_interfaces__msg__TypeDescription
   const rosidl_runtime_c__type_description__TypeDescription * description,
   rosidl_message_type_support_t ** ts)
 {
@@ -87,6 +85,7 @@ rcl_dynamic_message_type_support_handle_create(
 
   ret = rcl_calculate_type_hash(
     // TODO(methylDragon): Replace this cast with the conversion function when it is ready
+    //  Either a custom function, or from https://github.com/ros2/rcl/pull/1052
     (const type_description_interfaces__msg__TypeDescription *) description, type_hash);
   if (ret != RCL_RET_OK || type_hash == NULL) {
     RCL_SET_ERROR_MSG("failed to get type hash");
@@ -101,8 +100,6 @@ rcl_dynamic_message_type_support_handle_create(
   ret = rcl_convert_rcutils_ret_to_rcl_ret(
     rosidl_dynamic_message_type_support_handle_create(
       serialization_support,
-      // TODO(methylDragon): We need to convert type_description_interfaces__msg__TypeDescription to
-      //                     rosidl_runtime_c__type_description__TypeDescription here
       type_hash,    // type_hash
       description,  // type_description
       NULL,         // type_description_sources

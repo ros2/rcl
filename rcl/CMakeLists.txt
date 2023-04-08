@@ -139,7 +139,6 @@ ament_export_dependencies(rmw_implementation)
 ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(type_description_interfaces)
 
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
