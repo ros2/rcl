@@ -130,7 +130,7 @@ rcl_publisher_init(
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
   // context
   publisher->impl->context = node->context;
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_publisher_init,
     (const void *)publisher,
     (const void *)node,
@@ -258,7 +258,7 @@ rcl_publish(
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(ros_message, RCL_RET_INVALID_ARGUMENT);
-  TRACEPOINT(rcl_publish, (const void *)publisher, (const void *)ros_message);
+  TRACETOOLS_TRACEPOINT(rcl_publish, (const void *)publisher, (const void *)ros_message);
   if (rmw_publish(publisher->impl->rmw_handle, ros_message, allocation) != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return RCL_RET_ERROR;

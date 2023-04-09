@@ -187,7 +187,7 @@ rcl_service_init(
   // options
   service->impl->options = *options;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service initialized");
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_service_init,
     (const void *)service,
     (const void *)node,
