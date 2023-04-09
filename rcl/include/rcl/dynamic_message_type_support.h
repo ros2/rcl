@@ -22,26 +22,28 @@ extern "C" {
 #include <rosidl_runtime_c/type_description/type_description__struct.h>
 #include <rosidl_runtime_c/message_type_support_struct.h>
 
+#include "rcl/allocator.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
+/// Initialize a rosidl_message_type_support_t struct with dynamic message type support
 /// Does not take ownership of description (copies)
-/// Allocates the `ts` arg. The caller takes ownership of the `ts` arg.
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_type_support_handle_create(
+rcl_dynamic_message_type_support_handle_init(
   const char * serialization_lib_name,
   const rosidl_runtime_c__type_description__TypeDescription * desc,
-  rosidl_message_type_support_t ** ts);  // OUT
+  rcl_allocator_t * allocator,
+  rosidl_message_type_support_t * ts);  // OUT
 
-/// Finalize a rosidl_message_type_support_t obtained with
-/// `rcl_dynamic_message_type_support_handle_create()`
+/// Finalize a rosidl_message_type_support_t initialized with
+/// `rcl_dynamic_message_type_support_handle_init()`
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_type_support_handle_destroy(rosidl_message_type_support_t * ts);
+rcl_dynamic_message_type_support_handle_fini(rosidl_message_type_support_t * ts);
 
 #ifdef __cplusplus
 }
