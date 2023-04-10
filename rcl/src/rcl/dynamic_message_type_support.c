@@ -66,10 +66,10 @@ rcl_dynamic_message_type_support_handle_init(
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
 
-  rosidl_dynamic_typesupport_serialization_support_t * serialization_support = NULL;
+  rosidl_dynamic_typesupport_serialization_support_t serialization_support;
   rcl_ret_t ret = rcl_convert_rmw_ret_to_rcl_ret(
-    rmw_get_serialization_support(serialization_lib_name, &serialization_support));
-  if (ret != RCL_RET_OK || serialization_support == NULL) {
+    rmw_init_serialization_support(serialization_lib_name, allocator, &serialization_support));
+  if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("failed to get serialization support");
     if (ret == RCL_RET_OK) {  // It means serialization support was NULL
       return RCL_RET_ERROR;
@@ -90,7 +90,7 @@ rcl_dynamic_message_type_support_handle_init(
 
   ret = rcl_convert_rcutils_ret_to_rcl_ret(
     rosidl_dynamic_message_type_support_handle_init(
-      serialization_support,
+      &serialization_support,
       &type_hash,   // type_hash
       description,  // type_description
       NULL,         // type_description_sources
