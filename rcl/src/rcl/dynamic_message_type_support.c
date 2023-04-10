@@ -68,7 +68,7 @@ rcl_dynamic_message_type_support_handle_init(
 
   rosidl_dynamic_typesupport_serialization_support_t serialization_support;
   rcl_ret_t ret = rcl_convert_rmw_ret_to_rcl_ret(
-    rmw_init_serialization_support(serialization_lib_name, allocator, &serialization_support));
+    rmw_serialization_support_init(serialization_lib_name, allocator, &serialization_support));
   if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("failed to get serialization support");
     if (ret == RCL_RET_OK) {  // It means serialization support was NULL
