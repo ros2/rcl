@@ -43,6 +43,10 @@ rcl_dynamic_message_type_support_handle_init(
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(ts, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocator, RCUTILS_RET_INVALID_ARGUMENT);
+  if (!rcutils_allocator_is_valid(allocator)) {
+    RCUTILS_SET_ERROR_MSG("allocator is invalid");
+    return RCUTILS_RET_INVALID_ARGUMENT;
+  }
 
   // TODO(methylDragon): Remove if and when the deferred description path is supported
   if (description == NULL) {
