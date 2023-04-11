@@ -23,6 +23,7 @@ extern "C"
 
 #include "rmw/dynamic_message_type_support.h"
 
+#include "rcl/allocator.h"
 #include "rcl/common.h"
 #include "rcl/error_handling.h"
 #include "rcl/dynamic_message_type_support.h"
@@ -30,16 +31,22 @@ extern "C"
 #include "rcl/types.h"
 
 
-/// Create a rosidl_message_type_support_t from a TypeDescription message
+/// Initialize a rosidl_message_type_support_t from a TypeDescription message
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_type_support_handle_create(
+rcl_dynamic_message_type_support_handle_init(
   const char * serialization_lib_name,
   const rosidl_runtime_c__type_description__TypeDescription * description,
-  rosidl_message_type_support_t ** ts)
+  rcl_allocator_t * allocator,
+  rosidl_message_type_support_t * ts)
 {
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(ts, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(allocator, RCUTILS_RET_INVALID_ARGUMENT);
+  if (!rcutils_allocator_is_valid(allocator)) {
+    RCUTILS_SET_ERROR_MSG("allocator is invalid");
+    return RCUTILS_RET_INVALID_ARGUMENT;
+  }
 
   // TODO(methylDragon): Remove if and when the deferred description path is supported
   if (description == NULL) {
@@ -63,10 +70,10 @@ rcl_dynamic_message_type_support_handle_create(
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
 
-  rosidl_dynamic_typesupport_serialization_support_t * serialization_support = NULL;
+  rosidl_dynamic_typesupport_serialization_support_t serialization_support;
   rcl_ret_t ret = rcl_convert_rmw_ret_to_rcl_ret(
-    rmw_get_serialization_support(serialization_lib_name, &serialization_support));
-  if (ret != RCL_RET_OK || serialization_support == NULL) {
+    rmw_serialization_support_init(serialization_lib_name, allocator, &serialization_support));
+  if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("failed to get serialization support");
     if (ret == RCL_RET_OK) {  // It means serialization support was NULL
       return RCL_RET_ERROR;
@@ -75,58 +82,44 @@ rcl_dynamic_message_type_support_handle_create(
     }
   }
 
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  rosidl_type_hash_t * type_hash = allocator.zero_allocate(
-    1, sizeof(rosidl_type_hash_t), &allocator.state);
-  if (!type_hash) {
-    RCUTILS_SET_ERROR_MSG("Could not allocate type hash");
-    return RCL_RET_ERROR;
-  }
-
+  rosidl_type_hash_t type_hash;
   ret = rcl_calculate_type_hash(
     // TODO(methylDragon): Replace this cast with the conversion function when it is ready
     //  Either a custom function, or from https://github.com/ros2/rcl/pull/1052
-    (const type_description_interfaces__msg__TypeDescription *) description, type_hash);
-  if (ret != RCL_RET_OK || type_hash == NULL) {
+    (const type_description_interfaces__msg__TypeDescription *) description, &type_hash);
+  if (ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("failed to get type hash");
-    allocator.deallocate(type_hash, &allocator.state);
-    if (ret == RCL_RET_OK) {
-      return RCL_RET_ERROR;
-    } else {
-      return ret;
-    }
+    return ret;
   }
 
   ret = rcl_convert_rcutils_ret_to_rcl_ret(
-    rosidl_dynamic_message_type_support_handle_create(
-      serialization_support,
-      type_hash,    // type_hash
+    rosidl_dynamic_message_type_support_handle_init(
+      &serialization_support,
+      &type_hash,   // type_hash
       description,  // type_description
       NULL,         // type_description_sources
+      allocator,
       ts
     )
   );
-
-  if (!ts) {
-    RCL_SET_ERROR_MSG("failed to init rosidl_message_type_support");
-    allocator.deallocate(type_hash, &allocator.state);
-    if (ret == RCL_RET_OK) {
-      return RCL_RET_ERROR;
-    } else {
-      return ret;
-    }
+  if (ret != RCL_RET_OK) {
+    rcutils_error_string_t error_string = rcutils_get_error_string();
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "failed to init rosidl_message_type_support:\n%s", error_string.str);
+    return ret;
   }
+
   return RCL_RET_OK;
 }
-
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_dynamic_message_type_support_handle_destroy(rosidl_message_type_support_t * ts)
+rcl_dynamic_message_type_support_handle_fini(rosidl_message_type_support_t * ts)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(ts, RCL_RET_INVALID_ARGUMENT);
-  return rcl_convert_rcutils_ret_to_rcl_ret(rosidl_dynamic_message_type_support_handle_destroy(ts));
+  return rcl_convert_rcutils_ret_to_rcl_ret(rosidl_dynamic_message_type_support_handle_fini(ts));
 }
 
 #ifdef __cplusplus
