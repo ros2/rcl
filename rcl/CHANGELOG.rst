@@ -2,6 +2,25 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add enable_type_description_service node option - API only (`#1060 <https://github.com/ros2/rcl/issues/1060>`_)
+* Dynamic Subscription (BONUS: Allocators): rcl (`#1057 <https://github.com/ros2/rcl/issues/1057>`_)
+* Runtime Interface Reflection: rcl (`#1025 <https://github.com/ros2/rcl/issues/1025>`_)
+* [rcl] Improve handling of dynamic discovery  (`#1023 <https://github.com/ros2/rcl/issues/1023>`_)
+* Use get_type_hash_func for typesupports (`#1055 <https://github.com/ros2/rcl/issues/1055>`_)
+* publish for rosout topic multiple times to avoid flaky test (`#1054 <https://github.com/ros2/rcl/issues/1054>`_)
+* Switch to target_link_libraries in rcl. (`#1051 <https://github.com/ros2/rcl/issues/1051>`_)
+* Calculate type hash from TypeDescription (rep2011) (`#1027 <https://github.com/ros2/rcl/issues/1027>`_)
+* Implement matched event (`#1033 <https://github.com/ros2/rcl/issues/1033>`_)
+* use user-defined allocator to configure logging. (`#1047 <https://github.com/ros2/rcl/issues/1047>`_)
+* user defined allocator should be used for rosout publisher. (`#1044 <https://github.com/ros2/rcl/issues/1044>`_)
+* Add in inconsistent_topic implementation. (`#1024 <https://github.com/ros2/rcl/issues/1024>`_)
+* doc update, ROS message accessibility depends on RMW implementation. (`#1043 <https://github.com/ros2/rcl/issues/1043>`_)
+* Fix some warnings from clang. (`#1042 <https://github.com/ros2/rcl/issues/1042>`_)
+* avoid unnecessary copy for rcutils_char_array_vsprintf. (`#1035 <https://github.com/ros2/rcl/issues/1035>`_)
+* Contributors: Barry Xu, Chen Lihui, Chris Lalancette, Emerson Knapp, Geoffrey Biggs, Tomoya Fujita, methylDragon
+
 5.9.0 (2023-03-01)
 ------------------
 * Service introspection (`#997 <https://github.com/ros2/rcl/issues/997>`_)

@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix some warnings from clang. (`#1042 <https://github.com/ros2/rcl/issues/1042>`_)
+* Contributors: Chris Lalancette
+
 5.9.0 (2023-03-01)
 ------------------
 
