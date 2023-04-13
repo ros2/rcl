@@ -84,6 +84,7 @@ public:
     *this->old_node_ptr = rcl_get_zero_initialized_node();
     const char * old_name = "old_node_name";
     rcl_node_options_t node_options = rcl_node_get_default_options();
+    node_options.enable_type_description_service = false;
     ret = rcl_node_init(this->old_node_ptr, old_name, "", this->old_context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(this->old_context_ptr);  // after this, the old_node_ptr should be invalid
@@ -939,6 +940,7 @@ public:
     remote_node_ptr = new rcl_node_t;
     *remote_node_ptr = rcl_get_zero_initialized_node();
     rcl_node_options_t node_options = rcl_node_get_default_options();
+    node_options.enable_type_description_service = false;
 
     this->remote_context_ptr = new rcl_context_t;
     *this->remote_context_ptr = rcl_get_zero_initialized_context();
@@ -1414,6 +1416,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
   // Graph change since adding new node
   rcl_node_t node_new = rcl_get_zero_initialized_node();
   rcl_node_options_t node_options = rcl_node_get_default_options();
+  node_options.enable_type_description_service = false;
   ret = rcl_node_init(&node_new, "test_graph2", "", context_ptr, &node_options);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
