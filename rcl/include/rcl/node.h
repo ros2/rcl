@@ -549,6 +549,57 @@ RCL_PUBLIC
 rcl_ret_t
 rcl_get_disable_loaned_message(bool * disable_loaned_message);
 
+/// Initialize the node's ~/get_type_description service.
+/**
+ * This function initializes the node's private ~/get_type_description service
+ * which can be used to retrieve information about types used by the node's
+ * publishers, subscribers, services or actions.
+ *
+ * Note that this function will be called in `rcl_init_node` if the node option
+ * `enable_type_description_service` is set to true.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node handle to the node for which to initialize the service
+ * \return #RCL_RET_OK if the service was successfully initialized, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_ALREADY_INIT if the service is already initialized, or
+ * \return #RCL_RET_BAD_ALLOC if memory allocation for the service failed, or
+ * \return #RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node);
+
+/// Finalizes the node's ~/get_type_description service.
+/**
+ * This function finalizes the node's private ~/get_type_description service.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] node the handle to the node whose type cache should be initialized
+ * \return #RCL_RET_OK if service was deinitialized successfully, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_SERVICE_INVALID if the service is invalid, or
+ * \return #RCL_RET_NODE_INVALID if the node is invalid, or
+ * \return #RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t rcl_node_type_description_service_fini(rcl_node_t * node);
+
 #ifdef __cplusplus
 }
 #endif

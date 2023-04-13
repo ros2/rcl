@@ -18,6 +18,7 @@
 #include "rcl/guard_condition.h"
 #include "rcl/node_options.h"
 #include "rcl/node.h"
+#include "rcl/service.h"
 #include "rcl/types.h"
 #include "rcutils/types/hash_map.h"
 #include "rmw/types.h"
@@ -30,6 +31,7 @@ struct rcl_node_impl_s
   const char * logger_name;
   const char * fq_name;
   rcutils_hash_map_t registered_types_by_type_hash;
+  rcl_service_t get_type_description_service;
 };
 
 #endif  // RCL__NODE_IMPL_H_
