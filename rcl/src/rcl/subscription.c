@@ -23,6 +23,7 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#include "rcl/node_type_cache.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rcutils/types/string_array.h"
@@ -122,6 +123,8 @@ rcl_subscription_init(
     options->qos.avoid_ros_namespace_conventions;
   // options
   subscription->impl->options = *options;
+  // type hash
+  subscription->impl->type_hash = *type_support->get_type_hash_func(type_support);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
   TRACETOOLS_TRACEPOINT(
@@ -131,6 +134,18 @@ rcl_subscription_init(
     (const void *)subscription->impl->rmw_handle,
     remapped_topic_name,
     options->qos.depth);
+  // Register type.
+  if (RCL_RET_OK !=
+    rcl_node_type_cache_register_type(
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
+  {
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG("Failed to register type for subscription");
+    goto fail;
+  }
+
   goto cleanup;
 fail:
   if (subscription->impl) {
@@ -187,6 +202,13 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
     }
     rcl_ret_t rcl_ret = rcl_subscription_options_fini(&subscription->impl->options);
     if (RCL_RET_OK != rcl_ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+      result = RCL_RET_ERROR;
+    }
+
+    // Unregister type
+    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &subscription->impl->type_hash)) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
       result = RCL_RET_ERROR;
