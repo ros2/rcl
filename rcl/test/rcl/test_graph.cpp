@@ -882,6 +882,7 @@ void expect_topics_types(
   // Ignore the `RCL_RET_NODE_NAME_NON_EXISTENT` result since the discovery may be asynchronous
   // that the node information is not updated immediately into the graph cache.
   if (ret == RCL_RET_NODE_NAME_NON_EXISTENT) {
+    is_success &= false;
     rcl_reset_error();
     return;
   }
