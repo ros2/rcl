@@ -194,7 +194,7 @@ check_if_rosout_subscription_gets_a_message(
   size_t iteration = 0;
   const char * message = "SOMETHING";
   do {
-    RCUTILS_LOG_INFO_NAMED(logger_name, message);
+    RCUTILS_LOG_INFO_NAMED(logger_name, "%s", message);
     ++iteration;
     ret = rcl_wait_set_clear(&wait_set);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
