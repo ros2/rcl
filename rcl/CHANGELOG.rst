@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.3.3 (2023-04-25)
+------------------
+* user defined allocator should be used for rosout publisher. (`#1044 <https://github.com/ros2/rcl/issues/1044>`_) (`#1045 <https://github.com/ros2/rcl/issues/1045>`_)
+* avoid unnecessary copy for rcutils_char_array_vsprintf. (`#1035 <https://github.com/ros2/rcl/issues/1035>`_) (`#1039 <https://github.com/ros2/rcl/issues/1039>`_)
+* Contributors: mergify[bot]
+
 5.3.2 (2022-09-08)
 ------------------
 * fixed rcl_wait return error when timer cancelled (`#1003 <https://github.com/ros2/rcl/issues/1003>`_) (`#1006 <https://github.com/ros2/rcl/issues/1006>`_)
