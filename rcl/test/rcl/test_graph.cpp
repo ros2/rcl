@@ -31,6 +31,7 @@
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
 #include "rcl/logging.h"
+#include "rcl/logging_rosout.h"
 #include "rcl/rcl.h"
 
 #include "rcutils/logging_macros.h"
@@ -99,6 +100,10 @@ public:
     const char * name = "test_graph_node";
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (rcl_logging_rosout_enabled() && node_options.enable_rosout) {
+      ret = rcl_logging_rosout_init_publisher_for_node(this->node_ptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
 
     this->wait_set_ptr = new rcl_wait_set_t;
     *this->wait_set_ptr = rcl_get_zero_initialized_wait_set();
@@ -949,6 +954,11 @@ public:
       remote_node_ptr, remote_node_name, "", this->remote_context_ptr,
       &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (rcl_logging_rosout_enabled() && node_options.enable_rosout) {
+      ret = rcl_logging_rosout_init_publisher_for_node(remote_node_ptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
+
     sub_func = std::bind(
       rcl_get_subscriber_names_and_types_by_node,
       std::placeholders::_1,

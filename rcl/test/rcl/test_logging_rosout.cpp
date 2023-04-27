@@ -101,6 +101,10 @@ protected:
     ret = rcl_node_init(
       this->node_ptr, name, namespace_, this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (rcl_logging_rosout_enabled() && node_options.enable_rosout) {
+      ret = rcl_logging_rosout_init_publisher_for_node(this->node_ptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
 
     // create rosout subscription
     const rosidl_message_type_support_t * ts =
