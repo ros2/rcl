@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+6.1.1 (2023-05-11)
+------------------
 * clarify `rcl_node_init` return code (`#1066 <https://github.com/ros2/rcl/issues/1066>`_)
 * Contributors: Eric W
 
