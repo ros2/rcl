@@ -325,6 +325,14 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(rcl_node_t * node)
   return status;
 }
 
+static void shallow_assign(rosidl_runtime_c__String * target, const char * source)
+{
+  target->data = (char *)source;
+  size_t len = strlen(source);
+  target->size = len;
+  target->capacity = len + 1;
+}
+
 void rcl_logging_rosout_output_handler(
   const rcutils_log_location_t * location,
   int severity,
@@ -356,25 +364,21 @@ void rcl_logging_rosout_output_handler(
       rcl_reset_error();
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
     } else {
-      rcl_interfaces__msg__Log * log_message = rcl_interfaces__msg__Log__create();
-      if (NULL != log_message) {
-        log_message->stamp.sec = (int32_t) RCL_NS_TO_S(timestamp);
-        log_message->stamp.nanosec = (timestamp % RCL_S_TO_NS(1));
-        log_message->level = severity;
-        log_message->line = (int32_t) location->line_number;
-        rosidl_runtime_c__String__assign(&log_message->name, name);
-        rosidl_runtime_c__String__assign(&log_message->msg, msg_array.buffer);
-        rosidl_runtime_c__String__assign(&log_message->file, location->file_name);
-        rosidl_runtime_c__String__assign(&log_message->function, location->function_name);
-        status = rcl_publish(&entry.publisher, log_message, NULL);
-        if (RCL_RET_OK != status) {
-          RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to publish log message to rosout: ");
-          RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
-          rcl_reset_error();
-          RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
-        }
-
-        rcl_interfaces__msg__Log__destroy(log_message);
+      rcl_interfaces__msg__Log log_message;
+      log_message.stamp.sec = (int32_t) RCL_NS_TO_S(timestamp);
+      log_message.stamp.nanosec = (timestamp % RCL_S_TO_NS(1));
+      log_message.level = severity;
+      log_message.line = (int32_t) location->line_number;
+      shallow_assign(&log_message.name, name);
+      shallow_assign(&log_message.msg, msg_array.buffer);
+      shallow_assign(&log_message.file, location->file_name);
+      shallow_assign(&log_message.function, location->function_name);
+      status = rcl_publish(&entry.publisher, &log_message, NULL);
+      if (RCL_RET_OK != status) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to publish log message to rosout: ");
+        RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+        rcl_reset_error();
+        RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
       }
     }
 
