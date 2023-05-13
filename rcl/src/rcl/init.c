@@ -159,8 +159,8 @@ rcl_init(
   if (RMW_LOCALHOST_ONLY_DEFAULT != *localhost_only) {
     RCUTILS_LOG_WARN_NAMED(
       ROS_PACKAGE_NAME,
-      "'localhost_only' init option is deprecated. Use 'automatic_discovery_range' and "
-      "'static_peers' instead.");
+      "'localhost_only' init option is deprecated but still honored if it is enabled. "
+      "Use 'automatic_discovery_range' and 'static_peers' instead.");
   } else {
     // Get actual localhost_only value based on environment variable, if needed.
     ret = rcl_get_localhost_only(localhost_only);
@@ -171,8 +171,8 @@ rcl_init(
     if (RMW_LOCALHOST_ONLY_DEFAULT != *localhost_only) {
       RCUTILS_LOG_WARN_NAMED(
         ROS_PACKAGE_NAME,
-        "ROS_LOCALHOST_ONLY is deprecated. Use ROS_AUTOMATIC_DISCOVERY_RANGE and "
-        "ROS_STATIC_PEERS instead.");
+        "ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. "
+        "Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.");
     }
   }
 
@@ -181,38 +181,58 @@ rcl_init(
   rmw_discovery_options_t * discovery_options =
     &context->impl->init_options.impl->rmw_init_options.discovery_options;
 
-  // Get actual discovery range option based on environment variable, if not given
-  // to original options passed to function
-  if (  // NOLINT
-    RMW_AUTOMATIC_DISCOVERY_RANGE_NOT_SET == original_discovery_options.automatic_discovery_range)
-  {
-    ret = rcl_get_automatic_discovery_range(discovery_options);
-    if (RCL_RET_OK != ret) {
-      fail_ret = ret;
-      goto fail;
-    }
-  }
-
-  if (0 == discovery_options->static_peers_count &&
-    discovery_options->automatic_discovery_range != RMW_AUTOMATIC_DISCOVERY_RANGE_OFF)
-  {
-    // Get static peers.
-    // If off is set, it makes sense to not get any static peers.
-    ret = rcl_get_discovery_static_peers(discovery_options, &allocator);
-    if (RCL_RET_OK != ret) {
-      fail_ret = ret;
-      goto fail;
-    }
-  }
-
-  if (discovery_options->static_peers_count > 0 &&
-    discovery_options->automatic_discovery_range == RMW_AUTOMATIC_DISCOVERY_RANGE_OFF)
-  {
+  // this happens either rmw implementation forces or via environmental variable.
+  // localhost_only is deprecated but still honored to prevail discovery_options.
+  // see https://github.com/ros2/ros2_documentation/pull/3519#discussion_r1186541935
+  // TODO(fujitatomoya): remove localhost_only completely after deprecation period.
+  if (*localhost_only == RMW_LOCALHOST_ONLY_ENABLED) {
     RCUTILS_LOG_WARN_NAMED(
       ROS_PACKAGE_NAME,
-      "Note: ROS_AUTOMATIC_DISCOVERY_RANGE is set to OFF, but "
-      "found static peers in ROS_STATIC_PEERS. "
-      "ROS_STATIC_PEERS will be ignored.");
+      "'localhost_only' is enabled, that prevails over "
+      "'automatic_discovery_range' and ignore 'static_peers'.");
+    discovery_options->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
+    discovery_options->static_peers_count = 0;
+  } else {
+    if (*localhost_only == RMW_LOCALHOST_ONLY_DISABLED) {
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME,
+        "'localhost_only' is disable, that falls down to use "
+        "'automatic_discovery_range' and 'static_peers'.");
+    }
+
+    // Get actual discovery range option based on environment variable, if not given
+    // to original options passed to function
+    if (  // NOLINT
+      RMW_AUTOMATIC_DISCOVERY_RANGE_NOT_SET == original_discovery_options.automatic_discovery_range)
+    {
+      ret = rcl_get_automatic_discovery_range(discovery_options);
+      if (RCL_RET_OK != ret) {
+        fail_ret = ret;
+        goto fail;
+      }
+    }
+
+    if (0 == discovery_options->static_peers_count &&
+      discovery_options->automatic_discovery_range != RMW_AUTOMATIC_DISCOVERY_RANGE_OFF)
+    {
+      // Get static peers.
+      // If off is set, it makes sense to not get any static peers.
+      ret = rcl_get_discovery_static_peers(discovery_options, &allocator);
+      if (RCL_RET_OK != ret) {
+        fail_ret = ret;
+        goto fail;
+      }
+    }
+
+    if (discovery_options->static_peers_count > 0 &&
+      discovery_options->automatic_discovery_range == RMW_AUTOMATIC_DISCOVERY_RANGE_OFF)
+    {
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME,
+        "Note: ROS_AUTOMATIC_DISCOVERY_RANGE is set to OFF, but "
+        "found static peers in ROS_STATIC_PEERS. "
+        "ROS_STATIC_PEERS will be ignored.");
+    }
   }
 
   const char * discovery_range_string =
