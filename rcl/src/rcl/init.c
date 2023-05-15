@@ -188,16 +188,16 @@ rcl_init(
   if (*localhost_only == RMW_LOCALHOST_ONLY_ENABLED) {
     RCUTILS_LOG_WARN_NAMED(
       ROS_PACKAGE_NAME,
-      "'localhost_only' is enabled, that prevails over "
-      "'automatic_discovery_range' and ignore 'static_peers'.");
+      "'localhost_only' is enabled, "
+      "'automatic_discovery_range' and 'static_peers' will be ignored.");
     discovery_options->automatic_discovery_range = RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST;
     discovery_options->static_peers_count = 0;
   } else {
     if (*localhost_only == RMW_LOCALHOST_ONLY_DISABLED) {
       RCUTILS_LOG_WARN_NAMED(
         ROS_PACKAGE_NAME,
-        "'localhost_only' is disable, that falls down to use "
-        "'automatic_discovery_range' and 'static_peers'.");
+        "'localhost_only' is disabled, "
+        "'automatic_discovery_range' and 'static_peers' will be used.");
     }
 
     // Get actual discovery range option based on environment variable, if not given
