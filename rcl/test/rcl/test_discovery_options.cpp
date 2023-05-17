@@ -14,13 +14,44 @@
 
 #include <gtest/gtest.h>
 
-#include "rcl/rcl.h"
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 #include "rcl/discovery_options.h"
+#include "rcl/rcl.h"
 
 #include "rcutils/allocator.h"
 #include "rcutils/env.h"
 
 #include "rmw/discovery_options.h"
+
+#include "../src/rcl/context_impl.h"
+#include "../src/rcl/init_options_impl.h"
+
+void check_discovery(
+  rmw_automatic_discovery_range_t discovery_range,
+  size_t static_peer_count)
+{
+  rcl_ret_t ret;
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+  ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
+  });
+  rcl_context_t context = rcl_get_zero_initialized_context();
+  ret = rcl_init(0, nullptr, &init_options, &context);
+  ASSERT_EQ(RCL_RET_OK, ret);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
+    ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
+  });
+  rmw_discovery_options_t * discovery_options =
+    &context.impl->init_options.impl->rmw_init_options.discovery_options;
+  EXPECT_EQ(discovery_range, discovery_options->automatic_discovery_range);
+  EXPECT_EQ(static_peer_count, discovery_options->static_peers_count);
+}
 
 TEST(TestDiscoveryInfo, test_get_peers) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
@@ -240,4 +271,50 @@ TEST(TestDiscoveryInfo, test_get_both) {
   EXPECT_EQ(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, discovery_options_var.automatic_discovery_range);
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
+}
+
+// localhost_only is deprecated but still honored to prevail discovery_options.
+// see https://github.com/ros2/ros2_documentation/pull/3519#discussion_r1186541935
+// TODO(fujitatomoya): remove localhost_only completely after deprecation period.
+TEST(TestDiscoveryInfo, test_with_localhost_only) {
+  {
+    // No environment variable set (default subnet, no specific peers)
+    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, 0);
+  }
+
+  {
+    // only ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS set
+    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "LOCALHOST"));
+    ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "127.0.0.1;localhost.com"));
+    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST, 2);
+  }
+
+  {
+    // Only ROS_LOCALHOST_ONLY is enabled
+    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "1"));
+    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST, 0);
+  }
+
+  {
+    // ROS_LOCALHOST_ONLY is enabled and prevails over SUBNET.
+    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "1"));
+    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
+    ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;remote.com"));
+    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST, 0);
+  }
+
+  {
+    // ROS_LOCALHOST_ONLY is enabled and prevails over OFF.
+    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "1"));
+    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "OFF"));
+    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST, 0);
+  }
+
+  {
+    // ROS_LOCALHOST_ONLY is disabled, falls down to use discovery option.
+    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "0"));
+    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
+    ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;remote.com"));
+    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, 2);
+  }
 }
