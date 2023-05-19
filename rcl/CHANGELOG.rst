@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Honor ROS_LOCALHOST_ONLY if enabled. (`#1071 <https://github.com/ros2/rcl/issues/1071>`_)
+* Contributors: Tomoya Fujita
+
 6.0.1 (2023-04-18)
 ------------------
 * fix flaky test (`#1063 <https://github.com/ros2/rcl/issues/1063>`_)
