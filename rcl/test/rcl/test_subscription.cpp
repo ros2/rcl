@@ -25,13 +25,14 @@
 
 #include "rcutils/strdup.h"
 #include "rcutils/testing/fault_injection.h"
+#include "test_msgs/msg/arrays.h"
 #include "test_msgs/msg/basic_types.h"
 #include "test_msgs/msg/strings.h"
 #include "rosidl_runtime_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rosidl_typesupport_cpp/message_type_support.hpp"
-#include "test_msgs/msg/strings.hpp"
+#include "test_msgs/msg/arrays.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcutils/env.h"
@@ -1761,43 +1762,45 @@ struct TestParameters
 {
   enum class TYPESUPPORT {C, CPP};
 
-  TestParameters(TYPESUPPORT pub_ts = TYPESUPPORT::C, TYPESUPPORT sub_ts = TYPESUPPORT::CPP)
-    : pub_ts_(pub_ts), sub_ts_(sub_ts) { }
+  explicit TestParameters(
+    TYPESUPPORT pub_ts = TYPESUPPORT::C,
+    TYPESUPPORT sub_ts = TYPESUPPORT::CPP)
+  : pub_ts_(pub_ts), sub_ts_(sub_ts) {}
 
   TYPESUPPORT pub_ts_;
   TYPESUPPORT sub_ts_;
 };
 
 class TEST_FIXTURE_P_RMW (TestSubscriptionFixtureParam)
-  : public TEST_FIXTURE_P_RMW (TestSubscriptionFixture),
-    public ::testing::WithParamInterface<TestParameters>
+  : public TEST_FIXTURE_P_RMW(TestSubscriptionFixture),
+  public ::testing::WithParamInterface<TestParameters>
 {
 protected:
   void SetUp()
   {
     param_ = GetParam();
-    TEST_FIXTURE_P_RMW (TestSubscriptionFixture)::SetUp();
+    TEST_FIXTURE_P_RMW(TestSubscriptionFixture) ::SetUp();
   }
 
   TestParameters param_;
 };
 
 
-/* Test subscription to recevie string from a publisher with typesupport settings.
+/* Test subscription to recevie complex message from a publisher with typesupport settings.
  */
-TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_nominal_string) {
+TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_complex_message) {
   rcl_ret_t ret;
   const rosidl_message_type_support_t * ts_pub;
   const rosidl_message_type_support_t * ts_sub;
   if (param_.pub_ts_ == TestParameters::TYPESUPPORT::C) {
-    ts_pub = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+    ts_pub = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Arrays);
   } else {
-    ts_pub = rosidl_typesupport_cpp::get_message_type_support_handle<test_msgs::msg::Strings>();
+    ts_pub = rosidl_typesupport_cpp::get_message_type_support_handle<test_msgs::msg::Arrays>();
   }
   if (param_.sub_ts_ == TestParameters::TYPESUPPORT::C) {
-    ts_sub = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+    ts_sub = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Arrays);
   } else {
-    ts_sub = rosidl_typesupport_cpp::get_message_type_support_handle<test_msgs::msg::Strings>();
+    ts_sub = rosidl_typesupport_cpp::get_message_type_support_handle<test_msgs::msg::Arrays>();
   }
   constexpr char topic[] = "rcl_test_subscription_nominal_string_chatter";
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
@@ -1820,16 +1823,19 @@ TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_nominal_string) {
   });
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
   constexpr char test_string[] = "testing";
+  constexpr bool bool_values[3] = {true, false, true};
   {
     if (param_.pub_ts_ == TestParameters::TYPESUPPORT::C) {
-      test_msgs__msg__Strings msg;
-      test_msgs__msg__Strings__init(&msg);
-      ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+      test_msgs__msg__Arrays msg;
+      test_msgs__msg__Arrays__init(&msg);
+      std::copy(std::begin(bool_values), std::end(bool_values), msg.bool_values);
+      ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_values[1], test_string));
       ret = rcl_publish(&publisher, &msg, nullptr);
-      test_msgs__msg__Strings__fini(&msg);
+      test_msgs__msg__Arrays__fini(&msg);
     } else {
-      test_msgs::msg::Strings msg;
-      msg.string_value = test_string;
+      test_msgs::msg::Arrays msg;
+      std::copy(std::begin(bool_values), std::end(bool_values), msg.bool_values.begin());
+      msg.string_values[1] = test_string;
       ret = rcl_publish(&publisher, &msg, nullptr);
     }
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -1837,20 +1843,28 @@ TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_nominal_string) {
   ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
   {
     if (param_.sub_ts_ == TestParameters::TYPESUPPORT::C) {
-      test_msgs__msg__Strings msg;
-      test_msgs__msg__Strings__init(&msg);
+      test_msgs__msg__Arrays msg;
+      test_msgs__msg__Arrays__init(&msg);
       OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
       {
-        test_msgs__msg__Strings__fini(&msg);
+        test_msgs__msg__Arrays__fini(&msg);
       });
       ret = rcl_take(&subscription, &msg, nullptr, nullptr);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      ASSERT_EQ(std::string(test_string), std::string(msg.string_value.data, msg.string_value.size));
+      for (size_t i = 0; i < 3; ++i) {
+        ASSERT_EQ(bool_values[i], msg.bool_values[i]);
+      }
+      ASSERT_EQ(
+        std::string(test_string),
+        std::string(msg.string_values[1].data, msg.string_values[1].size));
     } else {
-      test_msgs::msg::Strings msg;
+      test_msgs::msg::Arrays msg;
       ret = rcl_take(&subscription, &msg, nullptr, nullptr);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      ASSERT_EQ(std::string(test_string), msg.string_value);
+      for (size_t i = 0; i < msg.bool_values.size(); ++i) {
+        ASSERT_EQ(bool_values[i], msg.bool_values[i]);
+      }
+      ASSERT_EQ(std::string(test_string), msg.string_values[1]);
     }
   }
 }
@@ -1863,4 +1877,4 @@ INSTANTIATE_TEST_SUITE_P_RMW(
     TestParameters(TestParameters::TYPESUPPORT::C, TestParameters::TYPESUPPORT::CPP),
     TestParameters(TestParameters::TYPESUPPORT::CPP, TestParameters::TYPESUPPORT::C),
     TestParameters(TestParameters::TYPESUPPORT::CPP, TestParameters::TYPESUPPORT::CPP)
-  ));
+));
