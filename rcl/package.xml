@@ -43,7 +43,7 @@
   <test_depend>rcpputils</test_depend>
   <test_depend>rmw</test_depend>
   <test_depend>rmw_implementation_cmake</test_depend>
-  <test_depend>rosidl_typesupport_cpp</test_depend>
+  <test_depend>rosidl_runtime_cpp</test_depend>
   <test_depend>test_msgs</test_depend>
 
   <group_depend>rcl_logging_packages</group_depend>
