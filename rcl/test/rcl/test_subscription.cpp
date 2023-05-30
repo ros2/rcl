@@ -47,6 +47,19 @@
 # define CLASSNAME(NAME, SUFFIX) NAME
 #endif
 
+#define EXPAND(x) x
+#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME( \
+    test_fixture_name, RMW_IMPLEMENTATION)
+#define APPLY(macro, ...) EXPAND(macro(__VA_ARGS__))
+#define TEST_P_RMW(test_case_name, test_name) \
+  APPLY( \
+    TEST_P, CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
+#define INSTANTIATE_TEST_SUITE_P_RMW(instance_name, test_case_name, ...) \
+  EXPAND( \
+    APPLY( \
+      INSTANTIATE_TEST_SUITE_P, instance_name, \
+      CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
+
 class CLASSNAME (TestSubscriptionFixture, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 public:
@@ -387,107 +400,6 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
     ret = rcl_take(&subscription, &msg, nullptr, nullptr);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(std::string(test_string), std::string(msg.string_value.data, msg.string_value.size));
-  }
-}
-
-/* Test subscription with c type support to recevie string from a publisher with cpp typesupport.
- */
-TEST_F(
-  CLASSNAME(
-    TestSubscriptionFixture,
-    RMW_IMPLEMENTATION), test_subscription_nominal_string_from_publisher_cpp_typesupport) {
-  rcl_ret_t ret;
-  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts_pub =
-    rosidl_typesupport_cpp::get_message_type_support_handle<test_msgs::msg::Strings>();
-  const rosidl_message_type_support_t * ts_sub =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  constexpr char topic[] = "rcl_test_subscription_nominal_string_chatter";
-  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts_pub, topic, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription, this->node_ptr, ts_sub, topic, &subscription_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
-  constexpr char test_string[] = "testing";
-  {
-    test_msgs::msg::Strings msg;
-    msg.string_value = test_string;
-    ret = rcl_publish(&publisher, &msg, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  }
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
-  {
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
-    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-    {
-      test_msgs__msg__Strings__fini(&msg);
-    });
-    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(std::string(test_string), std::string(msg.string_value.data, msg.string_value.size));
-  }
-}
-
-/* Test subscription with cpp type support to recevie string from a publisher with c typesupport.
- */
-TEST_F(
-  CLASSNAME(
-    TestSubscriptionFixture,
-    RMW_IMPLEMENTATION), test_subscription_nominal_string_cpp_ts_from_publisher_c_ts) {
-  rcl_ret_t ret;
-  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
-  const rosidl_message_type_support_t * ts_pub =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
-  const rosidl_message_type_support_t * ts_sub =
-    rosidl_typesupport_cpp::get_message_type_support_handle<test_msgs::msg::Strings>();
-  constexpr char topic[] = "rcl_test_subscription_nominal_string_chatter";
-  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  ret = rcl_publisher_init(&publisher, this->node_ptr, ts_pub, topic, &publisher_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&subscription, this->node_ptr, ts_sub, topic, &subscription_options);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  });
-  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
-  constexpr char test_string[] = "testing";
-  {
-    test_msgs__msg__Strings msg;
-    test_msgs__msg__Strings__init(&msg);
-    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
-    ret = rcl_publish(&publisher, &msg, nullptr);
-    test_msgs__msg__Strings__fini(&msg);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  }
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
-  {
-    test_msgs::msg::Strings msg;
-    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ASSERT_EQ(std::string(test_string), msg.string_value);
   }
 }
 
@@ -1844,3 +1756,111 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_init_fini_ma
     }
   });
 }
+
+struct TestParameters
+{
+  enum class TYPESUPPORT {C, CPP};
+
+  TestParameters(TYPESUPPORT pub_ts = TYPESUPPORT::C, TYPESUPPORT sub_ts = TYPESUPPORT::CPP)
+    : pub_ts_(pub_ts), sub_ts_(sub_ts) { }
+
+  TYPESUPPORT pub_ts_;
+  TYPESUPPORT sub_ts_;
+};
+
+class TEST_FIXTURE_P_RMW (TestSubscriptionFixtureParam)
+  : public TEST_FIXTURE_P_RMW (TestSubscriptionFixture),
+    public ::testing::WithParamInterface<TestParameters>
+{
+protected:
+  void SetUp()
+  {
+    param_ = GetParam();
+    TEST_FIXTURE_P_RMW (TestSubscriptionFixture)::SetUp();
+  }
+
+  TestParameters param_;
+};
+
+
+/* Test subscription to recevie string from a publisher with typesupport settings.
+ */
+TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_nominal_string) {
+  rcl_ret_t ret;
+  const rosidl_message_type_support_t * ts_pub;
+  const rosidl_message_type_support_t * ts_sub;
+  if (param_.pub_ts_ == TestParameters::TYPESUPPORT::C) {
+    ts_pub = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  } else {
+    ts_pub = rosidl_typesupport_cpp::get_message_type_support_handle<test_msgs::msg::Strings>();
+  }
+  if (param_.sub_ts_ == TestParameters::TYPESUPPORT::C) {
+    ts_sub = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  } else {
+    ts_sub = rosidl_typesupport_cpp::get_message_type_support_handle<test_msgs::msg::Strings>();
+  }
+  constexpr char topic[] = "rcl_test_subscription_nominal_string_chatter";
+  rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
+  ret = rcl_publisher_init(&publisher, this->node_ptr, ts_pub, topic, &publisher_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+  rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(&subscription, this->node_ptr, ts_sub, topic, &subscription_options);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
+  constexpr char test_string[] = "testing";
+  {
+    if (param_.pub_ts_ == TestParameters::TYPESUPPORT::C) {
+      test_msgs__msg__Strings msg;
+      test_msgs__msg__Strings__init(&msg);
+      ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_value, test_string));
+      ret = rcl_publish(&publisher, &msg, nullptr);
+      test_msgs__msg__Strings__fini(&msg);
+    } else {
+      test_msgs::msg::Strings msg;
+      msg.string_value = test_string;
+      ret = rcl_publish(&publisher, &msg, nullptr);
+    }
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
+  {
+    if (param_.sub_ts_ == TestParameters::TYPESUPPORT::C) {
+      test_msgs__msg__Strings msg;
+      test_msgs__msg__Strings__init(&msg);
+      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+      {
+        test_msgs__msg__Strings__fini(&msg);
+      });
+      ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      ASSERT_EQ(std::string(test_string), std::string(msg.string_value.data, msg.string_value.size));
+    } else {
+      test_msgs::msg::Strings msg;
+      ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      ASSERT_EQ(std::string(test_string), msg.string_value);
+    }
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P_RMW(
+  TestSubscriptionFixtureParamWithDifferentSettings,
+  TestSubscriptionFixtureParam,
+  ::testing::Values(
+    TestParameters(TestParameters::TYPESUPPORT::C, TestParameters::TYPESUPPORT::C),
+    TestParameters(TestParameters::TYPESUPPORT::C, TestParameters::TYPESUPPORT::CPP),
+    TestParameters(TestParameters::TYPESUPPORT::CPP, TestParameters::TYPESUPPORT::C),
+    TestParameters(TestParameters::TYPESUPPORT::CPP, TestParameters::TYPESUPPORT::CPP)
+  ));
