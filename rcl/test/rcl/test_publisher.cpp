@@ -23,7 +23,6 @@
 
 #include "mimick/mimick.h"
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
-#include "test_msgs/msg/strings.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcutils/env.h"

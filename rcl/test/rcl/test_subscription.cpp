@@ -30,6 +30,7 @@
 #include "rosidl_runtime_c/string_functions.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rosidl_typesupport_cpp/message_type_support.hpp"
 #include "test_msgs/msg/strings.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
