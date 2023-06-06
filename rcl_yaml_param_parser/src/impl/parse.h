@@ -90,6 +90,30 @@ rcutils_ret_t find_parameter(
   rcl_params_t * param_st,
   size_t * parameter_idx);
 
+RCL_YAML_PARAM_PARSER_LOCAL
+RCUTILS_WARN_UNUSED
+rcutils_ret_t parse_thread_attr_key(
+  const char * value,
+  thread_attr_key_type_t * key_type);
+
+RCL_YAML_PARAM_PARSER_LOCAL
+RCUTILS_WARN_UNUSED
+rcl_thread_scheduling_policy_type_t parse_thread_attr_scheduling_policy(
+  const char * value);
+
+RCL_YAML_PARAM_PARSER_LOCAL
+RCUTILS_WARN_UNUSED
+rcutils_ret_t parse_thread_attr(
+  yaml_parser_t * parser,
+  rcl_thread_attr_t * attr,
+  rcutils_allocator_t allocator);
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t parse_thread_attr_events(
+  yaml_parser_t * parser,
+  rcl_thread_attrs_t * thread_attrs);
+
 #ifdef __cplusplus
 }
 #endif

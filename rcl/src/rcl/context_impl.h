@@ -15,6 +15,7 @@
 #ifndef RCL__CONTEXT_IMPL_H_
 #define RCL__CONTEXT_IMPL_H_
 
+#include "rcl_yaml_param_parser/parser_thread_attr.h"
 #include "rcl/context.h"
 #include "rcl/error_handling.h"
 
@@ -38,6 +39,8 @@ struct rcl_context_impl_s
   char ** argv;
   /// rmw context.
   rmw_context_t rmw_context;
+  /// thread attributes.
+  rcl_thread_attrs_t thread_attrs;
 };
 
 RCL_LOCAL

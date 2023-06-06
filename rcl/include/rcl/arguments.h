@@ -83,6 +83,12 @@ typedef struct rcl_arguments_s
 /// logging (must be preceded with --enable- or --disable-).
 #define RCL_LOG_EXT_LIB_FLAG_SUFFIX "external-lib-logs"
 
+/// The ROS flag that precedes the ROS thread attribute file path.
+#define RCL_THREAD_ATTRS_FILE_FLAG "--thread-attrs-file"
+
+/// The ROS flag that precedes the ROS logging thread attribute.
+#define RCL_THREAD_ATTRS_VALUE_FLAG "--thread-attrs-value"
+
 /// Return a rcl_arguments_t struct with members initialized to `NULL`.
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -446,6 +452,24 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_arguments_fini(
   rcl_arguments_t * args);
+
+/// Return thread attribute parsed from the command line.
+/**
+ * Thread attribute are parsed directly from command line arguments and
+ * thread attribute files provided in the command line.
+ *
+ * \param[in] arguments An arguments structure that has been parsed.
+ * \param[out] thread_attrs thread attribute as parsed from command line arguments.
+ *   This structure must be finalized by the caller.
+ * \return #RCL_RET_OK if everything goes correctly, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any function arguments are invalid, or
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_arguments_get_thread_attrs(
+  const rcl_arguments_t * arguments,
+  rcl_thread_attrs_t ** thread_attrs);
 
 #ifdef __cplusplus
 }

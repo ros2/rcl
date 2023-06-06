@@ -63,6 +63,24 @@ typedef struct namespace_tracker_s
   uint32_t num_parameter_ns;
 } namespace_tracker_t;
 
+typedef enum thread_attr_key_type_e
+{
+  THREAD_ATTR_KEY_CORE_AFFINITY = 1,
+  THREAD_ATTR_KEY_SCHEDULING_POLICY = 2,
+  THREAD_ATTR_KEY_PRIORITY = 4,
+  THREAD_ATTR_KEY_NAME = 8
+} thread_attr_key_type_t;
+
+typedef enum thread_attr_key_bits_e
+{
+  THREAD_ATTR_KEY_BITS_NONE = 0,
+  THREAD_ATTR_KEY_BITS_ALL =
+    THREAD_ATTR_KEY_CORE_AFFINITY |
+    THREAD_ATTR_KEY_SCHEDULING_POLICY |
+    THREAD_ATTR_KEY_PRIORITY |
+    THREAD_ATTR_KEY_NAME
+} thread_attr_key_bits_t;
+
 #ifdef __cplusplus
 }
 #endif

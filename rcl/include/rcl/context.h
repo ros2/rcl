@@ -314,6 +314,23 @@ RCL_WARN_UNUSED
 rmw_context_t *
 rcl_context_get_rmw_context(rcl_context_t * context);
 
+/// Returns the thread attribute context.
+/**
+ * \param[in] context from which the thread attribute should be retrieved.
+ * \param[out] thread_attrs output variable where the thread attribute will be returned.
+ * \return #RCL_RET_INVALID_ARGUMENT if `context` is invalid (see rcl_context_is_valid()), or
+ * \return #RCL_RET_INVALID_ARGUMENT if `context->impl` is `NULL`, or
+ * \return #RCL_RET_INVALID_ARGUMENT if `*thread_attrs` is not `NULL`, or
+ * \return #RCL_RET_INVALID_ARGUMENT if `context->impl->thread_context.thread_attrs` is `NULL`, or
+ * \return #RCL_RET_OK if the thread attribute was correctly retrieved.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_context_get_thread_attrs(
+  const rcl_context_t * context,
+  rcl_thread_attrs_t ** thread_attrs);
+
 #ifdef __cplusplus
 }
 #endif
