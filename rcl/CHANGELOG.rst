@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+6.2.0 (2023-06-07)
+------------------
 * fix comment (`#1073 <https://github.com/ros2/rcl/issues/1073>`_)
 * localhost_only prevails auto discovery options if enabled. (`#1069 <https://github.com/ros2/rcl/issues/1069>`_)
 * Avoid dynamic allocation of message before sending over rosout (`#1067 <https://github.com/ros2/rcl/issues/1067>`_)
