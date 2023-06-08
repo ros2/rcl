@@ -15,9 +15,10 @@
 #ifndef IMPL__ADD_TO_ARRAYS_H_
 #define IMPL__ADD_TO_ARRAYS_H_
 
-#include <yaml.h>
-
-#include "rcutils/types.h"
+#include "rcutils/allocator.h"
+#include "rcutils/macros.h"
+#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/types/string_array.h"
 
 #include "./types.h"
 #include "rcl_yaml_param_parser/types.h"

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <string>
 #include <thread>
@@ -686,6 +687,7 @@ TEST_F(TestEventFixture, test_bad_event_ini)
     &publisher,
     unknown_pub_type);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
 
   subscription_event = rcl_get_zero_initialized_event();
   ret = rcl_subscription_event_init(
@@ -693,6 +695,7 @@ TEST_F(TestEventFixture, test_bad_event_ini)
     &subscription,
     unknown_sub_type);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
 
   tear_down_publisher_subscriber();
 }
@@ -744,12 +747,16 @@ TEST_F(TestEventFixture, test_event_is_invalid) {
   // nullptr
   rmw_offered_deadline_missed_status_t deadline_status;
   EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(NULL, &deadline_status));
+  rcl_reset_error();
   EXPECT_EQ(NULL, rcl_event_get_rmw_handle(NULL));
+  rcl_reset_error();
 
   // Zero Init, invalid
   rcl_event_t publisher_event_test = rcl_get_zero_initialized_event();
   EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(&publisher_event_test, &deadline_status));
+  rcl_reset_error();
   EXPECT_EQ(NULL, rcl_event_get_rmw_handle(&publisher_event_test));
+  rcl_reset_error();
 }
 
 /*
@@ -847,3 +854,418 @@ INSTANTIATE_TEST_SUITE_P(
   TestEventFixture,
   ::testing::ValuesIn(get_test_pubsub_incompatible_qos_inputs()),
   TestEventFixture::PrintToStringParamName());
+
+struct EventUserData
+{
+  std::shared_ptr<std::atomic_size_t> event_count;
+};
+
+extern "C"
+{
+void event_callback(const void * user_data, size_t number_of_events)
+{
+  (void)number_of_events;
+  const struct EventUserData * data = static_cast<const struct EventUserData *>(user_data);
+  ASSERT_NE(nullptr, data);
+  (*data->event_count)++;
+}
+}
+
+/*
+ * Basic test of publisher matched event
+ */
+TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
+{
+  rcl_ret_t ret;
+
+  // Create one publisher
+  setup_publisher(default_qos_profile);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  // init publisher event
+  rcl_event_t pub_matched_event = rcl_get_zero_initialized_event();
+  ret = rcl_publisher_event_init(&pub_matched_event, &publisher, RCL_PUBLISHER_MATCHED);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_event_fini(&pub_matched_event);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  // init event callback
+  struct EventUserData matched_data;
+  matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
+
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
+    ret = rcl_event_set_callback(&pub_matched_event, event_callback, &matched_data);
+    ASSERT_EQ(RMW_RET_OK, ret);
+  }
+
+  // to take event while there is no subscription
+  rmw_matched_status_t matched_status;
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
+  EXPECT_EQ(0, matched_status.total_count);
+  EXPECT_EQ(0, matched_status.total_count_change);
+  EXPECT_EQ(0, matched_status.current_count);
+  EXPECT_EQ(0, matched_status.current_count_change);
+
+  // Create one subscriber
+  setup_subscriber(default_qos_profile);
+
+  // Wait for connection
+  {
+    bool msg_ready = false;
+    bool sub_event_ready = false;
+    bool pub_event_ready = false;
+    ret = wait_for_msgs_and_events(
+      context_ptr,
+      nullptr,
+      nullptr,
+      &pub_matched_event,
+      &msg_ready,
+      &sub_event_ready,
+      &pub_event_ready);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(pub_event_ready, true);
+  }
+
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
+    EXPECT_EQ(*matched_data.event_count, 1);
+  }
+
+  *matched_data.event_count = 0;
+
+  // check matched status
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
+  EXPECT_EQ(1, matched_status.total_count);
+  EXPECT_EQ(1, matched_status.total_count_change);
+  EXPECT_EQ(1, matched_status.current_count);
+  EXPECT_EQ(1, matched_status.current_count_change);
+
+  // Delete subscriber
+  ret = rcl_subscription_fini(&subscription, this->node_ptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Wait for disconnection
+  {
+    bool msg_ready = false;
+    bool sub_event_ready = false;
+    bool pub_event_ready = false;
+    ret = wait_for_msgs_and_events(
+      context_ptr,
+      nullptr,
+      nullptr,
+      &pub_matched_event,
+      &msg_ready,
+      &sub_event_ready,
+      &pub_event_ready);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(pub_event_ready, true);
+  }
+
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
+    EXPECT_EQ(*matched_data.event_count, 1);
+  }
+
+  // Check unmatched status
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
+  EXPECT_EQ(1, matched_status.total_count);
+  EXPECT_EQ(0, matched_status.total_count_change);
+  EXPECT_EQ(0, matched_status.current_count);
+  EXPECT_EQ(-1, matched_status.current_count_change);
+}
+
+/*
+ * Basic test of subscription matched event
+ */
+TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
+{
+  rcl_ret_t ret;
+
+  // Create one subscriber
+  setup_subscriber(default_qos_profile);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  // init subscriber event
+  rcl_event_t sub_matched_event = rcl_get_zero_initialized_event();
+  ret = rcl_subscription_event_init(&sub_matched_event, &subscription, RCL_SUBSCRIPTION_MATCHED);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_event_fini(&sub_matched_event);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  // init event callback
+  struct EventUserData matched_data;
+  matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
+
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
+    ret = rcl_event_set_callback(&sub_matched_event, event_callback, &matched_data);
+    ASSERT_EQ(RMW_RET_OK, ret);
+  }
+
+  // to take event if there is no subscription
+  rmw_matched_status_t matched_status;
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
+  EXPECT_EQ(0, matched_status.total_count);
+  EXPECT_EQ(0, matched_status.total_count_change);
+  EXPECT_EQ(0, matched_status.current_count);
+  EXPECT_EQ(0, matched_status.current_count_change);
+
+  // Create one publisher
+  setup_publisher(default_qos_profile);
+
+  // Wait for connection
+  {
+    bool msg_ready = false;
+    bool sub_event_ready = false;
+    bool pub_event_ready = false;
+    ret = wait_for_msgs_and_events(
+      context_ptr,
+      nullptr,
+      &sub_matched_event,
+      nullptr,
+      &msg_ready,
+      &sub_event_ready,
+      &pub_event_ready);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(sub_event_ready, true);
+  }
+
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
+    EXPECT_EQ(*matched_data.event_count, 1);
+  }
+  *matched_data.event_count = 0;
+
+  // Check matched status
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
+  EXPECT_EQ(1, matched_status.total_count);
+  EXPECT_EQ(1, matched_status.total_count_change);
+  EXPECT_EQ(1, matched_status.current_count);
+  EXPECT_EQ(1, matched_status.total_count_change);
+
+  ret = rcl_publisher_fini(&publisher, this->node_ptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Wait for disconnection
+  {
+    bool msg_ready = false;
+    bool sub_event_ready = false;
+    bool pub_event_ready = false;
+    ret = wait_for_msgs_and_events(
+      context_ptr,
+      nullptr,
+      &sub_matched_event,
+      nullptr,
+      &msg_ready,
+      &sub_event_ready,
+      &pub_event_ready);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(sub_event_ready, true);
+  }
+
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
+    EXPECT_EQ(*matched_data.event_count, 1);
+  }
+
+  // Check matched status change
+  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
+  EXPECT_EQ(1, matched_status.total_count);
+  EXPECT_EQ(0, matched_status.total_count_change);
+  EXPECT_EQ(0, matched_status.current_count);
+  EXPECT_EQ(-1, matched_status.current_count_change);
+}
+
+extern "C"
+{
+void event_callback2(const void * user_data, size_t number_of_events)
+{
+  (void)number_of_events;
+  const struct EventUserData * data = static_cast<const struct EventUserData *>(user_data);
+  ASSERT_NE(nullptr, data);
+  *data->event_count = number_of_events;
+}
+}
+
+TEST_F(TestEventFixture, test_pub_previous_matched_event)
+{
+  // While registering callback for matched event, exist previous matched event
+  // will trigger callback at once.
+
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0) {
+    GTEST_SKIP();
+  }
+
+  rcl_ret_t ret;
+
+  // Create one publisher
+  setup_publisher(default_qos_profile);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_publisher_fini(&publisher, this->node_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  // init publisher event
+  rcl_event_t pub_matched_event = rcl_get_zero_initialized_event();
+  ret = rcl_publisher_event_init(&pub_matched_event, &publisher, RCL_PUBLISHER_MATCHED);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_event_fini(&pub_matched_event);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  // Create one subscriber
+  setup_subscriber(default_qos_profile);
+
+  // Wait for connection
+  {
+    bool msg_ready = false;
+    bool sub_event_ready = false;
+    bool pub_event_ready = false;
+    ret = wait_for_msgs_and_events(
+      context_ptr,
+      nullptr,
+      nullptr,
+      &pub_matched_event,
+      &msg_ready,
+      &sub_event_ready,
+      &pub_event_ready);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(pub_event_ready, true);
+  }
+
+  // Delete subscriber
+  ret = rcl_subscription_fini(&subscription, this->node_ptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Wait for disconnection
+  {
+    bool msg_ready = false;
+    bool sub_event_ready = false;
+    bool pub_event_ready = false;
+    ret = wait_for_msgs_and_events(
+      context_ptr,
+      nullptr,
+      nullptr,
+      &pub_matched_event,
+      &msg_ready,
+      &sub_event_ready,
+      &pub_event_ready);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(pub_event_ready, true);
+  }
+
+  // init event callback
+  struct EventUserData matched_data;
+  matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
+  ret = rcl_event_set_callback(&pub_matched_event, event_callback2, &matched_data);
+  ASSERT_EQ(RMW_RET_OK, ret);
+
+  // matched event happen twice. One for connection and another for disconnection.
+  // Note that different DDS have different implementation.
+  // This behavior isn't defined in DDS specification.
+  // So check if event count >= 1
+  EXPECT_GE(*matched_data.event_count, 1);
+}
+
+TEST_F(TestEventFixture, test_sub_previous_matched_event)
+{
+  // While registering callback for matched event, exist previous matched event
+  // will trigger callback at once.
+
+  // rmw_connextdds doesn't support rmw_event_set_callback() interface
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") == 0) {
+    GTEST_SKIP();
+  }
+
+  rcl_ret_t ret;
+
+  // Create one subscriber
+  setup_subscriber(default_qos_profile);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  // init subscriber event
+  rcl_event_t sub_matched_event = rcl_get_zero_initialized_event();
+  ret = rcl_subscription_event_init(&sub_matched_event, &subscription, RCL_SUBSCRIPTION_MATCHED);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_event_fini(&sub_matched_event);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
+
+  // Create one publisher
+  setup_publisher(default_qos_profile);
+
+  // Wait for connection
+  {
+    bool msg_ready = false;
+    bool sub_event_ready = false;
+    bool pub_event_ready = false;
+    ret = wait_for_msgs_and_events(
+      context_ptr,
+      nullptr,
+      &sub_matched_event,
+      nullptr,
+      &msg_ready,
+      &sub_event_ready,
+      &pub_event_ready);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(sub_event_ready, true);
+  }
+
+  // Delete publisher
+  ret = rcl_publisher_fini(&publisher, this->node_ptr);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Wait for disconnection
+  {
+    bool msg_ready = false;
+    bool sub_event_ready = false;
+    bool pub_event_ready = false;
+    ret = wait_for_msgs_and_events(
+      context_ptr,
+      nullptr,
+      &sub_matched_event,
+      nullptr,
+      &msg_ready,
+      &sub_event_ready,
+      &pub_event_ready);
+    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(sub_event_ready, true);
+  }
+
+  // init event callback
+  struct EventUserData matched_data;
+  matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
+  ret = rcl_event_set_callback(&sub_matched_event, event_callback2, &matched_data);
+  ASSERT_EQ(RMW_RET_OK, ret);
+
+  // matched event happen twice. One for connection and another for disconnection.
+  // Note that different DDS have different implementation.
+  // This behavior isn't defined in DDS specification.
+  // So check if event count >= 1.
+  EXPECT_GE(*matched_data.event_count, 1);
+}

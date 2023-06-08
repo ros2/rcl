@@ -6,10 +6,12 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(libyaml_vendor REQUIRED)
+find_package(yaml REQUIRED)
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -19,7 +21,8 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   )
 endif()
 
-set(rcl_yaml_parser_sources
+add_library(
+  ${PROJECT_NAME}
   src/add_to_arrays.c
   src/namespace.c
   src/node_params.c
@@ -27,14 +30,16 @@ set(rcl_yaml_parser_sources
   src/parser.c
   src/yaml_variant.c
 )
-
-add_library(
-  ${PROJECT_NAME}
-  ${rcl_yaml_parser_sources})
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
-ament_target_dependencies(${PROJECT_NAME} "libyaml_vendor" "rcutils" "rmw")
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  rcutils::rcutils
+)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  rmw::rmw
+  yaml
+)
 
 # Set the visibility to hidden by default if possible
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -72,12 +77,12 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   if(TARGET test_namespace)
-    ament_target_dependencies(test_namespace
-      "rcutils"
-      "osrf_testing_tools_cpp"
+    target_link_libraries(test_namespace
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
     )
     target_compile_definitions(test_namespace PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
-    target_link_libraries(test_namespace ${PROJECT_NAME})
   endif()
 
   ament_add_gtest(test_node_params
@@ -85,11 +90,10 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   if(TARGET test_node_params)
-    ament_target_dependencies(test_node_params
-      "rcutils"
-      "osrf_testing_tools_cpp"
+    target_link_libraries(test_node_params
+      ${PROJECT_NAME}
+      rcutils::rcutils
     )
-    target_link_libraries(test_node_params ${PROJECT_NAME})
   endif()
 
   ament_add_gtest(test_parse_yaml
@@ -97,7 +101,11 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   if(TARGET test_parse_yaml)
-    target_link_libraries(test_parse_yaml ${PROJECT_NAME})
+    target_link_libraries(test_parse_yaml
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
+    )
     target_include_directories(test_parse_yaml
       PRIVATE ${osrf_testing_tools_cpp_INCLUDE_DIRS})
   endif()
@@ -107,11 +115,13 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   if(TARGET test_parse)
-    ament_target_dependencies(test_parse
-      "rcutils"
-      "osrf_testing_tools_cpp"
+    target_link_libraries(test_parse
+      ${PROJECT_NAME}
+      mimick
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
+      yaml
     )
-    target_link_libraries(test_parse ${PROJECT_NAME} mimick)
   endif()
 
   ament_add_gtest(test_parser
@@ -119,11 +129,13 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   if(TARGET test_parser)
-    ament_target_dependencies(test_parser
-      "rcutils"
-      "osrf_testing_tools_cpp"
+    target_link_libraries(test_parser
+      ${PROJECT_NAME}
+      mimick
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
+      yaml
     )
-    target_link_libraries(test_parser ${PROJECT_NAME} mimick)
     target_compile_definitions(test_parser PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
@@ -133,11 +145,12 @@ if(BUILD_TESTING)
     TIMEOUT 240  # Large timeout to wait for fault injection tests
   )
   if(TARGET test_parser_multiple_nodes)
-    ament_target_dependencies(test_parser_multiple_nodes
-      "rcutils"
-      "osrf_testing_tools_cpp"
+    target_link_libraries(test_parser_multiple_nodes
+      ${PROJECT_NAME}
+      mimick
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
     )
-    target_link_libraries(test_parser_multiple_nodes ${PROJECT_NAME} mimick)
     target_compile_definitions(test_parser_multiple_nodes PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
@@ -146,11 +159,12 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   if(TARGET test_parser_multiple_params)
-    ament_target_dependencies(test_parser_multiple_params
-      "rcutils"
-      "osrf_testing_tools_cpp"
+    target_link_libraries(test_parser_multiple_params
+      ${PROJECT_NAME}
+      mimick
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
     )
-    target_link_libraries(test_parser_multiple_params ${PROJECT_NAME} mimick)
     target_compile_definitions(test_parser_multiple_params PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
@@ -159,28 +173,31 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   if(TARGET test_yaml_variant)
-    ament_target_dependencies(test_yaml_variant
-      "rcutils"
-      "osrf_testing_tools_cpp"
+    target_link_libraries(test_yaml_variant
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
     )
-    target_link_libraries(test_yaml_variant ${PROJECT_NAME})
   endif()
 
   add_performance_test(benchmark_parse_yaml test/benchmark/benchmark_parse_yaml.cpp
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
   if(TARGET benchmark_parse_yaml)
-    target_link_libraries(benchmark_parse_yaml ${PROJECT_NAME})
-    ament_target_dependencies(benchmark_parse_yaml
-      "rcpputils"
-      "rcutils"
+    target_link_libraries(benchmark_parse_yaml
+      ${PROJECT_NAME}
+      performance_test_fixture::performance_test_fixture
+      rcpputils::rcpputils
+      rcutils::rcutils
     )
   endif()
 
   add_performance_test(benchmark_variant test/benchmark/benchmark_variant.cpp)
   if(TARGET benchmark_variant)
-    target_link_libraries(benchmark_variant ${PROJECT_NAME})
-    ament_target_dependencies(benchmark_variant
-      "rcutils"
+    target_link_libraries(benchmark_variant
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      performance_test_fixture::performance_test_fixture
+      rcutils::rcutils
     )
   endif()
 endif()
@@ -192,8 +209,8 @@ ament_export_libraries(${PROJECT_NAME})
 # Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
 
-ament_export_dependencies(ament_cmake libyaml_vendor)
-ament_export_dependencies(rmw)
+ament_export_dependencies(ament_cmake rcutils)
+
 install(
   DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}

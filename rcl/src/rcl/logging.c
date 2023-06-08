@@ -62,7 +62,7 @@ rcl_logging_configure_with_output_handler(
   RCL_CHECK_ARGUMENT_FOR_NULL(global_args, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_handler, RCL_RET_INVALID_ARGUMENT);
-  RCUTILS_LOGGING_AUTOINIT;
+  RCUTILS_LOGGING_AUTOINIT_WITH_ALLOCATOR(*allocator);
   g_logging_allocator = *allocator;
   int default_level = -1;
   rcl_log_levels_t * log_levels = &global_args->impl->log_levels;
@@ -190,12 +190,7 @@ rcl_logging_ext_lib_output_handler(
     .allocator = g_logging_allocator
   };
 
-  va_list args_clone;
-  // The args are initialized, but clang-tidy cannot tell.
-  // It may be related to this bug: https://bugs.llvm.org/show_bug.cgi?id=41311
-  va_copy(args_clone, *args);  // NOLINT(clang-analyzer-valist.Uninitialized)
-  status = rcutils_char_array_vsprintf(&msg_array, format, args_clone);
-  va_end(args_clone);
+  status = rcutils_char_array_vsprintf(&msg_array, format, *args);
 
   if (RCL_RET_OK == status) {
     status = rcutils_logging_format_message(

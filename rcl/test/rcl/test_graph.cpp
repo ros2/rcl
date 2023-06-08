@@ -879,7 +879,11 @@ void expect_topics_types(
   rcl_names_and_types_t nat{};
   nat = rcl_get_zero_initialized_names_and_types();
   ret = func(node, topic_name, &nat);
-  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // Ignore the `RCL_RET_NODE_NAME_NON_EXISTENT` result since the discovery may be asynchronous
+  // that the node information is not updated immediately into the graph cache.
+  if (ret != RCL_RET_NODE_NAME_NON_EXISTENT) {
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
   rcl_reset_error();
   is_success &= num_topics == nat.names.size;
   if (expect) {

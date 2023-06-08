@@ -315,6 +315,15 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
+  rcl_add_custom_gtest(test_service_event_publisher${target_suffix}
+    SRCS rcl/test_service_event_publisher.cpp
+    ENV ${rmw_implementation_env_var}
+    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
+    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers
+    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+  )
+
   # Launch tests
 
   rcl_add_custom_executable(service_fixture${target_suffix}
@@ -389,6 +398,13 @@ rcl_add_custom_gtest(test_validate_enclave_name
   LIBRARIES ${PROJECT_NAME} mimick
 )
 
+rcl_add_custom_gtest(test_discovery_options
+  SRCS rcl/test_discovery_options.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
+)
+
 rcl_add_custom_gtest(test_domain_id
   SRCS rcl/test_domain_id.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
@@ -404,7 +420,8 @@ rcl_add_custom_gtest(test_localhost
 rcl_add_custom_gtest(test_logging
   SRCS rcl/test_logging.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME} mimick
+  LIBRARIES ${PROJECT_NAME} mimick ${rcl_interfaces_TARGETS}
+    rcl_logging_interface::rcl_logging_interface ${RCL_LOGGING_IMPL}::${RCL_LOGGING_IMPL}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
@@ -446,4 +463,10 @@ rcl_add_custom_gtest(test_subscription_content_filter_options
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp" "test_msgs"
+)
+
+rcl_add_custom_gtest(test_type_hash
+  SRCS rcl/test_type_hash.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
 )

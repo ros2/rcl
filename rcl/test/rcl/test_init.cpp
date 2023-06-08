@@ -510,8 +510,10 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_acce
   // nullptr copy cases
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_init_options_copy(nullptr, &init_options_dst));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_init_options_copy(&init_options, nullptr));
+  rcl_reset_error();
 
   // Expected usage copy
   ASSERT_EQ(RCL_RET_OK, rcl_init_options_copy(&init_options, &init_options_dst));

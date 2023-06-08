@@ -12,9 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "./impl/namespace.h"
+#include <string.h>
 
+#include "./impl/namespace.h"
+#include "./impl/types.h"
+
+#include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/rcutils_ret.h"
 
 rcutils_ret_t add_name_to_ns(
   namespace_tracker_t * ns_tracker,

@@ -237,6 +237,7 @@ TEST(TestLogLevel, log_level_init_fini) {
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_log_levels_init(nullptr, &allocator, capacity_count));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_log_levels_init(&log_levels, nullptr, capacity_count));
@@ -252,8 +253,10 @@ TEST(TestLogLevel, log_level_init_fini) {
   rcl_log_levels_t empty_log_levels = rcl_get_zero_initialized_log_levels();
   EXPECT_EQ(
     RCL_RET_BAD_ALLOC, rcl_log_levels_init(&empty_log_levels, &bad_allocator, capacity_count));
+  rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_fini(nullptr));
+  rcl_reset_error();
 }
 
 TEST(TestLogLevel, logger_log_level_copy) {
@@ -290,7 +293,9 @@ TEST(TestLogLevel, logger_log_level_copy) {
   // Bad usage
   rcl_log_levels_t empty_log_levels = rcl_get_zero_initialized_log_levels();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_copy(nullptr, &empty_log_levels));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_copy(&log_levels, nullptr));
+  rcl_reset_error();
   // Already copied
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_log_levels_copy(&log_levels, &copied_log_levels));
   EXPECT_TRUE(rcl_error_is_set());
@@ -330,15 +335,18 @@ TEST(TestLogLevel, test_add_logger_setting) {
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_log_levels_add_logger_setting(nullptr, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
+  rcl_reset_error();
 
   rcl_log_levels_t not_ini_log_levels = rcl_get_zero_initialized_log_levels();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_log_levels_add_logger_setting(&not_ini_log_levels, "rcl", RCUTILS_LOG_SEVERITY_DEBUG));
+  rcl_reset_error();
 
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_log_levels_add_logger_setting(&log_levels, nullptr, RCUTILS_LOG_SEVERITY_DEBUG));
+  rcl_reset_error();
 
   rcl_allocator_t saved_allocator = log_levels.allocator;
   log_levels.allocator = {NULL, NULL, NULL, NULL, NULL};

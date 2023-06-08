@@ -2,19 +2,24 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rcl</name>
-  <version>5.4.0</version>
+  <version>6.2.0</version>
   <description>The ROS client library common implementation.
     This package contains an API which builds on the ROS middleware API and is optionally built upon by the other ROS client libraries.
   </description>
+
+  <maintainer email="audrow@openrobotics.org">Audrow Nash</maintainer>
   <maintainer email="ivanpauno@ekumenlabs.com">Ivan Paunovic</maintainer>
-  <maintainer email="jacob@openrobotics.org">Jacob Perron</maintainer>
   <maintainer email="william@openrobotics.org">William Woodall</maintainer>
+
   <license>Apache License 2.0</license>
+
+  <author email="jacob@openrobotics.org">Jacob Perron</author>
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <build_export_depend>rmw</build_export_depend>
 
+  <depend>libyaml_vendor</depend>
   <depend>rcl_interfaces</depend>
   <depend>rcl_logging_interface</depend>
   <depend>rcl_logging_spdlog</depend> <!-- the default logging impl -->
@@ -22,7 +27,10 @@
   <depend>rcutils</depend>
   <depend>rmw_implementation</depend>
   <depend>rosidl_runtime_c</depend>
+  <depend>service_msgs</depend>
   <depend>tracetools</depend>
+  <depend>type_description_interfaces</depend>
+  <depend>yaml</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>

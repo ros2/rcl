@@ -293,9 +293,15 @@ rcl_node_init(
       goto fail;
     }
   }
+  if (node->impl->options.enable_type_description_service) {
+    RCUTILS_LOG_WARN_NAMED(
+      ROS_PACKAGE_NAME,
+      "Requested ~/get_type_description service enabled, but feature is not yet implemented. "
+      "Service is not created.");
+  }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized");
   ret = RCL_RET_OK;
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_node_init,
     (const void *)node,
     (const void *)rcl_node_get_rmw_handle(node),

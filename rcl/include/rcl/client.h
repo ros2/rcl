@@ -24,10 +24,16 @@ extern "C"
 
 #include "rosidl_runtime_c/service_type_support_struct.h"
 
+#include "rcl/allocator.h"
 #include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
+#include "rcl/publisher.h"
+#include "rcl/service_introspection.h"
+#include "rcl/time.h"
 #include "rcl/visibility_control.h"
+
+#include "rmw/types.h"
 
 /// Internal rcl client implementation struct.
 typedef struct rcl_client_impl_s rcl_client_impl_t;
@@ -221,9 +227,9 @@ rcl_client_get_default_options(void);
  * but calling rcl_send_request() at the same time as non-thread safe client
  * functions is not, e.g. calling rcl_send_request() and rcl_client_fini()
  * concurrently is not allowed.
- * Before calling rcl_send_request() the message can change and after calling
- * rcl_send_request() the message can change, but it cannot be changed during
- * the `send_request` call.
+ * The message cannot change during the rcl_send_request() call.
+ * Before calling rcl_send_request() the message can change but after calling
+ * rcl_send_request() it depends on RMW implementation behavior.
  * The same `ros_request`, however, can be passed to multiple calls of
  * rcl_send_request() simultaneously, even if the clients differ.
  * The `ros_request` is unmodified by rcl_send_request().
@@ -492,6 +498,47 @@ rcl_client_set_on_new_response_callback(
   const rcl_client_t * client,
   rcl_event_callback_t callback,
   const void * user_data);
+
+/// Configures service introspection features for the client.
+/**
+ * Enables or disables service introspection features for this client.
+ * If the introspection state is RCL_SERVICE_INTROSPECTION_OFF, then introspection will
+ * be disabled.  If the state is RCL_SERVICE_INTROSPECTION_METADATA, the client metadata
+ * will be published.  If the state is RCL_SERVICE_INTROSPECTION_CONTENTS, then the client
+ * metadata and service request and response contents will be published.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] rmw implementation defined</i>
+ *
+ * \param[in] client client on which to configure service introspection
+ * \param[in] node valid rcl_node_t to use to create the introspection publisher
+ * \param[in] clock valid rcl_clock_t to use to generate the introspection timestamps
+ * \param[in] type_support type support library associated with this client
+ * \param[in] publisher_options options to use when creating the introspection publisher
+ * \param[in] introspection_state rcl_service_introspection_state_t describing whether
+ *            introspection should be OFF, METADATA, or CONTENTS
+ * \return #RCL_RET_OK if the call was successful, or
+ * \return #RCL_RET_ERROR if the event publisher is invalid, or
+ * \return #RCL_RET_NODE_INVALID if the given node is invalid, or
+ * \return #RCL_RET_INVALID_ARGUMENT if the client or node structure is invalid,
+ * \return #RCL_RET_BAD_ALLOC if a memory allocation failed
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_client_configure_service_introspection(
+  rcl_client_t * client,
+  rcl_node_t * node,
+  rcl_clock_t * clock,
+  const rosidl_service_type_support_t * type_support,
+  const rcl_publisher_options_t publisher_options,
+  rcl_service_introspection_state_t introspection_state);
 
 #ifdef __cplusplus
 }

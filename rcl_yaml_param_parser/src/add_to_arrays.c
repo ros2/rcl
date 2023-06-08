@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
+#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/types/string_array.h"
+
 #include "./impl/add_to_arrays.h"
 
 #define ADD_VALUE_TO_SIMPLE_ARRAY(val_array, value, value_type, allocator) \

@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string.h>
+
+#include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
+#include "rcutils/types/rcutils_ret.h"
+
 #include "./impl/node_params.h"
 #include "./impl/types.h"
 #include "./impl/yaml_variant.h"

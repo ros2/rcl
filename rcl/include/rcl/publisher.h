@@ -49,6 +49,8 @@ typedef struct rcl_publisher_options_s
   rcl_allocator_t allocator;
   /// rmw specific publisher options, e.g. the rmw implementation specific payload.
   rmw_publisher_options_t rmw_publisher_options;
+  /// Disable flag to LoanedMessage, initialized via environmental variable.
+  bool disable_loaned_message;
 } rcl_publisher_options_t;
 
 /// Return a rcl_publisher_t struct with members set to `NULL`.
@@ -194,6 +196,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node);
  * - qos = rmw_qos_profile_default
  * - allocator = rcl_get_default_allocator()
  * - rmw_publisher_options = rmw_get_default_publisher_options()
+ * - disable_loaned_message = false, true only if ROS_DISABLE_LOANED_MESSAGES=1
  *
  * \return A structure with the default publisher options.
  */
@@ -297,9 +300,9 @@ rcl_return_loaned_message_from_publisher(
  * calling rcl_publish() at the same time as non-thread safe publisher
  * functions is not, e.g. calling rcl_publish() and rcl_publisher_fini()
  * concurrently is not allowed.
- * Before calling rcl_publish() the message can change and after calling
- * rcl_publish() the message can change, but it cannot be changed during the
- * publish call.
+ * The message cannot change during the rcl_publish() call.
+ * Before calling rcl_publish() the message can change but after calling
+ * rcl_publish() it depends on RMW implementation behavior.
  * The same `ros_message`, however, can be passed to multiple calls of
  * rcl_publish() simultaneously, even if the publishers differ.
  * The `ros_message` is unmodified by rcl_publish().

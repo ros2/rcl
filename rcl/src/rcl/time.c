@@ -73,6 +73,16 @@ rcl_get_ros_time(void * data, rcl_time_point_value_t * current_time)
 }
 
 bool
+rcl_clock_time_started(rcl_clock_t * clock)
+{
+  rcl_time_point_value_t query_now;
+  if (rcl_clock_get_now(clock, &query_now) == RCL_RET_OK) {
+    return query_now > 0;
+  }
+  return false;
+}
+
+bool
 rcl_clock_valid(rcl_clock_t * clock)
 {
   if (clock == NULL ||
