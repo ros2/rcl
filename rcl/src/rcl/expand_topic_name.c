@@ -70,7 +70,7 @@ rcl_expand_topic_name(
     return ret;
   }
   if (validation_result != RCL_TOPIC_NAME_VALID) {
-    RCL_SET_ERROR_MSG("topic name is invalid");
+    RCL_SET_ERROR_MSG(rcl_topic_name_validation_result_string(validation_result));
     return RCL_RET_TOPIC_NAME_INVALID;
   }
   // validate the node name
