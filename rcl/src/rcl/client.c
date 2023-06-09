@@ -176,7 +176,7 @@ rcl_client_init(
   client->impl->options = *options;
   atomic_init(&client->impl->sequence_number, 0);
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client initialized");
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_client_init,
     (const void *)client,
     (const void *)node,

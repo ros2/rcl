@@ -205,7 +205,7 @@ rcl_timer_init(
     return RCL_RET_BAD_ALLOC;
   }
   *timer->impl = impl;
-  TRACEPOINT(rcl_timer_init, (const void *)timer, period);
+  TRACETOOLS_TRACEPOINT(rcl_timer_init, (const void *)timer, period);
   return RCL_RET_OK;
 }
 

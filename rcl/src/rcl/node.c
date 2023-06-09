@@ -301,7 +301,7 @@ rcl_node_init(
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized");
   ret = RCL_RET_OK;
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_node_init,
     (const void *)node,
     (const void *)rcl_node_get_rmw_handle(node),
