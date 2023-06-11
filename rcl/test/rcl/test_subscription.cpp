@@ -1786,7 +1786,7 @@ protected:
 };
 
 
-/* Test subscription to recevie complex message from a publisher with typesupport settings.
+/* Test subscription to receive complex message from a publisher with typesupport settings.
  */
 TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_complex_message) {
   rcl_ret_t ret;
@@ -1824,48 +1824,44 @@ TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_complex_message) {
   ASSERT_TRUE(wait_for_established_subscription(&publisher, 10, 100));
   constexpr char test_string[] = "testing";
   constexpr bool bool_values[3] = {true, false, true};
-  {
-    if (param_.pub_ts_ == TestParameters::TYPESUPPORT::C) {
-      test_msgs__msg__Arrays msg;
-      test_msgs__msg__Arrays__init(&msg);
-      std::copy(std::begin(bool_values), std::end(bool_values), msg.bool_values);
-      ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_values[1], test_string));
-      ret = rcl_publish(&publisher, &msg, nullptr);
-      test_msgs__msg__Arrays__fini(&msg);
-    } else {
-      test_msgs::msg::Arrays msg;
-      std::copy(std::begin(bool_values), std::end(bool_values), msg.bool_values.begin());
-      msg.string_values[1] = test_string;
-      ret = rcl_publish(&publisher, &msg, nullptr);
-    }
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  if (param_.pub_ts_ == TestParameters::TYPESUPPORT::C) {
+    test_msgs__msg__Arrays msg;
+    test_msgs__msg__Arrays__init(&msg);
+    std::copy(std::begin(bool_values), std::end(bool_values), msg.bool_values);
+    ASSERT_TRUE(rosidl_runtime_c__String__assign(&msg.string_values[1], test_string));
+    ret = rcl_publish(&publisher, &msg, nullptr);
+    test_msgs__msg__Arrays__fini(&msg);
+  } else {
+    test_msgs::msg::Arrays msg;
+    std::copy(std::begin(bool_values), std::end(bool_values), msg.bool_values.begin());
+    msg.string_values[1] = test_string;
+    ret = rcl_publish(&publisher, &msg, nullptr);
   }
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
-  {
-    if (param_.sub_ts_ == TestParameters::TYPESUPPORT::C) {
-      test_msgs__msg__Arrays msg;
-      test_msgs__msg__Arrays__init(&msg);
-      OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-      {
-        test_msgs__msg__Arrays__fini(&msg);
-      });
-      ret = rcl_take(&subscription, &msg, nullptr, nullptr);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      for (size_t i = 0; i < 3; ++i) {
-        ASSERT_EQ(bool_values[i], msg.bool_values[i]);
-      }
-      ASSERT_EQ(
-        std::string(test_string),
-        std::string(msg.string_values[1].data, msg.string_values[1].size));
-    } else {
-      test_msgs::msg::Arrays msg;
-      ret = rcl_take(&subscription, &msg, nullptr, nullptr);
-      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-      for (size_t i = 0; i < msg.bool_values.size(); ++i) {
-        ASSERT_EQ(bool_values[i], msg.bool_values[i]);
-      }
-      ASSERT_EQ(std::string(test_string), msg.string_values[1]);
+  if (param_.sub_ts_ == TestParameters::TYPESUPPORT::C) {
+    test_msgs__msg__Arrays msg;
+    test_msgs__msg__Arrays__init(&msg);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      test_msgs__msg__Arrays__fini(&msg);
+    });
+    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    for (size_t i = 0; i < 3; ++i) {
+      ASSERT_EQ(bool_values[i], msg.bool_values[i]);
     }
+    ASSERT_EQ(
+      std::string(test_string),
+      std::string(msg.string_values[1].data, msg.string_values[1].size));
+  } else {
+    test_msgs::msg::Arrays msg;
+    ret = rcl_take(&subscription, &msg, nullptr, nullptr);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    for (size_t i = 0; i < msg.bool_values.size(); ++i) {
+      ASSERT_EQ(bool_values[i], msg.bool_values[i]);
+    }
+    ASSERT_EQ(std::string(test_string), msg.string_values[1]);
   }
 }
 
