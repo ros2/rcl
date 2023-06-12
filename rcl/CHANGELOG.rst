@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* improve error msg of `rcl_expand_topic_name` (`#1076 <https://github.com/ros2/rcl/issues/1076>`_)
+* Use TRACETOOLS\_ prefix for tracepoint-related macros (`#1058 <https://github.com/ros2/rcl/issues/1058>`_)
+* Contributors: Christophe Bedard, Eric W
+
 6.2.0 (2023-06-07)
 ------------------
 * fix comment (`#1073 <https://github.com/ros2/rcl/issues/1073>`_)
