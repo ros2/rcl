@@ -55,7 +55,7 @@ typedef struct rcl_node_options_s
   /// Middleware quality of service settings for /rosout.
   rmw_qos_profile_t rosout_qos;
 
-  /// Register the ~/get_type_description service. Defaults to true.
+  /// Register the ~/get_type_description service. Defaults to false.
   bool enable_type_description_service;
 } rcl_node_options_t;
 

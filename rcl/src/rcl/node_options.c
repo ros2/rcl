@@ -36,7 +36,7 @@ rcl_node_get_default_options()
     .arguments = rcl_get_zero_initialized_arguments(),
     .enable_rosout = true,
     .rosout_qos = rcl_qos_profile_rosout_default,
-    .enable_type_description_service = true,
+    .enable_type_description_service = false,
   };
   return default_options;
 }
