@@ -197,14 +197,16 @@ rcl_action_server_init(
   }
 
   // Register type.
-  ret = rcl_node_type_cache_register_type(
-    node, type_support->get_type_hash_func(type_support),
-    type_support->get_type_description_func(type_support),
-    type_support->get_type_description_sources_func(type_support));
-  if (RCL_RET_OK != ret) {
-    rcutils_reset_error();
-    RCL_SET_ERROR_MSG("Failed to register type for action");
-    goto fail;
+  if (rcl_node_type_cache_is_valid(node)) {
+    if (RCL_RET_OK != rcl_node_type_cache_register_type(
+        node, type_support->get_type_hash_func(type_support),
+        type_support->get_type_description_func(type_support),
+        type_support->get_type_description_sources_func(type_support)))
+    {
+      rcutils_reset_error();
+      RCL_SET_ERROR_MSG("Failed to register type for action");
+      goto fail;
+    }
   }
 
   return ret;
@@ -265,8 +267,12 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
     allocator.deallocate(action_server->impl->goal_handles, allocator.state);
     action_server->impl->goal_handles = NULL;
     // Unregister type
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &action_server->impl->type_hash)) {
-      ret = RCL_RET_ERROR;
+    if (rcl_node_type_cache_is_valid(node)) {
+      if (RCL_RET_OK != rcl_node_type_cache_unregister_type(
+          node, &action_server->impl->type_hash))
+      {
+        ret = RCL_RET_ERROR;
+      }
     }
     // Deallocate struct
     allocator.deallocate(action_server->impl, allocator.state);

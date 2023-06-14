@@ -141,15 +141,16 @@ rcl_publisher_init(
     remapped_topic_name,
     options->qos.depth);
   // Register type.
-  if (RCL_RET_OK !=
-    rcl_node_type_cache_register_type(
-      node, type_support->get_type_hash_func(type_support),
-      type_support->get_type_description_func(type_support),
-      type_support->get_type_description_sources_func(type_support)))
-  {
-    rcutils_reset_error();
-    RCL_SET_ERROR_MSG("Failed to register type for subscription");
-    goto fail;
+  if (rcl_node_type_cache_is_valid(node)) {
+    if (RCL_RET_OK != rcl_node_type_cache_register_type(
+        node, type_support->get_type_hash_func(type_support),
+        type_support->get_type_description_func(type_support),
+        type_support->get_type_description_sources_func(type_support)))
+    {
+      rcutils_reset_error();
+      RCL_SET_ERROR_MSG("Failed to register type for subscription");
+      goto fail;
+    }
   }
 
   goto cleanup;
@@ -203,9 +204,11 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
     // Unregister type
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &publisher->impl->type_hash)) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
-      result = RCL_RET_ERROR;
+    if (rcl_node_type_cache_is_valid(node)) {
+      if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &publisher->impl->type_hash)) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+        result = RCL_RET_ERROR;
+      }
     }
     allocator.deallocate(publisher->impl, allocator.state);
     publisher->impl = NULL;

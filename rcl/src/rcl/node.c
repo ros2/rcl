@@ -283,14 +283,13 @@ rcl_node_init(
     // error message already set
     goto fail;
   }
-  // Initialize the node type cache hash map
-  ret = rcl_node_type_cache_init(node);
-  if (ret != RCL_RET_OK) {
-    // error message already set
-    goto fail;
-  }
-  // Initialize ~/get_type_description service
+  // Initialize ~/get_type_description service and type cache hash map
   if (node->impl->options.enable_type_description_service) {
+    ret = rcl_node_type_cache_init(node);
+    if (ret != RCL_RET_OK) {
+      // error message already set
+      goto fail;
+    }
     ret = rcl_node_type_description_service_init(node);
     if (ret != RCL_RET_OK) {
       // error message already set
@@ -317,15 +316,17 @@ rcl_node_init(
   goto cleanup;
 fail:
   if (node->impl) {
-    ret = rcl_node_type_description_service_fini(node);
-    RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
-      (ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT), ROS_PACKAGE_NAME,
-      "Failed to fini get_type_description service for node: %i", ret);
+    if (node->impl->options.enable_type_description_service) {
+      ret = rcl_node_type_description_service_fini(node);
+      RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+        (ret != RCL_RET_OK), ROS_PACKAGE_NAME,
+        "Failed to fini get_type_description service for node: %i", ret);
 
-    ret = rcl_node_type_cache_fini(node);
-    RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
-      (ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT), ROS_PACKAGE_NAME,
-      "Failed to fini node_type_cache for node: %i", ret);
+      ret = rcl_node_type_cache_fini(node);
+      RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+        (ret != RCL_RET_OK), ROS_PACKAGE_NAME,
+        "Failed to fini node_type_cache for node: %i", ret);
+    }
 
     if (rcl_logging_rosout_enabled() &&
       node->impl->options.enable_rosout &&
@@ -404,15 +405,15 @@ rcl_node_fini(rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
   }
-  rcl_ret = rcl_node_type_description_service_fini(node);
-  if (rcl_ret != RCL_RET_OK && rcl_ret != RCL_RET_NOT_INIT) {
-    RCL_SET_ERROR_MSG("Unable to fini ~/get_type_description service for node.");
-    result = RCL_RET_ERROR;
-  }
-  rcl_ret = rcl_node_type_cache_fini(node);
-  if (rcl_ret != RCL_RET_OK && rcl_ret != RCL_RET_NOT_INIT) {
-    RCL_SET_ERROR_MSG("Unable to fini type cache for node.");
-    result = RCL_RET_ERROR;
+  if (node->impl->options.enable_type_description_service) {
+    if (rcl_node_type_description_service_fini(node) != RCL_RET_OK) {
+      RCL_SET_ERROR_MSG("Unable to fini ~/get_type_description service for node.");
+      result = RCL_RET_ERROR;
+    }
+    if (rcl_node_type_cache_fini(node) != RCL_RET_OK) {
+      RCL_SET_ERROR_MSG("Unable to fini type cache for node.");
+      result = RCL_RET_ERROR;
+    }
   }
   rmw_ret_t rmw_ret = rmw_destroy_node(node->impl->rmw_node_handle);
   if (rmw_ret != RMW_RET_OK) {

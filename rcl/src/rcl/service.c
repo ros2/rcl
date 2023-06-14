@@ -198,16 +198,17 @@ rcl_service_init(
     (const void *)service->impl->rmw_handle,
     service->impl->remapped_service_name);
   // Register type.
-  if (RCL_RET_OK !=
-    rcl_node_type_cache_register_type(
-      node, type_support->get_type_hash_func(type_support),
-      type_support->get_type_description_func(type_support),
-      type_support->get_type_description_sources_func(type_support)))
-  {
-    rcutils_reset_error();
-    RCL_SET_ERROR_MSG("Failed to register type for service");
-    ret = RCL_RET_ERROR;
-    goto destroy_service;
+  if (rcl_node_type_cache_is_valid(node)) {
+    if (RCL_RET_OK != rcl_node_type_cache_register_type(
+        node, type_support->get_type_hash_func(type_support),
+        type_support->get_type_description_func(type_support),
+        type_support->get_type_description_sources_func(type_support)))
+    {
+      rcutils_reset_error();
+      RCL_SET_ERROR_MSG("Failed to register type for service");
+      ret = RCL_RET_ERROR;
+      goto destroy_service;
+    }
   }
 
   return RCL_RET_OK;
@@ -265,9 +266,11 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
     }
 
     // Unregister type
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &service->impl->type_hash)) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
-      result = RCL_RET_ERROR;
+    if (rcl_node_type_cache_is_valid(node)) {
+      if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &service->impl->type_hash)) {
+        RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+        result = RCL_RET_ERROR;
+      }
     }
 
     allocator.deallocate(service->impl->remapped_service_name, allocator.state);
