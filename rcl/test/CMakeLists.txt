@@ -6,6 +6,7 @@ find_package(osrf_testing_tools_cpp REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
+find_package(rosidl_runtime_cpp REQUIRED)
 find_package(test_msgs REQUIRED)
 
 get_target_property(memory_tools_ld_preload_env_var
@@ -240,7 +241,10 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers
-    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
+    AMENT_DEPENDENCIES ${rmw_implementation}
+      "osrf_testing_tools_cpp"
+      "rosidl_runtime_cpp"
+      "test_msgs"
     TIMEOUT 120
   )
   # TODO(asorbini) Enable message timestamp tests for rmw_connextdds on Windows
