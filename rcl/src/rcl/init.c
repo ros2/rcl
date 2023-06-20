@@ -96,7 +96,7 @@ rcl_init(
   context->impl->rmw_context = rmw_get_zero_initialized_context();
 
   // Zero initialize thread attribute context first so its validity can by checked in cleanup.
-  context->impl->thread_attrs = rcl_get_zero_initialized_thread_attrs();
+  context->impl->thread_attrs = rcutils_get_zero_initialized_thread_attrs();
 
   // Store the allocator.
   context->impl->allocator = allocator;
@@ -261,7 +261,7 @@ rcl_init(
       "\t%s", discovery_options->static_peers[ii].peer_address);
   }
 
-  ret = rcl_thread_attrs_init(&(context->impl->thread_attrs), allocator);
+  ret = rcutils_thread_attrs_init(&(context->impl->thread_attrs), allocator);
   if (RCL_RET_OK != ret) {
     fail_ret = ret;
     goto fail;

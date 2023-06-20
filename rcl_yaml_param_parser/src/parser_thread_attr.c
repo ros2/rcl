@@ -24,6 +24,7 @@
 
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
+#include "rcutils/thread_attr.h"
 #include "rcutils/types/rcutils_ret.h"
 
 #include "./impl/types.h"
@@ -32,84 +33,18 @@
 #include "./impl/node_params.h"
 #include "./impl/yaml_variant.h"
 
-#define INIT_NUM_THREAD_ATTRIBUTE 0U
-
-rcl_thread_attrs_t
-rcl_get_zero_initialized_thread_attrs(void)
-{
-  rcl_thread_attrs_t ret = {
-    NULL,
-  };
-  return ret;
-}
-
-rcutils_ret_t
-rcl_thread_attrs_init(
-  rcl_thread_attrs_t * thread_attrs,
-  rcutils_allocator_t allocator)
-{
-  return rcl_thread_attrs_init_with_capacity(
-    thread_attrs, allocator, INIT_NUM_THREAD_ATTRIBUTE);
-}
-
-rcutils_ret_t
-rcl_thread_attrs_init_with_capacity(
-  rcl_thread_attrs_t * thread_attrs,
-  rcutils_allocator_t allocator,
-  size_t capacity)
-{
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(thread_attrs, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
-    &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
-
-  thread_attrs->allocator = allocator;
-  thread_attrs->num_attributes = 0U;
-  thread_attrs->capacity_attributes = capacity;
-  if (capacity > 0) {
-    thread_attrs->attributes =
-      allocator.zero_allocate(capacity, sizeof(rcl_thread_attr_t), allocator.state);
-    if (NULL == thread_attrs->attributes) {
-      *thread_attrs = rcl_get_zero_initialized_thread_attrs();
-      RCUTILS_SET_ERROR_MSG("Failed to allocate memory for thread attributes");
-      return RCUTILS_RET_BAD_ALLOC;
-    }
-  }
-  return RCUTILS_RET_OK;
-}
-
-rcutils_ret_t
-rcl_thread_attrs_fini(rcl_thread_attrs_t * thread_attrs)
-{
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(thread_attrs, RCUTILS_RET_INVALID_ARGUMENT);
-  rcutils_allocator_t * allocator = &thread_attrs->allocator;
-  if (NULL == thread_attrs->attributes) {
-    return RCUTILS_RET_OK;
-  }
-  // check the allocator only if attributes is available to avoid checking after zero-initialized
-  RCUTILS_CHECK_ALLOCATOR(allocator, return RCUTILS_RET_INVALID_ARGUMENT);
-  for (size_t i = 0; i < thread_attrs->num_attributes; ++i) {
-    rcl_thread_attr_t * attr = thread_attrs->attributes + i;
-    if (NULL != attr->name) {
-      allocator->deallocate(attr->name, allocator->state);
-    }
-  }
-  allocator->deallocate(thread_attrs->attributes, allocator->state);
-  *thread_attrs = rcl_get_zero_initialized_thread_attrs();
-
-  return RCUTILS_RET_OK;
-}
-
 ///
 /// Parse the YAML file and populate thread_attrs
 ///
 rcutils_ret_t rcl_parse_yaml_thread_attrs_file(
   const char * file_path,
-  rcl_thread_attrs_t * thread_attrs)
+  rcutils_thread_attrs_t * thread_attrs)
 {
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     file_path, "YAML file path is NULL", return RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(thread_attrs, RCUTILS_RET_INVALID_ARGUMENT);
 
-  if (NULL == thread_attrs) {
+  if (0 < thread_attrs->num_attributes) {
     RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized thread attr structure");
     return RCUTILS_RET_ERROR;
   }
@@ -143,15 +78,12 @@ rcutils_ret_t rcl_parse_yaml_thread_attrs_file(
 ///
 rcutils_ret_t rcl_parse_yaml_thread_attrs_value(
   const char * yaml_value,
-  rcl_thread_attrs_t * thread_attrs)
+  rcutils_thread_attrs_t * thread_attrs)
 {
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(yaml_value, false);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(yaml_value, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(thread_attrs, RCUTILS_RET_INVALID_ARGUMENT);
 
-  if (0U == strlen(yaml_value)) {
-    return RCUTILS_RET_ERROR;
-  }
-
-  if (NULL == thread_attrs) {
+  if (0 < thread_attrs->num_attributes) {
     RCUTILS_SAFE_FWRITE_TO_STDERR("Pass an initialized thread attr structure");
     return RCUTILS_RET_ERROR;
   }

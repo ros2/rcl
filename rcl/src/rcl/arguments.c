@@ -33,6 +33,7 @@
 #include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
+#include "rcutils/thread_attr.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 
@@ -287,8 +288,8 @@ rcl_parse_arguments(
     goto fail;
   }
 
-  args_impl->thread_attrs = rcl_get_zero_initialized_thread_attrs();
-  ret = rcl_thread_attrs_init(&args_impl->thread_attrs, allocator);
+  args_impl->thread_attrs = rcutils_get_zero_initialized_thread_attrs();
+  ret = rcutils_thread_attrs_init(&args_impl->thread_attrs, allocator);
   if (RCL_RET_OK != ret) {
     goto fail;
   }
@@ -1062,8 +1063,8 @@ rcl_arguments_fini(
       args->impl->external_log_config_file = NULL;
     }
 
-    rcl_ret_t thread_ret = rcl_thread_attrs_fini(&args->impl->thread_attrs);
-    if (thread_ret != RCL_RET_OK) {
+    rcl_ret_t thread_ret = rcutils_thread_attrs_fini(&args->impl->thread_attrs);
+    if (RCL_RET_OK != thread_ret) {
       ret = thread_ret;
       RCUTILS_LOG_ERROR_NAMED(
         ROS_PACKAGE_NAME,
@@ -2149,7 +2150,7 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
   args_impl->log_rosout_disabled = false;
   args_impl->log_ext_lib_disabled = false;
   args_impl->enclave = NULL;
-  args_impl->thread_attrs = rcl_get_zero_initialized_thread_attrs();
+  args_impl->thread_attrs = rcutils_get_zero_initialized_thread_attrs();
   args_impl->allocator = *allocator;
 
   return RCL_RET_OK;
@@ -2158,7 +2159,7 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
 rcl_ret_t
 rcl_arguments_get_thread_attrs(
   const rcl_arguments_t * arguments,
-  rcl_thread_attrs_t ** thread_attrs)
+  rcutils_thread_attrs_t ** thread_attrs)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(arguments->impl, RCL_RET_INVALID_ARGUMENT);

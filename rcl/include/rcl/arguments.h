@@ -23,6 +23,7 @@
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 #include "rcl_yaml_param_parser/types.h"
+#include "rcutils/thread_attr.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -86,7 +87,7 @@ typedef struct rcl_arguments_s
 /// The ROS flag that precedes the ROS thread attribute file path.
 #define RCL_THREAD_ATTRS_FILE_FLAG "--thread-attrs-file"
 
-/// The ROS flag that precedes the ROS logging thread attribute.
+/// The ROS flag that precedes the ROS thread attribute.
 #define RCL_THREAD_ATTRS_VALUE_FLAG "--thread-attrs-value"
 
 /// Return a rcl_arguments_t struct with members initialized to `NULL`.
@@ -469,7 +470,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_arguments_get_thread_attrs(
   const rcl_arguments_t * arguments,
-  rcl_thread_attrs_t ** thread_attrs);
+  rcutils_thread_attrs_t ** thread_attrs);
 
 #ifdef __cplusplus
 }

@@ -40,7 +40,7 @@ struct rcl_context_impl_s
   /// rmw context.
   rmw_context_t rmw_context;
   /// thread attributes.
-  rcl_thread_attrs_t thread_attrs;
+  rcutils_thread_attrs_t thread_attrs;
 };
 
 RCL_LOCAL

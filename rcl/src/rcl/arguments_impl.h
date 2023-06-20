@@ -52,7 +52,7 @@ struct rcl_arguments_impl_s
   int num_remap_rules;
 
   /// thread attribute.
-  rcl_thread_attrs_t thread_attrs;
+  rcutils_thread_attrs_t thread_attrs;
 
   /// Log levels parsed from arguments.
   rcl_log_levels_t log_levels;

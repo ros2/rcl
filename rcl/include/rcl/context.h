@@ -329,7 +329,7 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_context_get_thread_attrs(
   const rcl_context_t * context,
-  rcl_thread_attrs_t ** thread_attrs);
+  rcutils_thread_attrs_t ** thread_attrs);
 
 #ifdef __cplusplus
 }

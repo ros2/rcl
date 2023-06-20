@@ -19,16 +19,16 @@
 #include "rcl/error_handling.h"
 #include "rcl/macros.h"
 #include "rcl_yaml_param_parser/parser_thread_attr.h"
-#include "rcl_yaml_param_parser/types.h"
 #include "rcutils/env.h"
 #include "rcutils/strdup.h"
+#include "rcutils/thread_attr.h"
 
 const char * const RCL_THREAD_ATTRS_FILE_ENV_VAR = "ROS_THREAD_ATTRS_FILE";
 const char * const RCL_THREAD_ATTRS_VALUE_ENV_VAR = "ROS_THREAD_ATTRS_VALUE";
 
 rcl_ret_t
 rcl_get_default_thread_attrs_from_value(
-  rcl_thread_attrs_t * thread_attrs,
+  rcutils_thread_attrs_t * thread_attrs,
   rcl_allocator_t allocator)
 {
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
@@ -59,7 +59,7 @@ rcl_get_default_thread_attrs_from_value(
 
 rcl_ret_t
 rcl_get_default_thread_attrs_from_file(
-  rcl_thread_attrs_t * thread_attrs,
+  rcutils_thread_attrs_t * thread_attrs,
   rcl_allocator_t allocator)
 {
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);

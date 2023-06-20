@@ -19,10 +19,10 @@
 
 #include "rcutils/allocator.h"
 #include "rcutils/macros.h"
+#include "rcutils/thread_attr.h"
 #include "rcutils/types/rcutils_ret.h"
 
 #include "./types.h"
-#include "rcl_yaml_param_parser/types.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
 
 #ifdef __cplusplus
@@ -38,21 +38,20 @@ rcutils_ret_t parse_thread_attr_key(
 
 RCL_YAML_PARAM_PARSER_LOCAL
 RCUTILS_WARN_UNUSED
-rcl_thread_scheduling_policy_type_t parse_thread_attr_scheduling_policy(
+rcutils_thread_scheduling_policy_t parse_thread_attr_scheduling_policy(
   const char * value);
 
 RCL_YAML_PARAM_PARSER_LOCAL
 RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_thread_attr(
   yaml_parser_t * parser,
-  rcl_thread_attr_t * attr,
-  rcutils_allocator_t allocator);
+  rcutils_thread_attrs_t * attrs);
 
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_thread_attr_events(
   yaml_parser_t * parser,
-  rcl_thread_attrs_t * thread_attrs);
+  rcutils_thread_attrs_t * thread_attrs);
 
 #ifdef __cplusplus
 }

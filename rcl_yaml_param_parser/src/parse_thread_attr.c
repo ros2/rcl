@@ -23,7 +23,7 @@
 #include "rcutils/error_handling.h"
 #include "rcutils/format_string.h"
 #include "rcutils/strdup.h"
-#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/thread_attr.h"
 
 #include "./impl/parse.h"  // to use get_value
 #include "./impl/parse_thread_attr.h"
@@ -91,26 +91,26 @@ error:
 ///
 /// Parse the value of the scheduling policy of a thread attribute
 ///
-rcl_thread_scheduling_policy_type_t parse_thread_attr_scheduling_policy(
+rcutils_thread_scheduling_policy_t parse_thread_attr_scheduling_policy(
   const char * value)
 {
-  rcl_thread_scheduling_policy_type_t ret;
+  rcutils_thread_scheduling_policy_t ret;
   if (strcmp(value, "FIFO") == 0) {
-    ret = RCL_THREAD_SCHEDULING_POLICY_FIFO;
+    ret = RCUTILS_THREAD_SCHEDULING_POLICY_FIFO;
   } else if (strcmp(value, "RR") == 0) {
-    ret = RCL_THREAD_SCHEDULING_POLICY_RR;
+    ret = RCUTILS_THREAD_SCHEDULING_POLICY_RR;
   } else if (strcmp(value, "SPORADIC") == 0) {
-    ret = RCL_THREAD_SCHEDULING_POLICY_SPORADIC;
+    ret = RCUTILS_THREAD_SCHEDULING_POLICY_SPORADIC;
   } else if (strcmp(value, "OTHER") == 0) {
-    ret = RCL_THREAD_SCHEDULING_POLICY_OTHER;
+    ret = RCUTILS_THREAD_SCHEDULING_POLICY_OTHER;
   } else if (strcmp(value, "IDLE") == 0) {
-    ret = RCL_THREAD_SCHEDULING_POLICY_IDLE;
+    ret = RCUTILS_THREAD_SCHEDULING_POLICY_IDLE;
   } else if (strcmp(value, "BATCH") == 0) {
-    ret = RCL_THREAD_SCHEDULING_POLICY_BATCH;
+    ret = RCUTILS_THREAD_SCHEDULING_POLICY_BATCH;
   } else if (strcmp(value, "DEADLINE") == 0) {
-    ret = RCL_THREAD_SCHEDULING_POLICY_DEADLINE;
+    ret = RCUTILS_THREAD_SCHEDULING_POLICY_DEADLINE;
   } else {
-    ret = RCL_THREAD_SCHEDULING_POLICY_UNKNOWN;
+    ret = RCUTILS_THREAD_SCHEDULING_POLICY_UNKNOWN;
   }
   return ret;
 }
@@ -120,12 +120,16 @@ rcl_thread_scheduling_policy_type_t parse_thread_attr_scheduling_policy(
 ///
 rcutils_ret_t parse_thread_attr(
   yaml_parser_t * parser,
-  rcl_thread_attr_t * attr,
-  rcutils_allocator_t allocator)
+  rcutils_thread_attrs_t * attrs)
 {
   rcutils_ret_t ret;
   yaml_event_t event;
   thread_attr_key_bits_t key_bits = THREAD_ATTR_KEY_BITS_NONE;
+  rcutils_thread_scheduling_policy_t sched_policy;
+  int core_affinity;
+  int priority;
+  char const * name = NULL;
+  rcutils_allocator_t allocator = attrs->allocator;
 
   while (1) {
     PARSE_WITH_CHECK_ERROR(&event);
@@ -168,7 +172,7 @@ rcutils_ret_t parse_thread_attr(
           ret = RCUTILS_RET_ERROR;
           goto error;
         }
-        attr->core_affinity = ((int)*(int64_t *)(ret_val));
+        core_affinity = ((int)*(int64_t *)(ret_val));
         break;
       case THREAD_ATTR_KEY_PRIORITY:
         ret_val = get_value(value, style, tag, &val_type, allocator);
@@ -178,10 +182,10 @@ rcutils_ret_t parse_thread_attr(
           ret = RCUTILS_RET_ERROR;
           goto error;
         }
-        attr->priority = ((int)*(int64_t *)(ret_val));
+        priority = ((int)*(int64_t *)(ret_val));
         break;
       case THREAD_ATTR_KEY_SCHEDULING_POLICY:
-        attr->scheduling_policy = parse_thread_attr_scheduling_policy(value);
+        sched_policy = parse_thread_attr_scheduling_policy(value);
         break;
       case THREAD_ATTR_KEY_NAME:
         if (*value == '\0') {
@@ -189,8 +193,8 @@ rcutils_ret_t parse_thread_attr(
           ret = RCUTILS_RET_ERROR;
           goto error;
         }
-        attr->name = rcutils_strdup(value, allocator);
-        if (NULL == attr->name) {
+        name = rcutils_strdup(value, allocator);
+        if (NULL == name) {
           ret = RCUTILS_RET_BAD_ALLOC;
           goto error;
         }
@@ -210,36 +214,20 @@ rcutils_ret_t parse_thread_attr(
     goto error;
   }
 
+  ret = rcutils_thread_attrs_add_attr(attrs, sched_policy, core_affinity, priority, name);
+  if (RCUTILS_RET_OK != ret) {
+    goto error;
+  }
+
+  allocator.deallocate((char *)name, allocator.state);
+
   return RCUTILS_RET_OK;
 
 error:
-  if (NULL != attr->name) {
-    allocator.deallocate(attr->name, allocator.state);
+  if (NULL != name) {
+    allocator.deallocate((char *)name, allocator.state);
   }
   return ret;
-}
-
-static inline rcutils_ret_t extend_thread_attrs_capacity(
-  rcl_thread_attrs_t * attrs,
-  size_t new_cap)
-{
-  size_t cap = attrs->capacity_attributes;
-  size_t size = cap * sizeof(rcl_thread_attr_t);
-  size_t new_size = new_cap * sizeof(rcl_thread_attr_t);
-  rcl_thread_attr_t * new_attrs = attrs->allocator.reallocate(
-    attrs->attributes, new_size, attrs->allocator.state);
-
-  if (NULL == new_attrs) {
-    RCUTILS_SET_ERROR_MSG("Failed to allocate memory for thread attributes");
-    return RCUTILS_RET_BAD_ALLOC;
-  }
-
-  memset(new_attrs + cap, 0, new_size - size);
-
-  attrs->capacity_attributes = new_cap;
-  attrs->attributes = new_attrs;
-
-  return RCUTILS_RET_OK;
 }
 
 ///
@@ -247,7 +235,7 @@ static inline rcutils_ret_t extend_thread_attrs_capacity(
 ///
 rcutils_ret_t parse_thread_attr_events(
   yaml_parser_t * parser,
-  rcl_thread_attrs_t * thread_attrs)
+  rcutils_thread_attrs_t * thread_attrs)
 {
   yaml_event_t event;
   rcutils_ret_t ret;
@@ -270,22 +258,7 @@ rcutils_ret_t parse_thread_attr_events(
       goto error;
     }
 
-    if (thread_attrs->num_attributes == thread_attrs->capacity_attributes) {
-      size_t new_cap = 0;
-      if (0 == thread_attrs->capacity_attributes) {
-        new_cap = 1;
-      } else {
-        new_cap = thread_attrs->capacity_attributes * 2;
-      }
-      // Extend the capacity
-      ret = extend_thread_attrs_capacity(thread_attrs, new_cap);
-      if (RCUTILS_RET_OK != ret) {
-        goto error;
-      }
-    }
-
-    rcl_thread_attr_t * attr = thread_attrs->attributes + thread_attrs->num_attributes;
-    ret = parse_thread_attr(parser, attr, thread_attrs->allocator);
+    ret = parse_thread_attr(parser, thread_attrs);
     if (RCUTILS_RET_OK != ret) {
       goto error;
     }
@@ -305,7 +278,9 @@ rcutils_ret_t parse_thread_attr_events(
 
 error:
   if (0 < thread_attrs->capacity_attributes) {
-    rcl_thread_attrs_fini(thread_attrs);
+    rcutils_ret_t thread_attrs_ret = rcutils_thread_attrs_fini(thread_attrs);
+    (void)thread_attrs_ret;
+    // Since an error has already occurred, ignore this result.
   }
   return ret;
 }

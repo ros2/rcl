@@ -28,7 +28,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
-#include "rcl_yaml_param_parser/types.h"
+#include "rcutils/thread_attr.h"
 
 extern const char * const RCL_THREAD_ATTR_VALUE_ENV_VAR;
 extern const char * const RCL_THREAD_ATTR_FILE_ENV_VAR;
@@ -43,7 +43,7 @@ extern const char * const RCL_THREAD_ATTR_FILE_ENV_VAR;
 RCL_PUBLIC
 rcl_ret_t
 rcl_get_default_thread_attrs_from_value(
-  rcl_thread_attrs_t * thread_attrs,
+  rcutils_thread_attrs_t * thread_attrs,
   rcl_allocator_t allocator);
 
 /// Determine the default thread attribute from file path, based on the environment.
@@ -56,7 +56,7 @@ rcl_get_default_thread_attrs_from_value(
 RCL_PUBLIC
 rcl_ret_t
 rcl_get_default_thread_attrs_from_file(
-  rcl_thread_attrs_t * thread_attrs,
+  rcutils_thread_attrs_t * thread_attrs,
   rcl_allocator_t allocator);
 
 #ifdef __cplusplus

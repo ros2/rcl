@@ -108,41 +108,4 @@ typedef struct rcl_params_s
   rcutils_allocator_t allocator;  ///< Allocator used
 } rcl_params_t;
 
-typedef enum rcl_thread_scheduling_policy_type_e
-{
-  RCL_THREAD_SCHEDULING_POLICY_UNKNOWN  = 0,
-  RCL_THREAD_SCHEDULING_POLICY_FIFO     = 1,
-  RCL_THREAD_SCHEDULING_POLICY_RR       = 2,
-  RCL_THREAD_SCHEDULING_POLICY_SPORADIC = 3,
-  RCL_THREAD_SCHEDULING_POLICY_OTHER    = 4,
-  RCL_THREAD_SCHEDULING_POLICY_IDLE     = 5,
-  RCL_THREAD_SCHEDULING_POLICY_BATCH    = 6,
-  RCL_THREAD_SCHEDULING_POLICY_DEADLINE = 7
-} rcl_thread_scheduling_policy_type_t;
-
-typedef struct rcl_thread_attr_s
-{
-  /// Thread core affinity
-  int core_affinity;
-  /// Thread scheduling policy.
-  rcl_thread_scheduling_policy_type_t scheduling_policy;
-  /// Thread priority.
-  int priority;
-  /// Thread name
-  char * name;
-} rcl_thread_attr_t;
-
-/// Hold thread attribute rules.
-typedef struct rcl_thread_attrs_s
-{
-  /// Private implementation array.
-  rcl_thread_attr_t * attributes;
-  /// Number of threads attribute
-  size_t num_attributes;
-  /// Number of threads attribute capacity
-  size_t capacity_attributes;
-  /// Allocator used to allocate objects in this struct
-  rcutils_allocator_t allocator;
-} rcl_thread_attrs_t;
-
 #endif  // RCL_YAML_PARAM_PARSER__TYPES_H_
