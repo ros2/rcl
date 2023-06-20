@@ -22,6 +22,7 @@ extern "C"
 #include <inttypes.h>
 
 #include "rcl/error_handling.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rcutils/time.h"
 #include "tracetools/tracetools.h"
