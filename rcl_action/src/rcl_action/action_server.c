@@ -173,7 +173,7 @@ rcl_action_server_init(
   // Store reference to clock
   action_server->impl->clock = clock;
 
-// Initialize Timer
+  // Initialize Timer
   ret = rcl_timer_init2(
     &action_server->impl->expire_timer, action_server->impl->clock, node->context,
     options->result_timeout.nanoseconds, NULL, allocator, true);
