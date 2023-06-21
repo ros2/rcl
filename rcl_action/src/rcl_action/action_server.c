@@ -174,9 +174,9 @@ rcl_action_server_init(
   action_server->impl->clock = clock;
 
   // Initialize Timer
-  ret = rcl_timer_init(
+  ret = rcl_timer_init2(
     &action_server->impl->expire_timer, action_server->impl->clock, node->context,
-    options->result_timeout.nanoseconds, NULL, allocator);
+    options->result_timeout.nanoseconds, NULL, allocator, true);
   if (RCL_RET_OK != ret) {
     goto fail;
   }
