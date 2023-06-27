@@ -59,7 +59,6 @@ public:
     *this->node_ptr = rcl_get_zero_initialized_node();
     constexpr char name[] = "test_type_cache_node";
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    node_options.enable_type_description_service = true;
     ret = rcl_node_init(
       this->node_ptr, name, "", this->context_ptr,
       &node_options);

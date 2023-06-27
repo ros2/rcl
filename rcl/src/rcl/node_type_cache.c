@@ -47,6 +47,10 @@ rcl_ret_t rcl_node_type_cache_init(rcl_node_t * node)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
+  if (NULL != node->impl->registered_types_by_type_hash.impl) {
+    // already initialized
+    return RCL_RET_OK;
+  }
 
   rcutils_ret_t ret = rcutils_hash_map_init(
     &node->impl->registered_types_by_type_hash, 2, sizeof(rosidl_type_hash_t),
@@ -178,7 +182,7 @@ rcl_ret_t rcl_node_type_cache_register_type(
     type_info_with_registrations.type_info.type_sources =
       rcl_convert_type_source_sequence_runtime_to_msg(type_description_sources);
     RCL_CHECK_FOR_NULL_WITH_MSG(
-      type_info_with_registrations.type_info.type_description,
+      type_info_with_registrations.type_info.type_sources,
       "converting type sources struct failed",
       type_description_interfaces__msg__TypeDescription__destroy(
         type_info_with_registrations.type_info.type_description);
@@ -218,7 +222,7 @@ rcl_ret_t rcl_node_type_cache_unregister_type(
       &node->impl->registered_types_by_type_hash,
       type_hash, &type_info))
   {
-    RCL_SET_ERROR_MSG("Failed to unregister type");
+    RCL_SET_ERROR_MSG("Failed to unregister type, hash not present in map.");
     return RCL_RET_ERROR;
   }
 

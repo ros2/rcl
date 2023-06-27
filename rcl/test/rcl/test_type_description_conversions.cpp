@@ -18,11 +18,12 @@
 #include "rosidl_runtime_c/message_type_support_struct.h"
 #include "rosidl_runtime_c/type_description/type_description__functions.h"
 #include "rosidl_runtime_c/type_description/type_source__functions.h"
-#include "test_msgs/msg/basic_types.h"
+#include "test_msgs/msg/constants.h"
+#include "test_msgs/srv/basic_types.h"
 
 TEST(TestTypeDescriptionConversions, type_description_conversion_round_trip) {
   const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Constants);
 
   type_description_interfaces__msg__TypeDescription * type_description_msg =
     rcl_convert_type_description_runtime_to_msg(ts->get_type_description_func(ts));
@@ -49,15 +50,34 @@ TEST(TestTypeDescriptionConversions, type_description_invalid_input) {
 
 TEST(TestTypeDescriptionConversions, type_source_sequence_conversion_round_trip) {
   const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Constants);
 
+  const rosidl_runtime_c__type_description__TypeSource__Sequence * original_sources =
+    ts->get_type_description_sources_func(ts);
   type_description_interfaces__msg__TypeSource__Sequence * type_sources_msg =
-    rcl_convert_type_source_sequence_runtime_to_msg(ts->get_type_description_sources_func(ts));
+    rcl_convert_type_source_sequence_runtime_to_msg(original_sources);
   EXPECT_TRUE(NULL != type_sources_msg);
+  ASSERT_EQ(1, type_sources_msg->size);
+  {
+    auto source = type_sources_msg->data[0];
+    std::string type_name = source.type_name.data;
+    EXPECT_GT(source.raw_file_contents.size, 0);
+    std::string encoding = source.encoding.data;
+    EXPECT_EQ(encoding, "msg");
+  }
 
   rosidl_runtime_c__type_description__TypeSource__Sequence * type_sources_rt =
     rcl_convert_type_source_sequence_msg_to_runtime(type_sources_msg);
   EXPECT_TRUE(NULL != type_sources_rt);
+
+  ASSERT_EQ(1, type_sources_rt->size);
+  {
+    auto source = type_sources_rt->data[0];
+    std::string type_name = source.type_name.data;
+    EXPECT_GT(source.raw_file_contents.size, 0);
+    std::string encoding = source.encoding.data;
+    EXPECT_EQ(encoding, "msg");
+  }
 
   EXPECT_TRUE(
     rosidl_runtime_c__type_description__TypeSource__Sequence__are_equal(
@@ -67,6 +87,16 @@ TEST(TestTypeDescriptionConversions, type_source_sequence_conversion_round_trip)
     type_sources_msg);
   rosidl_runtime_c__type_description__TypeSource__Sequence__destroy(
     type_sources_rt);
+}
+
+TEST(TestTypeDescriptionConversions, actually_empty_sources_ok) {
+  // Implicit definition will always be empty
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, srv, BasicTypes_Request);
+
+  const auto * sources = ts->get_type_description_sources_func(ts);
+  auto * msg = rcl_convert_type_source_sequence_runtime_to_msg(sources);
+  ASSERT_NE(nullptr, msg);
 }
 
 TEST(TestTypeDescriptionConversions, type_source_sequence_invalid_input) {

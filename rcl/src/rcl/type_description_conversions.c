@@ -252,10 +252,12 @@ rcl_convert_type_source_sequence_runtime_to_msg(
       goto fail;
     }
     // raw_file_contents
-    if (!rosidl_runtime_c__String__copy(
-        &(runtime_type_sources->data[i].raw_file_contents), &(out->data[i].raw_file_contents)))
-    {
-      goto fail;
+    if (runtime_type_sources->data[i].raw_file_contents.size > 0) {
+      if (!rosidl_runtime_c__String__copy(
+          &(runtime_type_sources->data[i].raw_file_contents), &(out->data[i].raw_file_contents)))
+      {
+        goto fail;
+      }
     }
   }
 
