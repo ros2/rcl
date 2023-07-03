@@ -160,6 +160,7 @@ rcl_action_server_init(
   action_server->impl->goal_handles = NULL;
   action_server->impl->num_goal_handles = 0u;
   action_server->impl->clock = NULL;
+  action_server->impl->type_hash = rosidl_get_zero_initialized_type_hash();
 
   rcl_ret_t ret = RCL_RET_OK;
   // Initialize services
@@ -195,7 +196,6 @@ rcl_action_server_init(
   }
 
   // Store type hash
-  action_server->impl->type_hash = *type_support->get_type_hash_func(type_support);
   if (RCL_RET_OK != rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
       type_support->get_type_description_func(type_support),
@@ -205,6 +205,7 @@ rcl_action_server_init(
     RCL_SET_ERROR_MSG("Failed to register type for action");
     goto fail;
   }
+  action_server->impl->type_hash = *type_support->get_type_hash_func(type_support);
 
   return ret;
 fail:
@@ -263,7 +264,10 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
     }
     allocator.deallocate(action_server->impl->goal_handles, allocator.state);
     action_server->impl->goal_handles = NULL;
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &action_server->impl->type_hash)) {
+    if (
+      ROSIDL_TYPE_HASH_VERSION_UNSET != action_server->impl->type_hash.version &&
+      RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &action_server->impl->type_hash))
+    {
       ret = RCL_RET_ERROR;
     }
     // Deallocate struct

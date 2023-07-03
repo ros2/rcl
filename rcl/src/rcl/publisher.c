@@ -100,8 +100,8 @@ rcl_publisher_init(
     ROS_PACKAGE_NAME, "Expanded and remapped topic name '%s'", remapped_topic_name);
 
   // Allocate space for the implementation struct.
-  publisher->impl = (rcl_publisher_impl_t *)allocator->allocate(
-    sizeof(rcl_publisher_impl_t), allocator->state);
+  publisher->impl = (rcl_publisher_impl_t *)allocator->zero_allocate(
+    1, sizeof(rcl_publisher_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     publisher->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
 
@@ -129,7 +129,6 @@ rcl_publisher_init(
   // options
   publisher->impl->options = *options;
 
-  publisher->impl->type_hash = *type_support->get_type_hash_func(type_support);
   if (RCL_RET_OK != rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
       type_support->get_type_description_func(type_support),
@@ -139,6 +138,7 @@ rcl_publisher_init(
     RCL_SET_ERROR_MSG("Failed to register type for subscription");
     goto fail;
   }
+  publisher->impl->type_hash = *type_support->get_type_hash_func(type_support);
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
   // context
@@ -201,7 +201,10 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &publisher->impl->type_hash)) {
+    if (
+      ROSIDL_TYPE_HASH_VERSION_UNSET != publisher->impl->type_hash.version &&
+      RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &publisher->impl->type_hash))
+    {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }

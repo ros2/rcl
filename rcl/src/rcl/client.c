@@ -178,7 +178,6 @@ rcl_client_init(
   client->impl->options = *options;
   atomic_init(&client->impl->sequence_number, 0);
 
-  client->impl->type_hash = *type_support->get_type_hash_func(type_support);
   if (RCL_RET_OK != rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
       type_support->get_type_description_func(type_support),
@@ -189,6 +188,7 @@ rcl_client_init(
     ret = RCL_RET_ERROR;
     goto destroy_client;
   }
+  client->impl->type_hash = *type_support->get_type_hash_func(type_support);
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Client initialized");
   TRACETOOLS_TRACEPOINT(
@@ -251,7 +251,10 @@ rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
 
-    if (RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &client->impl->type_hash)) {
+    if (
+      ROSIDL_TYPE_HASH_VERSION_UNSET != client->impl->type_hash.version &&
+      RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &client->impl->type_hash))
+    {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }
