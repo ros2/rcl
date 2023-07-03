@@ -321,6 +321,12 @@ fail:
         ROS_PACKAGE_NAME, "Failed to fini publisher for node: %i", ret);
       allocator->deallocate((char *)node->impl->logger_name, allocator->state);
     }
+    if (node->impl->registered_types_by_type_hash.impl) {
+      ret = rcl_node_type_cache_fini(node);
+      RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+        (ret != RCL_RET_OK),
+        ROS_PACKAGE_NAME, "Failed to fini type cache for node: %i", ret);
+    }
     if (node->impl->fq_name) {
       allocator->deallocate((char *)node->impl->fq_name, allocator->state);
     }
@@ -388,17 +394,8 @@ rcl_node_fini(rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
   }
-  rcl_ret = rcl_node_type_description_service_fini(node);
-  if (rcl_ret == RCL_RET_NOT_INIT) {
-    rcl_reset_error();
-  } else if (rcl_ret != RCL_RET_OK) {
-    RCL_SET_ERROR_MSG("Unable to fini ~/get_type_description service for node.");
-    result = RCL_RET_ERROR;
-  }
   rcl_ret = rcl_node_type_cache_fini(node);
-  if (rcl_ret == RCL_RET_NOT_INIT) {
-    rcl_reset_error();
-  } else if (rcl_ret != RCL_RET_OK) {
+  if (rcl_ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("Unable to fini type cache for node.");
     result = RCL_RET_ERROR;
   }

@@ -54,30 +54,8 @@ typedef struct rcl_type_info_t
  * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
-RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_init(rcl_node_t * node);
-
-/// Check whether node's type cache has been initialized.
-/**
- * Based on configuration, the node may optionally disable the type cache,
- * this convenience function allows a standardized check for it.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] node the handle to the node whose type cache to check
- * \return true if the node's type cache was successfully initialized, or
- * \return false for any other case.
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-bool rcl_node_type_cache_is_valid(const rcl_node_t * node);
 
 /// Finalize the node's type cache.
 /**
@@ -98,7 +76,6 @@ bool rcl_node_type_cache_is_valid(const rcl_node_t * node);
  * \return #RCL_RET_NODE_INVALID if the given `node` is invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
-RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t rcl_node_type_cache_fini(rcl_node_t * node);
 

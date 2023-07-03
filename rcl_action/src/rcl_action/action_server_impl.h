@@ -39,7 +39,6 @@ typedef struct rcl_action_server_impl_s
   size_t wait_set_cancel_service_index;
   size_t wait_set_result_service_index;
   size_t wait_set_expire_timer_index;
-  // Type hash
   rosidl_type_hash_t type_hash;
 } rcl_action_server_impl_t;
 

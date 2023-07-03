@@ -66,17 +66,6 @@ rcl_ret_t rcl_node_type_cache_init(rcl_node_t * node)
   return RCL_RET_OK;
 }
 
-bool rcl_node_type_cache_is_valid(const rcl_node_t * node)
-{
-  if (node == NULL) {
-    return false;
-  }
-  if (node->impl->registered_types_by_type_hash.impl == NULL) {
-    return false;
-  }
-  return true;
-}
-
 rcl_ret_t rcl_node_type_cache_fini(rcl_node_t * node)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
@@ -209,7 +198,8 @@ rcl_ret_t rcl_node_type_cache_register_type(
 }
 
 rcl_ret_t rcl_node_type_cache_unregister_type(
-  const rcl_node_t * node, const rosidl_type_hash_t * type_hash)
+  const rcl_node_t * node,
+  const rosidl_type_hash_t * type_hash)
 {
   rcl_type_info_with_registration_count_t type_info;
 

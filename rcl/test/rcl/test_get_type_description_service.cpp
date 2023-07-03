@@ -14,12 +14,15 @@
 
 #include <gtest/gtest.h>
 
+#include <cstring>
+
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
 #include "rcl/service.h"
 #include "rcl/rcl.h"
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rcutils/types/string_array.h"
 #include "rosidl_runtime_c/string_functions.h"
 #include "type_description_interfaces/srv/get_type_description.h"
 
