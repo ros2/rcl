@@ -561,7 +561,6 @@ void rcl_node_type_description_service_handle_request(
   const type_description_interfaces__srv__GetTypeDescription_Request * request,
   type_description_interfaces__srv__GetTypeDescription_Response * response)
 {
-  (void)request_header;
   rcl_type_info_t type_info;
   RCL_CHECK_FOR_NULL_WITH_MSG(node, "invalid node handle", return;);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "invalid node", return;);
