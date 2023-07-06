@@ -54,6 +54,9 @@ typedef struct rcl_node_options_s
 
   /// Middleware quality of service settings for /rosout.
   rmw_qos_profile_t rosout_qos;
+
+  /// Deprecated: this feature is to be enabled via parameters in rclcpp and rclpy.
+  bool enable_type_description_service;
 } rcl_node_options_t;
 
 /// Return the default node options in a rcl_node_options_t.
