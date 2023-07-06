@@ -25,6 +25,7 @@ struct rcl_publisher_impl_s
   rmw_qos_profile_t actual_qos;
   rcl_context_t * context;
   rmw_publisher_t * rmw_handle;
+  const rcl_node_t * node;
 };
 
 #endif  // RCL__PUBLISHER_IMPL_H_
