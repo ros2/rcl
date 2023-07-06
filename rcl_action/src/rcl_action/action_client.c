@@ -28,6 +28,7 @@ extern "C"
 #include "rcl/client.h"
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
+#include "rcl/node_type_cache.h"
 #include "rcl/subscription.h"
 #include "rcl/types.h"
 #include "rcl/wait.h"
@@ -63,7 +64,8 @@ _rcl_action_get_zero_initialized_client_impl(void)
     0,
     0,
     0,
-    0
+    0,
+    rosidl_get_zero_initialized_type_hash()
   };
   return null_action_client;
 }
@@ -89,6 +91,12 @@ _rcl_action_client_fini_impl(
     ret = RCL_RET_ERROR;
   }
   if (RCL_RET_OK != rcl_subscription_fini(&action_client->impl->status_subscription, node)) {
+    ret = RCL_RET_ERROR;
+  }
+  if (
+    ROSIDL_TYPE_HASH_VERSION_UNSET != action_client->impl->type_hash.version &&
+    RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &action_client->impl->type_hash))
+  {
     ret = RCL_RET_ERROR;
   }
   allocator.deallocate(action_client->impl->action_name, allocator.state);
@@ -221,6 +229,17 @@ rcl_action_client_init(
   // Initialize action topic subscriptions.
   SUBSCRIPTION_INIT(feedback);
   SUBSCRIPTION_INIT(status);
+
+  if (RCL_RET_OK != rcl_node_type_cache_register_type(
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
+  {
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG("Failed to register type for action");
+    goto fail;
+  }
+  action_client->impl->type_hash = *type_support->get_type_hash_func(type_support);
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client initialized");
   return ret;
