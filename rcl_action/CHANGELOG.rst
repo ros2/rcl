@@ -2,8 +2,8 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+7.0.0 (2023-07-11)
+------------------
 * Add `~/get_type_description` service (rep2011) (`#1052 <https://github.com/ros2/rcl/issues/1052>`_)
 * Modifies timers API to select autostart state (`#1004 <https://github.com/ros2/rcl/issues/1004>`_)
 * Contributors: Eloy Briceno, Hans-Joachim Krauch
