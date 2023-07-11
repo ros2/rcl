@@ -2,6 +2,14 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add `~/get_type_description` service (rep2011) (`#1052 <https://github.com/ros2/rcl/issues/1052>`_)
+* Modifies timers API to select autostart state (`#1004 <https://github.com/ros2/rcl/issues/1004>`_)
+* test publisher/subscription with the c/cpp typesupport for test_msgs::msg::array (`#1074 <https://github.com/ros2/rcl/issues/1074>`_)
+* validation result should be used to print the error message. (`#1077 <https://github.com/ros2/rcl/issues/1077>`_)
+* Contributors: Chen Lihui, Eloy Briceno, Hans-Joachim Krauch, Tomoya Fujita
+
 6.3.0 (2023-06-12)
 ------------------
 * improve error msg of `rcl_expand_topic_name` (`#1076 <https://github.com/ros2/rcl/issues/1076>`_)

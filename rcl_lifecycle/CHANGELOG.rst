@@ -2,6 +2,9 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 6.3.0 (2023-06-12)
 ------------------
 * Use TRACETOOLS\_ prefix for tracepoint-related macros (`#1058 <https://github.com/ros2/rcl/issues/1058>`_)
