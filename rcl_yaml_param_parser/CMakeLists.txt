@@ -182,6 +182,31 @@ if(BUILD_TESTING)
     )
   endif()
 
+  ament_add_gtest(test_parse_thread_attr
+    test/test_parse_thread_attr.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_parse_thread_attr)
+    target_link_libraries(test_parse_thread_attr
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
+      yaml
+    )
+  endif()
+
+  ament_add_gtest(test_parser_thread_attr
+    test/test_parser_thread_attr.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_parser_thread_attr)
+    target_link_libraries(test_parser_thread_attr
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
+    )
+  endif()
+
   add_performance_test(benchmark_parse_yaml test/benchmark/benchmark_parse_yaml.cpp
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
   if(TARGET benchmark_parse_yaml)

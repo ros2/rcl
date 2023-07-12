@@ -28,10 +28,10 @@
 #include "./impl/parse.h"  // to use get_value
 #include "./impl/parse_thread_attr.h"
 
-#define PARSE_WITH_CHECK_ERROR(out_event) \
+#define PARSE_WITH_CHECK_ERROR() \
   do { \
     int _parse_ret_; \
-    _parse_ret_ = yaml_parser_parse(parser, (out_event)); \
+    _parse_ret_ = yaml_parser_parse(parser, &event); \
     if (0 == _parse_ret_) { \
       RCUTILS_SET_ERROR_MSG("Failed to parse thread attributes"); \
       ret = RCUTILS_RET_ERROR; \
@@ -39,17 +39,10 @@
     } \
   } while (0)
 
-#define PARSE_WITH_EVENT_CHECK(event_type) \
+#define PARSE_WITH_CHECK_EVENT(event_type) \
   do { \
-    yaml_event_t _event_; \
-    int _parse_ret_; \
-    _parse_ret_ = yaml_parser_parse(parser, &_event_); \
-    if (0 == _parse_ret_) { \
-      RCUTILS_SET_ERROR_MSG("Failed to parse thread attributes"); \
-      ret = RCUTILS_RET_ERROR; \
-      goto error; \
-    } \
-    if (_event_.type != (event_type)) { \
+    PARSE_WITH_CHECK_ERROR(); \
+    if (event.type != (event_type)) { \
       RCUTILS_SET_ERROR_MSG("Unexpected element in a configuration of thread attributes"); \
       ret = RCUTILS_RET_ERROR; \
       goto error; \
@@ -132,7 +125,7 @@ rcutils_ret_t parse_thread_attr(
   rcutils_allocator_t allocator = attrs->allocator;
 
   while (1) {
-    PARSE_WITH_CHECK_ERROR(&event);
+    PARSE_WITH_CHECK_ERROR();
 
     if (YAML_MAPPING_END_EVENT == event.type) {
       break;
@@ -155,7 +148,7 @@ rcutils_ret_t parse_thread_attr(
       goto error;
     }
 
-    PARSE_WITH_CHECK_ERROR(&event);
+    PARSE_WITH_CHECK_EVENT(YAML_SCALAR_EVENT);
 
     const char * value = (char *)event.data.scalar.value;
     yaml_scalar_style_t style = event.data.scalar.style;
@@ -243,12 +236,12 @@ rcutils_ret_t parse_thread_attr_events(
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(parser, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(thread_attrs, RCUTILS_RET_INVALID_ARGUMENT);
 
-  PARSE_WITH_EVENT_CHECK(YAML_STREAM_START_EVENT);
-  PARSE_WITH_EVENT_CHECK(YAML_DOCUMENT_START_EVENT);
-  PARSE_WITH_EVENT_CHECK(YAML_SEQUENCE_START_EVENT);
+  PARSE_WITH_CHECK_EVENT(YAML_STREAM_START_EVENT);
+  PARSE_WITH_CHECK_EVENT(YAML_DOCUMENT_START_EVENT);
+  PARSE_WITH_CHECK_EVENT(YAML_SEQUENCE_START_EVENT);
 
   while (1) {
-    PARSE_WITH_CHECK_ERROR(&event);
+    PARSE_WITH_CHECK_ERROR();
 
     if (YAML_SEQUENCE_END_EVENT == event.type) {
       break;
@@ -262,11 +255,9 @@ rcutils_ret_t parse_thread_attr_events(
     if (RCUTILS_RET_OK != ret) {
       goto error;
     }
-
-    ++thread_attrs->num_attributes;
   }
-  PARSE_WITH_EVENT_CHECK(YAML_DOCUMENT_END_EVENT);
-  PARSE_WITH_EVENT_CHECK(YAML_STREAM_END_EVENT);
+  PARSE_WITH_CHECK_EVENT(YAML_DOCUMENT_END_EVENT);
+  PARSE_WITH_CHECK_EVENT(YAML_STREAM_END_EVENT);
 
   if (0 == thread_attrs->num_attributes) {
     RCUTILS_SET_ERROR_MSG("No thread attributes.");

@@ -30,18 +30,18 @@ extern "C"
 {
 #endif
 
-RCL_YAML_PARAM_PARSER_LOCAL
+RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_thread_attr_key(
   const char * value,
   thread_attr_key_type_t * key_type);
 
-RCL_YAML_PARAM_PARSER_LOCAL
+RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_thread_scheduling_policy_t parse_thread_attr_scheduling_policy(
   const char * value);
 
-RCL_YAML_PARAM_PARSER_LOCAL
+RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_thread_attr(
   yaml_parser_t * parser,
