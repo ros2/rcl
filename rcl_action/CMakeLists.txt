@@ -48,12 +48,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
-ament_target_dependencies(${PROJECT_NAME}
-  "action_msgs"
-  "rcl"
-  "rcutils"
-  "rmw"
-  "rosidl_runtime_c"
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  ${action_msgs_TARGETS}
+  rcl::rcl
+  rmw::rmw
+  rosidl_runtime_c::rosidl_runtime_c
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  rcutils::rcutils
 )
 
 rcl_set_symbol_visibility_hidden(${PROJECT_NAME} LANGUAGE "C")
@@ -90,11 +93,10 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test_action_client
       ${PROJECT_NAME}
-    )
-    ament_target_dependencies(test_action_client
-      "osrf_testing_tools_cpp"
-      "rcl"
-      "test_msgs"
+      osrf_testing_tools_cpp::memory_tools
+      rcl::rcl
+      rcutils::rcutils
+      ${test_msgs_TARGETS}
     )
     target_compile_definitions(test_action_client PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
@@ -121,11 +123,10 @@ if(BUILD_TESTING)
           PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
       target_link_libraries(${target}${target_suffix}
         ${PROJECT_NAME}
-      )
-      ament_target_dependencies(${target}${target_suffix}
-        "osrf_testing_tools_cpp"
-        "rcl"
-        "test_msgs"
+        osrf_testing_tools_cpp::memory_tools
+        rcl::rcl
+        rosidl_runtime_c::rosidl_runtime_c
+        ${test_msgs_TARGETS}
       )
     endif()
   endfunction()
@@ -152,11 +153,10 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test_action_server
       ${PROJECT_NAME}
-    )
-    ament_target_dependencies(test_action_server
-      "osrf_testing_tools_cpp"
-      "rcl"
-      "test_msgs"
+      ${action_msgs_TARGETS}
+      osrf_testing_tools_cpp::memory_tools
+      rcl::rcl
+      ${test_msgs_TARGETS}
     )
     target_compile_definitions(test_action_server PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
@@ -166,8 +166,8 @@ if(BUILD_TESTING)
   if(TARGET test_goal_handle)
     target_link_libraries(test_goal_handle
       ${PROJECT_NAME}
+      rcl::rcl
     )
-    ament_target_dependencies(test_goal_handle "rcl")
   endif()
   ament_add_gtest(test_goal_state_machine
     test/rcl_action/test_goal_state_machine.cpp
@@ -176,7 +176,6 @@ if(BUILD_TESTING)
     target_link_libraries(test_goal_state_machine
       ${PROJECT_NAME}
     )
-    ament_target_dependencies(test_goal_state_machine  "osrf_testing_tools_cpp" "rcl")
   endif()
   ament_add_gtest(test_types
     test/rcl_action/test_types.cpp
@@ -184,8 +183,8 @@ if(BUILD_TESTING)
   if(TARGET test_types)
     target_link_libraries(test_types
       ${PROJECT_NAME}
+      rcl::rcl
     )
-    ament_target_dependencies(test_types "rcl")
   endif()
   ament_add_gtest(test_names
     test/rcl_action/test_names.cpp
@@ -193,8 +192,8 @@ if(BUILD_TESTING)
   if(TARGET test_names)
     target_link_libraries(test_names
       ${PROJECT_NAME}
+      rcl::rcl
     )
-    ament_target_dependencies(test_names "rcl")
   endif()
   ament_add_gtest(test_wait
     test/rcl_action/test_wait.cpp
@@ -202,14 +201,12 @@ if(BUILD_TESTING)
   if(TARGET test_wait)
     target_link_libraries(test_wait
       ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcl::rcl
+      ${test_msgs_TARGETS}
     )
-    target_include_directories(test_wait PUBLIC
+    target_include_directories(test_wait PRIVATE
       src
-    )
-    ament_target_dependencies(test_wait
-      "osrf_testing_tools_cpp"
-      "rcl"
-      "test_msgs"
     )
   endif()
 endif()
@@ -221,11 +218,9 @@ ament_export_libraries(${PROJECT_NAME})
 # Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
 
-# specific order: dependents before dependencies
 ament_export_dependencies(action_msgs)
-ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl)
-ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rosidl_runtime_c)
+
 ament_package()

@@ -21,7 +21,7 @@ macro(rcl_add_custom_executable target)
   cmake_parse_arguments(_ARG
     "TRACE"
     ""
-    "SRCS;INCLUDE_DIRS;LIBRARIES;AMENT_DEPENDENCIES"
+    "SRCS;INCLUDE_DIRS;LIBRARIES"
     ${ARGN})
   if(_ARG_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR
@@ -47,13 +47,6 @@ macro(rcl_add_custom_executable target)
       message(STATUS "  rcl_add_custom_executable() LIBRARIES: ${_ARG_LIBRARIES}")
     endif()
     target_link_libraries(${target} ${_ARG_LIBRARIES})
-  endif()
-  # Add extra ament dependencies, if any.
-  if(_ARG_AMENT_DEPENDENCIES)
-    if(_ARG_TRACE)
-      message(STATUS "  rcl_add_custom_executable() AMENT_DEPENDENCIES: ${_ARG_AMENT_DEPENDENCIES}")
-    endif()
-    ament_target_dependencies(${target} ${_ARG_AMENT_DEPENDENCIES})
   endif()
   target_compile_definitions(${target}
     PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
