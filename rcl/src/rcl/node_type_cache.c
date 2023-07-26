@@ -163,19 +163,20 @@ rcl_ret_t rcl_node_type_cache_register_type(
     // Convert type description struct to type description message struct.
     type_info_with_registrations.type_info.type_description =
       rcl_convert_type_description_runtime_to_msg(type_description);
-    RCL_CHECK_FOR_NULL_WITH_MSG(
-      type_info_with_registrations.type_info.type_description,
-      "converting type description struct failed", return RCL_RET_ERROR);
+    if (type_info_with_registrations.type_info.type_description == NULL) {
+      // rcl_convert_type_description_runtime_to_msg already does rcutils_set_error
+      return RCL_RET_ERROR;
+    }
 
     // Convert type sources struct to type sources message struct.
     type_info_with_registrations.type_info.type_sources =
       rcl_convert_type_source_sequence_runtime_to_msg(type_description_sources);
-    RCL_CHECK_FOR_NULL_WITH_MSG(
-      type_info_with_registrations.type_info.type_sources,
-      "converting type sources struct failed",
+    if (type_info_with_registrations.type_info.type_sources == NULL) {
+      // rcl_convert_type_source_sequence_runtime_to_msg already does rcutils_set_error
       type_description_interfaces__msg__TypeDescription__destroy(
         type_info_with_registrations.type_info.type_description);
-      return RCL_RET_ERROR);
+      return RCL_RET_ERROR;
+    }
   } else {
     return RCL_RET_ERROR;
   }

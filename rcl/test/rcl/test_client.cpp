@@ -338,6 +338,7 @@ TEST_F(TestClientFixture, test_client_init_fini_maybe_fail)
       EXPECT_TRUE(rcl_client_is_valid(&client));
       ret = rcl_client_fini(&client, this->node_ptr);
       if (RCL_RET_OK != ret) {
+        rcl_reset_error();
         // If fault injection caused fini to fail, we should try it again.
         EXPECT_EQ(RCL_RET_OK, rcl_client_fini(&client, this->node_ptr));
       }
