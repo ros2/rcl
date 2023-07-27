@@ -118,7 +118,6 @@ rcl_node_init(
     rcl_guard_condition_get_default_options();
   rcl_ret_t ret;
   rcl_ret_t fail_ret = RCL_RET_ERROR;
-  char * remapped_node_name = NULL;
 
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
@@ -177,20 +176,20 @@ rcl_node_init(
   ret = rmw_validate_namespace(local_namespace_, &validation_result, NULL);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    goto cleanup;
+    goto free_local_namespace;
   }
   if (validation_result != RMW_NAMESPACE_VALID) {
     const char * msg = rmw_namespace_validation_result_string(validation_result);
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("%s, result: %d", msg, validation_result);
 
     ret = RCL_RET_NODE_INVALID_NAMESPACE;
-    goto cleanup;
+    goto free_local_namespace;
   }
 
   // Allocate space for the implementation struct.
   node->impl = (rcl_node_impl_t *)allocator->allocate(sizeof(rcl_node_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
+    node->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto free_local_namespace);
   node->impl->rmw_node_handle = NULL;
   node->impl->graph_guard_condition = NULL;
   node->impl->logger_name = NULL;
@@ -202,7 +201,7 @@ rcl_node_init(
   // Initialize node impl.
   ret = rcl_node_options_copy(options, &(node->impl->options));
   if (RCL_RET_OK != ret) {
-    goto fail;
+    goto free_node_impl;
   }
 
   // Remap the node name and namespace if remap rules are given
@@ -210,21 +209,25 @@ rcl_node_init(
   if (node->impl->options.use_global_arguments) {
     global_args = &(node->context->global_arguments);
   }
+  char * remapped_node_name = NULL;
   ret = rcl_remap_node_name(
     &(node->impl->options.arguments), global_args, name, *allocator,
     &remapped_node_name);
   if (RCL_RET_OK != ret) {
-    goto fail;
-  } else if (NULL != remapped_node_name) {
+    goto node_options_fini;
+  }
+  if (NULL != remapped_node_name) {
     name = remapped_node_name;
   }
+
   char * remapped_namespace = NULL;
   ret = rcl_remap_node_namespace(
     &(node->impl->options.arguments), global_args, name,
     *allocator, &remapped_namespace);
   if (RCL_RET_OK != ret) {
-    goto fail;
-  } else if (NULL != remapped_namespace) {
+    goto free_remapped_node_name;
+  }
+  if (NULL != remapped_namespace) {
     allocator->deallocate((char *)local_namespace_, allocator->state);
     local_namespace_ = remapped_namespace;
   }
@@ -235,11 +238,14 @@ rcl_node_init(
   } else {
     node->impl->fq_name = rcutils_format_string(*allocator, "%s/%s", local_namespace_, name);
   }
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    node->impl->fq_name, "creating fully qualified name failed",
+    ret = RCL_RET_BAD_ALLOC; goto free_remapped_node_name);
 
   // node logger name
   node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->logger_name, "creating logger name failed", goto fail);
+    node->impl->logger_name, "creating logger name failed", ret = RCL_RET_ERROR; goto free_fq_name);
 
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Using domain ID of '%zu'", context->impl->rmw_context.actual_domain_id);
@@ -247,20 +253,21 @@ rcl_node_init(
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
     name, local_namespace_);
-
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->rmw_node_handle, rmw_get_error_string().str, goto fail);
+    node->impl->rmw_node_handle, rmw_get_error_string().str,
+    ret = RCL_RET_ERROR; goto free_logger_name);
+
   // graph guard condition
   rmw_graph_guard_condition = rmw_node_get_graph_guard_condition(node->impl->rmw_node_handle);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    rmw_graph_guard_condition, rmw_get_error_string().str, goto fail);
+    rmw_graph_guard_condition, rmw_get_error_string().str,
+    ret = RCL_RET_ERROR; goto destroy_node);
 
   node->impl->graph_guard_condition = (rcl_guard_condition_t *)allocator->allocate(
     sizeof(rcl_guard_condition_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->graph_guard_condition,
-    "allocating memory failed",
-    goto fail);
+    node->impl->graph_guard_condition, "allocating memory failed",
+    ret = RCL_RET_BAD_ALLOC; goto destroy_node);
   *node->impl->graph_guard_condition = rcl_get_zero_initialized_guard_condition();
   graph_guard_condition_options.allocator = *allocator;
   ret = rcl_guard_condition_init_from_rmw(
@@ -270,96 +277,83 @@ rcl_node_init(
     graph_guard_condition_options);
   if (ret != RCL_RET_OK) {
     // error message already set
-    goto fail;
+    goto free_graph_guard_condition;
   }
 
   // To capture all types from builtin topics and services, the type cache needs to be initialized
   // before any publishers/subscriptions/services/etc can be created
   ret = rcl_node_type_cache_init(node);
   if (ret != RCL_RET_OK) {
-    goto fail;
+    goto guard_condition_fini;
   }
 
-  // The initialization for the rosout publisher requires the node to be in initialized to a point
+  // The initialization for the rosout publisher requires the node to be initialized to a point
   // that it can create new topic publishers
   if (rcl_logging_rosout_enabled() && node->impl->options.enable_rosout) {
     ret = rcl_logging_rosout_init_publisher_for_node(node);
     if (ret != RCL_RET_OK) {
       // error message already set
-      goto fail;
+      goto node_type_cache_fini;
     }
   }
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized");
-  ret = RCL_RET_OK;
   TRACETOOLS_TRACEPOINT(
     rcl_node_init,
     (const void *)node,
     (const void *)rcl_node_get_rmw_handle(node),
     rcl_node_get_name(node),
     rcl_node_get_namespace(node));
-  goto cleanup;
-fail:
-  if (node->impl) {
-    if (rcl_logging_rosout_enabled() &&
-      node->impl->options.enable_rosout &&
-      node->impl->logger_name)
-    {
-      ret = rcl_logging_rosout_fini_publisher_for_node(node);
-      RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
-        (ret != RCL_RET_OK && ret != RCL_RET_NOT_INIT),
-        ROS_PACKAGE_NAME, "Failed to fini publisher for node: %i", ret);
-      allocator->deallocate((char *)node->impl->logger_name, allocator->state);
-    }
-    if (node->impl->registered_types_by_type_hash.impl) {
-      ret = rcl_node_type_cache_fini(node);
-      RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
-        (ret != RCL_RET_OK),
-        ROS_PACKAGE_NAME, "Failed to fini type cache for node: %i", ret);
-    }
-    if (node->impl->fq_name) {
-      allocator->deallocate((char *)node->impl->fq_name, allocator->state);
-    }
-    if (node->impl->rmw_node_handle) {
-      ret = rmw_destroy_node(node->impl->rmw_node_handle);
-      if (ret != RMW_RET_OK) {
-        RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME,
-          "failed to fini rmw node in error recovery: %s", rmw_get_error_string().str
-        );
-      }
-    }
-    if (node->impl->graph_guard_condition) {
-      ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
-      if (ret != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME,
-          "failed to fini guard condition in error recovery: %s", rcl_get_error_string().str
-        );
-      }
-      allocator->deallocate(node->impl->graph_guard_condition, allocator->state);
-    }
-    if (NULL != node->impl->options.arguments.impl) {
-      ret = rcl_arguments_fini(&(node->impl->options.arguments));
-      if (ret != RCL_RET_OK) {
-        RCUTILS_LOG_ERROR_NAMED(
-          ROS_PACKAGE_NAME,
-          "failed to fini arguments in error recovery: %s", rcl_get_error_string().str
-        );
-      }
-    }
-    allocator->deallocate(node->impl, allocator->state);
-  }
+
+  allocator->deallocate(remapped_node_name, allocator->state);
+  allocator->deallocate((char *)local_namespace_, allocator->state);
+
+  return RCL_RET_OK;
+
+node_type_cache_fini:
+  fail_ret = rcl_node_type_cache_fini(node);
+  RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+    (fail_ret != RCL_RET_OK),
+    ROS_PACKAGE_NAME, "Failed to fini type cache for node: %i", ret);
+
+guard_condition_fini:
+  fail_ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
+  RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+    fail_ret != RCL_RET_OK, ROS_PACKAGE_NAME,
+    "failed to fini guard condition in error recovery: %s", rcl_get_error_string().str);
+
+free_graph_guard_condition:
+  allocator->deallocate(node->impl->graph_guard_condition, allocator->state);
+
+destroy_node:
+  fail_ret = rmw_destroy_node(node->impl->rmw_node_handle);
+  RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+    fail_ret != RMW_RET_OK, ROS_PACKAGE_NAME,
+    "failed to fini rmw node in error recovery: %s", rmw_get_error_string().str);
+
+free_logger_name:
+  allocator->deallocate((char *)node->impl->logger_name, allocator->state);
+
+free_fq_name:
+  allocator->deallocate((char *)node->impl->fq_name, allocator->state);
+
+free_remapped_node_name:
+  allocator->deallocate(remapped_node_name, allocator->state);
+
+node_options_fini:
+  fail_ret = rcl_node_options_fini(&(node->impl->options));
+  RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
+    fail_ret != RCL_RET_OK, ROS_PACKAGE_NAME,
+    "failed to fini node options: %s", rcl_get_error_string().str);
+
+free_node_impl:
+  allocator->deallocate(node->impl, allocator->state);
+
+free_local_namespace:
+  allocator->deallocate((char *)local_namespace_, allocator->state);
+
   *node = rcl_get_zero_initialized_node();
 
-  ret = fail_ret;
-  // fall through from fail -> cleanup
-cleanup:
-  allocator->deallocate((char *)local_namespace_, allocator->state);
-  local_namespace_ = NULL;
-
-  if (NULL != remapped_node_name) {
-    allocator->deallocate(remapped_node_name, allocator->state);
-  }
   return ret;
 }
 
