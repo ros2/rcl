@@ -429,24 +429,16 @@ bool
 rcl_node_is_valid_except_context(const rcl_node_t * node)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(node, "rcl node pointer is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "rcl node implementation is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->rmw_node_handle, "rcl node's rmw handle is invalid", return false);
-  return true;
+
+  return node->impl != NULL && node->impl->rmw_node_handle != NULL;
 }
 
 bool
 rcl_node_is_valid(const rcl_node_t * node)
 {
-  bool result = rcl_node_is_valid_except_context(node);
-  if (!result) {
-    return result;
-  }
-  if (!rcl_context_is_valid(node->context)) {
-    RCL_SET_ERROR_MSG("rcl node's context is invalid");
-    return false;
-  }
-  return true;
+  RCL_CHECK_FOR_NULL_WITH_MSG(node, "rcl node pointer is invalid", return false);
+
+  return rcl_node_is_valid_except_context(node) && rcl_context_is_valid(node->context);
 }
 
 const char *
