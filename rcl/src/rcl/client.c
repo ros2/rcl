@@ -421,11 +421,8 @@ bool
 rcl_client_is_valid(const rcl_client_t * client)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(client, "client pointer is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    client->impl, "client's rmw implementation is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    client->impl->rmw_handle, "client's rmw handle is invalid", return false);
-  return true;
+
+  return client->impl != NULL && client->impl->rmw_handle != NULL;
 }
 
 const rmw_qos_profile_t *
