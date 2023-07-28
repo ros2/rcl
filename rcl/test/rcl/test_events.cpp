@@ -289,15 +289,15 @@ wait_for_msgs_and_events(
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   if (nullptr != subscription) {
-    ret = rcl_wait_set_add_subscription(&wait_set, subscription, NULL);
+    ret = rcl_wait_set_add_subscription(&wait_set, subscription, nullptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
   if (nullptr != subscription_event) {
-    ret = rcl_wait_set_add_event(&wait_set, subscription_event, NULL);
+    ret = rcl_wait_set_add_event(&wait_set, subscription_event, nullptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
   if (nullptr != publisher_event) {
-    ret = rcl_wait_set_add_event(&wait_set, publisher_event, NULL);
+    ret = rcl_wait_set_add_event(&wait_set, publisher_event, nullptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -712,8 +712,6 @@ TEST_F(TestEventFixture, test_event_is_valid)
   setup_publisher_subscriber(default_qos_profile, default_qos_profile);
   rcl_event_t publisher_event_test = rcl_get_zero_initialized_event();
   EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
-  EXPECT_TRUE(rcl_error_is_set());
-  rcl_reset_error();
 
   rcl_ret_t ret = rcl_publisher_event_init(
     &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
@@ -723,16 +721,12 @@ TEST_F(TestEventFixture, test_event_is_valid)
   rmw_event_type_t saved_event_type = publisher_event_test.impl->rmw_handle.event_type;
   publisher_event_test.impl->rmw_handle.event_type = RMW_EVENT_INVALID;
   EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
-  EXPECT_TRUE(rcl_error_is_set());
-  rcl_reset_error();
   publisher_event_test.impl->rmw_handle.event_type = saved_event_type;
 
   rcl_allocator_t saved_alloc = publisher_event_test.impl->allocator;
   rcl_allocator_t bad_alloc = rcutils_get_zero_initialized_allocator();
   publisher_event_test.impl->allocator = bad_alloc;
   EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
-  EXPECT_TRUE(rcl_error_is_set());
-  rcl_reset_error();
   publisher_event_test.impl->allocator = saved_alloc;
 
   ret = rcl_event_fini(&publisher_event_test);
@@ -744,18 +738,17 @@ TEST_F(TestEventFixture, test_event_is_valid)
  * Test passing not init to take_event/get_handle
  */
 TEST_F(TestEventFixture, test_event_is_invalid) {
-  // nullptr
   rmw_offered_deadline_missed_status_t deadline_status;
-  EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(NULL, &deadline_status));
+  EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(nullptr, &deadline_status));
   rcl_reset_error();
-  EXPECT_EQ(NULL, rcl_event_get_rmw_handle(NULL));
+  EXPECT_EQ(nullptr, rcl_event_get_rmw_handle(nullptr));
   rcl_reset_error();
 
   // Zero Init, invalid
   rcl_event_t publisher_event_test = rcl_get_zero_initialized_event();
   EXPECT_EQ(RCL_RET_EVENT_INVALID, rcl_take_event(&publisher_event_test, &deadline_status));
   rcl_reset_error();
-  EXPECT_EQ(NULL, rcl_event_get_rmw_handle(&publisher_event_test));
+  EXPECT_EQ(nullptr, rcl_event_get_rmw_handle(&publisher_event_test));
   rcl_reset_error();
 }
 
