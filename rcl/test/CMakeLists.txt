@@ -62,14 +62,6 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp" "test_msgs"
   )
 
-  rcl_add_custom_gtest(test_time${target_suffix}
-    SRCS rcl/test_time.cpp
-    ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
-  )
-
   rcl_add_custom_gtest(test_timer${target_suffix}
     SRCS rcl/test_timer.cpp
     ENV ${rmw_implementation_env_var}
@@ -419,6 +411,13 @@ rcl_add_custom_gtest(test_arguments
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
   LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
   AMENT_DEPENDENCIES "osrf_testing_tools_cpp" "rcpputils"
+)
+
+rcl_add_custom_gtest(test_time
+  SRCS rcl/test_time.cpp
+  ENV ${memory_tools_ld_preload_env_var}
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
 )
 
 rcl_add_custom_gtest(test_validate_enclave_name
