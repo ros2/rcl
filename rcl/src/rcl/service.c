@@ -423,11 +423,8 @@ bool
 rcl_service_is_valid(const rcl_service_t * service)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(service, "service pointer is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service->impl, "service's implementation is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service->impl->rmw_handle, "service's rmw handle is invalid", return false);
-  return true;
+
+  return service->impl != NULL && service->impl->rmw_handle != NULL;
 }
 
 const rmw_qos_profile_t *
