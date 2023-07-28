@@ -84,7 +84,9 @@ rcl_get_zero_initialized_wait_set()
 bool
 rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set)
 {
-  return wait_set && wait_set->impl;
+  RCL_CHECK_FOR_NULL_WITH_MSG(wait_set, "wait set pointer is invalid", return false);
+
+  return wait_set->impl != NULL;
 }
 
 static void
