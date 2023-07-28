@@ -86,14 +86,6 @@ function(test_target_function)
     AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
   )
 
-  rcl_add_custom_gtest(test_lexer_lookahead${target_suffix}
-    SRCS rcl/test_lexer_lookahead.cpp
-    ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME}
-    AMENT_DEPENDENCIES ${rmw_implementation} "osrf_testing_tools_cpp"
-  )
-
   rcl_add_custom_gtest(test_graph${target_suffix}
     SRCS rcl/test_graph.cpp
     ENV ${rmw_implementation_env_var}
@@ -416,6 +408,13 @@ rcl_add_custom_gtest(test_lexer
   SRCS rcl/test_lexer.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME}
+)
+
+rcl_add_custom_gtest(test_lexer_lookahead
+  SRCS rcl/test_lexer_lookahead.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
 rcl_add_custom_gtest(test_validate_enclave_name
