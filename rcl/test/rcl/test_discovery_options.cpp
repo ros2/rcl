@@ -209,12 +209,15 @@ TEST(TestDiscoveryInfo, test_bad_argument) {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_automatic_discovery_range(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_get_discovery_static_peers(nullptr, &allocator));
+  rcl_reset_error();
 
   rmw_discovery_options_t discovery_options_var = rmw_get_zero_initialized_discovery_options();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_get_discovery_static_peers(&discovery_options_var, nullptr));
+  rcl_reset_error();
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 }
 
