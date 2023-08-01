@@ -533,8 +533,6 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  // Give a brief moment for publications to go through.
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
   // Take fewer messages than are available in the subscription
   {
     size_t size = 3;
