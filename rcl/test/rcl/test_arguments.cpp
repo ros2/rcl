@@ -201,6 +201,16 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "stdout-logs"}));
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "external-lib-logs"}));
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "external-lib-logs"}));
+
+  // Thread attributes
+  EXPECT_TRUE(
+    are_known_ros_args(
+      {"--ros-args", "--thread-attrs-file",
+        (test_path / "test_thread_attrs.yaml").string().c_str()}));
+  EXPECT_TRUE(
+    are_known_ros_args(
+      {"--ros-args", "--thread-attrs-value",
+        "[{priority: 10, scheduling_policy: FIFO, name: thread-1, core_affinity: 1}]"}));
 }
 
 bool
@@ -226,7 +236,9 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
   {
     "--ros-args", "-p", "foo:=bar", "-r", "__node:=node_name",
     "--params-file", parameters_filepath.c_str(), "--log-level", "INFO",
-    "--log-config-file", "file.config"
+    "--log-config-file", "file.config",
+    "--thread-attrs-value",
+    "[{priority: 10, scheduling_policy: IDLE, name: thread-1, core_affinity: 1}]"
   }));
 
   // ROS args unknown to rcl are not (necessarily) invalid

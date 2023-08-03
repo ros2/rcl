@@ -106,21 +106,20 @@ rcl_context_get_rmw_context(rcl_context_t * context)
   return &(context->impl->rmw_context);
 }
 
-rcl_ret_t
-rcl_context_get_thread_attrs(
-  const rcl_context_t * context,
-  rcutils_thread_attrs_t ** thread_attrs)
+rcutils_thread_attrs_t *
+rcl_context_get_thread_attrs(const rcl_context_t * context)
 {
-  RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(context->impl, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(thread_attrs, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(context->impl, "context is zero-initialized", return NULL);
 
-  if (0 < context->impl->thread_attrs.num_attributes) {
-    *thread_attrs = &context->impl->thread_attrs;
-    return RCL_RET_OK;
-  } else {
-    return RCL_RET_ERROR;
+  rcutils_thread_attrs_t * attrs = NULL;
+  rcl_ret_t ret = rcl_arguments_get_thread_attrs(&context->global_arguments, &attrs);
+  if (RCL_RET_OK != ret) {
+    if (0 < context->impl->thread_attrs.num_attributes) {
+      attrs = &context->impl->thread_attrs;
+    }
   }
+  return attrs;
 }
 
 rcl_ret_t

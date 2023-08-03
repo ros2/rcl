@@ -24,6 +24,11 @@
 
 #include "../mocking_utils/patch.hpp"
 
+#include "rcutils/thread_attr.h"
+
+#include "./arguments_impl.h"
+#include "./context_impl.h"
+
 #ifdef RMW_IMPLEMENTATION
 # define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
 # define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
@@ -146,6 +151,45 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), nominal) {
   });
   EXPECT_NE(rmw_context_ptr, nullptr) << rcl_get_error_string().str;
   rcl_reset_error();
+
+  // test rcl_context_get_thread_attrs
+  rcutils_thread_attrs_t * thread_attrs;
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
+    thread_attrs = rcl_context_get_thread_attrs(nullptr);
+  });
+  EXPECT_EQ(nullptr, thread_attrs);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  EXPECT_NO_MEMORY_OPERATIONS(
+  {
+    EXPECT_EQ(nullptr, rcl_context_get_thread_attrs(&context));
+  });
+
+  {
+    rcutils_thread_attrs_t * arg_attrs = &context.global_arguments.impl->thread_attrs;
+    rcutils_thread_attrs_t * ctx_attrs = &context.impl->thread_attrs;
+    rcutils_ret_t ret;
+
+    ret = rcutils_thread_attrs_init(ctx_attrs, rcl_get_default_allocator());
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_thread_attrs_add_attr(
+      ctx_attrs, RCUTILS_THREAD_SCHEDULING_POLICY_FIFO, 1, 10, "arg");
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+
+    EXPECT_EQ(ctx_attrs, rcl_context_get_thread_attrs(&context));
+
+    ret = rcutils_thread_attrs_copy(ctx_attrs, arg_attrs);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+
+    EXPECT_EQ(arg_attrs, rcl_context_get_thread_attrs(&context));
+
+    ret = rcutils_thread_attrs_fini(ctx_attrs);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_thread_attrs_fini(arg_attrs);
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
+  }
 
   ret = rcl_init_options_fini(&init_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;

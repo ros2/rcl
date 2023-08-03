@@ -581,18 +581,18 @@ rcl_parse_arguments(
             rcl_parse_yaml_thread_attrs_value(argv[i + 1], &args_impl->thread_attrs))
           {
             RCUTILS_LOG_DEBUG_NAMED(
-              ROS_PACKAGE_NAME, "Got thread attribute rule : %s\n", argv[i + 1]);
+              ROS_PACKAGE_NAME, "Got thread attributes value : %s\n", argv[i + 1]);
             ++i;  // Skip flag here, for loop will skip rule.
             continue;
           }
           rcl_error_string_t prev_error_string = rcl_get_error_string();
           rcl_reset_error();
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse thread attribute rule: '%s %s'. Error: %s", argv[i], argv[i + 1],
+            "Couldn't parse thread attributes value: '%s %s'. Error: %s", argv[i], argv[i + 1],
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse trailing %s flag. No thread attribute rule found.", argv[i]);
+            "Couldn't parse trailing %s flag. No thread attributes value found.", argv[i]);
         }
         ret = RCL_RET_INVALID_ROS_ARGS;
         goto fail;
@@ -615,13 +615,15 @@ rcl_parse_arguments(
             RCL_RET_OK == rcl_parse_yaml_thread_attrs_file(
               argv[i + 1], &args_impl->thread_attrs))
           {
+            RCUTILS_LOG_DEBUG_NAMED(
+              ROS_PACKAGE_NAME, "Got thread attributes file : %s\n", argv[i + 1]);
             ++i;  // Skip flag here, for loop will skip rule.
             continue;
           }
           rcl_error_string_t prev_error_string = rcl_get_error_string();
           rcl_reset_error();
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Couldn't parse thread attr file: '%s %s'. Error: %s", argv[i], argv[i + 1],
+            "Couldn't parse thread attributes file: '%s %s'. Error: %s", argv[i], argv[i + 1],
             prev_error_string.str);
         } else {
           RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -1000,6 +1002,18 @@ rcl_arguments_copy(
     return RCL_RET_BAD_ALLOC;
   }
   args_out->impl->enclave = enclave_copy;
+
+  // Copy thread attributes
+  if (0 < args->impl->thread_attrs.num_attributes) {
+    rcutils_ret_t thread_attrs_ret =
+      rcutils_thread_attrs_copy(&args->impl->thread_attrs, &args_out->impl->thread_attrs);
+    if (RCUTILS_RET_OK != thread_attrs_ret) {
+      if (RCL_RET_OK != rcl_arguments_fini(args_out)) {
+        RCL_SET_ERROR_MSG("Error while finalizing arguments due to another error");
+      }
+      return RCL_RET_BAD_ALLOC;
+    }
+  }
   return RCL_RET_OK;
 }
 
