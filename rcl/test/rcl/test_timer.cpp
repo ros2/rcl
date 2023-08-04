@@ -523,6 +523,7 @@ TEST_F(TestTimerFixture, test_timer_init_state) {
     &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), nullptr, rcl_get_default_allocator(),
     true);
   ASSERT_EQ(RCL_RET_ALREADY_INIT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
 
   timer = rcl_get_zero_initialized_timer();
 
