@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rcl/logging_rosout.h"
+
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rcl/logging_rosout.h"
 #include "rcl/node.h"
 #include "rcl/publisher.h"
 #include "rcl/time.h"
@@ -250,13 +251,20 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(rcl_node_t * node)
   if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
     // @TODO(nburek) Update behavior to either enforce unique names or work with non-unique
     // names based on the outcome here: https://github.com/ros2/design/issues/187
+    const char * node_name = rcl_node_get_name(node);
+    if (NULL == node_name) {
+      node_name = "unknown node";
+    }
+
     RCUTILS_LOG_WARN_NAMED(
       "rcl.logging_rosout",
-      "Publisher already registered for provided node name. If this is due to multiple nodes "
-      "with the same name then all logs for that logger name will go out over the existing "
-      "publisher. As soon as any node with that name is destructed it will unregister the "
-      "publisher, preventing any further logs for that name from being published on the rosout "
-      "topic.");
+      "Publisher already registered for node name: '%s'. If this is due to multiple nodes "
+      "with the same name then all logs for the logger named '%s' will go out over "
+      "the existing publisher. As soon as any node with that name is destructed "
+      "it will unregister the publisher, preventing any further logs for that name from "
+      "being published on the rosout topic.",
+      node_name,
+      logger_name);
     return RCL_RET_OK;
   }
 
