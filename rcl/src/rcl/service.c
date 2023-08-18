@@ -299,6 +299,7 @@ rcl_send_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
+  rcl_ret_t ret;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response");
   if (!rcl_service_is_valid(service)) {
     return RCL_RET_SERVICE_INVALID;  // error already set
@@ -308,12 +309,31 @@ rcl_send_response(
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
-  if (rmw_send_response(
-      service->impl->rmw_handle, request_header, ros_response) != RMW_RET_OK)
-  {
+  ret = rmw_send_response(service->impl->rmw_handle, request_header, ros_response);
+  if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    if (ret == RMW_RET_TIMEOUT) {
+      return RCL_RET_TIMEOUT;
+    }
     return RCL_RET_ERROR;
   }
+<<<<<<< HEAD
+=======
+
+  // publish out the introspected content
+  if (service->impl->service_event_publisher != NULL) {
+    ret = rcl_send_service_event_message(
+      service->impl->service_event_publisher,
+      service_msgs__msg__ServiceEventInfo__RESPONSE_SENT,
+      ros_response,
+      request_header->sequence_number,
+      request_header->writer_guid);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
+      return ret;
+    }
+  }
+>>>>>>> c7b394a (rcl_send_response returns RCL_RET_TIMEOUT. (#1048))
   return RCL_RET_OK;
 }
 
