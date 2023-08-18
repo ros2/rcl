@@ -317,23 +317,6 @@ rcl_send_response(
     }
     return RCL_RET_ERROR;
   }
-<<<<<<< HEAD
-=======
-
-  // publish out the introspected content
-  if (service->impl->service_event_publisher != NULL) {
-    ret = rcl_send_service_event_message(
-      service->impl->service_event_publisher,
-      service_msgs__msg__ServiceEventInfo__RESPONSE_SENT,
-      ros_response,
-      request_header->sequence_number,
-      request_header->writer_guid);
-    if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG(rcl_get_error_string().str);
-      return ret;
-    }
-  }
->>>>>>> c7b394a (rcl_send_response returns RCL_RET_TIMEOUT. (#1048))
   return RCL_RET_OK;
 }
 
