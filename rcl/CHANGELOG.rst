@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+7.1.0 (2023-08-21)
+------------------
 * rcl_send_response returns RCL_RET_TIMEOUT. (`#1048 <https://github.com/ros2/rcl/issues/1048>`_)
 * Move test_namespace into the correct directory. (`#1087 <https://github.com/ros2/rcl/issues/1087>`_)
 * Reset errors in tests to reduce warnings (`#1085 <https://github.com/ros2/rcl/issues/1085>`_)
