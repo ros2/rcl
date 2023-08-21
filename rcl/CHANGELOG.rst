@@ -2,6 +2,15 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* rcl_send_response returns RCL_RET_TIMEOUT. (`#1048 <https://github.com/ros2/rcl/issues/1048>`_)
+* Move test_namespace into the correct directory. (`#1087 <https://github.com/ros2/rcl/issues/1087>`_)
+* Reset errors in tests to reduce warnings (`#1085 <https://github.com/ros2/rcl/issues/1085>`_)
+* Cleanup error reporting in the type hash code. (`#1084 <https://github.com/ros2/rcl/issues/1084>`_)
+* Instrument loaned message publication code path (`#1083 <https://github.com/ros2/rcl/issues/1083>`_)
+* Contributors: Chris Lalancette, Christophe Bedard, Tomoya Fujita
+
 7.0.0 (2023-07-11)
 ------------------
 * Add `~/get_type_description` service (rep2011) (`#1052 <https://github.com/ros2/rcl/issues/1052>`_)
