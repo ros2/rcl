@@ -984,9 +984,9 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
   } else {
-    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 100, 100));
 
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
@@ -1011,7 +1011,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 100, 100));
 
   {
     test_msgs__msg__Strings msg;
@@ -1072,9 +1072,9 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
   } else {
-    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 100, 100));
 
     test_msgs__msg__Strings msg;
     test_msgs__msg__Strings__init(&msg);
@@ -1099,7 +1099,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 100, 100));
 
   {
     test_msgs__msg__Strings msg;
@@ -1189,7 +1189,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 100, 100));
 
   {
     test_msgs__msg__Strings msg;
@@ -1261,7 +1261,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 100, 100));
 
   {
     test_msgs__msg__BasicTypes msg;
@@ -1323,9 +1323,9 @@ TEST_F(
   }
 
   if (is_cft_support) {
-    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    ASSERT_FALSE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 100));
   } else {
-    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+    ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 100, 100));
 
     test_msgs__msg__BasicTypes msg;
     test_msgs__msg__BasicTypes__init(&msg);
@@ -1349,7 +1349,7 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
-  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 10, 1000));
+  ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 100, 100));
 
   {
     test_msgs__msg__BasicTypes msg;
