@@ -469,12 +469,16 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_acce
   EXPECT_EQ(0u, options->instance_id);
   EXPECT_EQ(nullptr, options->impl);
   EXPECT_EQ(NULL, rcl_init_options_get_rmw_init_options(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(NULL, rcl_init_options_get_rmw_init_options(&not_ini_init_options));
+  rcl_reset_error();
 
   const rcl_allocator_t * options_allocator = rcl_init_options_get_allocator(&init_options);
   EXPECT_TRUE(rcutils_allocator_is_valid(options_allocator));
   EXPECT_EQ(NULL, rcl_init_options_get_allocator(nullptr));
+  rcl_reset_error();
   EXPECT_EQ(NULL, rcl_init_options_get_allocator(&not_ini_init_options));
+  rcl_reset_error();
 
   size_t domain_id;
   ret = rcl_init_options_get_domain_id(NULL, &domain_id);
@@ -510,8 +514,10 @@ TEST_F(CLASSNAME(TestRCLFixture, RMW_IMPLEMENTATION), test_rcl_init_options_acce
   // nullptr copy cases
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_init_options_copy(nullptr, &init_options_dst));
+  rcl_reset_error();
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT, rcl_init_options_copy(&init_options, nullptr));
+  rcl_reset_error();
 
   // Expected usage copy
   ASSERT_EQ(RCL_RET_OK, rcl_init_options_copy(&init_options, &init_options_dst));

@@ -25,12 +25,15 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#include "rcl/node_type_cache.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rcutils/types/string_array.h"
 #include "rmw/error_handling.h"
+#include "rmw/dynamic_message_type_support.h"
 #include "rmw/subscription_content_filter_options.h"
 #include "rmw/validate_full_topic_name.h"
+#include "rosidl_dynamic_typesupport/identifier.h"
 #include "tracetools/tracetools.h"
 
 #include "./common.h"
@@ -170,6 +173,7 @@ rcl_subscription_init(
     options->qos.avoid_ros_namespace_conventions;
   // options
   subscription->impl->options = *options;
+
   subscription->impl->type_support = type_support;
 
   if (options->rmw_subscription_options.content_filter_options) {
@@ -187,15 +191,27 @@ rcl_subscription_init(
     }
   }
 
+  if (RCL_RET_OK != rcl_node_type_cache_register_type(
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
+  {
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG("Failed to register type for subscription");
+    goto fail;
+  }
+  subscription->impl->type_hash = *type_support->get_type_hash_func(type_support);
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_subscription_init,
     (const void *)subscription,
     (const void *)node,
     (const void *)subscription->impl->rmw_handle,
     remapped_topic_name,
     options->qos.depth);
+
   goto cleanup;
 fail:
   if (subscription->impl) {
@@ -263,6 +279,15 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
 
     if (subscription->impl->rcl_content_filter_fallback) {
       rcl_content_filter_fallback_destroy(subscription->impl->rcl_content_filter_fallback);
+    }
+
+    if (
+      ROSIDL_TYPE_HASH_VERSION_UNSET != subscription->impl->type_hash.version &&
+      RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &subscription->impl->type_hash))
+    {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+      result = RCL_RET_ERROR;
     }
 
     allocator.deallocate(subscription->impl, allocator.state);
@@ -628,7 +653,7 @@ rcl_take(
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Subscription take succeeded: %s", taken ? "true" : "false");
-  TRACEPOINT(rcl_take, (const void *)ros_message);
+  TRACETOOLS_TRACEPOINT(rcl_take, (const void *)ros_message);
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
@@ -731,6 +756,38 @@ rcl_take_serialized_message(
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
 
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_take_dynamic_message(
+  const rcl_subscription_t * subscription,
+  rosidl_dynamic_typesupport_dynamic_data_t * dynamic_message,
+  rmw_message_info_t * message_info,
+  rmw_subscription_allocation_t * allocation)
+{
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription taking dynamic message");
+  if (!rcl_subscription_is_valid(subscription)) {
+    return RCL_RET_SUBSCRIPTION_INVALID;  // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(dynamic_message, RCL_RET_INVALID_ARGUMENT);
+  // If message_info is NULL, use a place holder which can be discarded.
+  rmw_message_info_t dummy_message_info;
+  rmw_message_info_t * message_info_local = message_info ? message_info : &dummy_message_info;
+  *message_info_local = rmw_get_zero_initialized_message_info();
+  // Call take with info
+  bool taken = false;
+  rmw_ret_t ret = rmw_take_dynamic_message_with_info(
+    subscription->impl->rmw_handle, dynamic_message, &taken, message_info_local, allocation);
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME, "Subscription dynamic take succeeded: %s", taken ? "true" : "false");
+  if (!taken) {
+    return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
+  }
   return RCL_RET_OK;
 }
 

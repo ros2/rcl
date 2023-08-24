@@ -31,6 +31,7 @@ BENCHMARK_F(PerformanceTest, parser_yaml_param)(benchmark::State & st)
     (rcpputils::fs::current_path() / "test" / "benchmark" / "benchmark_params.yaml").string();
   reset_heap_counters();
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     rcl_params_t * params_hdl = rcl_yaml_node_struct_init(rcutils_get_default_allocator());
     if (NULL == params_hdl) {
       st.SkipWithError(rcutils_get_error_string().str);

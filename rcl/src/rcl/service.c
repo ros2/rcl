@@ -24,6 +24,7 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#include "rcl/node_type_cache.h"
 #include "rcl/publisher.h"
 #include "rcl/time.h"
 #include "rcl/types.h"
@@ -47,6 +48,7 @@ struct rcl_service_impl_s
   rmw_service_t * rmw_handle;
   rcl_service_event_publisher_t * service_event_publisher;
   char * remapped_service_name;
+  rosidl_type_hash_t type_hash;
 };
 
 rcl_service_t
@@ -186,8 +188,21 @@ rcl_service_init(
 
   // options
   service->impl->options = *options;
+
+  if (RCL_RET_OK != rcl_node_type_cache_register_type(
+      node, type_support->get_type_hash_func(type_support),
+      type_support->get_type_description_func(type_support),
+      type_support->get_type_description_sources_func(type_support)))
+  {
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG("Failed to register type for service");
+    ret = RCL_RET_ERROR;
+    goto destroy_service;
+  }
+  service->impl->type_hash = *type_support->get_type_hash_func(type_support);
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Service initialized");
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_service_init,
     (const void *)service,
     (const void *)node,
@@ -245,6 +260,14 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
     rmw_ret_t ret = rmw_destroy_service(rmw_node, service->impl->rmw_handle);
     if (ret != RMW_RET_OK) {
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+      result = RCL_RET_ERROR;
+    }
+
+    if (
+      ROSIDL_TYPE_HASH_VERSION_UNSET != service->impl->type_hash.version &&
+      RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &service->impl->type_hash))
+    {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }
 
@@ -364,6 +387,7 @@ rcl_send_response(
   rmw_request_id_t * request_header,
   void * ros_response)
 {
+  rcl_ret_t ret;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response");
   if (!rcl_service_is_valid(service)) {
     return RCL_RET_SERVICE_INVALID;  // error already set
@@ -373,16 +397,18 @@ rcl_send_response(
   const rcl_service_options_t * options = rcl_service_get_options(service);
   RCL_CHECK_FOR_NULL_WITH_MSG(options, "Failed to get service options", return RCL_RET_ERROR);
 
-  if (rmw_send_response(
-      service->impl->rmw_handle, request_header, ros_response) != RMW_RET_OK)
-  {
+  ret = rmw_send_response(service->impl->rmw_handle, request_header, ros_response);
+  if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    if (ret == RMW_RET_TIMEOUT) {
+      return RCL_RET_TIMEOUT;
+    }
     return RCL_RET_ERROR;
   }
 
   // publish out the introspected content
   if (service->impl->service_event_publisher != NULL) {
-    rcl_ret_t ret = rcl_send_service_event_message(
+    ret = rcl_send_service_event_message(
       service->impl->service_event_publisher,
       service_msgs__msg__ServiceEventInfo__RESPONSE_SENT,
       ros_response,

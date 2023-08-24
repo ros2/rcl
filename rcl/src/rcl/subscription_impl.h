@@ -27,6 +27,7 @@ struct rcl_subscription_impl_s
   rmw_subscription_t * rmw_handle;
   void * rcl_content_filter_fallback;
   const rosidl_message_type_support_t * type_support;
+  rosidl_type_hash_t type_hash;
 };
 
 #endif  // RCL__SUBSCRIPTION_IMPL_H_

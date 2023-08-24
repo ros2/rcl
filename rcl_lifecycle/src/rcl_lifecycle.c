@@ -247,7 +247,7 @@ rcl_lifecycle_state_machine_init(
     }
   }
 
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_lifecycle_state_machine_init,
     (const void *)node_handle,
     (const void *)state_machine);
@@ -370,7 +370,7 @@ _trigger_transition(
     }
   }
 
-  TRACEPOINT(
+  TRACETOOLS_TRACEPOINT(
     rcl_lifecycle_transition,
     (const void *)state_machine,
     transition->start->label,

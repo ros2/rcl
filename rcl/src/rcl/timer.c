@@ -135,6 +135,21 @@ rcl_timer_init(
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator)
 {
+  return rcl_timer_init2(
+    timer, clock, context, period, callback,
+    allocator, true);
+}
+
+rcl_ret_t
+rcl_timer_init2(
+  rcl_timer_t * timer,
+  rcl_clock_t * clock,
+  rcl_context_t * context,
+  int64_t period,
+  const rcl_timer_callback_t callback,
+  rcl_allocator_t allocator,
+  bool autostart)
+{
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
@@ -182,7 +197,7 @@ rcl_timer_init(
   atomic_init(&impl.time_credit, 0);
   atomic_init(&impl.last_call_time, now);
   atomic_init(&impl.next_call_time, now + period);
-  atomic_init(&impl.canceled, false);
+  atomic_init(&impl.canceled, !autostart);
   impl.allocator = allocator;
 
   // Empty init on reset callback data
@@ -205,7 +220,7 @@ rcl_timer_init(
     return RCL_RET_BAD_ALLOC;
   }
   *timer->impl = impl;
-  TRACEPOINT(rcl_timer_init, (const void *)timer, period);
+  TRACETOOLS_TRACEPOINT(rcl_timer_init, (const void *)timer, period);
   return RCL_RET_OK;
 }
 

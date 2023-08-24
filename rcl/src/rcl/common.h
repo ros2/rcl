@@ -26,6 +26,10 @@ extern "C"
 rcl_ret_t
 rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret);
 
+/// Convenience function for converting common rcutils_ret_t return codes to rcl.
+rcl_ret_t
+rcl_convert_rcutils_ret_to_rcl_ret(rcutils_ret_t rcutils_ret);
+
 #ifdef __cplusplus
 }
 #endif

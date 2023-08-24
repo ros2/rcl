@@ -80,7 +80,8 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   const char * service_name = "/my/namespace/test_namespace_client_server";
   const char * unmatched_client_name = "/your/namespace/test_namespace_client_server";
   const char * matched_client_name = "/my/namespace/test_namespace_client_server";
-  auto timeout = 10;
+  constexpr int success_timeout = 10;
+  constexpr int fail_timeout = 1;
 
   rcl_service_t service = rcl_get_zero_initialized_service();
   rcl_service_options_t service_options = rcl_service_get_default_options();
@@ -104,7 +105,7 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   });
 
   bool is_available = false;
-  for (auto i = 0; i < timeout; ++i) {
+  for (int i = 0; i < fail_timeout; ++i) {
     ret = rcl_service_server_is_available(this->node_ptr, &unmatched_client, &is_available);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     if (is_available) {
@@ -127,7 +128,7 @@ TEST_F(TestNamespaceFixture, test_client_server) {
   });
 
   is_available = false;
-  for (auto i = 0; i < timeout; ++i) {
+  for (auto i = 0; i < success_timeout; ++i) {
     ret = rcl_service_server_is_available(this->node_ptr, &matched_client, &is_available);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     if (is_available) {

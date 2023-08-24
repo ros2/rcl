@@ -2,6 +2,38 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+7.1.0 (2023-08-21)
+------------------
+
+7.0.0 (2023-07-11)
+------------------
+* Add `~/get_type_description` service (rep2011) (`#1052 <https://github.com/ros2/rcl/issues/1052>`_)
+* Modifies timers API to select autostart state (`#1004 <https://github.com/ros2/rcl/issues/1004>`_)
+* Contributors: Eloy Briceno, Hans-Joachim Krauch
+
+6.3.0 (2023-06-12)
+------------------
+
+6.2.0 (2023-06-07)
+------------------
+
+6.1.1 (2023-05-11)
+------------------
+
+6.1.0 (2023-04-28)
+------------------
+
+6.0.1 (2023-04-18)
+------------------
+
+6.0.0 (2023-04-12)
+------------------
+* doc update, ROS message accessibility depends on RMW implementation. (`#1043 <https://github.com/ros2/rcl/issues/1043>`_)
+* Contributors: Tomoya Fujita
+
+5.9.0 (2023-03-01)
+------------------
+
 5.8.0 (2023-02-23)
 ------------------
 

@@ -46,6 +46,7 @@ BENCHMARK_F(PerformanceTest, bool_copy_variant)(benchmark::State & st)
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
@@ -65,6 +66,7 @@ BENCHMARK_F(PerformanceTest, int_copy_variant)(benchmark::State & st)
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
@@ -84,6 +86,7 @@ BENCHMARK_F(PerformanceTest, double_copy_variant)(benchmark::State & st)
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
@@ -110,6 +113,7 @@ BENCHMARK_F(PerformanceTest, string_copy_variant)(benchmark::State & st)
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
@@ -139,6 +143,7 @@ BENCHMARK_F(PerformanceTest, array_bool_copy_variant)(benchmark::State & st)
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
@@ -168,6 +173,7 @@ BENCHMARK_F(PerformanceTest, array_int_copy_variant)(benchmark::State & st)
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
@@ -197,6 +203,7 @@ BENCHMARK_F(PerformanceTest, array_double_copy_variant)(benchmark::State & st)
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
@@ -235,6 +242,7 @@ BENCHMARK_F(PerformanceTest, array_string_copy_variant)(benchmark::State & st)
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     if (!rcl_yaml_variant_copy(&dest_variant, &src_variant, allocator)) {
       st.SkipWithError(rcutils_get_error_string().str);
     }
