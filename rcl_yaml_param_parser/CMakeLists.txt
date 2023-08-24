@@ -28,6 +28,8 @@ add_library(
   src/node_params.c
   src/parse.c
   src/parser.c
+  src/parse_thread_attr.c
+  src/parser_thread_attr.c
   src/yaml_variant.c
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -174,6 +176,31 @@ if(BUILD_TESTING)
   )
   if(TARGET test_yaml_variant)
     target_link_libraries(test_yaml_variant
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
+    )
+  endif()
+
+  ament_add_gtest(test_parse_thread_attr
+    test/test_parse_thread_attr.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_parse_thread_attr)
+    target_link_libraries(test_parse_thread_attr
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcutils::rcutils
+      yaml
+    )
+  endif()
+
+  ament_add_gtest(test_parser_thread_attr
+    test/test_parser_thread_attr.cpp
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+  if(TARGET test_parser_thread_attr)
+    target_link_libraries(test_parser_thread_attr
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcutils::rcutils

@@ -34,7 +34,9 @@ extern "C"
 #include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/security.h"
+#include "rcl/thread_attr.h"
 #include "rcl/validate_enclave_name.h"
+#include "rcl_yaml_param_parser/parser_thread_attr.h"
 
 #include "./arguments_impl.h"
 #include "./common.h"
@@ -92,6 +94,9 @@ rcl_init(
 
   // Zero initialize rmw context first so its validity can by checked in cleanup.
   context->impl->rmw_context = rmw_get_zero_initialized_context();
+
+  // Zero initialize thread attribute context first so its validity can by checked in cleanup.
+  context->impl->thread_attrs = rcutils_get_zero_initialized_thread_attrs();
 
   // Store the allocator.
   context->impl->allocator = allocator;
@@ -254,6 +259,33 @@ rcl_init(
     RCUTILS_LOG_DEBUG_NAMED(
       ROS_PACKAGE_NAME,
       "\t%s", discovery_options->static_peers[ii].peer_address);
+  }
+
+  ret = rcutils_thread_attrs_init(&(context->impl->thread_attrs), allocator);
+  if (RCL_RET_OK != ret) {
+    fail_ret = ret;
+    goto fail;
+  }
+
+  if (0 == context->global_arguments.impl->thread_attrs.num_attributes) {
+    // Get actual thread attribute based on environment variable.
+    ret = rcl_get_default_thread_attrs_from_value(
+      &(context->impl->thread_attrs),
+      allocator);
+    if (RCL_RET_OK != ret) {
+      fail_ret = ret;
+      goto fail;
+    }
+    if (0 == context->impl->thread_attrs.num_attributes) {
+      // Get actual thread attribute file path based on environment variable.
+      ret = rcl_get_default_thread_attrs_from_file(
+        &(context->impl->thread_attrs),
+        allocator);
+      if (RCL_RET_OK != ret) {
+        fail_ret = ret;
+        goto fail;
+      }
+    }
   }
 
   if (context->global_arguments.impl->enclave) {

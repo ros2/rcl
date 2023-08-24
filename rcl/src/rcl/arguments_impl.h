@@ -51,6 +51,9 @@ struct rcl_arguments_impl_s
   /// Length of remap_rules.
   int num_remap_rules;
 
+  /// thread attribute.
+  rcutils_thread_attrs_t thread_attrs;
+
   /// Log levels parsed from arguments.
   rcl_log_levels_t log_levels;
   /// A file used to configure the external logging library

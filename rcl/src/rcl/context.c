@@ -24,6 +24,7 @@ extern "C"
 #include "./common.h"
 #include "./context_impl.h"
 #include "rcutils/stdatomic_helper.h"
+#include "rcl_yaml_param_parser/parser_thread_attr.h"
 
 rcl_context_t
 rcl_get_zero_initialized_context(void)
@@ -105,6 +106,22 @@ rcl_context_get_rmw_context(rcl_context_t * context)
   return &(context->impl->rmw_context);
 }
 
+rcutils_thread_attrs_t *
+rcl_context_get_thread_attrs(const rcl_context_t * context)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(context, NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(context->impl, "context is zero-initialized", return NULL);
+
+  rcutils_thread_attrs_t * attrs = NULL;
+  rcl_ret_t ret = rcl_arguments_get_thread_attrs(&context->global_arguments, &attrs);
+  if (RCL_RET_OK != ret) {
+    if (0 < context->impl->thread_attrs.num_attributes) {
+      attrs = &context->impl->thread_attrs;
+    }
+  }
+  return attrs;
+}
+
 rcl_ret_t
 __cleanup_context(rcl_context_t * context)
 {
@@ -144,6 +161,21 @@ __cleanup_context(rcl_context_t * context)
         RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
         rcl_reset_error();
       }
+    }
+
+    // clean up thread_attrs_context
+    rcl_ret_t thread_attrs_context_fini_ret =
+      rcutils_thread_attrs_fini(&(context->impl->thread_attrs));
+    if (RCL_RET_OK != thread_attrs_context_fini_ret) {
+      if (RCL_RET_OK == ret) {
+        ret = thread_attrs_context_fini_ret;
+      }
+      RCUTILS_SAFE_FWRITE_TO_STDERR(
+        "[rcl|context.c:" RCUTILS_STRINGIFY(__LINE__)
+        "] failed to finalize attr context while cleaning up context, memory may be leaked: ");
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcutils_get_error_string().str);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+      rcutils_reset_error();
     }
 
     // clean up rmw_context

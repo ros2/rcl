@@ -314,6 +314,16 @@ RCL_WARN_UNUSED
 rmw_context_t *
 rcl_context_get_rmw_context(rcl_context_t * context);
 
+/// Returns pointer to the thread attribute list.
+/**
+ * \param[in] context object from which the thread attribute list should be retrieved.
+ * \return pointer to thread attribute list if valid, otherwise `NULL`
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcutils_thread_attrs_t *
+rcl_context_get_thread_attrs(const rcl_context_t * context);
+
 #ifdef __cplusplus
 }
 #endif
