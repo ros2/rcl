@@ -18,25 +18,6 @@
 
 #include "rcl/lexer.h"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-class CLASSNAME (TestLexerFixture, RMW_IMPLEMENTATION) : public ::testing::Test
-{
-public:
-  void SetUp()
-  {
-  }
-
-  void TearDown()
-  {
-  }
-};
-
 // Not using a function so gtest failure output shows the line number where the macro is used
 #define EXPECT_LEX(expected_lexeme, expected_text, text) \
   do { \
@@ -50,7 +31,7 @@ public:
     EXPECT_STREQ(expected_text, actual_text.c_str()); \
   } while (false)
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_different_endings)
+TEST(TestLexer, test_token_different_endings)
 {
   // Things get recognized as tokens whether input ends or non token characters come after them
   EXPECT_LEX(RCL_LEXEME_TOKEN, "foo", "foo");
@@ -59,7 +40,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_different_end
   EXPECT_LEX(RCL_LEXEME_TOKEN, "foo_", "foo_:");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_start_char)
+TEST(TestLexer, test_token_start_char)
 {
   // Check full range for starting character
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a", "a");
@@ -117,7 +98,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_start_char)
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_", "_");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_adjacent_ascii)
+TEST(TestLexer, test_token_adjacent_ascii)
 {
   // Check banned characters adjacent to allowed ones in ASCII
   EXPECT_LEX(RCL_LEXEME_NONE, "@", "@");
@@ -126,7 +107,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_adjacent_asci
   EXPECT_LEX(RCL_LEXEME_NONE, "{", "{");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_cannot_start_with_digits)
+TEST(TestLexer, test_token_cannot_start_with_digits)
 {
   // Tokens cannot start with digits
   EXPECT_LEX(RCL_LEXEME_NONE, "0", "0");
@@ -141,7 +122,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_cannot_start_
   EXPECT_LEX(RCL_LEXEME_NONE, "9", "9");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_underscores)
+TEST(TestLexer, test_token_underscores)
 {
   // Tokens may contain underscores
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_abcd", "_abcd");
@@ -157,7 +138,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_underscores)
   EXPECT_LEX(RCL_LEXEME_NONE, "__A", "__A");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_contain_digits)
+TEST(TestLexer, test_token_contain_digits)
 {
   // Tokens may contain digits
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_0_", "_0_");
@@ -182,7 +163,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_contain_digit
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a9a", "a9a");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_end_with_digits)
+TEST(TestLexer, test_token_end_with_digits)
 {
   // Tokens may end with digits
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_0", "_0");
@@ -207,7 +188,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_end_with_digi
   EXPECT_LEX(RCL_LEXEME_TOKEN, "a9", "a9");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_close_to_url_scheme)
+TEST(TestLexer, test_token_close_to_url_scheme)
 {
   // Things that almost look like a url scheme but are actually tokens
   EXPECT_LEX(RCL_LEXEME_TOKEN, "ro", "ro");
@@ -234,7 +215,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_close_to_url_
   EXPECT_LEX(RCL_LEXEME_TOKEN, "rostopic", "rostopic:/a");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_upper_case)
+TEST(TestLexer, test_token_upper_case)
 {
   // Tokens may contain uppercase characters
   EXPECT_LEX(RCL_LEXEME_TOKEN, "ABC", "ABC");
@@ -242,7 +223,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_token_upper_case)
   EXPECT_LEX(RCL_LEXEME_TOKEN, "_GHI_", "_GHI_");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_url_scheme)
+TEST(TestLexer, test_url_scheme)
 {
   // No text after scheme
   EXPECT_LEX(RCL_LEXEME_URL_SERVICE, "rosservice://", "rosservice://");
@@ -255,7 +236,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_url_scheme)
   EXPECT_LEX(RCL_LEXEME_URL_TOPIC, "rostopic://", "rostopic:///");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_backreferences)
+TEST(TestLexer, test_backreferences)
 {
   // No text after backreference
   EXPECT_LEX(RCL_LEXEME_BR1, "\\1", "\\1");
@@ -286,14 +267,14 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_backreferences)
   EXPECT_LEX(RCL_LEXEME_NONE, "\\_", "\\_");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_forward_slash)
+TEST(TestLexer, test_forward_slash)
 {
   EXPECT_LEX(RCL_LEXEME_FORWARD_SLASH, "/", "/");
   EXPECT_LEX(RCL_LEXEME_FORWARD_SLASH, "/", "//");
   EXPECT_LEX(RCL_LEXEME_FORWARD_SLASH, "/", "/_");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_wildcards)
+TEST(TestLexer, test_wildcards)
 {
   EXPECT_LEX(RCL_LEXEME_WILD_ONE, "*", "*");
   EXPECT_LEX(RCL_LEXEME_WILD_ONE, "*", "*/");
@@ -301,19 +282,19 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_wildcards)
   EXPECT_LEX(RCL_LEXEME_WILD_MULTI, "**", "**/");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_colon)
+TEST(TestLexer, test_colon)
 {
   EXPECT_LEX(RCL_LEXEME_COLON, ":", ":");
   EXPECT_LEX(RCL_LEXEME_COLON, ":", ":r");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_separator)
+TEST(TestLexer, test_separator)
 {
   EXPECT_LEX(RCL_LEXEME_SEPARATOR, ":=", ":=");
   EXPECT_LEX(RCL_LEXEME_SEPARATOR, ":=", ":=0");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_ns)
+TEST(TestLexer, test_ns)
 {
   // Has __ns
   EXPECT_LEX(RCL_LEXEME_NS, "__ns", "__ns");
@@ -325,7 +306,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_ns)
   EXPECT_LEX(RCL_LEXEME_NONE, "__n!", "__n!");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_name)
+TEST(TestLexer, test_name)
 {
   // Has __name
   EXPECT_LEX(RCL_LEXEME_NODE, "__name", "__name");
@@ -338,7 +319,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_name)
   EXPECT_LEX(RCL_LEXEME_NONE, "__nama", "__nama");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_node)
+TEST(TestLexer, test_node)
 {
   // Has __node
   EXPECT_LEX(RCL_LEXEME_NODE, "__node", "__node");
@@ -354,7 +335,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_node)
   EXPECT_LEX(RCL_LEXEME_NONE, "__noda", "__noda");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_tilde_slash)
+TEST(TestLexer, test_tilde_slash)
 {
   EXPECT_LEX(RCL_LEXEME_TILDE_SLASH, "~/", "~/");
   EXPECT_LEX(RCL_LEXEME_TILDE_SLASH, "~/", "~//");
@@ -362,7 +343,7 @@ TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_tilde_slash)
   EXPECT_LEX(RCL_LEXEME_NONE, "~!", "~!");
 }
 
-TEST_F(CLASSNAME(TestLexerFixture, RMW_IMPLEMENTATION), test_eof)
+TEST(TestLexer, test_eof)
 {
   EXPECT_LEX(RCL_LEXEME_EOF, "", "");
 }

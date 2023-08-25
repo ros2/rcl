@@ -32,13 +32,6 @@
 #include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
-#include "rmw/validate_namespace.h"
-#include "rmw/validate_node_name.h"
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /// Parse an argument that may or may not be a remap rule.
 /**
@@ -2071,9 +2064,5 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
 
   return RCL_RET_OK;
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 /// \endcond  // Internal Doxygen documentation
