@@ -173,7 +173,7 @@ protected:
 
 class CLASSNAME (TestLogRosoutFixtureGeneral, RMW_IMPLEMENTATION) : public TestLoggingRosout {};
 
-void
+static void
 check_if_rosout_subscription_gets_a_message(
   const char * logger_name,
   rcl_subscription_t * subscription,
@@ -229,7 +229,7 @@ TEST_P_RMW(TestLoggingRosoutFixture, test_logging_rosout) {
   bool success = false;
   check_if_rosout_subscription_gets_a_message(
     rcl_node_get_logger_name(this->node_ptr), this->subscription_ptr,
-    this->context_ptr, 30, 100, success);
+    this->context_ptr, 5, 100, success);
   ASSERT_EQ(success, GetParam().expected_success);
 }
 
@@ -417,7 +417,7 @@ TEST_F(
   bool expected = false;
   check_if_rosout_subscription_gets_a_message(
     full_sublogger_name.c_str(), this->subscription_ptr,
-    this->context_ptr, 30, 100, expected);
+    this->context_ptr, 5, 100, expected);
   EXPECT_FALSE(expected);
 
   EXPECT_EQ(RCL_RET_OK, rcl_logging_rosout_add_sublogger(logger_name, sublogger_name));
@@ -433,7 +433,7 @@ TEST_F(
   // not to get the message after removing the sublogger
   check_if_rosout_subscription_gets_a_message(
     full_sublogger_name.c_str(), this->subscription_ptr,
-    this->context_ptr, 30, 100, expected);
+    this->context_ptr, 5, 100, expected);
   EXPECT_FALSE(expected);
 }
 
@@ -473,6 +473,6 @@ TEST_F(
   // to get the message after removing the sublogger
   check_if_rosout_subscription_gets_a_message(
     full_sublogger_name.c_str(), this->subscription_ptr,
-    this->context_ptr, 30, 100, expected);
+    this->context_ptr, 5, 100, expected);
   EXPECT_FALSE(expected);
 }
