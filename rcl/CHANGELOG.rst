@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+7.1.1 (2023-09-07)
+------------------
 * Cut down the amount of time for test_logging_rosout. (`#1098 <https://github.com/ros2/rcl/issues/1098>`_)
 * Simplify local_namespace handling in rcl_node_init. (`#1097 <https://github.com/ros2/rcl/issues/1097>`_)
 * Reduce the number of tests we run (`#1096 <https://github.com/ros2/rcl/issues/1096>`_)
