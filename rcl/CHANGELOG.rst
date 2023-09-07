@@ -2,6 +2,18 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Cut down the amount of time for test_logging_rosout. (`#1098 <https://github.com/ros2/rcl/issues/1098>`_)
+* Simplify local_namespace handling in rcl_node_init. (`#1097 <https://github.com/ros2/rcl/issues/1097>`_)
+* Reduce the number of tests we run (`#1096 <https://github.com/ros2/rcl/issues/1096>`_)
+* Adding duplicate node information (`#1088 <https://github.com/ros2/rcl/issues/1088>`_)
+* Revamp the test_get_type_description_service. (`#1095 <https://github.com/ros2/rcl/issues/1095>`_)
+* Cleanup network flow endpoints test. (`#1094 <https://github.com/ros2/rcl/issues/1094>`_)
+* Reduce the failure timeout time for namespaces. (`#1093 <https://github.com/ros2/rcl/issues/1093>`_)
+* Shorten wait time for a subscription not being ready. (`#1092 <https://github.com/ros2/rcl/issues/1092>`_)
+* Contributors: Chris Lalancette, Lucas Wendland
+
 7.1.0 (2023-08-21)
 ------------------
 * rcl_send_response returns RCL_RET_TIMEOUT. (`#1048 <https://github.com/ros2/rcl/issues/1048>`_)
