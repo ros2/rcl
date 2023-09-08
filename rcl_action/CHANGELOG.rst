@@ -2,6 +2,12 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* rcl_send_response returns RCL_RET_TIMEOUT. (`#1090 <https://github.com/ros2/rcl/issues/1090>`_)
+* Add `~/get_type_description` service (rep2011) (`#1082 <https://github.com/ros2/rcl/issues/1082>`_)
+* Contributors: Hans-Joachim Krauch, Tomoya Fujita
+
 6.0.2 (2023-05-19)
 ------------------
 
