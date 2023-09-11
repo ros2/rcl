@@ -91,8 +91,8 @@ TEST(TestLogging, test_configure_with_bad_arguments) {
 
 TEST(TestLogging, test_logging_rosout_enabled) {
   {
-    const char * argv[] = {
-      "test_logging", RCL_ROS_ARGS_FLAG, "--enable-" RCL_LOG_ROSOUT_FLAG_SUFFIX};
+    const char * rosout_flag = "--enable-" RCL_LOG_ROSOUT_FLAG_SUFFIX;
+    const char * argv[] = {"test_logging", RCL_ROS_ARGS_FLAG, rosout_flag};
     const int argc = sizeof(argv) / sizeof(argv[0]);
     rcl_allocator_t default_allocator = rcl_get_default_allocator();
     rcl_arguments_t global_arguments = rcl_get_zero_initialized_arguments();
@@ -113,8 +113,8 @@ TEST(TestLogging, test_logging_rosout_enabled) {
   }
 
   {
-    const char * argv[] = {
-      "test_logging", RCL_ROS_ARGS_FLAG, "--disable-" RCL_LOG_ROSOUT_FLAG_SUFFIX};
+    const char * rosout_flag = "--disable-" RCL_LOG_ROSOUT_FLAG_SUFFIX;
+    const char * argv[] = {"test_logging", RCL_ROS_ARGS_FLAG, rosout_flag};
     const int argc = sizeof(argv) / sizeof(argv[0]);
     rcl_allocator_t default_allocator = rcl_get_default_allocator();
     rcl_arguments_t global_arguments = rcl_get_zero_initialized_arguments();
@@ -136,9 +136,8 @@ TEST(TestLogging, test_logging_rosout_enabled) {
 }
 
 TEST(TestLogging, test_failing_external_logging_configure) {
-  const char * argv[] = {
-    "test_logging", RCL_ROS_ARGS_FLAG,
-    "--enable-" RCL_LOG_EXT_LIB_FLAG_SUFFIX};
+  const char * ext_lib_flag = "--enable-" RCL_LOG_EXT_LIB_FLAG_SUFFIX;
+  const char * argv[] = {"test_logging", RCL_ROS_ARGS_FLAG, ext_lib_flag};
   const int argc = sizeof(argv) / sizeof(argv[0]);
   rcl_allocator_t default_allocator = rcl_get_default_allocator();
   rcl_arguments_t global_arguments = rcl_get_zero_initialized_arguments();
@@ -196,12 +195,11 @@ TEST(TestLogging, test_failing_logger_level_configure) {
 }
 
 TEST(TestLogging, test_failing_external_logging) {
+  const char * stdout_flag = "--disable-" RCL_LOG_STDOUT_FLAG_SUFFIX;
+  const char * ext_flag = "--enable-" RCL_LOG_EXT_LIB_FLAG_SUFFIX;
+  const char * package_name = ROS_PACKAGE_NAME ":=DEBUG";
   const char * argv[] = {
-    "test_logging", RCL_ROS_ARGS_FLAG,
-    "--disable-" RCL_LOG_STDOUT_FLAG_SUFFIX,
-    "--enable-" RCL_LOG_EXT_LIB_FLAG_SUFFIX,
-    RCL_LOG_LEVEL_FLAG, ROS_PACKAGE_NAME ":=DEBUG"
-  };
+    "test_logging", RCL_ROS_ARGS_FLAG, stdout_flag, ext_flag, RCL_LOG_LEVEL_FLAG, package_name};
   const int argc = sizeof(argv) / sizeof(argv[0]);
   rcl_allocator_t default_allocator = rcl_get_default_allocator();
   rcl_arguments_t global_arguments = rcl_get_zero_initialized_arguments();
