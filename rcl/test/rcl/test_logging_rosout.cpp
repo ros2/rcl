@@ -123,6 +123,10 @@ protected:
     rcl_ret_t ret = rcl_subscription_fini(this->subscription_ptr, this->node_ptr);
     delete this->subscription_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    if (rcl_logging_rosout_enabled()) {
+      ret = rcl_logging_rosout_fini_publisher_for_node(this->node_ptr);
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    }
     ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
