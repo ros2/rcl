@@ -590,7 +590,8 @@ rcl_count_subscribers(
  *
  * The `service_name` parameter must not be `NULL`, and must not be an empty string.
  * It should also follow the service name rules.
- * \todo TODO(wjwwood): link to the service name rules.
+ *
+ * See: https://design.ros2.org/articles/topic_and_service_names.html
  *
  * The `count` parameter must point to a valid size_t.
  * The `count` parameter is the output for this function and will be set.
@@ -635,7 +636,8 @@ rcl_count_clients(
  *
  * The `service_name` parameter must not be `NULL`, and must not be an empty string.
  * It should also follow the service name rules.
- * \todo TODO(wjwwood): link to the service name rules.
+ *
+ * See: https://design.ros2.org/articles/topic_and_service_names.html
  *
  * The `count` parameter must point to a valid size_t.
  * The `count` parameter is the output for this function and will be set.
