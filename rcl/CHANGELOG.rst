@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.3.5 (2023-09-19)
+------------------
+* rcl_send_response returns RCL_RET_TIMEOUT. (backport `#1048 <https://github.com/ros2/rcl/issues/1048>`_) (`#1091 <https://github.com/ros2/rcl/issues/1091>`_)
+* Contributors: mergify[bot]
+
 5.3.4 (2023-07-17)
 ------------------
 * Implement rcl_clock_time_started (`#1021 <https://github.com/ros2/rcl/issues/1021>`_) (`#1078 <https://github.com/ros2/rcl/issues/1078>`_)
