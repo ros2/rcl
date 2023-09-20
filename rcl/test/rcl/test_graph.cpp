@@ -123,7 +123,8 @@ public:
     delete this->wait_set_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
-    if (rcl_logging_rosout_enabled()) {
+    const rcl_node_options_t * node_ops = rcl_node_get_options(this->node_ptr);
+    if (rcl_logging_rosout_enabled() && node_ops->enable_rosout) {
       ret = rcl_logging_rosout_fini_publisher_for_node(this->node_ptr);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     }
@@ -1000,7 +1001,8 @@ public:
   {
     rcl_ret_t ret;
     CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION) ::TearDown();
-    if (rcl_logging_rosout_enabled()) {
+    const rcl_node_options_t * node_ops = rcl_node_get_options(this->remote_node_ptr);
+    if (rcl_logging_rosout_enabled() && node_ops->enable_rosout) {
       ret = rcl_logging_rosout_fini_publisher_for_node(this->remote_node_ptr);
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     }
