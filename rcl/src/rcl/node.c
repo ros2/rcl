@@ -282,16 +282,6 @@ rcl_node_init(
     goto fail;
   }
 
-  // The initialization for the rosout publisher requires the node to be initialized to a point
-  // that it can create new topic publishers
-  if (rcl_logging_rosout_enabled() && node->impl->options.enable_rosout) {
-    ret = rcl_logging_rosout_init_publisher_for_node(node);
-    if (ret != RCL_RET_OK) {
-      // error message already set
-      goto fail;
-    }
-  }
-
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized");
   TRACETOOLS_TRACEPOINT(
     rcl_node_init,
@@ -363,13 +353,6 @@ rcl_node_fini(rcl_node_t * node)
   rcl_allocator_t allocator = node->impl->options.allocator;
   rcl_ret_t result = RCL_RET_OK;
   rcl_ret_t rcl_ret = RCL_RET_OK;
-  if (rcl_logging_rosout_enabled() && node->impl->options.enable_rosout) {
-    rcl_ret = rcl_logging_rosout_fini_publisher_for_node(node);
-    if (rcl_ret != RCL_RET_OK && rcl_ret != RCL_RET_NOT_INIT) {
-      RCL_SET_ERROR_MSG("Unable to fini publisher for node.");
-      result = RCL_RET_ERROR;
-    }
-  }
   rcl_ret = rcl_node_type_cache_fini(node);
   if (rcl_ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("Unable to fini type cache for node.");
