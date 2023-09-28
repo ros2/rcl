@@ -14,14 +14,14 @@
 
 #include <gtest/gtest.h>
 
-#include <thread>
 #include <chrono>
+#include <filesystem>
 #include <string>
+#include <thread>
 
 #include "rcl/allocator.h"
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
-#include "rcpputils/filesystem_helper.hpp"
 #include "rcutils/env.h"
 
 #include "rcl/rcl.h"
@@ -58,7 +58,7 @@ public:
       // By default, fastdds use intraprocess mode in this scenario. But this leads to high-speed
       // data transmission. test_wait_for_all_acked need low data transmission. So disable this
       // mode via fastdds profile file.
-      rcpputils::fs::path fastdds_profile(TEST_RESOURCES_DIRECTORY);
+      std::filesystem::path fastdds_profile(TEST_RESOURCES_DIRECTORY);
       fastdds_profile /= "test_profile/disable_intraprocess.xml";
       ASSERT_EQ(
         rcutils_set_env("FASTRTPS_DEFAULT_PROFILES_FILE", fastdds_profile.string().c_str()),
