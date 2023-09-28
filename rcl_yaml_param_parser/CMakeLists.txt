@@ -186,7 +186,6 @@ if(BUILD_TESTING)
     target_link_libraries(benchmark_parse_yaml
       ${PROJECT_NAME}
       performance_test_fixture::performance_test_fixture
-      rcpputils::rcpputils
       rcutils::rcutils
     )
   endif()

@@ -3,7 +3,6 @@ find_package(ament_cmake_gtest REQUIRED)
 find_package(launch_testing_ament_cmake REQUIRED)
 find_package(mimick_vendor REQUIRED)
 find_package(osrf_testing_tools_cpp REQUIRED)
-find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw_implementation_cmake REQUIRED)
 find_package(rosidl_runtime_cpp REQUIRED)
@@ -189,7 +188,6 @@ function(test_target_function)
     LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers
     AMENT_DEPENDENCIES ${rmw_implementation}
       "osrf_testing_tools_cpp"
-      "rcpputils"
       "rcutils"
       "rosidl_runtime_c"
       "test_msgs"
@@ -394,7 +392,7 @@ rcl_add_custom_gtest(test_arguments
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
   LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-  AMENT_DEPENDENCIES "osrf_testing_tools_cpp" "rcpputils"
+  AMENT_DEPENDENCIES "osrf_testing_tools_cpp"
 )
 
 rcl_add_custom_gtest(test_time

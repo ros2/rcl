@@ -13,12 +13,12 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
+#include <filesystem>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
-#include "rcpputils/filesystem_helper.hpp"
 
 #include "rcl/rcl.h"
 #include "rcl/arguments.h"
@@ -44,7 +44,7 @@ public:
   }
 
 protected:
-  rcpputils::fs::path test_path{TEST_RESOURCES_DIRECTORY};
+  std::filesystem::path test_path{TEST_RESOURCES_DIRECTORY};
 };
 
 #define EXPECT_UNPARSED(parsed_args, ...) \

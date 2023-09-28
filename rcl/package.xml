@@ -40,7 +40,6 @@
   <test_depend>launch_testing_ament_cmake</test_depend>
   <test_depend>mimick_vendor</test_depend>
   <test_depend>osrf_testing_tools_cpp</test_depend>
-  <test_depend>rcpputils</test_depend>
   <test_depend>rmw</test_depend>
   <test_depend>rmw_implementation_cmake</test_depend>
   <test_depend>rosidl_runtime_cpp</test_depend>
