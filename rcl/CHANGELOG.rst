@@ -2,6 +2,16 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove most remaining uses of ament_target_dependencies. (`#1102 <https://github.com/ros2/rcl/issues/1102>`_)
+* Just remove rcpputils::fs dependency (`#1105 <https://github.com/ros2/rcl/issues/1105>`_)
+* Decouple rosout publisher init from node init. (`#1065 <https://github.com/ros2/rcl/issues/1065>`_)
+* Cleanup the error handling in rcl_node_init. (`#1099 <https://github.com/ros2/rcl/issues/1099>`_)
+* Fix a clang warning for suspicious string concatentation. (`#1101 <https://github.com/ros2/rcl/issues/1101>`_)
+* add the link to the topic name rules. (`#1100 <https://github.com/ros2/rcl/issues/1100>`_)
+* Contributors: Chris Lalancette, Kenta Yonekura, Tomoya Fujita
+
 7.1.1 (2023-09-07)
 ------------------
 * Cut down the amount of time for test_logging_rosout. (`#1098 <https://github.com/ros2/rcl/issues/1098>`_)
