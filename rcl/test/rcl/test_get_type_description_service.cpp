@@ -57,7 +57,7 @@ static bool service_exists(
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
 
-  // Wait for a maximum of timeout seconds for the service to show up
+  // Wait for a maximum of timeout milliseconds for the service to show up
   auto start_time = std::chrono::system_clock::now();
   while (std::chrono::system_clock::now() - start_time < timeout) {
     rcl_names_and_types_t srv_names_and_types = rcl_get_zero_initialized_names_and_types();
@@ -85,7 +85,56 @@ static bool service_exists(
       }
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  return false;
+}
+
+static bool service_not_exists(
+  const rcl_node_t * node_ptr, const char * service_name,
+  const char * service_type, std::chrono::milliseconds timeout)
+{
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+
+  // Wait for a maximum of timeout milliseconds for the service to go away
+  // Note that this is not just the negation of service_exists; we actually
+  // want to wait until the service goes away
+  auto start_time = std::chrono::system_clock::now();
+  while (std::chrono::system_clock::now() - start_time < timeout) {
+    rcl_names_and_types_t srv_names_and_types = rcl_get_zero_initialized_names_and_types();
+
+    if (
+      RCL_RET_OK != rcl_get_service_names_and_types(
+        node_ptr,
+        &allocator, &srv_names_and_types))
+    {
+      return false;
+    }
+
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(RCL_RET_OK, rcl_names_and_types_fini(&srv_names_and_types));
+    });
+
+    if (srv_names_and_types.names.size == 0) {
+      return true;
+    }
+
+    if (!string_in_array(&(srv_names_and_types.names), service_name)) {
+      return true;
+    }
+
+    // If we make it here, the service name was in the array.  If the *type* isn't, then there is
+    // another service with this name, which we can ignore.
+    for (size_t i = 0; i < srv_names_and_types.names.size; ++i) {
+      if (string_in_array(&(srv_names_and_types.types[i]), service_type)) {
+        // Both the name and type were here, so the service currently exists.  Continue waiting
+        break;
+      }
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
   return false;
@@ -153,10 +202,10 @@ TEST_F(
       this->node_ptr, this->get_type_description_service_name,
       GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
   EXPECT_EQ(RCL_RET_OK, rcl_node_type_description_service_fini(this->node_ptr));
-  EXPECT_FALSE(
-    service_exists(
+  EXPECT_TRUE(
+    service_not_exists(
       this->node_ptr, this->get_type_description_service_name,
-      GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::milliseconds(100)));
+      GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
   EXPECT_EQ(RCL_RET_NOT_INIT, rcl_node_type_description_service_fini(this->node_ptr));
 
   EXPECT_EQ(RCL_RET_OK, rcl_node_type_description_service_init(this->node_ptr));
