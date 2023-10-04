@@ -533,9 +533,14 @@ TEST_F(
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
+  // Give a brief moment for publications to go through.
+  // TODO(clalancette): We should have a way to "peek" at how much data is available, without
+  // taking it.  Then we could block until we see that amount, letting us remove this sleep and
+  // the do..while loop below.
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
   // Take fewer messages than are available in the subscription
   {
-    size_t size = 3;
+    constexpr size_t size = 3;
     rmw_message_info_sequence_t message_infos;
     rmw_message_info_sequence_init(&message_infos, size, &allocator);
 
@@ -561,7 +566,7 @@ TEST_F(
       // `wait_for_subscription_to_be_ready` only ensures there's one message ready,
       // so we need to loop to guarantee that we get the three published messages.
       ASSERT_TRUE(wait_for_subscription_to_be_ready(&subscription, context_ptr, 1, 100));
-      ret = rcl_take_sequence(&subscription, 3, &messages, &message_infos, nullptr);
+      ret = rcl_take_sequence(&subscription, size, &messages, &message_infos, nullptr);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       total_messages_taken += messages.size;
       EXPECT_EQ(messages.size, message_infos.size);
