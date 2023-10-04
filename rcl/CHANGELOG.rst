@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+7.2.0 (2023-10-04)
+------------------
 * Remove most remaining uses of ament_target_dependencies. (`#1102 <https://github.com/ros2/rcl/issues/1102>`_)
 * Just remove rcpputils::fs dependency (`#1105 <https://github.com/ros2/rcl/issues/1105>`_)
 * Decouple rosout publisher init from node init. (`#1065 <https://github.com/ros2/rcl/issues/1065>`_)

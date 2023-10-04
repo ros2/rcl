@@ -2,8 +2,8 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+7.2.0 (2023-10-04)
+------------------
 * Just remove rcpputils::fs dependency (`#1105 <https://github.com/ros2/rcl/issues/1105>`_)
 * Contributors: Kenta Yonekura
 
