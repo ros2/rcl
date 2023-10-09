@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+7.3.0 (2023-10-09)
+------------------
 * Add rcl count clients, servicec & tests (`#1011 <https://github.com/ros2/rcl/issues/1011>`_)
 * Improve the reliability of test_get_type_description_service. (`#1107 <https://github.com/ros2/rcl/issues/1107>`_)
 * Contributors: Chris Lalancette, Minju, Lee
