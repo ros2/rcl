@@ -294,7 +294,7 @@ rcl_timer_call(rcl_timer_t * timer)
   // between the timer being ready and the callback being triggered
   next_call_time += period;
   // in case the timer has missed at least once cycle
-  if (next_call_time < now) {
+  if (next_call_time <= now) {
     if (0 == period) {
       // a timer with a period of zero is considered always ready
       next_call_time = now;
@@ -302,7 +302,7 @@ rcl_timer_call(rcl_timer_t * timer)
       // move the next call time forward by as many periods as necessary
       int64_t now_ahead = now - next_call_time;
       // rounding up without overflow
-      int64_t periods_ahead = 1 + (now_ahead - 1) / period;
+      int64_t periods_ahead = 1 + now_ahead / period;
       next_call_time += periods_ahead * period;
     }
   }
