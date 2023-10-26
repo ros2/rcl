@@ -1,8 +1,8 @@
 - name: thread-1
   priority: 10
   scheduling_policy: FIFO
-  core_affinity: 1
+  core_affinity: [1]
 - name: thread-2
   priority: 20
   scheduling_policy: RR
-  core_affinity: 2
+  core_affinity: [2]

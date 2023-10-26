@@ -119,10 +119,12 @@ rcutils_ret_t parse_thread_attr(
   yaml_event_t event;
   thread_attr_key_bits_t key_bits = THREAD_ATTR_KEY_BITS_NONE;
   rcutils_thread_scheduling_policy_t sched_policy;
-  int core_affinity;
+  rcutils_thread_core_affinity_t core_affinity =
+    rcutils_get_zero_initialized_thread_core_affinity();
   int priority;
   char const * name = NULL;
   rcutils_allocator_t allocator = attrs->allocator;
+  void * ret_val = NULL;
 
   while (1) {
     PARSE_WITH_CHECK_ERROR();
@@ -148,26 +150,51 @@ rcutils_ret_t parse_thread_attr(
       goto error;
     }
 
-    PARSE_WITH_CHECK_EVENT(YAML_SCALAR_EVENT);
+    PARSE_WITH_CHECK_ERROR();
 
     const char * value = (char *)event.data.scalar.value;
     yaml_scalar_style_t style = event.data.scalar.style;
     const yaml_char_t * tag = event.data.scalar.tag;
     data_types_t val_type;
-    void * ret_val = NULL;
 
     switch (key_type) {
       case THREAD_ATTR_KEY_CORE_AFFINITY:
-        ret_val = get_value(value, style, tag, &val_type, allocator);
-        if (DATA_TYPE_INT64 != val_type) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Unrecognized value for thread core affinity: %s", value);
+        if (event.type != YAML_SEQUENCE_START_EVENT) {
           ret = RCUTILS_RET_ERROR;
           goto error;
         }
-        core_affinity = ((int)*(int64_t *)(ret_val));
+        ret = rcutils_thread_core_affinity_init(&core_affinity, 0, allocator);
+        if (RCUTILS_RET_OK != ret) {
+          goto error;
+        }
+        while (1) {
+          PARSE_WITH_CHECK_ERROR();
+          if (YAML_SEQUENCE_END_EVENT == event.type) {
+            break;
+          }
+          value = (char *)event.data.scalar.value;
+          style = event.data.scalar.style;
+          tag = event.data.scalar.tag;
+          ret_val = get_value(value, style, tag, &val_type, allocator);
+          if (DATA_TYPE_INT64 != val_type) {
+            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+              "Unrecognized value for thread core affinity: %s", value);
+            ret = RCUTILS_RET_ERROR;
+            goto error;
+          }
+          size_t core_no = ((size_t)*(int64_t *)(ret_val));
+          allocator.deallocate(ret_val, allocator.state);
+          ret_val = NULL;
+          ret = rcutils_thread_core_affinity_set(&core_affinity, core_no);
+          if (RCUTILS_RET_OK != ret) {
+            goto error;
+          }
+        }
         break;
       case THREAD_ATTR_KEY_PRIORITY:
+        if (event.type != YAML_SCALAR_EVENT) {
+          goto error;
+        }
         ret_val = get_value(value, style, tag, &val_type, allocator);
         if (DATA_TYPE_INT64 != val_type) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -178,9 +205,15 @@ rcutils_ret_t parse_thread_attr(
         priority = ((int)*(int64_t *)(ret_val));
         break;
       case THREAD_ATTR_KEY_SCHEDULING_POLICY:
+        if (event.type != YAML_SCALAR_EVENT) {
+          goto error;
+        }
         sched_policy = parse_thread_attr_scheduling_policy(value);
         break;
       case THREAD_ATTR_KEY_NAME:
+        if (event.type != YAML_SCALAR_EVENT) {
+          goto error;
+        }
         if (*value == '\0') {
           RCUTILS_SET_ERROR_MSG("Empty thread name");
           ret = RCUTILS_RET_ERROR;
@@ -196,6 +229,7 @@ rcutils_ret_t parse_thread_attr(
 
     if (NULL != ret_val) {
       allocator.deallocate(ret_val, allocator.state);
+      ret_val = NULL;
     }
 
     key_bits |= (thread_attr_key_bits_t)key_type;
@@ -207,7 +241,7 @@ rcutils_ret_t parse_thread_attr(
     goto error;
   }
 
-  ret = rcutils_thread_attrs_add_attr(attrs, sched_policy, core_affinity, priority, name);
+  ret = rcutils_thread_attrs_add_attr(attrs, sched_policy, &core_affinity, priority, name);
   if (RCUTILS_RET_OK != ret) {
     goto error;
   }
@@ -219,6 +253,14 @@ rcutils_ret_t parse_thread_attr(
 error:
   if (NULL != name) {
     allocator.deallocate((char *)name, allocator.state);
+  }
+  if (NULL != ret_val) {
+    allocator.deallocate(ret_val, allocator.state);
+  }
+  if (0 < core_affinity.core_count) {
+    rcutils_ret_t tmp_ret =
+      rcutils_thread_core_affinity_fini(&core_affinity);
+    (void)tmp_ret;
   }
   return ret;
 }

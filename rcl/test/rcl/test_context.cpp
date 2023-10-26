@@ -171,11 +171,15 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), nominal) {
     rcutils_thread_attrs_t * arg_attrs = &context.global_arguments.impl->thread_attrs;
     rcutils_thread_attrs_t * ctx_attrs = &context.impl->thread_attrs;
     rcutils_ret_t ret;
+    rcutils_thread_core_affinity_t tmp_affinity =
+      rcutils_get_zero_initialized_thread_core_affinity();
 
     ret = rcutils_thread_attrs_init(ctx_attrs, rcl_get_default_allocator());
     EXPECT_EQ(RCUTILS_RET_OK, ret);
+    ret = rcutils_thread_core_affinity_init(&tmp_affinity, rcl_get_default_allocator());
+    EXPECT_EQ(RCUTILS_RET_OK, ret);
     ret = rcutils_thread_attrs_add_attr(
-      ctx_attrs, RCUTILS_THREAD_SCHEDULING_POLICY_FIFO, 1, 10, "arg");
+      ctx_attrs, RCUTILS_THREAD_SCHEDULING_POLICY_FIFO, &tmp_affinity, 10, "arg");
     EXPECT_EQ(RCUTILS_RET_OK, ret);
 
     EXPECT_EQ(ctx_attrs, rcl_context_get_thread_attrs(&context));

@@ -86,12 +86,14 @@ TEST_F(TestParserThreadAttr, success_file) {
   ASSERT_EQ(RCUTILS_RET_OK, ret);
   EXPECT_EQ(10, attrs.num_attributes);
 
-  for (int i = 0; i < 10; ++i) {
+  for (size_t i = 0; i < 10; ++i) {
     EXPECT_EQ(attrs.attributes[i].priority, i * 10);
     char buf[32];
-    snprintf(buf, sizeof(buf), "thread-%d", i);
+    snprintf(buf, sizeof(buf), "thread-%lu", i);
     EXPECT_STREQ(buf, attrs.attributes[i].name);
-    EXPECT_EQ(i, attrs.attributes[i].core_affinity);
+    EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[i].core_affinity, i));
+    EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[i].core_affinity, i + 10));
+    EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[i].core_affinity, i * i));
     EXPECT_EQ(expected_policies[i], attrs.attributes[i].scheduling_policy);
   }
 }
@@ -109,12 +111,14 @@ TEST_F(TestParserThreadAttr, success_value) {
   ASSERT_EQ(RCUTILS_RET_OK, ret);
   EXPECT_EQ(10, attrs.num_attributes);
 
-  for (int i = 0; i < 10; ++i) {
+  for (size_t i = 0; i < 10; ++i) {
     EXPECT_EQ(attrs.attributes[i].priority, i * 10);
     char buf[32];
-    snprintf(buf, sizeof(buf), "thread-%d", i);
+    snprintf(buf, sizeof(buf), "thread-%lu", i);
     EXPECT_STREQ(buf, attrs.attributes[i].name);
-    EXPECT_EQ(i, attrs.attributes[i].core_affinity);
+    EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[i].core_affinity, i));
+    EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[i].core_affinity, i + 10));
+    EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[i].core_affinity, i * i));
     EXPECT_EQ(expected_policies[i], attrs.attributes[i].scheduling_policy);
   }
 }

@@ -35,7 +35,7 @@ struct TestParseThreadAttrs : testing::Test
     attrs = rcutils_get_zero_initialized_thread_attrs();
     allocator = rcutils_get_default_allocator();
     ret = rcutils_thread_attrs_init(&attrs, allocator);
-    ASSERT_EQ(ret, RCUTILS_RET_OK);
+    ASSERT_EQ(RCUTILS_RET_OK, ret);
 
     int parser_ret = yaml_parser_initialize(&parser);
     ASSERT_NE(0, parser_ret);
@@ -78,7 +78,7 @@ TEST_F(TestParseThreadAttr, success) {
   yaml_event_t event;
 
   prepare_yaml_parser(
-    "{ priority: 10, name: thread-1, core_affinity: 1, scheduling_policy: FIFO }");
+    "{ priority: 10, name: thread-1, core_affinity: [1], scheduling_policy: FIFO }");
 
   ret = parse_thread_attr(&parser, &attrs);
   EXPECT_EQ(RCUTILS_RET_OK, ret);
@@ -86,7 +86,7 @@ TEST_F(TestParseThreadAttr, success) {
   EXPECT_EQ(1, attrs.num_attributes);
   EXPECT_EQ(10, attrs.attributes[0].priority);
   EXPECT_STREQ("thread-1", attrs.attributes[0].name);
-  EXPECT_EQ(1, attrs.attributes[0].core_affinity);
+  EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[0].core_affinity, 1));
   EXPECT_EQ(RCUTILS_THREAD_SCHEDULING_POLICY_FIFO, attrs.attributes[0].scheduling_policy);
 
   int parser_ret;
@@ -102,7 +102,7 @@ TEST_F(TestParseThreadAttr, unknown_key) {
   rcutils_ret_t ret;
 
   prepare_yaml_parser(
-    "{ priority: 10, name: thread-1, core_affinity: 1, unknown_key: FIFO }");
+    "{ priority: 10, name: thread-1, core_affinity: [1], unknown_key: FIFO }");
 
   ret = parse_thread_attr(&parser, &attrs);
   EXPECT_EQ(RCUTILS_RET_ERROR, ret);
@@ -112,7 +112,8 @@ TEST_F(TestParseThreadAttr, all_valid_keys_with_unknown_key) {
   rcutils_ret_t ret;
 
   prepare_yaml_parser(
-    "{ priority: 10, name: thread-1, core_affinity: 1, scheduling_policy: FIFO, unknown_key: RR }");
+    "{ priority: 10, name: thread-1, core_affinity: [1], "
+    "scheduling_policy: FIFO, unknown_key: RR }");
 
   ret = parse_thread_attr(&parser, &attrs);
   EXPECT_EQ(RCUTILS_RET_ERROR, ret);
@@ -127,15 +128,6 @@ TEST_F(TestParseThreadAttr, missing_key_value) {
   EXPECT_EQ(RCUTILS_RET_ERROR, ret);
 }
 
-TEST_F(TestParseThreadAttr, not_acceptable_mapping) {
-  rcutils_ret_t ret;
-  prepare_yaml_parser(
-    "{ priority: 10, name: thread-1, core_affinity: [1,2,3], scheduling_policy: FIFO }");
-
-  ret = parse_thread_attr(&parser, &attrs);
-  EXPECT_EQ(RCUTILS_RET_ERROR, ret);
-}
-
 TEST_F(TestParseThreadAttrs, success) {
   rcutils_ret_t ret;
 
@@ -144,7 +136,7 @@ TEST_F(TestParseThreadAttrs, success) {
   for (std::size_t i = 0; i < 100; ++i) {
     ss << "{ priority: " << i * 10;
     ss << ", name: thread-" << i;
-    ss << ", core_affinity: " << i;
+    ss << ", core_affinity: [" << i << "]";
     ss << ", scheduling_policy: FIFO },";
   }
   ss << "]";
@@ -162,7 +154,21 @@ TEST_F(TestParseThreadAttrs, success) {
     ss << "thread-" << i;
     buf = ss.str();
     EXPECT_STREQ(buf.c_str(), attrs.attributes[i].name);
-    EXPECT_EQ(i, attrs.attributes[i].core_affinity);
+    EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[i].core_affinity, i));
     EXPECT_EQ(RCUTILS_THREAD_SCHEDULING_POLICY_FIFO, attrs.attributes[i].scheduling_policy);
   }
+}
+
+TEST_F(TestParseThreadAttr, affinity_multiple_core) {
+  rcutils_ret_t ret;
+  prepare_yaml_parser(
+    "{ priority: 10, name: thread-1, core_affinity: [1,2,3], scheduling_policy: FIFO }");
+
+  ret = parse_thread_attr(&parser, &attrs);
+  EXPECT_EQ(RCUTILS_RET_OK, ret);
+  EXPECT_FALSE(rcutils_thread_core_affinity_is_set(&attrs.attributes[0].core_affinity, 0));
+  EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[0].core_affinity, 1));
+  EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[0].core_affinity, 2));
+  EXPECT_TRUE(rcutils_thread_core_affinity_is_set(&attrs.attributes[0].core_affinity, 3));
+  EXPECT_FALSE(rcutils_thread_core_affinity_is_set(&attrs.attributes[0].core_affinity, 4));
 }
