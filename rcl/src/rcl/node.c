@@ -628,13 +628,7 @@ rcl_ret_t rcl_node_type_description_service_fini(rcl_node_t * node)
     return RCL_RET_NOT_INIT;
   }
 
-  const rcl_ret_t ret =
-    rcl_service_fini(&node->impl->get_type_description_service, node);
-  if (RCL_RET_OK == ret) {
-    node->impl->get_type_description_service = rcl_get_zero_initialized_service();
-  }
-
-  return ret;
+  return RCL_RET_OK;
 }
 
 rcl_ret_t rcl_node_get_type_description_service(

@@ -562,6 +562,9 @@ rcl_get_disable_loaned_message(bool * disable_loaned_message);
  * must register rcl_node_type_description_service_handle_request or a custom callback
  * to handle incoming requests, via that client's executor/waitset capabilities.
  *
+ * Note that the underlying service must be cleaned up by the caller by calling
+ * rcl_node_get_type_description_service and rcl_service_fini.
+ *
  * This will initialize the node's type cache, if it has not been initialized already.
  *
  * <hr>
@@ -611,6 +614,9 @@ rcl_ret_t rcl_node_type_description_service_fini(rcl_node_t * node);
 /**
  * On success, sets service_out to the initialized service.
  * rcl_node_type_description_service_init must be called before this.
+ *
+ * Note the caller of this function is responsible for calling 
+ * rcl_service_fini on the returned service.
  *
  * <hr>
  * Attribute          | Adherence
