@@ -579,8 +579,9 @@ void rcl_node_type_description_service_handle_request(
   response->successful = true;
 }
 
-rcl_ret_t rcl_node_type_description_service_init(rcl_service_t * service,
-                                                 const rcl_node_t * node)
+rcl_ret_t rcl_node_type_description_service_init(
+  rcl_service_t * service,
+  const rcl_node_t * node)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);

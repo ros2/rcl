@@ -163,8 +163,6 @@ public:
     rcl_node_options_t node_options = rcl_node_get_default_options();
     ret = rcl_node_init(this->node_ptr, name, "", this->context_ptr, &node_options);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_node_type_description_service_init(node_ptr);
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     const char * node_fqn = rcl_node_get_fully_qualified_name(this->node_ptr);
     snprintf(
@@ -174,9 +172,7 @@ public:
 
   void TearDown()
   {
-    rcl_ret_t ret = rcl_node_type_description_service_fini(node_ptr);
-    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    ret = rcl_node_fini(this->node_ptr);
+    rcl_ret_t ret = rcl_node_fini(this->node_ptr);
     delete this->node_ptr;
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_shutdown(this->context_ptr);
@@ -197,23 +193,26 @@ protected:
 TEST_F(
   CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION),
   test_service_init_and_fini_functions) {
-  EXPECT_TRUE(
-    service_exists(
-      this->node_ptr, this->get_type_description_service_name,
-      GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
-  EXPECT_EQ(RCL_RET_OK, rcl_node_type_description_service_fini(this->node_ptr));
+  rcl_service_t service = rcl_get_zero_initialized_service();
+
+  // Service does not initially exist
   EXPECT_TRUE(
     service_not_exists(
       this->node_ptr, this->get_type_description_service_name,
       GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
-  EXPECT_EQ(RCL_RET_NOT_INIT, rcl_node_type_description_service_fini(this->node_ptr));
 
-  EXPECT_EQ(RCL_RET_OK, rcl_node_type_description_service_init(this->node_ptr));
+  EXPECT_EQ(RCL_RET_OK, rcl_node_type_description_service_init(&service, this->node_ptr));
   EXPECT_TRUE(
     service_exists(
       this->node_ptr, this->get_type_description_service_name,
       GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
-  EXPECT_EQ(RCL_RET_ALREADY_INIT, rcl_node_type_description_service_init(this->node_ptr));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_service_fini(&service, this->node_ptr));
+  EXPECT_TRUE(
+    service_not_exists(
+      this->node_ptr, this->get_type_description_service_name,
+      GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
+  EXPECT_EQ(RCL_RET_NOT_INIT, rcl_service_fini(&service, this->node_ptr));
 }
 
 /* Basic nominal test of the ~/get_type_description service. */
@@ -221,6 +220,10 @@ TEST_F(CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION), test_service_no
   rcl_ret_t ret;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     type_description_interfaces, srv, GetTypeDescription);
+
+  // Create type description service.
+  auto service = rcl_get_zero_initialized_service();
+  EXPECT_EQ(RCL_RET_OK, rcl_node_type_description_service_init(&service, this->node_ptr));
 
   // Create client.
   rcl_client_t client = rcl_get_zero_initialized_client();
@@ -232,6 +235,9 @@ TEST_F(CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION), test_service_no
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_service_fini(&service, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(wait_for_server_to_be_available(this->node_ptr, &client, 10, 1000));
@@ -262,8 +268,8 @@ TEST_F(CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION), test_service_no
 
   // This scope simulates handling request in a different context
   {
-    auto service = &node_ptr->impl->get_type_description_service;
-    ASSERT_TRUE(wait_for_service_to_be_ready(service, context_ptr, 10, 100));
+    auto * service_ptr = &service;
+    ASSERT_TRUE(wait_for_service_to_be_ready(service_ptr, context_ptr, 10, 100));
 
     type_description_interfaces__srv__GetTypeDescription_Response service_response;
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -278,7 +284,7 @@ TEST_F(CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION), test_service_no
       type_description_interfaces__srv__GetTypeDescription_Request__fini(&service_request);
     });
     rmw_service_info_t header;
-    ret = rcl_take_request_with_info(service, &header, &service_request);
+    ret = rcl_take_request_with_info(service_ptr, &header, &service_request);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     rcl_node_type_description_service_handle_request(
@@ -287,7 +293,7 @@ TEST_F(CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION), test_service_no
       &service_request,
       &service_response);
 
-    ret = rcl_send_response(service, &header.request_id, &service_response);
+    ret = rcl_send_response(service_ptr, &header.request_id, &service_response);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
@@ -315,6 +321,10 @@ TEST_F(
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     type_description_interfaces, srv, GetTypeDescription);
 
+  // Create type description service.
+  auto service = rcl_get_zero_initialized_service();
+  EXPECT_EQ(RCL_RET_OK, rcl_node_type_description_service_init(&service, this->node_ptr));
+
   // Create client.
   rcl_client_t client = rcl_get_zero_initialized_client();
   rcl_client_options_t client_options = rcl_client_get_default_options();
@@ -325,6 +335,9 @@ TEST_F(
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_ret_t ret = rcl_client_fini(&client, this->node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_service_fini(&service, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
   ASSERT_TRUE(wait_for_server_to_be_available(this->node_ptr, &client, 10, 1000));
@@ -346,8 +359,8 @@ TEST_F(
 
   // This scope simulates handling request in a different context
   {
-    auto service = &node_ptr->impl->get_type_description_service;
-    ASSERT_TRUE(wait_for_service_to_be_ready(service, context_ptr, 10, 100));
+    auto * service_ptr = &service;
+    ASSERT_TRUE(wait_for_service_to_be_ready(service_ptr, context_ptr, 10, 100));
 
     type_description_interfaces__srv__GetTypeDescription_Response service_response;
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -362,7 +375,7 @@ TEST_F(
       type_description_interfaces__srv__GetTypeDescription_Request__fini(&service_request);
     });
     rmw_service_info_t header;
-    ret = rcl_take_request_with_info(service, &header, &service_request);
+    ret = rcl_take_request_with_info(service_ptr, &header, &service_request);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
     rcl_node_type_description_service_handle_request(
@@ -371,7 +384,7 @@ TEST_F(
       &service_request,
       &service_response);
 
-    ret = rcl_send_response(service, &header.request_id, &service_response);
+    ret = rcl_send_response(service_ptr, &header.request_id, &service_response);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
