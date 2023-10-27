@@ -988,6 +988,91 @@ TEST_F(TestPreInitTimer, test_timer_get_period) {
   rcl_reset_error();
 }
 
+TEST_F(TestPreInitTimer, test_timer_info) {
+  int64_t next_call_start = 0;
+  int64_t old_period = 0;
+  times_called = 0;
+  rcl_timer_call_info_t call_info;
+  call_info.actual_call_time = 0;
+  call_info.expected_call_time = 0;
+  int64_t period = RCL_MS_TO_NS(10);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_exchange_period(&timer, period, &old_period));
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call_with_info(&timer, &call_info)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 1);
+
+  int64_t next_expected_call_time = call_info.expected_call_time + period;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_start));
+  std::this_thread::sleep_for(std::chrono::nanoseconds(next_call_start));
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call_with_info(&timer, &call_info)) << rcl_get_error_string().str;
+  ASSERT_EQ(next_expected_call_time, call_info.expected_call_time);
+  ASSERT_GE(call_info.actual_call_time, call_info.expected_call_time);
+  EXPECT_EQ(times_called, 2);
+
+  next_expected_call_time = call_info.expected_call_time + period;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_start));
+  std::this_thread::sleep_for(std::chrono::nanoseconds(next_call_start));
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call_with_info(&timer, &call_info)) << rcl_get_error_string().str;
+  ASSERT_EQ(next_expected_call_time, call_info.expected_call_time);
+  ASSERT_GE(call_info.actual_call_time, call_info.expected_call_time);
+  EXPECT_EQ(times_called, 3);
+
+  next_expected_call_time = call_info.expected_call_time + period;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_cancel(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_TIMER_CANCELED, rcl_timer_call(&timer));
+  rcl_reset_error();
+  EXPECT_EQ(times_called, 3);
+}
+
+TEST_F(TestPreInitTimer, test_timer_info_detect_overrun) {
+  int64_t next_call_start = 0;
+  int64_t old_period = 0;
+  times_called = 0;
+  rcl_timer_call_info_t call_info;
+  call_info.actual_call_time = 0;
+  call_info.expected_call_time = 0;
+  int64_t period = RCL_MS_TO_NS(10);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_exchange_period(&timer, period, &old_period));
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call_with_info(&timer, &call_info)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 1);
+
+  int64_t next_expected_call_time = call_info.expected_call_time + period;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_start));
+  std::this_thread::sleep_for(std::chrono::nanoseconds(next_call_start + period));
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call_with_info(&timer, &call_info)) << rcl_get_error_string().str;
+  ASSERT_EQ(next_expected_call_time, call_info.expected_call_time);
+  ASSERT_GE(call_info.actual_call_time, call_info.expected_call_time);
+  // check, if we can detect a timer overrun
+  ASSERT_GE(call_info.actual_call_time - call_info.expected_call_time, period);
+  EXPECT_EQ(times_called, 2);
+
+  // check, if the expected_call_time for next call is as expected, and skips a period
+  next_expected_call_time = call_info.expected_call_time + period + period;
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_get_time_until_next_call(&timer, &next_call_start));
+  std::this_thread::sleep_for(std::chrono::nanoseconds(next_call_start));
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call_with_info(&timer, &call_info)) << rcl_get_error_string().str;
+  ASSERT_EQ(next_expected_call_time, call_info.expected_call_time);
+  ASSERT_GE(call_info.actual_call_time, call_info.expected_call_time);
+  EXPECT_EQ(times_called, 3);
+
+  EXPECT_EQ(RCL_RET_OK, rcl_timer_cancel(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(RCL_RET_TIMER_CANCELED, rcl_timer_call(&timer));
+  rcl_reset_error();
+  EXPECT_EQ(times_called, 3);
+}
+
 TEST_F(TestPreInitTimer, test_time_since_last_call) {
   rcl_time_point_value_t time_sice_next_call_start = 0u;
   rcl_time_point_value_t time_sice_next_call_end = 0u;
