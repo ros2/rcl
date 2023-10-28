@@ -201,18 +201,22 @@ TEST_F(
       this->node_ptr, this->get_type_description_service_name,
       GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
 
+  // Once the type descrition service is init, then it appear in the graph
   EXPECT_EQ(RCL_RET_OK, rcl_node_type_description_service_init(&service, this->node_ptr));
   EXPECT_TRUE(
     service_exists(
       this->node_ptr, this->get_type_description_service_name,
       GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
 
+  // Once the type description service is fini, then it no longer appears in the graph
   EXPECT_EQ(RCL_RET_OK, rcl_service_fini(&service, this->node_ptr));
   EXPECT_TRUE(
     service_not_exists(
       this->node_ptr, this->get_type_description_service_name,
       GET_TYPE_DESCRIPTION_SRV_TYPE_NAME, std::chrono::seconds(5)));
-  EXPECT_EQ(RCL_RET_NOT_INIT, rcl_service_fini(&service, this->node_ptr));
+
+  // Repeatedly destroying the service should not cause faults.
+  EXPECT_EQ(RCL_RET_OK, rcl_service_fini(&service, this->node_ptr));
 }
 
 /* Basic nominal test of the ~/get_type_description service. */
