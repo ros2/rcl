@@ -573,6 +573,7 @@ rcl_get_disable_loaned_message(bool * disable_loaned_message);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
+ * \param[in] service the handle to the type description service to be initialized
  * \param[in] node handle to the node for which to initialize the service
  * \return #RCL_RET_OK if the service was successfully initialized, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
