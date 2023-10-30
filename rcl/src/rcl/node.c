@@ -194,7 +194,6 @@ rcl_node_init(
     node->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto fail);
   node->impl->options = rcl_node_get_default_options();
   node->impl->registered_types_by_type_hash = rcutils_get_zero_initialized_hash_map();
-  node->impl->get_type_description_service = rcl_get_zero_initialized_service();
   node->context = context;
   // Initialize node impl.
   ret = rcl_node_options_copy(options, &(node->impl->options));
@@ -580,14 +579,15 @@ void rcl_node_type_description_service_handle_request(
   response->successful = true;
 }
 
-rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node)
+rcl_ret_t rcl_node_type_description_service_init(
+  rcl_service_t * service,
+  const rcl_node_t * node)
 {
+  RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
 
-  rcl_ret_t ret;
-
-  if (rcl_service_is_valid(&node->impl->get_type_description_service)) {
+  if (rcl_service_is_valid(service)) {
     return RCL_RET_ALREADY_INIT;
   }
   rcl_reset_error();  // Reset the error message set by rcl_service_is_valid()
@@ -601,7 +601,7 @@ rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node)
   rcl_allocator_t allocator = node->context->impl->allocator;
 
   // Construct service name
-  ret = rcl_node_resolve_name(
+  rcl_ret_t ret = rcl_node_resolve_name(
     node, "~/get_type_description",
     allocator, true, true, &service_name);
   if (RCL_RET_OK != ret) {
@@ -612,43 +612,9 @@ rcl_ret_t rcl_node_type_description_service_init(rcl_node_t * node)
 
   // Initialize service
   ret = rcl_service_init(
-    &node->impl->get_type_description_service, node,
+    service, node,
     type_support, service_name, &service_ops);
   allocator.deallocate(service_name, allocator.state);
 
   return ret;
-}
-
-rcl_ret_t rcl_node_type_description_service_fini(rcl_node_t * node)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
-  if (!rcl_service_is_valid(&node->impl->get_type_description_service)) {
-    rcl_reset_error();
-    return RCL_RET_NOT_INIT;
-  }
-
-  const rcl_ret_t ret =
-    rcl_service_fini(&node->impl->get_type_description_service, node);
-  if (RCL_RET_OK == ret) {
-    node->impl->get_type_description_service = rcl_get_zero_initialized_service();
-  }
-
-  return ret;
-}
-
-rcl_ret_t rcl_node_get_type_description_service(
-  const rcl_node_t * node,
-  rcl_service_t ** service_out)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
-  RCL_CHECK_ARGUMENT_FOR_NULL(service_out, RCL_RET_SERVICE_INVALID);
-
-  if (!rcl_service_is_valid(&node->impl->get_type_description_service)) {
-    return RCL_RET_NOT_INIT;
-  }
-
-  *service_out = &node->impl->get_type_description_service;
-  return RCL_RET_OK;
 }
