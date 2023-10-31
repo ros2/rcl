@@ -288,16 +288,6 @@ function(test_target)
 
   # Launch tests
 
-  rcl_add_custom_executable(service_fixture${target_suffix}
-    SRCS rcl/service_fixture.cpp
-    LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS} rcutils::rcutils
-  )
-
-  rcl_add_custom_executable(client_fixture${target_suffix}
-    SRCS rcl/client_fixture.cpp
-    LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-  )
-
   rcl_add_custom_launch_test(test_services
     service_fixture
     client_fixture
@@ -349,6 +339,18 @@ target_include_directories(wait_for_entity_helpers PRIVATE
 target_link_libraries(wait_for_entity_helpers PUBLIC ${PROJECT_NAME})
 target_link_libraries(wait_for_entity_helpers PRIVATE
   rcutils::rcutils)
+
+# Launch test executables
+
+rcl_add_custom_executable(service_fixture
+  SRCS rcl/service_fixture.cpp
+  LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS} rcutils::rcutils
+)
+
+rcl_add_custom_executable(client_fixture
+  SRCS rcl/client_fixture.cpp
+  LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
+)
 
 call_for_each_rmw_implementation(test_target)
 
