@@ -715,6 +715,36 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   }
 }
 
+<<<<<<< HEAD
+=======
+TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_option) {
+  {
+    rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    EXPECT_TRUE(subscription_options.disable_loaned_message);
+  }
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "1"));
+    rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    EXPECT_TRUE(subscription_options.disable_loaned_message);
+  }
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "2"));
+    rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    EXPECT_TRUE(subscription_options.disable_loaned_message);
+  }
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "Unexpected"));
+    rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    EXPECT_TRUE(subscription_options.disable_loaned_message);
+  }
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_DISABLE_LOANED_MESSAGES", "0"));
+    rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    EXPECT_FALSE(subscription_options.disable_loaned_message);
+  }
+}
+
+>>>>>>> 1b01127 (Set disable loan to on by default. (#1110))
 TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loan_disable) {
   rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
   const rosidl_message_type_support_t * ts =

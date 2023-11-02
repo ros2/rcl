@@ -206,6 +206,10 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node);
  * - qos = rmw_qos_profile_default
  * - allocator = rcl_get_default_allocator()
  * - rmw_subscription_options = rmw_get_default_subscription_options();
+<<<<<<< HEAD
+=======
+ * - disable_loaned_message = true, false only if ROS_DISABLE_LOANED_MESSAGES=0
+>>>>>>> 1b01127 (Set disable loan to on by default. (#1110))
  *
  * \return A structure containing the default options for a subscription.
  */
