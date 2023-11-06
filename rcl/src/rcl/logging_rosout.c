@@ -442,7 +442,7 @@ rcl_logging_rosout_add_sublogger(
   RCL_CHECK_ARGUMENT_FOR_NULL(sublogger_name, RCL_RET_INVALID_ARGUMENT);
   rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
   if (RCUTILS_RET_NOT_FOUND == rcutils_ret) {
-    return RCL_RET_OK;
+    return RCL_RET_NOT_FOUND;
   }
 
   status =
@@ -528,7 +528,7 @@ rcl_logging_rosout_remove_sublogger(
   }
 
   if (!rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
-    status = RCL_RET_OK;
+    status = RCL_RET_NOT_FOUND;
     goto cleanup;
   }
 
