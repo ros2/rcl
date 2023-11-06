@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+8.0.0 (2023-11-06)
+------------------
 * Set disable loan to on by default. (`#1110 <https://github.com/ros2/rcl/issues/1110>`_)
 * Return service from node_type_description_service_init (`#1112 <https://github.com/ros2/rcl/issues/1112>`_)
 * next_call_time will always be greater than now after calling rcl_timer_call. (`#1089 <https://github.com/ros2/rcl/issues/1089>`_)
