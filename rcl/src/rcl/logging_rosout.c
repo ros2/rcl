@@ -15,6 +15,7 @@
 #include "rcl/logging_rosout.h"
 
 #include "rcl/allocator.h"
+#include "rcl/common.h"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcl/publisher.h"
@@ -441,8 +442,11 @@ rcl_logging_rosout_add_sublogger(
   RCL_CHECK_ARGUMENT_FOR_NULL(logger_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(sublogger_name, RCL_RET_INVALID_ARGUMENT);
   rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
-  if (RCUTILS_RET_NOT_FOUND == rcutils_ret) {
-    return RCL_RET_NOT_FOUND;
+  if (RCL_RET_OK != (status = rcl_convert_rcutils_ret_to_rcl_ret(rcutils_ret))) {
+    if (RCL_RET_NOT_FOUND == status) {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to get logger entry for '%s'.", logger_name);
+    }
+    return status;
   }
 
   status =
@@ -529,6 +533,7 @@ rcl_logging_rosout_remove_sublogger(
 
   if (!rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
     status = RCL_RET_NOT_FOUND;
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Logger for '%s' not found.", full_sublogger_name);
     goto cleanup;
   }
 
