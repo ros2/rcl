@@ -42,17 +42,10 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
 bool is_connext =
   std::string(rmw_get_implementation_identifier()).find("rmw_connext") == 0;
 
-class CLASSNAME (TestGraphFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestGraphFixture : public ::testing::Test
 {
 public:
   rcl_context_t * old_context_ptr;
@@ -148,10 +141,7 @@ public:
  *
  * This does not test content of the rcl_names_and_types_t structure.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_and_destroy_topic_names_and_types
-) {
+TEST_F(TestGraphFixture, test_rcl_get_and_destroy_topic_names_and_types) {
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -199,10 +189,7 @@ TEST_F(
  *
  * This does not test content of the rcl_names_and_types_t structure.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_service_names_and_types
-) {
+TEST_F(TestGraphFixture, test_rcl_get_service_names_and_types) {
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -248,10 +235,7 @@ TEST_F(
 
 /* Test the rcl_names_and_types_init function.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_names_and_types_init
-) {
+TEST_F(TestGraphFixture, test_rcl_names_and_types_init) {
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -290,10 +274,7 @@ TEST_F(
  *
  * This does not test content of the response.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_publisher_names_and_types_by_node
-) {
+TEST_F(TestGraphFixture, test_rcl_get_publisher_names_and_types_by_node) {
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -381,10 +362,7 @@ TEST_F(
  *
  * This does not test content of the response.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_subscriber_names_and_types_by_node
-) {
+TEST_F(TestGraphFixture, test_rcl_get_subscriber_names_and_types_by_node) {
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -469,10 +447,7 @@ TEST_F(
  *
  * This does not test content of the response.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_service_names_and_types_by_node
-) {
+TEST_F(TestGraphFixture, test_rcl_get_service_names_and_types_by_node) {
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -557,10 +532,7 @@ TEST_F(
  *
  * This does not test content of the response.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_client_names_and_types_by_node
-) {
+TEST_F(TestGraphFixture, test_rcl_get_client_names_and_types_by_node) {
   rcl_ret_t ret;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -646,10 +618,7 @@ TEST_F(
  *
  * This does not test content of the response.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_count_publishers
-) {
+TEST_F(TestGraphFixture, test_rcl_count_publishers) {
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * topic_name = "/topic_test_rcl_count_publishers";
@@ -683,10 +652,7 @@ TEST_F(
  *
  * This does not test content of the response.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_count_subscribers
-) {
+TEST_F(TestGraphFixture, test_rcl_count_subscribers) {
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * topic_name = "/topic_test_rcl_count_subscribers";
@@ -720,10 +686,7 @@ TEST_F(
  *
  * This does not test content of the response.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_count_clients
-) {
+TEST_F(TestGraphFixture, test_rcl_count_clients) {
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * service_name = "/topic_test_rcl_count_clients";
@@ -757,10 +720,7 @@ TEST_F(
  *
  * This does not test content of the response.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_count_services
-) {
+TEST_F(TestGraphFixture, test_rcl_count_services) {
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   const char * service_name = "/topic_test_rcl_count_services";
@@ -792,10 +752,7 @@ TEST_F(
 
 /* Test the rcl_wait_for_publishers function.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_wait_for_publishers
-) {
+TEST_F(TestGraphFixture, test_rcl_wait_for_publishers) {
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -837,10 +794,7 @@ TEST_F(
 
 /* Test the rcl_wait_for_subscribers function.
  */
-TEST_F(
-  CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION),
-  test_rcl_wait_for_subscribers
-) {
+TEST_F(TestGraphFixture, test_rcl_wait_for_subscribers) {
   rcl_ret_t ret;
   rcl_node_t zero_node = rcl_get_zero_initialized_node();
   rcl_allocator_t zero_allocator = static_cast<rcl_allocator_t>(
@@ -996,7 +950,7 @@ struct expected_node_state
 /**
  * Extend the TestGraphFixture with a multi node fixture for node discovery and node-graph perspective.
  */
-class NodeGraphMultiNodeFixture : public CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION)
+class NodeGraphMultiNodeFixture : public TestGraphFixture
 {
 public:
   const char * remote_node_name = "remote_graph_node";
@@ -1008,7 +962,7 @@ public:
 
   void SetUp() override
   {
-    CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION) ::SetUp();
+    TestGraphFixture::SetUp();
     rcl_ret_t ret;
 
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -1074,7 +1028,7 @@ public:
   void TearDown() override
   {
     rcl_ret_t ret;
-    CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION) ::TearDown();
+    TestGraphFixture::TearDown();
     const rcl_node_options_t * node_ops = rcl_node_get_options(this->remote_node_ptr);
     if (rcl_logging_rosout_enabled() && node_ops->enable_rosout) {
       ret = rcl_logging_rosout_fini_publisher_for_node(this->remote_node_ptr);
@@ -1290,7 +1244,7 @@ TEST_F(NodeGraphMultiNodeFixture, test_node_info_clients)
 /*
  * Test graph queries with a hand crafted graph.
  */
-TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functions)
+TEST_F(TestGraphFixture, test_graph_query_functions)
 {
   std::string topic_name("/test_graph_query_functions__");
   std::chrono::nanoseconds now = std::chrono::system_clock::now().time_since_epoch();
@@ -1367,7 +1321,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_query_functio
  *
  * Note: this test could be impacted by other communications on the same ROS Domain.
  */
-TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_condition_trigger_check) {
+TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 #define CHECK_GUARD_CONDITION_CHANGE(EXPECTED_RESULT, TIMEOUT)   do { \
     ret = rcl_wait_set_clear(&wait_set); \
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
@@ -1534,7 +1488,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_graph_guard_conditi
 
 /* Test the rcl_service_server_is_available function.
  */
-TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_is_available) {
+TEST_F(TestGraphFixture, test_rcl_service_server_is_available) {
   rcl_ret_t ret;
   // First create a client which will be used to call the function.
   rcl_client_t client = rcl_get_zero_initialized_client();
@@ -1628,7 +1582,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_rcl_service_server_
 
 /* Test passing invalid params to server_is_available
  */
-TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_server_available) {
+TEST_F(TestGraphFixture, test_bad_server_available) {
   // Create a client which will be used to call the function.
   rcl_client_t client = rcl_get_zero_initialized_client();
   auto ts = ROSIDL_GET_SRV_TYPE_SUPPORT(test_msgs, srv, BasicTypes);
@@ -1658,7 +1612,7 @@ TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_server_availabl
 
 /* Test passing invalid params to get_node_names functions
  */
-TEST_F(CLASSNAME(TestGraphFixture, RMW_IMPLEMENTATION), test_bad_get_node_names) {
+TEST_F(TestGraphFixture, test_bad_get_node_names) {
   rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
   rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
 

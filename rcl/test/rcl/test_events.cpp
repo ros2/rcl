@@ -43,13 +43,6 @@ constexpr seconds LIVELINESS_LEASE_DURATION_IN_S = 1s;
 constexpr seconds DEADLINE_PERIOD_IN_S = 2s;
 constexpr seconds MAX_WAIT_PER_TESTCASE = 10s;
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
 #define EXPECT_OK(varname) EXPECT_EQ(varname, RCL_RET_OK) << rcl_get_error_string().str
 
 struct TestIncompatibleQosEventParams
@@ -61,8 +54,7 @@ struct TestIncompatibleQosEventParams
   std::string error_msg;
 };
 
-class CLASSNAME (TestEventFixture, RMW_IMPLEMENTATION)
-  : public ::testing::TestWithParam<TestIncompatibleQosEventParams>
+class TestEventFixture : public ::testing::TestWithParam<TestIncompatibleQosEventParams>
 {
 public:
   void SetUp()
@@ -239,8 +231,6 @@ protected:
   const char * topic = "rcl_test_publisher_subscription_events";
   const rosidl_message_type_support_t * ts;
 };
-
-using TestEventFixture = CLASSNAME(TestEventFixture, RMW_IMPLEMENTATION);
 
 const rmw_qos_profile_t TestEventFixture::default_qos_profile = {
   RMW_QOS_POLICY_HISTORY_KEEP_LAST,             // history

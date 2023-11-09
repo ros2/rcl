@@ -159,7 +159,8 @@ ament_add_gtest_executable(test_service_event_publisher
   rcl/test_service_event_publisher.cpp
 )
 target_include_directories(test_service_event_publisher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
-target_link_libraries(test_service_event_publisher ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_service_event_publisher
+  ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
 
 ament_add_gtest_executable(test_node_type_cache
   rcl/test_node_type_cache.cpp
@@ -171,7 +172,8 @@ ament_add_gtest_executable(test_get_type_description_service
   rcl/test_get_type_description_service.cpp
 )
 target_include_directories(test_get_type_description_service PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
-target_link_libraries(test_get_type_description_service ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${type_description_interfaces_TARGETS})
+target_link_libraries(test_get_type_description_service
+  ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${type_description_interfaces_TARGETS})
 
 function(test_target)
   message(STATUS "Creating tests for '${rmw_implementation}'")

@@ -24,18 +24,9 @@
 
 #include "../mocking_utils/patch.hpp"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-class CLASSNAME (TestContextFixture, RMW_IMPLEMENTATION) : public ::testing::Test {};
-
 // Test the rcl_context_t's normal function.
 // Note: that init/fini are tested in test_init.cpp.
-TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), nominal) {
+TEST(TestContext, nominal) {
   osrf_testing_tools_cpp::memory_tools::ScopedQuickstartGtest scoped_quickstart_gtest;
 
   // This prevents memory allocations when setting error states in the future.
@@ -151,7 +142,7 @@ TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), nominal) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-TEST_F(CLASSNAME(TestContextFixture, RMW_IMPLEMENTATION), bad_fini) {
+TEST(TestContext, bad_fini) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_context_fini(nullptr));
   rcl_reset_error();
 

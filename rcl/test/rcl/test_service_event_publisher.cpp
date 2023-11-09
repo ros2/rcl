@@ -37,14 +37,7 @@
 #include "test_msgs/srv/basic_types.h"
 #include "wait_for_entity_helpers.hpp"
 
-#ifdef RMW_IMPLEMENTATION
-#define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-#define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-#define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-class CLASSNAME (TestServiceEventPublisherFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestServiceEventPublisherFixture : public ::testing::Test
 {
 public:
   void SetUp() override
@@ -108,9 +101,7 @@ protected:
 
 /* Basic nominal test of service introspection features covering init, fini, and sending a message
  */
-TEST_F(
-  CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
-  test_service_event_publisher_nominal)
+TEST_F(TestServiceEventPublisherFixture, test_service_event_publisher_nominal)
 {
   rcl_service_event_publisher_t service_event_publisher =
     rcl_get_zero_initialized_service_event_publisher();
@@ -143,9 +134,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-TEST_F(
-  CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
-  test_service_event_publisher_init_and_fini)
+TEST_F(TestServiceEventPublisherFixture, test_service_event_publisher_init_and_fini)
 {
   rcl_service_event_publisher_t service_event_publisher =
     rcl_get_zero_initialized_service_event_publisher();
@@ -207,9 +196,7 @@ TEST_F(
 
 /* Test sending service introspection message via service_event_publisher.h
  */
-TEST_F(
-  CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
-  test_service_event_publisher_send_message_nominal)
+TEST_F(TestServiceEventPublisherFixture, test_service_event_publisher_send_message_nominal)
 {
   uint8_t guid[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
   auto sub_opts = rcl_subscription_get_default_options();
@@ -276,9 +263,7 @@ TEST_F(
   ASSERT_EQ(test_req.uint32_value, event_msg.request.data[0].uint32_value);
 }
 
-TEST_F(
-  CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
-  test_service_event_publisher_send_message_return_codes)
+TEST_F(TestServiceEventPublisherFixture, test_service_event_publisher_send_message_return_codes)
 {
   rcl_ret_t ret;
 
@@ -327,9 +312,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-TEST_F(
-  CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
-  test_service_event_publisher_utils)
+TEST_F(TestServiceEventPublisherFixture, test_service_event_publisher_utils)
 {
   rcl_ret_t ret;
 
@@ -368,7 +351,7 @@ TEST_F(
 }
 
 TEST_F(
-  CLASSNAME(TestServiceEventPublisherFixture, RMW_IMPLEMENTATION),
+  TestServiceEventPublisherFixture,
   test_service_event_publisher_enable_and_disable_return_codes)
 {
   rcl_ret_t ret;
@@ -404,8 +387,7 @@ TEST_F(
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-class CLASSNAME (TestServiceEventPublisherWithServicesAndClientsFixture, RMW_IMPLEMENTATION)
-  : public ::testing::Test
+class TestServiceEventPublisherWithServicesAndClientsFixture : public ::testing::Test
 {
 public:
   void SetUp()
@@ -522,7 +504,7 @@ protected:
 /* Whole test of service event publisher with service, client, and subscription
  */
 TEST_F(
-  CLASSNAME(TestServiceEventPublisherWithServicesAndClientsFixture, RMW_IMPLEMENTATION),
+  TestServiceEventPublisherWithServicesAndClientsFixture,
   test_service_event_publisher_with_subscriber)
 {
   rcl_ret_t ret;
@@ -614,7 +596,7 @@ TEST_F(
 /* Integration level test with disabling service events
  */
 TEST_F(
-  CLASSNAME(TestServiceEventPublisherWithServicesAndClientsFixture, RMW_IMPLEMENTATION),
+  TestServiceEventPublisherWithServicesAndClientsFixture,
   test_service_event_publisher_with_subscriber_disable_service_events)
 {
   rcl_ret_t ret;

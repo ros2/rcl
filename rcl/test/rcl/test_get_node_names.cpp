@@ -32,16 +32,9 @@
 
 #include "rcl/error_handling.h"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
 using namespace std::chrono_literals;
 
-class CLASSNAME (TestGetNodeNames, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestGetNodeNames : public ::testing::Test
 {
 public:
   void SetUp()
@@ -51,7 +44,7 @@ public:
   {}
 };
 
-TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names) {
+TEST_F(TestGetNodeNames, test_rcl_get_node_names) {
   rcl_ret_t ret;
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
   ret = rcl_init_options_init(&init_options, rcl_get_default_allocator());
@@ -164,8 +157,7 @@ TEST_F(CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names)
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
-TEST_F(
-  CLASSNAME(TestGetNodeNames, RMW_IMPLEMENTATION), test_rcl_get_node_names_with_enclave)
+TEST_F(TestGetNodeNames, test_rcl_get_node_names_with_enclave)
 {
   rcl_ret_t ret;
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
