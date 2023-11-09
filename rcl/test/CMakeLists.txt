@@ -119,7 +119,6 @@ target_link_libraries(test_publisher ${PROJECT_NAME} mimick osrf_testing_tools_c
 ament_add_gtest_executable(test_publisher_wait_all_ack
   rcl/test_publisher_wait_all_ack.cpp
 )
-target_include_directories(test_publisher_wait_all_ack PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
 target_link_libraries(test_publisher_wait_all_ack ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools
         rcutils::rcutils rosidl_runtime_c::rosidl_runtime_c ${test_msgs_TARGETS})
 
@@ -152,7 +151,6 @@ target_link_libraries(test_rmw_impl_id_check_func ${PROJECT_NAME} mimick)
 ament_add_gtest_executable(test_network_flow_endpoints
   rcl/test_network_flow_endpoints.cpp
 )
-target_include_directories(test_network_flow_endpoints PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
 target_link_libraries(test_network_flow_endpoints ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
 
 ament_add_gtest_executable(test_service_event_publisher
@@ -162,10 +160,15 @@ target_include_directories(test_service_event_publisher PRIVATE ${CMAKE_CURRENT_
 target_link_libraries(test_service_event_publisher
   ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
 
+ament_add_gtest_executable(test_type_description_conversions
+  rcl/test_type_description_conversions.cpp
+)
+target_link_libraries(test_type_description_conversions
+  ${PROJECT_NAME} rosidl_runtime_c::rosidl_runtime_c ${test_msgs_TARGETS})
+
 ament_add_gtest_executable(test_node_type_cache
   rcl/test_node_type_cache.cpp
 )
-target_include_directories(test_node_type_cache PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
 target_link_libraries(test_node_type_cache ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
 
 ament_add_gtest_executable(test_get_type_description_service
@@ -340,13 +343,18 @@ function(test_target)
     ENV ${rmw_implementation_env_var}
   )
 
+  rcl_add_custom_gtest_test(test_type_description_conversions${target_suffix}
+    test_type_description_conversions
+    ENV ${rmw_implementation_env_var}
+  )
+
   rcl_add_custom_gtest_test(test_node_type_cache${target_suffix}
     test_node_type_cache
     ENV ${rmw_implementation_env_var}
   )
 
-  rcl_add_custom_gtest_test(test_get_type_description_service
-    rcl/test_get_type_description_service
+  rcl_add_custom_gtest_test(test_get_type_description_service${target_suffix}
+    test_get_type_description_service
     ENV ${rmw_implementation_env_var}
   )
 
@@ -398,10 +406,9 @@ target_link_libraries(test_rmw_impl_id_check_exe ${PROJECT_NAME})
 
 # This file is used by many tests, so build it just once
 add_library(wait_for_entity_helpers STATIC rcl/wait_for_entity_helpers.cpp)
-target_include_directories(wait_for_entity_helpers PRIVATE
-  ${osrf_testing_tools_cpp_INCLUDE_DIRS})
 target_link_libraries(wait_for_entity_helpers PUBLIC ${PROJECT_NAME})
 target_link_libraries(wait_for_entity_helpers PRIVATE
+  osrf_testing_tools_cpp::memory_tools
   rcutils::rcutils)
 
 # Launch test executables
@@ -417,13 +424,6 @@ rcl_add_custom_executable(client_fixture
 )
 
 call_for_each_rmw_implementation(test_target)
-
-rcl_add_custom_gtest(test_type_description_conversions
-  SRCS rcl/test_type_description_conversions.cpp
-  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-  LIBRARIES ${PROJECT_NAME} ${test_msgs_TARGETS}
-)
 
 rcl_add_custom_gtest(test_arguments
   SRCS rcl/test_arguments.cpp
