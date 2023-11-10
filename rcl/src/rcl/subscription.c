@@ -23,6 +23,7 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#include "rcutils/env.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rcutils/types/string_array.h"
@@ -736,9 +737,24 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription)
     return false;  // error message already set
   }
 
-  bool disable_loaned_message = false;
-  rcl_ret_t ret = rcl_get_disable_loaned_message(&disable_loaned_message);
-  if (ret == RCL_RET_OK && disable_loaned_message) {
+  // Load disable flag to LoanedMessage via environmental variable.
+  // TODO(clalancette): This is kind of a copy of rcl_get_disable_loaned_message(), but we need
+  // more information than that function provides.
+  bool disable_loaned_message = true;
+
+  const char * env_val = NULL;
+  const char * env_error_str = rcutils_get_env(RCL_DISABLE_LOANED_MESSAGES_ENV_VAR, &env_val);
+  if (NULL != env_error_str) {
+    RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to get disable_loaned_message: ");
+    RCUTILS_SAFE_FWRITE_TO_STDERR_WITH_FORMAT_STRING(
+      "Error getting env var: '" RCUTILS_STRINGIFY(RCL_DISABLE_LOANED_MESSAGES_ENV_VAR) "': %s\n",
+      env_error_str);
+    return RCL_RET_ERROR;
+  } else {
+    disable_loaned_message = !(strcmp(env_val, "0") == 0);
+  }
+
+  if (disable_loaned_message) {
     return false;
   }
 
