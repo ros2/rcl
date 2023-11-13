@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+5.3.6 (2023-11-13)
+------------------
+* Set disable loan to on by default. (backport `#1110 <https://github.com/ros2/rcl/issues/1110>`_) (`#1116 <https://github.com/ros2/rcl/issues/1116>`_)
+* Contributors: mergify[bot]
+
 5.3.5 (2023-09-19)
 ------------------
 * rcl_send_response returns RCL_RET_TIMEOUT. (backport `#1048 <https://github.com/ros2/rcl/issues/1048>`_) (`#1091 <https://github.com/ros2/rcl/issues/1091>`_)
