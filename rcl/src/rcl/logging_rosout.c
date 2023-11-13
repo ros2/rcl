@@ -442,11 +442,11 @@ rcl_logging_rosout_add_sublogger(
   RCL_CHECK_ARGUMENT_FOR_NULL(logger_name, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(sublogger_name, RCL_RET_INVALID_ARGUMENT);
   rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
-  if (RCL_RET_OK != (status = rcl_convert_rcutils_ret_to_rcl_ret(rcutils_ret))) {
-    if (RCL_RET_NOT_FOUND == status) {
+  if (RCUTILS_RET_OK != rcutils_ret) {
+    if (RCUTILS_RET_NOT_FOUND == rcutils_ret) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to get logger entry for '%s'.", logger_name);
     }
-    return status;
+    return rcl_convert_rcutils_ret_to_rcl_ret(rcutils_ret);
   }
 
   status =
