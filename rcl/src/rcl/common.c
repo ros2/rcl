@@ -57,6 +57,8 @@ rcl_convert_rcutils_ret_to_rcl_ret(rcutils_ret_t rcutils_ret)
       return RCL_RET_INVALID_ARGUMENT;
     case RCUTILS_RET_NOT_INITIALIZED:
       return RCL_RET_NOT_INIT;
+    case RCUTILS_RET_NOT_FOUND:
+      return RCL_RET_NOT_FOUND;
     default:
       return RCL_RET_ERROR;
   }

@@ -15,6 +15,7 @@
 #include "rcl/logging_rosout.h"
 
 #include "rcl/allocator.h"
+#include "rcl/common.h"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcl/publisher.h"
@@ -438,18 +439,21 @@ rcl_logging_rosout_add_sublogger(
   rosout_map_entry_t entry;
   rosout_sublogger_entry_t sublogger_entry;
 
+  RCL_CHECK_ARGUMENT_FOR_NULL(logger_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(sublogger_name, RCL_RET_INVALID_ARGUMENT);
+  rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
+  if (RCUTILS_RET_OK != rcutils_ret) {
+    if (RCUTILS_RET_NOT_FOUND == rcutils_ret) {
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Failed to get logger entry for '%s'.", logger_name);
+    }
+    return rcl_convert_rcutils_ret_to_rcl_ret(rcutils_ret);
+  }
+
   status =
     _rcl_logging_rosout_get_full_sublogger_name(logger_name, sublogger_name, &full_sublogger_name);
   if (RCL_RET_OK != status) {
     // Error already set
     return status;
-  }
-
-  rcutils_ret_t rcutils_ret = rcutils_hash_map_get(&__logger_map, &logger_name, &entry);
-  if (RCUTILS_RET_OK != rcutils_ret) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("The entry of logger '%s' not exist.", logger_name);
-    status = RCL_RET_ERROR;
-    goto cleanup;
   }
 
   if (rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
@@ -517,6 +521,8 @@ rcl_logging_rosout_remove_sublogger(
   rcl_ret_t status = RCL_RET_OK;
   char * full_sublogger_name = NULL;
   rosout_sublogger_entry_t sublogger_entry;
+  RCL_CHECK_ARGUMENT_FOR_NULL(logger_name, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(sublogger_name, RCL_RET_INVALID_ARGUMENT);
 
   status =
     _rcl_logging_rosout_get_full_sublogger_name(logger_name, sublogger_name, &full_sublogger_name);
@@ -525,13 +531,13 @@ rcl_logging_rosout_remove_sublogger(
     return status;
   }
 
-  // remove the entry from the map
   if (!rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
-    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Sub-logger '%s' not exist.", full_sublogger_name);
-    status = RCL_RET_ERROR;
+    status = RCL_RET_NOT_FOUND;
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Logger for '%s' not found.", full_sublogger_name);
     goto cleanup;
   }
 
+  // remove the entry from the map
   status = rcl_ret_from_rcutils_ret(
     rcutils_hash_map_get(&__sublogger_map, &full_sublogger_name, &sublogger_entry));
   if (RCL_RET_OK != status) {
