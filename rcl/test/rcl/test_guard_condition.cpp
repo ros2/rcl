@@ -28,19 +28,12 @@
 
 #include "../mocking_utils/patch.hpp"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
 using osrf_testing_tools_cpp::memory_tools::on_unexpected_malloc;
 using osrf_testing_tools_cpp::memory_tools::on_unexpected_realloc;
 using osrf_testing_tools_cpp::memory_tools::on_unexpected_calloc;
 using osrf_testing_tools_cpp::memory_tools::on_unexpected_free;
 
-class CLASSNAME (TestGuardConditionFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestGuardConditionFixture : public ::testing::Test
 {
 public:
   void SetUp()
@@ -60,8 +53,7 @@ public:
 
 /* Tests the guard condition accessors, i.e. rcl_guard_condition_get_* functions.
  */
-TEST_F(
-  CLASSNAME(TestGuardConditionFixture, RMW_IMPLEMENTATION), test_rcl_guard_condition_accessors) {
+TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
   osrf_testing_tools_cpp::memory_tools::enable_monitoring_in_all_threads();
 
   rcl_ret_t ret;
@@ -135,8 +127,7 @@ TEST_F(
 
 /* Tests the guard condition life cycle, including rcl_guard_condition_init/fini().
  */
-TEST_F(
-  CLASSNAME(TestGuardConditionFixture, RMW_IMPLEMENTATION), test_rcl_guard_condition_life_cycle) {
+TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_life_cycle) {
   rcl_ret_t ret;
   rcl_context_t context = rcl_get_zero_initialized_context();
   rcl_guard_condition_t guard_condition = rcl_get_zero_initialized_guard_condition();
@@ -243,8 +234,7 @@ TEST_F(
 
 /* Tests trigger_guard_condition with bad arguments
  */
-TEST_F(
-  CLASSNAME(TestGuardConditionFixture, RMW_IMPLEMENTATION), test_rcl_guard_condition_bad_arg) {
+TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_bad_arg) {
   rcl_guard_condition_t zero_guard_condition = rcl_get_zero_initialized_guard_condition();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_trigger_guard_condition(nullptr));
   rcl_reset_error();

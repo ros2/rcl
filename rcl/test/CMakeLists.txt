@@ -42,88 +42,190 @@ endif()
 # prevents finding it repeatedly in each local scope
 ament_find_gtest()
 
-macro(test_target)
-  find_package(${rmw_implementation} REQUIRED)
-  test_target_function()
-endmacro()
+ament_add_gtest_executable(test_client
+  rcl/test_client.cpp
+)
+target_link_libraries(test_client ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
 
-function(test_target_function)
+ament_add_gtest_executable(test_timer
+  rcl/test_timer.cpp
+)
+target_link_libraries(test_timer ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools)
+
+ament_add_gtest_executable(test_context
+  rcl/test_context.cpp
+)
+target_link_libraries(test_context ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools)
+
+ament_add_gtest_executable(test_get_node_names
+  rcl/test_get_node_names.cpp
+)
+target_link_libraries(test_get_node_names ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools)
+
+ament_add_gtest_executable(test_graph
+  rcl/test_graph.cpp
+)
+target_link_libraries(test_graph ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_info_by_topic
+  rcl/test_info_by_topic.cpp
+)
+target_link_libraries(test_info_by_topic ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_count_matched
+  rcl/test_count_matched.cpp
+)
+target_link_libraries(test_count_matched ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_get_actual_qos
+  rcl/test_get_actual_qos.cpp
+)
+target_link_libraries(test_get_actual_qos ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+
+ament_add_gtest_executable(test_init
+  rcl/test_init.cpp
+)
+target_link_libraries(test_init ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools)
+
+ament_add_gtest_executable(test_node
+    rcl/test_node.cpp
+)
+target_link_libraries(test_node ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools)
+
+ament_add_gtest_executable(test_remap
+  rcl/test_remap.cpp
+)
+target_include_directories(test_remap PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
+target_link_libraries(test_remap ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools)
+
+ament_add_gtest_executable(test_remap_integration
+  rcl/test_remap_integration.cpp
+)
+target_link_libraries(test_remap_integration ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_guard_condition
+  rcl/test_guard_condition.cpp
+)
+target_link_libraries(test_guard_condition ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools)
+
+ament_add_gtest_executable(test_publisher
+  rcl/test_publisher.cpp
+)
+target_include_directories(test_publisher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
+target_link_libraries(test_publisher ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_publisher_wait_all_ack
+  rcl/test_publisher_wait_all_ack.cpp
+)
+target_link_libraries(test_publisher_wait_all_ack ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools
+        rcutils::rcutils rosidl_runtime_c::rosidl_runtime_c ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_events
+  rcl/test_events.cpp
+)
+target_include_directories(test_events PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
+target_link_libraries(test_events ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_wait
+  rcl/test_wait.cpp
+)
+target_link_libraries(test_wait ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools)
+
+ament_add_gtest_executable(test_logging_rosout
+  rcl/test_logging_rosout.cpp
+)
+target_link_libraries(test_logging_rosout ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${rcl_interfaces_TARGETS})
+
+ament_add_gtest_executable(test_namespace
+  rcl/test_namespace.cpp
+)
+target_link_libraries(test_namespace ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_rmw_impl_id_check_func
+  rcl/test_rmw_impl_id_check_func.cpp
+)
+target_link_libraries(test_rmw_impl_id_check_func ${PROJECT_NAME} mimick)
+
+ament_add_gtest_executable(test_network_flow_endpoints
+  rcl/test_network_flow_endpoints.cpp
+)
+target_link_libraries(test_network_flow_endpoints ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_service_event_publisher
+  rcl/test_service_event_publisher.cpp
+)
+target_include_directories(test_service_event_publisher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
+target_link_libraries(test_service_event_publisher
+  ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_type_description_conversions
+  rcl/test_type_description_conversions.cpp
+)
+target_link_libraries(test_type_description_conversions
+  ${PROJECT_NAME} rosidl_runtime_c::rosidl_runtime_c ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_node_type_cache
+  rcl/test_node_type_cache.cpp
+)
+target_link_libraries(test_node_type_cache ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+
+ament_add_gtest_executable(test_get_type_description_service
+  rcl/test_get_type_description_service.cpp
+)
+target_include_directories(test_get_type_description_service PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
+target_link_libraries(test_get_type_description_service
+  ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${type_description_interfaces_TARGETS})
+
+function(test_target)
   message(STATUS "Creating tests for '${rmw_implementation}'")
   set(rmw_implementation_env_var RMW_IMPLEMENTATION=${rmw_implementation})
 
   # Gtests
-
-  rcl_add_custom_gtest(test_client${target_suffix}
-    SRCS rcl/test_client.cpp
+  ament_add_gtest_test(test_client
+    TEST_NAME test_client${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_timer${target_suffix}
-    SRCS rcl/test_timer.cpp
+  ament_add_gtest_test(test_timer
+    TEST_NAME test_timer${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_context${target_suffix}
-    SRCS rcl/test_context.cpp
+  ament_add_gtest_test(test_context
+    TEST_NAME test_context${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_get_node_names${target_suffix}
-    SRCS rcl/test_get_node_names.cpp
+  ament_add_gtest_test(test_get_node_names
+    TEST_NAME test_get_node_names${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_graph${target_suffix}
-    SRCS rcl/test_graph.cpp
+  ament_add_gtest_test(test_graph
+    TEST_NAME test_graph${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
     TIMEOUT 120
   )
 
-  rcl_add_custom_gtest(test_info_by_topic${target_suffix}
-    SRCS rcl/test_info_by_topic.cpp
+  ament_add_gtest_test(test_info_by_topic
+    TEST_NAME test_info_by_topic${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_count_matched${target_suffix}
-    SRCS rcl/test_count_matched.cpp
+  ament_add_gtest_test(test_count_matched
+    TEST_NAME test_count_matched${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_get_actual_qos${target_suffix}
-    SRCS rcl/test_get_actual_qos.cpp
+  ament_add_gtest_test(test_get_actual_qos
+    TEST_NAME test_get_actual_qos${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_init${target_suffix}
-    SRCS rcl/test_init.cpp
+  ament_add_gtest_test(test_init
+    TEST_NAME test_init${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   # RHEL does not support mimick's inject_on_return functionality, which
@@ -136,56 +238,36 @@ function(test_target_function)
   else()
     set(gtest_filter_env_var "")
   endif()
-  rcl_add_custom_gtest(test_node${target_suffix}
-    SRCS rcl/test_node.cpp
+  ament_add_gtest_test(test_node
+    TEST_NAME test_node${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var} ${gtest_filter_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
     TIMEOUT 240  # Large timeout to wait for fault injection tests
   )
 
-  rcl_add_custom_gtest(test_remap${target_suffix}
-    SRCS rcl/test_remap.cpp
+  ament_add_gtest_test(test_remap
+    TEST_NAME test_remap${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools
   )
 
-  rcl_add_custom_gtest(test_remap_integration${target_suffix}
-    SRCS rcl/test_remap_integration.cpp
+  ament_add_gtest_test(test_remap_integration
+    TEST_NAME test_remap_integration${target_suffix}
+    ENV ${rmw_implementation_env_var}
     TIMEOUT 200
-    ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
   )
 
-  rcl_add_custom_gtest(test_guard_condition${target_suffix}
-    SRCS rcl/test_guard_condition.cpp
+  ament_add_gtest_test(test_guard_condition
+    TEST_NAME test_guard_condition${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_publisher${target_suffix}
-    SRCS rcl/test_publisher.cpp
+  ament_add_gtest_test(test_publisher
+    TEST_NAME test_publisher${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_publisher_wait_all_ack${target_suffix}
-    SRCS rcl/test_publisher_wait_all_ack.cpp
+  ament_add_gtest_test(test_publisher_wait_all_ack
+    TEST_NAME test_publisher_wait_all_ack${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools rcutils::rcutils
-      rosidl_runtime_c::rosidl_runtime_c ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   rcl_add_custom_gtest(test_service${target_suffix}
@@ -193,7 +275,6 @@ function(test_target_function)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   rcl_add_custom_gtest(test_subscription${target_suffix}
@@ -202,7 +283,6 @@ function(test_target_function)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools rosidl_runtime_cpp::rosidl_runtime_cpp
       ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
     TIMEOUT 120
   )
   # TODO(asorbini) Enable message timestamp tests for rmw_connextdds on Windows
@@ -227,101 +307,57 @@ function(test_target_function)
     endif()
   endif()
 
-  rcl_add_custom_gtest(test_events${target_suffix}
-    SRCS rcl/test_events.cpp
+  ament_add_gtest_test(test_events
+    TEST_NAME test_events${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_wait${target_suffix}
-    SRCS rcl/test_wait.cpp
+  ament_add_gtest_test(test_wait
+    TEST_NAME test_wait${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_logging_rosout${target_suffix}
-    SRCS rcl/test_logging_rosout.cpp
+  ament_add_gtest_test(test_logging_rosout
+    TEST_NAME test_logging_rosout${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${rcl_interfaces_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_namespace${target_suffix}
-    SRCS rcl/test_namespace.cpp
+  ament_add_gtest_test(test_namespace
+    TEST_NAME test_namespace${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_rmw_impl_id_check_func${target_suffix}
-    SRCS rcl/test_rmw_impl_id_check_func.cpp
+  ament_add_gtest_test(test_rmw_impl_id_check_func
+    TEST_NAME test_rmw_impl_id_check_func${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_network_flow_endpoints${target_suffix}
-    SRCS rcl/test_network_flow_endpoints.cpp
+  ament_add_gtest_test(test_network_flow_endpoints
+    TEST_NAME test_network_flow_endpoints${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_service_event_publisher${target_suffix}
-    SRCS rcl/test_service_event_publisher.cpp
+  ament_add_gtest_test(test_service_event_publisher
+    TEST_NAME test_service_event_publisher${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_type_description_conversions${target_suffix}
-    SRCS rcl/test_type_description_conversions.cpp
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} ${test_msgs_TARGETS}
+  ament_add_gtest_test(test_type_description_conversions
+    TEST_NAME test_type_description_conversions${target_suffix}
+    ENV ${rmw_implementation_env_var}
   )
 
-  rcl_add_custom_gtest(test_node_type_cache${target_suffix}
-    SRCS rcl/test_node_type_cache.cpp
+  ament_add_gtest_test(test_node_type_cache
+    TEST_NAME test_node_type_cache${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
-  rcl_add_custom_gtest(test_get_type_description_service${target_suffix}
-    SRCS rcl/test_get_type_description_service.cpp
+  ament_add_gtest_test(test_get_type_description_service
+    TEST_NAME test_get_type_description_service${target_suffix}
     ENV ${rmw_implementation_env_var}
-    APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/
-    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${type_description_interfaces_TARGETS}
-    AMENT_DEPENDENCIES ${rmw_implementation}
   )
 
   # Launch tests
-
-  rcl_add_custom_executable(service_fixture${target_suffix}
-    SRCS rcl/service_fixture.cpp
-    LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS} rcutils::rcutils
-  )
-
-  rcl_add_custom_executable(client_fixture${target_suffix}
-    SRCS rcl/client_fixture.cpp
-    LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
-  )
 
   rcl_add_custom_launch_test(test_services
     service_fixture
@@ -369,11 +405,22 @@ target_link_libraries(test_rmw_impl_id_check_exe ${PROJECT_NAME})
 
 # This file is used by many tests, so build it just once
 add_library(wait_for_entity_helpers STATIC rcl/wait_for_entity_helpers.cpp)
-target_include_directories(wait_for_entity_helpers PRIVATE
-  ${osrf_testing_tools_cpp_INCLUDE_DIRS})
 target_link_libraries(wait_for_entity_helpers PUBLIC ${PROJECT_NAME})
 target_link_libraries(wait_for_entity_helpers PRIVATE
+  osrf_testing_tools_cpp::memory_tools
   rcutils::rcutils)
+
+# Launch test executables
+
+rcl_add_custom_executable(service_fixture
+  SRCS rcl/service_fixture.cpp
+  LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS} rcutils::rcutils
+)
+
+rcl_add_custom_executable(client_fixture
+  SRCS rcl/client_fixture.cpp
+  LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
+)
 
 call_for_each_rmw_implementation(test_target)
 

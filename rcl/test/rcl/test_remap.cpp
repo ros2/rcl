@@ -23,14 +23,7 @@
 #include "./arg_macros.hpp"
 #include "./arguments_impl.h"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-class CLASSNAME (TestRemapFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestRemapFixture : public ::testing::Test
 {
 public:
   void SetUp()
@@ -42,7 +35,7 @@ public:
   }
 };
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_namespace_replacement) {
+TEST_F(TestRemapFixture, global_namespace_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "__ns:=/foo/bar");
@@ -55,7 +48,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_namespace_replace
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_namespace_remap) {
+TEST_F(TestRemapFixture, nodename_prefix_namespace_remap) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(
@@ -92,7 +85,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_namespac
   }
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_namespace_replacement) {
+TEST_F(TestRemapFixture, no_namespace_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name");
@@ -104,7 +97,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_namespace_replacement
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_namespace_replacement_before_global) {
+TEST_F(TestRemapFixture, local_namespace_replacement_before_global) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "__ns:=/global_args");
@@ -119,7 +112,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_namespace_replacem
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_namespace_replacement) {
+TEST_F(TestRemapFixture, no_use_global_namespace_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t local_arguments;
   SCOPE_ARGS(local_arguments, "process_name");
@@ -131,7 +124,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_namespace_
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_namespace_rule) {
+TEST_F(TestRemapFixture, other_rules_before_namespace_rule) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(
@@ -150,7 +143,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_names
   allocator.deallocate(output, allocator.state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replacement) {
+TEST_F(TestRemapFixture, global_topic_name_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/bar");
@@ -172,7 +165,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_topic_name_replac
   }
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), topic_and_service_name_not_null) {
+TEST_F(TestRemapFixture, topic_and_service_name_not_null) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/bar");
@@ -195,7 +188,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), topic_and_service_name_n
   }
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_topic_name_remap) {
+TEST_F(TestRemapFixture, relative_topic_name_remap) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "foo:=bar");
@@ -208,7 +201,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_topic_name_rema
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_topic_remap) {
+TEST_F(TestRemapFixture, nodename_prefix_topic_remap) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(
@@ -245,7 +238,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_topic_re
   }
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_topic_name_replacement) {
+TEST_F(TestRemapFixture, no_use_global_topic_name_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t local_arguments;
   SCOPE_ARGS(local_arguments, "process_name");
@@ -257,7 +250,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_topic_name
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_topic_name_replacement) {
+TEST_F(TestRemapFixture, no_topic_name_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name");
@@ -269,7 +262,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_topic_name_replacemen
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_topic_replacement_before_global) {
+TEST_F(TestRemapFixture, local_topic_replacement_before_global) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/global_args");
@@ -285,7 +278,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_topic_replacement_
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_topic_rule) {
+TEST_F(TestRemapFixture, other_rules_before_topic_rule) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(
@@ -305,7 +298,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_topic
   allocator.deallocate(output, allocator.state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_service_name_replacement) {
+TEST_F(TestRemapFixture, global_service_name_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/bar");
@@ -327,7 +320,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_service_name_repl
   }
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_service_name_remap) {
+TEST_F(TestRemapFixture, relative_service_name_remap) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "foo:=bar");
@@ -340,7 +333,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), relative_service_name_re
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_service_remap) {
+TEST_F(TestRemapFixture, nodename_prefix_service_remap) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(
@@ -377,7 +370,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), nodename_prefix_service_
   }
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_service_name_replacement) {
+TEST_F(TestRemapFixture, no_use_global_service_name_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t local_arguments;
   SCOPE_ARGS(local_arguments, "process_name");
@@ -390,7 +383,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_service_na
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_service_name_replacement) {
+TEST_F(TestRemapFixture, no_service_name_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name");
@@ -402,7 +395,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_service_name_replacem
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_service_replacement_before_global) {
+TEST_F(TestRemapFixture, local_service_replacement_before_global) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "/bar/foo:=/foo/global_args");
@@ -418,7 +411,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_service_replacemen
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_service_rule) {
+TEST_F(TestRemapFixture, other_rules_before_service_rule) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(
@@ -438,7 +431,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_servi
   allocator.deallocate(output, allocator.state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_nodename_replacement) {
+TEST_F(TestRemapFixture, global_nodename_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "__node:=globalname");
@@ -451,7 +444,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), global_nodename_replacem
   allocator.deallocate(output, allocator.state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_nodename_replacement) {
+TEST_F(TestRemapFixture, no_nodename_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name");
@@ -463,7 +456,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_nodename_replacement)
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_nodename_replacement_before_global) {
+TEST_F(TestRemapFixture, local_nodename_replacement_before_global) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "__node:=global_name");
@@ -478,7 +471,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), local_nodename_replaceme
   rcl_get_default_allocator().deallocate(output, rcl_get_default_allocator().state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_nodename_replacement) {
+TEST_F(TestRemapFixture, no_use_global_nodename_replacement) {
   rcl_ret_t ret;
   rcl_arguments_t local_arguments;
   SCOPE_ARGS(local_arguments, "process_name");
@@ -490,7 +483,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), no_use_global_nodename_r
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), use_first_nodename_rule) {
+TEST_F(TestRemapFixture, use_first_nodename_rule) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(
@@ -508,7 +501,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), use_first_nodename_rule)
   allocator.deallocate(output, allocator.state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_nodename_rule) {
+TEST_F(TestRemapFixture, other_rules_before_nodename_rule) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(
@@ -527,7 +520,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), other_rules_before_noden
   allocator.deallocate(output, allocator.state);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), url_scheme_rosservice) {
+TEST_F(TestRemapFixture, url_scheme_rosservice) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "rosservice://foo:=bar");
@@ -545,7 +538,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), url_scheme_rosservice) {
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), url_scheme_rostopic) {
+TEST_F(TestRemapFixture, url_scheme_rostopic) {
   rcl_ret_t ret;
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "rostopic://foo:=bar");
@@ -563,7 +556,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), url_scheme_rostopic) {
   EXPECT_EQ(NULL, output);
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), _rcl_remap_name_bad_arg) {
+TEST_F(TestRemapFixture, _rcl_remap_name_bad_arg) {
   rcl_arguments_t global_arguments;
   SCOPE_ARGS(global_arguments, "process_name", "--ros-args", "-r", "__node:=global_name");
   rcl_arguments_t local_arguments;
@@ -597,7 +590,7 @@ TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), _rcl_remap_name_bad_arg)
   rcl_reset_error();
 }
 
-TEST_F(CLASSNAME(TestRemapFixture, RMW_IMPLEMENTATION), internal_remap_use) {
+TEST_F(TestRemapFixture, internal_remap_use) {
   // Easiest way to init a rcl_remap is through the arguments API
   const char * argv[] = {
     "process_name", "--ros-args", "-r", "__ns:=/namespace", "random:=arg"

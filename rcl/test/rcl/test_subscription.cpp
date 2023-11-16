@@ -41,27 +41,7 @@
 #include "./allocator_testing_utils.h"
 #include "../mocking_utils/patch.hpp"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-#define EXPAND(x) x
-#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME( \
-    test_fixture_name, RMW_IMPLEMENTATION)
-#define APPLY(macro, ...) EXPAND(macro(__VA_ARGS__))
-#define TEST_P_RMW(test_case_name, test_name) \
-  APPLY( \
-    TEST_P, CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
-#define INSTANTIATE_TEST_SUITE_P_RMW(instance_name, test_case_name, ...) \
-  EXPAND( \
-    APPLY( \
-      INSTANTIATE_TEST_SUITE_P, instance_name, \
-      CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
-
-class CLASSNAME (TestSubscriptionFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestSubscriptionFixture : public ::testing::Test
 {
 public:
   rcl_context_t * context_ptr;
@@ -103,8 +83,7 @@ public:
   }
 };
 
-class CLASSNAME (TestSubscriptionFixtureInit, RMW_IMPLEMENTATION)
-  : public CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION)
+class TestSubscriptionFixtureInit : public TestSubscriptionFixture
 {
 public:
   const rosidl_message_type_support_t * ts =
@@ -118,7 +97,7 @@ public:
 
   void SetUp() override
   {
-    CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION) ::SetUp();
+    TestSubscriptionFixture::SetUp();
     allocator = rcutils_get_default_allocator();
     subscription_options = rcl_subscription_get_default_options();
     subscription = rcl_get_zero_initialized_subscription();
@@ -131,15 +110,13 @@ public:
   {
     rcl_ret_t ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION) ::TearDown();
+    TestSubscriptionFixture::TearDown();
   }
 };
 
 /* Test subscription init, fini and is_valid functions
  */
-TEST_F(
-  CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION),
-  test_subscription_init_fini_and_is_valid)
+TEST_F(TestSubscriptionFixture, test_subscription_init_fini_and_is_valid)
 {
   rcl_ret_t ret;
 
@@ -174,7 +151,7 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 
 // Bad arguments for init and fini
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_bad_init) {
+TEST_F(TestSubscriptionFixture, test_subscription_bad_init) {
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
   constexpr char topic[] = "/chatter";
@@ -284,7 +261,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 
 /* Basic nominal test of a subscription
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal) {
+TEST_F(TestSubscriptionFixture, test_subscription_nominal) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -357,7 +334,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 
 /* Basic nominal test of a publisher with a string.
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_nominal_string) {
+TEST_F(TestSubscriptionFixture, test_subscription_nominal_string) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -406,10 +383,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 
 /* Basic nominal test of a subscription taking a sequence.
  */
-TEST_F(
-  CLASSNAME(
-    TestSubscriptionFixture,
-    RMW_IMPLEMENTATION), test_subscription_nominal_string_sequence) {
+TEST_F(TestSubscriptionFixture, test_subscription_nominal_string_sequence) {
   using namespace std::chrono_literals;
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
@@ -578,7 +552,7 @@ TEST_F(
 
 /* Basic nominal test of a subscription with take_serialize msg
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_serialized) {
+TEST_F(TestSubscriptionFixture, test_subscription_serialized) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   rcutils_allocator_t allocator = rcl_get_default_allocator();
@@ -654,7 +628,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 
 /* Basic test for subscription loan functions
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loaned) {
+TEST_F(TestSubscriptionFixture, test_subscription_loaned) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -733,7 +707,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   }
 }
 
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_option) {
+TEST_F(TestSubscriptionFixture, test_subscription_option) {
   {
     rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
     EXPECT_TRUE(subscription_options.disable_loaned_message);
@@ -760,7 +734,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
   }
 }
 
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription_loan_disable) {
+TEST_F(TestSubscriptionFixture, test_subscription_loan_disable) {
   bool is_fastdds = (std::string(rmw_get_implementation_identifier()).find("rmw_fastrtps") == 0);
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
@@ -805,7 +779,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_subscription
 
 /* Test for all failure modes in subscription take with loaned messages function.
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loaned_message) {
+TEST_F(TestSubscriptionFixture, test_bad_take_loaned_message) {
   constexpr char topic[] = "rcl_loan";
   const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
@@ -878,7 +852,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_take_loa
 
 /* Test for all failure modes in subscription return loaned messages function.
  */
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_return_loaned_message) {
+TEST_F(TestSubscriptionFixture, test_bad_return_loaned_message) {
   constexpr char topic[] = "rcl_loan";
   const rosidl_message_type_support_t * ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
   rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
@@ -940,10 +914,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_bad_return_l
 
 /* A subscription with a content filtered topic setting.
  */
-TEST_F(
-  CLASSNAME(
-    TestSubscriptionFixture,
-    RMW_IMPLEMENTATION), test_subscription_content_filtered) {
+TEST_F(TestSubscriptionFixture, test_subscription_content_filtered) {
   const char * filter_expression1 = "string_value = 'FilteredData'";
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
@@ -1213,10 +1184,7 @@ TEST_F(
 
 /* A subscription without a content filtered topic setting at beginning.
  */
-TEST_F(
-  CLASSNAME(
-    TestSubscriptionFixture,
-    RMW_IMPLEMENTATION), test_subscription_not_initialized_with_content_filtering) {
+TEST_F(TestSubscriptionFixture, test_subscription_not_initialized_with_content_filtering) {
   rcl_ret_t ret;
   rcl_publisher_t publisher = rcl_get_zero_initialized_publisher();
   const rosidl_message_type_support_t * ts =
@@ -1369,7 +1337,7 @@ TEST_F(
   }
 }
 
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_get_options) {
+TEST_F(TestSubscriptionFixture, test_get_options) {
   rcl_ret_t ret;
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
@@ -1395,7 +1363,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_get_options)
 
 /* bad take()
  */
-TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscription_bad_take) {
+TEST_F(TestSubscriptionFixtureInit, test_subscription_bad_take) {
   test_msgs__msg__BasicTypes msg;
   rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
   ASSERT_TRUE(test_msgs__msg__BasicTypes__init(&msg));
@@ -1434,9 +1402,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
 
 /* bad take_serialized
  */
-TEST_F(
-  CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION),
-  test_subscription_bad_take_serialized) {
+TEST_F(TestSubscriptionFixtureInit, test_subscription_bad_take_serialized) {
   rcl_serialized_message_t serialized_msg = rmw_get_zero_initialized_serialized_message();
   size_t initial_serialization_capacity = 0u;
   ASSERT_EQ(
@@ -1490,8 +1456,7 @@ TEST_F(
 
 /* Bad arguments take_sequence
  */
-TEST_F(
-  CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscription_bad_take_sequence)
+TEST_F(TestSubscriptionFixtureInit, test_subscription_bad_take_sequence)
 {
   size_t seq_size = 3u;
   rmw_message_sequence_t messages;
@@ -1572,7 +1537,7 @@ TEST_F(
 
 /* Test for all failure modes in subscription get_publisher_count function.
  */
-TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_bad_get_publisher_count) {
+TEST_F(TestSubscriptionFixtureInit, test_bad_get_publisher_count) {
   size_t publisher_count = 0;
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
@@ -1599,7 +1564,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_bad_get_
 
 /* Using bad arguments subscription methods
  */
-TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscription_bad_argument) {
+TEST_F(TestSubscriptionFixtureInit, test_subscription_bad_argument) {
   EXPECT_EQ(NULL, rcl_subscription_get_actual_qos(nullptr));
   rcl_reset_error();
   EXPECT_FALSE(rcl_subscription_can_loan_messages(nullptr));
@@ -1629,10 +1594,7 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
 
 /* Test for all failure modes in rcl_subscription_set_content_filter function.
  */
-TEST_F(
-  CLASSNAME(
-    TestSubscriptionFixtureInit,
-    RMW_IMPLEMENTATION), test_bad_rcl_subscription_set_content_filter) {
+TEST_F(TestSubscriptionFixtureInit, test_bad_rcl_subscription_set_content_filter) {
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
     rcl_subscription_set_content_filter(nullptr, nullptr));
@@ -1692,10 +1654,7 @@ TEST_F(
 
 /* Test for all failure modes in rcl_subscription_get_content_filter function.
  */
-TEST_F(
-  CLASSNAME(
-    TestSubscriptionFixtureInit,
-    RMW_IMPLEMENTATION), test_bad_rcl_subscription_get_content_filter) {
+TEST_F(TestSubscriptionFixtureInit, test_bad_rcl_subscription_get_content_filter) {
   EXPECT_EQ(
     RCL_RET_SUBSCRIPTION_INVALID,
     rcl_subscription_get_content_filter(nullptr, nullptr));
@@ -1735,7 +1694,7 @@ TEST_F(
   }
 }
 
-TEST_F(CLASSNAME(TestSubscriptionFixture, RMW_IMPLEMENTATION), test_init_fini_maybe_fail)
+TEST_F(TestSubscriptionFixture, test_init_fini_maybe_fail)
 {
   const rosidl_message_type_support_t * ts =
     ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
@@ -1776,15 +1735,14 @@ struct TestParameters
   TYPESUPPORT sub_ts_;
 };
 
-class TEST_FIXTURE_P_RMW (TestSubscriptionFixtureParam)
-  : public TEST_FIXTURE_P_RMW(TestSubscriptionFixture),
+class TestSubscriptionFixtureParam : public TestSubscriptionFixture,
   public ::testing::WithParamInterface<TestParameters>
 {
 protected:
   void SetUp()
   {
     param_ = GetParam();
-    TEST_FIXTURE_P_RMW(TestSubscriptionFixture) ::SetUp();
+    TestSubscriptionFixture::SetUp();
   }
 
   TestParameters param_;
@@ -1793,7 +1751,7 @@ protected:
 
 /* Test subscription to receive complex message from a publisher with typesupport settings.
  */
-TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_complex_message) {
+TEST_P(TestSubscriptionFixtureParam, test_subscription_complex_message) {
   rcl_ret_t ret;
   const rosidl_message_type_support_t * ts_pub;
   const rosidl_message_type_support_t * ts_sub;
@@ -1870,7 +1828,7 @@ TEST_P_RMW(TestSubscriptionFixtureParam, test_subscription_complex_message) {
   }
 }
 
-INSTANTIATE_TEST_SUITE_P_RMW(
+INSTANTIATE_TEST_SUITE_P(
   TestSubscriptionFixtureParamWithDifferentSettings,
   TestSubscriptionFixtureParam,
   ::testing::Values(

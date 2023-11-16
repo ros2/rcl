@@ -34,14 +34,7 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-class CLASSNAME (TestInfoByTopicFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestInfoByTopicFixture : public ::testing::Test
 {
 public:
   rcl_context_t old_context;
@@ -132,9 +125,7 @@ public:
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_publishers_info_by_topic_null_node)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_publishers_info_by_topic_null_node)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(
@@ -148,9 +139,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_subscriptions_info_by_topic_null_node)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_subscriptions_info_by_topic_null_node)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(
@@ -164,9 +153,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_publishers_info_by_topic_invalid_node)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_publishers_info_by_topic_invalid_node)
 {
   // this->old_node is an invalid node.
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -181,9 +168,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_subscriptions_info_by_topic_invalid_node)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_subscriptions_info_by_topic_invalid_node)
 {
   // this->old_node is an invalid node.
   rcl_allocator_t allocator = rcl_get_default_allocator();
@@ -198,9 +183,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_publishers_info_by_topic_null_allocator)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_publishers_info_by_topic_null_allocator)
 {
   const auto ret = rcl_get_publishers_info_by_topic(
     &this->node, nullptr, this->topic_name, false,
@@ -213,9 +196,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_subscriptions_info_by_topic_null_allocator)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_subscriptions_info_by_topic_null_allocator)
 {
   const auto ret = rcl_get_subscriptions_info_by_topic(
     &this->node, nullptr, this->topic_name, false,
@@ -228,9 +209,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_publishers_info_by_topic_null_topic)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_publishers_info_by_topic_null_topic)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(
@@ -243,9 +222,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_subscriptions_info_by_topic_null_topic)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_subscriptions_info_by_topic_null_topic)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(
@@ -258,9 +235,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_publishers_info_by_topic_null_participants)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_publishers_info_by_topic_null_participants)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_publishers_info_by_topic(
@@ -273,9 +248,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_subscriptions_info_by_topic_null_participants)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_subscriptions_info_by_topic_null_participants)
 {
   rcl_allocator_t allocator = rcl_get_default_allocator();
   const auto ret = rcl_get_subscriptions_info_by_topic(
@@ -288,9 +261,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_publishers_info_by_topic_invalid_participants)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_publishers_info_by_topic_invalid_participants)
 {
   // topic_endpoint_info_array is invalid because it is expected to be zero initialized
   // and the info_array variable inside it is expected to be null.
@@ -311,9 +282,7 @@ TEST_F(
  * This does not test content of the response.
  * It only tests if the return code is the one expected.
  */
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_subscriptions_info_by_topic_invalid_participants)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_subscriptions_info_by_topic_invalid_participants)
 {
   // topic_endpoint_info_array is invalid because it is expected to be zero initialized
   // and the info_array variable inside it is expected to be null.
@@ -330,9 +299,7 @@ TEST_F(
   rcl_reset_error();
 }
 
-TEST_F(
-  CLASSNAME(TestInfoByTopicFixture, RMW_IMPLEMENTATION),
-  test_rcl_get_publishers_subscription_info_by_topic)
+TEST_F(TestInfoByTopicFixture, test_rcl_get_publishers_subscription_info_by_topic)
 {
   rmw_qos_profile_t default_qos_profile = rmw_qos_profile_system_default;
   default_qos_profile.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;

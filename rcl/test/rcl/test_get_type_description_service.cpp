@@ -31,13 +31,6 @@
 #include "node_impl.h"  // NOLINT
 #include "wait_for_entity_helpers.hpp"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
 constexpr char GET_TYPE_DESCRIPTION_SRV_TYPE_NAME[] =
   "type_description_interfaces/srv/GetTypeDescription";
 
@@ -140,7 +133,7 @@ static bool service_not_exists(
   return false;
 }
 
-class CLASSNAME (TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestGetTypeDescSrvFixture : public ::testing::Test
 {
 public:
   void SetUp()
@@ -190,9 +183,7 @@ protected:
 
 
 /* Test init and fini functions. */
-TEST_F(
-  CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION),
-  test_service_init_and_fini_functions) {
+TEST_F(TestGetTypeDescSrvFixture, test_service_init_and_fini_functions) {
   rcl_service_t service = rcl_get_zero_initialized_service();
 
   // Service does not initially exist
@@ -220,7 +211,7 @@ TEST_F(
 }
 
 /* Basic nominal test of the ~/get_type_description service. */
-TEST_F(CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION), test_service_nominal) {
+TEST_F(TestGetTypeDescSrvFixture, test_service_nominal) {
   rcl_ret_t ret;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     type_description_interfaces, srv, GetTypeDescription);
@@ -317,10 +308,7 @@ TEST_F(CLASSNAME(TestGetTypeDescSrvFixture, RMW_IMPLEMENTATION), test_service_no
 }
 
 /* Test calling ~/get_type_description service with invalid hash. */
-TEST_F(
-  CLASSNAME(
-    TestGetTypeDescSrvFixture,
-    RMW_IMPLEMENTATION), test_service_invalid_hash) {
+TEST_F(TestGetTypeDescSrvFixture, test_service_invalid_hash) {
   rcl_ret_t ret;
   const rosidl_service_type_support_t * ts = ROSIDL_GET_SRV_TYPE_SUPPORT(
     type_description_interfaces, srv, GetTypeDescription);

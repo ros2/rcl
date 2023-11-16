@@ -28,28 +28,6 @@
 #include "test_msgs/msg/basic_types.h"
 #include "test_msgs/srv/basic_types.h"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-# define RMW_IMPLEMENTATION_STR RCUTILS_STRINGIFY(RMW_IMPLEMENTATION)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-#define EXPAND(x) x
-#define TEST_FIXTURE_P_RMW(test_fixture_name) CLASSNAME( \
-    test_fixture_name, RMW_IMPLEMENTATION)
-#define APPLY(macro, ...) EXPAND(macro(__VA_ARGS__))
-#define TEST_P_RMW(test_case_name, test_name) \
-  APPLY( \
-    TEST_P, \
-    CLASSNAME(test_case_name, RMW_IMPLEMENTATION), test_name)
-#define INSTANTIATE_TEST_SUITE_P_RMW(instance_name, test_case_name, ...) \
-  EXPAND( \
-    APPLY( \
-      INSTANTIATE_TEST_SUITE_P, instance_name, \
-      CLASSNAME(test_case_name, RMW_IMPLEMENTATION), __VA_ARGS__))
-
 /**
  * Parameterized test.
  * The first param are the NodeOptions used to create the nodes.
@@ -98,8 +76,7 @@ std::ostream & operator<<(
   return out;
 }
 
-class TEST_FIXTURE_P_RMW (TestGetActualQoS)
-  : public ::testing::TestWithParam<TestParameters>
+class TestGetActualQoS : public ::testing::TestWithParam<TestParameters>
 {
 public:
   void SetUp() override
@@ -147,10 +124,9 @@ protected:
 };
 
 
-class TEST_FIXTURE_P_RMW (TestPublisherGetActualQoS)
-  : public TEST_FIXTURE_P_RMW(TestGetActualQoS) {};
+class TestPublisherGetActualQoS : public TestGetActualQoS {};
 
-TEST_P_RMW(TestPublisherGetActualQoS, test_publisher_get_qos_settings)
+TEST_P(TestPublisherGetActualQoS, test_publisher_get_qos_settings)
 {
   TestParameters parameters = GetParam();
   std::string topic_name("/test_publisher_get_actual_qos__");
@@ -202,10 +178,9 @@ TEST_P_RMW(TestPublisherGetActualQoS, test_publisher_get_qos_settings)
 }
 
 
-class TEST_FIXTURE_P_RMW (TestSubscriptionGetActualQoS)
-  : public TEST_FIXTURE_P_RMW(TestGetActualQoS) {};
+class TestSubscriptionGetActualQoS : public TestGetActualQoS {};
 
-TEST_P_RMW(TestSubscriptionGetActualQoS, test_subscription_get_qos_settings)
+TEST_P(TestSubscriptionGetActualQoS, test_subscription_get_qos_settings)
 {
   TestParameters parameters = GetParam();
   std::string topic_name("/test_subscription_get_qos_settings");
@@ -396,8 +371,7 @@ get_parameters(bool for_publisher)
     "default_qos"
   });
 
-#ifdef RMW_IMPLEMENTATION_STR
-  std::string rmw_implementation_str = RMW_IMPLEMENTATION_STR;
+  std::string rmw_implementation_str = std::string(rmw_get_implementation_identifier());
   if (rmw_implementation_str == "rmw_fastrtps_cpp" ||
     rmw_implementation_str == "rmw_fastrtps_dynamic_cpp")
   {
@@ -464,18 +438,17 @@ get_parameters(bool for_publisher)
       }
     }
   }
-#endif
 
   return parameters;
 }
 
-INSTANTIATE_TEST_SUITE_P_RMW(
+INSTANTIATE_TEST_SUITE_P(
   TestPublisherWithDifferentQoSSettings,
   TestPublisherGetActualQoS,
   ::testing::ValuesIn(get_parameters(true)),
   ::testing::PrintToStringParamName());
 
-INSTANTIATE_TEST_SUITE_P_RMW(
+INSTANTIATE_TEST_SUITE_P(
   TestSubscriptionWithDifferentQoSSettings,
   TestSubscriptionGetActualQoS,
   ::testing::ValuesIn(get_parameters(false)),
