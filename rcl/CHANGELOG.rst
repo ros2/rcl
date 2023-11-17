@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+6.0.4 (2023-11-17)
+------------------
 * Set disable loan to on by default. (`#1117 <https://github.com/ros2/rcl/issues/1117>`_)
 * Contributors: Chris Lalancette
 
