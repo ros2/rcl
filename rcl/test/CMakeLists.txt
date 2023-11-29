@@ -234,7 +234,7 @@ function(test_target)
   if(
     "${DISTRIBUTION}" STREQUAL "\"centos\"" OR
     "${DISTRIBUTION}" STREQUAL "\"almalinux\"")
-    set(gtest_filter_env_var "GTEST_FILTER=-TestNodeFixture__*.test_rcl_node_init_with_internal_errors")
+    set(gtest_filter_env_var "GTEST_FILTER=-TestNodeFixture.test_rcl_node_init_with_internal_errors")
   else()
     set(gtest_filter_env_var "")
   endif()
