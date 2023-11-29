@@ -33,41 +33,6 @@
 
 #define ROSOUT_TOPIC_NAME "/rosout"
 
-static rcl_ret_t rcl_ret_from_rcutils_ret(rcutils_ret_t rcutils_ret)
-{
-  rcl_ret_t rcl_ret_var;
-
-  if (RCUTILS_RET_OK != rcutils_ret) {
-    if (rcutils_error_is_set()) {
-      RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-    } else {
-      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("rcutils_ret_t code: %i", rcutils_ret);
-    }
-  }
-
-  switch (rcutils_ret) {
-    case RCUTILS_RET_OK:
-      rcl_ret_var = RCL_RET_OK;
-      break;
-    case RCUTILS_RET_ERROR:
-      rcl_ret_var = RCL_RET_ERROR;
-      break;
-    case RCUTILS_RET_BAD_ALLOC:
-      rcl_ret_var = RCL_RET_BAD_ALLOC;
-      break;
-    case RCUTILS_RET_INVALID_ARGUMENT:
-      rcl_ret_var = RCL_RET_INVALID_ARGUMENT;
-      break;
-    case RCUTILS_RET_NOT_INITIALIZED:
-      rcl_ret_var = RCL_RET_NOT_INIT;
-      break;
-    default:
-      rcl_ret_var = RCUTILS_RET_ERROR;
-  }
-
-  return rcl_ret_var;
-}
-
 typedef struct rosout_map_entry_t
 {
   rcl_node_t * node;
@@ -96,7 +61,7 @@ rcl_ret_t rcl_logging_rosout_init(const rcl_allocator_t * allocator)
     return RCL_RET_OK;
   }
   __logger_map = rcutils_get_zero_initialized_hash_map();
-  status = rcl_ret_from_rcutils_ret(
+  status = rcl_convert_rcutils_ret_to_rcl_ret(
     rcutils_hash_map_init(
       &__logger_map, 2, sizeof(const char *), sizeof(rosout_map_entry_t),
       rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, allocator));
@@ -105,12 +70,13 @@ rcl_ret_t rcl_logging_rosout_init(const rcl_allocator_t * allocator)
   }
 
   __sublogger_map = rcutils_get_zero_initialized_hash_map();
-  status = rcl_ret_from_rcutils_ret(
+  status = rcl_convert_rcutils_ret_to_rcl_ret(
     rcutils_hash_map_init(
       &__sublogger_map, 2, sizeof(const char *), sizeof(rosout_sublogger_entry_t),
       rcutils_hash_map_string_hash_func, rcutils_hash_map_string_cmp_func, allocator));
   if (RCL_RET_OK != status) {
-    rcl_ret_t fini_status = rcl_ret_from_rcutils_ret(rcutils_hash_map_fini(&__logger_map));
+    rcl_ret_t fini_status = rcl_convert_rcutils_ret_to_rcl_ret(
+      rcutils_hash_map_fini(&__logger_map));
     if (RCL_RET_OK != fini_status) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to finalize the hash map for logger: ");
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
@@ -139,7 +105,7 @@ _rcl_logging_rosout_remove_logger_map(rcl_node_t * node)
     &__logger_map, NULL, &key, &entry);
   while (RCL_RET_OK == status && RCUTILS_RET_OK == hashmap_ret) {
     if (entry.node == node) {
-      status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &key));
+      status = rcl_convert_rcutils_ret_to_rcl_ret(rcutils_hash_map_unset(&__logger_map, &key));
       previous_key = NULL;
     } else {
       previous_key = key;
@@ -160,7 +126,8 @@ _rcl_logging_rosout_clear_logger_map_item(void * value)
   rcl_ret_t status = rcl_publisher_fini(&entry->publisher, entry->node);
   if (RCL_RET_OK == status) {
     // delete all entries using this node
-    status = rcl_ret_from_rcutils_ret(_rcl_logging_rosout_remove_logger_map(entry->node));
+    status = rcl_convert_rcutils_ret_to_rcl_ret(
+      _rcl_logging_rosout_remove_logger_map(entry->node));
   }
 
   return status;
@@ -170,7 +137,7 @@ static rcl_ret_t
 _rcl_logging_rosout_clear_sublogger_map_item(void * value)
 {
   rosout_sublogger_entry_t * entry = (rosout_sublogger_entry_t *)value;
-  rcl_ret_t status = rcl_ret_from_rcutils_ret(
+  rcl_ret_t status = rcl_convert_rcutils_ret_to_rcl_ret(
     rcutils_hash_map_unset(&__sublogger_map, &entry->name));
   __rosout_allocator.deallocate(entry->name, __rosout_allocator.state);
   __rosout_allocator.deallocate(entry->count, __rosout_allocator.state);
@@ -196,11 +163,11 @@ _rcl_logging_rosout_clear_hashmap(
     hashmap_ret = rcutils_hash_map_get_next_key_and_data(map, NULL, &key, entry);
   }
   if (RCUTILS_RET_HASH_MAP_NO_MORE_ENTRIES != hashmap_ret) {
-    status = rcl_ret_from_rcutils_ret(hashmap_ret);
+    status = rcl_convert_rcutils_ret_to_rcl_ret(hashmap_ret);
   }
 
   if (RCL_RET_OK == status) {
-    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_fini(map));
+    status = rcl_convert_rcutils_ret_to_rcl_ret(rcutils_hash_map_fini(map));
   }
 
   return status;
@@ -287,7 +254,7 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(rcl_node_t * node)
   // Add the new publisher to the map
   if (RCL_RET_OK == status) {
     new_entry.node = node;
-    status = rcl_ret_from_rcutils_ret(
+    status = rcl_convert_rcutils_ret_to_rcl_ret(
       rcutils_hash_map_set(&__logger_map, &logger_name, &new_entry));
     if (RCL_RET_OK != status) {
       RCL_SET_ERROR_MSG("Failed to add publisher to map.");
@@ -322,13 +289,14 @@ rcl_ret_t rcl_logging_rosout_fini_publisher_for_node(rcl_node_t * node)
   }
 
   // fini the publisher and remove the entry from the map
-  status = rcl_ret_from_rcutils_ret(rcutils_hash_map_get(&__logger_map, &logger_name, &entry));
+  status = rcl_convert_rcutils_ret_to_rcl_ret(
+    rcutils_hash_map_get(&__logger_map, &logger_name, &entry));
   if (RCL_RET_OK == status && node == entry.node) {
     status = rcl_publisher_fini(&entry.publisher, entry.node);
   }
   if (RCL_RET_OK == status) {
     // delete all entries using this node
-    status = rcl_ret_from_rcutils_ret(_rcl_logging_rosout_remove_logger_map(entry.node));
+    status = rcl_convert_rcutils_ret_to_rcl_ret(_rcl_logging_rosout_remove_logger_map(entry.node));
   }
 
   return status;
@@ -366,7 +334,8 @@ void rcl_logging_rosout_output_handler(
       .allocator = __rosout_allocator
     };
 
-    status = rcl_ret_from_rcutils_ret(rcutils_char_array_vsprintf(&msg_array, format, *args));
+    status = rcl_convert_rcutils_ret_to_rcl_ret(
+      rcutils_char_array_vsprintf(&msg_array, format, *args));
     if (RCL_RET_OK != status) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("Failed to format log string: ");
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
@@ -391,7 +360,7 @@ void rcl_logging_rosout_output_handler(
       }
     }
 
-    status = rcl_ret_from_rcutils_ret(rcutils_char_array_fini(&msg_array));
+    status = rcl_convert_rcutils_ret_to_rcl_ret(rcutils_char_array_fini(&msg_array));
     if (RCL_RET_OK != status) {
       RCUTILS_SAFE_FWRITE_TO_STDERR("failed to fini char_array: ");
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
@@ -458,7 +427,7 @@ rcl_logging_rosout_add_sublogger(
 
   if (rcutils_hash_map_key_exists(&__logger_map, &full_sublogger_name)) {
     // To get the entry and increase the reference count
-    status = rcl_ret_from_rcutils_ret(
+    status = rcl_convert_rcutils_ret_to_rcl_ret(
       rcutils_hash_map_get(&__sublogger_map, &full_sublogger_name, &sublogger_entry));
     if (RCL_RET_OK != status) {
       RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -469,7 +438,7 @@ rcl_logging_rosout_add_sublogger(
     goto cleanup;
   }
 
-  status = rcl_ret_from_rcutils_ret(
+  status = rcl_convert_rcutils_ret_to_rcl_ret(
     rcutils_hash_map_set(&__logger_map, &full_sublogger_name, &entry));
   if (RCL_RET_OK != status) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -487,7 +456,7 @@ rcl_logging_rosout_add_sublogger(
   sublogger_entry.count = sublogger_count;
   *sublogger_entry.count = 1;
 
-  status = rcl_ret_from_rcutils_ret(
+  status = rcl_convert_rcutils_ret_to_rcl_ret(
     rcutils_hash_map_set(&__sublogger_map, &full_sublogger_name, &sublogger_entry));
   if (RCL_RET_OK != status) {
     // revert the previor set operation for __logger_map
@@ -538,7 +507,7 @@ rcl_logging_rosout_remove_sublogger(
   }
 
   // remove the entry from the map
-  status = rcl_ret_from_rcutils_ret(
+  status = rcl_convert_rcutils_ret_to_rcl_ret(
     rcutils_hash_map_get(&__sublogger_map, &full_sublogger_name, &sublogger_entry));
   if (RCL_RET_OK != status) {
     RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
@@ -548,10 +517,11 @@ rcl_logging_rosout_remove_sublogger(
 
   *sublogger_entry.count -= 1;
   if (*sublogger_entry.count == 0) {
-    status = rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__logger_map, &full_sublogger_name));
+    status = rcl_convert_rcutils_ret_to_rcl_ret(
+      rcutils_hash_map_unset(&__logger_map, &full_sublogger_name));
     if (RCL_RET_OK == status) {
-      status =
-        rcl_ret_from_rcutils_ret(rcutils_hash_map_unset(&__sublogger_map, &full_sublogger_name));
+      status = rcl_convert_rcutils_ret_to_rcl_ret(
+        rcutils_hash_map_unset(&__sublogger_map, &full_sublogger_name));
       __rosout_allocator.deallocate(sublogger_entry.name, __rosout_allocator.state);
       __rosout_allocator.deallocate(sublogger_entry.count, __rosout_allocator.state);
     }
