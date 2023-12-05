@@ -73,6 +73,70 @@ rcutils_ret_t
 _validate_name(const char * name, rcutils_allocator_t allocator);
 
 ///
+/// Check a tag whether it is valid
+///
+/// \param tag the tag to check, include tags:
+///            YAML_BOOL_TAG, YAML_STR_TAG, YAML_INT_TAG,
+///            YAML_FLOAT_TAG, YAML_SEQ_TAG, YAML_MAP_TAG
+///            NOTE: YAML_NULL_TAG & YAML_TIMESTAMP_TAG are
+///            not supported by ROS2 Parameters, so they are
+///            excluded.
+/// \param line_num the line number error happened
+/// \return RCUTILS_RET_OK if tag is valid, or
+/// \return RCUTILS_RET_ERROR if tag is not valid
+RCL_YAML_PARAM_PARSER_LOCAL
+rcutils_ret_t
+_validate_tag(const char * tag, uint32_t line_num);
+
+///
+/// Get a bool value when it is valid
+///
+/// \param value the bool value to get
+/// \param val_type the value type
+/// \param ret_val the converted value when value is valid
+/// \return RCUTILS_RET_OK if value is valid, or
+/// \return RCUTILS_RET_ERROR if value is not valid
+RCL_YAML_PARAM_PARSER_LOCAL
+rcutils_ret_t
+_get_bool_value(
+  const char * const value,
+  data_types_t * val_type,
+  void ** ret_val,
+  const rcutils_allocator_t allocator);
+
+///
+/// Get a int value when it is valid
+///
+/// \param value the int value to get
+/// \param val_type the value type
+/// \param ret_val the converted value when value is valid
+/// \return RCUTILS_RET_OK if value is valid, or
+/// \return RCUTILS_RET_ERROR if value is not valid
+RCL_YAML_PARAM_PARSER_LOCAL
+rcutils_ret_t
+_get_int_value(
+  const char * const value,
+  data_types_t * val_type,
+  void ** ret_val,
+  const rcutils_allocator_t allocator);
+
+///
+/// Get a float value when it is valid
+///
+/// \param value the float value to get
+/// \param val_type the value type
+/// \param ret_val the converted value when value is valid
+/// \return RCUTILS_RET_OK if value is valid, or
+/// \return RCUTILS_RET_ERROR if value is not valid
+RCL_YAML_PARAM_PARSER_LOCAL
+rcutils_ret_t
+_get_float_value(
+  const char * const value,
+  data_types_t * val_type,
+  void ** ret_val,
+  const rcutils_allocator_t allocator);
+
+///
 /// Determine the type of the value and return the converted value
 /// NOTE: Only canonical forms supported as of now
 ///
@@ -83,10 +147,7 @@ void * get_value(
   data_types_t * val_type,
   const rcutils_allocator_t allocator)
 {
-  void * ret_val;
-  int64_t ival;
-  double dval;
-  char * endptr = NULL;
+  void * ret_val = NULL;
 
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(value, NULL);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(val_type, NULL);
@@ -99,49 +160,38 @@ void * get_value(
     return rcutils_strdup(value, allocator);
   }
 
+  /// Check for yaml bool tag
+  if (tag != NULL && strcmp(YAML_BOOL_TAG, (char *)tag) == 0) {
+    if (_get_bool_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+      return ret_val;
+    } else {
+      return NULL;
+    }
+  }
+
+  /// Check for yaml int tag
+  if (tag != NULL && strcmp(YAML_INT_TAG, (char *)tag) == 0) {
+    if (_get_int_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+      return ret_val;
+    } else {
+      return NULL;
+    }
+  }
+
+  /// Check for yaml float tag
+  if (tag != NULL && strcmp(YAML_FLOAT_TAG, (char *)tag) == 0) {
+    if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+      return ret_val;
+    } else {
+      return NULL;
+    }
+  }
+
   /// Check if it is bool
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
-    if ((0 == strcmp(value, "Y")) ||
-      (0 == strcmp(value, "y")) ||
-      (0 == strcmp(value, "yes")) ||
-      (0 == strcmp(value, "Yes")) ||
-      (0 == strcmp(value, "YES")) ||
-      (0 == strcmp(value, "true")) ||
-      (0 == strcmp(value, "True")) ||
-      (0 == strcmp(value, "TRUE")) ||
-      (0 == strcmp(value, "on")) ||
-      (0 == strcmp(value, "On")) ||
-      (0 == strcmp(value, "ON")))
-    {
-      *val_type = DATA_TYPE_BOOL;
-      ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
-      if (NULL == ret_val) {
-        return NULL;
-      }
-      *((bool *)ret_val) = true;
-      return ret_val;
-    }
-
-    if ((0 == strcmp(value, "N")) ||
-      (0 == strcmp(value, "n")) ||
-      (0 == strcmp(value, "no")) ||
-      (0 == strcmp(value, "No")) ||
-      (0 == strcmp(value, "NO")) ||
-      (0 == strcmp(value, "false")) ||
-      (0 == strcmp(value, "False")) ||
-      (0 == strcmp(value, "FALSE")) ||
-      (0 == strcmp(value, "off")) ||
-      (0 == strcmp(value, "Off")) ||
-      (0 == strcmp(value, "OFF")))
-    {
-      *val_type = DATA_TYPE_BOOL;
-      ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
-      if (NULL == ret_val) {
-        return NULL;
-      }
-      *((bool *)ret_val) = false;
+    if (_get_bool_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     }
   }
@@ -150,20 +200,8 @@ void * get_value(
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
-    errno = 0;
-    ival = strtol(value, &endptr, 0);
-    if ((0 == errno) && (NULL != endptr)) {
-      if ((NULL != endptr) && (endptr != value)) {
-        if (('\0' != *value) && ('\0' == *endptr)) {
-          *val_type = DATA_TYPE_INT64;
-          ret_val = allocator.zero_allocate(1U, sizeof(int64_t), allocator.state);
-          if (NULL == ret_val) {
-            return NULL;
-          }
-          *((int64_t *)ret_val) = ival;
-          return ret_val;
-        }
-      }
+    if (_get_int_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+      return ret_val;
     }
   }
 
@@ -171,46 +209,9 @@ void * get_value(
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
-    errno = 0;
-    endptr = NULL;
-    const char * iter_ptr = NULL;
-    if ((0 == strcmp(value, ".nan")) ||
-      (0 == strcmp(value, ".NaN")) ||
-      (0 == strcmp(value, ".NAN")) ||
-      (0 == strcmp(value, ".inf")) ||
-      (0 == strcmp(value, ".Inf")) ||
-      (0 == strcmp(value, ".INF")) ||
-      (0 == strcmp(value, "+.inf")) ||
-      (0 == strcmp(value, "+.Inf")) ||
-      (0 == strcmp(value, "+.INF")) ||
-      (0 == strcmp(value, "-.inf")) ||
-      (0 == strcmp(value, "-.Inf")) ||
-      (0 == strcmp(value, "-.INF")))
-    {
-      for (iter_ptr = value; !isalpha(*iter_ptr); ) {
-        iter_ptr += 1;
-      }
-      dval = strtod(iter_ptr, &endptr);
-      if (*value == '-') {
-        dval = -dval;
-      }
-    } else {
-      dval = strtod(value, &endptr);
+    if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+      return ret_val;
     }
-    if ((0 == errno) && (NULL != endptr)) {
-      if ((NULL != endptr) && (endptr != value)) {
-        if (('\0' != *value) && ('\0' == *endptr)) {
-          *val_type = DATA_TYPE_DOUBLE;
-          ret_val = allocator.zero_allocate(1U, sizeof(double), allocator.state);
-          if (NULL == ret_val) {
-            return NULL;
-          }
-          *((double *)ret_val) = dval;
-          return ret_val;
-        }
-      }
-    }
-    errno = 0;
   }
 
   /// It is a string
@@ -590,6 +591,157 @@ clean:
   return ret;
 }
 
+rcutils_ret_t
+_validate_tag(const char * tag, uint32_t line_num)
+{
+  if ((0 == strcmp(tag, YAML_BOOL_TAG)) ||
+    (0 == strcmp(tag, YAML_STR_TAG)) ||
+    (0 == strcmp(tag, YAML_INT_TAG)) ||
+    (0 == strcmp(tag, YAML_FLOAT_TAG)) ||
+    (0 == strcmp(tag, YAML_SEQ_TAG)) ||
+    (0 == strcmp(tag, YAML_MAP_TAG)))
+  {
+    return RCUTILS_RET_OK;
+  }
+
+  RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+    "Unsupported tag %s at line %d", (char *)tag, line_num);
+  return RCUTILS_RET_ERROR;
+}
+
+rcutils_ret_t
+_get_bool_value(
+  const char * const value,
+  data_types_t * val_type,
+  void ** ret_val,
+  const rcutils_allocator_t allocator)
+{
+  if ((0 == strcmp(value, "Y")) ||
+    (0 == strcmp(value, "y")) ||
+    (0 == strcmp(value, "yes")) ||
+    (0 == strcmp(value, "Yes")) ||
+    (0 == strcmp(value, "YES")) ||
+    (0 == strcmp(value, "true")) ||
+    (0 == strcmp(value, "True")) ||
+    (0 == strcmp(value, "TRUE")) ||
+    (0 == strcmp(value, "on")) ||
+    (0 == strcmp(value, "On")) ||
+    (0 == strcmp(value, "ON")))
+  {
+    *val_type = DATA_TYPE_BOOL;
+    *ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
+    if (NULL == *ret_val) {
+      return RCUTILS_RET_BAD_ALLOC;
+    }
+    *((bool *)*ret_val) = true;
+    return RCUTILS_RET_OK;
+  }
+
+  if ((0 == strcmp(value, "N")) ||
+    (0 == strcmp(value, "n")) ||
+    (0 == strcmp(value, "no")) ||
+    (0 == strcmp(value, "No")) ||
+    (0 == strcmp(value, "NO")) ||
+    (0 == strcmp(value, "false")) ||
+    (0 == strcmp(value, "False")) ||
+    (0 == strcmp(value, "FALSE")) ||
+    (0 == strcmp(value, "off")) ||
+    (0 == strcmp(value, "Off")) ||
+    (0 == strcmp(value, "OFF")))
+  {
+    *val_type = DATA_TYPE_BOOL;
+    *ret_val = allocator.zero_allocate(1U, sizeof(bool), allocator.state);
+    if (NULL == *ret_val) {
+      return RCUTILS_RET_BAD_ALLOC;
+    }
+    *((bool *)*ret_val) = false;
+    return RCUTILS_RET_OK;
+  }
+
+  return RCUTILS_RET_ERROR;
+}
+
+rcutils_ret_t
+_get_int_value(
+  const char * const value,
+  data_types_t * val_type,
+  void ** ret_val,
+  const rcutils_allocator_t allocator)
+{
+  errno = 0;
+  int64_t ival;
+  char * endptr = NULL;
+
+  ival = strtol(value, &endptr, 0);
+  if ((0 == errno) && (NULL != endptr)) {
+    if ((NULL != endptr) && (endptr != value)) {
+      if (('\0' != *value) && ('\0' == *endptr)) {
+        *val_type = DATA_TYPE_INT64;
+        *ret_val = allocator.zero_allocate(1U, sizeof(int64_t), allocator.state);
+        if (NULL == *ret_val) {
+          return RCUTILS_RET_BAD_ALLOC;
+        }
+        *((int64_t *)*ret_val) = ival;
+        return RCUTILS_RET_OK;
+      }
+    }
+  }
+
+  return RCUTILS_RET_ERROR;
+}
+
+rcutils_ret_t
+_get_float_value(
+  const char * const value,
+  data_types_t * val_type,
+  void ** ret_val,
+  const rcutils_allocator_t allocator)
+{
+  errno = 0;
+  double dval;
+  char * endptr = NULL;
+  const char * iter_ptr = NULL;
+
+  if ((0 == strcmp(value, ".nan")) ||
+    (0 == strcmp(value, ".NaN")) ||
+    (0 == strcmp(value, ".NAN")) ||
+    (0 == strcmp(value, ".inf")) ||
+    (0 == strcmp(value, ".Inf")) ||
+    (0 == strcmp(value, ".INF")) ||
+    (0 == strcmp(value, "+.inf")) ||
+    (0 == strcmp(value, "+.Inf")) ||
+    (0 == strcmp(value, "+.INF")) ||
+    (0 == strcmp(value, "-.inf")) ||
+    (0 == strcmp(value, "-.Inf")) ||
+    (0 == strcmp(value, "-.INF")))
+  {
+    for (iter_ptr = value; !isalpha(*iter_ptr); ) {
+      iter_ptr += 1;
+    }
+    dval = strtod(iter_ptr, &endptr);
+    if (*value == '-') {
+      dval = -dval;
+    }
+  } else {
+    dval = strtod(value, &endptr);
+  }
+  if ((0 == errno) && (NULL != endptr)) {
+    if ((NULL != endptr) && (endptr != value)) {
+      if (('\0' != *value) && ('\0' == *endptr)) {
+        *val_type = DATA_TYPE_DOUBLE;
+        *ret_val = allocator.zero_allocate(1U, sizeof(double), allocator.state);
+        if (NULL == *ret_val) {
+          return RCUTILS_RET_BAD_ALLOC;
+        }
+        *((double *)*ret_val) = dval;
+        return RCUTILS_RET_OK;
+      }
+    }
+  }
+
+  return RCUTILS_RET_ERROR;
+}
+
 ///
 /// Parse the key part of the <key:value> pair
 ///
@@ -785,6 +937,13 @@ rcutils_ret_t parse_file_events(
       break;
     }
     line_num = ((uint32_t)(event.start_mark.line) + 1U);
+    const yaml_char_t * const tag = event.data.scalar.tag;
+    if (tag != NULL) {
+      ret = _validate_tag((char *)tag, line_num);
+      if (RCUTILS_RET_OK != ret) {
+        break;
+      }
+    }
     switch (event.type) {
       case YAML_STREAM_END_EVENT:
         done_parsing = 1;
@@ -831,6 +990,12 @@ rcutils_ret_t parse_file_events(
         }
         break;
       case YAML_SEQUENCE_START_EVENT:
+        if (tag != NULL && strcmp(YAML_SEQ_TAG, (char *)tag) != 0) {
+          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Sequences cannot be used with tag %s at line %d", (char *)tag, line_num);
+          ret = RCUTILS_RET_ERROR;
+          break;
+        }
         if (is_key) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Sequences cannot be key at line %d", line_num);
@@ -851,6 +1016,12 @@ rcutils_ret_t parse_file_events(
         is_key = true;
         break;
       case YAML_MAPPING_START_EVENT:
+        if (tag != NULL && strcmp(YAML_MAP_TAG, (char *)tag) != 0) {
+          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Maps cannot be used with tag %s at line %d", (char *)tag, line_num);
+          ret = RCUTILS_RET_ERROR;
+          break;
+        }
         map_depth++;
         is_new_map = true;
         is_key = true;
