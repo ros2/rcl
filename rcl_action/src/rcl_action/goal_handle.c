@@ -69,8 +69,8 @@ rcl_action_goal_handle_init(
   goal_handle->impl->state = GOAL_STATE_ACCEPTED;
   // Copy the allocator
   goal_handle->impl->allocator = allocator;
-  // Set invaild time
-  goal_handle->impl->goal_terminal_timestamp = INT64_MAX;
+  // Set invalid time
+  goal_handle->impl->goal_terminal_timestamp = 0;
   return RCL_RET_OK;
 }
 

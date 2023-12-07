@@ -201,7 +201,7 @@ rcl_action_goal_handle_get_status(
  * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
- * Lock-Free          | No
+ * Lock-Free          | Yes
  *
  * \param[in] goal_handle struct containing the goal and metadata
  * \param[out] timestamp a preallocated struct where goal terminal timestamp is copied
@@ -226,7 +226,7 @@ rcl_action_goal_handle_get_goal_terminal_timestamp(
  * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
- * Lock-Free          | No
+ * Lock-Free          | Yes
  *
  * \param[in] goal_handle struct containing the goal and metadata
  * \param[in] timestamp The timestamp of goal termination
@@ -251,7 +251,7 @@ rcl_action_goal_handle_set_goal_terminal_timestamp(
  * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
- * Lock-Free          | No
+ * Lock-Free          | Yes
  *
  * \param[in] goal_handle struct containing the goal and metadata
  * \return `true` if the goal is in one of the following states: ACCEPTED, EXECUTING, or CANCELING, or
@@ -273,7 +273,7 @@ rcl_action_goal_handle_is_active(const rcl_action_goal_handle_t * goal_handle);
  * Allocates Memory   | No
  * Thread-Safe        | No
  * Uses Atomics       | No
- * Lock-Free          | No
+ * Lock-Free          | Yes
  *
  * \param[in] goal_handle struct containing the goal and metadata
  * \return `true` if the goal can be transitioned to CANCELING from its current state, or
