@@ -459,7 +459,7 @@ _recalculate_expire_timer(
       // This function is called in rcl_action_notify_goal_done().
       // If goal_terminal_timestamp of goal is invaild, this goal is just in terminal state.
       // So current time is set to goal_terminal_timestamp of this goal.
-      if (goal_terminal_timestamp == INT64_MAX) {
+      if (goal_terminal_timestamp == 0) {
         goal_terminal_timestamp = current_time;
         ret = rcl_action_goal_handle_set_goal_terminal_timestamp(
           goal_handle, goal_terminal_timestamp);
