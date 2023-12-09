@@ -18,7 +18,7 @@ lidar_ns:
         dy: 0.45
   lidar_2:
     ros__parameters:
-      id: 11
+      id: 992147483647
       name: back_lidar
       dy1: 0.003
       is_back: false
