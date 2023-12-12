@@ -663,7 +663,7 @@ rcl_action_expire_goals(
       continue;
     }
 
-    if ((current_time - goal_terminal_timestamp) > timeout) {
+    if ((goal_terminal_timestamp != 0) && (current_time - goal_terminal_timestamp) > timeout) {
       // Deallocate space used to store pointer to goal handle
       allocator.deallocate(action_server->impl->goal_handles[i], allocator.state);
       action_server->impl->goal_handles[i] = NULL;
