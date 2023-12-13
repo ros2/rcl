@@ -53,6 +53,8 @@ struct rcl_arguments_impl_s
 
   /// Log levels parsed from arguments.
   rcl_log_levels_t log_levels;
+  /// A prefix used to external log file name
+  char * external_log_file_name_prefix;
   /// A file used to configure the external logging library
   char * external_log_config_file;
   /// A boolean value indicating if the standard out handler should be used for log output

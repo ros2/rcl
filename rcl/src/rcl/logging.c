@@ -66,6 +66,7 @@ rcl_logging_configure_with_output_handler(
   g_logging_allocator = *allocator;
   int default_level = -1;
   rcl_log_levels_t * log_levels = &global_args->impl->log_levels;
+  const char * file_name_prefix = global_args->impl->external_log_file_name_prefix;
   const char * config_file = global_args->impl->external_log_config_file;
   g_rcl_logging_stdout_enabled = !global_args->impl->log_stdout_disabled;
   g_rcl_logging_rosout_enabled = !global_args->impl->log_rosout_disabled;
@@ -100,7 +101,8 @@ rcl_logging_configure_with_output_handler(
     }
   }
   if (g_rcl_logging_ext_lib_enabled) {
-    status = rcl_logging_external_initialize(config_file, g_logging_allocator);
+    status = rcl_logging_external_initialize(
+      file_name_prefix, config_file, g_logging_allocator);
     if (RCL_RET_OK == status) {
       rcl_logging_ret_t logging_status = rcl_logging_external_set_logger_level(
         NULL, default_level);
