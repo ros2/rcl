@@ -163,7 +163,7 @@ rcutils_ret_t parse_thread_attr(
           ret = RCUTILS_RET_ERROR;
           goto error;
         }
-        ret = rcutils_thread_core_affinity_init(&core_affinity, 0, allocator);
+        ret = rcutils_thread_core_affinity_init(&core_affinity, allocator);
         if (RCUTILS_RET_OK != ret) {
           goto error;
         }
