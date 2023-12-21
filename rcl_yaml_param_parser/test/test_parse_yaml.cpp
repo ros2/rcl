@@ -92,7 +92,8 @@ TEST(test_parser, correct_syntax) {
     param_value = rcl_yaml_node_struct_get("lidar_ns/lidar_2", "id", params);
     ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->integer_value);
-    EXPECT_EQ(11, *param_value->integer_value);
+    // Make sure that we can correctly parse bigger than LONG_MAX = 2147483647 values
+    EXPECT_EQ(992147483647, *param_value->integer_value);
     res = rcl_parse_yaml_value("lidar_ns/lidar_2", "id", "12", params);
     EXPECT_TRUE(res) << rcutils_get_error_string().str;
     ASSERT_TRUE(NULL != param_value->integer_value);
