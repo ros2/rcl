@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+9.0.0 (2023-12-26)
+------------------
 * Make sure to disable a test_node test on RHEL. (`#1124 <https://github.com/ros2/rcl/issues/1124>`_)
 * remove static function rcl_ret_from_rcutils_ret(). (`#1122 <https://github.com/ros2/rcl/issues/1122>`_)
 * Remove AMENT_DEPENDENCIES from rcl_add_custom_gtest. (`#1119 <https://github.com/ros2/rcl/issues/1119>`_)
