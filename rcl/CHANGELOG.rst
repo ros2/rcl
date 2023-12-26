@@ -2,6 +2,15 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make sure to disable a test_node test on RHEL. (`#1124 <https://github.com/ros2/rcl/issues/1124>`_)
+* remove static function rcl_ret_from_rcutils_ret(). (`#1122 <https://github.com/ros2/rcl/issues/1122>`_)
+* Remove AMENT_DEPENDENCIES from rcl_add_custom_gtest. (`#1119 <https://github.com/ros2/rcl/issues/1119>`_)
+* Remove unncecessary dependencies in tests (`#1114 <https://github.com/ros2/rcl/issues/1114>`_)
+* a rosout publisher of a node might not exist (`#1115 <https://github.com/ros2/rcl/issues/1115>`_)
+* Contributors: Chen Lihui, Chris Lalancette, Christopher Wecht, Tomoya Fujita
+
 8.0.0 (2023-11-06)
 ------------------
 * Set disable loan to on by default. (`#1110 <https://github.com/ros2/rcl/issues/1110>`_)
