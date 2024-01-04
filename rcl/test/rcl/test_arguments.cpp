@@ -184,6 +184,12 @@ TEST_F(TestArgumentsFixture, check_known_vs_unknown_args) {
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "--log", "foo"}));
   EXPECT_FALSE(are_known_ros_args({"--ros-args", "--loglevel", "foo"}));
 
+  // Setting log file name prefix
+  EXPECT_TRUE(are_known_ros_args({"--ros-args", "--log-file-name", "filename"}));
+
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "--logfile-name", "filename"}));
+  EXPECT_FALSE(are_known_ros_args({"--ros-args", "--log-filename", "filename"}));
+
   // Disabling logging
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "--enable-rosout-logs"}));
   EXPECT_TRUE(are_known_ros_args({"--ros-args", "--disable-rosout-logs"}));
@@ -220,7 +226,7 @@ TEST_F(TestArgumentsFixture, check_valid_vs_invalid_args) {
   {
     "--ros-args", "-p", "foo:=bar", "-r", "__node:=node_name",
     "--params-file", parameters_filepath.c_str(), "--log-level", "INFO",
-    "--log-config-file", "file.config"
+    "--log-config-file", "file.config", "--log-file-name", "filename"
   }));
 
   // ROS args unknown to rcl are not (necessarily) invalid
@@ -283,6 +289,8 @@ TEST_F(TestArgumentsFixture, check_valid_vs_invalid_args) {
 
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--log-level"}));
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--log-level", "foo"}));
+
+  EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--log-file-name"}));
 }
 
 TEST_F(TestArgumentsFixture, test_no_args) {
