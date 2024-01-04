@@ -139,9 +139,9 @@ void * get_value(
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
     errno = 0;
-    ival = strtol(value, &endptr, 0);
+    ival = strtoll(value, &endptr, 0);
     if ((0 == errno) && (NULL != endptr)) {
-      if ((NULL != endptr) && (endptr != value)) {
+      if (endptr != value) {
         if (('\0' != *value) && ('\0' == *endptr)) {
           *val_type = DATA_TYPE_INT64;
           ret_val = allocator.zero_allocate(1U, sizeof(int64_t), allocator.state);
