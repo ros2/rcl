@@ -297,6 +297,7 @@ rcl_publish_serialized_message(
     return RCL_RET_PUBLISHER_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(serialized_message, RCL_RET_INVALID_ARGUMENT);
+  TRACETOOLS_TRACEPOINT(rcl_publish, (const void *)publisher, (const void *)serialized_message);
   rmw_ret_t ret = rmw_publish_serialized_message(
     publisher->impl->rmw_handle, serialized_message, allocation);
   if (ret != RMW_RET_OK) {
