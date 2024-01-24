@@ -2,6 +2,12 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add unit tests for --log-file-name argument. (`#1130 <https://github.com/ros2/rcl/issues/1130>`_)
+* support `--log-file-name` to ros args. (`#1127 <https://github.com/ros2/rcl/issues/1127>`_)
+* Contributors: Tomoya Fujita
+
 9.0.0 (2023-12-26)
 ------------------
 * Make sure to disable a test_node test on RHEL. (`#1124 <https://github.com/ros2/rcl/issues/1124>`_)
