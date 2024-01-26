@@ -210,7 +210,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_known_vs_unkno
   EXPECT_TRUE(
     are_known_ros_args(
       {"--ros-args", "--thread-attrs-value",
-        "[{priority: 10, scheduling_policy: FIFO, name: thread-1, core_affinity: [1,2,3]}]"}));
+        "[{priority: 10, scheduling_policy: FIFO, tag: attr-1, core_affinity: [1,2,3]}]"}));
 }
 
 bool
@@ -238,7 +238,7 @@ TEST_F(CLASSNAME(TestArgumentsFixture, RMW_IMPLEMENTATION), check_valid_vs_inval
     "--params-file", parameters_filepath.c_str(), "--log-level", "INFO",
     "--log-config-file", "file.config",
     "--thread-attrs-value",
-    "[{priority: 10, scheduling_policy: IDLE, name: thread-1, core_affinity: [1]}]"
+    "[{priority: 10, scheduling_policy: IDLE, tag: attr-1, core_affinity: [1]}]"
   }));
 
   // ROS args unknown to rcl are not (necessarily) invalid

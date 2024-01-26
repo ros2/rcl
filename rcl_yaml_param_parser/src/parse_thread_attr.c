@@ -64,10 +64,10 @@ parse_thread_attr_key(
     *key_type = THREAD_ATTR_KEY_PRIORITY;
   } else if (strcmp(str, "scheduling_policy") == 0) {
     *key_type = THREAD_ATTR_KEY_SCHEDULING_POLICY;
-  } else if (strcmp(str, "name") == 0) {
-    *key_type = THREAD_ATTR_KEY_NAME;
+  } else if (strcmp(str, "tag") == 0) {
+    *key_type = THREAD_ATTR_KEY_TAG;
   } else if (*str == '\0') {
-    RCUTILS_SET_ERROR_MSG("empty name for a thread attribute");
+    RCUTILS_SET_ERROR_MSG("empty tag for a thread attribute");
     ret = RCUTILS_RET_ERROR;
     goto error;
   } else {
@@ -122,7 +122,7 @@ rcutils_ret_t parse_thread_attr(
   rcutils_thread_core_affinity_t core_affinity =
     rcutils_get_zero_initialized_thread_core_affinity();
   int priority;
-  char const * name = NULL;
+  char const * tag = NULL;
   rcutils_allocator_t allocator = attrs->allocator;
   void * ret_val = NULL;
 
@@ -154,7 +154,7 @@ rcutils_ret_t parse_thread_attr(
 
     const char * value = (char *)event.data.scalar.value;
     yaml_scalar_style_t style = event.data.scalar.style;
-    const yaml_char_t * tag = event.data.scalar.tag;
+    const yaml_char_t * yaml_tag = event.data.scalar.tag;
     data_types_t val_type;
 
     switch (key_type) {
@@ -174,8 +174,8 @@ rcutils_ret_t parse_thread_attr(
           }
           value = (char *)event.data.scalar.value;
           style = event.data.scalar.style;
-          tag = event.data.scalar.tag;
-          ret_val = get_value(value, style, tag, &val_type, allocator);
+          yaml_tag = event.data.scalar.tag;
+          ret_val = get_value(value, style, yaml_tag, &val_type, allocator);
           if (DATA_TYPE_INT64 != val_type) {
             RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
               "Unrecognized value for thread core affinity: %s", value);
@@ -195,7 +195,7 @@ rcutils_ret_t parse_thread_attr(
         if (event.type != YAML_SCALAR_EVENT) {
           goto error;
         }
-        ret_val = get_value(value, style, tag, &val_type, allocator);
+        ret_val = get_value(value, style, yaml_tag, &val_type, allocator);
         if (DATA_TYPE_INT64 != val_type) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Unrecognized value for thread priority: %s", value);
@@ -210,17 +210,17 @@ rcutils_ret_t parse_thread_attr(
         }
         sched_policy = parse_thread_attr_scheduling_policy(value);
         break;
-      case THREAD_ATTR_KEY_NAME:
+      case THREAD_ATTR_KEY_TAG:
         if (event.type != YAML_SCALAR_EVENT) {
           goto error;
         }
         if (*value == '\0') {
-          RCUTILS_SET_ERROR_MSG("Empty thread name");
+          RCUTILS_SET_ERROR_MSG("Empty thread attribute tag");
           ret = RCUTILS_RET_ERROR;
           goto error;
         }
-        name = rcutils_strdup(value, allocator);
-        if (NULL == name) {
+        tag = rcutils_strdup(value, allocator);
+        if (NULL == tag) {
           ret = RCUTILS_RET_BAD_ALLOC;
           goto error;
         }
@@ -241,18 +241,18 @@ rcutils_ret_t parse_thread_attr(
     goto error;
   }
 
-  ret = rcutils_thread_attrs_add_attr(attrs, sched_policy, &core_affinity, priority, name);
+  ret = rcutils_thread_attrs_add_attr(attrs, sched_policy, &core_affinity, priority, tag);
   if (RCUTILS_RET_OK != ret) {
     goto error;
   }
 
-  allocator.deallocate((char *)name, allocator.state);
+  allocator.deallocate((char *)tag, allocator.state);
 
   return RCUTILS_RET_OK;
 
 error:
-  if (NULL != name) {
-    allocator.deallocate((char *)name, allocator.state);
+  if (NULL != tag) {
+    allocator.deallocate((char *)tag, allocator.state);
   }
   if (NULL != ret_val) {
     allocator.deallocate(ret_val, allocator.state);

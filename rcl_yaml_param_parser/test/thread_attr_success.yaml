@@ -1,40 +1,40 @@
 - priority: 0
-  name: thread-0
+  tag: attr-0
   core_affinity: [0,10,0]
   scheduling_policy: BADSCHEDPOLICY1
 - priority: 10
-  name: thread-1
+  tag: attr-1
   core_affinity: [1,11,1]
   scheduling_policy: FIFO
 - priority: 20
-  name: thread-2
+  tag: attr-2
   core_affinity: [2,12,4]
   scheduling_policy: RR
 - priority: 30
-  name: thread-3
+  tag: attr-3
   core_affinity: [3,13,9]
   scheduling_policy: SPORADIC
 - priority: 40
-  name: thread-4
+  tag: attr-4
   core_affinity: [4,14,16]
   scheduling_policy: OTHER
 - priority: 50
-  name: thread-5
+  tag: attr-5
   core_affinity: [5,15,25]
   scheduling_policy: IDLE
 - priority: 60
-  name: thread-6
+  tag: attr-6
   core_affinity: [6,16,36]
   scheduling_policy: BATCH
 - priority: 70
-  name: thread-7
+  tag: attr-7
   core_affinity: [7,17,49]
   scheduling_policy: DEADLINE
 - priority: 80
-  name: thread-8
+  tag: attr-8
   core_affinity: [8,18,64]
   scheduling_policy: BADSCHEDPOLICY2
 - priority: 90
-  name: thread-9
+  tag: attr-9
   core_affinity: [9,19,81]
   scheduling_policy: FIFO

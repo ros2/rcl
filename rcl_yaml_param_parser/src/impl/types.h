@@ -68,7 +68,7 @@ typedef enum thread_attr_key_type_e
   THREAD_ATTR_KEY_CORE_AFFINITY = 1,
   THREAD_ATTR_KEY_SCHEDULING_POLICY = 2,
   THREAD_ATTR_KEY_PRIORITY = 4,
-  THREAD_ATTR_KEY_NAME = 8
+  THREAD_ATTR_KEY_TAG = 8
 } thread_attr_key_type_t;
 
 typedef enum thread_attr_key_bits_e
@@ -78,7 +78,7 @@ typedef enum thread_attr_key_bits_e
     THREAD_ATTR_KEY_CORE_AFFINITY |
     THREAD_ATTR_KEY_SCHEDULING_POLICY |
     THREAD_ATTR_KEY_PRIORITY |
-    THREAD_ATTR_KEY_NAME
+    THREAD_ATTR_KEY_TAG
 } thread_attr_key_bits_t;
 
 #ifdef __cplusplus
