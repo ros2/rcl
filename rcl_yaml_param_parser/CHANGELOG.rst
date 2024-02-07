@@ -2,6 +2,11 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix for incorrect integer value conversion on Windows (`#1129 <https://github.com/ros2/rcl/issues/1129>`_)
+* Contributors: Chris Lalancette, Michael Orlov
+
 6.0.4 (2023-11-17)
 ------------------
 
