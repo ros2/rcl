@@ -1,4 +1,4 @@
-# ROS2 rcl YAML parameter parser
+# ROS 2 rcl YAML parameter parser
 
 Parse a YAML parameter file and populate the C data structure.
 

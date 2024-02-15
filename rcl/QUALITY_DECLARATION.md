@@ -67,7 +67,7 @@ All pull requests must resolve related documentation changes before merging.
 
 ### Feature Documentation [3.i]
 
-`rcl` provides the main elements of its API listed using doxygen. Refer to the [ROS2 concepts](https://docs.ros.org/en/rolling/Concepts.html) and [ROS2 Client Libraries](https://docs.ros.org/en/rolling/Concepts/About-ROS-2-Client-Libraries.html) pages for reference of elements covered by this package.
+`rcl` provides the main elements of its API listed using doxygen. Refer to the [ROS 2 concepts](https://docs.ros.org/en/rolling/Concepts.html) and [ROS 2 Client Libraries](https://docs.ros.org/en/rolling/Concepts/About-ROS-2-Client-Libraries.html) pages for reference of elements covered by this package.
 
 ### Public API Documentation [3.ii]
 
@@ -130,7 +130,7 @@ Changes that introduce regressions in performance must be adequately justified i
 
 ### Linters and Static Analysis [4.v]
 
-`rcl` uses and passes all the ROS2 standard linters and static analysis tools for a C++ package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#linters-and-static-analysis). Passing implies there are no linter/static errors when testing against CI of supported platforms.
+`rcl` uses and passes all the ROS 2 standard linters and static analysis tools for a C++ package as described in the [ROS 2 Developer Guide](https://docs.ros.org/en/rolling/Contributing/Developer-Guide.html#linters-and-static-analysis). Passing implies there are no linter/static errors when testing against CI of supported platforms.
 
 Currently nightly test results can be seen here:
 * [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl/)
@@ -151,49 +151,49 @@ It also has several test dependencies, which do not affect the resulting quality
 
 The `rmw` package provides the API used by `rcl` to interact with the underlying middleware in an abstract way.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/rolling/rmw/QUALITY_DECLARATION.md).
 
 #### `rcl_interfaces`
 
 The `rcl_interfaces` package provides some common ROS Message and ROS Service types which are used to implement certain client library features.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/master/rcl_interfaces/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/rolling/rcl_interfaces/QUALITY_DECLARATION.md).
 
 #### `rcl_logging_spdlog`
 
 The `rcl_logging_spdlog` package provides the default logging implementation by wrapping the `spdlog` library.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_logging/blob/master/rcl_logging_spdlog/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_logging/blob/rolling/rcl_logging_spdlog/QUALITY_DECLARATION.md).
 
 #### `rcl_yaml_param_parser`
 
 The `rcl_yaml_param_parser` package provides an API that is used to parse YAML configuration files which may be used to configure ROS and specific nodes.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl/blob/master/rcl_yaml_param_parser/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl/blob/rolling/rcl_yaml_param_parser/QUALITY_DECLARATION.md).
 
 #### `rcutils`
 
 The `rcutils` package provides an API which contains common utilities and data structures needed when programming in C.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/rolling/QUALITY_DECLARATION.md).
 
 #### `rmw_implementation`
 
 The `rmw_implementation` package provides access to the default rmw implementation, and provides the ability to dynamically switch rmw implementations if more than one is available.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/master/rmw_implementation/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw_implementation/blob/rolling/rmw_implementation/QUALITY_DECLARATION.md).
 
 #### `rosidl_runtime_c`
 
 The `rosidl_runtime_c` package provides runtime interfaces in C based on user defined ROS Messages and ROS Services, as well as associated support functions for those types.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_c/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/rolling/rosidl_runtime_c/QUALITY_DECLARATION.md).
 
 #### `tracetools`
 
 The `tracetools` package provides utilities for instrumenting the code in `rcl` so that it may be traced for debugging and performance analysis.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://gitlab.com/ros-tracing/ros2_tracing/-/blob/master/tracetools/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/ros2_tracing/blob/rolling/tracetools/QUALITY_DECLARATION.md).
 
 ### Optional Direct Runtime ROS Dependencies [5.ii]
 
