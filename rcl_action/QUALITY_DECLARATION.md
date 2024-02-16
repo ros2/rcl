@@ -143,7 +143,7 @@ It also has several test dependencies, which do not affect the resulting quality
 
 `action_msgs` provides messages and services for ROS 2 actions.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/master/action_msgs/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcl_interfaces/blob/rolling/action_msgs/QUALITY_DECLARATION.md).
 
 #### `rcl`
 
@@ -155,19 +155,19 @@ It is **Quality Level 1**, see its [Quality Declaration document](../rcl/QUALITY
 
 `rcutils` provides commonly used functionality in C.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/rolling/QUALITY_DECLARATION.md).
 
 #### `rmw`
 
 `rmw` is the ROS 2 middleware library.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rmw/blob/rolling/rmw/QUALITY_DECLARATION.md).
 
 #### `rosidl_runtime_c`
 
 `rosidl_runtime_c` provides runtime functionality for rosidl message and service interfaces.
 
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_c/QUALITY_DECLARATION.md).
+It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rosidl/blob/rolling/rosidl_runtime_c/QUALITY_DECLARATION.md).
 
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 
