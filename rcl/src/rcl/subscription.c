@@ -742,15 +742,13 @@ rcl_subscription_get_topic_name(const rcl_subscription_t * subscription)
   return subscription->impl->rmw_handle->topic_name;
 }
 
-#define _subscription_get_options(subscription) & subscription->impl->options
-
 const rcl_subscription_options_t *
 rcl_subscription_get_options(const rcl_subscription_t * subscription)
 {
   if (!rcl_subscription_is_valid(subscription)) {
     return NULL;  // error already set
   }
-  return _subscription_get_options(subscription);
+  return &subscription->impl->options;
 }
 
 rmw_subscription_t *
