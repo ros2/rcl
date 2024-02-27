@@ -295,15 +295,13 @@ rcl_client_get_service_name(const rcl_client_t * client)
   return client->impl->rmw_handle->service_name;
 }
 
-#define _client_get_options(client) & client->impl->options;
-
 const rcl_client_options_t *
 rcl_client_get_options(const rcl_client_t * client)
 {
   if (!rcl_client_is_valid(client)) {
     return NULL;  // error already set
   }
-  return _client_get_options(client);
+  return &client->impl->options;
 }
 
 rmw_client_t *

@@ -385,15 +385,13 @@ rcl_publisher_get_topic_name(const rcl_publisher_t * publisher)
   return publisher->impl->rmw_handle->topic_name;
 }
 
-#define _publisher_get_options(pub) & pub->impl->options
-
 const rcl_publisher_options_t *
 rcl_publisher_get_options(const rcl_publisher_t * publisher)
 {
   if (!rcl_publisher_is_valid_except_context(publisher)) {
     return NULL;  // error already set
   }
-  return _publisher_get_options(publisher);
+  return &publisher->impl->options;
 }
 
 rmw_publisher_t *

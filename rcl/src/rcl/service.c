@@ -303,15 +303,13 @@ rcl_service_get_service_name(const rcl_service_t * service)
   return service->impl->rmw_handle->service_name;
 }
 
-#define _service_get_options(service) & service->impl->options
-
 const rcl_service_options_t *
 rcl_service_get_options(const rcl_service_t * service)
 {
   if (!rcl_service_is_valid(service)) {
     return NULL;  // error already set
   }
-  return _service_get_options(service);
+  return &service->impl->options;
 }
 
 rmw_service_t *
