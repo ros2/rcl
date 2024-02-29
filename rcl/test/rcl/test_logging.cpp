@@ -25,7 +25,6 @@
 #include "rcl/subscription.h"
 #include "rcl_interfaces/msg/log.h"
 #include "rcl_logging_interface/rcl_logging_interface.h"
-
 #include "rcutils/logging_macros.h"
 
 #include "../mocking_utils/patch.hpp"
