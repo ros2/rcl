@@ -652,13 +652,6 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rmw_time_t, >)
 
 TEST_F(TestPublisherFixtureInit, test_mock_assert_wait_for_all_acked)
 {
-#define CHECK_PUBLISHER_WAIT_FOR_ALL_ACKED_RETURN(RMW_RET_RESULT, EXPECT_RET)   do { \
-    rmw_publisher_wait_for_all_acked_return = RMW_RET_RESULT; \
-    ret = rcl_publisher_wait_for_all_acked(&publisher, 1000000); \
-    EXPECT_EQ(EXPECT_RET, ret); \
-    rcl_reset_error(); \
-} while (0)
-
   rcl_ret_t ret;
   rmw_ret_t rmw_publisher_wait_for_all_acked_return;
   auto mock = mocking_utils::patch_and_return(
@@ -668,35 +661,50 @@ TEST_F(TestPublisherFixtureInit, test_mock_assert_wait_for_all_acked)
     // Now normal usage of the function rcl_publisher_wait_for_all_acked returning
     // unexpected RMW_RET_TIMEOUT
     SCOPED_TRACE("Check RCL return failed !");
-    CHECK_PUBLISHER_WAIT_FOR_ALL_ACKED_RETURN(RMW_RET_TIMEOUT, RCL_RET_TIMEOUT);
+    rmw_publisher_wait_for_all_acked_return = RMW_RET_TIMEOUT;
+    ret = rcl_publisher_wait_for_all_acked(&publisher, 1000000);
+    EXPECT_EQ(RCL_RET_TIMEOUT, ret);
+    rcl_reset_error();
   }
 
   {
     // Now normal usage of the function rcl_publisher_wait_for_all_acked returning
     // unexpected RMW_RET_UNSUPPORTED
     SCOPED_TRACE("Check RCL return failed !");
-    CHECK_PUBLISHER_WAIT_FOR_ALL_ACKED_RETURN(RMW_RET_UNSUPPORTED, RCL_RET_UNSUPPORTED);
+    rmw_publisher_wait_for_all_acked_return = RMW_RET_UNSUPPORTED;
+    ret = rcl_publisher_wait_for_all_acked(&publisher, 1000000);
+    EXPECT_EQ(RCL_RET_UNSUPPORTED, ret);
+    rcl_reset_error();
   }
 
   {
     // Now normal usage of the function rcl_publisher_wait_for_all_acked returning
     // unexpected RMW_RET_INVALID_ARGUMENT
     SCOPED_TRACE("Check RCL return failed !");
-    CHECK_PUBLISHER_WAIT_FOR_ALL_ACKED_RETURN(RMW_RET_INVALID_ARGUMENT, RCL_RET_ERROR);
+    rmw_publisher_wait_for_all_acked_return = RMW_RET_INVALID_ARGUMENT;
+    ret = rcl_publisher_wait_for_all_acked(&publisher, 1000000);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
   }
 
   {
     // Now normal usage of the function rcl_publisher_wait_for_all_acked returning
     // unexpected RMW_RET_INCORRECT_RMW_IMPLEMENTATION
     SCOPED_TRACE("Check RCL return failed !");
-    CHECK_PUBLISHER_WAIT_FOR_ALL_ACKED_RETURN(RMW_RET_INCORRECT_RMW_IMPLEMENTATION, RCL_RET_ERROR);
+    rmw_publisher_wait_for_all_acked_return = RMW_RET_INCORRECT_RMW_IMPLEMENTATION;
+    ret = rcl_publisher_wait_for_all_acked(&publisher, 1000000);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
   }
 
   {
     // Now normal usage of the function rcl_publisher_wait_for_all_acked returning
     // unexpected RMW_RET_ERROR
     SCOPED_TRACE("Check RCL return failed !");
-    CHECK_PUBLISHER_WAIT_FOR_ALL_ACKED_RETURN(RMW_RET_ERROR, RCL_RET_ERROR);
+    rmw_publisher_wait_for_all_acked_return = RMW_RET_ERROR;
+    ret = rcl_publisher_wait_for_all_acked(&publisher, 1000000);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
   }
 }
 

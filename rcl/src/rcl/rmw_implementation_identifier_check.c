@@ -32,6 +32,8 @@ extern "C"
 
 #include "rcl/rmw_implementation_identifier_check.h"
 
+// *INDENT-OFF*
+
 // Extracted this portable method of doing a "shared library constructor" from SO:
 //   http://stackoverflow.com/a/2390626/671658
 // Initializer/finalizer sample for MSVC and GCC/Clang.
@@ -39,10 +41,10 @@ extern "C"
 #if defined(_MSC_VER)
   #pragma section(".CRT$XCU", read)
   #define INITIALIZER2_(f, p) \
-  static void f(void); \
-  __declspec(allocate(".CRT$XCU"))void(*f ## _)(void) = f; \
-  __pragma(comment(linker, "/include:" p #f "_")) \
-  static void f(void)
+    static void f(void); \
+    __declspec(allocate(".CRT$XCU"))void(*f ## _)(void) = f; \
+    __pragma(comment(linker, "/include:" p #f "_")) \
+    static void f(void)
   #ifdef _WIN64
     #define INITIALIZER(f) INITIALIZER2_(f, "")
   #else
@@ -50,9 +52,11 @@ extern "C"
   #endif
 #else
   #define INITIALIZER(f) \
-  static void f(void) __attribute__((constructor)); \
-  static void f(void)
+    static void f(void) __attribute__((constructor)); \
+    static void f(void)
 #endif
+
+// *INDENT-ON*
 
 rcl_ret_t rcl_rmw_implementation_identifier_check(void)
 {

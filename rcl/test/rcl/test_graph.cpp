@@ -1322,18 +1322,9 @@ TEST_F(TestGraphFixture, test_graph_query_functions)
  * Note: this test could be impacted by other communications on the same ROS Domain.
  */
 TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
-#define CHECK_GUARD_CONDITION_CHANGE(EXPECTED_RESULT, TIMEOUT)   do { \
-    ret = rcl_wait_set_clear(&wait_set); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
-    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL); \
-    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str; \
-    ret = rcl_wait(&wait_set, TIMEOUT.count()); \
-    ASSERT_EQ(EXPECTED_RESULT, ret) << rcl_get_error_string().str; \
-} while (0)
-
   rcl_ret_t ret;
-  std::chrono::nanoseconds timeout_1s = std::chrono::seconds(1);
-  std::chrono::nanoseconds timeout_3s = std::chrono::seconds(3);
+  static constexpr std::chrono::nanoseconds timeout_1s = std::chrono::seconds(1);
+  static constexpr std::chrono::nanoseconds timeout_3s = std::chrono::seconds(3);
 
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   ret = rcl_wait_set_init(
@@ -1375,7 +1366,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since destroying the publisher
@@ -1384,7 +1380,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since creating the subscription
@@ -1397,7 +1398,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since destroying the subscription
@@ -1406,7 +1412,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since creating service
@@ -1422,7 +1433,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since destroy service
@@ -1431,7 +1447,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since creating client
@@ -1447,7 +1468,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since destroying client
@@ -1456,7 +1482,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since adding new node
@@ -1467,7 +1498,12 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_3s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Graph change since destroying new node
@@ -1476,13 +1512,23 @@ TEST_F(TestGraphFixture, test_graph_guard_condition_trigger_check) {
 
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_OK, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // Should not get graph change if no change
   {
     SCOPED_TRACE("Check guard condition change failed !");
-    CHECK_GUARD_CONDITION_CHANGE(RCL_RET_TIMEOUT, timeout_1s);
+    ret = rcl_wait_set_clear(&wait_set);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_guard_condition(&wait_set, graph_guard_condition, NULL);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait(&wait_set, timeout_1s.count());
+    ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
   }
 }
 
