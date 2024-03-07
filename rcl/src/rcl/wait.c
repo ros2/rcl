@@ -558,8 +558,29 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
           rmw_gcs->guard_conditions[gc_idx];
         ++(rmw_gcs->guard_condition_count);
       }
+
+      rcl_clock_t * clock;
+      if (rcl_timer_clock(wait_set->timers[i], &clock) != RCL_RET_OK) {
+        //should never happen
+        return RCL_RET_ERROR;
+      }
+
+      if (clock->type == RCL_ROS_TIME) {
+        bool timer_override_active = false;
+        if (rcl_is_enabled_ros_time_override(clock, &timer_override_active) != RCL_RET_OK) {
+          //should never happen
+          return RCL_RET_ERROR;
+        }
+
+        if (timer_override_active) {
+          // if the timer override is active, there is no point in computing a wait time,
+          // as it might be on a total wrong time basis. In case this timer becomes ready,
+          // the guard_condition above will wake us.
+          continue;
+        }
+      }
+
       // use timer time to to set the rmw_wait timeout
-      // TODO(sloretz) fix spurious wake-ups on ROS_TIME timers with ROS_TIME enabled
       int64_t timer_timeout = INT64_MAX;
       rcl_ret_t ret = rcl_timer_get_time_until_next_call(wait_set->timers[i], &timer_timeout);
       if (ret == RCL_RET_TIMER_CANCELED) {
