@@ -254,7 +254,7 @@ rcl_timer_fini(rcl_timer_t * timer)
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_clock(rcl_timer_t * timer, rcl_clock_t ** clock)
+rcl_timer_clock(const rcl_timer_t * timer, rcl_clock_t ** clock)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);

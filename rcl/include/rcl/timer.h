@@ -284,7 +284,7 @@ rcl_timer_call(rcl_timer_t * timer);
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_clock(rcl_timer_t * timer, rcl_clock_t ** clock);
+rcl_timer_clock(const rcl_timer_t * timer, rcl_clock_t ** clock);
 
 /// Calculates whether or not the timer should be called.
 /**
