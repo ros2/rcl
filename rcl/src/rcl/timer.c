@@ -334,6 +334,22 @@ rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready)
 }
 
 rcl_ret_t
+rcl_timer_get_next_call_time(const rcl_timer_t * timer, int64_t * next_call_time)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer->impl, RCL_RET_TIMER_INVALID);
+  RCL_CHECK_ARGUMENT_FOR_NULL(next_call_time, RCL_RET_INVALID_ARGUMENT);
+
+  if (rcutils_atomic_load_bool(&timer->impl->canceled)) {
+    return RCL_RET_TIMER_CANCELED;
+  }
+
+  *next_call_time =
+    rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
 rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_until_next_call)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
