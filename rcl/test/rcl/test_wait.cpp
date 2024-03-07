@@ -323,7 +323,6 @@ TEST_F(WaitSetTestFixture, zero_timeout_overrun_timer) {
 
 // Test rcl_wait with a timeout value and an overrun timer
 TEST_F(WaitSetTestFixture, no_wakeup_on_override_timer) {
-
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
     rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
@@ -371,7 +370,6 @@ TEST_F(WaitSetTestFixture, no_wakeup_on_override_timer) {
 
 // Test rcl_wait with a timeout value and an overrun timer
 TEST_F(WaitSetTestFixture, wakeup_on_override_timer) {
-
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   rcl_ret_t ret =
     rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
