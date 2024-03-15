@@ -401,16 +401,16 @@ RCL_WARN_UNUSED
 rcl_ret_t
 rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
 
-/// Return a list of available node names in the ROS graph and a list of their namespaces.
+/// Return a list of node names and their associated namespaces in the ROS graph.
 /**
  * The `node` parameter must point to a valid node.
  *
- * The `node_names` and `node_namespaces` parameter must be allocated and zero initialized.
+ * The `node_names` and `node_namespaces` parameters must be allocated and zero initialized.
  * `node_names` and `node_namespaces` are the output for this function, and contain allocated memory.
  * Use rcutils_get_zero_initialized_string_array() for initializing an empty
  * rcutils_string_array_t struct.
- * This `node_names` and `node_namespaces` struct should therefore be passed to rcutils_string_array_fini()
- * when it is no longer needed.
+ * These `node_names` and `node_namespaces` structs should therefore be passed to rcutils_string_array_fini()
+ * when they are no longer needed.
  * Failing to do so will result in leaked memory.
  *
  * Example:
@@ -464,7 +464,7 @@ rcl_get_node_names(
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces);
 
-/// Return a list of available node names in the ROS graph, of their namespaces and their enclaves.
+/// Return a list of node names and their associated namespaces and enclaves in the ROS graph.
 /**
  * An rcl_get_node_names() equivalent, but including in its output the enclave
  * name the node is using.
