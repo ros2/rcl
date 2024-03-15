@@ -406,11 +406,12 @@ rcl_names_and_types_fini(rcl_names_and_types_t * names_and_types);
  * The `node` parameter must point to a valid node.
  *
  * The `node_names` and `node_namespaces` parameters must be allocated and zero initialized.
- * `node_names` and `node_namespaces` are the output for this function, and contain allocated memory.
+ * `node_names` and `node_namespaces` are the output for this function,
+ * and contain allocated memory.
  * Use rcutils_get_zero_initialized_string_array() for initializing an empty
  * rcutils_string_array_t struct.
- * These `node_names` and `node_namespaces` structs should therefore be passed to rcutils_string_array_fini()
- * when they are no longer needed.
+ * These `node_names` and `node_namespaces` structs should therefore be passed
+ * to rcutils_string_array_fini() when they are no longer needed.
  * Failing to do so will result in leaked memory.
  *
  * Example:
