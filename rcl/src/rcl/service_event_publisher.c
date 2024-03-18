@@ -40,14 +40,9 @@ rcl_service_event_publisher_is_valid(const rcl_service_event_publisher_t * servi
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(
     service_event_publisher, "service_event_publisher is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    service_event_publisher->service_type_support,
-    "service_event_publisher's service type support is invalid", return false);
-  if (!rcl_clock_valid(service_event_publisher->clock)) {
-    RCL_SET_ERROR_MSG("service_event_publisher's clock is invalid");
-    return false;
-  }
-  return true;
+
+  return service_event_publisher->service_type_support != NULL &&
+         rcl_clock_valid(service_event_publisher->clock);
 }
 
 static rcl_ret_t introspection_create_publisher(

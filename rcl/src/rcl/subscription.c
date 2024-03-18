@@ -764,11 +764,8 @@ bool
 rcl_subscription_is_valid(const rcl_subscription_t * subscription)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(subscription, "subscription pointer is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "subscription's implementation is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl->rmw_handle, "subscription's rmw handle is invalid", return false);
-  return true;
+
+  return subscription->impl != NULL && subscription->impl->rmw_handle != NULL;
 }
 
 rmw_ret_t

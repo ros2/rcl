@@ -220,13 +220,13 @@ bool
 rcl_event_is_valid(const rcl_event_t * event)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(event, "event pointer is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(event->impl, "event's implementation is invalid", return false);
-  if (event->impl->rmw_handle.event_type == RMW_EVENT_INVALID) {
-    RCUTILS_SET_ERROR_MSG("event's implementation not init");
+
+  if (event->impl == NULL || event->impl->rmw_handle.event_type == RMW_EVENT_INVALID) {
     return false;
   }
-  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
-    &event->impl->allocator, "not valid allocator", return false);
+
+  RCL_CHECK_ALLOCATOR(&event->impl->allocator, return false);
+
   return true;
 }
 
