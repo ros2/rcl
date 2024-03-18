@@ -169,6 +169,42 @@ rcl_lexer_lookahead2_peek2(
 }
 
 rcl_ret_t
+rcl_lexer_lookahead2_peek_colon_prefix(
+  rcl_lexer_lookahead2_t * buffer)
+{
+  RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(buffer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    buffer->impl, "buffer not initialized", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    buffer->impl->text, "buffer text not initialized", return RCL_RET_INVALID_ARGUMENT);
+
+  rcl_lexeme_t lexeme = RCL_LEXEME_NONE;
+  rcl_ret_t ret;
+  size_t length;
+  const char * ptext = buffer->impl->text;
+  while (ptext) {
+    if (*ptext == '\0') {
+      ret = RCL_RET_ERROR;
+      break;
+    }
+    ret = rcl_lexer_analyze(ptext, &lexeme, &length);
+    if (RCL_RET_OK != ret) {
+      break;
+    }
+
+    if (lexeme == RCL_LEXEME_COLON) {
+      ret = RCL_RET_OK;
+      break;
+    }
+
+    ptext += length;
+  }
+  return ret;
+}
+
+rcl_ret_t
 rcl_lexer_lookahead2_accept(
   rcl_lexer_lookahead2_t * buffer,
   const char ** lexeme_text,
