@@ -458,6 +458,26 @@ rcl_publisher_get_subscription_count(
   return RCL_RET_OK;
 }
 
+rcl_ret_t
+rcl_publisher_get_non_local_subscription_count(
+  const rcl_publisher_t * publisher,
+  size_t * non_local_subscription_count)
+{
+  if (!rcl_publisher_is_valid(publisher)) {
+    return RCL_RET_PUBLISHER_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(non_local_subscription_count, RCL_RET_INVALID_ARGUMENT);
+
+  rmw_ret_t ret = rmw_publisher_count_non_local_matched_subscriptions(
+    publisher->impl->rmw_handle, non_local_subscription_count);
+
+  if (ret != RMW_RET_OK) {
+    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+  }
+  return RCL_RET_OK;
+}
+
 const rmw_qos_profile_t *
 rcl_publisher_get_actual_qos(const rcl_publisher_t * publisher)
 {
