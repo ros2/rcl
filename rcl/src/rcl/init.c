@@ -68,6 +68,7 @@ rcl_init(
   rcl_allocator_t allocator = options->impl->allocator;
   RCL_CHECK_ALLOCATOR(&allocator, return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(context, RCL_RET_INVALID_ARGUMENT);
+  RCUTILS_LOGGING_AUTOINIT_WITH_ALLOCATOR(allocator);
 
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME,
