@@ -685,7 +685,7 @@ rcl_take_dynamic_message(
 rcl_ret_t
 rcl_take_loaned_message(
   const rcl_subscription_t * subscription,
-  void ** loaned_message,
+  const void ** loaned_message,
   rmw_message_info_t * message_info,
   rmw_subscription_allocation_t * allocation)
 {
@@ -705,7 +705,8 @@ rcl_take_loaned_message(
   // Call rmw_take_with_info.
   bool taken = false;
   rmw_ret_t ret = rmw_take_loaned_message_with_info(
-    subscription->impl->rmw_handle, loaned_message, &taken, message_info_local, allocation);
+    subscription->impl->rmw_handle, (void **) loaned_message, &taken, message_info_local,
+    allocation);
   if (ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     return rcl_convert_rmw_ret_to_rcl_ret(ret);
@@ -721,7 +722,7 @@ rcl_take_loaned_message(
 rcl_ret_t
 rcl_return_loaned_message_from_subscription(
   const rcl_subscription_t * subscription,
-  void * loaned_message)
+  const void * loaned_message)
 {
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription releasing loaned message");
   if (!rcl_subscription_is_valid(subscription)) {
@@ -730,7 +731,7 @@ rcl_return_loaned_message_from_subscription(
   RCL_CHECK_ARGUMENT_FOR_NULL(loaned_message, RCL_RET_INVALID_ARGUMENT);
   return rcl_convert_rmw_ret_to_rcl_ret(
     rmw_return_loaned_message_from_subscription(
-      subscription->impl->rmw_handle, loaned_message));
+      subscription->impl->rmw_handle, (void *) loaned_message));
 }
 
 const char *
