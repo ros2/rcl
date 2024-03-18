@@ -18,12 +18,15 @@
 #include "rmw/rmw.h"
 
 #include "rcl/subscription.h"
+#include "rosidl_runtime_c/message_type_support_struct.h"
 
 struct rcl_subscription_impl_s
 {
   rcl_subscription_options_t options;
   rmw_qos_profile_t actual_qos;
   rmw_subscription_t * rmw_handle;
+  void * rcl_content_filter_fallback;
+  const rosidl_message_type_support_t * type_support;
   rosidl_type_hash_t type_hash;
 };
 

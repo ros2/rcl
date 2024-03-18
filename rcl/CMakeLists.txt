@@ -5,6 +5,7 @@ project(rcl)
 find_package(ament_cmake_ros REQUIRED)
 
 find_package(libyaml_vendor REQUIRED)
+find_package(rcl_content_filter_fallback REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rcl_logging_interface REQUIRED)
 find_package(rcl_yaml_param_parser REQUIRED)
@@ -85,6 +86,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PUBLIC
   # TODO(clalancette): rcl_interfaces should be PRIVATE, but downstream depends on it for now
   ${rcl_interfaces_TARGETS}
+  rcl_content_filter_fallback::rcl_content_filter_fallback
   # TODO(clalancette): rcl_logging_interface should be PRIVATE, but downstream depends on it for now
   rcl_logging_interface::rcl_logging_interface
   rcl_yaml_param_parser::rcl_yaml_param_parser
@@ -136,6 +138,7 @@ ament_export_libraries(${PROJECT_NAME})
 ament_export_targets(${PROJECT_NAME})
 
 ament_export_dependencies(ament_cmake)
+ament_export_dependencies(rcl_content_filter_fallback)
 # TODO(clalancette): rcl_interfaces shouldn't be exported, but downstream depends on it for now
 ament_export_dependencies(rcl_interfaces)
 # TODO(clalancette): rcl_logging_interface shouldn't be exported, but downstream depends on it for now

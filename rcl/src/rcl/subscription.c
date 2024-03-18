@@ -21,6 +21,8 @@ extern "C"
 
 #include <stdio.h>
 
+#include "rcl_content_filter_fallback/rcl_content_filter_fallback.h"
+
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcl/node_type_cache.h"
@@ -44,6 +46,54 @@ rcl_get_zero_initialized_subscription()
 {
   static rcl_subscription_t null_subscription = {0};
   return null_subscription;
+}
+
+static
+bool
+rcl_subscription_rcl_content_filter_fallback_set(
+  const rcl_subscription_t * subscription,
+  const rmw_subscription_content_filter_options_t * options)
+{
+  if (!subscription->impl->rcl_content_filter_fallback) {
+    subscription->impl->rcl_content_filter_fallback =
+      rcl_content_filter_fallback_create(subscription->impl->type_support);
+    if (!subscription->impl->rcl_content_filter_fallback) {
+      RCL_SET_ERROR_MSG("Failed to create rcl content filter fallback");
+      return false;
+    }
+    RCUTILS_LOG_DEBUG_NAMED(
+      ROS_PACKAGE_NAME, "rcl content filter fallback is created for topic '%s'",
+      rcl_subscription_get_topic_name(subscription));
+  }
+
+  if (!rcl_content_filter_fallback_set(
+      subscription->impl->rcl_content_filter_fallback,
+      options))
+  {
+    RCL_SET_ERROR_MSG("Failed to set options for rcl content filter fallback");
+    return false;
+  }
+
+  return true;
+}
+
+static
+bool
+rcl_subscription_rcl_content_filter_fallback_is_relevant(
+  const rcl_subscription_t * subscription,
+  void * data,
+  bool serialized)
+{
+  if (subscription->impl->rcl_content_filter_fallback &&
+    rcl_content_filter_fallback_is_enabled(subscription->impl->rcl_content_filter_fallback))
+  {
+    return rcl_content_filter_fallback_evaluate(
+      subscription->impl->rcl_content_filter_fallback,
+      data,
+      serialized);
+  }
+
+  return true;
 }
 
 rcl_ret_t
@@ -125,6 +175,23 @@ rcl_subscription_init(
   // options
   subscription->impl->options = *options;
 
+  subscription->impl->type_support = type_support;
+
+  if (options->rmw_subscription_options.content_filter_options) {
+    // Content filter topic not supported (or not enabled as some failed cases) on rmw
+    // implementation.
+    // TODO(iuhilnehc-ynos): enable rcl content filter fallback with an environment variable
+    // (e.g. FORCE_RCL_CONTENT_FILTER) regardless of whether cft is enabled on RMW implementation.
+    if (!subscription->impl->rmw_handle->is_cft_enabled) {
+      if (!rcl_subscription_rcl_content_filter_fallback_set(
+          subscription,
+          options->rmw_subscription_options.content_filter_options))
+      {
+        goto fail;
+      }
+    }
+  }
+
   if (RCL_RET_OK != rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
       type_support->get_type_description_func(type_support),
@@ -162,6 +229,10 @@ fail:
     if (RCL_RET_OK != ret) {
       RCUTILS_SAFE_FWRITE_TO_STDERR(rmw_get_error_string().str);
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+    }
+
+    if (subscription->impl->rcl_content_filter_fallback) {
+      rcl_content_filter_fallback_destroy(subscription->impl->rcl_content_filter_fallback);
     }
 
     allocator->deallocate(subscription->impl, allocator->state);
@@ -205,6 +276,10 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
       result = RCL_RET_ERROR;
+    }
+
+    if (subscription->impl->rcl_content_filter_fallback) {
+      rcl_content_filter_fallback_destroy(subscription->impl->rcl_content_filter_fallback);
     }
 
     if (
@@ -475,7 +550,9 @@ rcl_subscription_is_cft_enabled(const rcl_subscription_t * subscription)
   if (!rcl_subscription_is_valid(subscription)) {
     return false;
   }
-  return subscription->impl->rmw_handle->is_cft_enabled;
+  return subscription->impl->rmw_handle->is_cft_enabled ||
+         (subscription->impl->rcl_content_filter_fallback &&
+         rcl_content_filter_fallback_is_enabled(subscription->impl->rcl_content_filter_fallback));
 }
 
 rcl_ret_t
@@ -497,8 +574,13 @@ rcl_subscription_set_content_filter(
     &options->rmw_subscription_content_filter_options);
 
   if (ret != RMW_RET_OK) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
-    return rcl_convert_rmw_ret_to_rcl_ret(ret);
+    rcl_reset_error();
+    if (!rcl_subscription_rcl_content_filter_fallback_set(
+        subscription,
+        &options->rmw_subscription_content_filter_options))
+    {
+      return RMW_RET_ERROR;
+    }
   }
 
   // copy options into subscription_options
@@ -532,8 +614,20 @@ rcl_subscription_get_content_filter(
     subscription->impl->rmw_handle,
     allocator,
     &options->rmw_subscription_content_filter_options);
-
-  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  // If options can be get from rmw implementation, it's unnecessary to get them from rcl
+  // content filter fallback.
+  if (rmw_ret != RMW_RET_OK) {
+    rcl_reset_error();
+    if (!rcl_content_filter_fallback_get(
+        subscription->impl->rcl_content_filter_fallback,
+        allocator,
+        &options->rmw_subscription_content_filter_options))
+    {
+      RCL_SET_ERROR_MSG("Failed to get options from rcl content filter fallback");
+      return RMW_RET_ERROR;
+    }
+  }
+  return RMW_RET_OK;
 }
 
 rcl_ret_t
@@ -568,6 +662,16 @@ rcl_take(
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
+
+  // filter ros message with rcl content filter fallback
+  if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
+      subscription,
+      ros_message,
+      false))
+  {
+    return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
+  }
+
   return RCL_RET_OK;
 }
 
@@ -647,6 +751,16 @@ rcl_take_serialized_message(
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
+
+  // filter ros message with rcl content filter fallback
+  if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
+      subscription,
+      serialized_message,
+      true))
+  {
+    return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
+  }
+
   return RCL_RET_OK;
 }
 
@@ -715,6 +829,16 @@ rcl_take_loaned_message(
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
+
+  // filter ros message with rcl content filter fallback
+  if (!rcl_subscription_rcl_content_filter_fallback_is_relevant(
+      subscription,
+      *loaned_message,
+      false))
+  {
+    return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
+  }
+
   return RCL_RET_OK;
 }
 

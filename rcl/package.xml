@@ -20,6 +20,7 @@
   <build_export_depend>rmw</build_export_depend>
 
   <depend>libyaml_vendor</depend>
+  <depend>rcl_content_filter_fallback</depend>
   <depend>rcl_interfaces</depend>
   <depend>rcl_logging_interface</depend>
   <depend>rcl_logging_spdlog</depend> <!-- the default logging impl -->
