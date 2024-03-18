@@ -37,6 +37,7 @@ const char * rcl_lifecycle_cleanup_label = "cleanup";
 const char * rcl_lifecycle_activate_label = "activate";
 const char * rcl_lifecycle_deactivate_label = "deactivate";
 const char * rcl_lifecycle_shutdown_label = "shutdown";
+const char * rcl_lifecycle_error_label = "error";
 
 const char * rcl_lifecycle_transition_success_label = "transition_success";
 const char * rcl_lifecycle_transition_failure_label = "transition_failure";
@@ -392,6 +393,22 @@ _register_transitions(
     }
   }
 
+  // register transition from inactive to errorprocessing
+  {
+    rcl_lifecycle_transition_t rcl_transition_inactive_error = {
+      rcl_lifecycle_error_label,
+      lifecycle_msgs__msg__Transition__TRANSITION_INACTIVE_ERROR,
+      inactive_state, errorprocessing_state
+    };
+    ret = rcl_lifecycle_register_transition(
+      transition_map,
+      rcl_transition_inactive_error,
+      allocator);
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
+  }
+
   // register transition from activating to active
   {
     rcl_lifecycle_transition_t rcl_transition_on_activate_success = {
@@ -450,6 +467,22 @@ _register_transitions(
     ret = rcl_lifecycle_register_transition(
       transition_map,
       rcl_transition_deactivate,
+      allocator);
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
+  }
+
+  // register transition from active to errorprocessing
+  {
+    rcl_lifecycle_transition_t rcl_transition_active_error = {
+      rcl_lifecycle_error_label,
+      lifecycle_msgs__msg__Transition__TRANSITION_ACTIVE_ERROR,
+      active_state, errorprocessing_state
+    };
+    ret = rcl_lifecycle_register_transition(
+      transition_map,
+      rcl_transition_active_error,
       allocator);
     if (ret != RCL_RET_OK) {
       return ret;
