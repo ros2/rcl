@@ -56,6 +56,7 @@
 #include "./node_impl.h"
 
 const char * const RCL_DISABLE_LOANED_MESSAGES_ENV_VAR = "ROS_DISABLE_LOANED_MESSAGES";
+const char * const RCL_NAMESPACE_ENV_VAR = "ROS_NAMESPACE";
 
 /// Return the logger name associated with a node given the validated node name and namespace.
 /**
@@ -113,6 +114,7 @@ rcl_node_init(
   rcl_context_t * context,
   const rcl_node_options_t * options)
 {
+
   const rmw_guard_condition_t * rmw_graph_guard_condition = NULL;
   rcl_guard_condition_options_t graph_guard_condition_options =
     rcl_guard_condition_get_default_options();
@@ -120,6 +122,19 @@ rcl_node_init(
   rcl_ret_t fail_ret = RCL_RET_ERROR;
   char * remapped_node_name = NULL;
   const char * local_namespace_ = NULL;
+
+  const char * env_error_str = NULL;
+  const char * env_val = NULL;
+  env_error_str = rcutils_get_env(RCL_NAMESPACE_ENV_VAR, &env_val);
+  if (NULL != env_error_str) {
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Error getting env var: '" RCUTILS_STRINGIFY(RCL_NAMESPACE_ENV_VAR) "': %s\n",
+      env_error_str);
+    return RCL_RET_ERROR;
+  }
+  if (NULL != env_val && 0 != strlen(env_val)) {
+    namespace_ = env_val;
+  }
 
   // Check options and allocator first, so allocator can be used for errors.
   RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
