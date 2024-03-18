@@ -671,3 +671,80 @@ TEST_F(TestServiceFixture, test_fail_send_response) {
     rcl_reset_error();
   }
 }
+
+static void service_callback(const void * user_data, size_t number_of_events)
+{
+  rcl_ret_t ret;
+  printf("Service callback %zu!\n", number_of_events);
+  rcl_service_t * service = (rcl_service_t *)user_data;
+
+  test_msgs__srv__BasicTypes_Request request;
+  ret = test_msgs__srv__BasicTypes_Request__init(&request);
+  test_msgs__srv__BasicTypes_Response response;
+  ret = test_msgs__srv__BasicTypes_Response__init(&response);
+
+  rmw_request_id_t header;
+  ret = rcl_take_request(service, &header, &request);
+  if (ret != RCL_RET_OK) {
+    printf("Bad take\n");
+    return;
+  }
+  printf("Exiting service callback: %u\n", request.uint8_value);
+}
+
+/* Test that an rcl service callback can get the request message to operate on.
+ */
+TEST_F(CLASSNAME(TestServiceFixture, RMW_IMPLEMENTATION), test_callback_get_request)
+{
+  const uint8_t special_test_value = 123;
+  const char * service_name = "basic_callback_request";
+  const rosidl_service_type_support_t * typesupport = ROSIDL_GET_SRV_TYPE_SUPPORT(
+    test_msgs, srv, BasicTypes);
+
+  rcl_service_t service = rcl_get_zero_initialized_service();
+  rcl_service_options_t service_options = rcl_service_get_default_options();
+  rcl_client_t client = rcl_get_zero_initialized_client();
+  rcl_client_options_t client_options = rcl_client_get_default_options();
+  int64_t sequence_number = 0;
+  rcl_ret_t ret;
+
+  // Init server
+  ret = rcl_service_init(&service, node_ptr, typesupport, service_name, &service_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_service_fini(&service, node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  ret = rcl_service_set_on_new_request_callback(&service, &service_callback, &service);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Init client
+  ret = rcl_client_init(&client, node_ptr, typesupport, service_name, &client_options);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_client_fini(&client, node_ptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  ASSERT_TRUE(wait_for_server_to_be_available(node_ptr, &client, 10, 1000));
+
+  // Send request
+  test_msgs__srv__BasicTypes_Request client_request;
+  test_msgs__srv__BasicTypes_Request__init(&client_request);
+  client_request.uint8_value = special_test_value;
+  ret = rcl_send_request(&client, &client_request, &sequence_number);
+  test_msgs__srv__BasicTypes_Request__fini(&client_request);
+  EXPECT_EQ(sequence_number, 1);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_TRUE(wait_for_service_to_be_ready(&service, context_ptr, 10, 100));
+
+  // Get response
+  ASSERT_TRUE(wait_for_client_to_be_ready(&client, context_ptr, 10, 100));
+  rmw_service_info_t header;
+  test_msgs__srv__BasicTypes_Response client_response;
+  test_msgs__srv__BasicTypes_Response__init(&client_response);
+  ret = rcl_take_response_with_info(&client, &header, &client_response);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  test_msgs__srv__BasicTypes_Response__fini(&client_response);
+}
