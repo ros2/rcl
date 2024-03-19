@@ -26,6 +26,7 @@ typedef struct rcl_action_goal_handle_impl_s
 {
   rcl_action_goal_info_t info;
   rcl_action_goal_state_t state;
+  rcl_time_point_value_t goal_terminal_timestamp;
   rcl_allocator_t allocator;
 } rcl_action_goal_handle_impl_t;
 
@@ -68,6 +69,8 @@ rcl_action_goal_handle_init(
   goal_handle->impl->state = GOAL_STATE_ACCEPTED;
   // Copy the allocator
   goal_handle->impl->allocator = allocator;
+  // Set invalid time
+  goal_handle->impl->goal_terminal_timestamp = 0;
   return RCL_RET_OK;
 }
 
@@ -170,6 +173,42 @@ rcl_action_goal_handle_is_valid(const rcl_action_goal_handle_t * goal_handle)
   RCL_CHECK_FOR_NULL_WITH_MSG(
     goal_handle->impl, "goal handle implementation is invalid", return false);
   return true;
+}
+
+rcl_ret_t
+rcl_action_goal_handle_get_goal_terminal_timestamp(
+  const rcl_action_goal_handle_t * goal_handle,
+  rcl_time_point_value_t * timestamp)
+{
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ACTION_GOAL_HANDLE_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
+    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(timestamp, RCL_RET_INVALID_ARGUMENT);
+  *timestamp = goal_handle->impl->goal_terminal_timestamp;
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_action_goal_handle_set_goal_terminal_timestamp(
+  const rcl_action_goal_handle_t * goal_handle,
+  rcl_time_point_value_t timestamp)
+{
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ACTION_GOAL_HANDLE_INVALID);
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
+    return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
+  }
+
+  if (timestamp == INT64_MAX) {
+    RCL_SET_ERROR_MSG("Timestamp argument is invaild !");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+  goal_handle->impl->goal_terminal_timestamp = timestamp;
+  return RCL_RET_OK;
 }
 
 #ifdef __cplusplus

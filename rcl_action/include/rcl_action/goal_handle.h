@@ -24,6 +24,7 @@ extern "C"
 #include "rcl_action/types.h"
 #include "rcl_action/visibility_control.h"
 #include "rcl/allocator.h"
+#include "rcl/time.h"
 
 
 /// Internal rcl action goal implementation struct.
@@ -189,6 +190,56 @@ rcl_ret_t
 rcl_action_goal_handle_get_status(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_action_goal_state_t * status);
+
+/// Get the goal terminal timestamp.
+/**
+ * This is a non-blocking call.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] goal_handle struct containing the goal and metadata
+ * \param[out] timestamp a preallocated struct where goal terminal timestamp is copied
+ * \return `RCL_RET_OK` if the goal ID was accessed successfully, or
+ * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the timestamp argument is invalid
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_goal_handle_get_goal_terminal_timestamp(
+  const rcl_action_goal_handle_t * goal_handle,
+  rcl_time_point_value_t * timestamp);
+
+/// Set the goal terminal timestamp.
+/**
+ * This is a non-blocking call.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] goal_handle struct containing the goal and metadata
+ * \param[in] timestamp The timestamp of goal termination
+ * \return `RCL_RET_OK` if the goal ID was accessed successfully, or
+ * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if the timestamp argument is invalid
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_goal_handle_set_goal_terminal_timestamp(
+  const rcl_action_goal_handle_t * goal_handle,
+  rcl_time_point_value_t timestamp);
 
 /// Check if a goal is active using a rcl_action_goal_handle_t.
 /**

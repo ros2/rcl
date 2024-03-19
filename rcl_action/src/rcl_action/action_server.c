@@ -447,13 +447,28 @@ _recalculate_expire_timer(
     if (!rcl_action_goal_handle_is_active(goal_handle)) {
       ++num_inactive_goals;
 
-      rcl_action_goal_info_t goal_info;
-      ret = rcl_action_goal_handle_get_info(goal_handle, &goal_info);
+      rcl_time_point_value_t goal_terminal_timestamp;
+      ret = rcl_action_goal_handle_get_goal_terminal_timestamp(
+        goal_handle, &goal_terminal_timestamp);
       if (RCL_RET_OK != ret) {
         return RCL_RET_ERROR;
       }
 
-      int64_t delta = timeout - (current_time - _goal_info_stamp_to_nanosec(&goal_info));
+      // After state of goal is updated to terminal state (success or cancel or abort),
+      // rcl_action_notify_goal_done() is called.
+      // This function is called in rcl_action_notify_goal_done().
+      // If goal_terminal_timestamp of goal is invaild, this goal is just in terminal state.
+      // So current time is set to goal_terminal_timestamp of this goal.
+      if (goal_terminal_timestamp == 0) {
+        goal_terminal_timestamp = current_time;
+        ret = rcl_action_goal_handle_set_goal_terminal_timestamp(
+          goal_handle, goal_terminal_timestamp);
+        if (RCL_RET_OK != ret) {
+          return RCL_RET_ERROR;
+        }
+      }
+
+      int64_t delta = timeout - (current_time - goal_terminal_timestamp);
       if (delta < minimum_period) {
         minimum_period = delta;
       }
@@ -620,7 +635,7 @@ rcl_action_expire_goals(
   const int64_t timeout = (int64_t)action_server->impl->options.result_timeout.nanoseconds;
   rcl_action_goal_handle_t * goal_handle;
   rcl_action_goal_info_t goal_info;
-  int64_t goal_time;
+  rcl_time_point_value_t goal_terminal_timestamp;
   size_t num_goal_handles = action_server->impl->num_goal_handles;
   for (size_t i = 0u; i < num_goal_handles; ++i) {
     if (output_expired && num_goals_expired >= expired_goals_capacity) {
@@ -641,8 +656,14 @@ rcl_action_expire_goals(
       ret_final = RCL_RET_ERROR;
       continue;
     }
-    goal_time = _goal_info_stamp_to_nanosec(info_ptr);
-    if ((current_time - goal_time) > timeout) {
+
+    ret = rcl_action_goal_handle_get_goal_terminal_timestamp(goal_handle, &goal_terminal_timestamp);
+    if (RCL_RET_OK != ret) {
+      ret_final = RCL_RET_ERROR;
+      continue;
+    }
+
+    if ((goal_terminal_timestamp != 0) && (current_time - goal_terminal_timestamp) > timeout) {
       // Deallocate space used to store pointer to goal handle
       allocator.deallocate(action_server->impl->goal_handles[i], allocator.state);
       action_server->impl->goal_handles[i] = NULL;
