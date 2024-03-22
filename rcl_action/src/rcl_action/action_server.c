@@ -319,6 +319,9 @@ rcl_action_server_get_default_options(void)
   RCL_CHECK_ARGUMENT_FOR_NULL(response, RCL_RET_INVALID_ARGUMENT); \
   rcl_ret_t ret = rcl_send_response( \
     &action_server->impl->Type ## _service, response_header, response); \
+  if (RCL_RET_TIMEOUT == ret) { \
+    return RCL_RET_TIMEOUT;  /* error already set */ \
+  } \
   if (RCL_RET_OK != ret) { \
     return RCL_RET_ERROR;  /* error already set */ \
   } \
