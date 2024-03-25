@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(rcl_lifecycle)
 
 find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake_gen_version_h REQUIRED)
 
 find_package(lifecycle_msgs REQUIRED)
 find_package(rcl REQUIRED)
@@ -133,6 +134,8 @@ ament_export_targets(${PROJECT_NAME})
 
 ament_export_dependencies(lifecycle_msgs)
 ament_export_dependencies(rcl)
+
+ament_generate_version_header(${PROJECT_NAME})
 
 ament_package()
 
