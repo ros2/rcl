@@ -266,9 +266,17 @@ rcl_timer_clock(rcl_timer_t * timer, rcl_clock_t ** clock)
 rcl_ret_t
 rcl_timer_call(rcl_timer_t * timer)
 {
+  rcl_timer_call_info_t info;
+  return rcl_timer_call_with_info(timer, &info);
+}
+
+rcl_ret_t
+rcl_timer_call_with_info(rcl_timer_t * timer, rcl_timer_call_info_t * call_info)
+{
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Calling timer");
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(timer->impl, RCL_RET_TIMER_INVALID);
+  RCL_CHECK_ARGUMENT_FOR_NULL(call_info, RCL_RET_INVALID_ARGUMENT);
   if (rcutils_atomic_load_bool(&timer->impl->canceled)) {
     RCL_SET_ERROR_MSG("timer is canceled");
     return RCL_RET_TIMER_CANCELED;
@@ -288,6 +296,8 @@ rcl_timer_call(rcl_timer_t * timer)
     (rcl_timer_callback_t)rcutils_atomic_load_uintptr_t(&timer->impl->callback);
 
   int64_t next_call_time = rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
+  call_info->expected_call_time = next_call_time;
+  call_info->actual_call_time = now;
   int64_t period = rcutils_atomic_load_int64_t(&timer->impl->period);
   // always move the next call time by exactly period forward
   // don't use now as the base to avoid extending each cycle by the time
