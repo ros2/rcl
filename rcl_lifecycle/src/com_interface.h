@@ -21,6 +21,7 @@ extern "C"
 #endif
 
 #include "rcl/macros.h"
+#include <cstdint>
 
 #include "rcl_lifecycle/data_types.h"
 
@@ -78,7 +79,8 @@ rcl_lifecycle_com_interface_fini(
 rcl_ret_t
 RCL_WARN_UNUSED
 rcl_lifecycle_com_interface_publish_notification(
-  rcl_lifecycle_com_interface_t * com_interface,
+  rcl_lifecycle_com_interface_t * com_interface, unsigned int timestamp,
+  const char * transition_label, uint8_t transition_id,
   const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal);
 
 #ifdef __cplusplus
