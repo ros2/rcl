@@ -644,6 +644,7 @@ rcl_take_serialized_message(
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Subscription serialized take succeeded: %s", taken ? "true" : "false");
+  TRACETOOLS_TRACEPOINT(rcl_take, (const void *)serialized_message);
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
