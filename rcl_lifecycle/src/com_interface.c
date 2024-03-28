@@ -325,8 +325,23 @@ rcl_lifecycle_com_interface_fini(
 rcl_ret_t
 rcl_lifecycle_com_interface_publish_notification(
   rcl_lifecycle_com_interface_t * com_interface,
+  const char * transition_label, uint8_t transition_id,
   const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal)
 {
+  // Get the current system time based on the rcl_clock
+  rcutils_time_point_value_t current_time;
+  rcutils_ret_t time_ret = rcutils_system_time_now(&current_time);
+  if (time_ret != RCUTILS_RET_OK) {
+    rcutils_error_string_t error = rcutils_get_error_string();
+    rcutils_reset_error();
+    RCL_SET_ERROR_MSG(error.str);
+    time_ret = RCL_RET_ERROR;
+    return time_ret;
+  }
+
+  com_interface->msg.timestamp = current_time;
+  com_interface->msg.transition.id = transition_id;
+  rosidl_runtime_c__String__assign(&com_interface->msg.transition.label, transition_label);
   com_interface->msg.start_state.id = start->id;
   rosidl_runtime_c__String__assign(&com_interface->msg.start_state.label, start->label);
   com_interface->msg.goal_state.id = goal->id;

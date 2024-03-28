@@ -361,7 +361,8 @@ _trigger_transition(
 
   if (publish_notification) {
     rcl_ret_t fcn_ret = rcl_lifecycle_com_interface_publish_notification(
-      &state_machine->com_interface, transition->start, state_machine->current_state);
+      &state_machine->com_interface, transition->label, transition->id,
+      transition->start, state_machine->current_state);
     if (fcn_ret != RCL_RET_OK) {
       rcl_error_string_t error_string = rcl_get_error_string();
       rcutils_reset_error();
