@@ -92,7 +92,8 @@ typedef int8_t rcl_action_goal_state_t;
 #define GOAL_STATE_SUCCEEDED action_msgs__msg__GoalStatus__STATUS_SUCCEEDED
 #define GOAL_STATE_CANCELED action_msgs__msg__GoalStatus__STATUS_CANCELED
 #define GOAL_STATE_ABORTED action_msgs__msg__GoalStatus__STATUS_ABORTED
-#define GOAL_STATE_NUM_STATES 7
+#define GOAL_STATE_PREEMPTED action_msgs__msg__GoalStatus__STATUS_PREEMPTED
+#define GOAL_STATE_NUM_STATES 8
 
 /// User friendly error messages for invalid trasntions
 // Description variables in types.c should be changed if enum values change
@@ -106,6 +107,7 @@ typedef enum rcl_action_goal_event_e
   GOAL_EVENT_CANCEL_GOAL,
   GOAL_EVENT_SUCCEED,
   GOAL_EVENT_ABORT,
+  GOAL_EVENT_PREEMPT,
   GOAL_EVENT_CANCELED,
   GOAL_EVENT_NUM_EVENTS
 } rcl_action_goal_event_t;
