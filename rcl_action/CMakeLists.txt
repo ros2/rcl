@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(rcl_action)
 
 find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake_gen_version_h REQUIRED)
 
 find_package(action_msgs REQUIRED)
 find_package(rcl REQUIRED)
@@ -228,4 +229,10 @@ ament_export_dependencies(rcl)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rosidl_runtime_c)
+<<<<<<< HEAD
+=======
+
+ament_generate_version_header(${PROJECT_NAME})
+
+>>>>>>> 5766d5e (Generate version header using ament_generate_version_header(..) (#1141))
 ament_package()

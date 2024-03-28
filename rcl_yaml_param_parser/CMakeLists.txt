@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(rcl_yaml_param_parser)
 
 find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake_gen_version_h REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(libyaml_vendor REQUIRED)
@@ -210,6 +211,8 @@ ament_export_libraries(${PROJECT_NAME})
 ament_export_targets(${PROJECT_NAME})
 
 ament_export_dependencies(ament_cmake rcutils)
+
+ament_generate_version_header(${PROJECT_NAME})
 
 install(
   DIRECTORY include/
