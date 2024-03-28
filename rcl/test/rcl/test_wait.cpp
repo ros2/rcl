@@ -321,6 +321,122 @@ TEST_F(WaitSetTestFixture, zero_timeout_overrun_timer) {
   EXPECT_LE(diff, RCL_MS_TO_NS(50));
 }
 
+// Test rcl_wait with a timeout value and an overrun timer
+TEST_F(WaitSetTestFixture, no_wakeup_on_override_timer) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_enable_ros_time_override(&clock);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator(),
+    true);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Time spent during wait should be negligible, definitely less than the given timeout
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+  ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  // We don't expect a timeout here (since the guard condition had already been triggered)
+  ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_GE(diff, RCL_MS_TO_NS(100));
+}
+
+// Test rcl_wait with a timeout value and an overrun timer
+TEST_F(WaitSetTestFixture, wakeup_on_override_timer) {
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret =
+    rcl_wait_set_init(&wait_set, 0, 0, 1, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_enable_ros_time_override(&clock);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, RCL_MS_TO_NS(10), nullptr, rcl_get_default_allocator(),
+    true);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Time spent during wait should be negligible, definitely less than the given timeout
+  std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
+
+  rcl_ret_t wait_ret = RCL_RET_ERROR;
+  std::atomic_bool wait_done = false;
+  std::thread t([&wait_ret, &wait_set, &wait_done]() {
+      wait_ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
+      wait_done = true;
+    });
+
+  ret = rcl_set_ros_time_override(&clock, RCL_MS_TO_NS(5));
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(15));
+  EXPECT_EQ(wait_done, false) << "Error, wait terminated to early";
+
+  ret = rcl_set_ros_time_override(&clock, RCL_MS_TO_NS(15));
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+  EXPECT_EQ(wait_done, true) << "Error, wait waken up by time jump";
+
+  t.join();
+
+  std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
+  // We don't expect a timeout here (since the guard condition had already been triggered)
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
+  EXPECT_LT(diff, RCL_MS_TO_NS(100));
+}
+
 // Check that a canceled timer doesn't wake up rcl_wait
 TEST_F(WaitSetTestFixture, canceled_timer) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
