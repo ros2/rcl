@@ -2,8 +2,8 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+9.2.0 (2024-03-28)
+------------------
 * Update quality declaration documents (`#1131 <https://github.com/ros2/rcl/issues/1131>`_)
 * Contributors: Christophe Bedard
 

@@ -2,8 +2,8 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+9.2.0 (2024-03-28)
+------------------
 * Add rcl_timer_call_with_info function that retrieves the expected and the actual timer trigger times (`#1113 <https://github.com/ros2/rcl/issues/1113>`_)
   Co-authored-by: Alexis Tsogias <a.tsogias@cellumation.com>
   Co-authored-by: Michael Carroll <carroll.michael@gmail.com>
