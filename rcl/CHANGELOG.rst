@@ -2,6 +2,26 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add rcl_timer_call_with_info function that retrieves the expected and the actual timer trigger times (`#1113 <https://github.com/ros2/rcl/issues/1113>`_)
+  Co-authored-by: Alexis Tsogias <a.tsogias@cellumation.com>
+  Co-authored-by: Michael Carroll <carroll.michael@gmail.com>
+  Co-authored-by: Tomoya Fujita <Tomoya.Fujita@sony.com>
+* document out parameters for rcl_get_node_names and rcl_get_node_names_with_enclaves (`#1137 <https://github.com/ros2/rcl/issues/1137>`_)
+  * document out params for rcl_get_node_names
+  Co-authored-by: Chris Lalancette <clalancette@gmail.com>
+* Cleanups for uncrustify 0.78. (`#1134 <https://github.com/ros2/rcl/issues/1134>`_)
+  Mostly this is expanding macros, as this is just easier
+  to read anyway.  But we also mark one section as INDENT-OFF.
+* Re-order rcl_logging_interface include (`#1133 <https://github.com/ros2/rcl/issues/1133>`_)
+* Remove unnecessary macros. (`#1132 <https://github.com/ros2/rcl/issues/1132>`_)
+  These really don't add anything, and allows us to
+  avoid some changes in macro formatting between Ubuntu
+  22.04 and Ubuntu 24.04.
+* Update quality declaration documents (`#1131 <https://github.com/ros2/rcl/issues/1131>`_)
+* Contributors: Chris Lalancette, Christophe Bedard, Felix Penzlin, jmachowinski
+
 9.1.0 (2024-01-24)
 ------------------
 * add unit tests for --log-file-name argument. (`#1130 <https://github.com/ros2/rcl/issues/1130>`_)

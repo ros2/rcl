@@ -2,6 +2,15 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add RCL_RET_TIMEOUT to action service response. (`#1138 <https://github.com/ros2/rcl/issues/1138>`_)
+  * add RCL_RET_TIMEOUT to action service response.
+  * address review comment.
+  ---------
+* Update quality declaration documents (`#1131 <https://github.com/ros2/rcl/issues/1131>`_)
+* Contributors: Christophe Bedard, Tomoya Fujita
+
 9.1.0 (2024-01-24)
 ------------------
 
