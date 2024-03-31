@@ -228,10 +228,7 @@ ament_export_dependencies(rcl)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 ament_export_dependencies(rosidl_runtime_c)
-<<<<<<< HEAD
-=======
 
 ament_generate_version_header(${PROJECT_NAME})
 
->>>>>>> 5766d5e (Generate version header using ament_generate_version_header(..) (#1141))
 ament_package()

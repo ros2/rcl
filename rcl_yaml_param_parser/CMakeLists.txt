@@ -193,15 +193,11 @@ ament_export_libraries(${PROJECT_NAME})
 # Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
 
-<<<<<<< HEAD
 ament_export_dependencies(ament_cmake libyaml_vendor)
 ament_export_dependencies(rmw)
-=======
-ament_export_dependencies(ament_cmake rcutils)
 
 ament_generate_version_header(${PROJECT_NAME})
 
->>>>>>> 5766d5e (Generate version header using ament_generate_version_header(..) (#1141))
 install(
   DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}

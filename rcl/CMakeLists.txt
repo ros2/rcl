@@ -121,12 +121,8 @@ ament_export_dependencies(rmw)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(${RCL_LOGGING_IMPL})
 ament_export_dependencies(rosidl_runtime_c)
-<<<<<<< HEAD
 ament_export_dependencies(tracetools)
-=======
-ament_export_dependencies(type_description_interfaces)
 ament_generate_version_header(${PROJECT_NAME})
->>>>>>> 5766d5e (Generate version header using ament_generate_version_header(..) (#1141))
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
