@@ -138,15 +138,12 @@ ament_export_targets(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(lifecycle_msgs)
 ament_export_dependencies(rcl)
-<<<<<<< HEAD
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rosidl_runtime_c)
 ament_export_dependencies(tracetools)
-=======
 
 ament_generate_version_header(${PROJECT_NAME})
 
->>>>>>> 5766d5e (Generate version header using ament_generate_version_header(..) (#1141))
 ament_package()
 
 install(
