@@ -654,9 +654,7 @@ TEST_F(WaitSetTestFixture, multi_wait_set_threaded) {
       return false;
     };
   // *INDENT-ON*
-  size_t loop_count = 0;
   while (loop_test()) {
-    loop_count++;
     for (auto & test_set : test_sets) {
       ret = rcl_trigger_guard_condition(&test_set.guard_condition);
       ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;

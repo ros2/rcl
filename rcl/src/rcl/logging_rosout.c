@@ -173,7 +173,7 @@ _rcl_logging_rosout_clear_hashmap(
   return status;
 }
 
-rcl_ret_t rcl_logging_rosout_fini()
+rcl_ret_t rcl_logging_rosout_fini(void)
 {
   if (!__is_initialized) {
     return RCL_RET_OK;

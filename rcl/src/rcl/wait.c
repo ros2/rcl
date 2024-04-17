@@ -61,7 +61,7 @@ struct rcl_wait_set_impl_s
 };
 
 rcl_wait_set_t
-rcl_get_zero_initialized_wait_set()
+rcl_get_zero_initialized_wait_set(void)
 {
   static rcl_wait_set_t null_wait_set = {
     .subscriptions = NULL,

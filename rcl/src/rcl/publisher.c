@@ -37,7 +37,7 @@ extern "C"
 #include "./publisher_impl.h"
 
 rcl_publisher_t
-rcl_get_zero_initialized_publisher()
+rcl_get_zero_initialized_publisher(void)
 {
   static rcl_publisher_t null_publisher = {0};
   return null_publisher;
@@ -216,7 +216,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
 }
 
 rcl_publisher_options_t
-rcl_publisher_get_default_options()
+rcl_publisher_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_publisher_options_t default_options;

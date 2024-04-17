@@ -96,7 +96,7 @@ const char * rcl_create_node_logger_name(
 }
 
 rcl_node_t
-rcl_get_zero_initialized_node()
+rcl_get_zero_initialized_node(void)
 {
   static rcl_node_t null_node = {
     .context = 0,

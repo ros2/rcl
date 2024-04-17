@@ -27,7 +27,7 @@ extern "C"
 #include "rcl/logging_rosout.h"
 
 rcl_node_options_t
-rcl_node_get_default_options()
+rcl_node_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   rcl_node_options_t default_options = {
