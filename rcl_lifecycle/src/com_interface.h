@@ -25,7 +25,7 @@ extern "C"
 #include "rcl_lifecycle/data_types.h"
 
 rcl_lifecycle_com_interface_t
-rcl_lifecycle_get_zero_initialized_com_interface();
+rcl_lifecycle_get_zero_initialized_com_interface(void);
 
 rcl_ret_t
 RCL_WARN_UNUSED
