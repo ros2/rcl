@@ -36,7 +36,7 @@ extern "C"
 #include "./subscription_impl.h"
 
 rcl_event_t
-rcl_get_zero_initialized_event()
+rcl_get_zero_initialized_event(void)
 {
   static rcl_event_t null_event = {0};
   return null_event;

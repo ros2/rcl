@@ -37,7 +37,7 @@ extern "C"
 #include "./com_interface.h"
 
 rcl_lifecycle_state_t
-rcl_lifecycle_get_zero_initialized_state()
+rcl_lifecycle_get_zero_initialized_state(void)
 {
   rcl_lifecycle_state_t state;
   state.id = 0;
@@ -94,7 +94,7 @@ rcl_lifecycle_state_fini(
 }
 
 rcl_lifecycle_transition_t
-rcl_lifecycle_get_zero_initialized_transition()
+rcl_lifecycle_get_zero_initialized_transition(void)
 {
   rcl_lifecycle_transition_t transition;
   transition.id = 0;
@@ -168,7 +168,7 @@ rcl_lifecycle_transition_fini(
 }
 
 rcl_lifecycle_state_machine_options_t
-rcl_lifecycle_get_default_state_machine_options()
+rcl_lifecycle_get_default_state_machine_options(void)
 {
   rcl_lifecycle_state_machine_options_t options;
   options.enable_com_interface = true;
@@ -180,7 +180,7 @@ rcl_lifecycle_get_default_state_machine_options()
 
 // get zero initialized state machine here
 rcl_lifecycle_state_machine_t
-rcl_lifecycle_get_zero_initialized_state_machine()
+rcl_lifecycle_get_zero_initialized_state_machine(void)
 {
   rcl_lifecycle_state_machine_t state_machine;
   state_machine.current_state = NULL;

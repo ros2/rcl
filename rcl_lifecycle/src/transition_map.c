@@ -28,7 +28,7 @@ extern "C"
 #include "rcl_lifecycle/transition_map.h"
 
 rcl_lifecycle_transition_map_t
-rcl_lifecycle_get_zero_initialized_transition_map()
+rcl_lifecycle_get_zero_initialized_transition_map(void)
 {
   static rcl_lifecycle_transition_map_t transition_map;
   transition_map.states = NULL;

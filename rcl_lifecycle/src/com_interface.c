@@ -45,7 +45,7 @@ static const char * srv_get_available_transitions_service = "~/get_available_tra
 static const char * srv_get_transition_graph = "~/get_transition_graph";
 
 rcl_lifecycle_com_interface_t
-rcl_lifecycle_get_zero_initialized_com_interface()
+rcl_lifecycle_get_zero_initialized_com_interface(void)
 {
   rcl_lifecycle_com_interface_t com_interface;
   com_interface.node_handle = NULL;

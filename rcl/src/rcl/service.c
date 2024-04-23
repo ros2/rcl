@@ -52,7 +52,7 @@ struct rcl_service_impl_s
 };
 
 rcl_service_t
-rcl_get_zero_initialized_service()
+rcl_get_zero_initialized_service(void)
 {
   static rcl_service_t null_service = {0};
   return null_service;
@@ -282,7 +282,7 @@ rcl_service_fini(rcl_service_t * service, rcl_node_t * node)
 }
 
 rcl_service_options_t
-rcl_service_get_default_options()
+rcl_service_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_service_options_t default_options;

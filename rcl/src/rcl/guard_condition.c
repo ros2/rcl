@@ -34,7 +34,7 @@ struct rcl_guard_condition_impl_s
 };
 
 rcl_guard_condition_t
-rcl_get_zero_initialized_guard_condition()
+rcl_get_zero_initialized_guard_condition(void)
 {
   static rcl_guard_condition_t null_guard_condition = {
     .context = 0,
@@ -141,7 +141,7 @@ rcl_guard_condition_fini(rcl_guard_condition_t * guard_condition)
 }
 
 rcl_guard_condition_options_t
-rcl_guard_condition_get_default_options()
+rcl_guard_condition_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_guard_condition_options_t default_options;

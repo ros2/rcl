@@ -54,7 +54,7 @@ typedef struct rcl_service_event_publisher_s
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_service_event_publisher_t
-rcl_get_zero_initialized_service_event_publisher();
+rcl_get_zero_initialized_service_event_publisher(void);
 
 /// Initialize a service event publisher.
 /**

@@ -53,7 +53,7 @@ struct rcl_client_impl_s
 };
 
 rcl_client_t
-rcl_get_zero_initialized_client()
+rcl_get_zero_initialized_client(void)
 {
   static rcl_client_t null_client = {0};
   return null_client;
@@ -276,7 +276,7 @@ rcl_client_fini(rcl_client_t * client, rcl_node_t * node)
 }
 
 rcl_client_options_t
-rcl_client_get_default_options()
+rcl_client_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
   static rcl_client_options_t default_options;

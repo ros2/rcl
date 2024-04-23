@@ -34,7 +34,7 @@ struct rcl_lexer_lookahead2_impl_s
 };
 
 rcl_lexer_lookahead2_t
-rcl_get_zero_initialized_lexer_lookahead2()
+rcl_get_zero_initialized_lexer_lookahead2(void)
 {
   static rcl_lexer_lookahead2_t zero_initialized = {
     .impl = NULL,

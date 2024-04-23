@@ -20,7 +20,7 @@
 #include "rcutils/strdup.h"
 
 rcl_log_levels_t
-rcl_get_zero_initialized_log_levels()
+rcl_get_zero_initialized_log_levels(void)
 {
   const rcl_log_levels_t log_levels = {
     .default_logger_level = RCUTILS_LOG_SEVERITY_UNSET,

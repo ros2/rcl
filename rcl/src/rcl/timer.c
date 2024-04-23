@@ -56,7 +56,7 @@ struct rcl_timer_impl_s
 };
 
 rcl_timer_t
-rcl_get_zero_initialized_timer()
+rcl_get_zero_initialized_timer(void)
 {
   static rcl_timer_t null_timer = {0};
   return null_timer;
