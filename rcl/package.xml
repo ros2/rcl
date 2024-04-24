@@ -23,7 +23,6 @@
   <depend>libyaml_vendor</depend>
   <depend>rcl_interfaces</depend>
   <depend>rcl_logging_interface</depend>
-  <depend>rcl_logging_spdlog</depend> <!-- the default logging impl -->
   <depend>rcl_yaml_param_parser</depend>
   <depend>rcutils</depend>
   <depend>rmw_implementation</depend>
@@ -32,6 +31,9 @@
   <depend>tracetools</depend>
   <depend>type_description_interfaces</depend>
   <depend>yaml</depend>
+
+  <!-- Explicit group resolution - see ros-infrastructure/catkin_pkg#369 -->
+  <depend condition="$DISABLE_GROUPS_WORKAROUND != 1">rcl_logging_spdlog</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
