@@ -196,6 +196,7 @@ function(test_target)
     TEST_NAME test_context${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
   )
+  ament_add_test_label(test_context${target_suffix} mimick)
 
   ament_add_gtest_test(test_get_node_names
     TEST_NAME test_get_node_names${target_suffix}
@@ -227,6 +228,7 @@ function(test_target)
     TEST_NAME test_init${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
   )
+  ament_add_test_label(test_init${target_suffix} mimick)
 
   # RHEL does not support mimick's inject_on_return functionality, which
   # causes test_node to segfault when it runs.  Since RHEL is not a Tier 1
@@ -243,6 +245,7 @@ function(test_target)
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var} ${gtest_filter_env_var}
     TIMEOUT 240  # Large timeout to wait for fault injection tests
   )
+  ament_add_test_label(test_node${target_suffix} mimick)
 
   ament_add_gtest_test(test_remap
     TEST_NAME test_remap${target_suffix}
@@ -259,16 +262,19 @@ function(test_target)
     TEST_NAME test_guard_condition${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
   )
+  ament_add_test_label(test_guard_condition${target_suffix} mimick)
 
   ament_add_gtest_test(test_publisher
     TEST_NAME test_publisher${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
+  ament_add_test_label(test_publisher${target_suffix} mimick)
 
   ament_add_gtest_test(test_publisher_wait_all_ack
     TEST_NAME test_publisher_wait_all_ack${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
+  ament_add_test_label(test_publisher_wait_all_ack${target_suffix} mimick)
 
   rcl_add_custom_gtest(test_service${target_suffix}
     SRCS rcl/test_service.cpp
@@ -276,6 +282,7 @@ function(test_target)
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
   )
+  ament_add_test_label(test_service${target_suffix} mimick)
 
   rcl_add_custom_gtest(test_subscription${target_suffix}
     SRCS rcl/test_subscription.cpp
@@ -285,6 +292,7 @@ function(test_target)
       ${test_msgs_TARGETS}
     TIMEOUT 120
   )
+  ament_add_test_label(test_subscription${target_suffix} mimick)
   # TODO(asorbini) Enable message timestamp tests for rmw_connextdds on Windows
   # once clock incompatibilities are resolved.
   if(rmw_implementation STREQUAL "rmw_fastrtps_cpp" OR
@@ -316,6 +324,7 @@ function(test_target)
     TEST_NAME test_wait${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
+  ament_add_test_label(test_wait${target_suffix} mimick)
 
   ament_add_gtest_test(test_logging_rosout
     TEST_NAME test_logging_rosout${target_suffix}
@@ -331,16 +340,19 @@ function(test_target)
     TEST_NAME test_rmw_impl_id_check_func${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
+  ament_add_test_label(test_rmw_impl_id_check_func${target_suffix} mimick)
 
   ament_add_gtest_test(test_network_flow_endpoints
     TEST_NAME test_network_flow_endpoints${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
+  ament_add_test_label(test_network_flow_endpoints${target_suffix} mimick)
 
   ament_add_gtest_test(test_service_event_publisher
     TEST_NAME test_service_event_publisher${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
+  ament_add_test_label(test_service_event_publisher${target_suffix} mimick)
 
   ament_add_gtest_test(test_type_description_conversions
     TEST_NAME test_type_description_conversions${target_suffix}
@@ -351,11 +363,13 @@ function(test_target)
     TEST_NAME test_node_type_cache${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
+  ament_add_test_label(test_node_type_cache${target_suffix} mimick)
 
   ament_add_gtest_test(test_get_type_description_service
     TEST_NAME test_get_type_description_service${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
+  ament_add_test_label(test_get_type_description_service${target_suffix} mimick)
 
   # Launch tests
 
@@ -455,6 +469,7 @@ rcl_add_custom_gtest(test_validate_enclave_name
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME} mimick
 )
+ament_add_test_label(test_validate_enclave_name mimick)
 
 rcl_add_custom_gtest(test_discovery_options
   SRCS rcl/test_discovery_options.cpp
@@ -467,6 +482,7 @@ rcl_add_custom_gtest(test_domain_id
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME} mimick
 )
+ament_add_test_label(test_domain_id mimick)
 
 rcl_add_custom_gtest(test_localhost
   SRCS rcl/test_localhost.cpp
@@ -480,6 +496,7 @@ rcl_add_custom_gtest(test_logging
   LIBRARIES ${PROJECT_NAME} mimick ${rcl_interfaces_TARGETS}
     rcl_logging_interface::rcl_logging_interface ${RCL_LOGGING_IMPL}::${RCL_LOGGING_IMPL} osrf_testing_tools_cpp::memory_tools
 )
+ament_add_test_label(test_logging mimick)
 
 rcl_add_custom_gtest(test_validate_topic_name
   SRCS rcl/test_validate_topic_name.cpp
@@ -492,12 +509,14 @@ rcl_add_custom_gtest(test_expand_topic_name
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME} mimick
 )
+ament_add_test_label(test_expand_topic_name mimick)
 
 rcl_add_custom_gtest(test_security
   SRCS rcl/test_security.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
 )
+ament_add_test_label(test_security mimick)
 
 rcl_add_custom_gtest(test_common
   SRCS rcl/test_common.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/common.c
@@ -511,6 +530,7 @@ rcl_add_custom_gtest(test_log_level
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
   LIBRARIES ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools
 )
+ament_add_test_label(test_log_level mimick)
 
 rcl_add_custom_gtest(test_subscription_content_filter_options
   SRCS rcl/test_subscription_content_filter_options.cpp
