@@ -115,6 +115,28 @@ rcl_timer_init2(
   rcl_allocator_t allocator,
   bool autostart)
 {
+  rcl_time_point_value_t now;
+  rcl_ret_t now_ret = rcl_clock_get_now(clock, &now);
+  if (now_ret != RCL_RET_OK) {
+    return now_ret;  // rcl error state should already be set.
+  }
+  rcl_time_point_value_t initial_call_time = now + period;
+  return rcl_timer_init3(
+    timer, clock, context, initial_call_time, period,
+    callback, allocator, autostart);
+}
+
+rcl_ret_t
+rcl_timer_init3(
+  rcl_timer_t * timer,
+  rcl_clock_t * clock,
+  rcl_context_t * context,
+  rcl_time_point_value_t initial_call_time,
+  int64_t period,
+  const rcl_timer_callback_t callback,
+  rcl_allocator_t allocator,
+  bool autostart)
+{
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
@@ -123,7 +145,9 @@ rcl_timer_init2(
     return RCL_RET_INVALID_ARGUMENT;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Initializing timer with period: %" PRIu64 "ns", period);
+    ROS_PACKAGE_NAME,
+    "Initializing timer with initial_call_time: %" PRIu64 "ns, period: %" PRIu64 "ns",
+    initial_call_time, period);
   if (timer->impl) {
     RCL_SET_ERROR_MSG("timer already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
@@ -149,7 +173,7 @@ rcl_timer_init2(
   atomic_init(&impl.period, period);
   atomic_init(&impl.time_credit, 0);
   atomic_init(&impl.last_call_time, now);
-  atomic_init(&impl.next_call_time, now + period);
+  atomic_init(&impl.next_call_time, initial_call_time);
   atomic_init(&impl.canceled, !autostart);
   impl.allocator = allocator;
 
