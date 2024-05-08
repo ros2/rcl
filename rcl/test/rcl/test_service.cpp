@@ -183,12 +183,8 @@ TEST_F(TestServiceFixture, test_service_nominal) {
     EXPECT_EQ(2UL, service_request.uint32_value);
 #ifdef RMW_TIMESTAMPS_SUPPORTED
     EXPECT_GE(header.source_timestamp, start_timestamp);
-#ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
     EXPECT_GE(header.received_timestamp, start_timestamp);
     EXPECT_GE(header.received_timestamp, header.source_timestamp);
-#else
-    EXPECT_EQ(0u, header.received_timestamp);
-#endif
 #else
     EXPECT_EQ(0u, header.source_timestamp);
     EXPECT_EQ(0u, header.received_timestamp);
@@ -214,12 +210,8 @@ TEST_F(TestServiceFixture, test_service_nominal) {
   EXPECT_EQ(header.request_id.sequence_number, 1);
 #ifdef RMW_TIMESTAMPS_SUPPORTED
   EXPECT_GE(header.source_timestamp, start_timestamp);
-#ifdef RMW_RECEIVED_TIMESTAMP_SUPPORTED
   EXPECT_GE(header.received_timestamp, start_timestamp);
   EXPECT_GE(header.received_timestamp, header.source_timestamp);
-#else
-  EXPECT_EQ(0u, header.received_timestamp);
-#endif
 #else
   EXPECT_EQ(0u, header.source_timestamp);
   EXPECT_EQ(0u, header.received_timestamp);
