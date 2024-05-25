@@ -26,7 +26,7 @@ extern "C"
 {
 #endif
 
-/// Enum doubles as a bitmask for rule sthat apply to both topics and services.
+/// Enum doubles as a bitmask for rules that apply to both topics and services.
 typedef enum rcl_remap_type_t
 {
   RCL_UNKNOWN_REMAP = 0,
