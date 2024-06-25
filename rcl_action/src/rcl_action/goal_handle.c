@@ -26,6 +26,7 @@ typedef struct rcl_action_goal_handle_impl_s
 {
   rcl_action_goal_info_t info;
   rcl_action_goal_state_t state;
+  // If goal_terminal_timestamp isn't set, INVAILD_GOAL_TERMINAL_TIMESTAMP is the initial value.
   rcl_time_point_value_t goal_terminal_timestamp;
   rcl_allocator_t allocator;
 } rcl_action_goal_handle_impl_t;
@@ -70,7 +71,7 @@ rcl_action_goal_handle_init(
   // Copy the allocator
   goal_handle->impl->allocator = allocator;
   // Set invalid time
-  goal_handle->impl->goal_terminal_timestamp = 0;
+  goal_handle->impl->goal_terminal_timestamp = INVAILD_GOAL_TERMINAL_TIMESTAMP;
   return RCL_RET_OK;
 }
 
@@ -203,7 +204,7 @@ rcl_action_goal_handle_set_goal_terminal_timestamp(
     return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
   }
 
-  if (timestamp == INT64_MAX) {
+  if (timestamp == INVAILD_GOAL_TERMINAL_TIMESTAMP) {
     RCL_SET_ERROR_MSG("Timestamp argument is invaild !");
     return RCL_RET_INVALID_ARGUMENT;
   }
