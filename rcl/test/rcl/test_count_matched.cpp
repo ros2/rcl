@@ -241,8 +241,17 @@ TEST_F(TestCountFixture, test_count_matched_functions_mismatched_qos)
       rcl_subscription_fini(&sub, this->node_ptr)) << rcl_get_error_string().str;
   });
 
-  // Expect that no publishers or subscribers should be matched due to qos.
-  check_state(&pub, &sub, 0, 0, 9);
+  rmw_qos_compatibility_type_t compat;
+  rmw_ret_t rmw_ret =
+    rmw_qos_profile_check_compatible(pub_opts.qos, sub_opts.qos, &compat, nullptr, 0);
+  ASSERT_EQ(rmw_ret, RMW_RET_OK);
+
+  if (compat == RMW_QOS_COMPATIBILITY_OK) {
+    check_state(&pub, &sub, 1, 1, 9);
+  } else {
+    // Expect that no publishers or subscribers should be matched due to qos.
+    check_state(&pub, &sub, 0, 0, 9);
+  }
 
   rcl_subscription_t sub2 = rcl_get_zero_initialized_subscription();
   rcl_subscription_options_t sub2_ops = rcl_subscription_get_default_options();
@@ -255,7 +264,12 @@ TEST_F(TestCountFixture, test_count_matched_functions_mismatched_qos)
       rcl_subscription_fini(&sub2, this->node_ptr)) << rcl_get_error_string().str;
   });
 
-  // Even multiple subscribers should not match
-  check_state(&pub, &sub, 0, 0, 9);
-  check_state(&pub, &sub2, 0, 0, 9);
+  if (compat == RMW_QOS_COMPATIBILITY_OK) {
+    check_state(&pub, &sub, 2, 1, 9);
+    check_state(&pub, &sub2, 2, 1, 9);
+  } else {
+    // Even multiple subscribers should not match
+    check_state(&pub, &sub, 0, 0, 9);
+    check_state(&pub, &sub2, 0, 0, 9);
+  }
 }
