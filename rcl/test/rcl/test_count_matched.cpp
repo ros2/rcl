@@ -17,6 +17,8 @@
 #include <string>
 #include <thread>
 
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 #include "rcl/rcl.h"
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
@@ -213,6 +215,10 @@ TEST_F(TestCountFixture, test_count_matched_functions_mismatched_qos)
   ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_opts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_publisher_fini(&pub, this->node_ptr)) << rcl_get_error_string().str;
+  });
 
   check_state(&pub, nullptr, 0, -1, 9);
 
@@ -229,6 +235,11 @@ TEST_F(TestCountFixture, test_count_matched_functions_mismatched_qos)
   ret = rcl_subscription_init(&sub, this->node_ptr, ts, topic_name.c_str(), &sub_opts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK,
+      rcl_subscription_fini(&sub, this->node_ptr)) << rcl_get_error_string().str;
+  });
 
   // Expect that no publishers or subscribers should be matched due to qos.
   check_state(&pub, &sub, 0, 0, 9);
@@ -238,20 +249,13 @@ TEST_F(TestCountFixture, test_count_matched_functions_mismatched_qos)
   ret = rcl_subscription_init(&sub2, this->node_ptr, ts, topic_name.c_str(), &sub2_ops);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK,
+      rcl_subscription_fini(&sub2, this->node_ptr)) << rcl_get_error_string().str;
+  });
 
   // Even multiple subscribers should not match
   check_state(&pub, &sub, 0, 0, 9);
   check_state(&pub, &sub2, 0, 0, 9);
-
-  ret = rcl_subscription_fini(&sub, this->node_ptr);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_subscription_fini(&sub2, this->node_ptr);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
-
-  ret = rcl_publisher_fini(&pub, this->node_ptr);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
 }
