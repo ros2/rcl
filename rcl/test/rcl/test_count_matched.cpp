@@ -153,17 +153,17 @@ TEST_F(TestCountFixture, test_count_matched_functions)
   rcl_ret_t ret;
 
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
-  rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
+  rcl_publisher_options_t pub_opts = rcl_publisher_get_default_options();
   auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
+  ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_opts);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
   check_state(&pub, nullptr, 0, -1, 9);
 
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
-  rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
-  ret = rcl_subscription_init(&sub, this->node_ptr, ts, topic_name.c_str(), &sub_ops);
+  rcl_subscription_options_t sub_opts = rcl_subscription_get_default_options();
+  ret = rcl_subscription_init(&sub, this->node_ptr, ts, topic_name.c_str(), &sub_opts);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -201,16 +201,16 @@ TEST_F(TestCountFixture, test_count_matched_functions_mismatched_qos)
 
   rcl_publisher_t pub = rcl_get_zero_initialized_publisher();
 
-  rcl_publisher_options_t pub_ops = rcl_publisher_get_default_options();
-  pub_ops.qos.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-  pub_ops.qos.depth = 10;
-  pub_ops.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  pub_ops.qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  pub_ops.qos.avoid_ros_namespace_conventions = false;
-  pub_ops.allocator = rcl_get_default_allocator();
+  rcl_publisher_options_t pub_opts = rcl_publisher_get_default_options();
+  pub_opts.qos.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  pub_opts.qos.depth = 10;
+  pub_opts.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  pub_opts.qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  pub_opts.qos.avoid_ros_namespace_conventions = false;
+  pub_opts.allocator = rcl_get_default_allocator();
 
   auto ts = ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_ops);
+  ret = rcl_publisher_init(&pub, this->node_ptr, ts, topic_name.c_str(), &pub_opts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
@@ -218,15 +218,15 @@ TEST_F(TestCountFixture, test_count_matched_functions_mismatched_qos)
 
   rcl_subscription_t sub = rcl_get_zero_initialized_subscription();
 
-  rcl_subscription_options_t sub_ops = rcl_subscription_get_default_options();
-  sub_ops.qos.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-  sub_ops.qos.depth = 10;
-  sub_ops.qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
-  sub_ops.qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  sub_ops.qos.avoid_ros_namespace_conventions = false;
-  sub_ops.allocator = rcl_get_default_allocator();
+  rcl_subscription_options_t sub_opts = rcl_subscription_get_default_options();
+  sub_opts.qos.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
+  sub_opts.qos.depth = 10;
+  sub_opts.qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  sub_opts.qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  sub_opts.qos.avoid_ros_namespace_conventions = false;
+  sub_opts.allocator = rcl_get_default_allocator();
 
-  ret = rcl_subscription_init(&sub, this->node_ptr, ts, topic_name.c_str(), &sub_ops);
+  ret = rcl_subscription_init(&sub, this->node_ptr, ts, topic_name.c_str(), &sub_opts);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 
