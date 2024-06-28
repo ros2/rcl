@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstddef>
 #include <string>
 #include <thread>
 
@@ -118,7 +120,7 @@ protected:
         expected_publisher_count == publisher_count &&
         expected_subscriber_count == subscriber_count)
       {
-        RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "  state correct!");
+        RCUTILS_LOG_INFO_NAMED(ROS_PACKAGE_NAME, "state correct!");
         break;
       }
 
@@ -134,7 +136,7 @@ protected:
       std::chrono::nanoseconds time_to_sleep = std::chrono::milliseconds(200);
       RCUTILS_LOG_INFO_NAMED(
         ROS_PACKAGE_NAME,
-        "  state wrong, waiting up to '%s' nanoseconds for graph changes... ",
+        "state wrong, waiting up to '%s' nanoseconds for graph changes... ",
         std::to_string(time_to_sleep.count()).c_str());
       ret = rcl_wait(wait_set_ptr, time_to_sleep.count());
       if (ret == RCL_RET_TIMEOUT) {
