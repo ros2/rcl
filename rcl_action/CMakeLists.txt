@@ -102,47 +102,56 @@ if(BUILD_TESTING)
     target_compile_definitions(test_action_client PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
-  # get the rmw implementations ahead of time
-  find_package(rmw_implementation_cmake REQUIRED)
-  get_available_rmw_implementations(rmw_implementations)
-  foreach(rmw_implementation ${rmw_implementations})
-    find_package("${rmw_implementation}" REQUIRED)
-  endforeach()
+  ament_add_gtest_executable(test_action_communication test/rcl_action/test_action_communication.cpp)
+  target_link_libraries(test_action_communication
+    ${PROJECT_NAME}
+    ${action_msgs_TARGETS}
+    osrf_testing_tools_cpp::memory_tools
+    rcl::rcl
+    rosidl_runtime_c::rosidl_runtime_c
+    ${test_msgs_TARGETS})
 
-  function(custom_test_c target)
-    ament_add_gtest(
-      "${target}${target_suffix}" ${ARGN}
-      TIMEOUT 180
-      ENV
-      RCL_ASSERT_RMW_ID_MATCHES=${rmw_implementation}
-      RMW_IMPLEMENTATION=${rmw_implementation}
+  ament_add_gtest_executable(test_action_interaction test/rcl_action/test_action_interaction.cpp)
+  target_link_libraries(test_action_interaction
+    ${PROJECT_NAME}
+    ${action_msgs_TARGETS}
+    osrf_testing_tools_cpp::memory_tools
+    rcl::rcl
+    rosidl_runtime_c::rosidl_runtime_c
+    ${test_msgs_TARGETS})
+
+  ament_add_gtest_executable(test_graph test/rcl_action/test_graph.cpp)
+  target_compile_definitions(test_graph PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
+  target_link_libraries(test_graph
+    ${PROJECT_NAME}
+    ${action_msgs_TARGETS}
+    osrf_testing_tools_cpp::memory_tools
+    rcl::rcl
+    rcutils::rcutils
+    rosidl_runtime_c::rosidl_runtime_c
+    ${test_msgs_TARGETS})
+
+  function(test_targets)
+    message(STATUS "Creating tests for '${rmw_implementation}'")
+    set(rmw_implementation_env_var RMW_IMPLEMENTATION=${rmw_implementation})
+
+    ament_add_gtest_test(test_action_communication
+      TEST_NAME test_action_communication${target_suffix}
+      ENV ${rmw_implementation_env_var}
     )
-    if(TARGET ${target}${target_suffix})
-      target_compile_definitions(${target}${target_suffix}
-        PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
-        target_compile_definitions(${target}${target_suffix}
-          PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
-      target_link_libraries(${target}${target_suffix}
-        ${PROJECT_NAME}
-        osrf_testing_tools_cpp::memory_tools
-        rcl::rcl
-        rosidl_runtime_c::rosidl_runtime_c
-        ${test_msgs_TARGETS}
-      )
-    endif()
+
+    ament_add_gtest_test(test_action_interaction
+      TEST_NAME test_action_interaction${target_suffix}
+      ENV ${rmw_implementation_env_var}
+    )
+
+    ament_add_gtest_test(test_graph
+      TEST_NAME test_graph${target_suffix}
+      ENV ${rmw_implementation_env_var}
+    )
   endfunction()
 
-  macro(targets)
-    custom_test_c(test_action_communication
-      "test/rcl_action/test_action_communication.cpp")
-    custom_test_c(test_action_interaction
-      "test/rcl_action/test_action_interaction.cpp")
-
-    custom_test_c(test_graph
-      "test/rcl_action/test_graph.cpp")
-  endmacro()
-
-  call_for_each_rmw_implementation(targets)
+  call_for_each_rmw_implementation(test_targets)
 
   ament_add_gtest(test_action_server
     test/rcl_action/test_action_server.cpp

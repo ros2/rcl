@@ -24,16 +24,11 @@
 
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 
+#include "action_msgs/srv/cancel_goal.h"
+
 #include "test_msgs/action/fibonacci.h"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
-class CLASSNAME (TestActionClientServerInteraction, RMW_IMPLEMENTATION) : public ::testing::Test
+class TestActionClientServerInteraction : public ::testing::Test
 {
 protected:
   void SetUp() override
@@ -204,7 +199,7 @@ protected:
 // Following the goal request, the client makes an asynchronous request for the
 // result. The feedback is published to the action client as it executes the goal.
 // Ultimately, a result message is populated which is then used as part of the result response.
-TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction)
+TEST_F(TestActionClientServerInteraction, test_interaction)
 {
   // Initialize goal request
   init_test_uuid0(this->outgoing_goal_request.goal_id.uuid);
@@ -467,8 +462,7 @@ TEST_F(CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_in
 // This example is almost identical to the first, but this time the action client requests
 // for the goal to be canceled mid-execution. Note that it is allowed to perform any shutdown
 // operations after the cancel request before returning with the cancellation result.
-TEST_F(
-  CLASSNAME(TestActionClientServerInteraction, RMW_IMPLEMENTATION), test_interaction_with_cancel)
+TEST_F(TestActionClientServerInteraction, test_interaction_with_cancel)
 {
   action_msgs__srv__CancelGoal_Request outgoing_cancel_request;
   action_msgs__srv__CancelGoal_Request incoming_cancel_request;
