@@ -26,7 +26,8 @@ typedef struct rcl_action_goal_handle_impl_s
 {
   rcl_action_goal_info_t info;
   rcl_action_goal_state_t state;
-  // If goal_terminal_timestamp isn't set, INVAILD_GOAL_TERMINAL_TIMESTAMP is the initial value.
+  // As long as the goal has not reached terminal state, this variable is set to
+  // INVAILD_GOAL_TERMINAL_TIMESTAMP
   rcl_time_point_value_t goal_terminal_timestamp;
   rcl_allocator_t allocator;
 } rcl_action_goal_handle_impl_t;

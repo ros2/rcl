@@ -36,6 +36,10 @@ extern "C"
 
 #include "rmw/rmw.h"
 
+extern rcl_ret_t
+rcl_action_goal_handle_set_goal_terminal_timestamp(
+  const rcl_action_goal_handle_t * goal_handle,
+  rcl_time_point_value_t timestamp);
 
 rcl_action_server_t
 rcl_action_get_zero_initialized_server(void)
@@ -458,20 +462,6 @@ _recalculate_expire_timer(
         return RCL_RET_ERROR;
       }
 
-      // After state of goal is updated to terminal state (success or cancel or abort),
-      // rcl_action_notify_goal_done() is called.
-      // This function is called in rcl_action_notify_goal_done().
-      // If goal_terminal_timestamp of goal is invaild, this goal is just in terminal state.
-      // So current time is set to goal_terminal_timestamp of this goal.
-      if (goal_terminal_timestamp == 0) {
-        goal_terminal_timestamp = current_time;
-        ret = rcl_action_goal_handle_set_goal_terminal_timestamp(
-          goal_handle, goal_terminal_timestamp);
-        if (RCL_RET_OK != ret) {
-          return RCL_RET_ERROR;
-        }
-      }
-
       int64_t delta = timeout - (current_time - goal_terminal_timestamp);
       if (delta < minimum_period) {
         minimum_period = delta;
@@ -727,6 +717,34 @@ rcl_action_notify_goal_done(
   if (!rcl_action_server_is_valid(action_server)) {
     return RCL_RET_ACTION_SERVER_INVALID;
   }
+
+  // Get current time (nanosec)
+  int64_t current_time;
+  rcl_ret_t ret = rcl_clock_get_now(action_server->impl->clock, &current_time);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;
+  }
+
+  // Set current time to goal_terminal_timestamp of goal which has reached terminal state
+  for (size_t i = 0; i < action_server->impl->num_goal_handles; ++i) {
+    rcl_action_goal_handle_t * goal_handle = action_server->impl->goal_handles[i];
+    if (!rcl_action_goal_handle_is_active(goal_handle)) {
+      rcl_time_point_value_t goal_terminal_timestamp;
+      rcl_ret_t ret = rcl_action_goal_handle_get_goal_terminal_timestamp(
+        goal_handle, &goal_terminal_timestamp);
+      if (RCL_RET_OK != ret) {
+        return RCL_RET_ERROR;
+      }
+
+      if (goal_terminal_timestamp == INVAILD_GOAL_TERMINAL_TIMESTAMP) {
+        ret = rcl_action_goal_handle_set_goal_terminal_timestamp(goal_handle, current_time);
+        if (RCL_RET_OK != ret) {
+          return RCL_RET_ERROR;
+        }
+      }
+    }
+  }
+
   return _recalculate_expire_timer(
     &action_server->impl->expire_timer,
     action_server->impl->options.result_timeout.nanoseconds,

@@ -38,7 +38,7 @@ typedef struct rcl_action_goal_handle_s
 } rcl_action_goal_handle_t;
 
 /// Define invaild value for goal terminal timestamp
-#define INVAILD_GOAL_TERMINAL_TIMESTAMP 0
+#define INVAILD_GOAL_TERMINAL_TIMESTAMP -1
 
 /// Return a rcl_action_goal_handle_t struct with members set to `NULL`.
 /**
@@ -208,7 +208,7 @@ rcl_action_goal_handle_get_status(
  *
  * \param[in] goal_handle struct containing the goal and metadata
  * \param[out] timestamp a preallocated struct where goal terminal timestamp is copied.
-     Return `INVAILD_GOAL_TERMINAL_TIMESTAMP` if goal terminal timestamp isn't set.
+     Return `INVAILD_GOAL_TERMINAL_TIMESTAMP` if the goal has not reached terminal state.
  * \return `RCL_RET_OK` if the goal ID was accessed successfully, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if the timestamp argument is invalid
@@ -219,31 +219,6 @@ rcl_ret_t
 rcl_action_goal_handle_get_goal_terminal_timestamp(
   const rcl_action_goal_handle_t * goal_handle,
   rcl_time_point_value_t * timestamp);
-
-/// Set the goal terminal timestamp.
-/**
- * This is a non-blocking call.
- *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
- *
- * \param[in] goal_handle struct containing the goal and metadata
- * \param[in] timestamp The timestamp of goal termination
- * \return `RCL_RET_OK` if the goal ID was accessed successfully, or
- * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
- * \return `RCL_RET_INVALID_ARGUMENT` if the timestamp argument is invalid
- */
-RCL_ACTION_LOCAL
-RCL_WARN_UNUSED
-rcl_ret_t
-rcl_action_goal_handle_set_goal_terminal_timestamp(
-  const rcl_action_goal_handle_t * goal_handle,
-  rcl_time_point_value_t timestamp);
 
 /// Check if a goal is active using a rcl_action_goal_handle_t.
 /**
