@@ -458,6 +458,9 @@ _recalculate_expire_timer(
       rcl_time_point_value_t goal_terminal_timestamp;
       ret = rcl_action_goal_handle_get_goal_terminal_timestamp(
         goal_handle, &goal_terminal_timestamp);
+      if (RCL_RET_NOT_TERMINATED_YET == ret) {
+        continue;
+      }
       if (RCL_RET_OK != ret) {
         return RCL_RET_ERROR;
       }
@@ -652,12 +655,15 @@ rcl_action_expire_goals(
     }
 
     ret = rcl_action_goal_handle_get_goal_terminal_timestamp(goal_handle, &goal_terminal_timestamp);
+    if (RCL_RET_NOT_TERMINATED_YET == ret) {
+      continue;
+    }
     if (RCL_RET_OK != ret) {
       ret_final = RCL_RET_ERROR;
       continue;
     }
 
-    if ((goal_terminal_timestamp != 0) && (current_time - goal_terminal_timestamp) > timeout) {
+    if ((current_time - goal_terminal_timestamp) > timeout) {
       // Deallocate space used to store pointer to goal handle
       allocator.deallocate(action_server->impl->goal_handles[i], allocator.state);
       action_server->impl->goal_handles[i] = NULL;
@@ -732,15 +738,15 @@ rcl_action_notify_goal_done(
       rcl_time_point_value_t goal_terminal_timestamp;
       rcl_ret_t ret = rcl_action_goal_handle_get_goal_terminal_timestamp(
         goal_handle, &goal_terminal_timestamp);
-      if (RCL_RET_OK != ret) {
-        return RCL_RET_ERROR;
-      }
-
-      if (goal_terminal_timestamp == INVAILD_GOAL_TERMINAL_TIMESTAMP) {
+      if (RCL_RET_NOT_TERMINATED_YET == ret) {
         ret = rcl_action_goal_handle_set_goal_terminal_timestamp(goal_handle, current_time);
         if (RCL_RET_OK != ret) {
           return RCL_RET_ERROR;
         }
+        continue;
+      }
+      if (RCL_RET_OK != ret) {
+        return RCL_RET_ERROR;
       }
     }
   }
