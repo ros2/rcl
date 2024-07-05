@@ -631,6 +631,7 @@ rcl_action_expire_goals(
   rcl_ret_t ret_final = RCL_RET_OK;
   const int64_t timeout = (int64_t)action_server->impl->options.result_timeout.nanoseconds;
   rcl_action_goal_handle_t * goal_handle;
+  rcl_action_goal_info_t goal_info;
   rcl_time_point_value_t goal_terminal_timestamp;
   size_t num_goal_handles = action_server->impl->num_goal_handles;
   for (size_t i = 0u; i < num_goal_handles; ++i) {
@@ -639,6 +640,19 @@ rcl_action_expire_goals(
       break;
     }
     goal_handle = action_server->impl->goal_handles[i];
+    // Expiration only applys to terminated goals
+    if (rcl_action_goal_handle_is_active(goal_handle)) {
+      continue;
+    }
+    rcl_action_goal_info_t * info_ptr = &goal_info;
+    if (output_expired) {
+      info_ptr = &(expired_goals[num_goals_expired]);
+    }
+    ret = rcl_action_goal_handle_get_info(goal_handle, info_ptr);
+    if (RCL_RET_OK != ret) {
+      ret_final = RCL_RET_ERROR;
+      continue;
+    }
 
     ret = rcl_action_goal_handle_get_goal_terminal_timestamp(goal_handle, &goal_terminal_timestamp);
     if (RCL_RET_NOT_TERMINATED_YET == ret) {
