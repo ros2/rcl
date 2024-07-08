@@ -127,20 +127,6 @@ void _rcl_timer_time_jump(
 }
 
 rcl_ret_t
-rcl_timer_init(
-  rcl_timer_t * timer,
-  rcl_clock_t * clock,
-  rcl_context_t * context,
-  int64_t period,
-  const rcl_timer_callback_t callback,
-  rcl_allocator_t allocator)
-{
-  return rcl_timer_init2(
-    timer, clock, context, period, callback,
-    allocator, true);
-}
-
-rcl_ret_t
 rcl_timer_init2(
   rcl_timer_t * timer,
   rcl_clock_t * clock,
