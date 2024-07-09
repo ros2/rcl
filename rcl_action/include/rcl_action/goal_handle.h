@@ -211,7 +211,7 @@ rcl_action_goal_handle_get_status(
  * \return `RCL_RET_OK` if the goal ID was accessed successfully, or
  * \return `RCL_RET_ACTION_GOAL_HANDLE_INVALID` if the goal handle is invalid, or
  * \return `RCL_RET_INVALID_ARGUMENT` if the timestamp argument is invalid or
- * \return `RCL_RET_NOT_TERMINATED_YET` if the goal has not reached terminal state
+ * \return `RCL_ACTION_RET_NOT_TERMINATED_YET` if the goal has not reached terminal state
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED

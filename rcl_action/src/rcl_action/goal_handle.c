@@ -191,7 +191,7 @@ rcl_action_goal_handle_get_goal_terminal_timestamp(
   RCL_CHECK_ARGUMENT_FOR_NULL(timestamp, RCL_RET_INVALID_ARGUMENT);
 
   if (goal_handle->impl->goal_terminal_timestamp == INVAILD_GOAL_TERMINAL_TIMESTAMP) {
-    return RCL_RET_NOT_TERMINATED_YET;
+    return RCL_ACTION_RET_NOT_TERMINATED_YET;
   }
 
   *timestamp = goal_handle->impl->goal_terminal_timestamp;
@@ -211,7 +211,7 @@ rcl_action_goal_handle_set_goal_terminal_timestamp(
     return RCL_RET_ACTION_GOAL_HANDLE_INVALID;  // error message is set
   }
 
-  if (timestamp == INVAILD_GOAL_TERMINAL_TIMESTAMP) {
+  if (timestamp <= INVAILD_GOAL_TERMINAL_TIMESTAMP) {
     RCL_SET_ERROR_MSG("Timestamp argument is invaild !");
     return RCL_RET_INVALID_ARGUMENT;
   }
