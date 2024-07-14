@@ -783,7 +783,7 @@ TEST_F(TestActionServer, test_action_server_get_action_name)
   // Get action_name for a valid action server
   action_name = rcl_action_server_get_action_name(&this->action_server);
   ASSERT_NE(action_name, nullptr) << rcl_get_error_string().str;
-  EXPECT_STREQ(action_name, "test_action_server_name");
+  EXPECT_STREQ(action_name, "/test_action_server_name");
 }
 
 TEST_F(TestActionServer, test_action_server_get_options)

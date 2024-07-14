@@ -110,7 +110,7 @@ _rcl_action_client_fini_impl(
 // \internal Initializes an action client specific service client.
 #define CLIENT_INIT(Type) \
   char * Type ## _service_name = NULL; \
-  ret = rcl_action_get_ ## Type ## _service_name(action_name, allocator, &Type ## _service_name); \
+  ret = rcl_action_get_ ## Type ## _service_name(resolved_action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
     rcl_reset_error(); \
     RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
@@ -137,7 +137,7 @@ _rcl_action_client_fini_impl(
 // \internal Initializes an action client specific topic subscription.
 #define SUBSCRIPTION_INIT(Type) \
   char * Type ## _topic_name = NULL; \
-  ret = rcl_action_get_ ## Type ## _topic_name(action_name, allocator, &Type ## _topic_name); \
+  ret = rcl_action_get_ ## Type ## _topic_name(resolved_action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
     rcl_reset_error(); \
     RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
@@ -195,8 +195,19 @@ rcl_action_client_init(
 
   // Avoid uninitialized pointers should initialization fail
   *action_client->impl = _rcl_action_get_zero_initialized_client_impl();
+
+  // Remap/Expand the action name
+  char* resolved_action_name = NULL;
+  ret = rcl_node_resolve_name(node, action_name, allocator, false, false, &resolved_action_name);
+  if (RCL_RET_OK != ret) {
+    if (RCL_RET_TOPIC_NAME_INVALID == ret || RCL_RET_SERVICE_NAME_INVALID == ret) {
+      ret = RCL_RET_ACTION_NAME_INVALID;
+    }
+    goto fail;
+  }
+
   // Copy action client name and options.
-  action_client->impl->action_name = rcutils_strdup(action_name, allocator);
+  action_client->impl->action_name = rcutils_strdup(resolved_action_name, allocator);
   if (NULL == action_client->impl->action_name) {
     RCL_SET_ERROR_MSG("failed to duplicate action name");
     ret = RCL_RET_BAD_ALLOC;
@@ -213,6 +224,10 @@ rcl_action_client_init(
   SUBSCRIPTION_INIT(feedback);
   SUBSCRIPTION_INIT(status);
 
+  // The resolved action name is no longer needed
+  allocator.deallocate(resolved_action_name, allocator.state);
+  resolved_action_name = NULL;
+
   ret = rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
       type_support->get_type_description_func(type_support),
@@ -227,6 +242,12 @@ rcl_action_client_init(
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client initialized");
   return ret;
 fail:
+  // Deallocate the resolved action name
+  if (NULL != resolved_action_name)
+  {
+    allocator.deallocate(resolved_action_name, allocator.state);
+  }
+
   fini_ret = _rcl_action_client_fini_impl(action_client, node, allocator);
   if (RCL_RET_OK != fini_ret) {
     RCL_SET_ERROR_MSG("failed to cleanup action client");
