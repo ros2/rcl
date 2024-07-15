@@ -293,29 +293,6 @@ TEST(TestDiscoveryInfo, test_with_localhost_only) {
   }
 
   {
-    // Only ROS_LOCALHOST_ONLY is enabled
-    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "1"));
-    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST, 0);
-  }
-
-  {
-    // ROS_LOCALHOST_ONLY is enabled and prevails over SUBNET.
-    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "1"));
-    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
-    ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;remote.com"));
-    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST, 0);
-  }
-
-  {
-    // ROS_LOCALHOST_ONLY is enabled and prevails over OFF.
-    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "1"));
-    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "OFF"));
-    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST, 0);
-  }
-
-  {
-    // ROS_LOCALHOST_ONLY is disabled, falls down to use discovery option.
-    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "0"));
     ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
     ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;remote.com"));
     check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, 2);

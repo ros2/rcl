@@ -22,7 +22,6 @@
 #include "rcl/arguments.h"
 #include "rcl/error_handling.h"
 #include "rcl/init_options.h"
-#include "rcl/localhost.h"
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
 #include "rcl/node_type_cache.h"

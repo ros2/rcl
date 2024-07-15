@@ -474,12 +474,6 @@ rcl_add_custom_gtest(test_domain_id
 )
 ament_add_test_label(test_domain_id mimick)
 
-rcl_add_custom_gtest(test_localhost
-  SRCS rcl/test_localhost.cpp
-  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME}
-)
-
 rcl_add_custom_gtest(test_logging
   SRCS rcl/test_logging.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
