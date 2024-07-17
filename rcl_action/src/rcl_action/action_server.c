@@ -156,8 +156,10 @@ rcl_action_server_init(
   char * resolved_action_name = NULL;
   ret = rcl_node_resolve_name(node, action_name, allocator, false, false, &resolved_action_name);
   if (RCL_RET_OK != ret) {
-    if (RCL_RET_TOPIC_NAME_INVALID == ret || RCL_RET_SERVICE_NAME_INVALID == ret) {
+    if (RCL_RET_TOPIC_NAME_INVALID == ret || RCL_RET_UNKNOWN_SUBSTITUTION == ret) {
       ret = RCL_RET_ACTION_NAME_INVALID;
+    } else if (RCL_RET_BAD_ALLOC != ret) {
+      ret = RCL_RET_ERROR;
     }
     goto fail;
   }
