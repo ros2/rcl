@@ -144,7 +144,7 @@ rcl_action_server_init(
   action_server->impl->expire_timer = rcl_get_zero_initialized_timer();
   action_server->impl->feedback_publisher = rcl_get_zero_initialized_publisher();
   action_server->impl->status_publisher = rcl_get_zero_initialized_publisher();
-  action_server->impl->action_name = NULL;
+  action_server->impl->remapped_action_name = NULL;
   action_server->impl->options = *options;  // copy options
   action_server->impl->goal_handles = NULL;
   action_server->impl->num_goal_handles = 0u;
@@ -185,8 +185,8 @@ rcl_action_server_init(
   }
 
   // Copy action name
-  action_server->impl->action_name = rcutils_strdup(resolved_action_name, allocator);
-  if (NULL == action_server->impl->action_name) {
+  action_server->impl->remapped_action_name = rcutils_strdup(resolved_action_name, allocator);
+  if (NULL == action_server->impl->remapped_action_name) {
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
@@ -258,9 +258,9 @@ rcl_action_server_fini(rcl_action_server_t * action_server, rcl_node_t * node)
     action_server->impl->clock = NULL;
     // Deallocate action name
     rcl_allocator_t allocator = action_server->impl->options.allocator;
-    if (action_server->impl->action_name) {
-      allocator.deallocate(action_server->impl->action_name, allocator.state);
-      action_server->impl->action_name = NULL;
+    if (action_server->impl->remapped_action_name) {
+      allocator.deallocate(action_server->impl->remapped_action_name, allocator.state);
+      action_server->impl->remapped_action_name = NULL;
     }
     // Deallocate goal handles storage, but don't fini them.
     for (size_t i = 0; i < action_server->impl->num_goal_handles; ++i) {
@@ -904,7 +904,7 @@ rcl_action_server_get_action_name(const rcl_action_server_t * action_server)
   if (!rcl_action_server_is_valid(action_server)) {
     return NULL;  // error already set
   }
-  return action_server->impl->action_name;
+  return action_server->impl->remapped_action_name;
 }
 
 const rcl_action_server_options_t *

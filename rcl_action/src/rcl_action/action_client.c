@@ -100,7 +100,7 @@ _rcl_action_client_fini_impl(
   {
     ret = RCL_RET_ERROR;
   }
-  allocator.deallocate(action_client->impl->action_name, allocator.state);
+  allocator.deallocate(action_client->impl->remapped_action_name, allocator.state);
   allocator.deallocate(action_client->impl, allocator.state);
   action_client->impl = NULL;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client finalized");
@@ -211,8 +211,8 @@ rcl_action_client_init(
   }
 
   // Copy action client name and options.
-  action_client->impl->action_name = rcutils_strdup(resolved_action_name, allocator);
-  if (NULL == action_client->impl->action_name) {
+  action_client->impl->remapped_action_name = rcutils_strdup(resolved_action_name, allocator);
+  if (NULL == action_client->impl->remapped_action_name) {
     RCL_SET_ERROR_MSG("failed to duplicate action name");
     ret = RCL_RET_BAD_ALLOC;
     goto fail;
@@ -478,7 +478,7 @@ rcl_action_client_get_action_name(const rcl_action_client_t * action_client)
   if (!rcl_action_client_is_valid(action_client)) {
     return NULL;
   }
-  return action_client->impl->action_name;
+  return action_client->impl->remapped_action_name;
 }
 
 const rcl_action_client_options_t *
