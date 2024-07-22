@@ -113,7 +113,6 @@ rcl_lifecycle_com_interface_publisher_init(
 
   // initialize publisher
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
-  publisher_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
   // transition event topic needs to be latched for the subscription joins later.
   publisher_options.qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
   publisher_options.qos.depth = 1;
