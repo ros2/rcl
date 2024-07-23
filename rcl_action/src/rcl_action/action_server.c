@@ -52,7 +52,7 @@ rcl_action_get_zero_initialized_server(void)
 #define SERVICE_INIT(Type) \
   char * Type ## _service_name = NULL; \
   ret = rcl_action_get_ ## Type ## _service_name( \
-    resolved_action_name, allocator, &Type ## _service_name); \
+    action_server->impl->remapped_action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
     rcl_reset_error(); \
     RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
@@ -78,7 +78,7 @@ rcl_action_get_zero_initialized_server(void)
 #define PUBLISHER_INIT(Type) \
   char * Type ## _topic_name = NULL; \
   ret = rcl_action_get_ ## Type ## _topic_name( \
-    resolved_action_name, allocator, &Type ## _topic_name); \
+    action_server->impl->remapped_action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
     rcl_reset_error(); \
     RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
@@ -153,8 +153,14 @@ rcl_action_server_init(
 
   rcl_ret_t ret = RCL_RET_OK;
   // Resolve action name
-  char * resolved_action_name = NULL;
-  ret = rcl_node_resolve_name(node, action_name, allocator, false, false, &resolved_action_name);
+  ret = rcl_node_resolve_name(
+    node,
+    action_name,
+    allocator,
+    false, false,
+    &action_server->impl->remapped_action_name
+  );
+
   if (RCL_RET_OK != ret) {
     if (RCL_RET_TOPIC_NAME_INVALID == ret || RCL_RET_UNKNOWN_SUBSTITUTION == ret) {
       ret = RCL_RET_ACTION_NAME_INVALID;
@@ -163,6 +169,11 @@ rcl_action_server_init(
     }
     goto fail;
   }
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME,
+    "Remapped and expanded action name '%s'",
+    action_server->impl->remapped_action_name
+  );
 
   // Initialize services
   SERVICE_INIT(goal);
@@ -184,17 +195,6 @@ rcl_action_server_init(
     goto fail;
   }
 
-  // Copy action name
-  action_server->impl->remapped_action_name = rcutils_strdup(resolved_action_name, allocator);
-  if (NULL == action_server->impl->remapped_action_name) {
-    ret = RCL_RET_BAD_ALLOC;
-    goto fail;
-  }
-
-  // The resolved_action_name is no longer needed
-  allocator.deallocate(resolved_action_name, allocator.state);
-  resolved_action_name = NULL;
-
   // Store type hash
   ret = rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
@@ -210,10 +210,6 @@ rcl_action_server_init(
   return ret;
 fail:
   {
-    // Deallocate the resolved action name
-    if (NULL != resolved_action_name) {
-      allocator.deallocate(resolved_action_name, allocator.state);
-    }
     // Finalize any services/publishers that were initialized and deallocate action_server->impl
     rcl_ret_t ret_throwaway = rcl_action_server_fini(action_server, node);
     // Since there is already a failure, it is likely that finalize will error on one or more of

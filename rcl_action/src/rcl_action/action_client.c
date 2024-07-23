@@ -111,7 +111,7 @@ _rcl_action_client_fini_impl(
 #define CLIENT_INIT(Type) \
   char * Type ## _service_name = NULL; \
   ret = rcl_action_get_ ## Type ## _service_name( \
-    resolved_action_name, allocator, &Type ## _service_name); \
+    action_client->impl->remapped_action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
     rcl_reset_error(); \
     RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
@@ -139,7 +139,7 @@ _rcl_action_client_fini_impl(
 #define SUBSCRIPTION_INIT(Type) \
   char * Type ## _topic_name = NULL; \
   ret = rcl_action_get_ ## Type ## _topic_name( \
-    resolved_action_name, allocator, &Type ## _topic_name); \
+    action_client->impl->remapped_action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
     rcl_reset_error(); \
     RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
@@ -199,8 +199,14 @@ rcl_action_client_init(
   *action_client->impl = _rcl_action_get_zero_initialized_client_impl();
 
   // Remap/Expand the action name
-  char * resolved_action_name = NULL;
-  ret = rcl_node_resolve_name(node, action_name, allocator, false, false, &resolved_action_name);
+  ret = rcl_node_resolve_name(
+    node,
+    action_name,
+    allocator,
+    false, false,
+    &action_client->impl->remapped_action_name
+  );
+
   if (RCL_RET_OK != ret) {
     if (RCL_RET_TOPIC_NAME_INVALID == ret || RCL_RET_UNKNOWN_SUBSTITUTION == ret) {
       ret = RCL_RET_ACTION_NAME_INVALID;
@@ -209,14 +215,13 @@ rcl_action_client_init(
     }
     goto fail;
   }
+  RCUTILS_LOG_DEBUG_NAMED(
+    ROS_PACKAGE_NAME,
+    "Remapped and expanded action name '%s'",
+    action_client->impl->remapped_action_name
+  );
 
   // Copy action client name and options.
-  action_client->impl->remapped_action_name = rcutils_strdup(resolved_action_name, allocator);
-  if (NULL == action_client->impl->remapped_action_name) {
-    RCL_SET_ERROR_MSG("failed to duplicate action name");
-    ret = RCL_RET_BAD_ALLOC;
-    goto fail;
-  }
   action_client->impl->options = *options;
 
   // Initialize action service clients.
@@ -227,10 +232,6 @@ rcl_action_client_init(
   // Initialize action topic subscriptions.
   SUBSCRIPTION_INIT(feedback);
   SUBSCRIPTION_INIT(status);
-
-  // The resolved action name is no longer needed
-  allocator.deallocate(resolved_action_name, allocator.state);
-  resolved_action_name = NULL;
 
   ret = rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
@@ -246,10 +247,6 @@ rcl_action_client_init(
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client initialized");
   return ret;
 fail:
-  // Deallocate the resolved action name
-  if (NULL != resolved_action_name) {
-    allocator.deallocate(resolved_action_name, allocator.state);
-  }
 
   fini_ret = _rcl_action_client_fini_impl(action_client, node, allocator);
   if (RCL_RET_OK != fini_ret) {
