@@ -332,6 +332,7 @@ TEST(TestRclLifecycle, state_machine) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
+  void * temp_function = state_machine.com_interface.srv_change_state.impl;
   state_machine.com_interface.srv_change_state.impl = nullptr;
   // get_state service is valid, but not change_state service
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
@@ -357,10 +358,9 @@ TEST(TestRclLifecycle, state_machine) {
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
 
   // get_state service is valid, but not change_state service
-  void * temp_function = state_machine.com_interface.srv_change_state.impl;
-  state_machine.com_interface.srv_change_state.impl = nullptr;
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
+
   state_machine.com_interface.srv_change_state.impl =
     reinterpret_cast<rcl_service_impl_t *>(temp_function);
 
