@@ -218,7 +218,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for goal request to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_server_wait_set_get_entities_ready(
@@ -265,7 +265,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for goal response to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_client_wait_set_get_entities_ready(
@@ -324,7 +324,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for feedback to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_client_wait_set_get_entities_ready(
@@ -368,7 +368,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for result request to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_server_wait_set_get_entities_ready(
@@ -420,7 +420,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for result response to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_client_wait_set_get_entities_ready(
@@ -490,7 +490,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction_with_cancel)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for goal request to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_server_wait_set_get_entities_ready(
@@ -537,7 +537,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction_with_cancel)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for goal response to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_client_wait_set_get_entities_ready(
@@ -596,7 +596,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction_with_cancel)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for feedback to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_client_wait_set_get_entities_ready(
@@ -640,7 +640,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction_with_cancel)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for result request to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_server_wait_set_get_entities_ready(
@@ -696,7 +696,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction_with_cancel)
   ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_server_wait_set_get_entities_ready(
@@ -748,7 +748,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction_with_cancel)
     &this->wait_set, &this->action_client, NULL, NULL);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_client_wait_set_get_entities_ready(
@@ -799,7 +799,7 @@ TEST_F(TestActionClientServerInteraction, test_interaction_with_cancel)
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for result response to be ready
-  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
   EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   ret = rcl_action_client_wait_set_get_entities_ready(
