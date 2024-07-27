@@ -220,6 +220,20 @@ if(BUILD_TESTING)
       src
     )
   endif()
+  ament_add_gtest(test_action_name_remapping
+    test/rcl_action/test_action_name_remapping.cpp
+  )
+  if(TARGET test_action_name_remapping)
+    target_link_libraries(test_action_name_remapping
+      ${PROJECT_NAME}
+      osrf_testing_tools_cpp::memory_tools
+      rcl::rcl
+      ${test_msgs_TARGETS}
+    )
+    target_include_directories(test_action_name_remapping PRIVATE
+      src
+    )
+  endif()
 endif()
 
 # Export old-style CMake variables
