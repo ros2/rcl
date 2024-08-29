@@ -134,8 +134,7 @@ public:
     // init publisher events
     publisher_event = rcl_get_zero_initialized_event();
     ret = rcl_publisher_event_init(&publisher_event, &publisher, pub_event_type);
-    if (ret == RCL_RET_UNSUPPORTED)
-    {
+    if (ret == RCL_RET_UNSUPPORTED) {
       GTEST_SKIP();
     }
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -143,8 +142,7 @@ public:
     // init subscription event
     subscription_event = rcl_get_zero_initialized_event();
     ret = rcl_subscription_event_init(&subscription_event, &subscription, sub_event_type);
-    if (ret == RCL_RET_UNSUPPORTED)
-    {
+    if (ret == RCL_RET_UNSUPPORTED) {
       GTEST_SKIP();
     }
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -732,8 +730,7 @@ TEST_F(TestEventFixture, test_event_is_valid)
   rcl_ret_t ret = rcl_publisher_event_init(
     &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
 
-  if (ret == RCL_RET_UNSUPPORTED)
-  {
+  if (ret == RCL_RET_UNSUPPORTED) {
     GTEST_SKIP();
   }
 
@@ -1241,8 +1238,7 @@ TEST_F(TestEventFixture, test_sub_previous_matched_event)
   // init subscriber event
   rcl_event_t sub_matched_event = rcl_get_zero_initialized_event();
   ret = rcl_subscription_event_init(&sub_matched_event, &subscription, RCL_SUBSCRIPTION_MATCHED);
-  if (ret == RCL_RET_UNSUPPORTED)
-  {
+  if (ret == RCL_RET_UNSUPPORTED) {
     GTEST_SKIP();
   }
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
