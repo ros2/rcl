@@ -384,16 +384,14 @@ conditional_wait_for_msgs_and_events(
  */
 TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
 {
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+    GTEST_SKIP();
+  }
+
   setup_publisher_subscriber_and_events_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
-
-  if (!rcl_event_is_valid(&subscription_event) || !rcl_event_is_valid(&publisher_event))
-  {
-    GTEST_SKIP();
-  }
-
 
   // publish message to topic
   const char * test_string = "testing";
@@ -536,15 +534,14 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
  */
 TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
 {
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+    GTEST_SKIP();
+  }
+
   setup_publisher_subscriber_and_events_and_assert_discovery(
     RCL_PUBLISHER_LIVELINESS_LOST,
     RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
   rcl_ret_t ret;
-
-  if (!rcl_event_is_valid(&subscription_event) || !rcl_event_is_valid(&publisher_event))
-  {
-    GTEST_SKIP();
-  }
 
   // publish message to topic
   const char * test_string = "testing";
@@ -634,11 +631,6 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
   setup_publisher_subscriber_events(
     RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
     RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
-
-  if (!rcl_event_is_valid(&subscription_event) || !rcl_event_is_valid(&publisher_event))
-  {
-    GTEST_SKIP();
-  }
 
   WaitConditionPredicate events_ready = [](
     const bool & /*msg_persist_ready*/,
