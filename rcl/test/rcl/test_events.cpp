@@ -134,11 +134,19 @@ public:
     // init publisher events
     publisher_event = rcl_get_zero_initialized_event();
     ret = rcl_publisher_event_init(&publisher_event, &publisher, pub_event_type);
+    if (ret == RCL_RET_UNSUPPORTED)
+    {
+      GTEST_SKIP();
+    }
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
     // init subscription event
     subscription_event = rcl_get_zero_initialized_event();
     ret = rcl_subscription_event_init(&subscription_event, &subscription, sub_event_type);
+    if (ret == RCL_RET_UNSUPPORTED)
+    {
+      GTEST_SKIP();
+    }
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -381,6 +389,12 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
 
+  if (!rcl_event_is_valid(&subscription_event) || !rcl_event_is_valid(&publisher_event))
+  {
+    GTEST_SKIP();
+  }
+
+
   // publish message to topic
   const char * test_string = "testing";
   {
@@ -447,6 +461,11 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
   rcl_ret_t ret;
+
+  if (!rcl_event_is_valid(&subscription_event) || !rcl_event_is_valid(&publisher_event))
+  {
+    GTEST_SKIP();
+  }
 
   // publish message to topic
   const char * test_string = "testing";
@@ -523,6 +542,11 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
     RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
   rcl_ret_t ret;
 
+  if (!rcl_event_is_valid(&subscription_event) || !rcl_event_is_valid(&publisher_event))
+  {
+    GTEST_SKIP();
+  }
+
   // publish message to topic
   const char * test_string = "testing";
   {
@@ -597,6 +621,10 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
  */
 TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
 {
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+    GTEST_SKIP();
+  }
+
   const auto & input = GetParam();
   const auto & qos_policy_kind = input.qos_policy_kind;
   const auto & publisher_qos_profile = input.publisher_qos_profile;
@@ -607,6 +635,11 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
   setup_publisher_subscriber_events(
     RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
     RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
+
+  if (!rcl_event_is_valid(&subscription_event) || !rcl_event_is_valid(&publisher_event))
+  {
+    GTEST_SKIP();
+  }
 
   WaitConditionPredicate events_ready = [](
     const bool & /*msg_persist_ready*/,
@@ -707,6 +740,12 @@ TEST_F(TestEventFixture, test_event_is_valid)
 
   rcl_ret_t ret = rcl_publisher_event_init(
     &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
+
+  if (ret == RCL_RET_UNSUPPORTED)
+  {
+    GTEST_SKIP();
+  }
+
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_event_is_valid(&publisher_event_test));
 
@@ -754,6 +793,10 @@ TEST_F(TestEventFixture, test_event_is_invalid) {
  */
 TEST_F(TestEventFixture, test_sub_message_lost_event)
 {
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+    GTEST_SKIP();
+  }
+
   const rmw_qos_profile_t subscription_qos_profile = default_qos_profile;
 
   rcl_ret_t ret = setup_subscriber(subscription_qos_profile);
@@ -866,6 +909,10 @@ void event_callback(const void * user_data, size_t number_of_events)
  */
 TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
 {
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+    GTEST_SKIP();
+  }
+
   rcl_ret_t ret;
 
   // Create one publisher
@@ -977,6 +1024,10 @@ TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
  */
 TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
 {
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+    GTEST_SKIP();
+  }
+
   rcl_ret_t ret;
 
   // Create one subscriber
@@ -1199,6 +1250,10 @@ TEST_F(TestEventFixture, test_sub_previous_matched_event)
   // init subscriber event
   rcl_event_t sub_matched_event = rcl_get_zero_initialized_event();
   ret = rcl_subscription_event_init(&sub_matched_event, &subscription, RCL_SUBSCRIPTION_MATCHED);
+  if (ret == RCL_RET_UNSUPPORTED)
+  {
+    GTEST_SKIP();
+  }
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {

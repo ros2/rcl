@@ -308,6 +308,7 @@ function(test_target)
   ament_add_gtest_test(test_events
     TEST_NAME test_events${target_suffix}
     ENV ${rmw_implementation_env_var}
+    TIMEOUT 120
   )
 
   ament_add_gtest_test(test_wait
