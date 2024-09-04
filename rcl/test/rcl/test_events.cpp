@@ -134,17 +134,11 @@ public:
     // init publisher events
     publisher_event = rcl_get_zero_initialized_event();
     ret = rcl_publisher_event_init(&publisher_event, &publisher, pub_event_type);
-    if (ret == RCL_RET_UNSUPPORTED) {
-      GTEST_SKIP();
-    }
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
     // init subscription event
     subscription_event = rcl_get_zero_initialized_event();
     ret = rcl_subscription_event_init(&subscription_event, &subscription, sub_event_type);
-    if (ret == RCL_RET_UNSUPPORTED) {
-      GTEST_SKIP();
-    }
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
@@ -717,6 +711,10 @@ TEST_F(TestEventFixture, test_bad_event_ini)
  */
 TEST_F(TestEventFixture, test_event_is_valid)
 {
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+    GTEST_SKIP();
+  }
+
   EXPECT_FALSE(rcl_event_is_valid(nullptr));
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
@@ -729,10 +727,6 @@ TEST_F(TestEventFixture, test_event_is_valid)
 
   rcl_ret_t ret = rcl_publisher_event_init(
     &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
-
-  if (ret == RCL_RET_UNSUPPORTED) {
-    GTEST_SKIP();
-  }
 
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   EXPECT_TRUE(rcl_event_is_valid(&publisher_event_test));
@@ -1217,6 +1211,10 @@ TEST_F(TestEventFixture, test_pub_previous_matched_event)
 
 TEST_F(TestEventFixture, test_sub_previous_matched_event)
 {
+  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+    GTEST_SKIP();
+  }
+
   // While registering callback for matched event, exist previous matched event
   // will trigger callback at once.
 
@@ -1238,9 +1236,6 @@ TEST_F(TestEventFixture, test_sub_previous_matched_event)
   // init subscriber event
   rcl_event_t sub_matched_event = rcl_get_zero_initialized_event();
   ret = rcl_subscription_event_init(&sub_matched_event, &subscription, RCL_SUBSCRIPTION_MATCHED);
-  if (ret == RCL_RET_UNSUPPORTED) {
-    GTEST_SKIP();
-  }
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
