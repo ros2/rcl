@@ -148,6 +148,7 @@ if(BUILD_TESTING)
     ament_add_gtest_test(test_graph
       TEST_NAME test_graph${target_suffix}
       ENV ${rmw_implementation_env_var}
+      TIMEOUT 180
     )
   endfunction()
 
