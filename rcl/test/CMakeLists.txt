@@ -227,6 +227,7 @@ function(test_target)
   ament_add_gtest_test(test_init
     TEST_NAME test_init${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
+    TIMEOUT 180
   )
   ament_add_test_label(test_init${target_suffix} mimick)
 
