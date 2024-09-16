@@ -23,6 +23,8 @@
 #include "rcutils/sha256.h"
 #include "type_description_interfaces/msg/type_description.h"
 
+#include "./common.h"
+
 static int yaml_write_handler(void * ext, uint8_t * buffer, size_t size)
 {
   rcutils_char_array_t * repr = (rcutils_char_array_t *)ext;
@@ -249,8 +251,13 @@ rcl_calculate_type_hash(
   RCL_CHECK_ARGUMENT_FOR_NULL(output_hash, RCL_RET_INVALID_ARGUMENT);
 
   rcl_ret_t result = RCL_RET_OK;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
   rcutils_char_array_t msg_repr = rcutils_get_zero_initialized_char_array();
-  msg_repr.allocator = rcl_get_default_allocator();
+  rcutils_ret_t rcutils_result = rcutils_char_array_init(&msg_repr, 0, &allocator);
+  if (rcutils_result != RCL_RET_OK) {
+    // rcutils_char_array_init already set the error
+    return rcl_convert_rcutils_ret_to_rcl_ret(rcutils_result);
+  }
 
   output_hash->version = 1;
   result = rcl_type_description_to_hashable_json(type_description, &msg_repr);
