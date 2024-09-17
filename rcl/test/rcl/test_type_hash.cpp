@@ -84,7 +84,9 @@ TEST(TestTypeVersionHash, field_type_from_install) {
   {
     rcutils_sha256_ctx_t sha;
     rcutils_char_array_t msg_repr = rcutils_get_zero_initialized_char_array();
-    msg_repr.allocator = rcl_get_default_allocator();
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    rcutils_ret_t rcutils_result = rcutils_char_array_init(&msg_repr, 0, &allocator);
+    ASSERT_EQ(rcutils_result, RCL_RET_OK);
 
     res = rcl_type_description_to_hashable_json(td_msg, &msg_repr);
     ASSERT_EQ(res, RCL_RET_OK);
@@ -204,7 +206,9 @@ TEST(TestTypeVersionHash, nested_real_type) {
   {
     rcutils_sha256_ctx_t sha;
     rcutils_char_array_t msg_repr = rcutils_get_zero_initialized_char_array();
-    msg_repr.allocator = rcl_get_default_allocator();
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    rcutils_ret_t rcutils_result = rcutils_char_array_init(&msg_repr, 0, &allocator);
+    ASSERT_EQ(rcutils_result, RCL_RET_OK);
 
     res = rcl_type_description_to_hashable_json(td_msg, &msg_repr);
     ASSERT_EQ(res, RCL_RET_OK);
