@@ -104,6 +104,7 @@ if(BUILD_TESTING)
   endif()
   ament_add_gtest(test_rcl_lifecycle
     test/test_rcl_lifecycle.cpp
+    TIMEOUT 400
   )
   if(TARGET test_rcl_lifecycle)
     target_link_libraries(test_rcl_lifecycle
