@@ -45,7 +45,7 @@ _rcl_init_options_zero_init(rcl_init_options_t * init_options, rcl_allocator_t a
     "failed to allocate memory for init options impl",
     return RCL_RET_BAD_ALLOC);
   init_options->impl->allocator = allocator;
-  init_options->impl->rmw_init_options = rmw_get_zero_initialized_init_options();
+  init_options->impl->rmw_init_options = rmw_get_default_init_options();
 
   return RCL_RET_OK;
 }

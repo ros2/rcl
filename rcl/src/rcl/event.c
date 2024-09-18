@@ -81,7 +81,7 @@ rcl_publisher_event_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     event->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
-  event->impl->rmw_handle = rmw_get_zero_initialized_event();
+  event->impl->rmw_handle = rmw_get_default_event();
   event->impl->allocator = *allocator;
 
   rmw_ret_t ret = rmw_publisher_event_init(
@@ -141,7 +141,7 @@ rcl_subscription_event_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     event->impl, "allocating memory failed", return RCL_RET_BAD_ALLOC);
 
-  event->impl->rmw_handle = rmw_get_zero_initialized_event();
+  event->impl->rmw_handle = rmw_get_default_event();
   event->impl->allocator = *allocator;
 
   rmw_ret_t ret = rmw_subscription_event_init(
