@@ -30,12 +30,8 @@ extern "C"
 rcl_lifecycle_transition_map_t
 rcl_lifecycle_get_zero_initialized_transition_map(void)
 {
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
   static rcl_lifecycle_transition_map_t transition_map;
-  transition_map.states = NULL;
-  transition_map.states_size = 0;
-  transition_map.transitions = NULL;
-  transition_map.transitions_size = 0;
-
   return transition_map;
 }
 

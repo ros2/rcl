@@ -55,7 +55,8 @@ struct rcl_client_impl_s
 rcl_client_t
 rcl_get_zero_initialized_client(void)
 {
-  static rcl_client_t null_client = {0};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_client_t null_client;
   return null_client;
 }
 
@@ -279,7 +280,7 @@ rcl_client_options_t
 rcl_client_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
-  static rcl_client_options_t default_options;
+  rcl_client_options_t default_options;
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_services_default;
   default_options.allocator = rcl_get_default_allocator();

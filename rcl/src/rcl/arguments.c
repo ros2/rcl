@@ -797,10 +797,9 @@ rcl_arguments_get_unparsed_ros(
 rcl_arguments_t
 rcl_get_zero_initialized_arguments(void)
 {
-  static rcl_arguments_t default_arguments = {
-    .impl = NULL
-  };
-  return default_arguments;
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_arguments_t zero_arguments;
+  return zero_arguments;
 }
 
 rcl_ret_t

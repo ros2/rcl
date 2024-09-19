@@ -97,10 +97,8 @@ const char * rcl_create_node_logger_name(
 rcl_node_t
 rcl_get_zero_initialized_node(void)
 {
-  static rcl_node_t null_node = {
-    .context = 0,
-    .impl = 0
-  };
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_node_t null_node;
   return null_node;
 }
 

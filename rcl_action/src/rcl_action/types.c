@@ -24,28 +24,32 @@ extern "C"
 rcl_action_goal_info_t
 rcl_action_get_zero_initialized_goal_info(void)
 {
-  static rcl_action_goal_info_t goal_info = {{{0}}, {0, 0}};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_action_goal_info_t goal_info;
   return goal_info;
 }
 
 rcl_action_goal_status_array_t
 rcl_action_get_zero_initialized_goal_status_array(void)
 {
-  static rcl_action_goal_status_array_t status_array = {{{0, 0, 0}}, {0, 0, 0, 0, 0}};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_action_goal_status_array_t status_array;
   return status_array;
 }
 
 rcl_action_cancel_request_t
 rcl_action_get_zero_initialized_cancel_request(void)
 {
-  static rcl_action_cancel_request_t request = {{{{0}}, {0, 0}}};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_action_cancel_request_t request;
   return request;
 }
 
 rcl_action_cancel_response_t
 rcl_action_get_zero_initialized_cancel_response(void)
 {
-  static rcl_action_cancel_response_t response = {{0, {0, 0, 0}}, {0, 0, 0, 0, 0}};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_action_cancel_response_t response;
   return response;
 }
 

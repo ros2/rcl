@@ -31,9 +31,8 @@ extern "C"
 rcl_remap_t
 rcl_get_zero_initialized_remap(void)
 {
-  static rcl_remap_t default_rule = {
-    .impl = NULL
-  };
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_remap_t default_rule;
   return default_rule;
 }
 

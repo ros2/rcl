@@ -43,7 +43,8 @@ extern "C"
 rcl_action_client_t
 rcl_action_get_zero_initialized_client(void)
 {
-  static rcl_action_client_t null_action_client = {0};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_action_client_t null_action_client;
   return null_action_client;
 }
 
@@ -269,7 +270,7 @@ rcl_action_client_fini(rcl_action_client_t * action_client, rcl_node_t * node)
 rcl_action_client_options_t
 rcl_action_client_get_default_options(void)
 {
-  static rcl_action_client_options_t default_options;
+  rcl_action_client_options_t default_options;
   default_options.goal_service_qos = rmw_qos_profile_services_default;
   default_options.cancel_service_qos = rmw_qos_profile_services_default;
   default_options.result_service_qos = rmw_qos_profile_services_default;

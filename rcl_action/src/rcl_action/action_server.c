@@ -44,7 +44,8 @@ rcl_action_goal_handle_set_goal_terminal_timestamp(
 rcl_action_server_t
 rcl_action_get_zero_initialized_server(void)
 {
-  static rcl_action_server_t null_action_server = {0};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_action_server_t null_action_server;
   return null_action_server;
 }
 
@@ -285,7 +286,7 @@ rcl_action_server_options_t
 rcl_action_server_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
-  static rcl_action_server_options_t default_options;
+  rcl_action_server_options_t default_options;
   default_options.goal_service_qos = rmw_qos_profile_services_default;
   default_options.cancel_service_qos = rmw_qos_profile_services_default;
   default_options.result_service_qos = rmw_qos_profile_services_default;

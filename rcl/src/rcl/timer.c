@@ -58,7 +58,8 @@ struct rcl_timer_impl_s
 rcl_timer_t
 rcl_get_zero_initialized_timer(void)
 {
-  static rcl_timer_t null_timer = {0};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_timer_t null_timer;
   return null_timer;
 }
 

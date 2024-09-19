@@ -35,7 +35,8 @@ typedef struct rcl_action_goal_handle_impl_s
 rcl_action_goal_handle_t
 rcl_action_get_zero_initialized_goal_handle(void)
 {
-  static rcl_action_goal_handle_t null_handle = {0};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_action_goal_handle_t null_handle;
   return null_handle;
 }
 

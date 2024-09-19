@@ -39,7 +39,8 @@ extern "C"
 rcl_publisher_t
 rcl_get_zero_initialized_publisher(void)
 {
-  static rcl_publisher_t null_publisher = {0};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_publisher_t null_publisher;
   return null_publisher;
 }
 
@@ -219,7 +220,7 @@ rcl_publisher_options_t
 rcl_publisher_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
-  static rcl_publisher_options_t default_options;
+  rcl_publisher_options_t default_options;
   // Must set the allocator and qos after because they are not a compile time constant.
   default_options.qos = rmw_qos_profile_default;
   default_options.allocator = rcl_get_default_allocator();

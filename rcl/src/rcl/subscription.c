@@ -42,7 +42,8 @@ extern "C"
 rcl_subscription_t
 rcl_get_zero_initialized_subscription(void)
 {
-  static rcl_subscription_t null_subscription = {0};
+  // All members are initialized to 0 or NULL by C99 6.7.8/10.
+  static rcl_subscription_t null_subscription;
   return null_subscription;
 }
 
@@ -227,7 +228,7 @@ rcl_subscription_options_t
 rcl_subscription_get_default_options(void)
 {
   // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
-  static rcl_subscription_options_t default_options;
+  rcl_subscription_options_t default_options;
   // Must set these after declaration because they are not a compile time constants.
   default_options.qos = rmw_qos_profile_default;
   default_options.allocator = rcl_get_default_allocator();
