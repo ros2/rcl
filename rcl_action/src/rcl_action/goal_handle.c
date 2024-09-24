@@ -191,7 +191,7 @@ rcl_action_goal_handle_get_goal_terminal_timestamp(
   RCL_CHECK_ARGUMENT_FOR_NULL(timestamp, RCL_RET_INVALID_ARGUMENT);
 
   if (goal_handle->impl->goal_terminal_timestamp == INVAILD_GOAL_TERMINAL_TIMESTAMP) {
-    return RCL_ACTION_RET_NOT_TERMINATED_YET;
+    return RCL_RET_ACTION_NOT_TERMINATED_YET;
   }
 
   *timestamp = goal_handle->impl->goal_terminal_timestamp;

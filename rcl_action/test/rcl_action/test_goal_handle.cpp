@@ -195,7 +195,7 @@ TEST(TestGoalHandle, rcl_action_goal_handle_get_goal_terminal_timestamp)
 
   rcl_time_point_value_t timestamp;
   ret = rcl_action_goal_handle_get_goal_terminal_timestamp(&goal_handle, &timestamp);
-  EXPECT_EQ(ret, RCL_ACTION_RET_NOT_TERMINATED_YET) << rcl_get_error_string().str;
+  EXPECT_EQ(ret, RCL_RET_ACTION_NOT_TERMINATED_YET) << rcl_get_error_string().str;
   rcl_reset_error();
 
   EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&goal_handle));
