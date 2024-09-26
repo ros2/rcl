@@ -1049,7 +1049,12 @@ public:
 
   void wait_for_all_nodes_alive()
   {
-    // wait for all 3 nodes to be discovered: remote_node, old_node, node
+    // wait for a minimum of 2 nodes to be discovered: remote_node, node.
+    // old_node may or may not be present in the ROS graph depending on the
+    // rmw_implementation since rcl_shutdown() was invoked on the
+    // old_context_ptr used to initialize this node within TestGraphFixture::Setup().
+    // Some middlewares like rmw_zenoh remove node entries from the ROS graph
+    // once the context for the node is shutdown.
     size_t attempts = 0u;
     size_t max_attempts = 10u;
     size_t last_size = 0u;
@@ -1065,7 +1070,7 @@ public:
       ASSERT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_names));
       ASSERT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_namespaces));
       ASSERT_LE(attempts, max_attempts) << "Unable to attain all required nodes";
-    } while (last_size < 3u);
+    } while (last_size < 2u);
   }
 
   /**
