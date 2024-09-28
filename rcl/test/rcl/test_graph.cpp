@@ -26,6 +26,7 @@
 #include <future>
 #include <string>
 #include <thread>
+#include <unordered_set>
 #include <vector>
 
 #include "rcl/error_handling.h"
@@ -1049,7 +1050,7 @@ public:
 
   void wait_for_all_nodes_alive()
   {
-    // wait for a minimum of 2 nodes to be discovered: remote_node, node.
+    // wait for a minimum of 2 nodes to be discovered: remote_node_name, test_graph_node_name.
     // old_node may or may not be present in the ROS graph depending on the
     // rmw_implementation since rcl_shutdown() was invoked on the
     // old_context_ptr used to initialize this node within TestGraphFixture::Setup().
@@ -1057,7 +1058,8 @@ public:
     // once the context for the node is shutdown.
     size_t attempts = 0u;
     size_t max_attempts = 10u;
-    size_t last_size = 0u;
+    std::unordered_set<std::string> discovered_node_names = {};
+    bool found_expected_nodes = false;
     do {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
@@ -1066,11 +1068,16 @@ public:
         RCL_RET_OK,
         rcl_get_node_names(this->remote_node_ptr, allocator, &node_names, &node_namespaces));
       attempts++;
-      last_size = node_names.size;
+      for (size_t name_idx = 0; name_idx < node_names.size; ++name_idx) {
+        discovered_node_names.insert(node_names.data[name_idx]);
+      }
+      found_expected_nodes =
+        discovered_node_names.count(remote_node_name) > 0 &&
+        discovered_node_names.count(test_graph_node_name) > 0;
       ASSERT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_names));
       ASSERT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_namespaces));
       ASSERT_LE(attempts, max_attempts) << "Unable to attain all required nodes";
-    } while (last_size < 2u);
+    } while (!found_expected_nodes);
   }
 
   /**
