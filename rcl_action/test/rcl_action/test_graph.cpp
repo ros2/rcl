@@ -17,6 +17,7 @@
 #include <chrono>
 #include <string>
 #include <thread>
+#include <unordered_set>
 
 #include "rcl_action/action_client.h"
 #include "rcl_action/action_server.h"
@@ -337,15 +338,28 @@ public:
       ret = rcutils_string_array_fini(&node_namespaces);
       ASSERT_EQ(RCUTILS_RET_OK, ret);
     });
-    // Wait for all 3 nodes to be discovered: remote_node, old_node, node
+    // wait for a minimum of 2 nodes to be discovered: remote_node_name, test_graph_node_name.
+    // old_node may or may not be present in the ROS graph depending on the
+    // rmw_implementation since rcl_shutdown() was invoked on the
+    // old_context_ptr used to initialize this node within TestActionGraphFixture::Setup().
+    // Some middlewares like rmw_zenoh remove node entries from the ROS graph
+    // once the context for the node is shutdown.
     size_t attempts = 0u;
     size_t max_attempts = 4u;
-    while (node_names.size < 3u) {
+    std::unordered_set<std::string> discovered_node_names = {};
+    bool found_expected_nodes = false;
+    while (!found_expected_nodes) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       ret = rcl_get_node_names(&this->remote_node, allocator, &node_names, &node_namespaces);
       ++attempts;
+      for (size_t name_idx = 0; name_idx < node_names.size; ++name_idx) {
+        discovered_node_names.insert(node_names.data[name_idx]);
+      }
+      found_expected_nodes =
+        discovered_node_names.count(remote_node_name) > 0 &&
+        discovered_node_names.count(test_graph_node_name) > 0;
       ASSERT_LE(attempts, max_attempts) << "Unable to attain all required nodes";
-      if (node_names.size < 3u) {
+      if (!found_expected_nodes) {
         ret = rcutils_string_array_fini(&node_names);
         ASSERT_EQ(RCUTILS_RET_OK, ret);
         ret = rcutils_string_array_fini(&node_namespaces);
