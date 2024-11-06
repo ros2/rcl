@@ -26,6 +26,8 @@ extern "C"
 #include "rcl/error_handling.h"
 #include "rcl/logging_rosout.h"
 
+#include "rmw/qos_profiles.h"
+
 rcl_node_options_t
 rcl_node_get_default_options(void)
 {
@@ -35,7 +37,7 @@ rcl_node_get_default_options(void)
     .use_global_arguments = true,
     .arguments = rcl_get_zero_initialized_arguments(),
     .enable_rosout = true,
-    .rosout_qos = rcl_qos_profile_rosout_default,
+    .rosout_qos = rmw_qos_profile_rosout_default,
   };
   return default_options;
 }

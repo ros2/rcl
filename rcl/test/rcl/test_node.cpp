@@ -859,7 +859,7 @@ TEST_F(TestNodeFixture, test_rcl_node_options) {
 
   EXPECT_TRUE(default_options.use_global_arguments);
   EXPECT_TRUE(default_options.enable_rosout);
-  EXPECT_EQ(rcl_qos_profile_rosout_default, default_options.rosout_qos);
+  EXPECT_EQ(rmw_qos_profile_rosout_default, default_options.rosout_qos);
   EXPECT_TRUE(rcutils_allocator_is_valid(&(default_options.allocator)));
 
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_node_options_copy(nullptr, &default_options));
