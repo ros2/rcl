@@ -2,6 +2,11 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Properly initialize the char array used in type hash calculations. (`#1184 <https://github.com/ros2/rcl/issues/1184>`_)
+* Contributors: Chris Lalancette
+
 6.0.6 (2024-07-10)
 ------------------
 * Fix up type_description tests. (`#1160 <https://github.com/ros2/rcl/issues/1160>`_)
