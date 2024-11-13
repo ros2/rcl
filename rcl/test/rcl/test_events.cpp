@@ -96,7 +96,7 @@ public:
       &publisher_options);
   }
 
-  rcl_ret_t setup_subscriber(const rmw_qos_profile_t qos_profile)
+  rcl_ret_t setup_subscription(const rmw_qos_profile_t qos_profile)
   {
     // init publisher
     subscription = rcl_get_zero_initialized_subscription();
@@ -110,7 +110,7 @@ public:
       &subscription_options);
   }
 
-  void setup_publisher_subscriber(
+  void setup_publisher_subscription(
     const rmw_qos_profile_t pub_qos_profile,
     const rmw_qos_profile_t sub_qos_profile)
   {
@@ -121,11 +121,11 @@ public:
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
     // init subscription
-    ret = setup_subscriber(sub_qos_profile);
+    ret = setup_subscription(sub_qos_profile);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  void setup_publisher_subscriber_events(
+  void setup_publisher_subscription_events(
     const rcl_publisher_event_type_t & pub_event_type,
     const rcl_subscription_event_type_t & sub_event_type)
   {
@@ -142,12 +142,12 @@ public:
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  void setup_publisher_subscriber_and_events_and_assert_discovery(
+  void setup_publisher_subscription_and_events_and_assert_discovery(
     const rcl_publisher_event_type_t & pub_event_type,
     const rcl_subscription_event_type_t & sub_event_type)
   {
-    setup_publisher_subscriber(default_qos_profile, default_qos_profile);
-    setup_publisher_subscriber_events(pub_event_type, sub_event_type);
+    setup_publisher_subscription(default_qos_profile, default_qos_profile);
+    setup_publisher_subscription_events(pub_event_type, sub_event_type);
 
     rcl_ret_t ret;
     // wait for discovery, time out after 10s
@@ -170,7 +170,7 @@ public:
     ASSERT_TRUE(subscribe_success) << "Publisher/Subscription discovery timed out";
   }
 
-  void tear_down_publisher_subscriber()
+  void tear_down_publisher_subscription()
   {
     rcl_ret_t ret;
 
@@ -181,7 +181,7 @@ public:
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 
-  void tear_down_publisher_subscriber_events()
+  void tear_down_publisher_subscription_events()
   {
     rcl_ret_t ret;
 
@@ -372,7 +372,7 @@ conditional_wait_for_msgs_and_events(
 }
 
 /*
- * Basic test of publisher and subscriber deadline events, with first message sent before deadline
+ * Basic test of publisher and subscription deadline events, with first message sent before deadline
  */
 TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
 {
@@ -380,9 +380,14 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
     GTEST_SKIP();
   }
 
-  setup_publisher_subscriber_and_events_and_assert_discovery(
+  setup_publisher_subscription_and_events_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    tear_down_publisher_subscription_events();
+    tear_down_publisher_subscription();
+  });
   rcl_ret_t ret;
 
   // publish message to topic
@@ -417,7 +422,7 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
     EXPECT_EQ(std::string(msg.string_value.data, msg.string_value.size), std::string(test_string));
   }
 
-  // test subscriber/datareader deadline missed status
+  // test subscription deadline missed status
   EXPECT_FALSE(subscription_event_ready);
   {
     rmw_requested_deadline_missed_status_t deadline_status;
@@ -427,7 +432,7 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
     EXPECT_EQ(deadline_status.total_count_change, 0);
   }
 
-  // test publisher/datawriter deadline missed status
+  // test publisher deadline missed status
   EXPECT_FALSE(publisher_event_ready);
   {
     rmw_offered_deadline_missed_status_t deadline_status;
@@ -436,14 +441,10 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
     EXPECT_EQ(deadline_status.total_count, 0);
     EXPECT_EQ(deadline_status.total_count_change, 0);
   }
-
-  // clean up
-  tear_down_publisher_subscriber_events();
-  tear_down_publisher_subscriber();
 }
 
 /*
- * Basic test of publisher and subscriber deadline events, with first message sent after deadline
+ * Basic test of publisher and subscription deadline events, with first message sent after deadline
  */
 TEST_F(TestEventFixture, test_pubsub_deadline_missed)
 {
@@ -451,9 +452,14 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
     GTEST_SKIP();
   }
 
-  setup_publisher_subscriber_and_events_and_assert_discovery(
+  setup_publisher_subscription_and_events_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    tear_down_publisher_subscription_events();
+    tear_down_publisher_subscription();
+  });
   rcl_ret_t ret;
 
   // publish message to topic
@@ -496,7 +502,7 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
       std::string(test_string));
   }
 
-  // test subscriber/datareader deadline missed status
+  // test subscription deadline missed status
   EXPECT_TRUE(subscription_persist_ready);
   if (subscription_persist_ready) {
     rmw_requested_deadline_missed_status_t requested_deadline_status;
@@ -506,7 +512,7 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
     EXPECT_EQ(requested_deadline_status.total_count_change, 1);
   }
 
-  // test publisher/datawriter deadline missed status
+  // test publisher deadline missed status
   EXPECT_TRUE(publisher_persist_ready);
   if (publisher_persist_ready) {
     rmw_offered_deadline_missed_status_t offered_deadline_status;
@@ -515,14 +521,10 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
     EXPECT_EQ(offered_deadline_status.total_count, 1);
     EXPECT_EQ(offered_deadline_status.total_count_change, 1);
   }
-
-  // clean up
-  tear_down_publisher_subscriber_events();
-  tear_down_publisher_subscriber();
 }
 
 /*
- * Basic test of publisher and subscriber liveliness events, with publisher killed
+ * Basic test of publisher and subscription liveliness events, with publisher killed
  */
 TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
 {
@@ -530,9 +532,14 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
     GTEST_SKIP();
   }
 
-  setup_publisher_subscriber_and_events_and_assert_discovery(
+  setup_publisher_subscription_and_events_and_assert_discovery(
     RCL_PUBLISHER_LIVELINESS_LOST,
     RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    tear_down_publisher_subscription_events();
+    tear_down_publisher_subscription();
+  });
   rcl_ret_t ret;
 
   // publish message to topic
@@ -577,7 +584,7 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
       std::string(test_string));
   }
 
-  // test subscriber/datareader liveliness changed status
+  // test subscription liveliness changed status
   EXPECT_TRUE(subscription_persist_ready);
   if (subscription_persist_ready) {
     rmw_liveliness_changed_status_t liveliness_status;
@@ -589,7 +596,7 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
     EXPECT_EQ(liveliness_status.not_alive_count_change, 1);
   }
 
-  // test that the killed publisher/datawriter has no active events
+  // test that the killed publisher has no active events
   EXPECT_TRUE(publisher_persist_ready);
   if (publisher_persist_ready) {
     rmw_liveliness_lost_status_t liveliness_status;
@@ -598,14 +605,10 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
     EXPECT_EQ(liveliness_status.total_count, 1);
     EXPECT_EQ(liveliness_status.total_count_change, 1);
   }
-
-  // clean up
-  tear_down_publisher_subscriber_events();
-  tear_down_publisher_subscriber();
 }
 
 /*
- * Basic test of publisher and subscriber incompatible qos callback events.
+ * Basic test of publisher and subscription incompatible qos callback events.
  */
 TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
 {
@@ -619,10 +622,18 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
   const auto & subscription_qos_profile = input.subscription_qos_profile;
   const auto & error_msg = input.error_msg;
 
-  setup_publisher_subscriber(publisher_qos_profile, subscription_qos_profile);
-  setup_publisher_subscriber_events(
+  setup_publisher_subscription(publisher_qos_profile, subscription_qos_profile);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    tear_down_publisher_subscription();
+  });
+  setup_publisher_subscription_events(
     RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
     RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    tear_down_publisher_subscription_events();
+  });
 
   WaitConditionPredicate events_ready = [](
     const bool & /*msg_persist_ready*/,
@@ -637,7 +648,7 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
     &msg_persist_ready, &subscription_persist_ready, &publisher_persist_ready);
   EXPECT_EQ(wait_res, RCL_RET_OK);
 
-  // test that the subscriber/datareader discovered an incompatible publisher/datawriter
+  // test that the subscription discovered an incompatible publisher
   EXPECT_TRUE(subscription_persist_ready);
   if (subscription_persist_ready) {
     rmw_requested_qos_incompatible_event_status_t requested_incompatible_qos_status;
@@ -655,7 +666,7 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
     }
   }
 
-  // test that the publisher/datawriter discovered an incompatible subscription/datareader
+  // test that the publisher discovered an incompatible subscription
   EXPECT_TRUE(publisher_persist_ready);
   if (publisher_persist_ready) {
     rmw_offered_qos_incompatible_event_status_t offered_incompatible_qos_status;
@@ -672,18 +683,18 @@ TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
       ADD_FAILURE() << "Publisher incompatible qos event timed out for: " << error_msg;
     }
   }
-
-  // clean up
-  tear_down_publisher_subscriber_events();
-  tear_down_publisher_subscriber();
 }
 
 /*
- * Passing bad param subscriber/publisher event ini
+ * Passing bad param subscription/publisher event ini
  */
 TEST_F(TestEventFixture, test_bad_event_ini)
 {
-  setup_publisher_subscriber(default_qos_profile, default_qos_profile);
+  setup_publisher_subscription(default_qos_profile, default_qos_profile);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    tear_down_publisher_subscription();
+  });
   const rcl_subscription_event_type_t unknown_sub_type = (rcl_subscription_event_type_t) 5432;
   const rcl_publisher_event_type_t unknown_pub_type = (rcl_publisher_event_type_t) 5432;
 
@@ -702,8 +713,6 @@ TEST_F(TestEventFixture, test_bad_event_ini)
     unknown_sub_type);
   EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
   rcl_reset_error();
-
-  tear_down_publisher_subscriber();
 }
 
 /*
@@ -719,7 +728,12 @@ TEST_F(TestEventFixture, test_event_is_valid)
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
 
-  setup_publisher_subscriber(default_qos_profile, default_qos_profile);
+  setup_publisher_subscription(default_qos_profile, default_qos_profile);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    tear_down_publisher_subscription();
+  });
+
   rcl_event_t publisher_event_test = rcl_get_zero_initialized_event();
   EXPECT_FALSE(rcl_event_is_valid(&publisher_event_test));
   EXPECT_TRUE(rcl_error_is_set());
@@ -729,6 +743,10 @@ TEST_F(TestEventFixture, test_event_is_valid)
     &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
 
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(rcl_event_fini(&publisher_event_test), RCL_RET_OK) << rcl_get_error_string().str;
+  });
   EXPECT_TRUE(rcl_event_is_valid(&publisher_event_test));
 
   rmw_event_type_t saved_event_type = publisher_event_test.impl->rmw_handle.event_type;
@@ -745,10 +763,6 @@ TEST_F(TestEventFixture, test_event_is_valid)
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
   publisher_event_test.impl->allocator = saved_alloc;
-
-  ret = rcl_event_fini(&publisher_event_test);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  tear_down_publisher_subscriber();
 }
 
 /*
@@ -771,7 +785,7 @@ TEST_F(TestEventFixture, test_event_is_invalid) {
 }
 
 /*
- * Basic test subscriber event message lost
+ * Basic test subscription event message lost
  */
 TEST_F(TestEventFixture, test_sub_message_lost_event)
 {
@@ -781,19 +795,23 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
 
   const rmw_qos_profile_t subscription_qos_profile = default_qos_profile;
 
-  rcl_ret_t ret = setup_subscriber(subscription_qos_profile);
+  rcl_ret_t ret = setup_subscription(subscription_qos_profile);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_subscription_fini(&subscription, this->node_ptr);
+    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  });
 
   subscription_event = rcl_get_zero_initialized_event();
   ret = rcl_subscription_event_init(
     &subscription_event,
     &subscription,
     RCL_SUBSCRIPTION_MESSAGE_LOST);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     ret = rcl_event_fini(&subscription_event);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
 
@@ -922,7 +940,7 @@ TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
   // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
     ret = rcl_event_set_callback(&pub_matched_event, event_callback, &matched_data);
-    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(RMW_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // to take event while there is no subscription
@@ -933,14 +951,20 @@ TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
   EXPECT_EQ(0, matched_status.current_count);
   EXPECT_EQ(0, matched_status.current_count_change);
 
-  // Create one subscriber
-  setup_subscriber(default_qos_profile);
+  bool msg_ready = false;
+  bool sub_event_ready = false;
+  bool pub_event_ready = false;
 
-  // Wait for connection
   {
-    bool msg_ready = false;
-    bool sub_event_ready = false;
-    bool pub_event_ready = false;
+    // Create one subscription
+    setup_subscription(default_qos_profile);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      ret = rcl_subscription_fini(&subscription, this->node_ptr);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    });
+
+    // Wait for connection
     ret = wait_for_msgs_and_events(
       context_ptr,
       nullptr,
@@ -949,44 +973,38 @@ TEST_F(TestEventFixture, test_pub_matched_unmatched_event)
       &msg_ready,
       &sub_event_ready,
       &pub_event_ready);
-    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(pub_event_ready, true);
+
+    // rmw_connextdds doesn't support rmw_event_set_callback() interface.
+    if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
+      EXPECT_EQ(*matched_data.event_count, 1);
+    }
+
+    *matched_data.event_count = 0;
+
+    // check matched status
+    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
+    EXPECT_EQ(1, matched_status.total_count);
+    EXPECT_EQ(1, matched_status.total_count_change);
+    EXPECT_EQ(1, matched_status.current_count);
+    EXPECT_EQ(1, matched_status.current_count_change);
   }
-
-  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
-  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
-    EXPECT_EQ(*matched_data.event_count, 1);
-  }
-
-  *matched_data.event_count = 0;
-
-  // check matched status
-  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&pub_matched_event, &matched_status));
-  EXPECT_EQ(1, matched_status.total_count);
-  EXPECT_EQ(1, matched_status.total_count_change);
-  EXPECT_EQ(1, matched_status.current_count);
-  EXPECT_EQ(1, matched_status.current_count_change);
-
-  // Delete subscriber
-  ret = rcl_subscription_fini(&subscription, this->node_ptr);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for disconnection
-  {
-    bool msg_ready = false;
-    bool sub_event_ready = false;
-    bool pub_event_ready = false;
-    ret = wait_for_msgs_and_events(
-      context_ptr,
-      nullptr,
-      nullptr,
-      &pub_matched_event,
-      &msg_ready,
-      &sub_event_ready,
-      &pub_event_ready);
-    ASSERT_EQ(RMW_RET_OK, ret);
-    ASSERT_EQ(pub_event_ready, true);
-  }
+  msg_ready = false;
+  sub_event_ready = false;
+  pub_event_ready = false;
+  ret = wait_for_msgs_and_events(
+    context_ptr,
+    nullptr,
+    nullptr,
+    &pub_matched_event,
+    &msg_ready,
+    &sub_event_ready,
+    &pub_event_ready);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(pub_event_ready, true);
 
   // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
@@ -1012,15 +1030,15 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
 
   rcl_ret_t ret;
 
-  // Create one subscriber
-  setup_subscriber(default_qos_profile);
+  // Create one subscription
+  setup_subscription(default_qos_profile);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
 
-  // init subscriber event
+  // init subscription event
   rcl_event_t sub_matched_event = rcl_get_zero_initialized_event();
   ret = rcl_subscription_event_init(&sub_matched_event, &subscription, RCL_SUBSCRIPTION_MATCHED);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -1037,7 +1055,7 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
   // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
     ret = rcl_event_set_callback(&sub_matched_event, event_callback, &matched_data);
-    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(RMW_RET_OK, ret) << rcl_get_error_string().str;
   }
 
   // to take event if there is no subscription
@@ -1048,14 +1066,21 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
   EXPECT_EQ(0, matched_status.current_count);
   EXPECT_EQ(0, matched_status.current_count_change);
 
-  // Create one publisher
-  setup_publisher(default_qos_profile);
+  bool msg_ready = false;
+  bool sub_event_ready = false;
+  bool pub_event_ready = false;
 
-  // Wait for connection
   {
-    bool msg_ready = false;
-    bool sub_event_ready = false;
-    bool pub_event_ready = false;
+    // Create one publisher
+    setup_publisher(default_qos_profile);
+
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      ret = rcl_publisher_fini(&publisher, this->node_ptr);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    });
+
+    // Wait for connection
     ret = wait_for_msgs_and_events(
       context_ptr,
       nullptr,
@@ -1064,42 +1089,37 @@ TEST_F(TestEventFixture, test_sub_matched_unmatched_event)
       &msg_ready,
       &sub_event_ready,
       &pub_event_ready);
-    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(sub_event_ready, true);
+
+    // rmw_connextdds doesn't support rmw_event_set_callback() interface.
+    if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
+      EXPECT_EQ(*matched_data.event_count, 1);
+    }
+    *matched_data.event_count = 0;
+
+    // Check matched status
+    EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
+    EXPECT_EQ(1, matched_status.total_count);
+    EXPECT_EQ(1, matched_status.total_count_change);
+    EXPECT_EQ(1, matched_status.current_count);
+    EXPECT_EQ(1, matched_status.total_count_change);
   }
-
-  // rmw_connextdds doesn't support rmw_event_set_callback() interface.
-  if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
-    EXPECT_EQ(*matched_data.event_count, 1);
-  }
-  *matched_data.event_count = 0;
-
-  // Check matched status
-  EXPECT_EQ(RMW_RET_OK, rcl_take_event(&sub_matched_event, &matched_status));
-  EXPECT_EQ(1, matched_status.total_count);
-  EXPECT_EQ(1, matched_status.total_count_change);
-  EXPECT_EQ(1, matched_status.current_count);
-  EXPECT_EQ(1, matched_status.total_count_change);
-
-  ret = rcl_publisher_fini(&publisher, this->node_ptr);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for disconnection
-  {
-    bool msg_ready = false;
-    bool sub_event_ready = false;
-    bool pub_event_ready = false;
-    ret = wait_for_msgs_and_events(
-      context_ptr,
-      nullptr,
-      &sub_matched_event,
-      nullptr,
-      &msg_ready,
-      &sub_event_ready,
-      &pub_event_ready);
-    ASSERT_EQ(RMW_RET_OK, ret);
-    ASSERT_EQ(sub_event_ready, true);
-  }
+  msg_ready = false;
+  sub_event_ready = false;
+  pub_event_ready = false;
+  ret = wait_for_msgs_and_events(
+    context_ptr,
+    nullptr,
+    &sub_matched_event,
+    nullptr,
+    &msg_ready,
+    &sub_event_ready,
+    &pub_event_ready);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(sub_event_ready, true);
 
   // rmw_connextdds doesn't support rmw_event_set_callback() interface.
   if (std::string(rmw_get_implementation_identifier()).find("rmw_connextdds") != 0) {
@@ -1155,14 +1175,20 @@ TEST_F(TestEventFixture, test_pub_previous_matched_event)
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
 
-  // Create one subscriber
-  setup_subscriber(default_qos_profile);
+  bool msg_ready = false;
+  bool sub_event_ready = false;
+  bool pub_event_ready = false;
 
-  // Wait for connection
   {
-    bool msg_ready = false;
-    bool sub_event_ready = false;
-    bool pub_event_ready = false;
+    // Create one subscription
+    setup_subscription(default_qos_profile);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      ret = rcl_subscription_fini(&subscription, this->node_ptr);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    });
+
+    // Wait for connection
     ret = wait_for_msgs_and_events(
       context_ptr,
       nullptr,
@@ -1171,36 +1197,30 @@ TEST_F(TestEventFixture, test_pub_previous_matched_event)
       &msg_ready,
       &sub_event_ready,
       &pub_event_ready);
-    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(pub_event_ready, true);
   }
-
-  // Delete subscriber
-  ret = rcl_subscription_fini(&subscription, this->node_ptr);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for disconnection
-  {
-    bool msg_ready = false;
-    bool sub_event_ready = false;
-    bool pub_event_ready = false;
-    ret = wait_for_msgs_and_events(
-      context_ptr,
-      nullptr,
-      nullptr,
-      &pub_matched_event,
-      &msg_ready,
-      &sub_event_ready,
-      &pub_event_ready);
-    ASSERT_EQ(RMW_RET_OK, ret);
-    ASSERT_EQ(pub_event_ready, true);
-  }
+  msg_ready = false;
+  sub_event_ready = false;
+  pub_event_ready = false;
+  ret = wait_for_msgs_and_events(
+    context_ptr,
+    nullptr,
+    nullptr,
+    &pub_matched_event,
+    &msg_ready,
+    &sub_event_ready,
+    &pub_event_ready);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(pub_event_ready, true);
 
   // init event callback
   struct EventUserData matched_data;
   matched_data.event_count = std::make_shared<std::atomic_size_t>(0);
   ret = rcl_event_set_callback(&pub_matched_event, event_callback2, &matched_data);
-  ASSERT_EQ(RMW_RET_OK, ret);
+  ASSERT_EQ(RMW_RET_OK, ret) << rcl_get_error_string().str;
 
   // matched event happen twice. One for connection and another for disconnection.
   // Note that different DDS have different implementation.
@@ -1225,15 +1245,15 @@ TEST_F(TestEventFixture, test_sub_previous_matched_event)
 
   rcl_ret_t ret;
 
-  // Create one subscriber
-  setup_subscriber(default_qos_profile);
+  // Create one subscription
+  setup_subscription(default_qos_profile);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     ret = rcl_subscription_fini(&subscription, this->node_ptr);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
 
-  // init subscriber event
+  // init subscription event
   rcl_event_t sub_matched_event = rcl_get_zero_initialized_event();
   ret = rcl_subscription_event_init(&sub_matched_event, &subscription, RCL_SUBSCRIPTION_MATCHED);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
@@ -1243,14 +1263,20 @@ TEST_F(TestEventFixture, test_sub_previous_matched_event)
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
 
-  // Create one publisher
-  setup_publisher(default_qos_profile);
+  bool msg_ready = false;
+  bool sub_event_ready = false;
+  bool pub_event_ready = false;
 
-  // Wait for connection
   {
-    bool msg_ready = false;
-    bool sub_event_ready = false;
-    bool pub_event_ready = false;
+    // Create one publisher
+    setup_publisher(default_qos_profile);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      ret = rcl_publisher_fini(&publisher, this->node_ptr);
+      EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    });
+
+    // Wait for connection
     ret = wait_for_msgs_and_events(
       context_ptr,
       nullptr,
@@ -1259,30 +1285,24 @@ TEST_F(TestEventFixture, test_sub_previous_matched_event)
       &msg_ready,
       &sub_event_ready,
       &pub_event_ready);
-    ASSERT_EQ(RMW_RET_OK, ret);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ASSERT_EQ(sub_event_ready, true);
   }
-
-  // Delete publisher
-  ret = rcl_publisher_fini(&publisher, this->node_ptr);
-  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
   // Wait for disconnection
-  {
-    bool msg_ready = false;
-    bool sub_event_ready = false;
-    bool pub_event_ready = false;
-    ret = wait_for_msgs_and_events(
-      context_ptr,
-      nullptr,
-      &sub_matched_event,
-      nullptr,
-      &msg_ready,
-      &sub_event_ready,
-      &pub_event_ready);
-    ASSERT_EQ(RMW_RET_OK, ret);
-    ASSERT_EQ(sub_event_ready, true);
-  }
+  msg_ready = false;
+  sub_event_ready = false;
+  pub_event_ready = false;
+  ret = wait_for_msgs_and_events(
+    context_ptr,
+    nullptr,
+    &sub_matched_event,
+    nullptr,
+    &msg_ready,
+    &sub_event_ready,
+    &pub_event_ready);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(sub_event_ready, true);
 
   // init event callback
   struct EventUserData matched_data;
