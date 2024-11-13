@@ -43,8 +43,6 @@ constexpr seconds LIVELINESS_LEASE_DURATION_IN_S = 1s;
 constexpr seconds DEADLINE_PERIOD_IN_S = 2s;
 constexpr seconds MAX_WAIT_PER_TESTCASE = 10s;
 
-#define EXPECT_OK(varname) EXPECT_EQ(varname, RCL_RET_OK) << rcl_get_error_string().str
-
 struct TestIncompatibleQosEventParams
 {
   std::string testcase_name;
@@ -122,10 +120,14 @@ public:
 
     // init subscription
     ret = setup_subscription(sub_qos_profile);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      rcl_ret_t fail_ret = rcl_publisher_fini(&publisher, this->node_ptr);
+      EXPECT_EQ(fail_ret, RCL_RET_OK) << rcl_get_error_string().str;
+      ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    }
   }
 
-  void setup_publisher_subscription_events(
+  rcl_ret_t setup_publisher_subscription_events(
     const rcl_publisher_event_type_t & pub_event_type,
     const rcl_subscription_event_type_t & sub_event_type)
   {
@@ -134,22 +136,35 @@ public:
     // init publisher events
     publisher_event = rcl_get_zero_initialized_event();
     ret = rcl_publisher_event_init(&publisher_event, &publisher, pub_event_type);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      return ret;
+    }
 
     // init subscription event
     subscription_event = rcl_get_zero_initialized_event();
     ret = rcl_subscription_event_init(&subscription_event, &subscription, sub_event_type);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+    if (ret != RCL_RET_OK) {
+      rcl_ret_t fail_ret = rcl_event_fini(&publisher_event);
+      (void)fail_ret;
+      return ret;
+    }
+
+    return RCL_RET_OK;
   }
 
-  void setup_publisher_subscription_and_events_and_assert_discovery(
+  rcl_ret_t setup_publisher_subscription_and_events_and_assert_discovery(
     const rcl_publisher_event_type_t & pub_event_type,
     const rcl_subscription_event_type_t & sub_event_type)
   {
-    setup_publisher_subscription(default_qos_profile, default_qos_profile);
-    setup_publisher_subscription_events(pub_event_type, sub_event_type);
-
     rcl_ret_t ret;
+
+    setup_publisher_subscription(default_qos_profile, default_qos_profile);
+    ret = setup_publisher_subscription_events(pub_event_type, sub_event_type);
+    if (ret != RCL_RET_OK) {
+      tear_down_publisher_subscription();
+      return ret;
+    }
+
     // wait for discovery, time out after 10s
     static const size_t max_iterations = 1000;
     static const auto wait_period = 10ms;
@@ -158,16 +173,30 @@ public:
       size_t subscription_count = 0;
       size_t publisher_count = 0;
       ret = rcl_subscription_get_publisher_count(&subscription, &publisher_count);
-      EXPECT_OK(ret);
+      if (ret != RCL_RET_OK) {
+        tear_down_publisher_subscription_events();
+        tear_down_publisher_subscription();
+        return ret;
+      }
       ret = rcl_publisher_get_subscription_count(&publisher, &subscription_count);
-      EXPECT_OK(ret);
+      if (ret != RCL_RET_OK) {
+        tear_down_publisher_subscription_events();
+        tear_down_publisher_subscription();
+        return ret;
+      }
       if (subscription_count && publisher_count) {
         subscribe_success = true;
         break;
       }
       std::this_thread::sleep_for(wait_period);
     }
-    ASSERT_TRUE(subscribe_success) << "Publisher/Subscription discovery timed out";
+    if (!subscribe_success) {
+      tear_down_publisher_subscription_events();
+      tear_down_publisher_subscription();
+      return RCL_RET_TIMEOUT;
+    }
+
+    return RCL_RET_OK;
   }
 
   void tear_down_publisher_subscription()
@@ -312,7 +341,7 @@ wait_for_msgs_and_events(
     }
   }
   ret = rcl_wait_set_fini(&wait_set);
-  EXPECT_OK(ret);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   return ret;
 }
 
@@ -376,19 +405,21 @@ conditional_wait_for_msgs_and_events(
  */
 TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
 {
-  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
-    GTEST_SKIP();
-  }
-
-  setup_publisher_subscription_and_events_and_assert_discovery(
+  rcl_ret_t ret;
+  ret = setup_publisher_subscription_and_events_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
+  if (ret == RCL_RET_UNSUPPORTED) {
+    // This RMW doesn't support deadline, so skip the test.
+    rcl_reset_error();
+    GTEST_SKIP();
+  }
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     tear_down_publisher_subscription_events();
     tear_down_publisher_subscription();
   });
-  rcl_ret_t ret;
 
   // publish message to topic
   const char * test_string = "testing";
@@ -448,19 +479,21 @@ TEST_F(TestEventFixture, test_pubsub_no_deadline_missed)
  */
 TEST_F(TestEventFixture, test_pubsub_deadline_missed)
 {
-  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
-    GTEST_SKIP();
-  }
-
-  setup_publisher_subscription_and_events_and_assert_discovery(
+  rcl_ret_t ret;
+  ret = setup_publisher_subscription_and_events_and_assert_discovery(
     RCL_PUBLISHER_OFFERED_DEADLINE_MISSED,
     RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED);
+  if (ret == RCL_RET_UNSUPPORTED) {
+    // This RMW doesn't support deadline, so skip the test.
+    rcl_reset_error();
+    GTEST_SKIP();
+  }
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     tear_down_publisher_subscription_events();
     tear_down_publisher_subscription();
   });
-  rcl_ret_t ret;
 
   // publish message to topic
   const char * test_string = "testing";
@@ -528,19 +561,21 @@ TEST_F(TestEventFixture, test_pubsub_deadline_missed)
  */
 TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
 {
-  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
-    GTEST_SKIP();
-  }
-
-  setup_publisher_subscription_and_events_and_assert_discovery(
+  rcl_ret_t ret;
+  ret = setup_publisher_subscription_and_events_and_assert_discovery(
     RCL_PUBLISHER_LIVELINESS_LOST,
     RCL_SUBSCRIPTION_LIVELINESS_CHANGED);
+  if (ret == RCL_RET_UNSUPPORTED) {
+    // This RMW doesn't support deadline, so skip the test.
+    rcl_reset_error();
+    GTEST_SKIP();
+  }
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     tear_down_publisher_subscription_events();
     tear_down_publisher_subscription();
   });
-  rcl_ret_t ret;
 
   // publish message to topic
   const char * test_string = "testing";
@@ -612,21 +647,22 @@ TEST_F(TestEventFixture, test_pubsub_liveliness_kill_pub)
  */
 TEST_P(TestEventFixture, test_pubsub_incompatible_qos)
 {
-  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
-    GTEST_SKIP();
-  }
-
   const auto & input = GetParam();
   const auto & qos_policy_kind = input.qos_policy_kind;
   const auto & publisher_qos_profile = input.publisher_qos_profile;
   const auto & subscription_qos_profile = input.subscription_qos_profile;
   const auto & error_msg = input.error_msg;
 
+  rmw_qos_compatibility_type_t compat;
+  rmw_ret_t rmw_ret = rmw_qos_profile_check_compatible(
+    publisher_qos_profile, subscription_qos_profile, &compat, nullptr, 0);
+  ASSERT_EQ(rmw_ret, RMW_RET_OK);
+  if (compat == RMW_QOS_COMPATIBILITY_OK) {
+    // If the underlying middleware allows this pub/sub pair to communicate, skip this test.
+    GTEST_SKIP();
+  }
+
   setup_publisher_subscription(publisher_qos_profile, subscription_qos_profile);
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    tear_down_publisher_subscription();
-  });
   setup_publisher_subscription_events(
     RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS,
     RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS);
@@ -720,10 +756,6 @@ TEST_F(TestEventFixture, test_bad_event_ini)
  */
 TEST_F(TestEventFixture, test_event_is_valid)
 {
-  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
-    GTEST_SKIP();
-  }
-
   EXPECT_FALSE(rcl_event_is_valid(nullptr));
   EXPECT_TRUE(rcl_error_is_set());
   rcl_reset_error();
@@ -741,6 +773,11 @@ TEST_F(TestEventFixture, test_event_is_valid)
 
   rcl_ret_t ret = rcl_publisher_event_init(
     &publisher_event_test, &publisher, RCL_PUBLISHER_OFFERED_DEADLINE_MISSED);
+  if (ret == RCL_RET_UNSUPPORTED) {
+    // This middleware doesn't support DEADLINE, so skip the test.
+    rcl_reset_error();
+    GTEST_SKIP();
+  }
 
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -814,8 +851,6 @@ TEST_F(TestEventFixture, test_sub_message_lost_event)
     ret = rcl_event_fini(&subscription_event);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   });
-
-  EXPECT_EQ(ret, RCL_RET_OK);
 
   // Can't reproduce reliably this event
   // Test that take_event is able to read the configured event
