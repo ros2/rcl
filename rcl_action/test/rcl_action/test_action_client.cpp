@@ -381,7 +381,6 @@ TEST_F(TestActionClientBaseFixture, test_action_client_init_fini_maybe_fail)
         rcl_reset_error();
       }
     } else {
-      EXPECT_TRUE(rcl_error_is_set());
       rcl_reset_error();
     }
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));

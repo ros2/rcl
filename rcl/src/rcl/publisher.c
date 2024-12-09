@@ -417,27 +417,19 @@ rcl_publisher_get_context(const rcl_publisher_t * publisher)
 bool
 rcl_publisher_is_valid(const rcl_publisher_t * publisher)
 {
-  if (!rcl_publisher_is_valid_except_context(publisher)) {
-    return false;  // error already set
-  }
-  if (!rcl_context_is_valid(publisher->impl->context)) {
-    RCL_SET_ERROR_MSG("publisher's context is invalid");
-    return false;
-  }
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl->rmw_handle, "publisher's rmw handle is invalid", return false);
-  return true;
+  RCL_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is invalid", return false);
+
+  return rcl_publisher_is_valid_except_context(publisher) &&
+         rcl_context_is_valid(publisher->impl->context) &&
+         publisher->impl->rmw_handle != NULL;
 }
 
 bool
 rcl_publisher_is_valid_except_context(const rcl_publisher_t * publisher)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(publisher, "publisher pointer is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl, "publisher implementation is invalid", return false);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    publisher->impl->rmw_handle, "publisher's rmw handle is invalid", return false);
-  return true;
+
+  return publisher->impl != NULL && publisher->impl->rmw_handle != NULL;
 }
 
 rcl_ret_t
