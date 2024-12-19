@@ -822,7 +822,7 @@ protected:
       ret = rcl_action_goal_handle_get_info(goal_handle, &goal_infos_out[i]);
       ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
       // Sleep so goals have different acceptance times
-      std::this_thread::sleep_for(std::chrono::milliseconds(250));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
 
