@@ -198,9 +198,11 @@ rcl_timer_init2(
       // Should be impossible
       RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to fini guard condition after bad alloc");
     }
-    if (RCL_RET_OK != rcl_clock_remove_jump_callback(clock, _rcl_timer_time_jump, timer)) {
-      // Should be impossible
-      RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to remove callback after bad alloc");
+    if (RCL_ROS_TIME == impl.clock->type) {
+      if (RCL_RET_OK != rcl_clock_remove_jump_callback(clock, _rcl_timer_time_jump, timer)) {
+        // Should be impossible
+        RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to remove callback after bad alloc");
+      }
     }
 
     RCL_SET_ERROR_MSG("allocating memory failed");
