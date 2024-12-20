@@ -632,11 +632,11 @@ TEST_F(TestActionGraphMultiNodeFixture, action_client_init_maybe_fail)
 
     if (RCL_RET_OK == ret) {
       ret = rcl_action_client_fini(&action_client, &this->remote_node);
-      if (RCL_RET_OK != ret) {
-        // This isn't always set, but just in case reset anyway
-        rcutils_reset_error();
-      }
     }
+
+    // Always reset the error, because either rcl_action_client_init() or
+    // rcl_action_client_fini() may have failed above.
+    rcl_reset_error();
   });
 }
 

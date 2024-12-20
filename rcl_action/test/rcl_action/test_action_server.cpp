@@ -1026,6 +1026,10 @@ TEST_F(TestActionServer, action_server_init_fini_maybe_fail)
     if (RCL_RET_OK == ret) {
       ret = rcl_action_server_fini(&action_server, &node);
     }
+
+    // Always reset the error, because either rcl_action_server_init() or
+    // rcl_action_server_fini() may have failed above.
+    rcl_reset_error();
   });
 }
 
