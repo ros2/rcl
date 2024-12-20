@@ -973,22 +973,27 @@ rcl_action_server_is_valid_except_context(const rcl_action_server_t * action_ser
   RCL_CHECK_FOR_NULL_WITH_MSG(
     action_server->impl, "action server implementation is invalid", return false);
   if (!rcl_service_is_valid(&action_server->impl->goal_service)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("goal service is invalid");
     return false;
   }
   if (!rcl_service_is_valid(&action_server->impl->cancel_service)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("cancel service is invalid");
     return false;
   }
   if (!rcl_service_is_valid(&action_server->impl->result_service)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("result service is invalid");
     return false;
   }
   if (!rcl_publisher_is_valid_except_context(&action_server->impl->feedback_publisher)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("feedback publisher is invalid");
     return false;
   }
   if (!rcl_publisher_is_valid_except_context(&action_server->impl->status_publisher)) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("status publisher is invalid");
     return false;
   }
