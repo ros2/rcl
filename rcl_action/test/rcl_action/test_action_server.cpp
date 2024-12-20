@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -461,7 +462,8 @@ TEST_F(TestActionServer, test_action_accept_new_goal)
   }
 }
 
-TEST_F(TestActionServer, test_action_server_goal_exists) {
+TEST_F(TestActionServer, test_action_server_goal_exists)
+{
   rcl_action_goal_info_t goal_info_out = rcl_action_get_zero_initialized_goal_info();
   EXPECT_FALSE(rcl_action_server_goal_exists(nullptr, &goal_info_out));
   EXPECT_TRUE(rcl_error_is_set());
@@ -501,7 +503,8 @@ TEST_F(TestActionServer, test_action_server_goal_exists) {
   this->action_server.impl->num_goal_handles--;
 }
 
-TEST_F(TestActionServer, test_action_server_notify_goal_done) {
+TEST_F(TestActionServer, test_action_server_notify_goal_done)
+{
   // Invalid action server
   EXPECT_EQ(RCL_RET_ACTION_SERVER_INVALID, rcl_action_notify_goal_done(nullptr));
   rcl_reset_error();
