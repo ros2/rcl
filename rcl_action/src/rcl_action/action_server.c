@@ -53,6 +53,8 @@ rcl_action_get_zero_initialized_server(void)
   char * Type ## _service_name = NULL; \
   ret = rcl_action_get_ ## Type ## _service_name(action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
+    rcl_reset_error(); \
+    RCL_SET_ERROR_MSG("failed to get " #Type " service name"); \
     goto fail; \
   } \
   rcl_service_options_t Type ## _service_options = { \
@@ -76,6 +78,8 @@ rcl_action_get_zero_initialized_server(void)
   char * Type ## _topic_name = NULL; \
   ret = rcl_action_get_ ## Type ## _topic_name(action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
+    rcl_reset_error(); \
+    RCL_SET_ERROR_MSG("failed to get " #Type " topic name"); \
     goto fail; \
   } \
   rcl_publisher_options_t Type ## _publisher_options = { \
