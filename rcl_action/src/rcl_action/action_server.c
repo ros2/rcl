@@ -921,7 +921,7 @@ rcl_action_server_goal_exists(
   for (size_t i = 0u; i < action_server->impl->num_goal_handles; ++i) {
     ret = rcl_action_goal_handle_get_info(action_server->impl->goal_handles[i], &gh_goal_info);
     if (RCL_RET_OK != ret) {
-      RCL_SET_ERROR_MSG("failed to get info for goal handle");
+      // error is already set
       return false;
     }
     // Compare UUIDs
