@@ -231,11 +231,11 @@ rcl_action_client_init(
   SUBSCRIPTION_INIT(feedback);
   SUBSCRIPTION_INIT(status);
 
-  if (RCL_RET_OK != rcl_node_type_cache_register_type(
+  ret = rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
       type_support->get_type_description_func(type_support),
-      type_support->get_type_description_sources_func(type_support)))
-  {
+      type_support->get_type_description_sources_func(type_support));
+  if (RCL_RET_OK != ret) {
     rcutils_reset_error();
     RCL_SET_ERROR_MSG("Failed to register type for action");
     goto fail;
