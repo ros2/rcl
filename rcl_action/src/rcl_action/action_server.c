@@ -158,15 +158,10 @@ rcl_action_server_init(
   // Store reference to clock
   action_server->impl->clock = clock;
 
-  // Initialize Timer
+  // Initialize Timer, disabled by default so it doesn't start firing
   ret = rcl_timer_init2(
     &action_server->impl->expire_timer, action_server->impl->clock, node->context,
-    options->result_timeout.nanoseconds, NULL, allocator, true);
-  if (RCL_RET_OK != ret) {
-    goto fail;
-  }
-  // Cancel timer so it doesn't start firing
-  ret = rcl_timer_cancel(&action_server->impl->expire_timer);
+    options->result_timeout.nanoseconds, NULL, allocator, false);
   if (RCL_RET_OK != ret) {
     goto fail;
   }
