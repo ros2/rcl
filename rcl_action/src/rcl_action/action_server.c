@@ -53,13 +53,6 @@ rcl_action_get_zero_initialized_server(void)
   char * Type ## _service_name = NULL; \
   ret = rcl_action_get_ ## Type ## _service_name(action_name, allocator, &Type ## _service_name); \
   if (RCL_RET_OK != ret) { \
-    if (RCL_RET_BAD_ALLOC == ret) { \
-      ret = RCL_RET_BAD_ALLOC; \
-    } else if (RCL_RET_ACTION_NAME_INVALID == ret) { \
-      ret = RCL_RET_ACTION_NAME_INVALID; \
-    } else { \
-      ret = RCL_RET_ERROR; \
-    } \
     goto fail; \
   } \
   rcl_service_options_t Type ## _service_options = { \
@@ -73,12 +66,8 @@ rcl_action_get_zero_initialized_server(void)
     &Type ## _service_options); \
   allocator.deallocate(Type ## _service_name, allocator.state); \
   if (RCL_RET_OK != ret) { \
-    if (RCL_RET_BAD_ALLOC == ret) { \
-      ret = RCL_RET_BAD_ALLOC; \
-    } else if (RCL_RET_SERVICE_NAME_INVALID == ret) { \
+    if (RCL_RET_SERVICE_NAME_INVALID == ret) { \
       ret = RCL_RET_ACTION_NAME_INVALID; \
-    } else { \
-      ret = RCL_RET_ERROR; \
     } \
     goto fail; \
   }
@@ -87,13 +76,6 @@ rcl_action_get_zero_initialized_server(void)
   char * Type ## _topic_name = NULL; \
   ret = rcl_action_get_ ## Type ## _topic_name(action_name, allocator, &Type ## _topic_name); \
   if (RCL_RET_OK != ret) { \
-    if (RCL_RET_BAD_ALLOC == ret) { \
-      ret = RCL_RET_BAD_ALLOC; \
-    } else if (RCL_RET_ACTION_NAME_INVALID == ret) { \
-      ret = RCL_RET_ACTION_NAME_INVALID; \
-    } else { \
-      ret = RCL_RET_ERROR; \
-    } \
     goto fail; \
   } \
   rcl_publisher_options_t Type ## _publisher_options = { \
@@ -107,12 +89,8 @@ rcl_action_get_zero_initialized_server(void)
     &Type ## _publisher_options); \
   allocator.deallocate(Type ## _topic_name, allocator.state); \
   if (RCL_RET_OK != ret) { \
-    if (RCL_RET_BAD_ALLOC == ret) { \
-      ret = RCL_RET_BAD_ALLOC; \
-    } else if (RCL_RET_TOPIC_NAME_INVALID == ret) { \
+    if (RCL_RET_TOPIC_NAME_INVALID == ret) { \
       ret = RCL_RET_ACTION_NAME_INVALID; \
-    } else { \
-      ret = RCL_RET_ERROR; \
     } \
     goto fail; \
   }
