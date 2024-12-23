@@ -1213,10 +1213,10 @@ _rcl_parse_resource_match_token(rcl_lexer_lookahead2_t * lex_lookahead)
     ret = rcl_lexer_lookahead2_accept(lex_lookahead, NULL, NULL);
   } else if (RCL_LEXEME_WILD_ONE == lexeme) {
     RCL_SET_ERROR_MSG("Wildcard '*' is not implemented");
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
   } else if (RCL_LEXEME_WILD_MULTI == lexeme) {
     RCL_SET_ERROR_MSG("Wildcard '**' is not implemented");
-    return RCL_RET_ERROR;
+    ret = RCL_RET_ERROR;
   } else {
     RCL_SET_ERROR_MSG("Expecting token or wildcard");
     ret = RCL_RET_WRONG_LEXEME;
@@ -1276,6 +1276,9 @@ _rcl_parse_resource_match(
     ret = rcl_lexer_lookahead2_expect(lex_lookahead, RCL_LEXEME_FORWARD_SLASH, NULL, NULL);
     if (RCL_RET_WRONG_LEXEME == ret) {
       return RCL_RET_INVALID_REMAP_RULE;
+    } else if (RCL_RET_OK != ret) {
+      // Another failure
+      return ret;
     }
     ret = _rcl_parse_resource_match_token(lex_lookahead);
     if (RCL_RET_OK != ret) {
