@@ -247,6 +247,7 @@ TEST_F(TestPublisherNetworkFlowEndpoints, test_publisher_get_network_flow_endpoi
   ret_1 = rcl_publisher_get_network_flow_endpoints(
     &this->publisher_1, &allocator, &network_flow_endpoint_array_1);
   EXPECT_TRUE(ret_1 == RCL_RET_OK || ret_1 == RCL_RET_UNSUPPORTED);
+  rcl_reset_error();
 
   // Get network flow endpoints of publisher with unique network flow endpoints
   rcl_network_flow_endpoint_array_t network_flow_endpoint_array_2 =
@@ -259,6 +260,7 @@ TEST_F(TestPublisherNetworkFlowEndpoints, test_publisher_get_network_flow_endpoi
     ret_2 = rcl_publisher_get_network_flow_endpoints(
       &this->publisher_2, &allocator, &network_flow_endpoint_array_2);
     EXPECT_TRUE(ret_2 == RCL_RET_OK || ret_2 == RCL_RET_UNSUPPORTED);
+    rcl_reset_error();
   } else {
     ret_2 = RCL_RET_ERROR;
   }
@@ -348,6 +350,7 @@ TEST_F(TestSubscriptionNetworkFlowEndpoints, test_subscription_get_network_flow_
   ret_1 = rcl_subscription_get_network_flow_endpoints(
     &this->subscription_1, &allocator, &network_flow_endpoint_array_1);
   EXPECT_TRUE(ret_1 == RCL_RET_OK || ret_1 == RCL_RET_UNSUPPORTED);
+  rcl_reset_error();
 
   // Get network flow endpoints of subscription with unique network flow endpoints
   rcl_network_flow_endpoint_array_t network_flow_endpoint_array_2 =
@@ -358,6 +361,7 @@ TEST_F(TestSubscriptionNetworkFlowEndpoints, test_subscription_get_network_flow_
     ret_2 = rcl_subscription_get_network_flow_endpoints(
       &this->subscription_2, &allocator, &network_flow_endpoint_array_2);
     EXPECT_TRUE(ret_2 == RCL_RET_OK || ret_2 == RCL_RET_UNSUPPORTED);
+    rcl_reset_error();
   } else {
     ret_2 = RCL_RET_ERROR;
   }
