@@ -213,7 +213,7 @@ rcl_ret_t rcl_logging_rosout_init_publisher_for_node(rcl_node_t * node)
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_NODE_INVALID);
   logger_name = rcl_node_get_logger_name(node);
   if (NULL == logger_name) {
-    RCL_SET_ERROR_MSG("Logger name was null.");
+    // rcl_node_get_logger_name already set the error
     return RCL_RET_ERROR;
   }
   if (rcutils_hash_map_key_exists(&__logger_map, &logger_name)) {
