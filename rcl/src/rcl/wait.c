@@ -74,18 +74,6 @@ rcl_wait_set_is_valid(const rcl_wait_set_t * wait_set)
   return wait_set && wait_set->impl;
 }
 
-static void
-__wait_set_clean_up(rcl_wait_set_t * wait_set)
-{
-  rcl_ret_t ret = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0, 0);
-  (void)ret;  // NO LINT
-  assert(RCL_RET_OK == ret);  // Defensive, shouldn't fail with size 0.
-  if (wait_set->impl) {
-    wait_set->impl->allocator.deallocate(wait_set->impl, wait_set->impl->allocator.state);
-    wait_set->impl = NULL;
-  }
-}
-
 rcl_ret_t
 rcl_wait_set_init(
   rcl_wait_set_t * wait_set,
@@ -103,7 +91,7 @@ rcl_wait_set_init(
     "'%zu' subscriptions, '%zu' guard conditions, '%zu' timers, '%zu' clients, '%zu' services",
     number_of_subscriptions, number_of_guard_conditions, number_of_timers, number_of_clients,
     number_of_services);
-  rcl_ret_t fail_ret = RCL_RET_ERROR;
+  rcl_ret_t rcl_ret = RCL_RET_ERROR;
 
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_INVALID_ARGUMENT);
@@ -149,27 +137,30 @@ rcl_wait_set_init(
 
   wait_set->impl->rmw_wait_set = rmw_create_wait_set(&(context->impl->rmw_context), num_conditions);
   if (!wait_set->impl->rmw_wait_set) {
+    rcl_ret = RCL_RET_BAD_ALLOC;
     goto fail;
   }
 
   // Initialize subscription space.
-  rcl_ret_t ret = rcl_wait_set_resize(
+  rcl_ret = rcl_wait_set_resize(
     wait_set, number_of_subscriptions, number_of_guard_conditions, number_of_timers,
     number_of_clients, number_of_services, number_of_events);
-  if (RCL_RET_OK != ret) {
-    fail_ret = ret;
+  if (RCL_RET_OK != rcl_ret) {
     goto fail;
   }
   return RCL_RET_OK;
+
 fail:
-  if (rcl_wait_set_is_valid(wait_set)) {
-    rmw_ret_t ret = rmw_destroy_wait_set(wait_set->impl->rmw_wait_set);
-    if (ret != RMW_RET_OK) {
-      fail_ret = RCL_RET_WAIT_SET_INVALID;
+  if (wait_set->impl->rmw_wait_set != NULL) {
+    rmw_ret_t rmw_ret = rmw_destroy_wait_set(wait_set->impl->rmw_wait_set);
+    if (rmw_ret != RMW_RET_OK) {
+      rcl_ret = RCL_RET_WAIT_SET_INVALID;
     }
   }
-  __wait_set_clean_up(wait_set);
-  return fail_ret;
+  allocator.deallocate(wait_set->impl, wait_set->impl->allocator.state);
+  wait_set->impl = NULL;
+
+  return rcl_ret;
 }
 
 rcl_ret_t
@@ -184,7 +175,16 @@ rcl_wait_set_fini(rcl_wait_set_t * wait_set)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_WAIT_SET_INVALID;
     }
-    __wait_set_clean_up(wait_set);
+
+    rcl_ret_t resize_result = rcl_wait_set_resize(wait_set, 0, 0, 0, 0, 0, 0);
+    if (result == RCL_RET_OK) {
+      // Only return the error here if we had no earlier errors.
+      result = resize_result;
+    }
+    if (wait_set->impl) {
+      wait_set->impl->allocator.deallocate(wait_set->impl, wait_set->impl->allocator.state);
+      wait_set->impl = NULL;
+    }
   }
   return result;
 }
