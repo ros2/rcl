@@ -56,6 +56,7 @@ rcl_validate_enclave_name_with_size(
   rmw_ret_t ret = rmw_validate_namespace_with_size(
     enclave, enclave_length, &tmp_validation_result, &tmp_invalid_index);
   if (ret != RMW_RET_OK) {
+    // rmw_validate_namespace_with_size already set the error
     return rcl_convert_rmw_ret_to_rcl_ret(ret);
   }
 
