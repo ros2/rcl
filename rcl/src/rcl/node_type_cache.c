@@ -59,6 +59,7 @@ rcl_ret_t rcl_node_type_cache_init(rcl_node_t * node)
     &node->context->impl->allocator);
 
   if (RCUTILS_RET_OK != ret) {
+    rcl_reset_error();
     RCL_SET_ERROR_MSG("Failed to initialize type cache hash map");
     return RCL_RET_ERROR;
   }
