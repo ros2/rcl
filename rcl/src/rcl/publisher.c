@@ -421,7 +421,11 @@ rcl_publisher_is_valid(const rcl_publisher_t * publisher)
     return false;  // error already set
   }
   if (!rcl_context_is_valid(publisher->impl->context)) {
-    RCL_SET_ERROR_MSG("publisher's context is invalid");
+    if (!rcl_error_is_set()) {
+      // rcl_context_is_valid can return false both in the error case, and when the context
+      // hasn't been initialized.  It will only set the error message in the first case.
+      RCL_SET_ERROR_MSG("publisher's context is invalid");
+    }
     return false;
   }
   RCL_CHECK_FOR_NULL_WITH_MSG(
