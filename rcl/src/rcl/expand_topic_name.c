@@ -104,6 +104,7 @@ rcl_expand_topic_name(
     *output_topic_name = rcutils_strdup(input_topic_name, allocator);
     if (!*output_topic_name) {
       *output_topic_name = NULL;
+      rcl_reset_error();
       RCL_SET_ERROR_MSG("failed to allocate memory for output topic");
       return RCL_RET_BAD_ALLOC;
     }
@@ -176,6 +177,7 @@ rcl_expand_topic_name(
         rcutils_strndup(next_opening_brace, substitution_substr_len, allocator);
       if (!next_substitution) {
         *output_topic_name = NULL;
+        rcl_reset_error();
         RCL_SET_ERROR_MSG("failed to allocate memory for substitution");
         allocator.deallocate(local_output, allocator.state);
         return RCL_RET_BAD_ALLOC;
@@ -186,6 +188,7 @@ rcl_expand_topic_name(
       allocator.deallocate(original_local_output, allocator.state);  // free no matter what
       if (!local_output) {
         *output_topic_name = NULL;
+        rcl_reset_error();
         RCL_SET_ERROR_MSG("failed to allocate memory for expanded topic");
         return RCL_RET_BAD_ALLOC;
       }
