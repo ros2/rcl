@@ -235,7 +235,7 @@ rcl_init(
     &validation_result,
     &invalid_index);
   if (RCL_RET_OK != ret) {
-    RCL_SET_ERROR_MSG("rcl_validate_enclave_name() failed");
+    // rcl_validate_enclave_name already set the error
     fail_ret = ret;
     goto fail;
   }
