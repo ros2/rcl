@@ -549,5 +549,7 @@ TEST(TestRclLifecycle, init_fini_maybe_fail) {
         EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_state_machine_fini(&sm, &node));
       }
     }
+
+    rcl_reset_error();
   });
 }
