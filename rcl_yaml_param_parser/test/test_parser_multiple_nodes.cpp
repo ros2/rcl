@@ -93,6 +93,7 @@ TEST(RclYamlParamParserMultipleNodes, test_multiple_nodes_with_bad_allocator) {
     rcutils_allocator_t allocator = rcutils_get_default_allocator();
     rcl_params_t * params_hdl = rcl_yaml_node_struct_init(allocator);
     if (NULL == params_hdl) {
+      rcutils_reset_error();
       continue;
     }
 
@@ -104,6 +105,9 @@ TEST(RclYamlParamParserMultipleNodes, test_multiple_nodes_with_bad_allocator) {
     // If `rcutils_string_array_fini` fails, there will be a small memory leak here.
     // However, it's necessary for coverage
     rcl_yaml_node_struct_fini(params_hdl);
+
+    rcutils_reset_error();
+
     params_hdl = NULL;
   });
 }
