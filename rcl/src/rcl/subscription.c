@@ -103,6 +103,7 @@ rcl_subscription_init(
 
   // options
   subscription->impl->options = *options;
+  subscription->impl->in_use_by_waitset = false;
 
   // Fill out the implemenation struct.
   // TODO(wjwwood): pass allocator once supported in rmw api.

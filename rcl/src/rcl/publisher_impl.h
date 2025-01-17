@@ -16,7 +16,6 @@
 #define RCL__PUBLISHER_IMPL_H_
 
 #include "rmw/rmw.h"
-
 #include "rcl/publisher.h"
 
 struct rcl_publisher_impl_s

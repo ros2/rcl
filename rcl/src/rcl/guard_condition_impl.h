@@ -1,4 +1,4 @@
-// Copyright 2015 Open Source Robotics Foundation, Inc.
+// Copyright 2025 cellumation GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__SUBSCRIPTION_IMPL_H_
-#define RCL__SUBSCRIPTION_IMPL_H_
+#ifndef RCL__GUARD_CONDITION_IMPL_H_
+#define RCL__GUARD_CONDITION_IMPL_H_
 
-#include "rmw/rmw.h"
+#include "rcl/guard_condition.h"
 
-#include "rcl/subscription.h"
-
-struct rcl_subscription_impl_s
+struct rcl_guard_condition_impl_s
 {
-  rcl_subscription_options_t options;
-  rmw_qos_profile_t actual_qos;
-  rmw_subscription_t * rmw_handle;
-  rosidl_type_hash_t type_hash;
+  rmw_guard_condition_t * rmw_handle;
+  bool allocated_rmw_guard_condition;
+  rcl_guard_condition_options_t options;
   bool in_use_by_waitset;
 };
 
-#endif  // RCL__SUBSCRIPTION_IMPL_H_
+#endif  // RCL__GUARD_CONDITION_IMPL_H_

@@ -1,4 +1,4 @@
-// Copyright 2015 Open Source Robotics Foundation, Inc.
+// Copyright 2025 cellumation GmbH
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RCL__SUBSCRIPTION_IMPL_H_
-#define RCL__SUBSCRIPTION_IMPL_H_
+#ifndef RCL__SERVICE_IMPL_H_
+#define RCL__SERVICE_IMPL_H_
 
 #include "rmw/rmw.h"
+#include "rcl/service.h"
+#include "./service_event_publisher.h"
 
-#include "rcl/subscription.h"
-
-struct rcl_subscription_impl_s
+struct rcl_service_impl_s
 {
-  rcl_subscription_options_t options;
-  rmw_qos_profile_t actual_qos;
-  rmw_subscription_t * rmw_handle;
+  rcl_service_options_t options;
+  rmw_qos_profile_t actual_request_subscription_qos;
+  rmw_qos_profile_t actual_response_publisher_qos;
+  rmw_service_t * rmw_handle;
+  rcl_service_event_publisher_t * service_event_publisher;
+  char * remapped_service_name;
   rosidl_type_hash_t type_hash;
   bool in_use_by_waitset;
 };
 
-#endif  // RCL__SUBSCRIPTION_IMPL_H_
+#endif  // RCL__SERVICE_IMPL_H_

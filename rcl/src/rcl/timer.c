@@ -26,37 +26,7 @@ extern "C"
 #include "rcutils/stdatomic_helper.h"
 #include "rcutils/time.h"
 #include "tracetools/tracetools.h"
-
-struct rcl_timer_impl_s
-{
-  // The clock providing time.
-  rcl_clock_t * clock;
-  // The associated context.
-  rcl_context_t * context;
-  // A guard condition used to wake the associated wait set, either when
-  // ROSTime causes the timer to expire or when the timer is reset.
-  rcl_guard_condition_t guard_condition;
-  // The user supplied callback.
-  atomic_uintptr_t callback;
-  // optionally user supplied data which will be passed into the callback
-  atomic_uintptr_t callback_data;
-
-  // This is a duration in nanoseconds, which is initialized as int64_t
-  // to be used for internal time calculation.
-  atomic_int_least64_t period;
-  // This is a time in nanoseconds since an unspecified time.
-  atomic_int_least64_t last_call_time;
-  // This is a time in nanoseconds since an unspecified time.
-  atomic_int_least64_t next_call_time;
-  // Credit for time elapsed before ROS time is activated or deactivated.
-  atomic_int_least64_t time_credit;
-  // A flag which indicates if the timer is canceled.
-  atomic_bool canceled;
-  // The user supplied allocator.
-  rcl_allocator_t allocator;
-  // The user supplied on reset callback data.
-  rcl_timer_on_reset_callback_data_t reset_callback_data;
-};
+#include "./timer_impl.h"
 
 rcl_timer_t
 rcl_get_zero_initialized_timer(void)
@@ -182,6 +152,7 @@ rcl_timer_init2(
   impl.reset_callback_data.on_reset_callback = NULL;
   impl.reset_callback_data.user_data = NULL;
   impl.reset_callback_data.reset_counter = 0;
+  impl.in_use_by_waitset = false;
 
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
   if (NULL == timer->impl) {

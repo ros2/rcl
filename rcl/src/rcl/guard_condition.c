@@ -25,13 +25,8 @@ extern "C"
 #include "rmw/rmw.h"
 
 #include "./context_impl.h"
+#include "./guard_condition_impl.h"
 
-struct rcl_guard_condition_impl_s
-{
-  rmw_guard_condition_t * rmw_handle;
-  bool allocated_rmw_guard_condition;
-  rcl_guard_condition_options_t options;
-};
 
 rcl_guard_condition_t
 rcl_get_zero_initialized_guard_condition(void)
@@ -74,6 +69,7 @@ __rcl_guard_condition_init_from_rmw_impl(
     RCL_SET_ERROR_MSG("allocating memory failed");
     return RCL_RET_BAD_ALLOC;
   }
+  guard_condition->impl->in_use_by_waitset = false;
   // Create the rmw guard condition.
   if (rmw_guard_condition) {
     // If given, just assign (cast away const).

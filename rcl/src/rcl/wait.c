@@ -32,6 +32,11 @@ extern "C"
 #include "rmw/event.h"
 
 #include "./context_impl.h"
+#include "./client_impl.h"
+#include "./guard_condition_impl.h"
+#include "./service_impl.h"
+#include "./subscription_impl.h"
+#include "./timer_impl.h"
 
 struct rcl_wait_set_impl_s
 {
@@ -296,6 +301,30 @@ rcl_wait_set_get_allocator(const rcl_wait_set_t * wait_set, rcl_allocator_t * al
   } \
   memset(wait_set->impl->RMWStorage, 0, sizeof(void *) * Type ## s_size);
 
+/*
+ * Ensure that the waitset lists do not contain duplicated entries.
+ * For example, considering `wait_set->clients`:
+ * - first we set `in_use_by_waitset` to false for each entry.
+ * - then we loop again setting `in_use_by_waitset` to true one by one
+ * - if we find an entry where `in_use_by_waitset` was already true, it
+ *   means that it was present twice in the waitset and we return an error
+*/
+#define CHECK_DOUBLE_USAGE(Type) \
+  for (size_t idx = 0; idx < wait_set->size_of_ ## Type ## s; idx++) { \
+    if (wait_set->Type ## s[idx]) { \
+      wait_set->Type ## s[idx]->impl->in_use_by_waitset = false; \
+    } \
+  } \
+  for (size_t idx = 0; idx < wait_set->size_of_ ## Type ## s; idx++) { \
+    if (wait_set->Type ## s[idx]) { \
+      if(wait_set->Type ## s[idx]->impl->in_use_by_waitset) { \
+        RCL_SET_ERROR_MSG("Entitiy of type " #Type " added multiple times to waitset."); \
+        return RCL_RET_WAIT_SET_INVALID; \
+      } \
+      wait_set->Type ## s[idx]->impl->in_use_by_waitset = true; \
+    } \
+  }
+
 /* Implementation-specific notes:
  *
  * Add the rmw representation to the underlying rmw array and increment
@@ -524,6 +553,13 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     RCL_SET_ERROR_MSG("wait set is empty");
     return RCL_RET_WAIT_SET_EMPTY;
   }
+
+  CHECK_DOUBLE_USAGE(client);
+  CHECK_DOUBLE_USAGE(guard_condition);
+  CHECK_DOUBLE_USAGE(service);
+  CHECK_DOUBLE_USAGE(subscription);
+  CHECK_DOUBLE_USAGE(timer);
+
   // Calculate the timeout argument.
   // By default, set the timer to block indefinitely if none of the below conditions are met.
   rmw_time_t * timeout_argument = NULL;
