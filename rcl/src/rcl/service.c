@@ -39,17 +39,7 @@ extern "C"
 
 #include "./common.h"
 #include "./service_event_publisher.h"
-
-struct rcl_service_impl_s
-{
-  rcl_service_options_t options;
-  rmw_qos_profile_t actual_request_subscription_qos;
-  rmw_qos_profile_t actual_response_publisher_qos;
-  rmw_service_t * rmw_handle;
-  rcl_service_event_publisher_t * service_event_publisher;
-  char * remapped_service_name;
-  rosidl_type_hash_t type_hash;
-};
+#include "./service_impl.h"
 
 rcl_service_t
 rcl_get_zero_initialized_service(void)
@@ -189,6 +179,7 @@ rcl_service_init(
 
   // options
   service->impl->options = *options;
+  service->impl->in_use_by_waitset = false;
 
   if (RCL_RET_OK != rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),

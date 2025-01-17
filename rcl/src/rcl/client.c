@@ -38,19 +38,8 @@ extern "C"
 #include "rosidl_runtime_c/service_type_support_struct.h"
 
 #include "./common.h"
+#include "./client_impl.h"
 #include "./service_event_publisher.h"
-
-struct rcl_client_impl_s
-{
-  rcl_client_options_t options;
-  rmw_qos_profile_t actual_request_publisher_qos;
-  rmw_qos_profile_t actual_response_subscription_qos;
-  rmw_client_t * rmw_handle;
-  atomic_int_least64_t sequence_number;
-  rcl_service_event_publisher_t * service_event_publisher;
-  char * remapped_service_name;
-  rosidl_type_hash_t type_hash;
-};
 
 rcl_client_t
 rcl_get_zero_initialized_client(void)
@@ -178,6 +167,7 @@ rcl_client_init(
   // options
   client->impl->options = *options;
   atomic_init(&client->impl->sequence_number, 0);
+  client->impl->in_use_by_waitset = false;
 
   const rosidl_type_hash_t * hash = type_support->get_type_hash_func(type_support);
   if (hash == NULL) {

@@ -25,6 +25,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
+#include "rcl/timer.h"
 #include "rcl/wait.h"
 
 #include "rcutils/logging_macros.h"
@@ -908,4 +909,79 @@ TEST_F(WaitSetTestFixture, wait_set_test_maybe_init_fail) {
       rcl_reset_error();
     }
   });
+}
+
+TEST_F(WaitSetTestFixture, duplicated_guard_condition) {
+  const size_t kNumEntities = 2u;
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(
+    &wait_set, 0, kNumEntities, 0, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_guard_condition_t guard_condition;
+  guard_condition = rcl_get_zero_initialized_guard_condition();
+  ret = rcl_guard_condition_init(
+    &guard_condition, this->context_ptr, rcl_guard_condition_get_default_options());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_guard_condition_fini(&guard_condition);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  for (size_t i = 0u; i < kNumEntities; ++i) {
+    ret = rcl_wait_set_add_guard_condition(
+      &wait_set, &guard_condition, nullptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_EQ(&guard_condition, wait_set.guard_conditions[i]);
+  }
+  ret = rcl_wait(&wait_set, 0);
+  EXPECT_EQ(ret, RCL_RET_WAIT_SET_INVALID);
+  rcutils_reset_error();
+}
+
+TEST_F(WaitSetTestFixture, duplicated_timer) {
+  const size_t kNumEntities = 2u;
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  rcl_ret_t ret = rcl_wait_set_init(
+    &wait_set, 0, 0, kNumEntities, 0, 0, 0, context_ptr, rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ret = rcl_wait_set_fini(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ASSERT_EQ(RCL_RET_OK, rcl_clock_init(RCL_ROS_TIME, &clock, &allocator)) <<
+    rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string().str;
+  });
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), nullptr, rcl_get_default_allocator(),
+    true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string().str;
+  });
+  for (size_t i = 0u; i < kNumEntities; ++i) {
+    ret = rcl_wait_set_add_timer(
+      &wait_set, &timer, nullptr);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    EXPECT_EQ(&timer, wait_set.timers[i]);
+  }
+  ret = rcl_wait(&wait_set, 0);
+  EXPECT_EQ(ret, RCL_RET_WAIT_SET_INVALID);
+  rcutils_reset_error();
 }
