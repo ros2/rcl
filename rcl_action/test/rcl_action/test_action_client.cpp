@@ -240,7 +240,7 @@ protected:
     TestActionClientBaseFixture::TearDown();
   }
 
-  const char * const action_name = "test_action_client_name";
+  const char * const action_name = "/test_action_client_name";
   rcl_action_client_options_t action_client_options;
   rcl_action_client_t invalid_action_client;
   rcl_action_client_t action_client;
