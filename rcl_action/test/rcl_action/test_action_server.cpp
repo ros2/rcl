@@ -26,7 +26,9 @@
 #include "rcl_action/action_server_impl.h"
 
 #include "rcl/error_handling.h"
+#include "rcl/graph.h"
 #include "rcl/rcl.h"
+#include "rcl/service_introspection.h"
 
 #include "test_msgs/action/fibonacci.h"
 
@@ -205,14 +207,20 @@ protected:
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_clock_init(RCL_ROS_TIME, &this->clock, &allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
-      test_msgs, Fibonacci);
+    ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
     const rcl_action_server_options_t options = rcl_action_server_get_default_options();
     const char * action_name = "test_action_server_name";
     this->action_server = rcl_action_get_zero_initialized_server();
     ret = rcl_action_server_init(
       &this->action_server, &this->node, &this->clock, ts, action_name, &options);
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+    send_goal_service_event_topic_name = std::string(action_server.impl->remapped_action_name) +
+      "/_action/send_goal" + RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX;
+    cancel_goal_service_event_topic_name = std::string(action_server.impl->remapped_action_name) +
+      "/_action/cancel_goal" + RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX;
+    get_result_service_event_topic_name = std::string(action_server.impl->remapped_action_name) +
+      "/_action/get_result" + RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX;
   }
 
   void TearDown() override
@@ -244,10 +252,50 @@ protected:
     }
   }
 
+  void check_set_services_introspection(
+    rcl_service_introspection_state_t state, size_t expect_publisher_count)
+  {
+    rcl_publisher_options_t pub_opts = rcl_publisher_get_default_options();
+    pub_opts.qos = rmw_qos_profile_system_default;
+
+    rcl_ret_t ret =
+      rcl_action_server_configure_internal_service_introspection(
+        &action_server,
+        &node,
+        &clock,
+        ts,
+        pub_opts,
+        state);
+    ASSERT_TRUE(ret == RCL_RET_OK) << rcl_get_error_string().str;
+
+    // Check if internal service event publisher is not created by default
+    auto get_publisher_count = [this](const std::string & topic_name) -> size_t {
+        size_t publisher_count = 0;
+        rcl_ret_t ret = rcl_count_publishers(&this->node, topic_name.c_str(), &publisher_count);
+        EXPECT_TRUE(ret == RCL_RET_OK) << rcl_get_error_string().str;
+        rcl_reset_error();
+        if (ret != RCL_RET_OK) {
+          publisher_count = -1;
+        }
+        return publisher_count;
+      };
+
+    EXPECT_TRUE(
+      get_publisher_count(send_goal_service_event_topic_name) == expect_publisher_count);
+    EXPECT_TRUE(
+      get_publisher_count(cancel_goal_service_event_topic_name) == expect_publisher_count);
+    EXPECT_TRUE(
+      get_publisher_count(get_result_service_event_topic_name) == expect_publisher_count);
+  }
+
   rcl_action_server_t action_server;
   rcl_context_t context;
   rcl_node_t node;
   rcl_clock_t clock;
+  const rosidl_action_type_support_t *ts;
+  std::string send_goal_service_event_topic_name;
+  std::string cancel_goal_service_event_topic_name;
+  std::string get_result_service_event_topic_name;
 };  // class TestActionServer
 
 TEST_F(TestActionServer, test_action_server_is_valid)
@@ -802,6 +850,56 @@ TEST_F(TestActionServer, test_action_server_get_options)
   // Get options for a valid action server
   options = rcl_action_server_get_options(&this->action_server);
   EXPECT_NE(options, nullptr) << rcl_get_error_string().str;
+}
+
+TEST_F(TestActionServer, test_default_internal_services_introspection_status)
+{
+  // Check valid action server
+  bool is_valid = rcl_action_server_is_valid(&this->action_server);
+  ASSERT_TRUE(is_valid) << rcl_get_error_string().str;
+
+  // Check if internal service event publisher is not created by default
+  auto get_publisher_count = [this](const std::string & topic_name) -> size_t {
+      size_t publisher_count = 0;
+      rcl_ret_t ret = rcl_count_publishers(&this->node, topic_name.c_str(), &publisher_count);
+      EXPECT_TRUE(ret == RCL_RET_OK) << rcl_get_error_string().str;
+      rcl_reset_error();
+      if (ret != RCL_RET_OK) {
+        publisher_count = -1;
+      }
+      return publisher_count;
+    };
+
+  EXPECT_EQ(get_publisher_count(send_goal_service_event_topic_name), 0);
+  EXPECT_EQ(get_publisher_count(cancel_goal_service_event_topic_name), 0);
+  EXPECT_EQ(get_publisher_count(get_result_service_event_topic_name), 0);
+}
+
+TEST_F(TestActionServer, test_set_internal_services_introspection_off)
+{
+  // Check valid action server
+  bool is_valid = rcl_action_server_is_valid(&this->action_server);
+  ASSERT_TRUE(is_valid) << rcl_get_error_string().str;
+
+  check_set_services_introspection(RCL_SERVICE_INTROSPECTION_OFF, 0);
+}
+
+TEST_F(TestActionServer, test_set_internal_services_introspection_metadata)
+{
+  // Check valid action server
+  bool is_valid = rcl_action_server_is_valid(&this->action_server);
+  ASSERT_TRUE(is_valid) << rcl_get_error_string().str;
+
+  check_set_services_introspection(RCL_SERVICE_INTROSPECTION_METADATA, 1);
+}
+
+TEST_F(TestActionServer, test_set_internal_services_introspection_contents)
+{
+  // Check valid action server
+  bool is_valid = rcl_action_server_is_valid(&this->action_server);
+  ASSERT_TRUE(is_valid) << rcl_get_error_string().str;
+
+  check_set_services_introspection(RCL_SERVICE_INTROSPECTION_CONTENTS, 1);
 }
 
 class TestActionServerCancelPolicy : public TestActionServer

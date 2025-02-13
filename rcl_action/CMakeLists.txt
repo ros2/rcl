@@ -103,6 +103,7 @@ if(BUILD_TESTING)
   endif()
 
   ament_add_gtest_executable(test_action_communication test/rcl_action/test_action_communication.cpp)
+  target_include_directories(test_action_communication PUBLIC src)
   target_link_libraries(test_action_communication
     ${PROJECT_NAME}
     ${action_msgs_TARGETS}

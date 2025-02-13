@@ -752,6 +752,41 @@ rcl_action_client_set_status_subscription_callback(
     user_data);
 }
 
+#define CLIENT_CONFIGURE_SERVICE_INTROSPECTION(TYPE, STATE) \
+  if (rcl_client_configure_service_introspection( \
+      &action_client->impl->TYPE ## _client, \
+      node, \
+      clock, \
+      type_support->TYPE ## _service_type_support, \
+      publisher_options, \
+      STATE) != RCL_RET_OK) \
+  { \
+    ret = RCL_RET_ERROR; \
+  }
+
+rcl_ret_t
+rcl_action_client_configure_internal_service_introspection(
+  rcl_action_client_t * action_client,
+  rcl_node_t * node,
+  rcl_clock_t * clock,
+  const rosidl_action_type_support_t * type_support,
+  const rcl_publisher_options_t publisher_options,
+  rcl_service_introspection_state_t introspection_state)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(type_support, RCL_RET_INVALID_ARGUMENT);
+
+  rcl_ret_t ret = RCL_RET_OK;
+  CLIENT_CONFIGURE_SERVICE_INTROSPECTION(goal, introspection_state);
+  CLIENT_CONFIGURE_SERVICE_INTROSPECTION(cancel, introspection_state);
+  CLIENT_CONFIGURE_SERVICE_INTROSPECTION(result, introspection_state);
+  return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif

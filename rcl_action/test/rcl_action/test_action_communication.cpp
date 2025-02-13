@@ -20,10 +20,12 @@
 
 #include "rcl_action/action_client.h"
 #include "rcl_action/action_server.h"
+#include "rcl_action/action_server_impl.h"
 #include "rcl_action/wait.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/rcl.h"
+#include "rcl/service_introspection.h"
 
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 
@@ -54,8 +56,7 @@ protected:
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     ret = rcl_clock_init(RCL_STEADY_TIME, &this->clock, &allocator);
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-    const rosidl_action_type_support_t * ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(
-      test_msgs, Fibonacci);
+    ts = ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
     const char * action_name = "test_action_commmunication_name";
     const rcl_action_server_options_t server_options = rcl_action_server_get_default_options();
     this->action_server = rcl_action_get_zero_initialized_server();
@@ -157,6 +158,7 @@ protected:
     }
   }
 
+  const rosidl_action_type_support_t * ts;
   rcl_action_client_t action_client;
   rcl_action_server_t action_server;
   rcl_context_t context;
@@ -1192,4 +1194,540 @@ TEST_F(TestActionCommunication, test_valid_feedback_comm_maybe_fail)
     test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback);
     test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback);
   });
+}
+
+class TestActionIntrospection : public  TestActionCommunication
+{
+public:
+  void SetUp() override
+  {
+    TestActionCommunication::SetUp();
+    send_goal_service_event_topic_name = std::string(action_server.impl->remapped_action_name) +
+      "/_action/send_goal" + RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX;
+    cancel_goal_service_event_topic_name = std::string(action_server.impl->remapped_action_name) +
+      "/_action/cancel_goal" + RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX;
+    get_result_service_event_topic_name = std::string(action_server.impl->remapped_action_name) +
+      "/_action/get_result" + RCL_SERVICE_INTROSPECTION_TOPIC_POSTFIX;
+
+    rcl_subscription_options_t subscription_options = rcl_subscription_get_default_options();
+    send_goal_service_event_sub_ptr = new rcl_subscription_t;
+    *send_goal_service_event_sub_ptr = rcl_get_zero_initialized_subscription();
+    rcl_ret_t ret = rcl_subscription_init(
+      send_goal_service_event_sub_ptr, &node, ts->goal_service_type_support->event_typesupport,
+      send_goal_service_event_topic_name.c_str(), &subscription_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    cancel_goal_service_event_sub_ptr = new rcl_subscription_t;
+    *cancel_goal_service_event_sub_ptr = rcl_get_zero_initialized_subscription();
+    ret = rcl_subscription_init(
+      cancel_goal_service_event_sub_ptr, &node, ts->cancel_service_type_support->event_typesupport,
+      cancel_goal_service_event_topic_name.c_str(), &subscription_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    get_result_service_event_sub_ptr = new rcl_subscription_t;
+    *get_result_service_event_sub_ptr = rcl_get_zero_initialized_subscription();
+    ret = rcl_subscription_init(
+      get_result_service_event_sub_ptr, &node, ts->result_service_type_support->event_typesupport,
+      get_result_service_event_topic_name.c_str(), &subscription_options);
+    ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  }
+
+  void TearDown() override
+  {
+    rcl_ret_t ret = rcl_subscription_fini(send_goal_service_event_sub_ptr, &node);
+    delete send_goal_service_event_sub_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_subscription_fini(cancel_goal_service_event_sub_ptr, &node);
+    delete cancel_goal_service_event_sub_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    ret = rcl_subscription_fini(get_result_service_event_sub_ptr, &node);
+    delete get_result_service_event_sub_ptr;
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+    TestActionCommunication::TearDown();
+  }
+
+  void enable_action_server_introspection()
+  {
+    rcl_publisher_options_t pub_opts = rcl_publisher_get_default_options();
+    pub_opts.qos = rmw_qos_profile_system_default;
+
+    rcl_ret_t ret =
+      rcl_action_server_configure_internal_service_introspection(
+      &action_server,
+      &node,
+      &clock,
+      ts,
+      pub_opts,
+      RCL_SERVICE_INTROSPECTION_CONTENTS);
+    ASSERT_TRUE(ret == RCL_RET_OK) << rcl_get_error_string().str;
+  }
+
+  void enable_action_client_introspection()
+  {
+    rcl_publisher_options_t pub_opts = rcl_publisher_get_default_options();
+    pub_opts.qos = rmw_qos_profile_system_default;
+
+    rcl_ret_t ret =
+      rcl_action_client_configure_internal_service_introspection(
+      &action_client,
+      &node,
+      &clock,
+      ts,
+      pub_opts,
+      RCL_SERVICE_INTROSPECTION_CONTENTS);
+    ASSERT_TRUE(ret == RCL_RET_OK) << rcl_get_error_string().str;
+  }
+
+  bool wait_for_send_goal_service_event_subscription_to_be_ready(
+    size_t max_tries, int64_t period_ms)
+  {
+    return wait_for_subscription_to_be_ready(
+      send_goal_service_event_sub_ptr,
+      max_tries,
+      period_ms);
+  }
+
+  bool wait_for_cancel_goal_service_event_subscription_to_be_ready(
+    size_t max_tries, int64_t period_ms)
+  {
+    return wait_for_subscription_to_be_ready(
+      cancel_goal_service_event_sub_ptr,
+      max_tries,
+      period_ms);
+  }
+
+  bool wait_for_get_result_service_event_subscription_to_be_ready(
+    size_t max_tries, int64_t period_ms)
+  {
+    return wait_for_subscription_to_be_ready(
+      get_result_service_event_sub_ptr,
+      max_tries,
+      period_ms);
+  }
+
+  std::string send_goal_service_event_topic_name;
+  std::string cancel_goal_service_event_topic_name;
+  std::string get_result_service_event_topic_name;
+  rcl_subscription_t * send_goal_service_event_sub_ptr;
+  rcl_subscription_t * cancel_goal_service_event_sub_ptr;
+  rcl_subscription_t * get_result_service_event_sub_ptr;
+
+private:
+  bool wait_for_subscription_to_be_ready(
+    rcl_subscription_t * subscription,
+    size_t max_tries,
+    int64_t period_ms)
+  {
+    rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+    rcl_ret_t ret =
+      rcl_wait_set_init(&wait_set, 1, 0, 0, 0, 0, 0, &context, rcl_get_default_allocator());
+    if (ret != RCL_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        ROS_PACKAGE_NAME, "Error in wait set init: %s", rcl_get_error_string().str);
+      return false;
+    }
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      if (rcl_wait_set_fini(&wait_set) != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error in wait set fini: %s", rcl_get_error_string().str);
+        throw std::runtime_error("error waiting for service to be ready");
+      }
+    });
+    size_t iteration = 0;
+    while (iteration < max_tries) {
+      ++iteration;
+      if (rcl_wait_set_clear(&wait_set) != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME, "Error in wait_set_clear: %s", rcl_get_error_string().str);
+        return false;
+      }
+      if (rcl_wait_set_add_subscription(&wait_set, subscription, NULL) != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(
+          ROS_PACKAGE_NAME,
+          "Error in rcl_wait_set_add_subscription: %s", rcl_get_error_string().str);
+        return false;
+      }
+      ret = rcl_wait(&wait_set, RCL_MS_TO_NS(period_ms));
+      if (ret == RCL_RET_TIMEOUT) {
+        continue;
+      }
+      if (ret != RCL_RET_OK) {
+        RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Error in wait: %s", rcl_get_error_string().str);
+        return false;
+      }
+      for (size_t i = 0; i < wait_set.size_of_subscriptions; ++i) {
+        if (wait_set.subscriptions[i] && wait_set.subscriptions[i] == subscription) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+};
+
+// The following test primarily verifies that when the action server/action client sets
+// introspection to contents, all three internal services successfully set introspection
+// to contents.
+
+TEST_F(TestActionIntrospection, test_action_server_valid_send_goal_service_event)
+{
+  // Enable introspection for action server
+  enable_action_server_introspection();
+
+  test_msgs__action__Fibonacci_SendGoal_Request outgoing_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Request incoming_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Request__init(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__init(&incoming_goal_request);
+
+  // Initialize goal request
+  init_test_uuid0(outgoing_goal_request.goal_id.uuid);
+  outgoing_goal_request.goal.order = 10;
+
+  // Send goal request with valid arguments
+  int64_t sequence_number;
+  rcl_ret_t ret = rcl_action_send_goal_request(
+    &action_client, &outgoing_goal_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_server(&wait_set, &action_server, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&wait_set, RCL_S_TO_NS(10));
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &wait_set,
+    &action_server,
+    &is_goal_request_ready,
+    &is_cancel_request_ready,
+    &is_result_request_ready,
+    &is_goal_expired);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  EXPECT_TRUE(is_goal_request_ready) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_cancel_request_ready) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_result_request_ready) << rcl_get_error_string().str;
+
+  // Take goal request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_goal_request(&action_server, &request_header, &incoming_goal_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check that send goal service event was received correctly
+  ASSERT_TRUE(wait_for_send_goal_service_event_subscription_to_be_ready(5, 100));
+  test_msgs__action__Fibonacci_SendGoal_Event send_goal_event;
+  test_msgs__action__Fibonacci_SendGoal_Event__init(&send_goal_event);
+  rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+  ret = rcl_take(send_goal_service_event_sub_ptr, &send_goal_event, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_RECEIVED, send_goal_event.info.event_type);
+  // Check that the request part of the service event contains content
+  ASSERT_GT(send_goal_event.request.size, 0);
+
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&incoming_goal_request);
+}
+
+TEST_F(TestActionIntrospection, test_action_server_valid_cancel_goal_service_event)
+{
+  // Enable introspection for action server
+  enable_action_server_introspection();
+
+  action_msgs__srv__CancelGoal_Request outgoing_cancel_request;
+  action_msgs__srv__CancelGoal_Request incoming_cancel_request;
+  action_msgs__srv__CancelGoal_Request__init(&outgoing_cancel_request);
+  action_msgs__srv__CancelGoal_Request__init(&incoming_cancel_request);
+
+  // Initialize cancel request
+  init_test_uuid0(outgoing_cancel_request.goal_info.goal_id.uuid);
+  outgoing_cancel_request.goal_info.stamp.sec = 321;
+  outgoing_cancel_request.goal_info.stamp.nanosec = 987654u;
+
+  // Send cancel request with valid arguments
+  int64_t sequence_number = 1324;
+  rcl_ret_t ret = rcl_action_send_cancel_request(
+    &action_client, &outgoing_cancel_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_server(&wait_set, &action_server, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&wait_set, RCL_S_TO_NS(10));
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &wait_set,
+    &action_server,
+    &is_goal_request_ready,
+    &is_cancel_request_ready,
+    &is_result_request_ready,
+    &is_goal_expired);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  EXPECT_TRUE(is_cancel_request_ready);
+  EXPECT_FALSE(is_goal_request_ready);
+  EXPECT_FALSE(is_result_request_ready);
+
+  // Take cancel request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_cancel_request(
+    &action_server, &request_header, &incoming_cancel_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check that cancel goal service event was received correctly
+  ASSERT_TRUE(wait_for_cancel_goal_service_event_subscription_to_be_ready(5, 100));
+  action_msgs__srv__CancelGoal_Event cancel_event;
+  action_msgs__srv__CancelGoal_Event__init(&cancel_event);
+  rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+  ret = rcl_take(cancel_goal_service_event_sub_ptr, &cancel_event, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_RECEIVED, cancel_event.info.event_type);
+  // Check that the request part of the service event contains content.
+  ASSERT_GT(cancel_event.request.size, 0);
+
+  action_msgs__srv__CancelGoal_Request__fini(&incoming_cancel_request);
+  action_msgs__srv__CancelGoal_Request__fini(&outgoing_cancel_request);
+}
+
+TEST_F(TestActionIntrospection, test_action_server_valid_get_result_service_event)
+{
+  // Enable introspection for action server
+  enable_action_server_introspection();
+
+  test_msgs__action__Fibonacci_GetResult_Request outgoing_result_request;
+  test_msgs__action__Fibonacci_GetResult_Request incoming_result_request;
+  test_msgs__action__Fibonacci_GetResult_Request__init(&outgoing_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__init(&incoming_result_request);
+
+  // Initialize result request
+  init_test_uuid0(outgoing_result_request.goal_id.uuid);
+
+  // Send result request with valid arguments
+  int64_t sequence_number;
+  rcl_ret_t ret = rcl_action_send_result_request(
+    &this->action_client, &outgoing_result_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &this->wait_set,
+    &this->action_server,
+    &this->is_goal_request_ready,
+    &this->is_cancel_request_ready,
+    &this->is_result_request_ready,
+    &this->is_goal_expired);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  EXPECT_TRUE(this->is_result_request_ready);
+  EXPECT_FALSE(this->is_cancel_request_ready);
+  EXPECT_FALSE(this->is_goal_request_ready);
+
+  // Take result request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_result_request(
+    &this->action_server, &request_header, &incoming_result_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check that get result service event was received correctly
+  ASSERT_TRUE(wait_for_get_result_service_event_subscription_to_be_ready(5, 100));
+  test_msgs__action__Fibonacci_GetResult_Event get_result_event;
+  test_msgs__action__Fibonacci_GetResult_Event__init(&get_result_event);
+  rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+  ret = rcl_take(get_result_service_event_sub_ptr, &get_result_event, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_RECEIVED,
+    get_result_event.info.event_type);
+  // Check that the request part of the service event contains content
+  ASSERT_GT(get_result_event.request.size, 0);
+
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&incoming_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&outgoing_result_request);
+}
+
+TEST_F(TestActionIntrospection, test_action_client_valid_send_goal_service_event)
+{
+  // Enable introspection for action client
+  enable_action_client_introspection();
+
+  test_msgs__action__Fibonacci_SendGoal_Request outgoing_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Request incoming_goal_request;
+  test_msgs__action__Fibonacci_SendGoal_Request__init(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__init(&incoming_goal_request);
+
+  // Initialize goal request
+  init_test_uuid0(outgoing_goal_request.goal_id.uuid);
+  outgoing_goal_request.goal.order = 10;
+
+  // Send goal request with valid arguments
+  int64_t sequence_number;
+  rcl_ret_t ret = rcl_action_send_goal_request(
+    &action_client, &outgoing_goal_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_server(&wait_set, &action_server, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&wait_set, RCL_S_TO_NS(10));
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &wait_set,
+    &action_server,
+    &is_goal_request_ready,
+    &is_cancel_request_ready,
+    &is_result_request_ready,
+    &is_goal_expired);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  EXPECT_TRUE(is_goal_request_ready) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_cancel_request_ready) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_result_request_ready) << rcl_get_error_string().str;
+
+  // Take goal request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_goal_request(&action_server, &request_header, &incoming_goal_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check that send goal service event was received correctly
+  ASSERT_TRUE(wait_for_send_goal_service_event_subscription_to_be_ready(5, 100));
+  test_msgs__action__Fibonacci_SendGoal_Event send_goal_event;
+  test_msgs__action__Fibonacci_SendGoal_Event__init(&send_goal_event);
+  rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+  ret = rcl_take(send_goal_service_event_sub_ptr, &send_goal_event, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_SENT, send_goal_event.info.event_type);
+  // Check that the request part of the service event contains content.
+  ASSERT_GT(send_goal_event.request.size, 0);
+
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&outgoing_goal_request);
+  test_msgs__action__Fibonacci_SendGoal_Request__fini(&incoming_goal_request);
+}
+
+TEST_F(TestActionIntrospection, test_action_client_valid_cancel_goal_service_event)
+{
+  // Enable introspection for action client
+  enable_action_client_introspection();
+
+  action_msgs__srv__CancelGoal_Request outgoing_cancel_request;
+  action_msgs__srv__CancelGoal_Request incoming_cancel_request;
+  action_msgs__srv__CancelGoal_Request__init(&outgoing_cancel_request);
+  action_msgs__srv__CancelGoal_Request__init(&incoming_cancel_request);
+
+  // Initialize cancel request
+  init_test_uuid0(outgoing_cancel_request.goal_info.goal_id.uuid);
+  outgoing_cancel_request.goal_info.stamp.sec = 321;
+  outgoing_cancel_request.goal_info.stamp.nanosec = 987654u;
+
+  // Send cancel request with valid arguments
+  int64_t sequence_number = 1324;
+  rcl_ret_t ret = rcl_action_send_cancel_request(
+    &action_client, &outgoing_cancel_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_server(&wait_set, &action_server, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&wait_set, RCL_S_TO_NS(10));
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &wait_set,
+    &action_server,
+    &is_goal_request_ready,
+    &is_cancel_request_ready,
+    &is_result_request_ready,
+    &is_goal_expired);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  EXPECT_TRUE(is_cancel_request_ready);
+  EXPECT_FALSE(is_goal_request_ready);
+  EXPECT_FALSE(is_result_request_ready);
+
+  // Take cancel request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_cancel_request(
+    &action_server, &request_header, &incoming_cancel_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check that cancel goal service event was received correctly
+  ASSERT_TRUE(wait_for_cancel_goal_service_event_subscription_to_be_ready(5, 100));
+  action_msgs__srv__CancelGoal_Event cancel_event;
+  action_msgs__srv__CancelGoal_Event__init(&cancel_event);
+  rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+  ret = rcl_take(cancel_goal_service_event_sub_ptr, &cancel_event, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_SENT, cancel_event.info.event_type);
+  // Check that the request part of the service event contains content.
+  ASSERT_GT(cancel_event.request.size, 0);
+
+  action_msgs__srv__CancelGoal_Request__fini(&incoming_cancel_request);
+  action_msgs__srv__CancelGoal_Request__fini(&outgoing_cancel_request);
+}
+
+TEST_F(TestActionIntrospection, test_action_client_valid_get_result_service_event)
+{
+  // Enable introspection for action client
+  enable_action_client_introspection();
+
+  test_msgs__action__Fibonacci_GetResult_Request outgoing_result_request;
+  test_msgs__action__Fibonacci_GetResult_Request incoming_result_request;
+  test_msgs__action__Fibonacci_GetResult_Request__init(&outgoing_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__init(&incoming_result_request);
+
+  // Initialize result request
+  init_test_uuid0(outgoing_result_request.goal_id.uuid);
+
+  // Send result request with valid arguments
+  int64_t sequence_number;
+  rcl_ret_t ret = rcl_action_send_result_request(
+    &this->action_client, &outgoing_result_request, &sequence_number);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_server(&this->wait_set, &this->action_server, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_server_wait_set_get_entities_ready(
+    &this->wait_set,
+    &this->action_server,
+    &this->is_goal_request_ready,
+    &this->is_cancel_request_ready,
+    &this->is_result_request_ready,
+    &this->is_goal_expired);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  EXPECT_TRUE(this->is_result_request_ready);
+  EXPECT_FALSE(this->is_cancel_request_ready);
+  EXPECT_FALSE(this->is_goal_request_ready);
+
+  // Take result request with valid arguments
+  rmw_request_id_t request_header;
+  ret = rcl_action_take_result_request(
+    &this->action_server, &request_header, &incoming_result_request);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check that get result service event was received correctly
+  ASSERT_TRUE(wait_for_get_result_service_event_subscription_to_be_ready(5, 100));
+  test_msgs__action__Fibonacci_GetResult_Event get_result_event;
+  test_msgs__action__Fibonacci_GetResult_Event__init(&get_result_event);
+  rmw_message_info_t message_info = rmw_get_zero_initialized_message_info();
+  ret = rcl_take(get_result_service_event_sub_ptr, &get_result_event, &message_info, nullptr);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(service_msgs__msg__ServiceEventInfo__REQUEST_SENT, get_result_event.info.event_type);
+  // Check that the request part of the service event contains content
+  ASSERT_GT(get_result_event.request.size, 0);
+
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&incoming_result_request);
+  test_msgs__action__Fibonacci_GetResult_Request__fini(&outgoing_result_request);
 }
