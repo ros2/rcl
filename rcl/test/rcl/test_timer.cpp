@@ -995,7 +995,7 @@ TEST_F(TestPreInitTimer, test_timer_info) {
   rcl_timer_call_info_t call_info;
   call_info.actual_call_time = 0;
   call_info.expected_call_time = 0;
-  int64_t period = RCL_MS_TO_NS(10);
+  int64_t period = RCL_MS_TO_NS(100);
 
   ASSERT_EQ(RCL_RET_OK, rcl_timer_exchange_period(&timer, period, &old_period));
   ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
@@ -1037,7 +1037,7 @@ TEST_F(TestPreInitTimer, test_timer_info_detect_overrun) {
   rcl_timer_call_info_t call_info;
   call_info.actual_call_time = 0;
   call_info.expected_call_time = 0;
-  int64_t period = RCL_MS_TO_NS(10);
+  int64_t period = RCL_MS_TO_NS(100);
 
   ASSERT_EQ(RCL_RET_OK, rcl_timer_exchange_period(&timer, period, &old_period));
   ASSERT_EQ(RCL_RET_OK, rcl_timer_reset(&timer));
