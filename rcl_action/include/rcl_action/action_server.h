@@ -978,7 +978,7 @@ rcl_action_server_is_valid_except_context(const rcl_action_server_t * action_ser
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_action_server_configure_internal_service_introspection(
+rcl_action_server_configure_action_introspection(
   rcl_action_server_t * action_server,
   rcl_node_t * node,
   rcl_clock_t * clock,

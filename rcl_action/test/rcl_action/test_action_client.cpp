@@ -257,7 +257,7 @@ protected:
     pub_opts.qos = rmw_qos_profile_system_default;
 
     rcl_ret_t ret =
-      rcl_action_client_configure_internal_service_introspection(
+      rcl_action_client_configure_action_introspection(
         &action_client,
         &node,
         &clock,

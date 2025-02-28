@@ -773,7 +773,7 @@ rcl_action_client_is_valid(
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_action_client_configure_internal_service_introspection(
+rcl_action_client_configure_action_introspection(
   rcl_action_client_t * action_client,
   rcl_node_t * node,
   rcl_clock_t * clock,
