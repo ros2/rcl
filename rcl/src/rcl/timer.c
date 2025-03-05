@@ -248,8 +248,6 @@ rcl_timer_fini(rcl_timer_t * timer)
   return result;
 }
 
-RCL_PUBLIC
-RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_clock(const rcl_timer_t * timer, rcl_clock_t ** clock)
 {

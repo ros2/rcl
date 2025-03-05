@@ -101,8 +101,6 @@ rcl_action_get_zero_initialized_server(void)
     goto fail; \
   }
 
-RCL_ACTION_PUBLIC
-RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_init(
   rcl_action_server_t * action_server,
@@ -1186,8 +1184,6 @@ rcl_action_server_wait_set_get_entities_ready(
   return RCL_RET_OK;
 }
 
-RCL_ACTION_PUBLIC
-RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_set_goal_service_callback(
   const rcl_action_server_t * action_server,
@@ -1204,8 +1200,6 @@ rcl_action_server_set_goal_service_callback(
     user_data);
 }
 
-RCL_ACTION_PUBLIC
-RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_set_result_service_callback(
   const rcl_action_server_t * action_server,
@@ -1222,8 +1216,6 @@ rcl_action_server_set_result_service_callback(
     user_data);
 }
 
-RCL_ACTION_PUBLIC
-RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_server_set_cancel_service_callback(
   const rcl_action_server_t * action_server,

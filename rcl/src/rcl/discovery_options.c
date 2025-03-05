@@ -86,7 +86,6 @@ rcl_get_automatic_discovery_range(rmw_discovery_options_t * discovery_options)
   return RCL_RET_OK;
 }
 
-RCL_PUBLIC
 const char *
 rcl_automatic_discovery_range_to_string(rmw_automatic_discovery_range_t automatic_discovery_range)
 {
