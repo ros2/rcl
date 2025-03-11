@@ -826,7 +826,7 @@ TEST_F(TestEventFixture, test_event_is_invalid) {
  */
 TEST_F(TestEventFixture, test_sub_message_lost_event)
 {
-  if (!rmw_event_type_is_supported(RMW_EVENT_OFFERED_DEADLINE_MISSED)) {
+  if (!rmw_event_type_is_supported(RMW_EVENT_MESSAGE_LOST)) {
     GTEST_SKIP();
   }
 
