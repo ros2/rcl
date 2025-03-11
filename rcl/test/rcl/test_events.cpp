@@ -826,7 +826,7 @@ TEST_F(TestEventFixture, test_event_is_invalid) {
  */
 TEST_F(TestEventFixture, test_sub_message_lost_event)
 {
-  if (std::string(rmw_get_implementation_identifier()).find("rmw_zenoh_cpp") == 0) {
+  if (!rmw_event_type_is_supported(RMW_EVENT_OFFERED_DEADLINE_MISSED)) {
     GTEST_SKIP();
   }
 
