@@ -754,6 +754,13 @@ TEST_F(TestEventFixture, test_event_is_invalid) {
  */
 TEST_F(TestEventFixture, test_sub_message_lost_event)
 {
+<<<<<<< HEAD
+=======
+  if (!rmw_event_type_is_supported(RMW_EVENT_MESSAGE_LOST)) {
+    GTEST_SKIP();
+  }
+
+>>>>>>> ddae02f (use rmw_event_type_is_supported (#1214))
   const rmw_qos_profile_t subscription_qos_profile = default_qos_profile;
 
   rcl_ret_t ret = setup_subscriber(subscription_qos_profile);
