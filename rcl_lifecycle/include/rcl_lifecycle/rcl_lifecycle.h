@@ -430,6 +430,25 @@ RCL_LIFECYCLE_PUBLIC
 void
 rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine);
 
+/// Print the transition map
+/**
+ * This function will print in the standard output the transition map
+ * of the rcl_lifecycle_state_machine_t struct.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] state_machine pointer to the state machine struct to print the transition map
+ */
+RCL_LIFECYCLE_PUBLIC
+void
+rcl_print_transition_map(const rcl_lifecycle_transition_map_t * transition_map);
+
 #ifdef __cplusplus
 }
 #endif  // extern "C"
