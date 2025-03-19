@@ -443,7 +443,7 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine);
  * Uses Atomics       | No
  * Lock-Free          | Yes
  *
- * \param[in] state_machine pointer to the state machine struct to print the transition map
+ * \param[in] transition_map pointer to the transition map to print
  */
 RCL_LIFECYCLE_PUBLIC
 void
