@@ -81,7 +81,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   # Gtests
-  ament_add_gtest(test_default_state_machine
+  ament_add_ros_isolated_gtest(test_default_state_machine
     test/test_default_state_machine.cpp
   )
   if(TARGET test_default_state_machine)
@@ -96,13 +96,13 @@ if(BUILD_TESTING)
       PUBLIC RCUTILS_ENABLE_FAULT_INJECTION
     )
   endif()
-  ament_add_gtest(test_multiple_instances
+  ament_add_ros_isolated_gtest(test_multiple_instances
     test/test_multiple_instances.cpp
   )
   if(TARGET test_multiple_instances)
     target_link_libraries(test_multiple_instances ${PROJECT_NAME} ${lifecycle_msgs_TARGETS} osrf_testing_tools_cpp::memory_tools rcl::rcl)
   endif()
-  ament_add_gtest(test_rcl_lifecycle
+  ament_add_ros_isolated_gtest(test_rcl_lifecycle
     test/test_rcl_lifecycle.cpp
   )
   if(TARGET test_rcl_lifecycle)
@@ -117,7 +117,7 @@ if(BUILD_TESTING)
       PUBLIC RCUTILS_ENABLE_FAULT_INJECTION
     )
   endif()
-  ament_add_gtest(test_transition_map
+  ament_add_ros_isolated_gtest(test_transition_map
     test/test_transition_map.cpp
   )
   if(TARGET test_transition_map)
