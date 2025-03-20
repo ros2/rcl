@@ -411,39 +411,27 @@ rcl_lifecycle_trigger_transition_by_label(
   const char * label,
   bool publish_notification);
 
-/// Print the state machine data
+/// Log the state machine data
 /**
- * This function will print in the standard output the data in the
+ * This function will log the all data in the state machine
  * rcl_lifecycle_state_machine_t struct.
  *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
+ * the logging level must be INFO or a more verbose level (e.g., DEBUG).
  *
- * \param[in] state_machine pointer to the state machine struct to print
+ * \param[in] state_machine pointer to the state machine struct to log
  */
 RCL_LIFECYCLE_PUBLIC
 void
 rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine);
 
-/// Print the transition map
+/// Log the transition map
 /**
- * This function will print in the standard output the transition map
- * of the rcl_lifecycle_state_machine_t struct.
+ * This function will log the all data in the transition map
+ * rcl_lifecycle_state_machine_t struct.
  *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
+ * the logging level must be INFO or a more verbose level (e.g., DEBUG).
  *
- * \param[in] transition_map pointer to the transition map to print
+ * \param[in] transition_map pointer to the transition map to log
  */
 RCL_LIFECYCLE_PUBLIC
 void
