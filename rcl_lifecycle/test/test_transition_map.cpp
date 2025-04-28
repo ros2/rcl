@@ -162,3 +162,46 @@ TEST_F(TestTransitionMap, initialized) {
 
   EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_fini(&transition_map, &allocator));
 }
+
+TEST_F(TestTransitionMap, get_label_by_id) {
+  rcl_lifecycle_transition_map_t transition_map =
+    rcl_lifecycle_get_zero_initialized_transition_map();
+
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+
+  rcl_lifecycle_state_t state0 = {"my_state_0", 0, NULL, 0};
+  rcl_ret_t ret = rcl_lifecycle_register_state(&transition_map, state0, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_is_initialized(&transition_map));
+
+  rcl_lifecycle_state_t state1 = {"my_state_1", 1, NULL, 0};
+  ret = rcl_lifecycle_register_state(&transition_map, state1, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_is_initialized(&transition_map));
+
+  rcl_lifecycle_state_t * start_state =
+    rcl_lifecycle_get_state(&transition_map, state0.id);
+  rcl_lifecycle_state_t * goal_state =
+    rcl_lifecycle_get_state(&transition_map, state1.id);
+  EXPECT_EQ(0u, start_state->id);
+  EXPECT_EQ(1u, goal_state->id);
+
+  rcl_lifecycle_transition_t transition01 = {"from0to1", 0,
+    start_state, goal_state};
+  ret = rcl_lifecycle_register_transition(
+    &transition_map, transition01, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(1u, transition_map.transitions_size);
+
+  rcl_lifecycle_transition_t transition10 = {"from1to0", 1,
+    goal_state, start_state};
+  ret = rcl_lifecycle_register_transition(
+    &transition_map, transition10, &allocator);
+  EXPECT_EQ(RCL_RET_OK, ret);
+  EXPECT_EQ(2u, transition_map.transitions_size);
+
+  EXPECT_STREQ("from0to1", rcl_lifecycle_get_transition_label_by_id(&transition_map, 0));
+  EXPECT_STREQ("from1to0", rcl_lifecycle_get_transition_label_by_id(&transition_map, 1));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_fini(&transition_map, &allocator));
+}

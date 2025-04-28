@@ -345,6 +345,24 @@ rcl_lifecycle_get_transition_by_label(
   return NULL;
 }
 
+const char *
+rcl_lifecycle_get_transition_label_by_id(
+  const rcl_lifecycle_transition_map_t * transition_map,
+  uint8_t transition_id)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    transition_map, "transition_map pointer is null\n", return NULL);
+
+  for (unsigned int i = 0; i < transition_map->transitions_size; ++i) {
+    if (transition_map->transitions[i].id == transition_id) {
+      return transition_map->transitions[i].label;
+    }
+  }
+
+  RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("transition with id %u not found\n", transition_id);
+  return NULL;
+}
+
 rcl_ret_t
 _trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
