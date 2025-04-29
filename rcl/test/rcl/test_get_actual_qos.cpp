@@ -283,12 +283,6 @@ expected_default_qos_profile()
 }
 
 static constexpr rmw_qos_profile_t
-expected_nondefault_qos_profile()
-{
-  return nondefault_qos_profile();
-}
-
-static constexpr rmw_qos_profile_t
 expected_nondefault_qos_profile_for_fastrtps()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
@@ -305,35 +299,11 @@ expected_nondefault_qos_profile_for_fastrtps()
 }
 
 static constexpr rmw_qos_profile_t
-expected_system_default_publisher_qos_profile()
-{
-  rmw_qos_profile_t profile = rmw_qos_profile_default;
-  profile.depth = 1;
-  profile.deadline.sec = 2147483647;
-  profile.lifespan.sec = 2147483647;
-  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
-  return profile;
-}
-
-static constexpr rmw_qos_profile_t
 expected_system_default_publisher_qos_profile_for_fastrtps()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
   profile.depth = 1;
   profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
-  return profile;
-}
-
-static constexpr rmw_qos_profile_t
-expected_system_default_subscription_qos_profile()
-{
-  rmw_qos_profile_t profile = rmw_qos_profile_default;
-  profile.depth = 1;
-  profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  profile.deadline.sec = 2147483647;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
   profile.liveliness_lease_duration.sec = 2147483647;
   return profile;
