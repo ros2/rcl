@@ -235,22 +235,6 @@ TEST_P(TestSubscriptionGetActualQoS, test_subscription_get_qos_settings)
 //
 
 static constexpr rmw_qos_profile_t
-nondefault_qos_profile()
-{
-  rmw_qos_profile_t profile = rmw_qos_profile_default;
-  profile.history = RMW_QOS_POLICY_HISTORY_KEEP_ALL;
-  profile.depth = 1000;
-  profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  profile.deadline.sec = 1;
-  profile.lifespan.nsec = 500000;
-  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 1;
-  profile.avoid_ros_namespace_conventions = true;
-  return profile;
-}
-
-static constexpr rmw_qos_profile_t
 nondefault_qos_profile_for_fastrtps()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
