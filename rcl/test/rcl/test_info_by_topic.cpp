@@ -118,6 +118,8 @@ public:
       qos_profile1.liveliness_lease_duration.nsec,
       qos_profile2.liveliness_lease_duration.nsec);
     EXPECT_EQ(qos_profile1.durability, qos_profile2.durability);
+    EXPECT_EQ(qos_profile1.history, qos_profile2.history);
+    EXPECT_EQ(qos_profile1.depth, qos_profile2.depth);
   }
 };
 
@@ -303,7 +305,7 @@ TEST_F(TestInfoByTopicFixture, test_rcl_get_publishers_subscription_info_by_topi
 {
   rmw_qos_profile_t default_qos_profile = rmw_qos_profile_system_default;
   default_qos_profile.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-  default_qos_profile.depth = 0;
+  default_qos_profile.depth = 9;
   default_qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   default_qos_profile.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
   default_qos_profile.lifespan = {10, 0};
