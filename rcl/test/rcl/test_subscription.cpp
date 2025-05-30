@@ -1397,14 +1397,15 @@ TEST_F(TestSubscriptionFixtureInit, test_subscription_bad_take) {
 }
 
 TEST_F(TestSubscriptionFixture, test_subscription_option_ignore_local_publications) {
-  // The current Implementations of DDS for ignoring local publications
+  // The current Implementations for ignoring local publications
   // While creating a subscription, the ignore_local_publications option is set to true
-  //                                               Notification of message
-  //            Connected to local publications    from local publication      Take data
-  //            -------------------------------    -----------------------      ---------
-  // Fastdds               Yes                               Yes                   No
-  // Cyclonedds            No                                 -                    -
-  // Zenoh                 Yes                                -                    -
+  //                                                      Notification of message
+  //                   Connected to local publications    from local publication      Take data
+  //                   -------------------------------    -----------------------      ---------
+  // rmw_fastrtps               Yes                               Yes                     No
+  // rmw_cyclonedds             No                                No                      No
+  // rmw_zenoh                  Yes                               No                      No
+  // rmw_connextdds             Yes                               Yes                     No
 
   rcl_ret_t ret;
 
