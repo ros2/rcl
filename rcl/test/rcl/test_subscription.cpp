@@ -1404,7 +1404,6 @@ TEST_F(TestSubscriptionFixture, test_subscription_option_ignore_local_publicatio
   //                   -------------------------------    -----------------------      ---------
   // rmw_fastrtps               Yes                               Yes                     No
   // rmw_cyclonedds             No                                No                      No
-  // rmw_zenoh                  Yes                               No                      No
   // rmw_connextdds             Yes                               Yes                     No
 
   rcl_ret_t ret;
