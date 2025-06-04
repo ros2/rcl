@@ -1374,7 +1374,10 @@ TEST_F(CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION), test_subscrip
   rcl_reset_error();
 }
 
-TEST_F(TestSubscriptionFixture, test_subscription_option_ignore_local_publications) {
+TEST_F(
+  CLASSNAME(TestSubscriptionFixtureInit, RMW_IMPLEMENTATION),
+  test_subscription_option_ignore_local_publications)
+{
   // The current Implementations for ignoring local publications
   // While creating a subscription, the ignore_local_publications option is set to true
   //                                                      Notification of message
@@ -1490,7 +1493,8 @@ TEST_F(TestSubscriptionFixture, test_subscription_option_ignore_local_publicatio
     size_t initial_serialization_capacity = 0u;
     auto allocator = rcl_get_default_allocator();
     rmw_message_info_t message_info;
-    ASSERT_EQ(RCL_RET_OK,
+    ASSERT_EQ(
+      RCL_RET_OK,
       rmw_serialized_message_init(&serialized_msg, initial_serialization_capacity, &allocator));
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
@@ -1506,7 +1510,8 @@ TEST_F(TestSubscriptionFixture, test_subscription_option_ignore_local_publicatio
     size_t initial_serialization_capacity = 0u;
     auto allocator = rcl_get_default_allocator();
     rmw_message_info_t message_info;
-    ASSERT_EQ(RCL_RET_OK,
+    ASSERT_EQ(
+      RCL_RET_OK,
       rmw_serialized_message_init(&serialized_msg, initial_serialization_capacity, &allocator));
     OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
     {
