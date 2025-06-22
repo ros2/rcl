@@ -29,11 +29,13 @@ extern "C"
 #include "rcutils/types.h"
 #include "rmw/error_handling.h"
 #include "rmw/get_node_info_and_types.h"
+#include "rmw/get_service_endpoint_info.h"
 #include "rmw/get_service_names_and_types.h"
 #include "rmw/get_topic_endpoint_info.h"
 #include "rmw/get_topic_names_and_types.h"
 #include "rmw/names_and_types.h"
 #include "rmw/rmw.h"
+#include "rmw/service_endpoint_info_array.h"
 #include "rmw/topic_endpoint_info_array.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
@@ -667,6 +669,45 @@ rcl_wait_for_subscribers(
     rcl_count_subscribers);
 }
 
+
+rcl_ret_t
+rcl_wait_for_clients(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  const char * service_name,
+  const size_t expected_count,
+  rcutils_duration_value_t timeout,
+  bool * success)
+{
+  return _rcl_wait_for_entities(
+    node,
+    allocator,
+    service_name,
+    expected_count,
+    timeout,
+    success,
+    rcl_count_clients);
+}
+
+rcl_ret_t
+rcl_wait_for_servers(
+  const rcl_node_t * node,
+  rcl_allocator_t * allocator,
+  const char * service_name,
+  const size_t expected_count,
+  rcutils_duration_value_t timeout,
+  bool * success)
+{
+  return _rcl_wait_for_entities(
+    node,
+    allocator,
+    service_name,
+    expected_count,
+    timeout,
+    success,
+    rcl_count_services);
+}
+
 typedef rmw_ret_t (* get_topic_endpoint_info_func_t)(
   const rmw_node_t * node,
   rcutils_allocator_t * allocator,
@@ -749,6 +790,90 @@ rcl_get_subscriptions_info_by_topic(
     no_mangle,
     subscriptions_info,
     rmw_get_subscriptions_info_by_topic);
+}
+
+typedef rmw_ret_t (* get_service_endpoint_info_func_t)(
+  const rmw_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * service_name,
+  bool no_mangle,
+  rmw_service_endpoint_info_array_t * info_array);
+
+rcl_ret_t
+__rcl_get_info_by_service(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * service_name,
+  bool no_mangle,
+  rmw_service_endpoint_info_array_t * info_array,
+  get_service_endpoint_info_func_t get_service_endpoint_info)
+{
+  if (!rcl_node_is_valid(node)) {
+    return RCL_RET_NODE_INVALID;  // error already set.
+  }
+  const rcl_node_options_t * node_options = rcl_node_get_options(node);
+  if (!node_options) {
+    return RCL_RET_NODE_INVALID;  // shouldn't happen, but error is already set if so
+  }
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(service_name, RCL_RET_INVALID_ARGUMENT);
+  rmw_error_string_t error_string;
+  rmw_ret_t rmw_ret = rmw_service_endpoint_info_array_check_zero(info_array);
+  if (rmw_ret != RMW_RET_OK) {
+    error_string = rmw_get_error_string();
+    rmw_reset_error();
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "rmw_service_endpoint_info_array_t must be zero initialized: %s,\n"
+      "Use rmw_get_zero_initialized_service_endpoint_info_array",
+      error_string.str);
+    return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+  }
+  rmw_ret = get_service_endpoint_info(
+    rcl_node_get_rmw_handle(node),
+    allocator,
+    service_name,
+    no_mangle,
+    info_array);
+  if (rmw_ret != RMW_RET_OK) {
+    error_string = rmw_get_error_string();
+    rmw_reset_error();
+    RCL_SET_ERROR_MSG(error_string.str);
+  }
+  return rcl_convert_rmw_ret_to_rcl_ret(rmw_ret);
+}
+
+rcl_ret_t
+rcl_get_clients_info_by_service(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * service_name,
+  bool no_mangle,
+  rmw_service_endpoint_info_array_t * clients_info)
+{
+  return __rcl_get_info_by_service(
+    node,
+    allocator,
+    service_name,
+    no_mangle,
+    clients_info,
+    rmw_get_clients_info_by_service);
+}
+
+rcl_ret_t
+rcl_get_servers_info_by_service(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * service_name,
+  bool no_mangle,
+  rmw_service_endpoint_info_array_t * servers_info)
+{
+  return __rcl_get_info_by_service(
+    node,
+    allocator,
+    service_name,
+    no_mangle,
+    servers_info,
+    rmw_get_servers_info_by_service);
 }
 
 rcl_ret_t
