@@ -22,6 +22,8 @@ extern "C"
 {
 #endif
 
+#include <stddef.h>
+
 #include <rmw/names_and_types.h>
 #include <rmw/get_topic_names_and_types.h>
 #include <rmw/service_endpoint_info_array.h>

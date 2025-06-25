@@ -17,16 +17,19 @@ extern "C"
 {
 #endif
 
-#include "rcl/graph.h"
+#include <stddef.h>
 
+#include "rcl/graph.h"
 #include "rcl/error_handling.h"
 #include "rcl/guard_condition.h"
 #include "rcl/wait.h"
+
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
 #include "rcutils/macros.h"
 #include "rcutils/time.h"
 #include "rcutils/types.h"
+
 #include "rmw/error_handling.h"
 #include "rmw/get_node_info_and_types.h"
 #include "rmw/get_service_endpoint_info.h"

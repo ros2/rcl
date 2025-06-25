@@ -76,7 +76,8 @@ ament_add_gtest_executable(test_info_by_service
   rcl/test_info_by_service.cpp
 )
 target_link_libraries(test_info_by_service
-  ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+  ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
+)
 
 ament_add_gtest_executable(test_count_matched
   rcl/test_count_matched.cpp
