@@ -60,8 +60,9 @@ typedef rcutils_duration_value_t rcl_duration_value_t;
  *
  * RCL_RAW_STEADY_TIME reports a value from a monotonic clock that is not
  * adjusted for time jumps, such as those caused by NTP synchronization.
- * This clock is not suitable for measuring elapsed time, but can be used to
- * measure time intervals without being affected by system time changes.
+ * This clock is suitable for measuring the time intervals without being
+ * affected by system time changes. This is true for the systems supporting
+ * the CLOCK_MONOTONIC_RAW clock type.
  */
 typedef enum rcl_clock_type_e
 {
