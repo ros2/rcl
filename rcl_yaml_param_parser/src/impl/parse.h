@@ -55,7 +55,8 @@ rcutils_ret_t write_structured_parameter_to_string(
   yaml_parser_t * parser,
   yaml_event_t * current_event,
   uint32_t * map_depth,
-  size_t * parameter_index,
+  const size_t node_index,
+  const size_t parameter_index,
   rcl_params_t * params_st);
 
 RCL_YAML_PARAM_PARSER_PUBLIC
