@@ -757,6 +757,7 @@ rcutils_ret_t write_structured_parameter_to_string(
   rcutils_ret_t ret;
 
   size_t nest_depth = *map_depth;
+  rcutils_allocator_t allocator = params_st->allocator;
 
   //TODO: Move string length to a macro
   size_t max_string_length = 100000;
@@ -821,6 +822,11 @@ rcutils_ret_t write_structured_parameter_to_string(
       case YAML_MAPPING_END_EVENT:
         (*map_depth)--;
         break;
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
+
+  rcutils_allocator_t allocator = params_st->allocator;
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
       
       default:
         break;
@@ -846,6 +852,16 @@ rcutils_ret_t write_structured_parameter_to_string(
   printf("OUT_STRING:\n");
   printf("%s\n", nested_param_string_allocator);
 
+  char* copied_yaml = rcutils_strdup(nested_param_string_allocator, allocator);
+
+  rcl_variant_t * param_value = &(params_st->params[node_index].parameter_values[parameter_index]);
+  
+  if (param_value->yaml_value != NULL)
+  {
+    // Overwriting, deallocate original
+    allocator.deallocate(param_value->yaml_value, allocator.state);
+  }
+  param_value->string_value = (char *) copied_yaml;
   // Clear the buffer for the next run
   memset((void*) nested_param_string_allocator, 0U, written_size);
   return ret;
