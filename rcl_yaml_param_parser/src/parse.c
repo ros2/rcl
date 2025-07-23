@@ -746,6 +746,112 @@ rcutils_ret_t parse_key(
   return ret;
 }
 
+rcutils_ret_t write_structured_parameter_to_string(
+  yaml_parser_t * parser,
+  yaml_event_t * current_event,
+  uint32_t * map_depth,
+  size_t * parameter_index,
+  rcl_params_t * params_st)
+{
+  rcutils_ret_t ret;
+
+  size_t nest_depth = *map_depth;
+
+  //TODO: Move string length to a macro
+  size_t max_string_length = 100000;
+  static unsigned char nested_param_string_allocator[100000];
+
+  yaml_emitter_t  emitter;
+  yaml_emitter_initialize(&emitter);
+
+  // Reset output buffer
+  size_t written_size = 0;
+  yaml_emitter_set_output_string(&emitter, nested_param_string_allocator, max_string_length, &written_size);
+
+  // Set initial events
+  yaml_event_t event;
+  yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
+  if (!yaml_emitter_emit(&emitter, &event))
+  {
+    ret = RCUTILS_RET_ERROR;
+  }
+
+  yaml_document_start_event_initialize(&event, NULL, NULL, NULL, 0);
+  if (!yaml_emitter_emit(&emitter, &event))
+  {
+    ret = RCUTILS_RET_ERROR;
+  }
+
+  if (!yaml_emitter_emit(&emitter, current_event))
+  {
+    ret = RCUTILS_RET_ERROR;
+  }
+
+
+  uint32_t line_num = 0;
+  // Parse the yaml here till our current map depth less than the depth at which we discovered the nesting
+  while (*map_depth >= nest_depth)
+  {
+    int success = yaml_parser_parse(parser, &event);
+
+    if (0 == success) {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Error parsing a event near line %d", line_num);
+      ret = RCUTILS_RET_ERROR;
+      break;
+    }
+
+    line_num = ((uint32_t)(event.start_mark.line) + 1U);
+    if (!yaml_emitter_emit(&emitter, &event))
+    {
+      ret = RCUTILS_RET_ERROR;
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Error emitting structured yaml event near line %d", line_num);
+      break;
+    }
+
+    switch (event.type)
+    {
+      case YAML_MAPPING_START_EVENT:
+        (*map_depth)++;
+        /* code */
+        break;
+
+      case YAML_MAPPING_END_EVENT:
+        (*map_depth)--;
+        break;
+      
+      default:
+        break;
+    }
+    printf("Map depth: %lu\n", *map_depth);
+    printf("Nest depth: %lu\n", nest_depth);
+
+  }
+
+  yaml_document_end_event_initialize(&event, 0);
+  if (!yaml_emitter_emit(&emitter, &event))
+  {
+    ret = RCUTILS_RET_ERROR;
+  }
+
+  yaml_stream_end_event_initialize(&event);
+  if (!yaml_emitter_emit(&emitter, &event))
+  {
+    ret = RCUTILS_RET_ERROR;
+  }
+
+  yaml_emitter_delete(&emitter);
+  printf("OUT_STRING:\n");
+  printf("%s\n", nested_param_string_allocator);
+
+  // Clear the buffer for the next run
+  memset((void*) nested_param_string_allocator, 0U, written_size);
+  return ret;
+}
+
+
+
 ///
 /// Get events from parsing a parameter YAML file and process them
 ///
@@ -756,6 +862,7 @@ rcutils_ret_t parse_file_events(
 {
   int32_t done_parsing = 0;
   bool is_key = true;
+  bool is_key_value_pair_found = true;
   bool is_seq = false;
   uint32_t line_num = 0;
   data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
@@ -794,6 +901,10 @@ rcutils_ret_t parse_file_events(
         {
           /// Need to toggle between key and value at params level
           if (is_key) {
+            // If we're at the parameter level, set this flag to denote a value for the key has not been found yet
+            if (map_level == MAP_PARAMS_LVL) {
+              is_key_value_pair_found = false;
+            }
             ret = parse_key(
               event, &map_level, &is_new_map, &node_idx, &parameter_idx, ns_tracker, params_st);
             if (RCUTILS_RET_OK != ret) {
@@ -821,6 +932,8 @@ rcutils_ret_t parse_file_events(
               return RCUTILS_RET_ERROR;
             }
             ret = parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st);
+            is_key_value_pair_found = true;
+
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -859,6 +972,17 @@ rcutils_ret_t parse_file_events(
           ((map_depth - (ns_tracker->num_node_ns + 1U)) == 2U))
         {
           is_new_map = false;
+        }
+        // If we're at the param level
+        if (map_level == MAP_PARAMS_LVL) {
+        // If a value has not been found for the previous key, and we get a new mapping event,
+        // In theory, this means we have a nested yaml struct
+          if (is_key_value_pair_found == false) {
+            printf("Nested key at line %u with map depth %u\n", line_num, map_depth);
+            write_structured_parameter_to_string(parser, &event, &map_depth, &parameter_idx, params_st);
+            is_key_value_pair_found = true;
+            is_key = true;
+          }
         }
         break;
       case YAML_MAPPING_END_EVENT:
