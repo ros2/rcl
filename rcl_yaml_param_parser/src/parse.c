@@ -274,6 +274,7 @@ rcutils_ret_t parse_value(
     return RCUTILS_RET_ERROR;
   }
 
+  // TODO (karahul209@gmail.com): Combine this with the parameter allocation part of `write_structured_parameter_to_string` and put everything in a seperate function
   rcutils_ret_t ret = RCUTILS_RET_OK;
   switch (val_type) {
     case DATA_TYPE_UNKNOWN:
@@ -754,14 +755,19 @@ rcutils_ret_t write_structured_parameter_to_string(
   const size_t parameter_index,
   rcl_params_t * params_st)
 {
-  rcutils_ret_t ret;
+  //TODO (karahul209@gmail.com): Add RCLUTILS null pointer checks to all pointers in function params
+  rcutils_ret_t ret = RCUTILS_RET_OK;
 
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(parser, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(current_event, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(map_depth, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
   size_t nest_depth = *map_depth;
   rcutils_allocator_t allocator = params_st->allocator;
 
-  //TODO: Move string length to a macro
+  //TODO (karahul209@gmail.com): Move string length to a macro
   size_t max_string_length = 100000;
-  static unsigned char nested_param_string_allocator[100000];
+  unsigned char nested_param_string_allocator[100000];
 
   yaml_emitter_t  emitter;
   yaml_emitter_initialize(&emitter);
@@ -831,8 +837,6 @@ rcutils_ret_t write_structured_parameter_to_string(
       default:
         break;
     }
-    printf("Map depth: %lu\n", *map_depth);
-    printf("Nest depth: %lu\n", nest_depth);
 
   }
 
@@ -849,10 +853,10 @@ rcutils_ret_t write_structured_parameter_to_string(
   }
 
   yaml_emitter_delete(&emitter);
-  printf("OUT_STRING:\n");
-  printf("%s\n", nested_param_string_allocator);
 
-  char* copied_yaml = rcutils_strdup(nested_param_string_allocator, allocator);
+  // TODO (karahul209@gmail.com): Combine this with the parameter allocation part of `parse_value` and put everything in a seperate function
+  char* copied_yaml = rcutils_strndup((char *)nested_param_string_allocator, written_size, allocator);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(copied_yaml, RCUTILS_RET_BAD_ALLOC);
 
   rcl_variant_t * param_value = &(params_st->params[node_index].parameter_values[parameter_index]);
   
@@ -861,7 +865,7 @@ rcutils_ret_t write_structured_parameter_to_string(
     // Overwriting, deallocate original
     allocator.deallocate(param_value->yaml_value, allocator.state);
   }
-  param_value->string_value = (char *) copied_yaml;
+  param_value->yaml_value = copied_yaml;
   // Clear the buffer for the next run
   memset((void*) nested_param_string_allocator, 0U, written_size);
   return ret;
@@ -990,13 +994,19 @@ rcutils_ret_t parse_file_events(
         {
           is_new_map = false;
         }
-        // If we're at the param level
+        // Parsing nested (structured) YAML parameters
+        // If we're at the param level inside the YAML
         if (map_level == MAP_PARAMS_LVL) {
         // If a value has not been found for the previous key, and we get a new mapping event,
         // In theory, this means we have a nested yaml struct
           if (is_key_value_pair_found == false) {
-            printf("Nested key at line %u with map depth %u\n", line_num, map_depth);
-            write_structured_parameter_to_string(parser, &event, &map_depth, &parameter_idx, params_st);
+            // printf("Nested key at line %u with map depth %u\n", line_num, map_depth);
+            ret =  write_structured_parameter_to_string(parser, &event, &map_depth, node_idx, parameter_idx, params_st);
+            if (RCUTILS_RET_OK != ret) {
+              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+                "Internal error while parsing structured yaml parameter at line %d\n", line_num);
+              break;
+            }
             is_key_value_pair_found = true;
             is_key = true;
           }
