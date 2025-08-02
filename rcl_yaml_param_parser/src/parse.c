@@ -866,8 +866,6 @@ rcutils_ret_t write_structured_parameter_to_string(
     allocator.deallocate(param_value->yaml_value, allocator.state);
   }
   param_value->yaml_value = copied_yaml;
-  // Clear the buffer for the next run
-  memset((void*) nested_param_string_allocator, 0U, written_size);
   return ret;
 }
 
