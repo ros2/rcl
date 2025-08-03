@@ -230,6 +230,7 @@ rcutils_ret_t parse_value(
   data_types_t * seq_data_type,
   rcl_params_t * params_st)
 {
+  // printf("parse_value:: Parsing value!");
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(seq_data_type, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
 
@@ -274,7 +275,7 @@ rcutils_ret_t parse_value(
     return RCUTILS_RET_ERROR;
   }
 
-  // TODO (karahul209@gmail.com): Combine this with the parameter allocation part of `write_structured_parameter_to_string` and put everything in a seperate function
+  // rahul-k-a: TODO Combine this with the parameter allocation part of `write_structured_parameter_to_string` and put everything in a seperate function
   rcutils_ret_t ret = RCUTILS_RET_OK;
   switch (val_type) {
     case DATA_TYPE_UNKNOWN:
@@ -603,6 +604,7 @@ rcutils_ret_t parse_key(
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st)
 {
+  // printf("parse_key:: Entering!\n");
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(map_level, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
   rcutils_allocator_t allocator = params_st->allocator;
@@ -612,6 +614,7 @@ rcutils_ret_t parse_key(
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
+  // printf("parse_key:: Key is %s with map level %u\n", value, *map_level);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     value, "event argument has no value", return RCUTILS_RET_INVALID_ARGUMENT);
@@ -624,12 +627,14 @@ rcutils_ret_t parse_key(
   rcutils_ret_t ret = RCUTILS_RET_OK;
   switch (*map_level) {
     case MAP_UNINIT_LVL:
+      // printf("Event: MAP_UNINIT_LVL\n");
       RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Unintialized map level at line %d", line_num);
       ret = RCUTILS_RET_ERROR;
       break;
     case MAP_NODE_NAME_LVL:
       {
+        // printf("Event: MAP_NODE_NAME_LVL\n");
         /// Till we get PARAMS_KEY, keep adding to node namespace
         if (0 != strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
           ret = add_name_to_ns(ns_tracker, value, NS_TYPE_NODE, allocator);
@@ -678,6 +683,7 @@ rcutils_ret_t parse_key(
       break;
     case MAP_PARAMS_LVL:
       {
+        // printf("Event: MAP_PARAMS_LVL\n");
         char * parameter_ns = NULL;
         char * param_name = NULL;
 
@@ -755,7 +761,6 @@ rcutils_ret_t write_structured_parameter_to_string(
   const size_t parameter_index,
   rcl_params_t * params_st)
 {
-  //TODO (karahul209@gmail.com): Add RCLUTILS null pointer checks to all pointers in function params
   rcutils_ret_t ret = RCUTILS_RET_OK;
 
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(parser, RCUTILS_RET_INVALID_ARGUMENT);
@@ -765,7 +770,7 @@ rcutils_ret_t write_structured_parameter_to_string(
   size_t nest_depth = *map_depth;
   rcutils_allocator_t allocator = params_st->allocator;
 
-  //TODO (karahul209@gmail.com): Move string length to a macro
+  //rahul-k-a: TODO Move string length to a macro
   size_t max_string_length = 100000;
   unsigned char nested_param_string_allocator[100000];
 
@@ -854,7 +859,7 @@ rcutils_ret_t write_structured_parameter_to_string(
 
   yaml_emitter_delete(&emitter);
 
-  // TODO (karahul209@gmail.com): Combine this with the parameter allocation part of `parse_value` and put everything in a seperate function
+  // rahul-k-a: TODO combine this with the parameter allocation part of `parse_value` and put everything in a seperate function
   char* copied_yaml = rcutils_strndup((char *)nested_param_string_allocator, written_size, allocator);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(copied_yaml, RCUTILS_RET_BAD_ALLOC);
 
@@ -911,6 +916,12 @@ rcutils_ret_t parse_file_events(
       break;
     }
     line_num = ((uint32_t)(event.start_mark.line) + 1U);
+    // printf("\n\n");
+    // printf("parse_file_events:: At start of while loop, map level is %u\n", map_level);
+    // printf("parse_file_events:: At start of while loop, map depth is %u\n", map_depth);
+    // printf("parse_file_events:: At start of while loop, map line is %u\n", line_num);
+    // printf("parse_file_events:: Number of node namespaces is %u\n\n", ns_tracker->num_node_ns);
+
     switch (event.type) {
       case YAML_STREAM_END_EVENT:
         done_parsing = 1;
@@ -963,6 +974,8 @@ rcutils_ret_t parse_file_events(
         }
         break;
       case YAML_SEQUENCE_START_EVENT:
+        // printf("YAML_SEQUENCE_START_EVENT!\n");
+
         if (is_key) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Sequences cannot be key at line %d", line_num);
@@ -979,10 +992,12 @@ rcutils_ret_t parse_file_events(
         seq_data_type = DATA_TYPE_UNKNOWN;
         break;
       case YAML_SEQUENCE_END_EVENT:
+        // printf("YAML_SEQUENCE_END_EVENT!\n");
         is_seq = false;
         is_key = true;
         break;
       case YAML_MAPPING_START_EVENT:
+        // printf("YAML_MAPPING_START_EVENT!\n");
         map_depth++;
         is_new_map = true;
         is_key = true;
@@ -1021,6 +1036,7 @@ rcutils_ret_t parse_file_events(
               break;
             }
           } else {
+            // printf("parse_file_events 2 ::Map level is %u\n", map_level);
             map_level--;
           }
         } else {
@@ -1044,12 +1060,16 @@ rcutils_ret_t parse_file_events(
         ret = RCUTILS_RET_ERROR;
         break;
       case YAML_STREAM_START_EVENT:
+        // printf("STREAm_START_EVENT!\n");
         break;
       case YAML_DOCUMENT_START_EVENT:
+        // printf("YAML_DOCUMENT_START_EVENT!\n");
         break;
       case YAML_DOCUMENT_END_EVENT:
+        // printf("YAML_DOCUMENT_END_EVENT!\n");
         break;
       case YAML_NO_EVENT:
+        // printf("YAML_NO_EVENT!\n");
         RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Received an empty event at line %d", line_num);
         ret = RCUTILS_RET_ERROR;
