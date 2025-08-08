@@ -35,7 +35,7 @@
   <!-- Explicit group resolution - see ros-infrastructure/catkin_pkg#369 -->
   <depend condition="$DISABLE_GROUPS_WORKAROUND != 1">rcl_logging_spdlog</depend>
 
-  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_cmake_ros</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <test_depend>launch</test_depend>
