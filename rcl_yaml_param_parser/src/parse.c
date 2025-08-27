@@ -696,14 +696,12 @@ rcutils_ret_t parse_key(
   rcutils_ret_t ret = RCUTILS_RET_OK;
   switch (*map_level) {
     case MAP_UNINIT_LVL:
-      // printf("Event: MAP_UNINIT_LVL\n");
       RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
         "Unintialized map level at line %d", line_num);
       ret = RCUTILS_RET_ERROR;
       break;
     case MAP_NODE_NAME_LVL:
       {
-        // printf("Event: MAP_NODE_NAME_LVL\n");
         /// Till we get PARAMS_KEY, keep adding to node namespace
         if (0 != strncmp(PARAMS_KEY, value, strlen(PARAMS_KEY))) {
           ret = add_name_to_ns(ns_tracker, value, NS_TYPE_NODE, allocator);
@@ -789,7 +787,6 @@ rcutils_ret_t parse_key(
           if (ret != RCUTILS_RET_OK) {
             break;
           }
-
           const size_t params_ns_len = strlen(parameter_ns);
           const size_t param_name_len = strlen(value);
           const size_t tot_len = (params_ns_len + param_name_len + 2U);
@@ -1105,7 +1102,6 @@ rcutils_ret_t parse_file_events(
               break;
             }
           } else {
-            // printf("parse_file_events 2 ::Map level is %u\n", map_level);
             map_level--;
           }
         } else {
@@ -1129,16 +1125,12 @@ rcutils_ret_t parse_file_events(
         ret = RCUTILS_RET_ERROR;
         break;
       case YAML_STREAM_START_EVENT:
-        // printf("STREAm_START_EVENT!\n");
         break;
       case YAML_DOCUMENT_START_EVENT:
-        // printf("YAML_DOCUMENT_START_EVENT!\n");
         break;
       case YAML_DOCUMENT_END_EVENT:
-        // printf("YAML_DOCUMENT_END_EVENT!\n");
         break;
       case YAML_NO_EVENT:
-        // printf("YAML_NO_EVENT!\n");
         RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
           "Received an empty event at line %d", line_num);
         ret = RCUTILS_RET_ERROR;
