@@ -593,6 +593,75 @@ clean:
 }
 
 ///
+/// Makes a copy of an event and writes the copy to the emitter
+///
+rcutils_ret_t write_event_to_emitter(
+  yaml_emitter_t * emitter,
+  yaml_event_t * event
+)
+{
+
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(emitter, RCUTILS_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(event, RCUTILS_RET_INVALID_ARGUMENT);
+  rcutils_ret_t ret = RCUTILS_RET_OK;
+  // The emitter deletes the event after writing
+  // So we need to make a copy of it and pass the copy to the emitter
+  yaml_event_t event_copy;
+  int success;
+  switch (event->type)
+  {
+    /** A SCALAR event. */
+    case YAML_SCALAR_EVENT:
+    {
+      success = yaml_scalar_event_initialize(&event_copy, event->data.scalar.anchor,event->data.scalar.tag, event->data.scalar.value, event->data.scalar.length, event->data.scalar.plain_implicit, event->data.scalar.quoted_implicit, event->data.scalar.style );
+      break;
+    }
+
+    /** A SEQUENCE-START event. */
+    case YAML_SEQUENCE_START_EVENT:
+    {
+      success = yaml_sequence_start_event_initialize(&event_copy, event->data.sequence_start.anchor,event->data.sequence_start.tag, event->data.sequence_start.implicit, event->data.sequence_start.style );
+      break;
+    }
+    /** A SEQUENCE-END event. */
+    case YAML_SEQUENCE_END_EVENT:
+    {
+      success = yaml_sequence_end_event_initialize(&event_copy);
+      break;
+    }
+
+    /** A MAPPING-START event. */
+    case YAML_MAPPING_START_EVENT:
+    {
+      success = yaml_mapping_start_event_initialize(&event_copy, event->data.mapping_start.anchor, event->data.mapping_start.tag, event->data.mapping_start.implicit, event->data.mapping_start.style);
+      break;
+    }
+    /** A MAPPING-END event. */
+    case YAML_MAPPING_END_EVENT:
+    {
+      success = yaml_mapping_end_event_initialize(&event_copy);
+      break;
+    }
+    default:
+    {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unexpected YAML token of type %d", (int) event->type);
+      ret = RCUTILS_RET_ERROR;
+      break;
+    }
+  }
+
+  if (success == 0)
+  {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unable to duplicate YAML token of type %d", (int) event->type);
+    return RCUTILS_RET_ERROR;
+  }
+  yaml_emitter_emit(emitter, &event_copy);
+  return ret;
+
+}
+
+
+///
 /// Parse the key part of the <key:value> pair
 ///
 rcutils_ret_t parse_key(

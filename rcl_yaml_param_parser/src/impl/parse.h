@@ -77,6 +77,11 @@ rcutils_ret_t parse_file_events(
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st);
 
+rcutils_ret_t write_event_to_emitter(
+  yaml_emitter_t * emitter,
+  yaml_event_t * event
+);
+
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_value_events(
