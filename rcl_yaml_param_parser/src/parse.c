@@ -667,12 +667,12 @@ rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
+  bool *  dont_overwrite_yaml_key,
   size_t * node_idx,
   size_t * parameter_idx,
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st)
 {
-  // printf("parse_key:: Entering!\n");
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(map_level, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
   rcutils_allocator_t allocator = params_st->allocator;
@@ -682,7 +682,6 @@ rcutils_ret_t parse_key(
   const size_t val_size = event.data.scalar.length;
   const char * value = (char *)event.data.scalar.value;
   const uint32_t line_num = ((uint32_t)(event.start_mark.line) + 1U);
-  // printf("parse_key:: Key is %s with map level %u\n", value, *map_level);
 
   RCUTILS_CHECK_FOR_NULL_WITH_MSG(
     value, "event argument has no value", return RCUTILS_RET_INVALID_ARGUMENT);
@@ -749,7 +748,6 @@ rcutils_ret_t parse_key(
       break;
     case MAP_PARAMS_LVL:
       {
-        // printf("Event: MAP_PARAMS_LVL\n");
         char * parameter_ns = NULL;
         char * param_name = NULL;
 
@@ -884,6 +882,9 @@ rcutils_ret_t end_emitter_string(
 ///
 rcutils_ret_t parse_file_events(
   yaml_parser_t * parser,
+  yaml_emitter_t * emitter,
+  char * emitter_string_buffer,
+  size_t * emitter_written_bytes,
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st)
 {
