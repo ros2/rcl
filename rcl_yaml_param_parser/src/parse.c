@@ -780,7 +780,13 @@ rcutils_ret_t parse_key(
             break;
           }
         } else {
-          ret = find_parameter(*node_idx, parameter_ns, params_st, parameter_idx);
+          if (*dont_overwrite_yaml_key == true)
+          {
+           *dont_overwrite_yaml_key = false;
+            ret = find_parameter(*node_idx, value, params_st, parameter_idx);
+          }else{
+            ret = find_parameter(*node_idx, parameter_ns, params_st, parameter_idx);
+          }
           if (ret != RCUTILS_RET_OK) {
             break;
           }
@@ -836,11 +842,11 @@ rcutils_ret_t initialize_emitter_string(
   }
 
   return ret;
-  }
+}
 
 rcutils_ret_t end_emitter_string(
   yaml_emitter_t * emitter)
-    {
+{
   rcutils_ret_t ret = RCUTILS_RET_OK;
 
   // Set initial events
@@ -860,8 +866,22 @@ rcutils_ret_t end_emitter_string(
   return ret;
 }
 
+// TODO: Replace the counter method with indentation method
+rcutils_ret_t write_structured_parameter_to_string(
+  yaml_parser_t * parser,
+  char * yaml_string_buffer,
+  size_t * written_size,
+  const size_t node_index,
+  const size_t parameter_index,
+  rcl_params_t * params_st)
+{
+  rcutils_ret_t ret = RCUTILS_RET_OK;
+  rcutils_allocator_t allocator = params_st->allocator;
+  rcl_node_params_t * node_param_st = &(params_st->params[node_index]);
+  const char* parname =  node_param_st->parameter_names[parameter_index];
+
   // rahul-k-a: TODO combine this with the parameter allocation part of `parse_value` and put everything in a seperate function
-  char* copied_yaml = rcutils_strndup((char *)nested_param_string_allocator, written_size, allocator);
+  char* copied_yaml = rcutils_strndup( yaml_string_buffer, *written_size, allocator);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(copied_yaml, RCUTILS_RET_BAD_ALLOC);
 
   rcl_variant_t * param_value = &(params_st->params[node_index].parameter_values[parameter_index]);
@@ -898,6 +918,16 @@ rcutils_ret_t parse_file_events(
   uint32_t map_depth = 0U;
   bool is_new_map = false;
 
+  *emitter_written_bytes = 0;
+  int event_start_end_counter = -1;
+  bool is_writing_nested_yaml = false;
+  size_t nested_param_idx = 0;
+  rcutils_ret_t ret = RCUTILS_RET_OK;
+  bool dont_overwrite_yaml_key = false;
+
+  
+
+  
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(parser, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
   rcutils_allocator_t allocator = params_st->allocator;
@@ -907,7 +937,6 @@ rcutils_ret_t parse_file_events(
   yaml_event_t event;
   size_t node_idx = 0;
   size_t parameter_idx = 0;
-  rcutils_ret_t ret = RCUTILS_RET_OK;
   while (0 == done_parsing) {
     if (RCUTILS_RET_OK != ret) {
       break;
@@ -919,12 +948,15 @@ rcutils_ret_t parse_file_events(
       ret = RCUTILS_RET_ERROR;
       break;
     }
+
     line_num = ((uint32_t)(event.start_mark.line) + 1U);
-    // printf("\n\n");
-    // printf("parse_file_events:: At start of while loop, map level is %u\n", map_level);
-    // printf("parse_file_events:: At start of while loop, map depth is %u\n", map_depth);
-    // printf("parse_file_events:: At start of while loop, map line is %u\n", line_num);
-    // printf("parse_file_events:: Number of node namespaces is %u\n\n", ns_tracker->num_node_ns);
+  
+    if (is_writing_nested_yaml) {
+      if (RCUTILS_RET_ERROR == write_event_to_emitter(emitter, &event)) {
+        ret = RCUTILS_RET_ERROR;
+        break;
+      }
+    }
 
     switch (event.type) {
       case YAML_STREAM_END_EVENT:
@@ -939,8 +971,12 @@ rcutils_ret_t parse_file_events(
             if (map_level == MAP_PARAMS_LVL) {
               is_key_value_pair_found = false;
             }
+            if (is_writing_nested_yaml && (event_start_end_counter == 0))
+            {
+              dont_overwrite_yaml_key = true;
+            }
             ret = parse_key(
-              event, &map_level, &is_new_map, &node_idx, &parameter_idx, ns_tracker, params_st);
+              event, &map_level, &is_new_map, &dont_overwrite_yaml_key,&node_idx, &parameter_idx, ns_tracker, params_st);
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -978,8 +1014,6 @@ rcutils_ret_t parse_file_events(
         }
         break;
       case YAML_SEQUENCE_START_EVENT:
-        // printf("YAML_SEQUENCE_START_EVENT!\n");
-
         if (is_key) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Sequences cannot be key at line %d", line_num);
@@ -996,12 +1030,14 @@ rcutils_ret_t parse_file_events(
         seq_data_type = DATA_TYPE_UNKNOWN;
         break;
       case YAML_SEQUENCE_END_EVENT:
-        // printf("YAML_SEQUENCE_END_EVENT!\n");
         is_seq = false;
         is_key = true;
         break;
       case YAML_MAPPING_START_EVENT:
-        // printf("YAML_MAPPING_START_EVENT!\n");
+        if (is_writing_nested_yaml)
+        {
+          event_start_end_counter++;
+        }
         map_depth++;
         is_new_map = true;
         is_key = true;
@@ -1013,23 +1049,37 @@ rcutils_ret_t parse_file_events(
         }
         // Parsing nested (structured) YAML parameters
         // If we're at the param level inside the YAML
-        if (map_level == MAP_PARAMS_LVL) {
         // If a value has not been found for the previous key, and we get a new mapping event,
         // In theory, this means we have a nested yaml struct
-          if (is_key_value_pair_found == false) {
-            // printf("Nested key at line %u with map depth %u\n", line_num, map_depth);
-            ret =  write_structured_parameter_to_string(parser, &event, &map_depth, node_idx, parameter_idx, params_st);
-            if (RCUTILS_RET_OK != ret) {
-              RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-                "Internal error while parsing structured yaml parameter at line %d\n", line_num);
-              break;
-            }
-            is_key_value_pair_found = true;
-            is_key = true;
+        if (is_key_value_pair_found == false && is_writing_nested_yaml == false) {
+          is_writing_nested_yaml = true;
+          event_start_end_counter++;
+          nested_param_idx = parameter_idx;
+          initialize_emitter_string(emitter);
+          if (RCUTILS_RET_ERROR == write_event_to_emitter(emitter, &event))
+          {
+            ret = RCUTILS_RET_ERROR;
+            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Error adding line %d to structured yaml parameter", line_num);
           }
         }
         break;
       case YAML_MAPPING_END_EVENT:
+        if (is_writing_nested_yaml)
+        {
+          event_start_end_counter--; 
+          if (event_start_end_counter < 0)
+          {
+            end_emitter_string(emitter);
+            write_structured_parameter_to_string(parser, emitter_string_buffer, emitter_written_bytes, node_idx, nested_param_idx, params_st);
+            is_writing_nested_yaml = false;
+            is_key_value_pair_found = true;
+            event_start_end_counter = 0;
+            nested_param_idx = 0;
+            // Reset byte counter so that we can reuse buffer
+            *emitter_written_bytes = 0;
+            event_start_end_counter = -1;
+          } 
+        }
         if (MAP_PARAMS_LVL == map_level) {
           if (ns_tracker->num_parameter_ns > 0U) {
             /// Remove param namesapce
