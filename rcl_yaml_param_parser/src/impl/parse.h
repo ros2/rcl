@@ -51,6 +51,16 @@ rcutils_ret_t parse_value(
 
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
+rcutils_ret_t initialize_emitter_string(
+  yaml_emitter_t * emitter);
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t end_emitter_string(
+  yaml_emitter_t * emitter);
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
 rcutils_ret_t write_structured_parameter_to_string(
   yaml_parser_t * parser,
   yaml_event_t * current_event,

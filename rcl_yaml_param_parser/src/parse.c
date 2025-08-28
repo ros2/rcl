@@ -230,7 +230,6 @@ rcutils_ret_t parse_value(
   data_types_t * seq_data_type,
   rcl_params_t * params_st)
 {
-  // printf("parse_value:: Parsing value!");
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(seq_data_type, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
 
@@ -819,111 +818,49 @@ rcutils_ret_t parse_key(
   return ret;
 }
 
-rcutils_ret_t write_structured_parameter_to_string(
-  yaml_parser_t * parser,
-  yaml_event_t * current_event,
-  uint32_t * map_depth,
-  const size_t node_index,
-  const size_t parameter_index,
-  rcl_params_t * params_st)
+rcutils_ret_t initialize_emitter_string(
+  yaml_emitter_t * emitter)
 {
   rcutils_ret_t ret = RCUTILS_RET_OK;
-
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(parser, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(current_event, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(map_depth, RCUTILS_RET_INVALID_ARGUMENT);
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
-  size_t nest_depth = *map_depth;
-  rcutils_allocator_t allocator = params_st->allocator;
-
-  //rahul-k-a: TODO Move string length to a macro
-  size_t max_string_length = 100000;
-  unsigned char nested_param_string_allocator[100000];
-
-  yaml_emitter_t  emitter;
-  yaml_emitter_initialize(&emitter);
-
-  // Reset output buffer
-  size_t written_size = 0;
-  yaml_emitter_set_output_string(&emitter, nested_param_string_allocator, max_string_length, &written_size);
 
   // Set initial events
   yaml_event_t event;
   yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-  if (!yaml_emitter_emit(&emitter, &event))
+  if (!yaml_emitter_emit(emitter, &event))
   {
     ret = RCUTILS_RET_ERROR;
   }
 
   yaml_document_start_event_initialize(&event, NULL, NULL, NULL, 0);
-  if (!yaml_emitter_emit(&emitter, &event))
+  if (!yaml_emitter_emit(emitter, &event))
   {
     ret = RCUTILS_RET_ERROR;
   }
 
-  if (!yaml_emitter_emit(&emitter, current_event))
-  {
-    ret = RCUTILS_RET_ERROR;
+  return ret;
   }
 
-
-  uint32_t line_num = 0;
-  // Parse the yaml here till our current map depth less than the depth at which we discovered the nesting
-  while (*map_depth >= nest_depth)
-  {
-    int success = yaml_parser_parse(parser, &event);
-
-    if (0 == success) {
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Error parsing a event near line %d", line_num);
-      ret = RCUTILS_RET_ERROR;
-      break;
-    }
-
-    line_num = ((uint32_t)(event.start_mark.line) + 1U);
-    if (!yaml_emitter_emit(&emitter, &event))
+rcutils_ret_t end_emitter_string(
+  yaml_emitter_t * emitter)
     {
-      ret = RCUTILS_RET_ERROR;
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Error emitting structured yaml event near line %d", line_num);
-      break;
-    }
+  rcutils_ret_t ret = RCUTILS_RET_OK;
 
-    switch (event.type)
-    {
-      case YAML_MAPPING_START_EVENT:
-        (*map_depth)++;
-        /* code */
-        break;
-
-      case YAML_MAPPING_END_EVENT:
-        (*map_depth)--;
-        break;
-  RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
-
-  rcutils_allocator_t allocator = params_st->allocator;
-  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
-    &allocator, "invalid allocator", return RCUTILS_RET_INVALID_ARGUMENT);
-      
-      default:
-        break;
-    }
-
-  }
-
+  // Set initial events
+  yaml_event_t event;
   yaml_document_end_event_initialize(&event, 0);
-  if (!yaml_emitter_emit(&emitter, &event))
+  if (!yaml_emitter_emit(emitter, &event))
   {
     ret = RCUTILS_RET_ERROR;
   }
 
   yaml_stream_end_event_initialize(&event);
-  if (!yaml_emitter_emit(&emitter, &event))
+  if (!yaml_emitter_emit(emitter, &event))
   {
     ret = RCUTILS_RET_ERROR;
   }
 
-  yaml_emitter_delete(&emitter);
+  return ret;
+}
 
   // rahul-k-a: TODO combine this with the parameter allocation part of `parse_value` and put everything in a seperate function
   char* copied_yaml = rcutils_strndup((char *)nested_param_string_allocator, written_size, allocator);
