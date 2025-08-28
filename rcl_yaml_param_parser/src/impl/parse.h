@@ -75,7 +75,7 @@ rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
-  bool * dont_overwrite_yaml_key,
+  bool * overwrite_previous_key,
   size_t * node_idx,
   size_t * parameter_idx,
   namespace_tracker_t * ns_tracker,

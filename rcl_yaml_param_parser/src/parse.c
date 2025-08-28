@@ -667,7 +667,7 @@ rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
-  bool *  dont_overwrite_yaml_key,
+  bool *  overwrite_previous_key,
   size_t * node_idx,
   size_t * parameter_idx,
   namespace_tracker_t * ns_tracker,
@@ -780,10 +780,11 @@ rcutils_ret_t parse_key(
             break;
           }
         } else {
-          if (*dont_overwrite_yaml_key == true)
+          if (*overwrite_previous_key == false)
           {
-           *dont_overwrite_yaml_key = false;
+            // Handle cases where the code tries to overwrite the yaml parameter name entry
             ret = find_parameter(*node_idx, value, params_st, parameter_idx);
+            *overwrite_previous_key = true;
           }else{
             ret = find_parameter(*node_idx, parameter_ns, params_st, parameter_idx);
           }
@@ -877,8 +878,6 @@ rcutils_ret_t write_structured_parameter_to_string(
 {
   rcutils_ret_t ret = RCUTILS_RET_OK;
   rcutils_allocator_t allocator = params_st->allocator;
-  rcl_node_params_t * node_param_st = &(params_st->params[node_index]);
-  const char* parname =  node_param_st->parameter_names[parameter_index];
 
   // rahul-k-a: TODO combine this with the parameter allocation part of `parse_value` and put everything in a seperate function
   char* copied_yaml = rcutils_strndup( yaml_string_buffer, *written_size, allocator);
@@ -918,16 +917,13 @@ rcutils_ret_t parse_file_events(
   uint32_t map_depth = 0U;
   bool is_new_map = false;
 
+  uint32_t structure_detect_depth = 0;
   *emitter_written_bytes = 0;
-  int event_start_end_counter = -1;
-  bool is_writing_nested_yaml = false;
-  size_t nested_param_idx = 0;
+  bool is_writing_structured_yaml = false;
+  size_t structured_yaml_param_idx = 0;
   rcutils_ret_t ret = RCUTILS_RET_OK;
-  bool dont_overwrite_yaml_key = false;
+  bool overwrite_previous_key = true;
 
-  
-
-  
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(parser, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(params_st, RCUTILS_RET_INVALID_ARGUMENT);
   rcutils_allocator_t allocator = params_st->allocator;
@@ -951,7 +947,7 @@ rcutils_ret_t parse_file_events(
 
     line_num = ((uint32_t)(event.start_mark.line) + 1U);
   
-    if (is_writing_nested_yaml) {
+    if (is_writing_structured_yaml) {
       if (RCUTILS_RET_ERROR == write_event_to_emitter(emitter, &event)) {
         ret = RCUTILS_RET_ERROR;
         break;
@@ -971,12 +967,15 @@ rcutils_ret_t parse_file_events(
             if (map_level == MAP_PARAMS_LVL) {
               is_key_value_pair_found = false;
             }
-            if (is_writing_nested_yaml && (event_start_end_counter == 0))
-            {
-              dont_overwrite_yaml_key = true;
+            // Since the yaml parameter key is also considered as a namespace to all indented children
+            // We must make sure that the parameter index of the yaml parameter is not overwritten
+            // By default, if a namespace is detected, then the parameter entry in the param table is replaced by its immediate chile
+            // This is done for optimization (?) - Rahul-K-A
+            if (is_writing_structured_yaml && (map_depth == structure_detect_depth) ) {
+              overwrite_previous_key = false;
             }
             ret = parse_key(
-              event, &map_level, &is_new_map, &dont_overwrite_yaml_key,&node_idx, &parameter_idx, ns_tracker, params_st);
+              event, &map_level, &is_new_map, &overwrite_previous_key, &node_idx, &parameter_idx, ns_tracker, params_st);
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -1034,10 +1033,6 @@ rcutils_ret_t parse_file_events(
         is_key = true;
         break;
       case YAML_MAPPING_START_EVENT:
-        if (is_writing_nested_yaml)
-        {
-          event_start_end_counter++;
-        }
         map_depth++;
         is_new_map = true;
         is_key = true;
@@ -1051,10 +1046,10 @@ rcutils_ret_t parse_file_events(
         // If we're at the param level inside the YAML
         // If a value has not been found for the previous key, and we get a new mapping event,
         // In theory, this means we have a nested yaml struct
-        if (is_key_value_pair_found == false && is_writing_nested_yaml == false) {
-          is_writing_nested_yaml = true;
-          event_start_end_counter++;
-          nested_param_idx = parameter_idx;
+        if (is_key_value_pair_found == false && is_writing_structured_yaml == false) {
+          is_writing_structured_yaml = true;
+          structured_yaml_param_idx = parameter_idx;
+          structure_detect_depth = map_depth;
           initialize_emitter_string(emitter);
           if (RCUTILS_RET_ERROR == write_event_to_emitter(emitter, &event))
           {
@@ -1064,22 +1059,6 @@ rcutils_ret_t parse_file_events(
         }
         break;
       case YAML_MAPPING_END_EVENT:
-        if (is_writing_nested_yaml)
-        {
-          event_start_end_counter--; 
-          if (event_start_end_counter < 0)
-          {
-            end_emitter_string(emitter);
-            write_structured_parameter_to_string(parser, emitter_string_buffer, emitter_written_bytes, node_idx, nested_param_idx, params_st);
-            is_writing_nested_yaml = false;
-            is_key_value_pair_found = true;
-            event_start_end_counter = 0;
-            nested_param_idx = 0;
-            // Reset byte counter so that we can reuse buffer
-            *emitter_written_bytes = 0;
-            event_start_end_counter = -1;
-          } 
-        }
         if (MAP_PARAMS_LVL == map_level) {
           if (ns_tracker->num_parameter_ns > 0U) {
             /// Remove param namesapce
@@ -1106,6 +1085,25 @@ rcutils_ret_t parse_file_events(
           }
         }
         map_depth--;
+        // Terminate structured yaml parameter if needed
+        if (is_writing_structured_yaml)
+        {
+          if (map_depth < structure_detect_depth)
+          {
+            end_emitter_string(emitter);
+            write_structured_parameter_to_string(parser, emitter_string_buffer, emitter_written_bytes, node_idx, structured_yaml_param_idx, params_st);
+            is_writing_structured_yaml = false;
+            is_key_value_pair_found = true;
+            structure_detect_depth = 0;
+            structured_yaml_param_idx = 0;
+            // Reset byte counter so that we can reuse buffer
+            *emitter_written_bytes = 0;
+          }
+          else
+          {
+
+          }
+        }
         break;
       case YAML_ALIAS_EVENT:
         RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
