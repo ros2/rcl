@@ -265,6 +265,21 @@ bool rcl_parse_yaml_file(
     return false;
   }
 
+
+
+  // Emitter for nested parameters
+  yaml_emitter_t  emitter;
+  success = yaml_emitter_initialize(&emitter);
+  if (0 == success) {
+    RCUTILS_SET_ERROR_MSG("Could not initialize the emitter");
+  }
+
+  size_t max_string_length = 100000;
+  volatile size_t written_size = 0;
+  unsigned char nested_param_string_allocator[100000];
+  yaml_emitter_set_output_string(&emitter, nested_param_string_allocator, max_string_length, &written_size);
+
+
   FILE * yaml_file = fopen(file_path, "r");
   if (NULL == yaml_file) {
     yaml_parser_delete(&parser);
@@ -276,11 +291,12 @@ bool rcl_parse_yaml_file(
 
   namespace_tracker_t ns_tracker;
   memset(&ns_tracker, 0, sizeof(namespace_tracker_t));
-  rcutils_ret_t ret = parse_file_events(&parser, &ns_tracker, params_st);
+  rcutils_ret_t ret = parse_file_events(&parser, &emitter, nested_param_string_allocator, &written_size, &ns_tracker, params_st);
 
   fclose(yaml_file);
 
   yaml_parser_delete(&parser);
+  yaml_emitter_delete(&emitter);
 
   rcutils_allocator_t allocator = params_st->allocator;
   if (NULL != ns_tracker.node_ns) {
