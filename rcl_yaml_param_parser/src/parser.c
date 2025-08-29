@@ -275,7 +275,7 @@ bool rcl_parse_yaml_file(
   }
 
   size_t max_string_length = 100000;
-  volatile size_t written_size = 0;
+  size_t written_size = 0;
   unsigned char nested_param_string_allocator[100000];
   yaml_emitter_set_output_string(&emitter, nested_param_string_allocator, max_string_length, &written_size);
 
