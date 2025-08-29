@@ -607,51 +607,58 @@ rcutils_ret_t write_event_to_emitter(
   // So we need to make a copy of it and pass the copy to the emitter
   yaml_event_t event_copy;
   int success;
-  switch (event->type)
-  {
+  switch (event->type) {
     /** A SCALAR event. */
     case YAML_SCALAR_EVENT:
-    {
-      success = yaml_scalar_event_initialize(&event_copy, event->data.scalar.anchor,event->data.scalar.tag, event->data.scalar.value, event->data.scalar.length, event->data.scalar.plain_implicit, event->data.scalar.quoted_implicit, event->data.scalar.style );
-      break;
-    }
+      {
+        success = yaml_scalar_event_initialize(&event_copy, event->data.scalar.anchor,
+        event->data.scalar.tag, event->data.scalar.value, event->data.scalar.length,
+        event->data.scalar.plain_implicit, event->data.scalar.quoted_implicit,
+        event->data.scalar.style);
+        break;
+      }
 
     /** A SEQUENCE-START event. */
     case YAML_SEQUENCE_START_EVENT:
-    {
-      success = yaml_sequence_start_event_initialize(&event_copy, event->data.sequence_start.anchor,event->data.sequence_start.tag, event->data.sequence_start.implicit, event->data.sequence_start.style );
-      break;
-    }
+      {
+        success = yaml_sequence_start_event_initialize(&event_copy,
+        event->data.sequence_start.anchor, event->data.sequence_start.tag,
+        event->data.sequence_start.implicit, event->data.sequence_start.style);
+        break;
+      }
     /** A SEQUENCE-END event. */
     case YAML_SEQUENCE_END_EVENT:
-    {
-      success = yaml_sequence_end_event_initialize(&event_copy);
-      break;
-    }
+      {
+        success = yaml_sequence_end_event_initialize(&event_copy);
+        break;
+      }
 
     /** A MAPPING-START event. */
     case YAML_MAPPING_START_EVENT:
-    {
-      success = yaml_mapping_start_event_initialize(&event_copy, event->data.mapping_start.anchor, event->data.mapping_start.tag, event->data.mapping_start.implicit, event->data.mapping_start.style);
-      break;
-    }
+      {
+        success = yaml_mapping_start_event_initialize(&event_copy, event->data.mapping_start.anchor,
+        event->data.mapping_start.tag, event->data.mapping_start.implicit,
+        event->data.mapping_start.style);
+        break;
+      }
     /** A MAPPING-END event. */
     case YAML_MAPPING_END_EVENT:
-    {
-      success = yaml_mapping_end_event_initialize(&event_copy);
-      break;
-    }
+      {
+        success = yaml_mapping_end_event_initialize(&event_copy);
+        break;
+      }
     default:
-    {
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unexpected YAML token of type %d", (int) event->type);
-      ret = RCUTILS_RET_ERROR;
-      break;
-    }
+      {
+        RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unexpected YAML token of type %d",
+          (int) event->type);
+        ret = RCUTILS_RET_ERROR;
+        break;
+      }
   }
 
-  if (success == 0)
-  {
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unable to duplicate YAML token of type %d", (int) event->type);
+  if (success == 0) {
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unable to duplicate YAML token of type %d",
+      (int) event->type);
     return RCUTILS_RET_ERROR;
   }
   yaml_emitter_emit(emitter, &event_copy);
@@ -780,12 +787,11 @@ rcutils_ret_t parse_key(
             break;
           }
         } else {
-          if (*overwrite_previous_key == false)
-          {
+          if (*overwrite_previous_key == false) {
             // Handle cases where the code tries to overwrite the yaml parameter name entry
             ret = find_parameter(*node_idx, value, params_st, parameter_idx);
             *overwrite_previous_key = true;
-          }else{
+          } else {
             ret = find_parameter(*node_idx, parameter_ns, params_st, parameter_idx);
           }
           if (ret != RCUTILS_RET_OK) {
@@ -831,14 +837,12 @@ rcutils_ret_t initialize_emitter_string(
   // Set initial events
   yaml_event_t event;
   yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-  if (!yaml_emitter_emit(emitter, &event))
-  {
+  if (!yaml_emitter_emit(emitter, &event)) {
     ret = RCUTILS_RET_ERROR;
   }
 
   yaml_document_start_event_initialize(&event, NULL, NULL, NULL, 0);
-  if (!yaml_emitter_emit(emitter, &event))
-  {
+  if (!yaml_emitter_emit(emitter, &event)) {
     ret = RCUTILS_RET_ERROR;
   }
 
@@ -853,14 +857,12 @@ rcutils_ret_t end_emitter_string(
   // Set initial events
   yaml_event_t event;
   yaml_document_end_event_initialize(&event, 0);
-  if (!yaml_emitter_emit(emitter, &event))
-  {
+  if (!yaml_emitter_emit(emitter, &event)) {
     ret = RCUTILS_RET_ERROR;
   }
 
   yaml_stream_end_event_initialize(&event);
-  if (!yaml_emitter_emit(emitter, &event))
-  {
+  if (!yaml_emitter_emit(emitter, &event)) {
     ret = RCUTILS_RET_ERROR;
   }
 
@@ -880,20 +882,18 @@ rcutils_ret_t write_structured_parameter_to_string(
   rcutils_allocator_t allocator = params_st->allocator;
 
   // rahul-k-a: TODO combine this with the parameter allocation part of `parse_value` and put everything in a seperate function
-  char* copied_yaml = rcutils_strndup( yaml_string_buffer, *written_size, allocator);
+  char * copied_yaml = rcutils_strndup(yaml_string_buffer, *written_size, allocator);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(copied_yaml, RCUTILS_RET_BAD_ALLOC);
 
   rcl_variant_t * param_value = &(params_st->params[node_index].parameter_values[parameter_index]);
-  
-  if (param_value->yaml_value != NULL)
-  {
+
+  if (param_value->yaml_value != NULL) {
     // Overwriting, deallocate original
     allocator.deallocate(param_value->yaml_value, allocator.state);
   }
   param_value->yaml_value = copied_yaml;
   return ret;
 }
-
 
 
 ///
@@ -946,7 +946,7 @@ rcutils_ret_t parse_file_events(
     }
 
     line_num = ((uint32_t)(event.start_mark.line) + 1U);
-  
+
     if (is_writing_structured_yaml) {
       if (RCUTILS_RET_ERROR == write_event_to_emitter(emitter, &event)) {
         ret = RCUTILS_RET_ERROR;
@@ -975,7 +975,8 @@ rcutils_ret_t parse_file_events(
               overwrite_previous_key = false;
             }
             ret = parse_key(
-              event, &map_level, &is_new_map, &overwrite_previous_key, &node_idx, &parameter_idx, ns_tracker, params_st);
+              event, &map_level, &is_new_map, &overwrite_previous_key, &node_idx, &parameter_idx,
+            ns_tracker, params_st);
             if (RCUTILS_RET_OK != ret) {
               break;
             }
@@ -1051,10 +1052,10 @@ rcutils_ret_t parse_file_events(
           structured_yaml_param_idx = parameter_idx;
           structure_detect_depth = map_depth;
           initialize_emitter_string(emitter);
-          if (RCUTILS_RET_ERROR == write_event_to_emitter(emitter, &event))
-          {
+          if (RCUTILS_RET_ERROR == write_event_to_emitter(emitter, &event)) {
             ret = RCUTILS_RET_ERROR;
-            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Error adding line %d to structured yaml parameter", line_num);
+            RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+            "Error adding line %d to structured yaml parameter", line_num);
           }
         }
         break;
@@ -1086,21 +1087,18 @@ rcutils_ret_t parse_file_events(
         }
         map_depth--;
         // Terminate structured yaml parameter if needed
-        if (is_writing_structured_yaml)
-        {
-          if (map_depth < structure_detect_depth)
-          {
+        if (is_writing_structured_yaml) {
+          if (map_depth < structure_detect_depth) {
             end_emitter_string(emitter);
-            write_structured_parameter_to_string(parser, emitter_string_buffer, emitter_written_bytes, node_idx, structured_yaml_param_idx, params_st);
+            write_structured_parameter_to_string(parser, emitter_string_buffer,
+            emitter_written_bytes, node_idx, structured_yaml_param_idx, params_st);
             is_writing_structured_yaml = false;
             is_key_value_pair_found = true;
             structure_detect_depth = 0;
             structured_yaml_param_idx = 0;
             // Reset byte counter so that we can reuse buffer
             *emitter_written_bytes = 0;
-          }
-          else
-          {
+          } else {
 
           }
         }

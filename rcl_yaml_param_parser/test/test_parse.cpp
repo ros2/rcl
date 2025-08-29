@@ -370,6 +370,7 @@ TEST(TestParse, parse_key_bad_args)
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   uint32_t map_level = MAP_NODE_NAME_LVL;
   bool is_new_map = false;
+  bool overwrite_yaml_param = true;
   size_t node_idx = 0;
   size_t parameter_idx = 0;
   namespace_tracker_t ns_tracker;
@@ -387,7 +388,8 @@ TEST(TestParse, parse_key_bad_args)
   // map_level is nullptr
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
-    parse_key(event, nullptr, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+    parse_key(event, nullptr, &is_new_map, &overwrite_yaml_param, &node_idx, &parameter_idx,
+    &ns_tracker, params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -395,7 +397,8 @@ TEST(TestParse, parse_key_bad_args)
   // params_st is nullptr
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
-    parse_key(event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, nullptr)) <<
+    parse_key(event, &map_level, &is_new_map, &overwrite_yaml_param, &node_idx, &parameter_idx,
+    &ns_tracker, nullptr)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -406,7 +409,8 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_INVALID_ARGUMENT,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &overwrite_yaml_param, &node_idx, &parameter_idx, &ns_tracker,
+    params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -420,7 +424,8 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &overwrite_yaml_param, &node_idx, &parameter_idx, &ns_tracker,
+    params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -431,7 +436,8 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &overwrite_yaml_param, &node_idx, &parameter_idx, &ns_tracker,
+    params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -441,7 +447,8 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &overwrite_yaml_param, &node_idx, &parameter_idx, &ns_tracker,
+    params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -453,7 +460,8 @@ TEST(TestParse, parse_key_bad_args)
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
     parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
+      event, &map_level, &is_new_map, &overwrite_yaml_param, &node_idx, &parameter_idx, &ns_tracker,
+    params_st)) <<
     rcutils_get_error_string().str;
   EXPECT_TRUE(rcutils_error_is_set());
   rcutils_reset_error();
@@ -488,6 +496,20 @@ TEST(TestParse, parse_file_events_mock_yaml_parser_parse) {
     yaml_parser_delete(&parser);
   });
 
+  size_t max_string_length = 100000;
+
+  yaml_emitter_t  emitter;
+  ASSERT_NE(0, yaml_emitter_initialize(&emitter));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    yaml_emitter_delete(&emitter);
+  });
+
+
+  size_t written_size = 0;
+  char nested_param_string_allocator[100000];
+  yaml_emitter_set_output_string(&emitter, (unsigned char *)nested_param_string_allocator,
+    max_string_length, &written_size);
   FILE * yaml_file = fopen(path, "r");
   ASSERT_NE(nullptr, yaml_file);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -505,7 +527,9 @@ TEST(TestParse, parse_file_events_mock_yaml_parser_parse) {
       event->type = YAML_NO_EVENT;
       return 1;
     });
-  EXPECT_EQ(RCUTILS_RET_ERROR, parse_file_events(&parser, &ns_tracker, params_hdl));
+  EXPECT_EQ(RCUTILS_RET_ERROR,
+    parse_file_events(&parser, &emitter, nested_param_string_allocator, &written_size, &ns_tracker,
+    params_hdl));
 }
 
 TEST(TestParse, parse_value_events_mock_yaml_parser_parse) {
