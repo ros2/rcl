@@ -205,7 +205,7 @@ using EventStateActiveCancelableTuple =
   std::tuple<rcl_action_goal_event_t, rcl_action_goal_state_t, bool, bool>;
 using StateTransitionSequence = std::vector<EventStateActiveCancelableTuple>;
 const std::vector<std::string> event_strs = {
-  "EXECUTE", "CANCEL_GOAL", "SUCCEED", "ABORT", "CANCELED"};
+  "EXECUTE", "CANCEL_GOAL", "SUCCEED", "ABORT", "PREEMPT", "CANCELED"};
 
 class TestGoalHandleStateTransitionSequence
   : public ::testing::TestWithParam<StateTransitionSequence>
@@ -325,11 +325,20 @@ const StateTransitionSequence valid_state_transition_sequences[] = {
   },
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
+    std::make_tuple(GOAL_EVENT_CANCEL_GOAL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_PREEMPT, GOAL_STATE_PREEMPTED, false, false),
+  },
+  {
+    std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
     std::make_tuple(GOAL_EVENT_SUCCEED, GOAL_STATE_SUCCEEDED, false, false),
   },
   {
     std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
     std::make_tuple(GOAL_EVENT_ABORT, GOAL_STATE_ABORTED, false, false),
+  },
+  {
+    std::make_tuple(GOAL_EVENT_EXECUTE, GOAL_STATE_EXECUTING, true, true),
+    std::make_tuple(GOAL_EVENT_PREEMPT, GOAL_STATE_PREEMPTED, false, false),
   },
   {
     std::make_tuple(GOAL_EVENT_CANCEL_GOAL, GOAL_STATE_CANCELING, true, false),
@@ -338,6 +347,10 @@ const StateTransitionSequence valid_state_transition_sequences[] = {
   {
     std::make_tuple(GOAL_EVENT_CANCEL_GOAL, GOAL_STATE_CANCELING, true, false),
     std::make_tuple(GOAL_EVENT_ABORT, GOAL_STATE_ABORTED, false, false),
+  },
+  {
+    std::make_tuple(GOAL_EVENT_CANCEL_GOAL, GOAL_STATE_CANCELING, true, false),
+    std::make_tuple(GOAL_EVENT_PREEMPT, GOAL_STATE_PREEMPTED, false, false),
   },
   // This is an odd case, but valid nonetheless
   {
@@ -375,6 +388,9 @@ const StateTransitionSequence invalid_state_transition_sequences[] = {
   },
   {
     std::make_tuple(GOAL_EVENT_ABORT, GOAL_STATE_UNKNOWN, false, false),
+  },
+  {
+    std::make_tuple(GOAL_EVENT_PREEMPT, GOAL_STATE_UNKNOWN, false, false),
   },
 };
 

@@ -68,6 +68,17 @@ _abort_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t even
 }
 
 rcl_action_goal_state_t
+_preempt_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
+{
+  assert(GOAL_STATE_EXECUTING == state || GOAL_STATE_CANCELING == state);
+  assert(GOAL_EVENT_PREEMPT == event);
+  // Avoid unused warnings, but keep asserts for debug purposes
+  (void)state;
+  (void)event;
+  return GOAL_STATE_PREEMPTED;
+}
+
+rcl_action_goal_state_t
 _canceled_event_handler(rcl_action_goal_state_t state, rcl_action_goal_event_t event)
 {
   assert(GOAL_STATE_CANCELING == state);
@@ -89,10 +100,12 @@ static rcl_action_goal_event_handler
     [GOAL_EVENT_CANCEL_GOAL] = _cancel_goal_event_handler,
     [GOAL_EVENT_SUCCEED] = _succeed_event_handler,
     [GOAL_EVENT_ABORT] = _abort_event_handler,
+    [GOAL_EVENT_PREEMPT] = _preempt_event_handler,
   },
   [GOAL_STATE_CANCELING] = {
     [GOAL_EVENT_SUCCEED] = _succeed_event_handler,
     [GOAL_EVENT_ABORT] = _abort_event_handler,
+    [GOAL_EVENT_PREEMPT] = _preempt_event_handler,
     [GOAL_EVENT_CANCELED] = _canceled_event_handler,
   },
 };
