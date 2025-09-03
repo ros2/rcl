@@ -4,9 +4,9 @@ project(rcl_yaml_param_parser)
 
 find_package(ament_cmake_ros REQUIRED)
 find_package(ament_cmake_gen_version_h REQUIRED)
+find_package(libyaml_cmake_module REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
-find_package(libyaml_vendor REQUIRED)
 find_package(yaml REQUIRED)
 
 # Default to C++17

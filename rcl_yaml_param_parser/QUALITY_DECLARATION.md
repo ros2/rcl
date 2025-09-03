@@ -145,12 +145,6 @@ It also has several test dependencies, which do not affect the resulting quality
 
 It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/rcutils/blob/rolling/QUALITY_DECLARATION.md).
 
-#### `libyaml_vendor`
-
-`libyaml_vendor` is a vendor package for the libyaml C library.
-
-It is **Quality Level 1**, see its [Quality Declaration document](https://github.com/ros2/libyaml_vendor/blob/rolling/QUALITY_DECLARATION.md).
-
 ### Direct Runtime Non-ROS Dependencies [5.iii]
 
 `rcl_yaml_param_parser` has the following runtime non-ROS dependencies.

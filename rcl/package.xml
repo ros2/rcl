@@ -20,7 +20,9 @@
 
   <build_export_depend>rmw</build_export_depend>
 
-  <depend>libyaml_vendor</depend>
+  <build_depend>libyaml_cmake_module</build_depend>
+
+  <depend>libyaml</depend>
   <depend>rcl_interfaces</depend>
   <depend>rcl_logging_interface</depend>
   <depend>rcl_yaml_param_parser</depend>

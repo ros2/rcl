@@ -4,8 +4,7 @@ project(rcl)
 
 find_package(ament_cmake_ros REQUIRED)
 find_package(ament_cmake_gen_version_h REQUIRED)
-
-find_package(libyaml_vendor REQUIRED)
+find_package(libyaml_cmake_module REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rcl_logging_interface REQUIRED)
 find_package(rcl_yaml_param_parser REQUIRED)
