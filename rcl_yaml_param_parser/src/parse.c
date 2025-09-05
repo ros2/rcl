@@ -274,7 +274,8 @@ rcutils_ret_t parse_value(
     return RCUTILS_RET_ERROR;
   }
 
-  // rahul-k-a: TODO Combine this with the parameter allocation part of `write_structured_parameter_to_string` and put everything in a seperate function
+  // rahul-k-a: TODO Combine this with the parameter allocation part of
+  // `write_structured_parameter_to_string` and put everything in a seperate functiong
   rcutils_ret_t ret = RCUTILS_RET_OK;
   switch (val_type) {
     case DATA_TYPE_UNKNOWN:
@@ -599,7 +600,6 @@ rcutils_ret_t write_event_to_emitter(
   yaml_event_t * event
 )
 {
-
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(emitter, RCUTILS_RET_INVALID_ARGUMENT);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(event, RCUTILS_RET_INVALID_ARGUMENT);
   rcutils_ret_t ret = RCUTILS_RET_OK;
@@ -663,7 +663,6 @@ rcutils_ret_t write_event_to_emitter(
   }
   yaml_emitter_emit(emitter, &event_copy);
   return ret;
-
 }
 
 
@@ -869,7 +868,6 @@ rcutils_ret_t end_emitter_string(
   return ret;
 }
 
-// TODO: Replace the counter method with indentation method
 rcutils_ret_t write_structured_parameter_to_string(
   yaml_parser_t * parser,
   char * yaml_string_buffer,
@@ -881,7 +879,8 @@ rcutils_ret_t write_structured_parameter_to_string(
   rcutils_ret_t ret = RCUTILS_RET_OK;
   rcutils_allocator_t allocator = params_st->allocator;
 
-  // rahul-k-a: TODO combine this with the parameter allocation part of `parse_value` and put everything in a seperate function
+  // rahul-k-a: TODO combine this with the parameter allocation part of `parse_value`
+  // and put everything in a seperate function
   char * copied_yaml = rcutils_strndup(yaml_string_buffer, *written_size, allocator);
   RCUTILS_CHECK_ARGUMENT_FOR_NULL(copied_yaml, RCUTILS_RET_BAD_ALLOC);
 
@@ -963,13 +962,16 @@ rcutils_ret_t parse_file_events(
         {
           /// Need to toggle between key and value at params level
           if (is_key) {
-            // If we're at the parameter level, set this flag to denote a value for the key has not been found yet
+            // If we're at the parameter level, set this flag to denote a
+            // value for the key has not been found yet
             if (map_level == MAP_PARAMS_LVL) {
               is_key_value_pair_found = false;
             }
-            // Since the yaml parameter key is also considered as a namespace to all indented children
-            // We must make sure that the parameter index of the yaml parameter is not overwritten
-            // By default, if a namespace is detected, then the parameter entry in the param table is replaced by its immediate chile
+            // Since the yaml parameter key is also considered as a
+            // namespace to all indented children, we must
+            // make sure that the parameter index of the yaml parameter is not overwritten
+            // By default, if a namespace is detected, then the parameter entry in the param
+            // table is replaced by its immediate chile
             // This is done for optimization (?) - Rahul-K-A
             if (is_writing_structured_yaml && (map_depth == structure_detect_depth) ) {
               overwrite_previous_key = false;
@@ -1098,8 +1100,6 @@ rcutils_ret_t parse_file_events(
             structured_yaml_param_idx = 0;
             // Reset byte counter so that we can reuse buffer
             *emitter_written_bytes = 0;
-          } else {
-
           }
         }
         break;
