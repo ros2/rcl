@@ -29,7 +29,7 @@ struct rcl_lexer_lookahead2_impl_s
   // Type of lexeme
   rcl_lexeme_t type[2];
 
-  // Allocator to use if an error occurrs
+  // Allocator to use if an error occurs
   rcl_allocator_t allocator;
 };
 
