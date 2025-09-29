@@ -80,7 +80,7 @@ rcl_get_zero_initialized_lexer_lookahead2();
  * \return #RCL_RET_OK if the buffer is successfully initialized, or
  * \return #RCL_RET_INVALID_ARGUMENT if any function arguments are invalid, or
  * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
- * \return #RCL_RET_ERROR if an unspecified error occurrs.
+ * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
@@ -131,7 +131,7 @@ rcl_lexer_lookahead2_fini(
  *
  * \param[in] buffer the lookahead2 buffer being used to analyze a string.
  * \param[out] next_type an output variable for the next lexeme in the string.
- * \return #RCL_RET_OK if peeking was successfull, or
+ * \return #RCL_RET_OK if peeking was successful, or
  * \return #RCL_RET_INVALID_ARGUMENT if any function arguments are invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -160,7 +160,7 @@ rcl_lexer_lookahead2_peek(
  * \param[in] buffer the lookahead2 buffer being used to analyze a string.
  * \param[out] next_type1 an output variable for the next lexeme in the string.
  * \param[out] next_type2 an output variable for the lexeme after the next lexeme in the string.
- * \return #RCL_RET_OK if peeking was successfull, or
+ * \return #RCL_RET_OK if peeking was successful, or
  * \return #RCL_RET_INVALID_ARGUMENT if any function arguments are invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
@@ -190,7 +190,7 @@ rcl_lexer_lookahead2_peek2(
  * \param[in] buffer the lookahead2 buffer being used to analyze a string.
  * \param[out] lexeme_text pointer to where lexeme begins in string.
  * \param[out] lexeme_text_length length of lexeme_text.
- * \return #RCL_RET_OK if peeking was successfull, or
+ * \return #RCL_RET_OK if peeking was successful, or
  * \return #RCL_RET_INVALID_ARGUMENT if any function arguments are invalid, or
  * \return #RCL_RET_ERROR if an unspecified error occurs.
  */
