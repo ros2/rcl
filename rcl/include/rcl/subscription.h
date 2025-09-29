@@ -900,7 +900,7 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
  * \param[in] user_data Given to the callback when called later, may be NULL
  * \return `RCL_RET_OK` if successful, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `subscription` is NULL, or
- * \return `RCL_RET_UNSUPPORTED` if the API is not implemented in the dds implementation
+ * \return `RCL_RET_UNSUPPORTED` if the API is not supported by the middleware
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED
