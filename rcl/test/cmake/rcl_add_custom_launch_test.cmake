@@ -34,9 +34,11 @@ macro(rcl_add_custom_launch_test test_name executable1 executable2)
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/test/${test_name}${target_suffix}_$<CONFIG>.py"
     INPUT "${CMAKE_CURRENT_BINARY_DIR}/${test_name}${target_suffix}.py.configure"
   )
+  set(RUNNER "RUNNER" "${ament_cmake_ros_DIR}/run_test_isolated.py")
   add_launch_test(
     "${CMAKE_CURRENT_BINARY_DIR}/test/${test_name}${target_suffix}_$<CONFIG>.py"
     TARGET ${test_name}${target_suffix}
+    RUNNER "${RUNNER}"
     ${ARGN}
   )
   if(TEST ${test_name}${target_suffix})

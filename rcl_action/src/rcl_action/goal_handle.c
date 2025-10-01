@@ -170,6 +170,18 @@ rcl_action_goal_handle_is_cancelable(const rcl_action_goal_handle_t * goal_handl
 }
 
 bool
+rcl_action_goal_handle_is_abortable(const rcl_action_goal_handle_t * goal_handle)
+{
+  if (!rcl_action_goal_handle_is_valid(goal_handle)) {
+    return false;  // error message is set
+  }
+  // Check if the state machine reports an abort goal event is valid
+  rcl_action_goal_state_t state = rcl_action_transition_goal_state(
+    goal_handle->impl->state, GOAL_EVENT_ABORT);
+  return GOAL_STATE_ABORTED == state;
+}
+
+bool
 rcl_action_goal_handle_is_valid(const rcl_action_goal_handle_t * goal_handle)
 {
   RCL_CHECK_FOR_NULL_WITH_MSG(goal_handle, "goal handle pointer is invalid", return false);

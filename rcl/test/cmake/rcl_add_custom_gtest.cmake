@@ -71,8 +71,8 @@ macro(rcl_add_custom_gtest target)
   endif()
 
   # Pass args along to ament_add_gtest().
-  ament_add_gtest(${target} ${_ARG_SRCS} ${_ARG_ENV} ${_ARG_APPEND_ENV} ${_ARG_APPEND_LIBRARY_DIRS}
-                  ${_ARG_SKIP_TEST} ${_ARG_TIMEOUT})
+  ament_add_ros_isolated_gtest(${target} ${_ARG_SRCS} ${_ARG_ENV} ${_ARG_APPEND_ENV}
+    ${_ARG_APPEND_LIBRARY_DIRS} ${_ARG_SKIP_TEST} ${_ARG_TIMEOUT})
   # Check if the target was actually created.
   if(TARGET ${target})
     if(_ARG_TRACE)
