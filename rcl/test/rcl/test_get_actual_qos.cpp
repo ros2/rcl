@@ -235,22 +235,6 @@ TEST_P(TestSubscriptionGetActualQoS, test_subscription_get_qos_settings)
 //
 
 static constexpr rmw_qos_profile_t
-nondefault_qos_profile()
-{
-  rmw_qos_profile_t profile = rmw_qos_profile_default;
-  profile.history = RMW_QOS_POLICY_HISTORY_KEEP_ALL;
-  profile.depth = 1000;
-  profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  profile.deadline.sec = 1;
-  profile.lifespan.nsec = 500000;
-  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 1;
-  profile.avoid_ros_namespace_conventions = true;
-  return profile;
-}
-
-static constexpr rmw_qos_profile_t
 nondefault_qos_profile_for_fastrtps()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
@@ -283,12 +267,6 @@ expected_default_qos_profile()
 }
 
 static constexpr rmw_qos_profile_t
-expected_nondefault_qos_profile()
-{
-  return nondefault_qos_profile();
-}
-
-static constexpr rmw_qos_profile_t
 expected_nondefault_qos_profile_for_fastrtps()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
@@ -305,35 +283,11 @@ expected_nondefault_qos_profile_for_fastrtps()
 }
 
 static constexpr rmw_qos_profile_t
-expected_system_default_publisher_qos_profile()
-{
-  rmw_qos_profile_t profile = rmw_qos_profile_default;
-  profile.depth = 1;
-  profile.deadline.sec = 2147483647;
-  profile.lifespan.sec = 2147483647;
-  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
-  return profile;
-}
-
-static constexpr rmw_qos_profile_t
 expected_system_default_publisher_qos_profile_for_fastrtps()
 {
   rmw_qos_profile_t profile = rmw_qos_profile_default;
   profile.depth = 1;
   profile.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
-  profile.liveliness_lease_duration.sec = 2147483647;
-  return profile;
-}
-
-static constexpr rmw_qos_profile_t
-expected_system_default_subscription_qos_profile()
-{
-  rmw_qos_profile_t profile = rmw_qos_profile_default;
-  profile.depth = 1;
-  profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  profile.deadline.sec = 2147483647;
   profile.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
   profile.liveliness_lease_duration.sec = 2147483647;
   return profile;
@@ -402,40 +356,6 @@ get_parameters(bool for_publisher)
         expected_system_default_subscription_qos_profile_for_fastrtps(),
         "system_default_publisher_qos"
       });
-    }
-  } else {
-    // TODO(asorbini): Remove this block once ros2/rmw_connext is deprecated.
-    if (rmw_implementation_str == "rmw_connext_cpp" ||
-      rmw_implementation_str == "rmw_connext_dynamic_cpp")
-    {
-      /*
-       * Test with non-default settings.
-       */
-      parameters.push_back(
-      {
-        nondefault_qos_profile(),
-        expected_nondefault_qos_profile(),
-        "nondefault_qos"
-      });
-
-      /*
-       * Test with system default settings.
-       */
-      if (for_publisher) {
-        parameters.push_back(
-        {
-          rmw_qos_profile_system_default,
-          expected_system_default_publisher_qos_profile(),
-          "system_default_publisher_qos"
-        });
-      } else {
-        parameters.push_back(
-        {
-          rmw_qos_profile_system_default,
-          expected_system_default_subscription_qos_profile(),
-          "system_default_publisher_qos"
-        });
-      }
     }
   }
 

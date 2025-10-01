@@ -2,6 +2,26 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+10.2.4 (2025-09-30)
+-------------------
+
+10.2.3 (2025-07-29)
+-------------------
+* Fix Cmake deprecation (`#1249 <https://github.com/ros2/rcl/issues/1249>`_)
+* Contributors: mosfet80
+
+10.2.2 (2025-06-23)
+-------------------
+
+10.2.1 (2025-05-30)
+-------------------
+
+10.2.0 (2025-04-25)
+-------------------
+
+10.1.0 (2025-04-04)
+-------------------
+
 10.0.2 (2025-01-31)
 -------------------
 * Cleanup errors after error paths in rcl_yaml_param_parser tests. (`#1203 <https://github.com/ros2/rcl/issues/1203>`_)

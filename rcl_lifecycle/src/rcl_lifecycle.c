@@ -345,6 +345,24 @@ rcl_lifecycle_get_transition_by_label(
   return NULL;
 }
 
+const char *
+rcl_lifecycle_get_transition_label_by_id(
+  const rcl_lifecycle_transition_map_t * transition_map,
+  uint8_t transition_id)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    transition_map, "transition_map pointer is null\n", return NULL);
+
+  for (unsigned int i = 0; i < transition_map->transitions_size; ++i) {
+    if (transition_map->transitions[i].id == transition_id) {
+      return transition_map->transitions[i].label;
+    }
+  }
+
+  RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("transition with id %u not found\n", transition_id);
+  return NULL;
+}
+
 rcl_ret_t
 _trigger_transition(
   rcl_lifecycle_state_machine_t * state_machine,
@@ -426,6 +444,26 @@ rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine)
         map->states[i].label,
         map->states[i].valid_transitions[j].label);
     }
+  }
+}
+
+void
+rcl_print_transition_map(const rcl_lifecycle_transition_map_t * transition_map)
+{
+  RCL_CHECK_FOR_NULL_WITH_MSG(transition_map, "transition map is null.", return);
+
+  RCUTILS_LOG_INFO_NAMED(
+    ROS_PACKAGE_NAME,
+    "Transition Map contains %u transitions: ", transition_map->transitions_size);
+
+  for (size_t i = 0; i < transition_map->transitions_size; ++i) {
+    const rcl_lifecycle_transition_t * transition = &transition_map->transitions[i];
+    RCUTILS_LOG_INFO_NAMED(
+      ROS_PACKAGE_NAME,
+      "\tTransition: %s (ID: %u) -> Start State: %s -> Goal State: %s",
+      transition->label, transition->id,
+      transition->start ? transition->start->label : "NULL",
+      transition->goal ? transition->goal->label : "NULL");
   }
 }
 #ifdef __cplusplus

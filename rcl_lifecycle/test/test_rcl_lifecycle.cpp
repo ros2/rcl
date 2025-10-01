@@ -482,6 +482,8 @@ TEST(TestRclLifecycle, state_transitions) {
 
   rcl_print_state_machine(&state_machine);
   EXPECT_FALSE(rcutils_error_is_set());
+  rcl_print_transition_map(&state_machine.transition_map);
+  EXPECT_FALSE(rcutils_error_is_set());
 
   ret = rcl_lifecycle_state_machine_fini(&state_machine, &node);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;

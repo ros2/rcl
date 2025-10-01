@@ -351,6 +351,30 @@ rcl_lifecycle_get_transition_by_label(
   const rcl_lifecycle_state_t * state,
   const char * label);
 
+/// Get a label by id.
+/**
+ * A string label is returned based on the `id`.
+ * If the `id` is not set in the transition map then returns NULL.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] transition_map pointer to the transition map
+ * \param[in] transition_id id to be find in the transitions map
+ * \return a string pointer to the label exists in the transitino map or otherwise it return NULL
+ */
+RCL_LIFECYCLE_PUBLIC
+RCL_WARN_UNUSED
+const char *
+rcl_lifecycle_get_transition_label_by_id(
+  const rcl_lifecycle_transition_map_t * transition_map,
+  uint8_t transition_id);
+
 /// Trigger a state by id.
 /**
  * This function will trigger a transition based on the `id`. If the argument
@@ -411,24 +435,31 @@ rcl_lifecycle_trigger_transition_by_label(
   const char * label,
   bool publish_notification);
 
-/// Print the state machine data
+/// Log the state machine data
 /**
- * This function will print in the standard output the data in the
+ * This function will log the all data in the state machine
  * rcl_lifecycle_state_machine_t struct.
  *
- * <hr>
- * Attribute          | Adherence
- * ------------------ | -------------
- * Allocates Memory   | No
- * Thread-Safe        | No
- * Uses Atomics       | No
- * Lock-Free          | Yes
+ * the logging level must be INFO or a more verbose level (e.g., DEBUG).
  *
- * \param[in] state_machine pointer to the state machine struct to print
+ * \param[in] state_machine pointer to the state machine struct to log
  */
 RCL_LIFECYCLE_PUBLIC
 void
 rcl_print_state_machine(const rcl_lifecycle_state_machine_t * state_machine);
+
+/// Log the transition map
+/**
+ * This function will log the all data in the transition map
+ * rcl_lifecycle_state_machine_t struct.
+ *
+ * the logging level must be INFO or a more verbose level (e.g., DEBUG).
+ *
+ * \param[in] transition_map pointer to the transition map to log
+ */
+RCL_LIFECYCLE_PUBLIC
+void
+rcl_print_transition_map(const rcl_lifecycle_transition_map_t * transition_map);
 
 #ifdef __cplusplus
 }

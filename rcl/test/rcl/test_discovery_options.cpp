@@ -275,26 +275,3 @@ TEST(TestDiscoveryInfo, test_get_both) {
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 }
-
-// localhost_only is deprecated but still honored to prevail discovery_options.
-// see https://github.com/ros2/ros2_documentation/pull/3519#discussion_r1186541935
-// TODO(fujitatomoya): remove localhost_only completely after deprecation period.
-TEST(TestDiscoveryInfo, test_with_localhost_only) {
-  {
-    // No environment variable set (default subnet, no specific peers)
-    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, 0);
-  }
-
-  {
-    // only ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS set
-    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "LOCALHOST"));
-    ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "127.0.0.1;localhost.com"));
-    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_LOCALHOST, 2);
-  }
-
-  {
-    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
-    ASSERT_TRUE(rcutils_set_env("ROS_STATIC_PEERS", "192.168.0.1;remote.com"));
-    check_discovery(RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET, 2);
-  }
-}

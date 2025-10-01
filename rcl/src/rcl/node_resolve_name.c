@@ -92,9 +92,9 @@ rcl_resolve_name(
   int validation_result;
   rmw_ret_t rmw_ret = rmw_validate_full_topic_name(remapped_topic_name, &validation_result, NULL);
   if (rmw_ret != RMW_RET_OK) {
-    const char * error = rmw_get_error_string().str;
+    rcutils_error_string_t error = rmw_get_error_string();
     rmw_reset_error();
-    RCL_SET_ERROR_MSG(error);
+    RCL_SET_ERROR_MSG(error.str);
     ret = RCL_RET_ERROR;
     goto cleanup;
   }

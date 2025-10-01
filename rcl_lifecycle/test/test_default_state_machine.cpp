@@ -130,6 +130,29 @@ TEST_F(TestDefaultStateMachine, default_init) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }
 
+TEST_F(TestDefaultStateMachine, check_default_transition_map) {
+  rcl_ret_t ret;
+
+  rcl_lifecycle_state_machine_t state_machine = rcl_lifecycle_get_zero_initialized_state_machine();
+  state_machine.options = this->state_machine_options;
+  ret = rcl_lifecycle_init_default_state_machine(&state_machine, &state_machine.options.allocator);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  const rcl_lifecycle_transition_map_t * transition_map = &state_machine.transition_map;
+
+  // Check the major identifications for transitions.
+  EXPECT_STREQ("configure", rcl_lifecycle_get_transition_label_by_id(transition_map, 1));
+  EXPECT_STREQ("cleanup", rcl_lifecycle_get_transition_label_by_id(transition_map, 2));
+  EXPECT_STREQ("activate", rcl_lifecycle_get_transition_label_by_id(transition_map, 3));
+  EXPECT_STREQ("deactivate", rcl_lifecycle_get_transition_label_by_id(transition_map, 4));
+  EXPECT_STREQ("shutdown", rcl_lifecycle_get_transition_label_by_id(transition_map, 5));
+  EXPECT_STREQ("shutdown", rcl_lifecycle_get_transition_label_by_id(transition_map, 6));
+  EXPECT_STREQ("shutdown", rcl_lifecycle_get_transition_label_by_id(transition_map, 7));
+
+  ret = rcl_lifecycle_state_machine_fini(&state_machine, this->node_ptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
 TEST_F(TestDefaultStateMachine, default_sequence) {
   rcl_ret_t ret;
 

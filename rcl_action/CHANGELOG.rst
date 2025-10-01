@@ -2,6 +2,33 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+10.2.4 (2025-09-30)
+-------------------
+* add rcl_action_goal_handle_is_abortable(). (`#1257 <https://github.com/ros2/rcl/issues/1257>`_)
+* Contributors: Tomoya Fujita
+
+10.2.3 (2025-07-29)
+-------------------
+* Fix Cmake deprecation (`#1249 <https://github.com/ros2/rcl/issues/1249>`_)
+* Contributors: mosfet80
+
+10.2.2 (2025-06-23)
+-------------------
+
+10.2.1 (2025-05-30)
+-------------------
+
+10.2.0 (2025-04-25)
+-------------------
+
+10.1.0 (2025-04-04)
+-------------------
+* Set envars to run tests with rmw_zenoh_cpp with multicast discovery (`#1218 <https://github.com/ros2/rcl/issues/1218>`_)
+* No need to add public symbol visibility macros in implementation. (`#1213 <https://github.com/ros2/rcl/issues/1213>`_)
+* fix 'rcl_action_server_configure_action_introspection': inconsistent dll linkage. (`#1212 <https://github.com/ros2/rcl/issues/1212>`_)
+* Add new interfaces to enable intropsection for action (`#1207 <https://github.com/ros2/rcl/issues/1207>`_)
+* Contributors: Barry Xu, Tomoya Fujita, yadunund
+
 10.0.2 (2025-01-31)
 -------------------
 * fix(rcl_action): Allow to pass the timer to action during initialization (`#1201 <https://github.com/ros2/rcl/issues/1201>`_)
