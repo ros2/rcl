@@ -2,6 +2,17 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+9.2.7 (2025-06-23)
+------------------
+* Change the starting time of the goal expiration timeout (`#1121 <https://github.com/ros2/rcl//issues/1121>`_) (`#1240 <https://github.com/ros2/rcl//issues/1240>`_)
+* Contributors: mergify[bot]
+
+9.2.6 (2025-04-29)
+------------------
+
+9.2.5 (2025-04-02)
+------------------
+
 9.2.4 (2024-09-19)
 ------------------
 

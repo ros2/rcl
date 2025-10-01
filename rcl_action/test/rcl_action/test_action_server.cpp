@@ -592,6 +592,9 @@ TEST_F(TestActionServer, test_action_clear_expired_goals)
   ASSERT_EQ(RCL_RET_OK, rcl_action_update_goal_state(goal_handle, GOAL_EVENT_EXECUTE));
   ASSERT_EQ(RCL_RET_OK, rcl_action_update_goal_state(goal_handle, GOAL_EVENT_ABORT));
 
+  // recalculate the expired goal timer after entering terminal state
+  ASSERT_EQ(RCL_RET_OK, rcl_action_notify_goal_done(&this->action_server));
+
   // Set time to something far in the future
   ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&this->clock, RCUTILS_S_TO_NS(99999)));
 

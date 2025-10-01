@@ -170,6 +170,37 @@ TEST(TestGoalHandle, test_goal_handle_update_state_invalid)
   EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&goal_handle));
 }
 
+TEST(TestGoalHandle, rcl_action_goal_handle_get_goal_terminal_timestamp)
+{
+  rcl_time_point_value_t time;
+
+  // Check with null argument
+  rcl_ret_t ret = rcl_action_goal_handle_get_goal_terminal_timestamp(nullptr, &time);
+  EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_HANDLE_INVALID) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check with invalid goal handle
+  rcl_action_goal_handle_t goal_handle = rcl_action_get_zero_initialized_goal_handle();
+  ret = rcl_action_goal_handle_get_goal_terminal_timestamp(&goal_handle, &time);
+  EXPECT_EQ(ret, RCL_RET_ACTION_GOAL_HANDLE_INVALID) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  // Check with null timestamp
+  rcl_action_goal_info_t goal_info = rcl_action_get_zero_initialized_goal_info();
+  ret = rcl_action_goal_handle_init(&goal_handle, &goal_info, rcl_get_default_allocator());
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  ret = rcl_action_goal_handle_get_goal_terminal_timestamp(&goal_handle, nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_time_point_value_t timestamp;
+  ret = rcl_action_goal_handle_get_goal_terminal_timestamp(&goal_handle, &timestamp);
+  EXPECT_EQ(ret, RCL_ACTION_RET_NOT_TERMINATED_YET) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  EXPECT_EQ(RCL_RET_OK, rcl_action_goal_handle_fini(&goal_handle));
+}
+
 using EventStateActiveCancelableTuple =
   std::tuple<rcl_action_goal_event_t, rcl_action_goal_state_t, bool, bool>;
 using StateTransitionSequence = std::vector<EventStateActiveCancelableTuple>;
