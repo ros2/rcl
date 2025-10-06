@@ -489,7 +489,7 @@ rcl_client_response_subscription_get_actual_qos(const rcl_client_t * client);
  * \param[in] user_data Given to the callback when called later, may be NULL
  * \return `RCL_RET_OK` if callback was set to the listener, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `client` is NULL, or
- * \return `RCL_RET_UNSUPPORTED` if the API is not implemented in the dds implementation
+ * \return `RCL_RET_UNSUPPORTED` if the API is not supported by the middleware
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

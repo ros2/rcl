@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+10.2.4 (2025-09-30)
+-------------------
+* Fix typos: occurrs->occurs, successfull->successful (`#1259 <https://github.com/ros2/rcl/issues/1259>`_)
+* Refer to 'the middleware' and not 'the DDS implementation' in doc (`#1260 <https://github.com/ros2/rcl/issues/1260>`_)
+* Switch to isolated testing via rmw_test_fixture (`#1251 <https://github.com/ros2/rcl/issues/1251>`_)
+* Contributors: Christophe Bedard, yadunund
+
 10.2.3 (2025-07-29)
 -------------------
 * Fix Cmake deprecation (`#1249 <https://github.com/ros2/rcl/issues/1249>`_)

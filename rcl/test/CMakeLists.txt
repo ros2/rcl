@@ -1,4 +1,4 @@
-find_package(ament_cmake_gtest REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
 
 find_package(launch_testing_ament_cmake REQUIRED)
 find_package(mimick_vendor REQUIRED)
@@ -181,58 +181,50 @@ function(test_target)
   message(STATUS "Creating tests for '${rmw_implementation}'")
   set(rmw_implementation_env_var RMW_IMPLEMENTATION=${rmw_implementation})
 
-  # If the rmw_implementation is rmw_zenoh_cpp, run the tests with multicast discovery enabled.
-  # Note: This is a temporary change that will be reverted before we branch into Kilted.
-  if(rmw_implementation STREQUAL "rmw_zenoh_cpp")
-    list(APPEND rmw_implementation_env_var
-      ZENOH_CONFIG_OVERRIDE=scouting/multicast/enabled=true
-    )
-  endif()
-
   # Gtests
-  ament_add_gtest_test(test_client
+  ament_add_ros_isolated_gtest_test(test_client
     TEST_NAME test_client${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_timer
+  ament_add_ros_isolated_gtest_test(test_timer
     TEST_NAME test_timer${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_context
+  ament_add_ros_isolated_gtest_test(test_context
     TEST_NAME test_context${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
   )
   ament_add_test_label(test_context${target_suffix} mimick)
 
-  ament_add_gtest_test(test_get_node_names
+  ament_add_ros_isolated_gtest_test(test_get_node_names
     TEST_NAME test_get_node_names${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_graph
+  ament_add_ros_isolated_gtest_test(test_graph
     TEST_NAME test_graph${target_suffix}
     ENV ${rmw_implementation_env_var}
     TIMEOUT 120
   )
 
-  ament_add_gtest_test(test_info_by_topic
+  ament_add_ros_isolated_gtest_test(test_info_by_topic
     TEST_NAME test_info_by_topic${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_count_matched
+  ament_add_ros_isolated_gtest_test(test_count_matched
     TEST_NAME test_count_matched${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_get_actual_qos
+  ament_add_ros_isolated_gtest_test(test_get_actual_qos
     TEST_NAME test_get_actual_qos${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_init
+  ament_add_ros_isolated_gtest_test(test_init
     TEST_NAME test_init${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
     TIMEOUT 180
@@ -249,37 +241,37 @@ function(test_target)
   else()
     set(gtest_filter_env_var "")
   endif()
-  ament_add_gtest_test(test_node
+  ament_add_ros_isolated_gtest_test(test_node
     TEST_NAME test_node${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var} ${gtest_filter_env_var}
     TIMEOUT 240  # Large timeout to wait for fault injection tests
   )
   ament_add_test_label(test_node${target_suffix} mimick)
 
-  ament_add_gtest_test(test_remap
+  ament_add_ros_isolated_gtest_test(test_remap
     TEST_NAME test_remap${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_remap_integration
+  ament_add_ros_isolated_gtest_test(test_remap_integration
     TEST_NAME test_remap_integration${target_suffix}
     ENV ${rmw_implementation_env_var}
     TIMEOUT 200
   )
 
-  ament_add_gtest_test(test_guard_condition
+  ament_add_ros_isolated_gtest_test(test_guard_condition
     TEST_NAME test_guard_condition${target_suffix}
     ENV ${rmw_implementation_env_var} ${memory_tools_ld_preload_env_var}
   )
   ament_add_test_label(test_guard_condition${target_suffix} mimick)
 
-  ament_add_gtest_test(test_publisher
+  ament_add_ros_isolated_gtest_test(test_publisher
     TEST_NAME test_publisher${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
   ament_add_test_label(test_publisher${target_suffix} mimick)
 
-  ament_add_gtest_test(test_publisher_wait_all_ack
+  ament_add_ros_isolated_gtest_test(test_publisher_wait_all_ack
     TEST_NAME test_publisher_wait_all_ack${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
@@ -314,58 +306,58 @@ function(test_target)
       PRIVATE "RMW_TIMESTAMPS_SUPPORTED=1")
   endif()
 
-  ament_add_gtest_test(test_events
+  ament_add_ros_isolated_gtest_test(test_events
     TEST_NAME test_events${target_suffix}
     ENV ${rmw_implementation_env_var}
     TIMEOUT 120
   )
 
-  ament_add_gtest_test(test_wait
+  ament_add_ros_isolated_gtest_test(test_wait
     TEST_NAME test_wait${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
   ament_add_test_label(test_wait${target_suffix} mimick)
 
-  ament_add_gtest_test(test_logging_rosout
+  ament_add_ros_isolated_gtest_test(test_logging_rosout
     TEST_NAME test_logging_rosout${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_namespace
+  ament_add_ros_isolated_gtest_test(test_namespace
     TEST_NAME test_namespace${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_rmw_impl_id_check_func
+  ament_add_ros_isolated_gtest_test(test_rmw_impl_id_check_func
     TEST_NAME test_rmw_impl_id_check_func${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
   ament_add_test_label(test_rmw_impl_id_check_func${target_suffix} mimick)
 
-  ament_add_gtest_test(test_network_flow_endpoints
+  ament_add_ros_isolated_gtest_test(test_network_flow_endpoints
     TEST_NAME test_network_flow_endpoints${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
   ament_add_test_label(test_network_flow_endpoints${target_suffix} mimick)
 
-  ament_add_gtest_test(test_service_event_publisher
+  ament_add_ros_isolated_gtest_test(test_service_event_publisher
     TEST_NAME test_service_event_publisher${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
   ament_add_test_label(test_service_event_publisher${target_suffix} mimick)
 
-  ament_add_gtest_test(test_type_description_conversions
+  ament_add_ros_isolated_gtest_test(test_type_description_conversions
     TEST_NAME test_type_description_conversions${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
 
-  ament_add_gtest_test(test_node_type_cache
+  ament_add_ros_isolated_gtest_test(test_node_type_cache
     TEST_NAME test_node_type_cache${target_suffix}
     ENV ${rmw_implementation_env_var}
   )
   ament_add_test_label(test_node_type_cache${target_suffix} mimick)
 
-  ament_add_gtest_test(test_get_type_description_service
+  ament_add_ros_isolated_gtest_test(test_get_type_description_service
     TEST_NAME test_get_type_description_service${target_suffix}
     ENV ${rmw_implementation_env_var}
   )

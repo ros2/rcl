@@ -521,7 +521,7 @@ rcl_service_response_publisher_get_actual_qos(const rcl_service_t * service);
  * \param[in] user_data Given to the callback when called later, may be NULL
  * \return `RCL_RET_OK` if callback was set to the listener, or
  * \return `RCL_RET_INVALID_ARGUMENT` if `service` is NULL, or
- * \return `RCL_RET_UNSUPPORTED` if the API is not implemented in the dds implementation
+ * \return `RCL_RET_UNSUPPORTED` if the API is not supported by the middleware
  */
 RCL_PUBLIC
 RCL_WARN_UNUSED

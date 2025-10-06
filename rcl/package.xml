@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rcl</name>
-  <version>10.2.3</version>
+  <version>10.2.4</version>
   <description>The ROS client library common implementation.
     This package contains an API which builds on the ROS middleware API and is optionally built upon by the other ROS client libraries.
   </description>
@@ -35,7 +35,7 @@
   <!-- Explicit group resolution - see ros-infrastructure/catkin_pkg#369 -->
   <depend condition="$DISABLE_GROUPS_WORKAROUND != 1">rcl_logging_spdlog</depend>
 
-  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_cmake_ros</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <test_depend>launch</test_depend>
