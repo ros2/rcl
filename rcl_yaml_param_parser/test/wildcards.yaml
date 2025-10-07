@@ -27,6 +27,34 @@
     ros__parameters:
       id: 10
       name: "front lidar"
+/**:
+  ros__parameters:
+    global_param: 1
+  some_node5:
+    ros__parameters:
+      id: 10
+      name: "front lidar"
+/**:
+  some_node6:
+    ros__parameters:
+      id: 10
+      name: "front lidar"
+  ros__parameters:
+    global_param: 1
+/*:
+  ros__parameters:
+    global_param: 1
+  some_node7:
+    ros__parameters:
+      id: 10
+      name: "front lidar"
+/*:
+  some_node8:
+    ros__parameters:
+      id: 10
+      name: "front lidar"
+  ros__parameters:
+    global_param: 1
 /foo1/**:
   ros__parameters:
     id: 10
