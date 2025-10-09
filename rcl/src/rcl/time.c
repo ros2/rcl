@@ -41,14 +41,6 @@ rcl_get_steady_time(void * data, rcl_time_point_value_t * current_time)
 
 // Implementation only
 static rcl_ret_t
-rcl_get_raw_steady_time(void * data, rcl_time_point_value_t * current_time)
-{
-  (void)data;  // unused
-  return rcutils_raw_steady_time_now(current_time);
-}
-
-// Implementation only
-static rcl_ret_t
 rcl_get_system_time(void * data, rcl_time_point_value_t * current_time)
 {
   (void)data;  // unused
@@ -119,8 +111,6 @@ rcl_clock_init(
       return rcl_system_clock_init(clock, allocator);
     case RCL_STEADY_TIME:
       return rcl_steady_clock_init(clock, allocator);
-    case RCL_RAW_STEADY_TIME:
-      return rcl_raw_steady_clock_init(clock, allocator);
     default:
       return RCL_RET_INVALID_ARGUMENT;
   }
@@ -152,8 +142,6 @@ rcl_clock_fini(
       return rcl_system_clock_fini(clock);
     case RCL_STEADY_TIME:
       return rcl_steady_clock_fini(clock);
-    case RCL_RAW_STEADY_TIME:
-      return rcl_raw_steady_clock_fini(clock);
     case RCL_CLOCK_UNINITIALIZED:
     // fall through
     default:
@@ -219,32 +207,6 @@ rcl_steady_clock_fini(
   RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
   if (clock->type != RCL_STEADY_TIME) {
     RCL_SET_ERROR_MSG("clock not of type RCL_STEADY_TIME");
-    return RCL_RET_ERROR;
-  }
-  rcl_clock_generic_fini(clock);
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_raw_steady_clock_init(
-  rcl_clock_t * clock,
-  rcl_allocator_t * allocator)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_ARGUMENT_FOR_NULL(allocator, RCL_RET_INVALID_ARGUMENT);
-  rcl_init_generic_clock(clock, allocator);
-  clock->get_now = rcl_get_raw_steady_time;
-  clock->type = RCL_RAW_STEADY_TIME;
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_raw_steady_clock_fini(
-  rcl_clock_t * clock)
-{
-  RCL_CHECK_ARGUMENT_FOR_NULL(clock, RCL_RET_INVALID_ARGUMENT);
-  if (clock->type != RCL_RAW_STEADY_TIME) {
-    RCL_SET_ERROR_MSG("clock not of type RCL_RAW_STEADY_TIME");
     return RCL_RET_ERROR;
   }
   rcl_clock_generic_fini(clock);

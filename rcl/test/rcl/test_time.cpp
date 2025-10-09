@@ -239,22 +239,6 @@ TEST(rcl_time, default_clock_instanciation) {
   });
   ASSERT_TRUE(rcl_clock_valid(steady_clock));
 
-  auto * raw_steady_clock = static_cast<rcl_clock_t *>(
-    allocator.zero_allocate(1, sizeof(rcl_clock_t), allocator.state));
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    allocator.deallocate(raw_steady_clock, allocator.state);
-  });
-  retval = rcl_raw_steady_clock_init(raw_steady_clock, &allocator);
-  EXPECT_EQ(retval, RCL_RET_OK) << rcl_get_error_string().str;
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(
-      RCL_RET_OK, rcl_raw_steady_clock_fini(
-        raw_steady_clock)) << rcl_get_error_string().str;
-  });
-  ASSERT_TRUE(rcl_clock_valid(raw_steady_clock));
-
   auto * system_clock = static_cast<rcl_clock_t *>(
     allocator.zero_allocate(1, sizeof(rcl_clock_t), allocator.state));
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -289,9 +273,6 @@ TEST(rcl_time, specific_clock_instantiation) {
       rcl_steady_clock_fini(&uninitialized_clock), RCL_RET_ERROR) << rcl_get_error_string().str;
     rcl_reset_error();
     EXPECT_EQ(
-      rcl_raw_steady_clock_fini(&uninitialized_clock), RCL_RET_ERROR) << rcl_get_error_string().str;
-    rcl_reset_error();
-    EXPECT_EQ(
       rcl_system_clock_fini(&uninitialized_clock), RCL_RET_ERROR) << rcl_get_error_string().str;
     rcl_reset_error();
   }
@@ -320,15 +301,6 @@ TEST(rcl_time, specific_clock_instantiation) {
     EXPECT_EQ(steady_clock.type, RCL_STEADY_TIME) <<
       "Expected time source of type RCL_STEADY_TIME";
     ret = rcl_clock_fini(&steady_clock);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  }
-  {
-    rcl_clock_t raw_steady_clock;
-    rcl_ret_t ret = rcl_clock_init(RCL_RAW_STEADY_TIME, &raw_steady_clock, &allocator);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    EXPECT_EQ(raw_steady_clock.type, RCL_RAW_STEADY_TIME) <<
-      "Expected time source of type RCL_RAW_STEADY_TIME";
-    ret = rcl_clock_fini(&raw_steady_clock);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
   {
@@ -370,14 +342,6 @@ TEST(rcl_time, rcl_clock_time_started) {
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
     ASSERT_TRUE(rcl_clock_time_started(&steady_clock));
     ret = rcl_clock_fini(&steady_clock);
-    EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-  }
-  {
-    rcl_clock_t raw_steady_clock;
-    rcl_ret_t ret = rcl_clock_init(RCL_RAW_STEADY_TIME, &raw_steady_clock, &allocator);
-    ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
-    ASSERT_TRUE(rcl_clock_time_started(&raw_steady_clock));
-    ret = rcl_clock_fini(&raw_steady_clock);
     EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
   }
 }
