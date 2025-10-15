@@ -193,6 +193,7 @@ TEST(TestRclLifecycle, state_machine) {
   EXPECT_EQ(0u, state_machine.transition_map.transitions_size);
 
   rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_context_t context = rcl_get_zero_initialized_context();
   rcl_node_options_t options = rcl_node_get_default_options();
@@ -223,6 +224,13 @@ TEST(TestRclLifecycle, state_machine) {
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node)) << rcl_get_error_string().str;
   });
 
+  ret = rcl_clock_init(RCL_SYSTEM_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string().str;
+  });
+
   const rosidl_message_type_support_t * pn =
     ROSIDL_GET_MSG_TYPE_SUPPORT(lifecycle_msgs, msg, TransitionEvent);
   const rosidl_service_type_support_t * cs =
@@ -242,56 +250,63 @@ TEST(TestRclLifecycle, state_machine) {
 
   // Check various arguments are null
   ret = rcl_lifecycle_state_machine_init(
-    nullptr, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
+    nullptr, &node, &clock, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, nullptr, pn, cs, gs, gas, gat, gtg, &state_machine_options);
+    &state_machine, nullptr, &clock, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, nullptr, cs, gs, gas, gat, gtg, &state_machine_options);
+    &state_machine, &node, nullptr, pn, cs, gs, gas, gat, gtg, &state_machine_options);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcutils_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
+  rcutils_reset_error();
+
+  ret = rcl_lifecycle_state_machine_init(
+    &state_machine, &node, &clock, nullptr, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, nullptr, gs, gas, gat, gtg, &state_machine_options);
+    &state_machine, &node, &clock, pn, nullptr, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, nullptr, gas, gat, gtg, &state_machine_options);
+    &state_machine, &node, &clock, pn, cs, nullptr, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, nullptr, gat, gtg, &state_machine_options);
+    &state_machine, &node, &clock, pn, cs, gs, nullptr, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, nullptr, gtg, &state_machine_options);
+    &state_machine, &node, &clock, pn, cs, gs, gas, nullptr, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
   rcutils_reset_error();
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, nullptr, &state_machine_options);
+    &state_machine, &node, &clock, pn, cs, gs, gas, gat, nullptr, &state_machine_options);
   EXPECT_EQ(RCL_RET_ERROR, ret);
   rcutils_reset_error();
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_lifecycle_state_machine_is_initialized(&state_machine));
@@ -304,7 +319,7 @@ TEST(TestRclLifecycle, state_machine) {
   state_machine_options.enable_com_interface = false;
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
+    &state_machine, &node, &clock, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_NE(nullptr, &state_machine.com_interface);
   EXPECT_NE(nullptr, &state_machine.com_interface.pub_transition_event.impl);
@@ -325,7 +340,7 @@ TEST(TestRclLifecycle, state_machine) {
   state_machine_options.initialize_default_states = false;
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
+    &state_machine, &node, &clock, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   // Transition_map is not initialized
@@ -385,6 +400,7 @@ TEST(TestRclLifecycle, state_transitions) {
   EXPECT_EQ(0u, state_machine.transition_map.transitions_size);
 
   rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_lifecycle_state_machine_options_t state_machine_options =
     rcl_lifecycle_get_default_state_machine_options();
@@ -419,6 +435,13 @@ TEST(TestRclLifecycle, state_transitions) {
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
   });
 
+  ret = rcl_clock_init(RCL_SYSTEM_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock));
+  });
+
   const rosidl_message_type_support_t * pn =
     ROSIDL_GET_MSG_TYPE_SUPPORT(lifecycle_msgs, msg, TransitionEvent);
   const rosidl_service_type_support_t * cs =
@@ -433,7 +456,7 @@ TEST(TestRclLifecycle, state_transitions) {
     ROSIDL_GET_SRV_TYPE_SUPPORT(lifecycle_msgs, srv, GetAvailableTransitions);
 
   ret = rcl_lifecycle_state_machine_init(
-    &state_machine, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
+    &state_machine, &node, &clock, pn, cs, gs, gas, gat, gtg, &state_machine_options);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_lifecycle_state_machine_is_initialized(&state_machine);
@@ -491,6 +514,7 @@ TEST(TestRclLifecycle, state_transitions) {
 
 TEST(TestRclLifecycle, init_fini_maybe_fail) {
   rcl_node_t node = rcl_get_zero_initialized_node();
+  rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_context_t context = rcl_get_zero_initialized_context();
   rcl_node_options_t options = rcl_node_get_default_options();
@@ -522,6 +546,13 @@ TEST(TestRclLifecycle, init_fini_maybe_fail) {
     EXPECT_EQ(RCL_RET_OK, rcl_node_fini(&node));
   });
 
+  ret = rcl_clock_init(RCL_SYSTEM_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock));
+  });
+
   const rosidl_message_type_support_t * pn =
     ROSIDL_GET_MSG_TYPE_SUPPORT(lifecycle_msgs, msg, TransitionEvent);
   const rosidl_service_type_support_t * cs =
@@ -544,7 +575,7 @@ TEST(TestRclLifecycle, init_fini_maybe_fail) {
     rcl_lifecycle_get_default_state_machine_options();
 
     ret = rcl_lifecycle_state_machine_init(
-      &sm, &node, pn, cs, gs, gas, gat, gtg, &state_machine_options);
+      &sm, &node, &clock, pn, cs, gs, gas, gat, gtg, &state_machine_options);
     if (RCL_RET_OK == ret) {
       ret = rcl_lifecycle_state_machine_fini(&sm, &node);
       if (RCL_RET_OK != ret) {

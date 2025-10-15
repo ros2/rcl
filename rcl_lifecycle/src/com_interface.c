@@ -49,6 +49,7 @@ rcl_lifecycle_get_zero_initialized_com_interface(void)
 {
   rcl_lifecycle_com_interface_t com_interface;
   com_interface.node_handle = NULL;
+  com_interface.clock = NULL;
   com_interface.pub_transition_event = rcl_get_zero_initialized_publisher();
   com_interface.srv_change_state = rcl_get_zero_initialized_service();
   com_interface.srv_get_state = rcl_get_zero_initialized_service();
@@ -64,6 +65,7 @@ rcl_ret_t
 rcl_lifecycle_com_interface_init(
   rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle,
+  rcl_clock_t * clock,
   const rosidl_message_type_support_t * ts_pub_notify,
   const rosidl_service_type_support_t * ts_srv_change_state,
   const rosidl_service_type_support_t * ts_srv_get_state,
@@ -72,7 +74,7 @@ rcl_lifecycle_com_interface_init(
   const rosidl_service_type_support_t * ts_srv_get_transition_graph)
 {
   rcl_ret_t ret = rcl_lifecycle_com_interface_publisher_init(
-    com_interface, node_handle, ts_pub_notify);
+    com_interface, node_handle, clock, ts_pub_notify);
   if (ret != RCL_RET_OK) {
     return ret;
   }
@@ -100,11 +102,17 @@ rcl_ret_t
 rcl_lifecycle_com_interface_publisher_init(
   rcl_lifecycle_com_interface_t * com_interface,
   rcl_node_t * node_handle,
+  rcl_clock_t * clock,
   const rosidl_message_type_support_t * ts_pub_notify)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(com_interface, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node_handle, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(ts_pub_notify, RCL_RET_INVALID_ARGUMENT);
+
+  if (!rcl_clock_valid(clock)) {
+    RCL_SET_ERROR_MSG("invalid clock");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
 
   // initialize publisher
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
@@ -118,6 +126,7 @@ rcl_lifecycle_com_interface_publisher_init(
 
   // initialize static message for notification
   lifecycle_msgs__msg__TransitionEvent__init(&com_interface->msg);
+  com_interface->clock = clock;
 
   return RCL_RET_OK;
 
@@ -327,18 +336,14 @@ rcl_lifecycle_com_interface_publish_notification(
   rcl_lifecycle_com_interface_t * com_interface,
   const rcl_lifecycle_transition_t * transition)
 {
-  // Get the current system time based on the rcl_clock
-  rcutils_time_point_value_t current_time;
-  rcutils_ret_t time_ret = rcutils_system_time_now(&current_time);
-  if (time_ret != RCUTILS_RET_OK) {
-    rcutils_error_string_t error = rcutils_get_error_string();
-    rcutils_reset_error();
-    RCL_SET_ERROR_MSG(error.str);
-    time_ret = RCL_RET_ERROR;
-    return time_ret;
+  // Get the current time based on the rcl_clock
+  rcl_time_point_value_t timestamp;
+  rcl_ret_t time_ret = rcl_clock_get_now(com_interface->clock, &timestamp);
+  if (time_ret != RCL_RET_OK) {
+    return time_ret;  // rcl error state should already be set.
   }
 
-  com_interface->msg.timestamp = current_time;
+  com_interface->msg.timestamp = timestamp;
   com_interface->msg.transition.id = transition->id;
   rosidl_runtime_c__String__assign(&com_interface->msg.transition.label, transition->label);
   com_interface->msg.start_state.id = transition->start->id;

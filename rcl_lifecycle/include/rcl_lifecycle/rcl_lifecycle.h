@@ -225,6 +225,7 @@ rcl_lifecycle_get_zero_initialized_state_machine(void);
  * \param[inout] state_machine struct to be initialized
  * \param[in] node_handle a valid (not finalized) handle to the node used to create the publisher
  *    and the services
+ * \param[in] clock the clock associated with the node used for time stamping transition events
  * \param[in] ts_pub_notify pointer to transition publisher, it used to publish the transitions
  * \param[in] ts_srv_change_state pointer to the service that allows to trigger changes on the state
  * \param[in] ts_srv_get_state pointer to the service that allows to get the current state
@@ -244,6 +245,7 @@ rcl_ret_t
 rcl_lifecycle_state_machine_init(
   rcl_lifecycle_state_machine_t * state_machine,
   rcl_node_t * node_handle,
+  rcl_clock_t * clock,
   const rosidl_message_type_support_t * ts_pub_notify,
   const rosidl_service_type_support_t * ts_srv_change_state,
   const rosidl_service_type_support_t * ts_srv_get_state,
