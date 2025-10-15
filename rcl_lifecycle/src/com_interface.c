@@ -325,8 +325,7 @@ rcl_lifecycle_com_interface_fini(
 rcl_ret_t
 rcl_lifecycle_com_interface_publish_notification(
   rcl_lifecycle_com_interface_t * com_interface,
-  const char * transition_label, uint8_t transition_id,
-  const rcl_lifecycle_state_t * start, const rcl_lifecycle_state_t * goal)
+  const rcl_lifecycle_transition_t * transition)
 {
   // Get the current system time based on the rcl_clock
   rcutils_time_point_value_t current_time;
@@ -340,12 +339,12 @@ rcl_lifecycle_com_interface_publish_notification(
   }
 
   com_interface->msg.timestamp = current_time;
-  com_interface->msg.transition.id = transition_id;
-  rosidl_runtime_c__String__assign(&com_interface->msg.transition.label, transition_label);
-  com_interface->msg.start_state.id = start->id;
-  rosidl_runtime_c__String__assign(&com_interface->msg.start_state.label, start->label);
-  com_interface->msg.goal_state.id = goal->id;
-  rosidl_runtime_c__String__assign(&com_interface->msg.goal_state.label, goal->label);
+  com_interface->msg.transition.id = transition->id;
+  rosidl_runtime_c__String__assign(&com_interface->msg.transition.label, transition->label);
+  com_interface->msg.start_state.id = transition->start->id;
+  rosidl_runtime_c__String__assign(&com_interface->msg.start_state.label, transition->start->label);
+  com_interface->msg.goal_state.id = transition->goal->id;
+  rosidl_runtime_c__String__assign(&com_interface->msg.goal_state.label, transition->goal->label);
 
   return rcl_publish(&com_interface->pub_transition_event, &com_interface->msg, NULL);
 }
