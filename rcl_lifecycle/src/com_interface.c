@@ -343,7 +343,8 @@ rcl_lifecycle_com_interface_publish_notification(
     return time_ret;  // rcl error state should already be set.
   }
 
-  com_interface->msg.timestamp = timestamp;
+  com_interface->msg.stamp.sec = (int32_t) RCL_NS_TO_S(timestamp);
+  com_interface->msg.stamp.nanosec = (timestamp % RCL_S_TO_NS(1));
   com_interface->msg.transition.id = transition->id;
   rosidl_runtime_c__String__assign(&com_interface->msg.transition.label, transition->label);
   com_interface->msg.start_state.id = transition->start->id;
