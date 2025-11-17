@@ -75,13 +75,14 @@ _validate_name(const char * name, rcutils_allocator_t allocator);
 ///
 /// Check a tag whether it is valid
 ///
-/// \param tag the tag to check, include tags:
+/// \param[in] tag the tag to check, include tags:
 ///            YAML_BOOL_TAG, YAML_STR_TAG, YAML_INT_TAG,
-///            YAML_FLOAT_TAG, YAML_SEQ_TAG, YAML_MAP_TAG
-///            NOTE: YAML_NULL_TAG & YAML_TIMESTAMP_TAG are
+///            YAML_FLOAT_TAG, YAML_SEQ_TAG, YAML_MAP_TAG,
+///            "tag:yaml.org,2002:binary"
+///            NOTE: YAML_MAP_TAG, YAML_NULL_TAG and YAML_TIMESTAMP_TAG are
 ///            not supported by ROS2 Parameters, so they are
 ///            excluded.
-/// \param line_num the line number error happened
+/// \param[in] line_num the line number error happened
 /// \return RCUTILS_RET_OK if tag is valid, or
 /// \return RCUTILS_RET_ERROR if tag is not valid
 RCL_YAML_PARAM_PARSER_LOCAL
@@ -187,28 +188,20 @@ void * get_value(
     }
   }
 
-  /// Check if it is bool
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
     style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
   {
+    /// Check for bool
     if (_get_bool_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     }
-  }
 
-  /// Check for int
-  if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
-    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
-  {
+    /// Check for int
     if (_get_int_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     }
-  }
 
-  /// Check for float
-  if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
-    style != YAML_DOUBLE_QUOTED_SCALAR_STYLE)
-  {
+    /// Check for float
     if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     }
@@ -599,7 +592,8 @@ _validate_tag(const char * tag, uint32_t line_num)
     (0 == strcmp(tag, YAML_INT_TAG)) ||
     (0 == strcmp(tag, YAML_FLOAT_TAG)) ||
     (0 == strcmp(tag, YAML_SEQ_TAG)) ||
-    (0 == strcmp(tag, YAML_MAP_TAG)))
+    (0 == strcmp(tag, YAML_MAP_TAG)) ||
+    (0 == strcmp(tag, "tag:yaml.org,2002:binary")))
   {
     return RCUTILS_RET_OK;
   }
