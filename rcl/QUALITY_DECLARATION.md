@@ -1,10 +1,10 @@
-This document is a declaration of software quality for the `rcl` package, based on the guidelines in [REP-2004](https://www.ros.org/reps/rep-2004.html).
+This document is a declaration of software quality for the `rcl` package, based on the guidelines in [REP-2004](https://reps.openrobotics.org/rep-2004/).
 
 # `rcl` Quality Declaration
 
 The package `rcl` claims to be in the **Quality Level 1** category when it is used with a **Quality Level 1** middleware.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://reps.openrobotics.org/rep-2004/).
 
 ## Version Policy [1]
 
@@ -51,7 +51,7 @@ All pull requests will be peer-reviewed, check [ROS 2 Developer Guide](https://d
 
 ### Continuous Integration [2.iv]
 
-All pull requests must pass CI on all [tier 1 platforms](https://www.ros.org/reps/rep-2000.html#support-tiers).
+All pull requests must pass CI on all [tier 1 platforms](https://reps.openrobotics.org/rep-2000/#support-tiers).
 
 Currently nightly results can be seen here:
 * [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl/)
@@ -205,13 +205,13 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 
 ## Platform Support [6]
 
-`rcl` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers), and tests each change against all of them.
+`rcl` supports all of the tier 1 platforms as described in [REP-2000](https://reps.openrobotics.org/rep-2000/#support-tiers), and tests each change against all of them.
 
 ## Security [7]
 
 ### Vulnerability Disclosure Policy [7.i]
 
-This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://www.ros.org/reps/rep-2006.html).
+This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://reps.openrobotics.org/rep-2006/).
 
 # Current status Summary
 
