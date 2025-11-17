@@ -1,10 +1,10 @@
-This document is a declaration of software quality for the `rcl_yaml_param_parser` package, based on the guidelines in [REP-2004](https://www.ros.org/reps/rep-2004.html).
+This document is a declaration of software quality for the `rcl_yaml_param_parser` package, based on the guidelines in [REP-2004](https://reps.openrobotics.org/rep-2004/).
 
 # `rcl_yaml_param_parser` Quality Declaration
 
 The package `rcl_yaml_param_parser` claims to be in the **Quality Level 1** category.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Quality Categories in REP-2004](https://reps.openrobotics.org/rep-2004/).
 
 ## Version Policy [1]
 
@@ -49,7 +49,7 @@ Following the recommended guidelines for ROS Core packages, all pull requests mu
 
 ### Continuous Integration [2.iv]
 
-All pull requests must pass CI on all [tier 1 platforms](https://www.ros.org/reps/rep-2000.html#support-tiers).
+All pull requests must pass CI on all [tier 1 platforms](https://reps.openrobotics.org/rep-2000/#support-tiers).
 
 ### Documentation Policy [2.v]
 
@@ -163,7 +163,7 @@ It is **Quality Level 1**, see its [Quality Declaration document](https://github
 
 ## Platform Support [6]
 
-`rcl_yaml_param_parser` supports all of the tier 1 platforms as described in [REP-2000](https://www.ros.org/reps/rep-2000.html#support-tiers), and tests each change against all of them.
+`rcl_yaml_param_parser` supports all of the tier 1 platforms as described in [REP-2000](https://reps.openrobotics.org/rep-2000/#support-tiers), and tests each change against all of them.
 
 Currently nightly results can be seen here:
 * [linux-aarch64_release](https://ci.ros2.org/view/nightly/job/nightly_linux-aarch64_release/lastBuild/testReport/rcl_yaml_param_parser/)
@@ -175,4 +175,4 @@ Currently nightly results can be seen here:
 
 ## Vulnerability Disclosure Policy [7.i]
 
-This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://www.ros.org/reps/rep-2006.html).
+This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://reps.openrobotics.org/rep-2006/).
