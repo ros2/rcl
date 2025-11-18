@@ -812,9 +812,7 @@ TEST(test_file_parser, tag_incorrect_config) {
   const std::vector<std::string> filenames = {
     "tag_incorrect_config_01.yaml",
     "tag_incorrect_config_02.yaml",
-    "tag_incorrect_config_03.yaml",
-    "tag_incorrect_config_04.yaml",
-    "tag_incorrect_config_05.yaml"
+    "tag_incorrect_config_03.yaml"
   };
 
   for (auto & filename : filenames) {
@@ -833,6 +831,7 @@ TEST(test_file_parser, tag_incorrect_config) {
     });
     bool res = rcl_parse_yaml_file(path, params_hdl);
     EXPECT_FALSE(res);
+    rcutils_reset_error();
   }
 }
 

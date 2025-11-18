@@ -72,29 +72,27 @@ RCL_YAML_PARAM_PARSER_LOCAL
 rcutils_ret_t
 _validate_name(const char * name, rcutils_allocator_t allocator);
 
-///
-/// Check a tag whether it is valid
+/// Check a scalar tag whether it is valid
 ///
 /// \param[in] tag the tag to check, include tags:
-///            YAML_BOOL_TAG, YAML_STR_TAG, YAML_INT_TAG,
-///            YAML_FLOAT_TAG, YAML_SEQ_TAG, YAML_MAP_TAG,
+///            YAML_BOOL_TAG, YAML_STR_TAG, YAML_INT_TAG, YAML_FLOAT_TAG and
 ///            "tag:yaml.org,2002:binary"
-///            NOTE: YAML_MAP_TAG, YAML_NULL_TAG and YAML_TIMESTAMP_TAG are
-///            not supported by ROS2 Parameters, so they are
-///            excluded.
-/// \param[in] line_num the line number error happened
+///            NOTE: YAML_NULL_TAG, YAML_TIMESTAMP_TAG and  are not supported by ROS2 Parameters,
+///            so they are excluded.
 /// \return RCUTILS_RET_OK if tag is valid, or
-/// \return RCUTILS_RET_ERROR if tag is not valid
+/// \return RCUTILS_RET_ERROR if tag is not valid or
+/// \return RCUTILS_RET_INVALID_ARGUMENT if tag is NULL.
 RCL_YAML_PARAM_PARSER_LOCAL
 rcutils_ret_t
-_validate_tag(const char * tag, uint32_t line_num);
+_validate_scalar_tag(const yaml_char_t * const tag);
 
 ///
 /// Get a bool value when it is valid
 ///
-/// \param value the bool value to get
-/// \param val_type the value type
-/// \param ret_val the converted value when value is valid
+/// \param[in] value the bool value to get
+/// \param[out] val_type the value type
+/// \param[out] ret_val the converted value when value is valid
+/// \param[in] allocator the allocator to use
 /// \return RCUTILS_RET_OK if value is valid, or
 /// \return RCUTILS_RET_ERROR if value is not valid
 RCL_YAML_PARAM_PARSER_LOCAL
@@ -108,9 +106,10 @@ _get_bool_value(
 ///
 /// Get a int value when it is valid
 ///
-/// \param value the int value to get
-/// \param val_type the value type
-/// \param ret_val the converted value when value is valid
+/// \param[in] value the int value to get
+/// \param[out] val_type the value type
+/// \param[out] ret_val the converted value when value is valid
+/// \param[in] allocator the allocator to use
 /// \return RCUTILS_RET_OK if value is valid, or
 /// \return RCUTILS_RET_ERROR if value is not valid
 RCL_YAML_PARAM_PARSER_LOCAL
@@ -124,9 +123,10 @@ _get_int_value(
 ///
 /// Get a float value when it is valid
 ///
-/// \param value the float value to get
-/// \param val_type the value type
-/// \param ret_val the converted value when value is valid
+/// \param[in] value the float value to get
+/// \param[out] val_type the value type
+/// \param[out] ret_val the converted value when value is valid
+/// \param[in] allocator the allocator to use
 /// \return RCUTILS_RET_OK if value is valid, or
 /// \return RCUTILS_RET_ERROR if value is not valid
 RCL_YAML_PARAM_PARSER_LOCAL
@@ -155,37 +155,43 @@ void * get_value(
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
     &allocator, "allocator is invalid", return NULL);
 
-  /// Check for yaml string tag
-  if (tag != NULL && strcmp(YAML_STR_TAG, (char *)tag) == 0) {
-    *val_type = DATA_TYPE_STRING;
-    return rcutils_strdup(value, allocator);
-  }
-
-  /// Check for yaml bool tag
-  if (tag != NULL && strcmp(YAML_BOOL_TAG, (char *)tag) == 0) {
-    if (_get_bool_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
-      return ret_val;
-    } else {
-      return NULL;
+  // scalar tag is set
+  if (tag != NULL) {
+    /// Check for string tag
+    if (strcmp(YAML_STR_TAG, (char *)tag) == 0) {
+      *val_type = DATA_TYPE_STRING;
+      return rcutils_strdup(value, allocator);
     }
-  }
 
-  /// Check for yaml int tag
-  if (tag != NULL && strcmp(YAML_INT_TAG, (char *)tag) == 0) {
-    if (_get_int_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
-      return ret_val;
-    } else {
-      return NULL;
+    /// Check for bool tag
+    if (strcmp(YAML_BOOL_TAG, (char *)tag) == 0) {
+      if (_get_bool_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+        return ret_val;
+      } else {
+        return NULL;
+      }
     }
-  }
 
-  /// Check for yaml float tag
-  if (tag != NULL && strcmp(YAML_FLOAT_TAG, (char *)tag) == 0) {
-    if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
-      return ret_val;
-    } else {
-      return NULL;
+    /// Check for int tag
+    if (strcmp(YAML_INT_TAG, (char *)tag) == 0) {
+      if (_get_int_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+        return ret_val;
+      } else {
+        return NULL;
+      }
     }
+
+    /// Check for float tag
+    if (strcmp(YAML_FLOAT_TAG, (char *)tag) == 0) {
+      if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+        return ret_val;
+      } else {
+        return NULL;
+      }
+    }
+
+    /// YAML_NULL_TAG, YAML_TIMESTAMP_TAG and "tag:yaml.org,2002:binary" are not supported
+    return NULL;
   }
 
   if (style != YAML_SINGLE_QUOTED_SCALAR_STYLE &&
@@ -259,6 +265,14 @@ rcutils_ret_t parse_value(
   }
 
   rcl_variant_t * param_value = &(params_st->params[node_idx].parameter_values[parameter_idx]);
+
+  if (tag != NULL) {
+    if (RCUTILS_RET_OK != _validate_scalar_tag(tag)) {
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Unsupport tag \"%s\" at line %d", tag, line_num);
+      return RCUTILS_RET_ERROR;
+    }
+  }
 
   data_types_t val_type;
   void * ret_val = get_value(value, style, tag, &val_type, allocator);
@@ -585,21 +599,19 @@ clean:
 }
 
 rcutils_ret_t
-_validate_tag(const char * tag, uint32_t line_num)
+_validate_scalar_tag(const yaml_char_t * const tag)
 {
-  if ((0 == strcmp(tag, YAML_BOOL_TAG)) ||
-    (0 == strcmp(tag, YAML_STR_TAG)) ||
-    (0 == strcmp(tag, YAML_INT_TAG)) ||
-    (0 == strcmp(tag, YAML_FLOAT_TAG)) ||
-    (0 == strcmp(tag, YAML_SEQ_TAG)) ||
-    (0 == strcmp(tag, YAML_MAP_TAG)) ||
-    (0 == strcmp(tag, "tag:yaml.org,2002:binary")))
+  RCUTILS_CHECK_ARGUMENT_FOR_NULL(tag, RCUTILS_RET_INVALID_ARGUMENT);
+
+  if ((strcmp(YAML_BOOL_TAG, (char *)tag) == 0) ||
+    (strcmp(YAML_STR_TAG, (char *)tag) == 0) ||
+    (strcmp(YAML_INT_TAG, (char *)tag) == 0) ||
+    (strcmp(YAML_FLOAT_TAG, (char *)tag) == 0) ||
+    (strcmp("tag:yaml.org,2002:binary", (char *)tag) == 0))
   {
     return RCUTILS_RET_OK;
   }
 
-  RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-    "Unsupported tag %s at line %d", (char *)tag, line_num);
   return RCUTILS_RET_ERROR;
 }
 
@@ -924,14 +936,8 @@ rcutils_ret_t parse_file_events(
       ret = RCUTILS_RET_ERROR;
       break;
     }
+
     line_num = ((uint32_t)(event.start_mark.line) + 1U);
-    const yaml_char_t * const tag = event.data.scalar.tag;
-    if (tag != NULL) {
-      ret = _validate_tag((char *)tag, line_num);
-      if (RCUTILS_RET_OK != ret) {
-        break;
-      }
-    }
     switch (event.type) {
       case YAML_STREAM_END_EVENT:
         done_parsing = 1;
@@ -978,12 +984,6 @@ rcutils_ret_t parse_file_events(
         }
         break;
       case YAML_SEQUENCE_START_EVENT:
-        if (tag != NULL && strcmp(YAML_SEQ_TAG, (char *)tag) != 0) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Sequences cannot be used with tag %s at line %d", (char *)tag, line_num);
-          ret = RCUTILS_RET_ERROR;
-          break;
-        }
         if (is_key) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Sequences cannot be key at line %d", line_num);
@@ -1004,12 +1004,6 @@ rcutils_ret_t parse_file_events(
         is_key = true;
         break;
       case YAML_MAPPING_START_EVENT:
-        if (tag != NULL && strcmp(YAML_MAP_TAG, (char *)tag) != 0) {
-          RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-            "Maps cannot be used with tag %s at line %d", (char *)tag, line_num);
-          ret = RCUTILS_RET_ERROR;
-          break;
-        }
         map_depth++;
         is_new_map = true;
         is_key = true;

@@ -1,3 +1,0 @@
-map_tag:
-  ros__parameters:
-    test: !!map [1, 2]
