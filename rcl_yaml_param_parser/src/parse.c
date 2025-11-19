@@ -77,7 +77,7 @@ _validate_name(const char * name, rcutils_allocator_t allocator);
 /// \param[in] tag the tag to check, include tags:
 ///            YAML_BOOL_TAG, YAML_STR_TAG, YAML_INT_TAG, YAML_FLOAT_TAG and
 ///            "tag:yaml.org,2002:binary"
-///            NOTE: YAML_NULL_TAG, YAML_TIMESTAMP_TAG and  are not supported by ROS2 Parameters,
+///            NOTE: YAML_NULL_TAG and YAML_TIMESTAMP_TAG are not supported by ROS 2 Parameters,
 ///            so they are excluded.
 /// \return RCUTILS_RET_OK if tag is valid, or
 /// \return RCUTILS_RET_ERROR if tag is not valid or
