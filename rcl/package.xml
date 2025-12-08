@@ -23,6 +23,7 @@
   <depend>libyaml_vendor</depend>
   <depend>rcl_interfaces</depend>
   <depend>rcl_logging_interface</depend>
+  <depend>rcl_logging_implementation</depend>
   <depend>rcl_yaml_param_parser</depend>
   <depend>rcutils</depend>
   <depend>rmw_implementation</depend>
