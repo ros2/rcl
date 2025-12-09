@@ -27,7 +27,7 @@ macro(get_default_rcl_logging_implementation var)
   # Priority: CMake variable > Environment variable > Default
   if(NOT "${RCL_LOGGING_IMPLEMENTATION}" STREQUAL "")
     set(_logging_implementation "${RCL_LOGGING_IMPLEMENTATION}")
-  elseif(DEFINED ENV{RCL_LOGGING_IMPLEMENTATION})
+  elseif(DEFINED ENV{RCL_LOGGING_IMPLEMENTATION} AND NOT "$ENV{RCL_LOGGING_IMPLEMENTATION}" STREQUAL "")
     set(_logging_implementation "$ENV{RCL_LOGGING_IMPLEMENTATION}")
   else()
     set(_logging_implementation "rcl_logging_implementation")
