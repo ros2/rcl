@@ -456,12 +456,6 @@ rcutils_ret_t parse_value(
         }
       }
       break;
-    default:
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
-        "Unknown data type of value %s at line %d", value, line_num);
-      ret = RCUTILS_RET_ERROR;
-      allocator.deallocate(ret_val, allocator.state);
-      break;
   }
   return ret;
 }
@@ -890,10 +884,6 @@ rcutils_ret_t parse_key(
         }
       }
       break;
-    default:
-      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unknown map level at line %d", line_num);
-      ret = RCUTILS_RET_ERROR;
-      break;
   }
   return ret;
 }
@@ -1056,10 +1046,6 @@ rcutils_ret_t parse_file_events(
           "Received an empty event at line %d", line_num);
         ret = RCUTILS_RET_ERROR;
         break;
-      default:
-        RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("Unknown YAML event at line %d", line_num);
-        ret = RCUTILS_RET_ERROR;
-        break;
     }
     yaml_event_delete(&event);
   }
@@ -1110,10 +1096,6 @@ rcutils_ret_t parse_value_events(
         break;
       case YAML_NO_EVENT:
         RCUTILS_SET_ERROR_MSG("Received an empty event");
-        ret = RCUTILS_RET_ERROR;
-        break;
-      default:
-        RCUTILS_SET_ERROR_MSG("Unknown YAML event");
         ret = RCUTILS_RET_ERROR;
         break;
     }

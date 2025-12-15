@@ -100,9 +100,8 @@ rcl_automatic_discovery_range_to_string(rmw_automatic_discovery_range_t automati
       return "RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET";
     case RMW_AUTOMATIC_DISCOVERY_RANGE_SYSTEM_DEFAULT:
       return "RMW_AUTOMATIC_DISCOVERY_RANGE_SYSTEM_DEFAULT";
-    default:
-      return NULL;
   }
+  return NULL;
 }
 
 rcl_ret_t

@@ -111,9 +111,8 @@ rcl_clock_init(
       return rcl_system_clock_init(clock, allocator);
     case RCL_STEADY_TIME:
       return rcl_steady_clock_init(clock, allocator);
-    default:
-      return RCL_RET_INVALID_ARGUMENT;
   }
+  return RCL_RET_INVALID_ARGUMENT;
 }
 
 static void
@@ -143,10 +142,9 @@ rcl_clock_fini(
     case RCL_STEADY_TIME:
       return rcl_steady_clock_fini(clock);
     case RCL_CLOCK_UNINITIALIZED:
-    // fall through
-    default:
       return RCL_RET_INVALID_ARGUMENT;
   }
+  return RCL_RET_INVALID_ARGUMENT;
 }
 
 rcl_ret_t
