@@ -747,7 +747,7 @@ _get_float_value(
 ///
 rcutils_ret_t parse_key(
   const yaml_event_t event,
-  uint32_t * map_level,
+  yaml_map_lvl_t * map_level,
   bool * is_new_map,
   size_t * node_idx,
   size_t * parameter_idx,
@@ -901,7 +901,7 @@ rcutils_ret_t parse_file_events(
   bool is_seq = false;
   uint32_t line_num = 0;
   data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
-  uint32_t map_level = 1U;
+  yaml_map_lvl_t map_level = MAP_NODE_NAME_LVL;
   uint32_t map_depth = 0U;
   bool is_new_map = false;
 
@@ -945,7 +945,7 @@ rcutils_ret_t parse_file_events(
             is_key = false;
           } else {
             /// It is a value
-            if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
+            if (map_level < MAP_PARAMS_LVL) {
               RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
                 "Cannot have a value before %s at line %d", PARAMS_KEY, line_num);
               ret = RCUTILS_RET_ERROR;
@@ -980,7 +980,7 @@ rcutils_ret_t parse_file_events(
           ret = RCUTILS_RET_ERROR;
           break;
         }
-        if (map_level < (uint32_t)(MAP_PARAMS_LVL)) {
+        if (map_level < MAP_PARAMS_LVL) {
           RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
             "Sequences can only be values and not keys in params. Error at line %d\n", line_num);
           ret = RCUTILS_RET_ERROR;

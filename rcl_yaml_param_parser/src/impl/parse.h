@@ -53,7 +53,7 @@ RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_key(
   const yaml_event_t event,
-  uint32_t * map_level,
+  yaml_map_lvl_t * map_level,
   bool * is_new_map,
   size_t * node_idx,
   size_t * parameter_idx,

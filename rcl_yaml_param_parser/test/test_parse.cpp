@@ -368,7 +368,7 @@ TEST(TestParse, parse_key_bad_args)
   event.end_mark = {0u, 0u, 0u};
 
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  uint32_t map_level = MAP_NODE_NAME_LVL;
+  yaml_map_lvl_t map_level = MAP_NODE_NAME_LVL;
   bool is_new_map = false;
   size_t node_idx = 0;
   size_t parameter_idx = 0;
@@ -428,16 +428,6 @@ TEST(TestParse, parse_key_bad_args)
 
   // map_level is MAP_UNINIT_LVL
   map_level = MAP_UNINIT_LVL;
-  EXPECT_EQ(
-    RCUTILS_RET_ERROR,
-    parse_key(
-      event, &map_level, &is_new_map, &node_idx, &parameter_idx, &ns_tracker, params_st)) <<
-    rcutils_get_error_string().str;
-  EXPECT_TRUE(rcutils_error_is_set());
-  rcutils_reset_error();
-
-  // map_level is not a valid value
-  map_level = 42;
   EXPECT_EQ(
     RCUTILS_RET_ERROR,
     parse_key(
