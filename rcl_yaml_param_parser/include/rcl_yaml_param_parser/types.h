@@ -76,6 +76,7 @@ typedef struct rcl_variant_s
   int64_t * integer_value;  ///< If integer, gets stored here
   double * double_value;  ///< If double, gets stored here
   char * string_value;  ///< If string, gets stored here
+  char * yaml_value;  ///< If structured YAML, gets stored here -> Is this right?
   rcl_byte_array_t * byte_array_value;  ///< If array of bytes
   rcl_bool_array_t * bool_array_value;  ///< If array of bool's
   rcl_int64_array_t * integer_array_value;  ///< If array of integers

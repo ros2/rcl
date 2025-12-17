@@ -51,10 +51,31 @@ rcutils_ret_t parse_value(
 
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
+rcutils_ret_t initialize_emitter_string(
+  yaml_emitter_t * emitter);
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t end_emitter_string(
+  yaml_emitter_t * emitter);
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
+rcutils_ret_t write_structured_parameter_to_string(
+  yaml_parser_t * parser,
+  char * yaml_string_buffer,
+  size_t * written_size,
+  const size_t node_index,
+  const size_t parameter_index,
+  rcl_params_t * params_st);
+
+RCL_YAML_PARAM_PARSER_PUBLIC
+RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_key(
   const yaml_event_t event,
   uint32_t * map_level,
   bool * is_new_map,
+  bool * overwrite_previous_key,
   size_t * node_idx,
   size_t * parameter_idx,
   namespace_tracker_t * ns_tracker,
@@ -64,8 +85,16 @@ RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
 rcutils_ret_t parse_file_events(
   yaml_parser_t * parser,
+  yaml_emitter_t * emitter,
+  char * emitter_string_buffer,
+  size_t * emitter_written_bytes,
   namespace_tracker_t * ns_tracker,
   rcl_params_t * params_st);
+
+rcutils_ret_t write_event_to_emitter(
+  yaml_emitter_t * emitter,
+  yaml_event_t * event
+);
 
 RCL_YAML_PARAM_PARSER_PUBLIC
 RCUTILS_WARN_UNUSED
