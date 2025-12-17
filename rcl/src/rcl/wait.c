@@ -544,18 +544,27 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     }
   }
 
-  int64_t min_next_call_time[RCL_STEADY_TIME + 1];
-  rcl_clock_t * clocks[RCL_STEADY_TIME + 1] = {NULL, NULL, NULL, NULL};
+  int64_t min_next_call_time[RCL_RAW_STEADY_TIME + 1];
+  rcl_clock_t * clocks[RCL_RAW_STEADY_TIME + 1] = {NULL, NULL, NULL, NULL};
 
   // asserts to make sure nobody changes the ordering of RCL_ROS_TIME,
-  // RCL_SYSTEM_TIME and RCL_STEADY_TIME
-  static_assert(RCL_ROS_TIME < RCL_STEADY_TIME + 1, "RCL_ROS_TIME won't fit in the array");
-  static_assert(RCL_SYSTEM_TIME < RCL_STEADY_TIME + 1, "RCL_SYSTEM_TIME won't fit in the array");
-  static_assert(RCL_STEADY_TIME < RCL_STEADY_TIME + 1, "RCL_STEADY_TIME won't fit in the array");
+  // RCL_SYSTEM_TIME, RCL_STEADY_TIME and RCL_RAW_STEADY_TIME
+  static_assert(RCL_ROS_TIME < RCL_RAW_STEADY_TIME + 1, "RCL_ROS_TIME won't fit in the array");
+  static_assert(
+    RCL_SYSTEM_TIME < RCL_RAW_STEADY_TIME + 1,
+    "RCL_SYSTEM_TIME won't fit in the array");
+  static_assert(
+    RCL_STEADY_TIME < RCL_RAW_STEADY_TIME + 1,
+    "RCL_STEADY_TIME won't fit in the array");
+  static_assert(
+    RCL_RAW_STEADY_TIME < RCL_RAW_STEADY_TIME + 1,
+    "RCL_RAW_STEADY_TIME won't fit in the array");
 
   min_next_call_time[RCL_ROS_TIME] = INT64_MAX;
   min_next_call_time[RCL_SYSTEM_TIME] = INT64_MAX;
   min_next_call_time[RCL_STEADY_TIME] = INT64_MAX;
+  min_next_call_time[RCL_RAW_STEADY_TIME] = INT64_MAX;
+
 
   if (!is_non_blocking) {
     for (size_t t_idx = 0; t_idx < wait_set->impl->timer_index; ++t_idx) {
@@ -623,7 +632,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     int64_t min_timeout = has_valid_timeout ? timeout : INT64_MAX;
 
     // determine the min timeout of all clocks
-    for (size_t i = RCL_ROS_TIME; i <= RCL_STEADY_TIME; i++) {
+    for (size_t i = RCL_ROS_TIME; i <= RCL_RAW_STEADY_TIME; i++) {
       if (clocks[i] == NULL) {
         continue;
       }

@@ -57,6 +57,12 @@ typedef rcutils_duration_value_t rcl_duration_value_t;
  * RCL_SYSTEM_TIME reports the same value as the system clock.
  *
  * RCL_STEADY_TIME reports a value from a monotonically increasing clock.
+ *
+ * RCL_RAW_STEADY_TIME reports a value from a monotonic clock that is not
+ * adjusted for time jumps, such as those caused by NTP synchronization.
+ * This clock is suitable for measuring the time intervals without being
+ * affected by system time changes. This is true for the systems supporting
+ * the CLOCK_MONOTONIC_RAW clock type.
  */
 typedef enum rcl_clock_type_e
 {
@@ -67,7 +73,9 @@ typedef enum rcl_clock_type_e
   /// Use system time
   RCL_SYSTEM_TIME,
   /// Use a steady clock time
-  RCL_STEADY_TIME
+  RCL_STEADY_TIME,
+  /// Use a monotonic slew-free steady clock time
+  RCL_RAW_STEADY_TIME
 } rcl_clock_type_t;
 
 /// A duration of time, measured in nanoseconds and its source.
@@ -404,6 +412,69 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_steady_clock_fini(
+  rcl_clock_t * clock);
+
+/// Initialize a clock as a #RCL_RAW_STEADY_TIME time source.
+/**
+ * This will allocate all necessary internal structures, and initialize variables.
+ * It is specifically setting up a #RCL_RAW_STEADY_TIME time source.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No [1]
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object.</i>
+ *
+ * \param[in] clock the handle to the clock which is being initialized
+ * \param[in] allocator The allocator to use for allocations
+ * \return #RCL_RET_OK if the time source was successfully initialized, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_raw_steady_clock_init(
+  rcl_clock_t * clock,
+  rcl_allocator_t * allocator);
+
+/// Finalize a clock as a #RCL_RAW_STEADY_TIME time source.
+/**
+ * Finalize the clock as a #RCL_RAW_STEADY_TIME time source.
+ *
+ * This will deallocate all necessary internal structures, and clean up any variables.
+ * It is specifically setting up a steady time source. It is expected to be
+ * paired with the init fuction.
+ *
+ * This function is not thread-safe with any other function operating on the same
+ * clock object.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No [1]
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * <i>[1] Function is reentrant, but concurrent calls on the same `clock` object are not safe.
+ *        Thread-safety is also affected by that of the `allocator` object associated with the
+ *        `clock` object.</i>
+ *
+ * \param[in] clock the handle to the clock which is being initialized
+ * \return #RCL_RET_OK if the time source was successfully finalized, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_raw_steady_clock_fini(
   rcl_clock_t * clock);
 
 /// Initialize a clock as a #RCL_SYSTEM_TIME time source.
