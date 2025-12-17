@@ -1098,6 +1098,18 @@ rcutils_ret_t parse_value_events(
         RCUTILS_SET_ERROR_MSG("Received an empty event");
         ret = RCUTILS_RET_ERROR;
         break;
+      case YAML_ALIAS_EVENT:
+        RCUTILS_SET_ERROR_MSG("Aliasing not supported");
+        ret = RCUTILS_RET_ERROR;
+        break;
+      case YAML_MAPPING_START_EVENT:
+        RCUTILS_SET_ERROR_MSG("Mapping not supported in value parsing");
+        ret = RCUTILS_RET_ERROR;
+        break;
+      case YAML_MAPPING_END_EVENT:
+        RCUTILS_SET_ERROR_MSG("Mapping not supported in value parsing");
+        ret = RCUTILS_RET_ERROR;
+        break;
     }
     yaml_event_delete(&event);
   }
