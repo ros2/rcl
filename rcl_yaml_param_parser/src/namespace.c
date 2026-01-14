@@ -46,7 +46,7 @@ rcutils_ret_t add_name_to_ns(
   }
 
   /// Add a name to ns
-  if (NULL == name) {
+  if (NULL == name || strlen(name) == 0) {
     return RCUTILS_RET_INVALID_ARGUMENT;
   }
   if (0U == *cur_count) {

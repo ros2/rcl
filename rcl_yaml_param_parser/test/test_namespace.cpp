@@ -37,6 +37,10 @@ TEST(TestNamespace, add_name_to_ns) {
   EXPECT_EQ(RCUTILS_RET_INVALID_ARGUMENT, ret) << rcutils_get_error_string().str;
   EXPECT_EQ(nullptr, ns_tracker.node_ns);
 
+  ret = add_name_to_ns(&ns_tracker, "", NS_TYPE_NODE, allocator);
+  EXPECT_EQ(RCUTILS_RET_INVALID_ARGUMENT, ret) << rcutils_get_error_string().str;
+  EXPECT_EQ(nullptr, ns_tracker.node_ns);
+
   ret = add_name_to_ns(&ns_tracker, "node1", NS_TYPE_NODE, allocator);
   EXPECT_EQ(RCUTILS_RET_OK, ret) << rcutils_get_error_string().str;
   EXPECT_STREQ("node1", ns_tracker.node_ns);
