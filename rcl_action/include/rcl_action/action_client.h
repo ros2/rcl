@@ -781,6 +781,37 @@ rcl_action_client_configure_action_introspection(
   const rcl_publisher_options_t publisher_options,
   rcl_service_introspection_state_t introspection_state);
 
+// Configure feedback subscription content filter using Goal ID
+/**
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] rmw implementation defined</i>
+ *
+ * \param[in] action_client action client whose feedback subscription content filter will be
+ *            configured
+ * \param[in] goal_id goal id represented as a uint8_t array
+ * \param[in] array_size size of the goal_id array
+ * \return #RCL_RET_OK if the call was successful, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
+ * \return #RCL_RET_ERROR if calling rcl_subscription_set_content_filter doesn't return RCL_RET_OK,
+ *         or
+ * \return #RCL_RET_UNSUPPORTED if the middleware doesn't support content filtering
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_client_configure_feedback_subscription_filter_goal_id(
+  rcl_action_client_t * action_client,
+  uint8_t * goal_id_array,
+  size_t array_size);
+
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t

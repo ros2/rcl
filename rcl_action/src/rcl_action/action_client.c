@@ -787,6 +787,96 @@ rcl_action_client_configure_action_introspection(
   return RCL_RET_OK;
 }
 
+#define GOAL_ID_FILTER_EXPRESSION \
+  "goal_id.uuid[0] = %0 AND goal_id.uuid[1] = %1 AND goal_id.uuid[2] = %2 AND " \
+  "goal_id.uuid[3] = %3 AND goal_id.uuid[4] = %4 AND goal_id.uuid[5] = %5 AND " \
+  "goal_id.uuid[6] = %6 AND goal_id.uuid[7] = %7 AND goal_id.uuid[8] = %8 AND " \
+  "goal_id.uuid[9] = %9 AND goal_id.uuid[10] = %10 AND goal_id.uuid[11] = %11 " \
+  "AND goal_id.uuid[12] = %12 AND goal_id.uuid[13] = %13 " \
+  "AND goal_id.uuid[14] = %14 AND goal_id.uuid[15] = %15"
+
+rcl_ret_t
+rcl_action_client_configure_feedback_subscription_filter_goal_id(
+  rcl_action_client_t * action_client,
+  uint8_t * goal_id_array,
+  size_t array_size)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
+  if (array_size != UUID_SIZE) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  rcl_ret_t ret = RCL_RET_ERROR;
+  bool options_initialized = false;
+
+  const rcl_allocator_t * allocator = &action_client->impl->options.allocator;
+  // A uint8_t converted to a string occupies at most 4 bytes.
+  char * goal_id_memory_block = (char *)allocator->allocate(4 * array_size, allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_id_memory_block, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+  char * goal_id[array_size];
+  for (size_t i = 0; i < array_size; ++i) {
+    int n = snprintf(
+      &goal_id_memory_block[i * 4], 4, "%u", goal_id_array[i]); // NOLINT
+    if (n < 0) {
+      goto error;
+    }
+    goal_id[i] = &goal_id_memory_block[i * 4];
+  }
+
+  rcl_subscription_content_filter_options_t options =
+    rcl_get_zero_initialized_subscription_content_filter_options();
+
+  ret = rcl_subscription_content_filter_options_init(
+    &action_client->impl->feedback_subscription,
+    GOAL_ID_FILTER_EXPRESSION,
+    array_size,
+    (const char **)goal_id,
+    &options);
+  if (RCL_RET_OK != ret) {
+    goto error;
+  }
+  options_initialized = true;
+
+  ret = rcl_subscription_set_content_filter(
+    &action_client->impl->feedback_subscription,
+    &options);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to set cft expression parameters");
+    goto error;
+  }
+
+  if (rcl_subscription_is_cft_enabled(&action_client->impl->feedback_subscription)) {
+    ret = RCL_RET_OK;
+  } else {
+    // If the above call to rcl_subscription_set_content_filter() succeeds but the content filter
+    // feature is still not enabled, it means that the current RMW does not support it.
+    ret = RCL_RET_UNSUPPORTED;
+  }
+
+error:
+  if (goal_id_memory_block != NULL) {
+    allocator->deallocate(goal_id_memory_block, allocator->state);
+  }
+
+  if (options_initialized) {
+    rcl_ret_t fini_ret = rcl_subscription_content_filter_options_fini(
+      &action_client->impl->feedback_subscription, &options);
+    if (RCL_RET_OK != fini_ret) {
+      RCL_SET_ERROR_MSG("Failed to finalize cft options");
+      if (RCL_RET_OK == ret) {
+        ret = fini_ret;
+      }
+    }
+  }
+
+  return ret;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -485,3 +485,52 @@ TEST_F(TestActionClientFixture, test_set_internal_services_introspection_content
 {
   check_set_services_introspection(RCL_SERVICE_INTROSPECTION_CONTENTS, 1);
 }
+
+TEST_F(TestActionClientFixture, test_configure_feedback_subscription_filter_goal_id_invalid_inputs)
+{
+  uint8_t goal_id[UUID_SIZE] = {0};
+
+  rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_goal_id(
+    nullptr, goal_id, UUID_SIZE);
+  EXPECT_EQ(RCL_RET_ACTION_CLIENT_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_action_client_t invalid_client = rcl_action_get_zero_initialized_client();
+  ret = rcl_action_client_configure_feedback_subscription_filter_goal_id(
+    &invalid_client, goal_id, UUID_SIZE);
+  EXPECT_EQ(RCL_RET_ACTION_CLIENT_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_client_configure_feedback_subscription_filter_goal_id(
+    &this->action_client, nullptr, UUID_SIZE);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  ret = rcl_action_client_configure_feedback_subscription_filter_goal_id(
+    &this->action_client, goal_id, UUID_SIZE - 1);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+}
+
+TEST_F(TestActionClientFixture, test_configure_feedback_subscription_filter_goal_id_basic_behavior)
+{
+  const char * rmw_implementation = rmw_get_implementation_identifier();
+
+  uint8_t goal_id[UUID_SIZE];
+  for (size_t i = 0; i < UUID_SIZE; ++i) {
+    goal_id[i] = static_cast<uint8_t>(i);
+  }
+
+  rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_goal_id(
+    &this->action_client, goal_id, UUID_SIZE);
+  // Only FastDDS and ConnextDDS support content filtering
+  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") == 0 ||
+    strcmp(rmw_implementation, "rmw_connextdds") == 0)
+  {
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  } else {
+    EXPECT_EQ(RCL_RET_UNSUPPORTED, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
+}
