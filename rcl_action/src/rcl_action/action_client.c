@@ -787,6 +787,407 @@ rcl_action_client_configure_action_introspection(
   return RCL_RET_OK;
 }
 
+/// \internal
+/// Converts a goal ID array (uint8_t) to an array of strings.
+static
+rcl_ret_t
+_goal_id_to_string_array(
+  const rcl_allocator_t * allocator,
+  uint8_t * goal_id_array,
+  size_t array_size,
+  char ** goal_id_string_memory_block,
+  char ** goal_id_str_array)
+{
+  // A uint8_t converted to a string occupies at most 4 bytes.
+  char * goal_id_array_str = (char *)allocator->allocate(4 * array_size, allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    goal_id_array_str, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+  for (size_t i = 0; i < array_size; ++i) {
+    int n = snprintf(
+      &goal_id_array_str[i * 4], 4, "%u", goal_id_array[i]); // NOLINT
+    if (n < 0 || n >= 4) {
+      goto err;
+    }
+    goal_id_str_array[i] = &goal_id_array_str[i * 4];
+  }
+
+  *goal_id_string_memory_block = goal_id_array_str;
+  return RCL_RET_OK;
+
+err:
+  if (goal_id_array_str != NULL) {
+    allocator->deallocate(goal_id_array_str, allocator->state);
+  }
+
+  return RCL_RET_ERROR;
+}
+
+/// \internal
+/// Generates a filter expression string for goal ID array.
+/// \param[in] goal_id_array_size The size of goal ID array.
+/// \param[out] filter_expression The generated filter expression string. The caller is responsible
+///             for releasing this string.
+/// \param[in] allocator The allocator to use for memory allocation.
+/// \return `RCL_RET_OK` if successful, or an error code otherwise.
+static
+rcl_ret_t
+_generate_goal_id_filter_expression(
+  size_t goal_id_array_size,
+  char ** filter_expression,
+  rcl_allocator_t * allocator)
+{
+  if (goal_id_array_size == 0 || goal_id_array_size % UUID_SIZE != 0 || allocator == NULL) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  // Each clause looks like: "goal_id.uuid[XX] = %XX"
+  // Breakdown of maximum length:
+  //   - "goal_id.uuid["            : 13 chars
+  //   - index "XX" (0-15)          :  2 chars max
+  //   - "] = "                     :  4 chars
+  //   - parameter "%XX" (0-99)     :  4 chars max
+  //   => "goal_id.uuid[XX] = %XX"  : 23 chars max
+  // When multiple UUID elements are combined, we also add " AND " (5 chars) between clauses.
+  // So per element we need up to 23 + 5 = 28 chars. We round this up to 30 bytes to include
+  // a small safety margin and help cover separators such as ") OR (" between goal ID arrays.
+  int expression_capacity = goal_id_array_size * 30;
+  char * expression_goal_id_arrays = (char *)allocator->allocate(
+    expression_capacity, allocator->state);
+  RCL_CHECK_FOR_NULL_WITH_MSG(
+    expression_goal_id_arrays, "allocating memory failed", return RCL_RET_BAD_ALLOC);
+
+  int pos = 0;
+  size_t num_arrays = goal_id_array_size / UUID_SIZE;
+
+  // Traverse each goal ID array
+  for (size_t i = 0; i < num_arrays; i++) {
+    if (i > 0) {
+      // Not the first goal ID array, add a separator
+      pos += snprintf(expression_goal_id_arrays + pos, expression_capacity - pos, ") OR (");
+    } else if (num_arrays > 1) {
+      // First array: if there are multiple arrays, add an opening parenthesis
+      pos += snprintf(expression_goal_id_arrays + pos, expression_capacity - pos, "(");
+    }
+
+    // Generate expression for one goal ID array
+    for (int j = 0; j < UUID_SIZE; j++) {
+      if (j > 0) {
+        pos += snprintf(expression_goal_id_arrays + pos, expression_capacity - pos, " AND ");
+      }
+      // goal_id.uuid[XX]: the index range of the UUID array is 0-15
+      // The parameter index is global and the index range of the UUID array is 0-99
+      int param_index = i * UUID_SIZE + j;
+      pos += snprintf(
+        expression_goal_id_arrays + pos,
+        expression_capacity - pos,
+        "goal_id.uuid[%d] = %%%d", j, param_index);
+    }
+  }
+
+  // Add the closing parenthesis at the end
+  if (num_arrays > 1) {
+    pos += snprintf(expression_goal_id_arrays + pos, expression_capacity - pos, ")");
+  }
+
+  *filter_expression = expression_goal_id_arrays;
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
+  rcl_action_client_t * action_client,
+  uint8_t * goal_id_array,
+  size_t array_size)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
+  if (array_size != UUID_SIZE) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  // Converts goal ID array (uint8_t) to an array of strings.
+  char * goal_id_string_memory_block = NULL;
+  char * goal_id_str_array[array_size];
+  rcl_ret_t ret = _goal_id_to_string_array(
+    &action_client->impl->options.allocator,
+    goal_id_array,
+    array_size,
+    &goal_id_string_memory_block,
+    goal_id_str_array);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;
+  }
+
+  bool is_cft_enabled =
+    rcl_subscription_is_cft_enabled(&action_client->impl->feedback_subscription);
+
+  rcl_subscription_content_filter_options_t content_filter_options =
+    rcl_get_zero_initialized_subscription_content_filter_options();
+
+  size_t existing_expression_params_size = 0;
+  char ** existing_expression_params = NULL;
+
+  ret = RCL_RET_ERROR;
+
+  if (is_cft_enabled) {
+    // Existing content filter and append new goal ID to it.
+    ret = rcl_subscription_get_content_filter(
+        &action_client->impl->feedback_subscription, &content_filter_options);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Failed to get cft expression parameters");
+      return ret;
+    }
+    existing_expression_params_size = content_filter_options
+      .rmw_subscription_content_filter_options.expression_parameters.size;
+    existing_expression_params = content_filter_options
+      .rmw_subscription_content_filter_options.expression_parameters.data;
+  }
+
+  size_t new_expression_params_size =
+    existing_expression_params_size + array_size;
+  char * new_expression_params[new_expression_params_size];
+  // Collect existing expression parameters
+  for (size_t i = 0; i < existing_expression_params_size; ++i) {
+    new_expression_params[i] = existing_expression_params[i];
+  }
+  // Append new goal ID array
+  for (size_t i = 0; i < array_size; ++i) {
+    new_expression_params[existing_expression_params_size + i] = goal_id_str_array[i];
+  }
+
+  // Generate new filter expression string
+  char * goal_id_filter_expression = NULL;
+  if (_generate_goal_id_filter_expression(
+      new_expression_params_size,
+      &goal_id_filter_expression,
+      &action_client->impl->options.allocator) != RCL_RET_OK)
+  {
+    RCL_SET_ERROR_MSG("Failed to generate new filter expression");
+    goto err;
+  }
+
+  // Update content filter options
+  rcl_subscription_content_filter_options_t new_content_filter_options =
+    rcl_get_zero_initialized_subscription_content_filter_options();
+  ret = rcl_subscription_content_filter_options_init(
+    &action_client->impl->feedback_subscription,
+    goal_id_filter_expression,
+    new_expression_params_size,
+    (const char **)new_expression_params,
+    &new_content_filter_options);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to initialize cft options");
+    goto err;
+  }
+
+  // Set new content filter options
+  ret = rcl_subscription_set_content_filter(
+    &action_client->impl->feedback_subscription,
+    &new_content_filter_options);
+  if (RCL_RET_OK == ret) {
+    is_cft_enabled =
+      rcl_subscription_is_cft_enabled(&action_client->impl->feedback_subscription);
+    if (!is_cft_enabled) {
+      ret = RCL_RET_UNSUPPORTED;  // RMW middleware doesn't support content filter
+    }
+  } else {
+    RCL_SET_ERROR_MSG("Failed to set cft expression parameters");
+  }
+
+  ret = rcl_subscription_content_filter_options_fini(
+    &action_client->impl->feedback_subscription, &new_content_filter_options);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to finalize cft options");
+  }
+
+err:
+  if (goal_id_string_memory_block != NULL) {
+    action_client->impl->options.allocator.deallocate(
+      goal_id_string_memory_block, action_client->impl->options.allocator.state);
+  }
+
+  if (goal_id_filter_expression != NULL) {
+    action_client->impl->options.allocator.deallocate(
+      goal_id_filter_expression, action_client->impl->options.allocator.state);
+  }
+
+  rcl_ret_t ret_tmp = rcl_subscription_content_filter_options_fini(
+    &action_client->impl->feedback_subscription, &content_filter_options);
+  if (RCL_RET_OK != ret_tmp) {
+    RCL_SET_ERROR_MSG("Failed to finalize cft options");
+  }
+
+  return ret;
+}
+
+rcl_ret_t
+rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
+  rcl_action_client_t * action_client,
+  uint8_t * goal_id_array,
+  size_t array_size)
+{
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
+  if (array_size != UUID_SIZE) {
+    return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  // If content filter isn't configured or rmw middleware doesn't support content filter,
+  // do nothing.
+  bool is_cft_enabled =
+    rcl_subscription_is_cft_enabled(&action_client->impl->feedback_subscription);
+  if (!is_cft_enabled) {
+    return RCL_RET_OK;
+  }
+
+  // Converts goal ID array (uint8_t) to an array of strings.
+  char * goal_id_string_memory_block = NULL;
+  char * goal_id_str_array[array_size];
+  rcl_ret_t ret = _goal_id_to_string_array(
+    &action_client->impl->options.allocator,
+    goal_id_array,
+    array_size,
+    &goal_id_string_memory_block,
+    goal_id_str_array);
+  if (RCL_RET_OK != ret) {
+    return RCL_RET_ERROR;
+  }
+
+  // Get existing content filter options
+  rcl_subscription_content_filter_options_t content_filter_options =
+    rcl_get_zero_initialized_subscription_content_filter_options();
+  ret = rcl_subscription_get_content_filter(
+      &action_client->impl->feedback_subscription, &content_filter_options);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to get cft expression parameters");
+    return ret;
+  }
+
+  char * new_filter_expression = NULL;
+
+  // Check if goal ID is in expression_parameters in content_filter_options
+  size_t expression_params_size = content_filter_options
+    .rmw_subscription_content_filter_options.expression_parameters.size;
+  char ** expression_params =
+    content_filter_options.rmw_subscription_content_filter_options.expression_parameters.data;
+  if (expression_params_size % array_size != 0u) {
+    RCL_SET_ERROR_MSG("Expression parameters size is not divisible by goal ID array size");
+    ret = RCL_RET_ERROR;
+    goto err;
+  }
+  size_t index_expression_params = 0;
+  while (index_expression_params < expression_params_size) {
+    // one_goal_id_array points to the start of one goal ID array in expression_parameters
+    char ** one_goal_id_array = &expression_params[index_expression_params];
+    bool is_matched = true;
+    for (size_t i = 0; i < array_size; ++i) {
+      if (strcmp(one_goal_id_array[i], goal_id_str_array[i]) != 0) {
+        is_matched = false;
+        break;
+      }
+    }
+    if (is_matched) {
+      break;
+    }
+    index_expression_params += array_size;
+  }
+
+  // If found the goal ID in content filter, remove it
+  if (index_expression_params != expression_params_size) {
+    // Prepare new content filter options
+    rcl_subscription_content_filter_options_t new_content_filter_options =
+      rcl_get_zero_initialized_subscription_content_filter_options();
+
+    size_t new_expression_params_size = expression_params_size - array_size;
+    if (new_expression_params_size == 0) {
+      // All goal IDs are removed, disable content filter
+      // Generate empty filter expression options
+      ret = rcl_subscription_content_filter_options_init(
+        &action_client->impl->feedback_subscription,
+        "",
+        0,
+        NULL,
+        &new_content_filter_options);
+      if (RCL_RET_OK != ret) {
+        RCL_SET_ERROR_MSG("Failed to initialize cft options");
+        goto err;
+      }
+    } else {
+      // Create new expression parameters array without the removed goal ID
+      char * new_expression_params[new_expression_params_size];
+      size_t new_index = 0;
+      for (size_t i = 0; i < expression_params_size; ++i) {
+        if (i >= index_expression_params && i < (index_expression_params + array_size)) {
+          // Skip the goal ID to be removed
+          continue;
+        }
+        new_expression_params[new_index++] = expression_params[i];
+      }
+
+      // Generate new filter expression string
+      ret = _generate_goal_id_filter_expression(
+        (expression_params_size - array_size),
+        &new_filter_expression,
+        &action_client->impl->options.allocator);
+      if (RCL_RET_OK != ret) {
+        RCL_SET_ERROR_MSG("Failed to generate new filter expression");
+        goto err;
+      }
+
+      // Generate new filter expression options
+      ret = rcl_subscription_content_filter_options_init(
+        &action_client->impl->feedback_subscription,
+        new_filter_expression,
+        expression_params_size - array_size,
+        (const char **)new_expression_params,
+        &new_content_filter_options);
+      if (RCL_RET_OK != ret) {
+        RCL_SET_ERROR_MSG("Failed to initialize cft options");
+        goto err;
+      }
+    }
+
+    // Update new content filter options
+    ret = rcl_subscription_set_content_filter(
+      &action_client->impl->feedback_subscription,
+      &new_content_filter_options);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Failed to set cft expression parameters");
+    }
+
+    ret = rcl_subscription_content_filter_options_fini(
+      &action_client->impl->feedback_subscription, &new_content_filter_options);
+    if (RCL_RET_OK != ret) {
+      RCL_SET_ERROR_MSG("Failed to finalize cft options");
+    }
+  }
+
+err:
+  if (goal_id_string_memory_block != NULL) {
+    action_client->impl->options.allocator.deallocate(
+      goal_id_string_memory_block, action_client->impl->options.allocator.state);
+  }
+
+  if (new_filter_expression != NULL) {
+    action_client->impl->options.allocator.deallocate(
+      new_filter_expression, action_client->impl->options.allocator.state);
+  }
+
+  rcl_ret_t ret_tmp = rcl_subscription_content_filter_options_fini(
+    &action_client->impl->feedback_subscription, &content_filter_options);
+  if (RCL_RET_OK != ret_tmp) {
+    RCL_SET_ERROR_MSG("Failed to finalize cft options");
+  }
+
+  return ret;
+}
 #ifdef __cplusplus
 }
 #endif

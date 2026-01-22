@@ -1731,3 +1731,429 @@ TEST_F(TestActionIntrospection, test_action_client_valid_get_result_service_even
   test_msgs__action__Fibonacci_GetResult_Request__fini(&incoming_result_request);
   test_msgs__action__Fibonacci_GetResult_Request__fini(&outgoing_result_request);
 }
+
+TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_one_goal_id)
+{
+  const char * rmw_implementation = rmw_get_implementation_identifier();
+  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") != 0 &&
+    strcmp(rmw_implementation, "rmw_connextdds") != 0)
+  {
+    // Content filtering is only supported in FastDDS and ConnextDDS
+    GTEST_SKIP() << "Content filtering is only supported in FastDDS and ConnextDDS.";
+  }
+
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback1;
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback2;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback1;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback2;
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback2);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback2);
+
+  // Initialize feedback1 and feedback2
+  ASSERT_TRUE(
+    rosidl_runtime_c__int32__Sequence__init(
+      &outgoing_feedback1.feedback.sequence, 3));
+  outgoing_feedback1.feedback.sequence.data[0] = 0;
+  outgoing_feedback1.feedback.sequence.data[1] = 1;
+  outgoing_feedback1.feedback.sequence.data[2] = 2;
+  init_test_uuid0(outgoing_feedback1.goal_id.uuid);
+
+  ASSERT_TRUE(
+    rosidl_runtime_c__int32__Sequence__init(
+      &outgoing_feedback2.feedback.sequence, 3));
+  outgoing_feedback2.feedback.sequence.data[0] = 3;
+  outgoing_feedback2.feedback.sequence.data[1] = 4;
+  outgoing_feedback2.feedback.sequence.data[2] = 5;
+  init_test_uuid1(outgoing_feedback2.goal_id.uuid);
+
+  // Add content filter for feedback1(uuid0) only
+  rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
+    &this->action_client,
+    outgoing_feedback1.goal_id.uuid,
+    sizeof(outgoing_feedback1.goal_id.uuid));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Publish feedback1 for uuid0
+  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback1);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Publish feedback2 for uuid1
+  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback2);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_client(
+    &this->wait_set, &this->action_client, NULL, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &this->wait_set,
+    &this->action_client,
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ASSERT_TRUE(this->is_feedback_ready);
+  EXPECT_FALSE(this->is_status_ready);
+  EXPECT_FALSE(this->is_result_response_ready);
+  EXPECT_FALSE(this->is_cancel_response_ready);
+  EXPECT_FALSE(this->is_goal_response_ready);
+
+  // Take feedback1
+  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback1);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check that feedback1 was received correctly
+  EXPECT_TRUE(
+    uuidcmp(
+      outgoing_feedback1.goal_id.uuid,
+      incoming_feedback1.goal_id.uuid));
+  ASSERT_EQ(outgoing_feedback1.feedback.sequence.size, incoming_feedback1.feedback.sequence.size);
+  EXPECT_TRUE(
+    !memcmp(
+      outgoing_feedback1.feedback.sequence.data,
+      incoming_feedback1.feedback.sequence.data,
+      outgoing_feedback1.feedback.sequence.size));
+
+  // Take feedback2 -- should fail since feedback2's goal_id was not added to the content filter
+  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback2);
+  ASSERT_EQ(ret, RCL_RET_ACTION_CLIENT_TAKE_FAILED);
+
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback2);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback2);
+}
+
+TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_two_goal_ids)
+{
+  const char * rmw_implementation = rmw_get_implementation_identifier();
+  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") != 0 &&
+    strcmp(rmw_implementation, "rmw_connextdds") != 0)
+  {
+    // Content filtering is only supported in FastDDS and ConnextDDS
+    GTEST_SKIP() << "Content filtering is only supported in FastDDS and ConnextDDS.";
+  }
+
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback1;
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback2;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback1;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback2;
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback2);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback2);
+
+  // Initialize feedback1 and feedback2
+  ASSERT_TRUE(
+    rosidl_runtime_c__int32__Sequence__init(
+      &outgoing_feedback1.feedback.sequence, 3));
+  outgoing_feedback1.feedback.sequence.data[0] = 0;
+  outgoing_feedback1.feedback.sequence.data[1] = 1;
+  outgoing_feedback1.feedback.sequence.data[2] = 2;
+  init_test_uuid0(outgoing_feedback1.goal_id.uuid);
+
+  ASSERT_TRUE(
+    rosidl_runtime_c__int32__Sequence__init(
+      &outgoing_feedback2.feedback.sequence, 3));
+  outgoing_feedback2.feedback.sequence.data[0] = 3;
+  outgoing_feedback2.feedback.sequence.data[1] = 4;
+  outgoing_feedback2.feedback.sequence.data[2] = 5;
+  init_test_uuid1(outgoing_feedback2.goal_id.uuid);
+
+  // Add content filter for feedback1(uuid0) and feedback2(uuid1)
+  rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
+    &this->action_client,
+    outgoing_feedback1.goal_id.uuid,
+    sizeof(outgoing_feedback1.goal_id.uuid));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  ret = rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
+    &this->action_client,
+    outgoing_feedback2.goal_id.uuid,
+    sizeof(outgoing_feedback2.goal_id.uuid));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Publish feedback1 for uuid0
+  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback1);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  // Publish feedback2 for uuid1
+  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback2);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_client(
+    &this->wait_set, &this->action_client, NULL, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &this->wait_set,
+    &this->action_client,
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ASSERT_TRUE(this->is_feedback_ready);
+  EXPECT_FALSE(this->is_status_ready);
+  EXPECT_FALSE(this->is_result_response_ready);
+  EXPECT_FALSE(this->is_cancel_response_ready);
+  EXPECT_FALSE(this->is_goal_response_ready);
+
+  // Take feedback1
+  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback1);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_TRUE(
+    uuidcmp(
+      outgoing_feedback1.goal_id.uuid,
+      incoming_feedback1.goal_id.uuid));
+  ASSERT_EQ(outgoing_feedback1.feedback.sequence.size, incoming_feedback1.feedback.sequence.size);
+  EXPECT_TRUE(
+    !memcmp(
+      outgoing_feedback1.feedback.sequence.data,
+      incoming_feedback1.feedback.sequence.data,
+      outgoing_feedback1.feedback.sequence.size));
+
+  // Take feedback2
+  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback2);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_TRUE(
+    uuidcmp(
+      outgoing_feedback2.goal_id.uuid,
+      incoming_feedback2.goal_id.uuid));
+  ASSERT_EQ(outgoing_feedback2.feedback.sequence.size, incoming_feedback2.feedback.sequence.size);
+  EXPECT_TRUE(
+    !memcmp(
+      outgoing_feedback2.feedback.sequence.data,
+      incoming_feedback2.feedback.sequence.data,
+      outgoing_feedback2.feedback.sequence.size));
+
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback2);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback2);
+}
+
+TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_goal_id)
+{
+  const char * rmw_implementation = rmw_get_implementation_identifier();
+  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") != 0 &&
+    strcmp(rmw_implementation, "rmw_connextdds") != 0)
+  {
+    // Content filtering is only supported in FastDDS and ConnextDDS
+    GTEST_SKIP() << "Content filtering is only supported in FastDDS and ConnextDDS.";
+  }
+
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback;
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback);
+
+  // Initialize feedback
+  ASSERT_TRUE(
+    rosidl_runtime_c__int32__Sequence__init(
+      &outgoing_feedback.feedback.sequence, 3));
+  outgoing_feedback.feedback.sequence.data[0] = 0;
+  outgoing_feedback.feedback.sequence.data[1] = 1;
+  outgoing_feedback.feedback.sequence.data[2] = 2;
+  init_test_uuid0(outgoing_feedback.goal_id.uuid);
+
+  uint8_t uuid1[16];
+  init_test_uuid1(uuid1);
+
+  // Add content filter for uuid1 only
+  rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
+    &this->action_client,
+    uuid1,
+    sizeof(uuid1));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Publish feedback for uuid0
+  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_client(
+    &this->wait_set, &this->action_client, NULL, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Nothing should be ready
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(1));
+  ASSERT_EQ(ret, RCL_RET_TIMEOUT) << rcl_get_error_string().str;
+
+  ret = rcl_wait_set_clear(&this->wait_set);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Remove content filter for uuid1, so that no content filter is set
+  ret = rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
+    &this->action_client,
+    uuid1,
+    sizeof(uuid1));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Publish feedback for uuid0, this time it should be received
+  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_client(
+    &this->wait_set, &this->action_client, NULL, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &this->wait_set,
+    &this->action_client,
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // feedback subscription should be ready
+  EXPECT_TRUE(this->is_feedback_ready);
+  EXPECT_FALSE(this->is_status_ready);
+  EXPECT_FALSE(this->is_result_response_ready);
+  EXPECT_FALSE(this->is_cancel_response_ready);
+  EXPECT_FALSE(this->is_goal_response_ready);
+
+  // Take feedback with valid arguments
+  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Check that feedback was received correctly
+  EXPECT_TRUE(
+    uuidcmp(
+      outgoing_feedback.goal_id.uuid,
+      incoming_feedback.goal_id.uuid));
+  ASSERT_EQ(outgoing_feedback.feedback.sequence.size, incoming_feedback.feedback.sequence.size);
+  EXPECT_TRUE(
+    !memcmp(
+      outgoing_feedback.feedback.sequence.data,
+      incoming_feedback.feedback.sequence.data,
+      outgoing_feedback.feedback.sequence.size));
+
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback);
+}
+
+TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_goal_id_from_two)
+{
+  const char * rmw_implementation = rmw_get_implementation_identifier();
+  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") != 0 &&
+    strcmp(rmw_implementation, "rmw_connextdds") != 0)
+  {
+    // Content filtering is only supported in FastDDS and ConnextDDS
+    GTEST_SKIP() << "Content filtering is only supported in FastDDS and ConnextDDS.";
+  }
+
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback1;
+  test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback2;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback1;
+  test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback2;
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&outgoing_feedback2);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__init(&incoming_feedback2);
+
+  // Initialize feedback
+  ASSERT_TRUE(
+    rosidl_runtime_c__int32__Sequence__init(
+      &outgoing_feedback1.feedback.sequence, 3));
+  outgoing_feedback1.feedback.sequence.data[0] = 0;
+  outgoing_feedback1.feedback.sequence.data[1] = 1;
+  outgoing_feedback1.feedback.sequence.data[2] = 2;
+  init_test_uuid0(outgoing_feedback1.goal_id.uuid);
+
+  ASSERT_TRUE(
+    rosidl_runtime_c__int32__Sequence__init(
+      &outgoing_feedback2.feedback.sequence, 3));
+  outgoing_feedback2.feedback.sequence.data[0] = 3;
+  outgoing_feedback2.feedback.sequence.data[1] = 4;
+  outgoing_feedback2.feedback.sequence.data[2] = 5;
+  init_test_uuid1(outgoing_feedback2.goal_id.uuid);
+
+  // Add content filter for uuid0 and uuid1
+  rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
+    &this->action_client,
+    outgoing_feedback1.goal_id.uuid,
+    sizeof(outgoing_feedback1.goal_id.uuid));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  ret = rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
+    &this->action_client,
+    outgoing_feedback2.goal_id.uuid,
+    sizeof(outgoing_feedback2.goal_id.uuid));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Remove content filter for uuid0
+  ret = rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
+    &this->action_client,
+    outgoing_feedback1.goal_id.uuid,
+    sizeof(outgoing_feedback1.goal_id.uuid));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Now only uuid1 is filtered, so only feedback2 should be received
+  // Publish feedback1 for uuid0
+  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback1);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  // Publish feedback2 for uuid1
+  ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback2);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_client(
+    &this->wait_set, &this->action_client, NULL, NULL);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_wait(&this->wait_set, RCL_S_TO_NS(10));
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ret = rcl_action_client_wait_set_get_entities_ready(
+    &this->wait_set,
+    &this->action_client,
+    &this->is_feedback_ready,
+    &this->is_status_ready,
+    &this->is_goal_response_ready,
+    &this->is_cancel_response_ready,
+    &this->is_result_response_ready);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+  ASSERT_TRUE(this->is_feedback_ready);
+  EXPECT_FALSE(this->is_status_ready);
+  EXPECT_FALSE(this->is_result_response_ready);
+  EXPECT_FALSE(this->is_cancel_response_ready);
+  EXPECT_FALSE(this->is_goal_response_ready);
+
+  // Take feedback2 with valid arguments
+  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback2);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  EXPECT_TRUE(
+    uuidcmp(
+      outgoing_feedback2.goal_id.uuid,
+      incoming_feedback2.goal_id.uuid));
+  ASSERT_EQ(outgoing_feedback2.feedback.sequence.size, incoming_feedback2.feedback.sequence.size);
+  EXPECT_TRUE(
+    !memcmp(
+      outgoing_feedback2.feedback.sequence.data,
+      incoming_feedback2.feedback.sequence.data,
+      outgoing_feedback2.feedback.sequence.size));
+
+  ret = rcl_action_take_feedback(&this->action_client, &incoming_feedback1);
+  EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_TAKE_FAILED);
+
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&incoming_feedback2);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback1);
+  test_msgs__action__Fibonacci_FeedbackMessage__fini(&outgoing_feedback2);
+}
