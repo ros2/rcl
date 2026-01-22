@@ -859,35 +859,48 @@ _generate_goal_id_filter_expression(
   int pos = 0;
   size_t num_arrays = goal_id_array_size / UUID_SIZE;
 
+  // Helper macro to append formatted string and check for errors
+  #define APPEND_TO_EXPRESSION(...) \
+    do { \
+      int written = snprintf( \
+        expression_goal_id_arrays + pos, expression_capacity - pos, __VA_ARGS__); \
+      if (written < 0 || \
+        written >= expression_capacity - pos || pos + written >= expression_capacity) { \
+        allocator->deallocate(expression_goal_id_arrays, allocator->state); \
+        return RCL_RET_ERROR; \
+      } \
+      pos += written; \
+    } while (0)
+
   // Traverse each goal ID array
   for (size_t i = 0; i < num_arrays; i++) {
     if (i > 0) {
       // Not the first goal ID array, add a separator
-      pos += snprintf(expression_goal_id_arrays + pos, expression_capacity - pos, ") OR (");
+      APPEND_TO_EXPRESSION(") OR (");
     } else if (num_arrays > 1) {
       // First array: if there are multiple arrays, add an opening parenthesis
-      pos += snprintf(expression_goal_id_arrays + pos, expression_capacity - pos, "(");
+      APPEND_TO_EXPRESSION("(");
     }
 
     // Generate expression for one goal ID array
     for (int j = 0; j < UUID_SIZE; j++) {
       if (j > 0) {
-        pos += snprintf(expression_goal_id_arrays + pos, expression_capacity - pos, " AND ");
+        APPEND_TO_EXPRESSION(" AND ");
       }
       // goal_id.uuid[XX]: the index range of the UUID array is 0-15
-      // The parameter index is global and the index range of the UUID array is 0-99
+      // The parameter index is global and the index range is 0-99 (Since DDS spec requires
+      // less than 100 parameters in a filter expression)
       int param_index = i * UUID_SIZE + j;
-      pos += snprintf(
-        expression_goal_id_arrays + pos,
-        expression_capacity - pos,
-        "goal_id.uuid[%d] = %%%d", j, param_index);
+      APPEND_TO_EXPRESSION("goal_id.uuid[%d] = %%%d", j, param_index);
     }
   }
 
   // Add the closing parenthesis at the end
   if (num_arrays > 1) {
-    pos += snprintf(expression_goal_id_arrays + pos, expression_capacity - pos, ")");
+    APPEND_TO_EXPRESSION(")");
   }
+
+  #undef APPEND_TO_EXPRESSION
 
   *filter_expression = expression_goal_id_arrays;
 
@@ -906,12 +919,13 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
 
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
   if (array_size != UUID_SIZE) {
+    RCL_SET_ERROR_MSG("Goal id array size must be equal to UUID_SIZE.");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
   // Converts goal ID array (uint8_t) to an array of strings.
   char * goal_id_string_memory_block = NULL;
-  char * goal_id_str_array[array_size];
+  char * goal_id_str_array[UUID_SIZE];
   rcl_ret_t ret = _goal_id_to_string_array(
     &action_client->impl->options.allocator,
     goal_id_array,
@@ -930,6 +944,8 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
 
   size_t existing_expression_params_size = 0;
   char ** existing_expression_params = NULL;
+  char ** new_expression_params = NULL;
+  char * new_filter_expression = NULL;
 
   ret = RCL_RET_ERROR;
 
@@ -939,7 +955,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
         &action_client->impl->feedback_subscription, &content_filter_options);
     if (RCL_RET_OK != ret) {
       RCL_SET_ERROR_MSG("Failed to get cft expression parameters");
-      return ret;
+      goto err;
     }
     existing_expression_params_size = content_filter_options
       .rmw_subscription_content_filter_options.expression_parameters.size;
@@ -949,7 +965,20 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
 
   size_t new_expression_params_size =
     existing_expression_params_size + array_size;
-  char * new_expression_params[new_expression_params_size];
+  if (new_expression_params_size > 100) {
+    RCL_SET_ERROR_MSG("Exceeded maximum number of filter expression parameters (100)");
+    ret = RCL_RET_ERROR;
+    goto err;
+  }
+
+  new_expression_params = (char **)action_client->impl->options.allocator.allocate(
+    sizeof(char *) * new_expression_params_size, action_client->impl->options.allocator.state);
+  if (new_expression_params == NULL) {
+    RCL_SET_ERROR_MSG("Failed to allocate memory for expression parameters");
+    ret = RCL_RET_BAD_ALLOC;
+    goto err;
+  }
+
   // Collect existing expression parameters
   for (size_t i = 0; i < existing_expression_params_size; ++i) {
     new_expression_params[i] = existing_expression_params[i];
@@ -960,10 +989,9 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
   }
 
   // Generate new filter expression string
-  char * goal_id_filter_expression = NULL;
   if (_generate_goal_id_filter_expression(
       new_expression_params_size,
-      &goal_id_filter_expression,
+      &new_filter_expression,
       &action_client->impl->options.allocator) != RCL_RET_OK)
   {
     RCL_SET_ERROR_MSG("Failed to generate new filter expression");
@@ -975,7 +1003,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
     rcl_get_zero_initialized_subscription_content_filter_options();
   ret = rcl_subscription_content_filter_options_init(
     &action_client->impl->feedback_subscription,
-    goal_id_filter_expression,
+    new_filter_expression,
     new_expression_params_size,
     (const char **)new_expression_params,
     &new_content_filter_options);
@@ -998,26 +1026,31 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
     RCL_SET_ERROR_MSG("Failed to set cft expression parameters");
   }
 
-  ret = rcl_subscription_content_filter_options_fini(
+  rcl_ret_t fini_ret = rcl_subscription_content_filter_options_fini(
     &action_client->impl->feedback_subscription, &new_content_filter_options);
-  if (RCL_RET_OK != ret) {
+  if (RCL_RET_OK != fini_ret) {
     RCL_SET_ERROR_MSG("Failed to finalize cft options");
   }
 
 err:
+  if (new_expression_params != NULL) {
+    action_client->impl->options.allocator.deallocate(
+      new_expression_params, action_client->impl->options.allocator.state);
+  }
+
   if (goal_id_string_memory_block != NULL) {
     action_client->impl->options.allocator.deallocate(
       goal_id_string_memory_block, action_client->impl->options.allocator.state);
   }
 
-  if (goal_id_filter_expression != NULL) {
+  if (new_filter_expression != NULL) {
     action_client->impl->options.allocator.deallocate(
-      goal_id_filter_expression, action_client->impl->options.allocator.state);
+      new_filter_expression, action_client->impl->options.allocator.state);
   }
 
-  rcl_ret_t ret_tmp = rcl_subscription_content_filter_options_fini(
+  fini_ret = rcl_subscription_content_filter_options_fini(
     &action_client->impl->feedback_subscription, &content_filter_options);
-  if (RCL_RET_OK != ret_tmp) {
+  if (RCL_RET_OK != fini_ret) {
     RCL_SET_ERROR_MSG("Failed to finalize cft options");
   }
 
@@ -1036,6 +1069,7 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
 
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
   if (array_size != UUID_SIZE) {
+    RCL_SET_ERROR_MSG("Goal id array size must be equal to UUID_SIZE.");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
@@ -1049,7 +1083,7 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
 
   // Converts goal ID array (uint8_t) to an array of strings.
   char * goal_id_string_memory_block = NULL;
-  char * goal_id_str_array[array_size];
+  char * goal_id_str_array[UUID_SIZE];
   rcl_ret_t ret = _goal_id_to_string_array(
     &action_client->impl->options.allocator,
     goal_id_array,
@@ -1121,6 +1155,8 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
       }
     } else {
       // Create new expression parameters array without the removed goal ID
+      // DDS spec requires less than 100 parameters in a filter expression, so
+      // new_expression_params_size is guaranteed to be less than 100.
       char * new_expression_params[new_expression_params_size];
       size_t new_index = 0;
       for (size_t i = 0; i < expression_params_size; ++i) {
@@ -1162,9 +1198,9 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
       RCL_SET_ERROR_MSG("Failed to set cft expression parameters");
     }
 
-    ret = rcl_subscription_content_filter_options_fini(
+    rcl_ret_t fini_ret = rcl_subscription_content_filter_options_fini(
       &action_client->impl->feedback_subscription, &new_content_filter_options);
-    if (RCL_RET_OK != ret) {
+    if (RCL_RET_OK != fini_ret) {
       RCL_SET_ERROR_MSG("Failed to finalize cft options");
     }
   }
@@ -1180,9 +1216,9 @@ err:
       new_filter_expression, action_client->impl->options.allocator.state);
   }
 
-  rcl_ret_t ret_tmp = rcl_subscription_content_filter_options_fini(
+  rcl_ret_t fini_ret = rcl_subscription_content_filter_options_fini(
     &action_client->impl->feedback_subscription, &content_filter_options);
-  if (RCL_RET_OK != ret_tmp) {
+  if (RCL_RET_OK != fini_ret) {
     RCL_SET_ERROR_MSG("Failed to finalize cft options");
   }
 

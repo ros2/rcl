@@ -800,6 +800,7 @@ rcl_action_client_configure_action_introspection(
  * \param[in] goal_id goal id represented as a uint8_t array
  * \param[in] array_size size of the goal_id array
  * \return #RCL_RET_OK if the call was successful, or
+ * \return #RCL_RET_ACTION_CLIENT_INVALID if the action client is invalid, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
  * \return #RCL_RET_ERROR if calling other rcl functions internally does not return RCL_RET_OK, or
@@ -833,6 +834,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
  * \param[in] goal_id goal id represented as a uint8_t array
  * \param[in] array_size size of the goal_id array
  * \return #RCL_RET_OK if the call was successful, or
+ * \return #RCL_RET_ACTION_CLIENT_INVALID if the action client is invalid, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
  * \return #RCL_RET_ERROR if calling other rcl functions internally does not return RCL_RET_OK
