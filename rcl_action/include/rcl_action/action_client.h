@@ -810,8 +810,8 @@ RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
-  rcl_action_client_t * action_client,
-  uint8_t * goal_id_array,
+  const rcl_action_client_t * action_client,
+  const uint8_t * goal_id_array,
   size_t array_size);
 
 /// Configure feedback subscription content filter to remove one goal ID
@@ -843,8 +843,8 @@ RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
-  rcl_action_client_t * action_client,
-  uint8_t * goal_id_array,
+  const rcl_action_client_t * action_client,
+  const uint8_t * goal_id_array,
   size_t array_size);
 
 RCL_ACTION_PUBLIC

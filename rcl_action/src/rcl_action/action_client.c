@@ -793,7 +793,7 @@ static
 rcl_ret_t
 _goal_id_to_string_array(
   const rcl_allocator_t * allocator,
-  uint8_t * goal_id_array,
+  const uint8_t * goal_id_array,
   size_t array_size,
   char ** goal_id_string_memory_block,
   char ** goal_id_str_array)
@@ -909,8 +909,8 @@ _generate_goal_id_filter_expression(
 
 rcl_ret_t
 rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
-  rcl_action_client_t * action_client,
-  uint8_t * goal_id_array,
+  const rcl_action_client_t * action_client,
+  const uint8_t * goal_id_array,
   size_t array_size)
 {
   if (!rcl_action_client_is_valid(action_client)) {
@@ -1059,8 +1059,8 @@ err:
 
 rcl_ret_t
 rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
-  rcl_action_client_t * action_client,
-  uint8_t * goal_id_array,
+  const rcl_action_client_t * action_client,
+  const uint8_t * goal_id_array,
   size_t array_size)
 {
   if (!rcl_action_client_is_valid(action_client)) {
