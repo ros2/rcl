@@ -583,13 +583,13 @@ TEST_F(
     if (i < MAX_SUPPORTED_GOAL_IDS) {
       EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
       rcl_reset_error();
-      EXPECT_EQ(action_client.impl->options.disable_feedback_sub_cft, false);
+      EXPECT_EQ(action_client.impl->disable_feedback_sub_cft, false);
     } else {
       EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
       rcl_reset_error();
       // The content filter should be disabled since the maximum number of content filter
       // parameters has been reached.
-      EXPECT_EQ(action_client.impl->options.disable_feedback_sub_cft, true);
+      EXPECT_EQ(action_client.impl->disable_feedback_sub_cft, true);
     }
   }
 }

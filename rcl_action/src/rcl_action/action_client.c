@@ -66,7 +66,8 @@ _rcl_action_get_zero_initialized_client_impl(void)
     0,
     0,
     0,
-    rosidl_get_zero_initialized_type_hash()
+    rosidl_get_zero_initialized_type_hash(),
+    false
   };
   return null_action_client;
 }
@@ -280,7 +281,6 @@ rcl_action_client_get_default_options(void)
   default_options.feedback_topic_qos = rmw_qos_profile_default;
   default_options.status_topic_qos = rcl_action_qos_profile_status_default;
   default_options.allocator = rcl_get_default_allocator();
-  default_options.disable_feedback_sub_cft = false;
   return default_options;
 }
 
@@ -951,7 +951,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
 
-  if (action_client->impl->options.disable_feedback_sub_cft) {
+  if (action_client->impl->disable_feedback_sub_cft) {
     RCL_SET_ERROR_MSG("Content filter has been disabled for feedback subscription.");
     return RCL_RET_ERROR;
   }
@@ -1074,7 +1074,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
 err:
   if (RCL_RET_OK != ret && RCL_RET_UNSUPPORTED != ret) {
     // Clear existing content filter
-    action_client->impl->options.disable_feedback_sub_cft = true;
+    action_client->impl->disable_feedback_sub_cft = true;
     _clear_setting_content_filter_on_error(&action_client->impl->feedback_subscription);
   }
 
@@ -1112,7 +1112,7 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
 
-  if (action_client->impl->options.disable_feedback_sub_cft) {
+  if (action_client->impl->disable_feedback_sub_cft) {
     RCL_SET_ERROR_MSG("Content filter has been disabled for feedback subscription.");
     return RCL_RET_ERROR;
   }
@@ -1258,7 +1258,7 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
 err:
   if (RCL_RET_OK != ret) {
     // Clear existing content filter
-    action_client->impl->options.disable_feedback_sub_cft = true;
+    action_client->impl->disable_feedback_sub_cft = true;
     _clear_setting_content_filter_on_error(&action_client->impl->feedback_subscription);
   }
 

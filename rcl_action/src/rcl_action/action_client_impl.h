@@ -34,6 +34,15 @@ typedef struct rcl_action_client_impl_s
   size_t wait_set_feedback_subscription_index;
   size_t wait_set_status_subscription_index;
   rosidl_type_hash_t type_hash;
+
+  /// Disable the content filter feature for feedback subscription.
+  /**
+   * The default value is false.
+   * Set to true to disable the content filter feature of the feedback subscription
+   * - When the parameter limit of the content filter is exceeded (>100)
+   * - When configuring (adding/removing goal ID) the feedback subscription return error
+   */
+  bool disable_feedback_sub_cft;
 } rcl_action_client_impl_t;
 
 
