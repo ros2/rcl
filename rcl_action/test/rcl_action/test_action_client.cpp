@@ -567,3 +567,29 @@ TEST_F(TestActionClientFixture, test_configure_feedback_subscription_filter_goal
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_reset_error();
 }
+
+TEST_F(
+  TestActionClientFixture, test_configure_feedback_subscription_filter_goal_id_reach_limitation)
+{
+  // A maximum of 6 goal IDs are supported. Configuring a 7th goal ID will exceed the content
+  // filter's maximum limit of 100 parameters. An error should be returned.
+  constexpr uint8_t MAX_SUPPORTED_GOAL_IDS = 6;
+  constexpr uint8_t num_goal_ids_exceeding_limit = MAX_SUPPORTED_GOAL_IDS + 1;
+  uint8_t goal_id_base[UUID_SIZE] = {0};
+  for (size_t i = 0; i < num_goal_ids_exceeding_limit; ++i) {
+    goal_id_base[UUID_SIZE - 1] = static_cast<uint8_t>(i);
+    rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
+      &this->action_client, goal_id_base, UUID_SIZE);
+    if (i < MAX_SUPPORTED_GOAL_IDS) {
+      EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      rcl_reset_error();
+      EXPECT_EQ(action_client.impl->options.disable_feedback_sub_cft, false);
+    } else {
+      EXPECT_EQ(RCL_RET_ERROR, ret) << rcl_get_error_string().str;
+      rcl_reset_error();
+      // The content filter should be disabled since the maximum number of content filter
+      // parameters has been reached.
+      EXPECT_EQ(action_client.impl->options.disable_feedback_sub_cft, true);
+    }
+  }
+}

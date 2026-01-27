@@ -56,6 +56,14 @@ typedef struct rcl_action_client_options_s
   /// Custom allocator for the action client, used for incidental allocations.
   /** For default behavior (malloc/free), see: rcl_get_default_allocator() */
   rcl_allocator_t allocator;
+  /// Disable the content filter feature for feedback subscription.
+  /**
+   * The default value is false.
+   * Set to true to disable the content filter feature of the feedback subscription
+   * - When the parameter limit of the content filter is exceeded (>100)
+   * - When configuring (adding/removing goal ID) the feedback subscription return error
+   */
+  bool disable_feedback_sub_cft;
 } rcl_action_client_options_t;
 
 /// Return a rcl_action_client_t struct with members set to `NULL`.

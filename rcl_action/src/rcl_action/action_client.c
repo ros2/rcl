@@ -280,6 +280,7 @@ rcl_action_client_get_default_options(void)
   default_options.feedback_topic_qos = rmw_qos_profile_default;
   default_options.status_topic_qos = rcl_action_qos_profile_status_default;
   default_options.allocator = rcl_get_default_allocator();
+  default_options.disable_feedback_sub_cft = false;
   return default_options;
 }
 
@@ -907,6 +908,39 @@ _generate_goal_id_filter_expression(
   return RCL_RET_OK;
 }
 
+static
+void
+_clear_setting_content_filter_on_error(rcl_subscription_t * feedback_subscription)
+{
+  rcl_subscription_content_filter_options_t content_filter_options =
+    rcl_get_zero_initialized_subscription_content_filter_options();
+
+  rcl_ret_t ret = rcl_subscription_content_filter_options_init(
+    feedback_subscription,
+    "",
+    0,
+    NULL,
+    &content_filter_options);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to initialize cft options to clear existing filter");
+    return;
+  }
+
+  // Update content filter options
+  ret = rcl_subscription_set_content_filter(
+    feedback_subscription,
+    &content_filter_options);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to clear existing cft expression parameters");
+  }
+
+  ret = rcl_subscription_content_filter_options_fini(
+    feedback_subscription, &content_filter_options);
+  if (RCL_RET_OK != ret) {
+    RCL_SET_ERROR_MSG("Failed to finalize cft options");
+  }
+}
+
 rcl_ret_t
 rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
   const rcl_action_client_t * action_client,
@@ -915,6 +949,11 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
 {
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  if (action_client->impl->options.disable_feedback_sub_cft) {
+    RCL_SET_ERROR_MSG("Content filter has been disabled for feedback subscription.");
+    return RCL_RET_ERROR;
   }
 
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
@@ -1033,6 +1072,12 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
   }
 
 err:
+  if (RCL_RET_OK != ret && RCL_RET_UNSUPPORTED != ret) {
+    // Clear existing content filter
+    action_client->impl->options.disable_feedback_sub_cft = true;
+    _clear_setting_content_filter_on_error(&action_client->impl->feedback_subscription);
+  }
+
   if (new_expression_params != NULL) {
     action_client->impl->options.allocator.deallocate(
       new_expression_params, action_client->impl->options.allocator.state);
@@ -1065,6 +1110,11 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
 {
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;
+  }
+
+  if (action_client->impl->options.disable_feedback_sub_cft) {
+    RCL_SET_ERROR_MSG("Content filter has been disabled for feedback subscription.");
+    return RCL_RET_ERROR;
   }
 
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
@@ -1206,6 +1256,12 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
   }
 
 err:
+  if (RCL_RET_OK != ret) {
+    // Clear existing content filter
+    action_client->impl->options.disable_feedback_sub_cft = true;
+    _clear_setting_content_filter_on_error(&action_client->impl->feedback_subscription);
+  }
+
   if (goal_id_string_memory_block != NULL) {
     action_client->impl->options.allocator.deallocate(
       goal_id_string_memory_block, action_client->impl->options.allocator.state);
