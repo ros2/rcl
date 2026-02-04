@@ -20,11 +20,13 @@
 #include <yaml.h>
 
 #include "rcutils/allocator.h"
+#include "rcutils/base64.h"
 #include "rcutils/error_handling.h"
 #include "rcutils/format_string.h"
 #include "rcutils/strdup.h"
 #include "rcutils/types/rcutils_ret.h"
 #include "rcutils/types/string_array.h"
+#include "rcutils/types/uint8_array.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/validate_namespace.h"
@@ -36,6 +38,9 @@
 #include "./impl/node_params.h"
 #include "rcl_yaml_param_parser/parser.h"
 #include "rcl_yaml_param_parser/visibility_control.h"
+
+/// The tag @c !!binary for binary values. Not defined in libyaml
+#define BINARY_TAG          "tag:yaml.org,2002:binary"
 
 ///
 /// Check a name space whether it is valid
@@ -138,6 +143,24 @@ _get_float_value(
   const rcutils_allocator_t allocator);
 
 ///
+/// Get a binary array when it is valid
+///
+/// \param[in] value a base64 encoded string
+/// \param[out] val_type the value type
+/// \param[out] ret_val the converted rcl_byte_array_t when value is valid
+/// \param[in] allocator the allocator to use
+/// \return RCUTILS_RET_OK if value is valid, or
+/// \return RCUTILS_RET_ERROR if value is not valid
+/// \return RCUTILS_RET_BAD_ALLOC if memory allocation fails
+RCL_YAML_PARAM_PARSER_LOCAL
+rcutils_ret_t
+_get_binary_array(
+  const char * const value,
+  data_types_t * val_type,
+  void ** ret_val,
+  const rcutils_allocator_t allocator);
+
+///
 /// Determine the type of the value and return the converted value
 /// NOTE: Only canonical forms supported as of now
 ///
@@ -190,7 +213,16 @@ void * get_value(
       }
     }
 
-    /// YAML_NULL_TAG, YAML_TIMESTAMP_TAG and "tag:yaml.org,2002:binary" are not supported
+    /// Check for binary tag
+    if (strcmp(BINARY_TAG, (char *)tag) == 0) {
+      if (_get_binary_array(value, val_type, &ret_val, allocator) == RCUTILS_RET_OK) {
+        return ret_val;
+      } else {
+        return NULL;
+      }
+    }
+
+    /// YAML_NULL_TAG and YAML_TIMESTAMP_TAG are not supported
     return NULL;
   }
 
@@ -456,6 +488,32 @@ rcutils_ret_t parse_value(
         }
       }
       break;
+    case DATA_TYPE_BYTE:
+      if (is_seq) {
+        RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Byte array must be encoded as a base64 string, not a sequence, "
+        "cannot parse value %s at line %d\n",
+        value, line_num);
+        ret = RCUTILS_RET_ERROR;
+        allocator.deallocate(ret_val, allocator.state);
+      } else {
+        // Overwriting, deallocate original
+        if (NULL != param_value->byte_array_value) {
+          if (NULL != param_value->byte_array_value->values) {
+            allocator.deallocate(param_value->byte_array_value->values, allocator.state);
+          }
+          allocator.deallocate(param_value->byte_array_value, allocator.state);
+          param_value->byte_array_value = NULL;
+        }
+        param_value->byte_array_value = (rcl_byte_array_t *)ret_val;
+      }
+      break;
+    default:
+      RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING(
+        "Unknown data type of value %s at line %d", value, line_num);
+      ret = RCUTILS_RET_ERROR;
+      allocator.deallocate(ret_val, allocator.state);
+      break;
   }
   return ret;
 }
@@ -659,6 +717,37 @@ _get_bool_value(
   }
 
   return RCUTILS_RET_ERROR;
+}
+
+rcutils_ret_t
+_get_binary_array(
+  const char * const value,
+  data_types_t * val_type,
+  void ** ret_val,
+  const rcutils_allocator_t allocator)
+{
+  rcutils_uint8_array_t byte_array = rcutils_get_zero_initialized_uint8_array();
+
+  if (RCUTILS_RET_OK != rcutils_decode_base64(value, &byte_array, &allocator)) {
+    return RCUTILS_RET_ERROR;
+  }
+
+  // ret_val will be a rcl_byte_array_t*
+  rcl_byte_array_t * dst = allocator.zero_allocate(1U, sizeof(rcl_byte_array_t), allocator.state);
+  if (NULL == dst) {
+    if (NULL != byte_array.buffer) {
+      allocator.deallocate(byte_array.buffer, allocator.state);
+    }
+    return RCUTILS_RET_BAD_ALLOC;
+  }
+
+  // Transfer ownership of the decoded buffer to dst without extra allocation.
+  dst->values = byte_array.buffer;
+  dst->size = byte_array.buffer_length;
+
+  *val_type = DATA_TYPE_BYTE;
+  *ret_val = dst;
+  return RCUTILS_RET_OK;
 }
 
 rcutils_ret_t

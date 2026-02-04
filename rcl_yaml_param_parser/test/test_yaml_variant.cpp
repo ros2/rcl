@@ -134,6 +134,11 @@ TEST(TestYamlVariant, copy_string_value) {
   EXPECT_STREQ(tmp_string, dest_variant.string_value);
 }
 
+TEST(TestYamlVariant, copy_byte_array_values) {
+  constexpr uint8_t byte_array[] = {0x01, 0x02, 0x03};
+  TEST_VARIANT_ARRAY_COPY(byte_array_value, byte_array);
+}
+
 TEST(TestYamlVariant, copy_bool_array_values) {
   constexpr bool bool_arry[] = {true, false, true};
   TEST_VARIANT_ARRAY_COPY(bool_array_value, bool_arry);

@@ -85,3 +85,6 @@ seq_tag:
 map_tag:
   ros__parameters:
     map_test: !!map {str: string, bool: true, int: 10, float: 1.1}
+binary_tag:
+  ros__parameters:
+    byte_array: !!binary AQID

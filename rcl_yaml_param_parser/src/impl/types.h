@@ -45,7 +45,8 @@ typedef enum data_types_e
   DATA_TYPE_BOOL = 1U,
   DATA_TYPE_INT64 = 2U,
   DATA_TYPE_DOUBLE = 3U,
-  DATA_TYPE_STRING = 4U
+  DATA_TYPE_STRING = 4U,
+  DATA_TYPE_BYTE = 5U
 } data_types_t;
 
 typedef enum namespace_type_e

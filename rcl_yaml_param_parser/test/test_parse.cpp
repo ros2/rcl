@@ -16,6 +16,8 @@
 
 #include <yaml.h>
 
+#include <cstring>
+
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl_yaml_param_parser/parser.h"
 #include "../src/impl/parse.h"
@@ -116,6 +118,39 @@ TEST(TestParse, parse_value) {
   allocator.deallocate(
     params_st->params[node_idx].parameter_values[parameter_idx].string_value, allocator.state);
   params_st->params[node_idx].parameter_values[parameter_idx].string_value = nullptr;
+
+  // byte value
+  yaml_char_t byte_value[] = "AQID";  // [0x01, 0x02, 0x03]
+  const size_t byte_value_length = strlen((const char *)byte_value);
+  event.data.scalar.value = byte_value;
+  event.data.scalar.length = byte_value_length;
+  // Set tag, needed to parse base64 encoded binary
+  yaml_char_t tag_value[] = "tag:yaml.org,2002:binary";
+  event.data.scalar.tag = tag_value;
+
+  seq_data_type = DATA_TYPE_UNKNOWN;
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(
+    nullptr, params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value);
+  EXPECT_EQ(
+    params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value->size, 3);
+  EXPECT_EQ(
+    params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value->values[0], 1);
+  EXPECT_EQ(
+    params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value->values[1], 2);
+  EXPECT_EQ(
+    params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value->values[2], 3);
+  allocator.deallocate(
+    params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value->values,
+    allocator.state);
+  allocator.deallocate(
+    params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value, allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value = nullptr;
+  // reset tag
+  event.data.scalar.tag = NULL;
 }
 
 TEST(TestParse, parse_value_sequence) {
@@ -154,7 +189,7 @@ TEST(TestParse, parse_value_sequence) {
     rcutils_get_error_string().str;
   EXPECT_EQ(
     nullptr,
-    params_st->params[node_idx].parameter_values[parameter_idx].integer_array_value);
+    params_st->params[node_idx].parameter_values[parameter_idx].bool_array_value);
   rcutils_reset_error();
 
   // Check proper sequence type
@@ -281,6 +316,21 @@ TEST(TestParse, parse_value_sequence) {
     params_st->params[node_idx].parameter_values[parameter_idx].string_array_value,
     allocator.state);
   params_st->params[node_idx].parameter_values[parameter_idx].string_array_value = nullptr;
+
+  // byte array value cannot be parsed, byte array is encoded as a base64 string, not a sequence
+  yaml_char_t byte_value[] = "AQID";  // [0x01, 0x02, 0x03]
+  const size_t byte_value_length = strlen((const char *)byte_value);
+  event.data.scalar.value = byte_value;
+  event.data.scalar.length = byte_value_length;
+  // Set tag, needed to parse base64 encoded binary
+  yaml_char_t tag_value[] = "tag:yaml.org,2002:binary";
+  event.data.scalar.tag = tag_value;
+  seq_data_type = DATA_TYPE_UNKNOWN;
+  EXPECT_EQ(
+    RCUTILS_RET_ERROR,
+    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st));
+  rcutils_reset_error();
+  event.data.scalar.tag = NULL;
 }
 
 TEST(TestParse, parse_value_bad_args) {

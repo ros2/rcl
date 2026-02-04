@@ -69,10 +69,6 @@ rcutils_ret_t add_val_to_string_arr(
   char * value,
   const rcutils_allocator_t allocator);
 
-///
-/// TODO (anup.pemmaiah): Support byte array
-///
-
 #ifdef __cplusplus
 }
 #endif

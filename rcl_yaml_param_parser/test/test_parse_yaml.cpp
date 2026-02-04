@@ -332,6 +332,15 @@ TEST(test_parser, correct_syntax) {
     ASSERT_TRUE(NULL != param_value->double_value);
     EXPECT_DOUBLE_EQ(1.1, *param_value->double_value);
 
+    param_value = rcl_yaml_node_struct_get("binary_tag", "byte_array", params);
+    ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+    ASSERT_TRUE(NULL != param_value->byte_array_value);
+    EXPECT_EQ(3, param_value->byte_array_value->size);
+    size_t i = 0;
+    for (i = 0; i < param_value->byte_array_value->size; i++) {
+      EXPECT_EQ(i + 1, param_value->byte_array_value->values[i]);
+    }
+
     rcl_yaml_node_struct_print(params);
   }
 }

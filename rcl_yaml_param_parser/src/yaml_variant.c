@@ -80,6 +80,12 @@ void rcl_yaml_variant_fini(
   } else if (NULL != param_var->string_value) {
     allocator.deallocate(param_var->string_value, allocator.state);
     param_var->string_value = NULL;
+  } else if (NULL != param_var->byte_array_value) {
+    if (NULL != param_var->byte_array_value->values) {
+      allocator.deallocate(param_var->byte_array_value->values, allocator.state);
+    }
+    allocator.deallocate(param_var->byte_array_value, allocator.state);
+    param_var->byte_array_value = NULL;
   } else if (NULL != param_var->bool_array_value) {
     if (NULL != param_var->bool_array_value->values) {
       allocator.deallocate(param_var->bool_array_value->values, allocator.state);
@@ -132,6 +138,10 @@ bool rcl_yaml_variant_copy(
       RCUTILS_SAFE_FWRITE_TO_STDERR("Error allocating variant mem when copying string_value\n");
       return false;
     }
+  } else if (NULL != param_var->byte_array_value) {
+    RCL_YAML_VARIANT_COPY_ARRAY_VALUE(
+      out_param_var->byte_array_value, param_var->byte_array_value, allocator,
+      rcl_byte_array_t, uint8_t);
   } else if (NULL != param_var->bool_array_value) {
     RCL_YAML_VARIANT_COPY_ARRAY_VALUE(
       out_param_var->bool_array_value, param_var->bool_array_value, allocator,
