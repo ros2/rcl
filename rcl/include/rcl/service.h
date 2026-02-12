@@ -507,6 +507,14 @@ rcl_service_response_publisher_get_actual_qos(const rcl_service_t * service);
  *
  * \sa rmw_service_set_on_new_request_callback for details about this function.
  *
+ * Since this callback is called from the middleware, you should
+ * aim to make it fast and not blocking. This callback is intended to implement an event driven executor and
+ * not process data directly.  
+ * 
+ * Using blocking operators, waiting for other syncronized actions, 
+ * or sending responses directly using this callback will result in
+ * unexpected behavior
+ * 
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------

@@ -886,6 +886,14 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
  * \sa rmw_subscription_set_on_new_message_callback for details about this
  * function.
  *
+ * Since this callback is called from the middleware, you should
+ * aim to make it fast and not blocking. This callback is intended to implement an event driven executor and
+ * not process data directly.  
+ * 
+ * Using blocking operators, waiting for other syncronized actions, 
+ * or sending responses directly using this callback will result in
+ * unexpected behavior
+ * 
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
