@@ -409,8 +409,8 @@ void rcl_yaml_node_struct_print(
               printf(": %s\n", param_var->string_value);
             } else if (NULL != param_var->byte_array_value) {
               printf(": ");
-              for (size_t i = 0; i < param_var->byte_array_value->size; i++) {
-                if (param_var->byte_array_value->values) {
+              if (param_var->byte_array_value->values) {
+                for (size_t i = 0; i < param_var->byte_array_value->size; i++) {
                   printf(
                     "0x%02x, ",
                     param_var->byte_array_value->values[i]);
@@ -419,8 +419,8 @@ void rcl_yaml_node_struct_print(
               printf("\n");
             } else if (NULL != param_var->bool_array_value) {
               printf(": ");
-              for (size_t i = 0; i < param_var->bool_array_value->size; i++) {
-                if (param_var->bool_array_value->values) {
+              if (param_var->bool_array_value->values) {
+                for (size_t i = 0; i < param_var->bool_array_value->size; i++) {
                   printf(
                     "%s, ",
                     (param_var->bool_array_value->values[i]) ? "true" : "false");
@@ -429,16 +429,16 @@ void rcl_yaml_node_struct_print(
               printf("\n");
             } else if (NULL != param_var->integer_array_value) {
               printf(": ");
-              for (size_t i = 0; i < param_var->integer_array_value->size; i++) {
-                if (param_var->integer_array_value->values) {
+              if (param_var->integer_array_value->values) {
+                for (size_t i = 0; i < param_var->integer_array_value->size; i++) {
                   printf("%" PRId64 ", ", param_var->integer_array_value->values[i]);
                 }
               }
               printf("\n");
             } else if (NULL != param_var->double_array_value) {
               printf(": ");
-              for (size_t i = 0; i < param_var->double_array_value->size; i++) {
-                if (param_var->double_array_value->values) {
+              if (param_var->double_array_value->values) {
+                for (size_t i = 0; i < param_var->double_array_value->size; i++) {
                   printf("%lf, ", param_var->double_array_value->values[i]);
                 }
               }
