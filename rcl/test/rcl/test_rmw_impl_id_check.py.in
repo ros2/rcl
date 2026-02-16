@@ -43,6 +43,13 @@ def generate_test_description(
     if rcl_assert_rmw_id_matches_env is not None:
         env['RCL_ASSERT_RMW_ID_MATCHES'] = rcl_assert_rmw_id_matches_env
 
+    if rmw_implementation_env is 'rmw_zenoh_cpp':
+        # Since the test is purely local (checks on loaded rmw_implementation lib),
+        # avoid connection to a Zenoh router in case rmw_zenoh_cpp is loaded.
+        # This avoids unecessary warning logs and saves time at rmw_init()
+        env['ZENOH_CONFIG_OVERRIDE'] = 'connect/endpoints=[]'
+        env['ZENOH_ROUTER_CHECK_ATTEMPTS'] = '-1'
+
     executable_under_test = ExecuteProcess(
         cmd=['@TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME@'],
         name='@TEST_RMW_IMPL_ID_CHECK_EXECUTABLE_NAME@',
