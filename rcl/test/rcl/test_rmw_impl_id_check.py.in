@@ -46,7 +46,7 @@ def generate_test_description(
     if rmw_implementation_env == 'rmw_zenoh_cpp':
         # Since the test is purely local (checks on loaded rmw_implementation lib),
         # avoid connection to a Zenoh router in case rmw_zenoh_cpp is loaded.
-        # This avoids unecessary warning logs and saves time at rmw_init()
+        # This avoids unnecessary warning logs and saves time at rmw_init()
         env['ZENOH_CONFIG_OVERRIDE'] = 'connect/endpoints=[]'
         env['ZENOH_ROUTER_CHECK_ATTEMPTS'] = '-1'
 
