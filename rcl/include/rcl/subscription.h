@@ -892,7 +892,7 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
  * 
  * Using blocking operators, waiting for other syncronized actions, 
  * or sending responses directly using this callback will result in
- * unexpected behavior
+ * the thread being called from an unexpected/different thread context.
  * 
  * <hr>
  * Attribute          | Adherence

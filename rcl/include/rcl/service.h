@@ -513,7 +513,7 @@ rcl_service_response_publisher_get_actual_qos(const rcl_service_t * service);
  * 
  * Using blocking operators, waiting for other syncronized actions, 
  * or sending responses directly using this callback will result in
- * unexpected behavior
+ * the thread being called from an unexpected/different thread context.
  * 
  * <hr>
  * Attribute          | Adherence
