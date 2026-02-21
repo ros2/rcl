@@ -497,6 +497,10 @@ TEST_F(TestTimerFixture, test_canceled_timer) {
   ret = rcl_timer_cancel(&timer);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
+  int64_t next_call_time = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time);
+  EXPECT_EQ(RCL_RET_TIMER_CANCELED, ret) << rcl_get_error_string().str;
+
   int64_t time_until_next_call = 0;
   ret = rcl_timer_get_time_until_next_call(&timer, &time_until_next_call);
   EXPECT_EQ(RCL_RET_TIMER_CANCELED, ret) << rcl_get_error_string().str;
@@ -903,4 +907,26 @@ TEST_F(TestPreInitTimer, test_time_since_last_call) {
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
   ASSERT_EQ(RCL_RET_OK, rcl_timer_get_time_since_last_call(&timer, &time_sice_next_call_end));
   EXPECT_GT(time_sice_next_call_end, time_sice_next_call_start);
+}
+
+TEST_F(TestPreInitTimer, test_next_call_time) {
+  int64_t next_call_time_start = 0;
+  int64_t next_call_time_end = 0;
+  times_called = 0;
+
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_timer_get_next_call_time(nullptr, &next_call_time_start));
+  rcl_reset_error();
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, rcl_timer_get_next_call_time(&timer, nullptr));
+  rcl_reset_error();
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_next_call_time(&timer, &next_call_time_start)) <<
+    rcl_get_error_string().str;
+
+  // move the next call time one period forward
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_call(&timer)) << rcl_get_error_string().str;
+  EXPECT_EQ(times_called, 1);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_next_call_time(&timer, &next_call_time_end)) <<
+    rcl_get_error_string().str;
+  EXPECT_EQ(RCL_S_TO_NS(1), next_call_time_end - next_call_time_start);
 }
