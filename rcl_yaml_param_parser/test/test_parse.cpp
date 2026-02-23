@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <locale>
+
 #include <gtest/gtest.h>
 
 #include <yaml.h>
@@ -151,6 +153,55 @@ TEST(TestParse, parse_value) {
   params_st->params[node_idx].parameter_values[parameter_idx].byte_array_value = nullptr;
   // reset tag
   event.data.scalar.tag = NULL;
+}
+
+TEST(TestParse, parse_value_locale_independent) {
+  if (!std::setlocale(LC_NUMERIC, "fr_FR.UTF-8") && !std::setlocale(LC_NUMERIC, "de_DE.UTF-8"))
+  {
+    GTEST_SKIP() << "Could not set LC_NUMERIC to FR or DE";
+    return;
+  }
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    std::setlocale(LC_NUMERIC, "C");
+  });
+
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  yaml_event_t event;
+  event.type = YAML_NO_EVENT;
+  event.start_mark = {0u, 0u, 0u};
+  event.end_mark = {0u, 0u, 0u};
+  event.data.scalar = {NULL, NULL, NULL, 1u, 0, 0, YAML_ANY_SCALAR_STYLE};
+
+  bool is_seq = false;
+  size_t node_idx = 0u;
+  size_t parameter_idx = 0u;
+  data_types_t seq_data_type = DATA_TYPE_UNKNOWN;
+  rcl_params_t * params_st = rcl_yaml_node_struct_init(allocator);
+  ASSERT_NE(nullptr, params_st);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_yaml_node_struct_fini(params_st);
+  });
+
+  ASSERT_EQ(RCUTILS_RET_OK, node_params_init(&params_st->params[0], allocator));
+  params_st->num_nodes = 1u;
+
+  // double value
+  yaml_char_t double_value[] = "3.14159";
+  const size_t double_value_length = sizeof(double_value) / sizeof(double_value[0]);
+  event.data.scalar.value = double_value;
+  event.data.scalar.length = double_value_length;
+
+  EXPECT_EQ(
+    RCUTILS_RET_OK,
+    parse_value(event, is_seq, node_idx, parameter_idx, &seq_data_type, params_st)) <<
+    rcutils_get_error_string().str;
+  ASSERT_NE(nullptr, params_st->params[node_idx].parameter_values[parameter_idx].double_value);
+  EXPECT_EQ(3.14159, *params_st->params[node_idx].parameter_values[parameter_idx].double_value);
+  allocator.deallocate(
+    params_st->params[node_idx].parameter_values[parameter_idx].double_value, allocator.state);
+  params_st->params[node_idx].parameter_values[parameter_idx].double_value = nullptr;
 }
 
 TEST(TestParse, parse_value_sequence) {

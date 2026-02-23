@@ -14,6 +14,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -779,6 +780,20 @@ _get_int_value(
   return RCUTILS_RET_ERROR;
 }
 
+///
+/// Calls strtod with the default "POSIX/C" locale.
+///
+static double strtod_posix_locale(const char *restrict nptr, char **restrict endptr)
+{
+    static locale_t c_locale = 0;
+    if (c_locale == 0)
+        c_locale = newlocale(LC_ALL_MASK, "C", 0);
+    locale_t old_locale = uselocale(c_locale);
+    double result = strtod(nptr, endptr);
+    uselocale(old_locale);
+    return result;
+}
+
 rcutils_ret_t
 _get_float_value(
   const char * const value,
@@ -807,12 +822,12 @@ _get_float_value(
     for (iter_ptr = value; !isalpha(*iter_ptr); ) {
       iter_ptr += 1;
     }
-    dval = strtod(iter_ptr, &endptr);
+    dval = strtod_posix_locale(iter_ptr, &endptr);
     if (*value == '-') {
       dval = -dval;
     }
   } else {
-    dval = strtod(value, &endptr);
+    dval = strtod_posix_locale(value, &endptr);
   }
   if ((0 == errno) && (NULL != endptr)) {
     if ((NULL != endptr) && (endptr != value)) {
