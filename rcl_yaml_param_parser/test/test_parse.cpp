@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <locale>
-
 #include <gtest/gtest.h>
 
 #include <yaml.h>
 
 #include <cstring>
+#include <locale>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl_yaml_param_parser/parser.h"
@@ -156,10 +155,8 @@ TEST(TestParse, parse_value) {
 }
 
 TEST(TestParse, parse_value_locale_independent) {
-  if (!std::setlocale(LC_NUMERIC, "fr_FR.UTF-8") && !std::setlocale(LC_NUMERIC, "de_DE.UTF-8"))
-  {
+  if (!std::setlocale(LC_NUMERIC, "fr_FR.UTF-8") && !std::setlocale(LC_NUMERIC, "de_DE.UTF-8")) {
     GTEST_SKIP() << "Could not set LC_NUMERIC to FR or DE";
-    return;
   }
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
