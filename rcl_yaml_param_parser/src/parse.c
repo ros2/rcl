@@ -781,17 +781,26 @@ _get_int_value(
 }
 
 ///
-/// Calls strtod with the default "POSIX/C" locale.
+/// Calls strtod with the default "C" locale.
 ///
-static double strtod_posix_locale(const char *restrict nptr, char **restrict endptr)
+static double strtod_locale_independent(const char *restrict nptr, char **restrict endptr)
 {
-    static locale_t c_locale = 0;
-    if (c_locale == 0)
-        c_locale = newlocale(LC_ALL_MASK, "C", 0);
-    locale_t old_locale = uselocale(c_locale);
-    double result = strtod(nptr, endptr);
-    uselocale(old_locale);
-    return result;
+#ifdef __WIN32
+  static _locale_t c_locale = 0;
+  if (c_locale == 0) {
+    c_locale = _create_locale(LC_NUMERIC, "C");
+  }
+  return _strtod_l(nptr, endptr, c_locale);
+#else
+  static locale_t c_locale = 0;
+  if (c_locale == 0) {
+    c_locale = newlocale(LC_NUMERIC_MASK, "C", 0);
+  }
+  locale_t old_locale = uselocale(c_locale);
+  double result = strtod(nptr, endptr);
+  uselocale(old_locale);
+  return result;
+#endif
 }
 
 rcutils_ret_t
@@ -822,12 +831,12 @@ _get_float_value(
     for (iter_ptr = value; !isalpha(*iter_ptr); ) {
       iter_ptr += 1;
     }
-    dval = strtod_posix_locale(iter_ptr, &endptr);
+    dval = strtod_locale_independent(iter_ptr, &endptr);
     if (*value == '-') {
       dval = -dval;
     }
   } else {
-    dval = strtod_posix_locale(value, &endptr);
+    dval = strtod_locale_independent(value, &endptr);
   }
   if ((0 == errno) && (NULL != endptr)) {
     if ((NULL != endptr) && (endptr != value)) {
