@@ -782,20 +782,41 @@ _get_int_value(
 
 ///
 /// Calls strtod with the default "C" locale.
+/// \param[in] nptr the string to parse.
+/// \param[out] endptr if not NULL, the location to store the end of the parsed string.
+/// \return The parsed value if something was parsed.
+/// \return 0. if no conversion could be performed.
+/// \return 0. if an error occured, errno will be set, and if not NULL, endptr will be set to nptr.
 ///
 static double strtod_locale_independent(const char *restrict nptr, char **restrict endptr)
 {
-#ifdef __WIN32
-  static _locale_t c_locale = 0;
-  if (c_locale == 0) {
+#ifdef _WIN32
+  static _locale_t c_locale = NULL;
+
+  if (NULL == c_locale) {
     c_locale = _create_locale(LC_NUMERIC, "C");
+    if (NULL == c_locale) {
+      if (NULL != endptr) {
+        *endptr = (char *)nptr;
+      }
+      return 0.;
+    }
   }
+
   return _strtod_l(nptr, endptr, c_locale);
 #else
   static locale_t c_locale = 0;
-  if (c_locale == 0) {
+
+  if (0 == c_locale) {
     c_locale = newlocale(LC_NUMERIC_MASK, "C", 0);
+    if (0 == c_locale) {
+      if (NULL != endptr) {
+        *endptr = (char *)nptr;
+      }
+      return 0.;
+    }
   }
+
   locale_t old_locale = uselocale(c_locale);
   double result = strtod(nptr, endptr);
   uselocale(old_locale);
