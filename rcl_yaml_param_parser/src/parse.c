@@ -18,6 +18,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <threads.h>
+#endif
+
 #include <yaml.h>
 
 #include "rcutils/allocator.h"
@@ -780,6 +786,32 @@ _get_int_value(
   return RCUTILS_RET_ERROR;
 }
 
+// Initialization of c_locale, used by strtod_locale_independent.
+#ifdef _WIN32
+static _locale_t c_locale = NULL;
+static INIT_ONCE c_locale_once_flag = INIT_ONCE_STATIC_INIT;
+
+BOOL CALLBACK init_c_locale(
+  PINIT_ONCE init_once,
+  PVOID parameter,
+  PVOID *context)
+{
+  (void)init_once;
+  (void)parameter;
+  (void)context;
+  c_locale = _create_locale(LC_NUMERIC, "C");
+  return TRUE;
+}
+#else
+static locale_t c_locale = 0;
+static once_flag c_locale_once_flag = ONCE_FLAG_INIT;
+
+static void init_c_locale()
+{
+  c_locale = newlocale(LC_NUMERIC_MASK, "C", 0);
+}
+#endif
+
 ///
 /// Calls strtod with the default "C" locale.
 /// \param[in] nptr the string to parse.
@@ -791,30 +823,24 @@ _get_int_value(
 static double strtod_locale_independent(const char *restrict nptr, char **restrict endptr)
 {
 #ifdef _WIN32
-  static _locale_t c_locale = NULL;
+  InitOnceExecuteOnce(&c_locale_once_flag, init_c_locale, NULL, NULL);
 
   if (NULL == c_locale) {
-    c_locale = _create_locale(LC_NUMERIC, "C");
-    if (NULL == c_locale) {
-      if (NULL != endptr) {
-        *endptr = (char *)nptr;
-      }
-      return 0.;
+    if (NULL != endptr) {
+      *endptr = (char *)nptr;
     }
+    return 0.;
   }
 
   return _strtod_l(nptr, endptr, c_locale);
 #else
-  static locale_t c_locale = 0;
+  call_once(&c_locale_once_flag, init_c_locale);
 
   if (0 == c_locale) {
-    c_locale = newlocale(LC_NUMERIC_MASK, "C", 0);
-    if (0 == c_locale) {
-      if (NULL != endptr) {
-        *endptr = (char *)nptr;
-      }
-      return 0.;
+    if (NULL != endptr) {
+      *endptr = (char *)nptr;
     }
+    return 0.;
   }
 
   locale_t old_locale = uselocale(c_locale);
