@@ -138,6 +138,19 @@ rcl_subscription_init(
   }
   subscription->impl->type_hash = *type_support->get_type_hash_func(type_support);
 
+  // Check if the subscription supports content filtering
+  // If RMW implementation doesn't support content filtering, calling
+  // rmw_subscription_get_content_filter() with unavailable parameters will always return
+  // RMW_RET_UNSUPPORTED.
+  if (rmw_subscription_get_content_filter(
+    subscription->impl->rmw_handle, NULL, NULL) == RMW_RET_UNSUPPORTED)
+  {
+    subscription->impl->rmw_handle->cft_is_supported = false;
+  } else {
+    rcutils_reset_error();
+    subscription->impl->rmw_handle->cft_is_supported = true;
+  }
+
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
   TRACETOOLS_TRACEPOINT(
@@ -834,6 +847,15 @@ rcl_subscription_set_on_new_message_callback(
     subscription->impl->rmw_handle,
     callback,
     user_data);
+}
+
+bool
+rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription)
+{
+  if (!rcl_subscription_is_valid(subscription)) {
+    return false;  // error message already set
+  }
+  return subscription->impl->rmw_handle->cft_is_supported;
 }
 
 #ifdef __cplusplus

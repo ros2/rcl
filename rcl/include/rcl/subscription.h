@@ -910,6 +910,16 @@ rcl_subscription_set_on_new_message_callback(
   rcl_event_callback_t callback,
   const void * user_data);
 
+/// Check if subscription instance supports content filtering.
+/**
+ * \param[in] subscription The subscription instance to check for content filtering support
+ * \return `true` if the subscription instance supports content filtering, `false` otherwise
+ *   (including when \p subscription is `NULL` or invalid).
+ */
+RCL_PUBLIC
+bool
+rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription);
+
 #ifdef __cplusplus
 }
 #endif

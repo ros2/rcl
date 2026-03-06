@@ -1717,6 +1717,8 @@ TEST_F(TestSubscriptionFixtureInit, test_subscription_bad_argument) {
   rcl_reset_error();
   EXPECT_FALSE(rcl_subscription_is_cft_enabled(nullptr));
   rcl_reset_error();
+  EXPECT_FALSE(rcl_subscription_is_cft_supported(nullptr));
+  rcl_reset_error();
 
   EXPECT_EQ(NULL, rcl_subscription_get_actual_qos(&subscription_zero_init));
   rcl_reset_error();
@@ -1729,6 +1731,8 @@ TEST_F(TestSubscriptionFixtureInit, test_subscription_bad_argument) {
   EXPECT_EQ(NULL, rcl_subscription_get_options(&subscription_zero_init));
   rcl_reset_error();
   EXPECT_FALSE(rcl_subscription_is_cft_enabled(&subscription_zero_init));
+  rcl_reset_error();
+  EXPECT_FALSE(rcl_subscription_is_cft_supported(&subscription_zero_init));
   rcl_reset_error();
 }
 
@@ -1832,6 +1836,20 @@ TEST_F(TestSubscriptionFixtureInit, test_bad_rcl_subscription_get_content_filter
         &subscription, &options));
     rcl_reset_error();
   }
+}
+
+TEST_F(TestSubscriptionFixtureInit, test_rcl_subscription_is_cft_supported) {
+  // The current implementations for content filter support
+  // rmw_fastrtps_cpp: Yes
+  // rmw_connextdds: Yes
+  // rmw_cyclonedds: No
+  // rmw_zenoh: No
+  const char * impl_id = rmw_get_implementation_identifier();
+  bool is_cft_support =
+    (strncmp(impl_id, "rmw_connextdds", strlen("rmw_connextdds")) == 0 ||
+    strncmp(impl_id, "rmw_fastrtps_cpp", strlen("rmw_fastrtps_cpp")) == 0);
+
+  EXPECT_EQ(is_cft_support, rcl_subscription_is_cft_supported(&subscription));
 }
 
 TEST_F(TestSubscriptionFixture, test_init_fini_maybe_fail)
