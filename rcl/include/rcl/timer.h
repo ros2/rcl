@@ -70,8 +70,10 @@ typedef struct rcl_timer_call_info_s
  * Therefore the second argument given is the time since the previous callback
  * was called, because that information is no longer accessible via the timer.
  * The time since the last callback call is given in nanoseconds.
+ *
+ * The third argument allows for type erased data to be passed into the timer callback.
  */
-typedef void (* rcl_timer_callback_t)(rcl_timer_t *, int64_t);
+typedef void (* rcl_timer_callback_t)(rcl_timer_t *, int64_t, const void *);
 
 /// Return a zero initialized timer.
 RCL_PUBLIC
@@ -535,6 +537,33 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_timer_callback_t
 rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_callback);
+
+/// Set the type erased data that the timer callback will be called with.
+/**
+ * This function can fail, and therefore return `NULL`, if:
+ *   - timer is `NULL`
+ *   - timer has not been initialized (the implementation is invalid)
+ *
+ * This function can set callback to `NULL`, in which case the callback is
+ * ignored when rcl_timer_call is called.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] timer handle to the timer from the callback should be exchanged
+ * \param[in] data pointer to user data to be passed into the callback
+ * \return #RCL_RET_OK if the data was set successfully, or
+ * \return #RCL_RET_TIMER_INVALID if the timer is invalid. */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_set_user_callback_data(rcl_timer_t * timer, const void * data);
+
 
 /// Cancel a timer.
 /**

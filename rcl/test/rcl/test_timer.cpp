@@ -68,16 +68,18 @@ public:
 };
 
 static uint8_t times_called = 0;
-static void callback_function(rcl_timer_t * timer, int64_t last_call)
+static void callback_function(rcl_timer_t * timer, int64_t last_call, const void * data)
 {
   (void) timer;
   (void) last_call;
+  (void) data;
   times_called++;
 }
-static void callback_function_changed(rcl_timer_t * timer, int64_t last_call)
+static void callback_function_changed(rcl_timer_t * timer, int64_t last_call, const void * data)
 {
   (void) timer;
   (void) last_call;
+  (void) data;
   times_called--;
 }
 
