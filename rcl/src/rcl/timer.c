@@ -55,7 +55,7 @@ struct rcl_timer_impl_s
   // The user supplied allocator.
   rcl_allocator_t allocator;
   // The user supplied on reset callback data.
-  rcl_timer_on_reset_callback_data_t callback_data;
+  rcl_timer_on_reset_callback_data_t reset_callback_data;
 };
 
 rcl_timer_t
@@ -177,9 +177,9 @@ rcl_timer_init2(
   impl.allocator = allocator;
 
   // Empty init on reset callback data
-  impl.callback_data.on_reset_callback = NULL;
-  impl.callback_data.user_data = NULL;
-  impl.callback_data.reset_counter = 0;
+  impl.reset_callback_data.on_reset_callback = NULL;
+  impl.reset_callback_data.user_data = NULL;
+  impl.reset_callback_data.reset_counter = 0;
 
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
   if (NULL == timer->impl) {
@@ -487,7 +487,7 @@ rcl_timer_reset(rcl_timer_t * timer)
   rcutils_atomic_store(&timer->impl->canceled, false);
   rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
 
-  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->callback_data;
+  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->reset_callback_data;
 
   if (cb_data->on_reset_callback) {
     cb_data->on_reset_callback(cb_data->user_data, 1);
@@ -527,7 +527,7 @@ rcl_timer_set_on_reset_callback(
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
 
-  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->callback_data;
+  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->reset_callback_data;
 
   if (on_reset_callback) {
     cb_data->on_reset_callback = on_reset_callback;
