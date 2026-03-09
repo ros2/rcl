@@ -145,10 +145,10 @@ rcl_subscription_init(
   if (rmw_subscription_get_content_filter(
     subscription->impl->rmw_handle, NULL, NULL) == RMW_RET_UNSUPPORTED)
   {
-    subscription->impl->rmw_handle->cft_is_supported = false;
+    subscription->impl->rmw_handle->is_cft_supported = false;
   } else {
     rcutils_reset_error();
-    subscription->impl->rmw_handle->cft_is_supported = true;
+    subscription->impl->rmw_handle->is_cft_supported = true;
   }
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
@@ -855,7 +855,7 @@ rcl_subscription_is_cft_supported(const rcl_subscription_t * subscription)
   if (!rcl_subscription_is_valid(subscription)) {
     return false;  // error message already set
   }
-  return subscription->impl->rmw_handle->cft_is_supported;
+  return subscription->impl->rmw_handle->is_cft_supported;
 }
 
 #ifdef __cplusplus
