@@ -818,7 +818,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
 /**
  * If goal ID doesn't exist in feedback subscription content filter, return RCL_RET_OK.
  *
- * If rmw middleware doesn't support content filtering feature, return RCL_RET_OK.
+ * If rmw middleware doesn't support content filtering feature, return RCL_RET_UNSUPPORTED.
  *
  * <hr>
  * Attribute          | Adherence
@@ -837,7 +837,8 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
  * \return #RCL_RET_ACTION_CLIENT_INVALID if the action client is invalid, or
  * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
- * \return #RCL_RET_ERROR if calling other rcl functions internally does not return RCL_RET_OK
+ * \return #RCL_RET_ERROR if calling other rcl functions internally does not return RCL_RET_OK, or
+ * \return #RCL_RET_UNSUPPORTED if the middleware doesn't support content filtering
  */
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED

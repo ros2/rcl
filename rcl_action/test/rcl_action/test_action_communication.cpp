@@ -19,6 +19,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 #include "rcl_action/action_client.h"
+#include "rcl_action/action_client_impl.h"
 #include "rcl_action/action_server.h"
 #include "rcl_action/action_server_impl.h"
 #include "rcl_action/wait.h"
@@ -1735,11 +1736,9 @@ TEST_F(TestActionIntrospection, test_action_client_valid_get_result_service_even
 TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_one_goal_id)
 {
   const char * rmw_implementation = rmw_get_implementation_identifier();
-  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") != 0 &&
-    strcmp(rmw_implementation, "rmw_connextdds") != 0)
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription))
   {
-    // Content filtering is only supported in FastDDS and ConnextDDS
-    GTEST_SKIP() << "Content filtering is only supported in FastDDS and ConnextDDS.";
+    GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
   test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback1;
@@ -1835,11 +1834,9 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_one_goal_
 TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_two_goal_ids)
 {
   const char * rmw_implementation = rmw_get_implementation_identifier();
-  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") != 0 &&
-    strcmp(rmw_implementation, "rmw_connextdds") != 0)
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription))
   {
-    // Content filtering is only supported in FastDDS and ConnextDDS
-    GTEST_SKIP() << "Content filtering is only supported in FastDDS and ConnextDDS.";
+    GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
   test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback1;
@@ -1947,11 +1944,9 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_two_goal_
 TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_goal_id)
 {
   const char * rmw_implementation = rmw_get_implementation_identifier();
-  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") != 0 &&
-    strcmp(rmw_implementation, "rmw_connextdds") != 0)
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription))
   {
-    // Content filtering is only supported in FastDDS and ConnextDDS
-    GTEST_SKIP() << "Content filtering is only supported in FastDDS and ConnextDDS.";
+    GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
   test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback;
@@ -2051,11 +2046,9 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_go
 TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_goal_id_from_two)
 {
   const char * rmw_implementation = rmw_get_implementation_identifier();
-  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") != 0 &&
-    strcmp(rmw_implementation, "rmw_connextdds") != 0)
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription))
   {
-    // Content filtering is only supported in FastDDS and ConnextDDS
-    GTEST_SKIP() << "Content filtering is only supported in FastDDS and ConnextDDS.";
+    GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
   test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback1;

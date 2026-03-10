@@ -534,8 +534,6 @@ TEST_F(TestActionClientFixture, test_configure_feedback_subscription_filter_goal
 
 TEST_F(TestActionClientFixture, test_configure_feedback_subscription_filter_goal_id_add)
 {
-  const char * rmw_implementation = rmw_get_implementation_identifier();
-
   uint8_t goal_id[UUID_SIZE];
   for (size_t i = 0; i < UUID_SIZE; ++i) {
     goal_id[i] = static_cast<uint8_t>(i);
@@ -543,10 +541,10 @@ TEST_F(TestActionClientFixture, test_configure_feedback_subscription_filter_goal
 
   rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
     &this->action_client, goal_id, UUID_SIZE);
-  // Only FastDDS and ConnextDDS support content filtering
-  if (strcmp(rmw_implementation, "rmw_fastrtps_cpp") == 0 ||
-    strcmp(rmw_implementation, "rmw_connextdds") == 0)
-  {
+
+  // If rmw implementation supports content filter, the function should succeed. Otherwise,
+  // it should return RCL_RET_UNSUPPORTED.
+  if (rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription)) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     rcl_reset_error();
   } else {
@@ -564,8 +562,15 @@ TEST_F(TestActionClientFixture, test_configure_feedback_subscription_filter_goal
 
   rcl_ret_t ret = rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
     &this->action_client, goal_id, UUID_SIZE);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  rcl_reset_error();
+  // If rmw implementation supports content filter, the function should succeed. Otherwise,
+  // it should return RCL_RET_UNSUPPORTED.
+  if (rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription)) {
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  } else {
+    EXPECT_EQ(RCL_RET_UNSUPPORTED, ret) << rcl_get_error_string().str;
+    rcl_reset_error();
+  }
 }
 
 TEST_F(

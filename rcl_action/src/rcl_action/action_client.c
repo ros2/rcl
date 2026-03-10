@@ -951,15 +951,19 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
 
-  if (action_client->impl->disable_feedback_sub_cft) {
-    RCL_SET_ERROR_MSG("Content filter has been disabled for feedback subscription.");
-    return RCL_RET_ERROR;
-  }
-
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
   if (array_size != UUID_SIZE) {
     RCL_SET_ERROR_MSG("Goal id array size must be equal to UUID_SIZE.");
     return RCL_RET_INVALID_ARGUMENT;
+  }
+
+  if (!rcl_subscription_is_cft_supported(&action_client->impl->feedback_subscription)) {
+    return RCL_RET_UNSUPPORTED;
+  }
+
+  if (action_client->impl->disable_feedback_sub_cft) {
+    RCL_SET_ERROR_MSG("Content filter has been disabled for feedback subscription.");
+    return RCL_RET_ERROR;
   }
 
   // Converts goal ID array (uint8_t) to an array of strings.
@@ -1055,13 +1059,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
   ret = rcl_subscription_set_content_filter(
     &action_client->impl->feedback_subscription,
     &new_content_filter_options);
-  if (RCL_RET_OK == ret) {
-    is_cft_enabled =
-      rcl_subscription_is_cft_enabled(&action_client->impl->feedback_subscription);
-    if (!is_cft_enabled) {
-      ret = RCL_RET_UNSUPPORTED;  // RMW middleware doesn't support content filter
-    }
-  } else {
+  if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG("Failed to set cft expression parameters");
   }
 
@@ -1072,8 +1070,8 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
   }
 
 err:
-  if (RCL_RET_OK != ret && RCL_RET_UNSUPPORTED != ret) {
-    // Clear existing content filter
+  if (RCL_RET_OK != ret) {
+    // Clear existing content filter and disable content filter for feedback subscription
     action_client->impl->disable_feedback_sub_cft = true;
     _clear_setting_content_filter_on_error(&action_client->impl->feedback_subscription);
   }
@@ -1112,19 +1110,22 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
     return RCL_RET_ACTION_CLIENT_INVALID;
   }
 
-  if (action_client->impl->disable_feedback_sub_cft) {
-    RCL_SET_ERROR_MSG("Content filter has been disabled for feedback subscription.");
-    return RCL_RET_ERROR;
-  }
-
   RCL_CHECK_ARGUMENT_FOR_NULL(goal_id_array, RCL_RET_INVALID_ARGUMENT);
   if (array_size != UUID_SIZE) {
     RCL_SET_ERROR_MSG("Goal id array size must be equal to UUID_SIZE.");
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  // If content filter isn't configured or rmw middleware doesn't support content filter,
-  // do nothing.
+  if (!rcl_subscription_is_cft_supported(&action_client->impl->feedback_subscription)) {
+    return RCL_RET_UNSUPPORTED;
+  }
+
+  if (action_client->impl->disable_feedback_sub_cft) {
+    RCL_SET_ERROR_MSG("Content filter has been disabled for feedback subscription.");
+    return RCL_RET_ERROR;
+  }
+
+  // If content filter isn't configured, do nothing.
   bool is_cft_enabled =
     rcl_subscription_is_cft_enabled(&action_client->impl->feedback_subscription);
   if (!is_cft_enabled) {
@@ -1257,7 +1258,7 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
 
 err:
   if (RCL_RET_OK != ret) {
-    // Clear existing content filter
+    // Clear existing content filter and disable content filter for feedback subscription
     action_client->impl->disable_feedback_sub_cft = true;
     _clear_setting_content_filter_on_error(&action_client->impl->feedback_subscription);
   }
