@@ -438,7 +438,7 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
 }
 
 rcl_ret_t
-rcl_timer_set_user_callback_data(rcl_timer_t * timer, const void * user_data)
+rcl_timer_set_user_callback_data(rcl_timer_t * timer, void * user_data)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);

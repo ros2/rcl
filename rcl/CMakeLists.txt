@@ -49,6 +49,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/domain_id.c
   src/rcl/dynamic_message_type_support.c
   src/rcl/event.c
+  src/rcl/event_callback.c
   src/rcl/expand_topic_name.c
   src/rcl/graph.c
   src/rcl/guard_condition.c

@@ -562,7 +562,7 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_set_user_callback_data(rcl_timer_t * timer, const void * data);
+rcl_timer_set_user_callback_data(rcl_timer_t * timer, void * data);
 
 
 /// Cancel a timer.
