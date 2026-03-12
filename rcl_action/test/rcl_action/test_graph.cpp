@@ -675,3 +675,149 @@ TEST_F(TestActionGraphMultiNodeFixture, rcl_get_server_names_and_types_by_node_m
     }
   });
 }
+
+TEST_F(TestActionGraphFixture, test_action_count_clients)
+{
+  size_t count = 0u;
+  // Invalid node
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_action_count_clients(nullptr, "/test_action", &count));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_action_count_clients(&this->zero_node, "/test_action", &count));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_action_count_clients(&this->old_node, "/test_action", &count));
+  rcl_reset_error();
+  // Invalid action name
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_action_count_clients(&this->node, nullptr, &count));
+  rcl_reset_error();
+  // Invalid count
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_action_count_clients(&this->node, "/test_action", nullptr));
+  rcl_reset_error();
+  // Valid call, no clients
+  EXPECT_EQ(RCL_RET_OK, rcl_action_count_clients(&this->node, "/test_action", &count));
+  EXPECT_EQ(0u, count);
+}
+
+TEST_F(TestActionGraphFixture, test_action_count_servers)
+{
+  size_t count = 0u;
+  // Invalid node
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_action_count_servers(nullptr, "/test_action", &count));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_action_count_servers(&this->zero_node, "/test_action", &count));
+  rcl_reset_error();
+  EXPECT_EQ(
+    RCL_RET_NODE_INVALID,
+    rcl_action_count_servers(&this->old_node, "/test_action", &count));
+  rcl_reset_error();
+  // Invalid action name
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_action_count_servers(&this->node, nullptr, &count));
+  rcl_reset_error();
+  // Invalid count
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_action_count_servers(&this->node, "/test_action", nullptr));
+  rcl_reset_error();
+  // Valid call, no servers
+  EXPECT_EQ(RCL_RET_OK, rcl_action_count_servers(&this->node, "/test_action", &count));
+  EXPECT_EQ(0u, count);
+}
+
+// Note, this test could be affected by other communication on the same ROS domain
+TEST_F(TestActionGraphMultiNodeFixture, test_action_count_clients)
+{
+  rcl_ret_t ret;
+  size_t count = 0u;
+
+  // No action clients yet - count should be 0
+  ret = rcl_action_count_clients(&this->node, this->action_name, &count);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0u, count);
+
+  const rosidl_action_type_support_t * action_typesupport =
+    ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+  rcl_action_client_t action_client = rcl_action_get_zero_initialized_client();
+  rcl_action_client_options_t action_client_options = rcl_action_client_get_default_options();
+  ret = rcl_action_client_init(
+    &action_client,
+    &this->remote_node,
+    action_typesupport,
+    this->action_name,
+    &action_client_options);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_action_client_fini(&action_client, &this->remote_node)) <<
+      rcl_get_error_string().str;
+  });
+
+  // Wait for the action client to appear in the graph
+  wait_for_action_count(clients_by_node_func, 1u, std::chrono::seconds(1));
+
+  // Count should now be 1
+  count = 0u;
+  ret = rcl_action_count_clients(&this->node, this->action_name, &count);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(1u, count);
+}
+
+// Note, this test could be affected by other communication on the same ROS domain
+TEST_F(TestActionGraphMultiNodeFixture, test_action_count_servers)
+{
+  rcl_ret_t ret;
+  size_t count = 0u;
+
+  // No action servers yet - count should be 0
+  ret = rcl_action_count_servers(&this->node, this->action_name, &count);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0u, count);
+
+  const rosidl_action_type_support_t * action_typesupport =
+    ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+  rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
+  rcl_clock_t clock;
+  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &this->allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string().str;
+  });
+  rcl_action_server_options_t action_server_options = rcl_action_server_get_default_options();
+  ret = rcl_action_server_init(
+    &action_server,
+    &this->remote_node,
+    &clock,
+    action_typesupport,
+    this->action_name,
+    &action_server_options);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_action_server_fini(&action_server, &this->remote_node)) <<
+      rcl_get_error_string().str;
+  });
+
+  // Wait for the action server to appear in the graph
+  wait_for_action_count(servers_by_node_func, 1u, std::chrono::seconds(1));
+
+  // Count should now be 1
+  count = 0u;
+  ret = rcl_action_count_servers(&this->node, this->action_name, &count);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(1u, count);
+}

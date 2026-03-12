@@ -155,6 +155,80 @@ rcl_action_get_names_and_types(
   rcl_allocator_t * allocator,
   rcl_names_and_types_t * action_names_and_types);
 
+/// Return the number of action clients for a given action name.
+/**
+ * The `node` parameter must point to a valid node.
+ *
+ * The `action_name` parameter must not be `NULL`.
+ *
+ * The `count` parameter must not be `NULL`.
+ * The `count` parameter is the output for this function and will be set.
+ *
+ * This function counts the number of action clients for the given action name
+ * across all nodes known in the ROS graph.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] action_name the name of the action in question
+ * \param[out] count number of action clients for the given action
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_count_clients(
+  const rcl_node_t * node,
+  const char * action_name,
+  size_t * count);
+
+/// Return the number of action servers for a given action name.
+/**
+ * The `node` parameter must point to a valid node.
+ *
+ * The `action_name` parameter must not be `NULL`.
+ *
+ * The `count` parameter must not be `NULL`.
+ * The `count` parameter is the output for this function and will be set.
+ *
+ * This function counts the number of action servers for the given action name
+ * across all nodes known in the ROS graph.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] action_name the name of the action in question
+ * \param[out] count number of action servers for the given action
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_count_servers(
+  const rcl_node_t * node,
+  const char * action_name,
+  size_t * count);
+
 #ifdef __cplusplus
 }
 #endif
