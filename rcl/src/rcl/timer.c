@@ -38,8 +38,8 @@ struct rcl_timer_impl_s
   rcl_guard_condition_t guard_condition;
   // The user supplied callback.
   atomic_uintptr_t callback;
-  // optional tyoe-erased data which will be passed into the callback
-  void * user_callback_data;
+  // optionally user supplied data which will be passed into the callback
+  atomic_uintptr_t callback_data;
 
   // This is a duration in nanoseconds, which is initialized as int64_t
   // to be used for internal time calculation.
@@ -318,7 +318,7 @@ rcl_timer_call_with_info(rcl_timer_t * timer, rcl_timer_call_info_t * call_info)
 
   if (typed_callback != NULL) {
     int64_t since_last_call = now - previous_ns;
-    typed_callback(timer, since_last_call, timer->impl->user_callback_data);
+    typed_callback(timer, since_last_call, timer->impl->callback_data);
   }
   return RCL_RET_OK;
 }
@@ -437,14 +437,13 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
     &timer->impl->callback, (uintptr_t)new_callback);
 }
 
-rcl_ret_t
-rcl_timer_set_user_callback_data(rcl_timer_t * timer, void * user_data)
+uintptr_t
+rcl_timer_exchange_callback_data(rcl_timer_t * timer, uintptr_t data)
 {
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
 
-  timer->impl->user_callback_data = user_data;
-  return RCL_RET_OK;
+  return rcutils_atomic_exchange_uintptr_t(&timer->impl->callback_data, data);
 }
 
 rcl_ret_t

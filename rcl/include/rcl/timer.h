@@ -73,7 +73,7 @@ typedef struct rcl_timer_call_info_s
  *
  * The third argument allows for type erased data to be passed into the timer callback.
  */
-typedef void (* rcl_timer_callback_t)(rcl_timer_t *, int64_t, const void *);
+typedef void (* rcl_timer_callback_t)(rcl_timer_t *, int64_t, uintptr_t);
 
 /// Return a zero initialized timer.
 RCL_PUBLIC
@@ -561,8 +561,8 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
  * \return #RCL_RET_TIMER_INVALID if the timer is invalid. */
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_ret_t
-rcl_timer_set_user_callback_data(rcl_timer_t * timer, void * data);
+uintptr_t
+rcl_timer_exchange_callback_data(rcl_timer_t * timer, uintptr_t data);
 
 
 /// Cancel a timer.
