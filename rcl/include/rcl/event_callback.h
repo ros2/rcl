@@ -16,6 +16,8 @@
 #define RCL__EVENT_CALLBACK_H_
 
 #include "rmw/event_callback_type.h"
+#include "rcl/visibility_control.h"
+#include "rcl/macros.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -23,6 +25,17 @@ extern "C"
 #endif
 
 typedef rmw_event_callback_t rcl_event_callback_t;
+
+typedef struct rcl_event_callback_with_data_s
+{
+  rcl_event_callback_t callback;
+  const void * user_data;
+} rcl_event_callback_with_data_t;
+
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_event_callback_with_data_t
+rcl_get_zero_initialized_event_callback_with_data();
 
 #ifdef __cplusplus
 }
