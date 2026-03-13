@@ -479,9 +479,11 @@ rcl_client_response_subscription_get_actual_qos(const rcl_client_t * client);
  * aim to make it fast and not blocking. This callback is intended to implement an event driven executor and
  * not process data directly.  
  * 
- * Blocking or performing synchronous work here may cause subsequent callbacks
- * or responses to execute in executor threads different than the current 
- * middleware thread.
+ * Doing work in this callback can cause delays,
+ * deadlocks, or latency due to cross thread waiting
+ * as this process runs on middleware managed threads
+ * and is meant only to notify the executor that new data 
+ * is available in the middleware queue
  * 
  * <hr>
  * Attribute          | Adherence
