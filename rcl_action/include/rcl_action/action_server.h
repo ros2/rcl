@@ -986,6 +986,30 @@ rcl_action_server_configure_action_introspection(
   const rcl_publisher_options_t publisher_options,
   rcl_service_introspection_state_t introspection_state);
 
+///Set an event callback which will be called when the action goal expiration timer fires.
+/**
+ * This should be invoked from action servers registering callbacks
+ * for events based execution.
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] action_server the action server on which to add a callback
+ * \param[in] callback *event* callback which will be invoked by the expire timer's *timer* callback
+ * \param[in] user_data data that can be passed to the *event* callback
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_server_set_expired_event_callback(
+  const rcl_action_server_t * action_server,
+  const rcl_event_callback_t callback,
+  const void * user_data);
+
 RCL_ACTION_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t

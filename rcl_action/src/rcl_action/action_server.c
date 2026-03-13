@@ -101,6 +101,24 @@ rcl_action_get_zero_initialized_server(void)
     goto fail; \
   }
 
+// Implementation only
+static void
+_enqueue_check_expired_goals(
+  rcl_timer_t * timer,
+  int64_t last_call,
+  const uintptr_t type_erased_event_callback)
+{
+  (void)timer;
+  (void)last_call;
+
+  rcl_event_callback_with_data_t * typed_cb_with_data =
+    (rcl_event_callback_with_data_t *)type_erased_event_callback;
+
+  if (typed_cb_with_data->callback) {
+    typed_cb_with_data->callback(typed_cb_with_data->user_data, 1);
+  }
+}
+
 rcl_ret_t
 rcl_action_server_init(
   rcl_action_server_t * action_server,
@@ -135,7 +153,7 @@ rcl_action_server_init(
 
   ret = rcl_action_server_init2(action_server, node, &expire_timer,
                                 type_support, action_name, options);
-  if(ret != RCL_RET_OK) {
+  if(RCL_RET_OK != ret) {
     // we need to release the timer in error case
     if (rcl_timer_fini(&expire_timer) != RCL_RET_OK) {
       ret = RCL_RET_ERROR;
@@ -184,6 +202,9 @@ rcl_action_server_init2(
   action_server->impl->cancel_service = rcl_get_zero_initialized_service();
   action_server->impl->result_service = rcl_get_zero_initialized_service();
   action_server->impl->expire_timer = *expire_timer;
+  action_server->impl->goal_expire_callback =
+    rcl_get_zero_initialized_event_callback_with_data();
+
   action_server->impl->owns_expire_timer = false;
   action_server->impl->feedback_publisher = rcl_get_zero_initialized_publisher();
   action_server->impl->status_publisher = rcl_get_zero_initialized_publisher();
@@ -246,6 +267,11 @@ rcl_action_server_init2(
   if (RCL_RET_OK != ret) {
     goto fail;
   }
+
+  // Set the callback for the timer to call the callback that enqueues action expiration events
+  rcl_timer_callback_t dont_care = rcl_timer_exchange_callback(&action_server->impl->expire_timer,
+    &_enqueue_check_expired_goals);
+  (void) dont_care;
 
   // Store type hash
   ret = rcl_node_type_cache_register_type(
@@ -1263,6 +1289,23 @@ rcl_action_server_configure_action_introspection(
   SERVER_CONFIGURE_SERVICE_INTROSPECTION(goal, introspection_state);
   SERVER_CONFIGURE_SERVICE_INTROSPECTION(cancel, introspection_state);
   SERVER_CONFIGURE_SERVICE_INTROSPECTION(result, introspection_state);
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_action_server_set_expired_event_callback(
+  const rcl_action_server_t * action_server,
+  const rcl_event_callback_t callback,
+  const void * user_data)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(action_server, RCL_RET_INVALID_ARGUMENT);
+
+  action_server->impl->goal_expire_callback.callback = callback;
+  action_server->impl->goal_expire_callback.user_data = user_data;
+
+  uintptr_t dont_care = rcl_timer_exchange_callback_data(&action_server->impl->expire_timer,
+      (uintptr_t)&action_server->impl->goal_expire_callback);
+  (void) dont_care;
   return RCL_RET_OK;
 }
 

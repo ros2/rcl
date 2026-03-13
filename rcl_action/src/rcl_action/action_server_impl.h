@@ -27,6 +27,7 @@ typedef struct rcl_action_server_impl_s
   rcl_publisher_t feedback_publisher;
   rcl_publisher_t status_publisher;
   rcl_timer_t expire_timer;
+  rcl_event_callback_with_data_t goal_expire_callback;
   char * remapped_action_name;
   bool owns_expire_timer;
   rcl_action_server_options_t options;
