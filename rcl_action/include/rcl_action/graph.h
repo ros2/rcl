@@ -167,6 +167,11 @@ rcl_action_get_names_and_types(
  * This function counts the number of action clients for the given action name
  * across all nodes known in the ROS graph.
  *
+ * The action name is not automatically remapped by this function.
+ * If there is a client created with action name `foo` and remap rule `foo:=bar`
+ * then calling this with `action_name` set to `bar` will return a count of 1,
+ * and with `action_name` set to `foo` will return a count of 0.
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
@@ -203,6 +208,11 @@ rcl_action_count_clients(
  *
  * This function counts the number of action servers for the given action name
  * across all nodes known in the ROS graph.
+ *
+ * The action name is not automatically remapped by this function.
+ * If there is a server created with action name `foo` and remap rule `foo:=bar`
+ * then calling this with `action_name` set to `bar` will return a count of 1,
+ * and with `action_name` set to `foo` will return a count of 0.
  *
  * <hr>
  * Attribute          | Adherence

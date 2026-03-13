@@ -243,6 +243,10 @@ _rcl_action_count_entities(
     return RCL_RET_NODE_INVALID;  // error already set
   }
   RCL_CHECK_ARGUMENT_FOR_NULL(action_name, RCL_RET_INVALID_ARGUMENT);
+  if (action_name[0] == '\0') {
+    RCL_SET_ERROR_MSG("action_name must not be empty");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
   RCL_CHECK_ARGUMENT_FOR_NULL(count, RCL_RET_INVALID_ARGUMENT);
 
   *count = 0u;

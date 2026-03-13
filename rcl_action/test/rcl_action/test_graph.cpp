@@ -676,6 +676,32 @@ TEST_F(TestActionGraphMultiNodeFixture, rcl_get_server_names_and_types_by_node_m
   });
 }
 
+TEST_F(TestActionGraphMultiNodeFixture, rcl_action_count_clients_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    size_t count = 0u;
+    rcl_ret_t ret = rcl_action_count_clients(
+      &this->node, this->action_name, &count);
+    if (RCL_RET_OK != ret) {
+      rcl_reset_error();
+    }
+  });
+}
+
+TEST_F(TestActionGraphMultiNodeFixture, rcl_action_count_servers_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    size_t count = 0u;
+    rcl_ret_t ret = rcl_action_count_servers(
+      &this->node, this->action_name, &count);
+    if (RCL_RET_OK != ret) {
+      rcl_reset_error();
+    }
+  });
+}
+
 TEST_F(TestActionGraphFixture, test_action_count_clients)
 {
   size_t count = 0u;
@@ -701,6 +727,11 @@ TEST_F(TestActionGraphFixture, test_action_count_clients)
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_action_count_clients(&this->node, "/test_action", nullptr));
+  rcl_reset_error();
+  // Empty string
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_action_count_clients(&this->node, "", &count));
   rcl_reset_error();
   // Valid call, no clients
   EXPECT_EQ(RCL_RET_OK, rcl_action_count_clients(&this->node, "/test_action", &count));
@@ -732,6 +763,11 @@ TEST_F(TestActionGraphFixture, test_action_count_servers)
   EXPECT_EQ(
     RCL_RET_INVALID_ARGUMENT,
     rcl_action_count_servers(&this->node, "/test_action", nullptr));
+  rcl_reset_error();
+  // Empty string
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_action_count_servers(&this->node, "", &count));
   rcl_reset_error();
   // Valid call, no servers
   EXPECT_EQ(RCL_RET_OK, rcl_action_count_servers(&this->node, "/test_action", &count));
