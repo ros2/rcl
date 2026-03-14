@@ -646,6 +646,11 @@ TEST_F(TestGraphFixture, test_rcl_count_publishers) {
   ret = rcl_count_publishers(this->node_ptr, topic_name, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  // empty string
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_count_publishers(this->node_ptr, "", &count));
+  rcl_reset_error();
   // valid call
   ret = rcl_count_publishers(this->node_ptr, topic_name, &count);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -682,6 +687,11 @@ TEST_F(TestGraphFixture, test_rcl_count_subscribers) {
   // invalid count
   ret = rcl_count_subscribers(this->node_ptr, topic_name, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // empty string
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_count_subscribers(this->node_ptr, "", &count));
   rcl_reset_error();
   // valid call
   ret = rcl_count_subscribers(this->node_ptr, topic_name, &count);
@@ -720,6 +730,11 @@ TEST_F(TestGraphFixture, test_rcl_count_clients) {
   ret = rcl_count_clients(this->node_ptr, service_name, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
+  // empty string
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_count_clients(this->node_ptr, "", &count));
+  rcl_reset_error();
   // valid call
   ret = rcl_count_clients(this->node_ptr, service_name, &count);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -756,6 +771,11 @@ TEST_F(TestGraphFixture, test_rcl_count_services) {
   // invalid count
   ret = rcl_count_services(this->node_ptr, service_name, nullptr);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // empty string
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_count_services(this->node_ptr, "", &count));
   rcl_reset_error();
   // valid call
   ret = rcl_count_services(this->node_ptr, service_name, &count);
