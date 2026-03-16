@@ -552,7 +552,7 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
  * ------------------ | -------------
  * Allocates Memory   | No
  * Thread-Safe        | No
- * Uses Atomics       | No
+ * Uses Atomics       | Yes
  * Lock-Free          | Yes
  *
  * \param[inout] timer handle to the timer from the callback should be exchanged
