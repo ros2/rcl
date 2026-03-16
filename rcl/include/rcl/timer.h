@@ -558,6 +558,7 @@ rcl_timer_exchange_callback(rcl_timer_t * timer, const rcl_timer_callback_t new_
  * \param[inout] timer handle to the timer from the callback should be exchanged
  * \param[in] data pointer to user data to be passed into the callback
  * \return #RCL_RET_OK if the data was set successfully, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
  * \return #RCL_RET_TIMER_INVALID if the timer is invalid. */
 RCL_PUBLIC
 RCL_WARN_UNUSED
