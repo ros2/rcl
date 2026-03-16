@@ -72,7 +72,8 @@ static void callback_function(rcl_timer_t * timer, int64_t last_call, const uint
 {
   (void) timer;
   (void) last_call;
-  (void) data;
+  const char * typed_data = (char *)data;
+  ASSERT_EQ(strcmp("callback_data", typed_data), 0);
   times_called++;
 }
 static void callback_function_changed(rcl_timer_t * timer, int64_t last_call, const uintptr_t data)
@@ -103,6 +104,8 @@ public:
   rcl_timer_t timer;
   rcl_timer_callback_t timer_callback_test = &callback_function;
   rcl_timer_callback_t timer_callback_changed = &callback_function_changed;
+  const char * test_string = "callback_data";
+  uintptr_t timer_callback_test_data = (uintptr_t)test_string;
 
   void SetUp() override
   {
@@ -117,6 +120,10 @@ public:
     ret = rcl_timer_init2(
       &timer, &clock, this->context_ptr, RCL_S_TO_NS(1), timer_callback_test,
       rcl_get_default_allocator(), true);
+
+    uintptr_t dontcare = rcl_timer_exchange_callback_data(&timer, timer_callback_test_data);
+    (void) dontcare;
+
     ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   }
 
