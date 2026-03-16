@@ -637,9 +637,16 @@ TEST_F(TestGraphFixture, test_rcl_count_publishers) {
   ret = rcl_count_publishers(this->node_ptr, nullptr, &count);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // TODO(wjwwood): test valid strings with invalid topic names in them
+  // invalid topic name contents
+  ret = rcl_count_publishers(this->node_ptr, "/invalid_topic?", &count);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   // invalid count
   ret = rcl_count_publishers(this->node_ptr, topic_name, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // empty string
+  ret = rcl_count_publishers(this->node_ptr, "", &count);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // valid call
@@ -671,9 +678,16 @@ TEST_F(TestGraphFixture, test_rcl_count_subscribers) {
   ret = rcl_count_subscribers(this->node_ptr, nullptr, &count);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // TODO(wjwwood): test valid strings with invalid topic names in them
+  // invalid topic name contents
+  ret = rcl_count_subscribers(this->node_ptr, "/invalid_topic?", &count);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   // invalid count
   ret = rcl_count_subscribers(this->node_ptr, topic_name, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // empty string
+  ret = rcl_count_subscribers(this->node_ptr, "", &count);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // valid call
@@ -705,9 +719,16 @@ TEST_F(TestGraphFixture, test_rcl_count_clients) {
   ret = rcl_count_clients(this->node_ptr, nullptr, &count);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // TODO(wjwwood): test valid strings with invalid topic names in them
+  // invalid service name contents
+  ret = rcl_count_clients(this->node_ptr, "/invalid_service?", &count);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   // invalid count
   ret = rcl_count_clients(this->node_ptr, service_name, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // empty string
+  ret = rcl_count_clients(this->node_ptr, "", &count);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // valid call
@@ -739,9 +760,16 @@ TEST_F(TestGraphFixture, test_rcl_count_services) {
   ret = rcl_count_services(this->node_ptr, nullptr, &count);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
-  // TODO(wjwwood): test valid strings with invalid topic names in them
+  // invalid service name contents
+  ret = rcl_count_services(this->node_ptr, "/invalid_service?", &count);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
   // invalid count
   ret = rcl_count_services(this->node_ptr, service_name, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // empty string
+  ret = rcl_count_services(this->node_ptr, "", &count);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
   rcl_reset_error();
   // valid call
