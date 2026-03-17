@@ -986,7 +986,7 @@ rcl_action_server_configure_action_introspection(
   const rcl_publisher_options_t publisher_options,
   rcl_service_introspection_state_t introspection_state);
 
-///Set an event callback which will be called when the action goal expiration timer fires.
+/// Set an event callback which will be called when the action goal expiration timer fires.
 /**
  * This should be invoked from action servers registering callbacks
  * for events based execution.

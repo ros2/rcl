@@ -72,7 +72,7 @@ static void callback_function(rcl_timer_t * timer, int64_t last_call, const uint
 {
   (void) timer;
   (void) last_call;
-  const char * typed_data = (char *)data;
+  const char * typed_data = reinterpret_cast<char *>(data);
   ASSERT_EQ(strcmp("callback_data", typed_data), 0);
   times_called++;
 }
