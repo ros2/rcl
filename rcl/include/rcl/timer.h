@@ -511,6 +511,29 @@ RCL_WARN_UNUSED
 rcl_timer_callback_t
 rcl_timer_get_callback(const rcl_timer_t * timer);
 
+/// Return the current timer callback data.
+/**
+ * This function can fail, and therefore return `NULL`, if:
+ *   - timer is `NULL`
+ *   - timer has not been initialized (the implementation is invalid)
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Yes
+ * Lock-Free          | Yes [1]
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
+ *
+ * \param[in] timer handle to the timer from the callback data that should be returned
+ * \return pointer to the callback data, or `NULL` if an error occurred
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+uintptr_t
+rcl_timer_get_callback_data(const rcl_timer_t * timer);
+
 /// Exchange the current timer callback and return the current callback.
 /**
  * This function can fail, and therefore return `NULL`, if:

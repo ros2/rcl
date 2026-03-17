@@ -318,7 +318,8 @@ rcl_timer_call_with_info(rcl_timer_t * timer, rcl_timer_call_info_t * call_info)
 
   if (typed_callback != NULL) {
     int64_t since_last_call = now - previous_ns;
-    typed_callback(timer, since_last_call, timer->impl->callback_data);
+    uintptr_t callback_data = rcl_timer_get_callback_data(timer);
+    typed_callback(timer, since_last_call, callback_data);
   }
   return RCL_RET_OK;
 }
@@ -425,6 +426,14 @@ rcl_timer_get_callback(const rcl_timer_t * timer)
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, NULL);
   RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return NULL);
   return (rcl_timer_callback_t)rcutils_atomic_load_uintptr_t(&timer->impl->callback);
+}
+
+uintptr_t
+rcl_timer_get_callback_data(const rcl_timer_t * timer)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, (uintptr_t)NULL);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return (uintptr_t)NULL);
+  return (uintptr_t)rcutils_atomic_load_uintptr_t(&timer->impl->callback_data);
 }
 
 rcl_timer_callback_t
