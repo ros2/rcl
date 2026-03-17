@@ -715,6 +715,7 @@ rcl_take_loaned_message(
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Subscription loaned take succeeded: %s", taken ? "true" : "false");
+  TRACETOOLS_TRACEPOINT(rcl_take, (const void *)(*loaned_message));
   if (!taken) {
     return RCL_RET_SUBSCRIPTION_TAKE_FAILED;
   }
