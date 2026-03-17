@@ -111,11 +111,13 @@ _enqueue_check_expired_goals(
   (void)timer;
   (void)last_call;
 
-  rcl_event_callback_with_data_t * typed_cb_with_data =
-    (rcl_event_callback_with_data_t *)type_erased_event_callback;
+  if ((uintptr_t)NULL != type_erased_event_callback) {
+    rcl_event_callback_with_data_t * typed_cb_with_data =
+      (rcl_event_callback_with_data_t *)type_erased_event_callback;
 
-  if (typed_cb_with_data->callback) {
-    typed_cb_with_data->callback(typed_cb_with_data->user_data, 1);
+    if (typed_cb_with_data->callback) {
+      typed_cb_with_data->callback(typed_cb_with_data->user_data, 1);
+    }
   }
 }
 

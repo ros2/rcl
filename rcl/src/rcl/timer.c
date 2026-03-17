@@ -169,6 +169,7 @@ rcl_timer_init2(
   }
 
   atomic_init(&impl.callback, (uintptr_t)callback);
+  atomic_init(&impl.callback_data, (uintptr_t)NULL);
   atomic_init(&impl.period, period);
   atomic_init(&impl.time_credit, 0);
   atomic_init(&impl.last_call_time, now);
