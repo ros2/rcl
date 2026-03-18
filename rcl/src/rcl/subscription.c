@@ -145,6 +145,10 @@ rcl_subscription_init(
   if (rmw_subscription_get_content_filter(
     subscription->impl->rmw_handle, NULL, NULL) == RMW_RET_UNSUPPORTED)
   {
+    // depending on rmw implementation, this call may set an error string (e.g. "unimplemented")
+    // so we must call rcutils_reset_error() in both branches to avoid leaking a stale error
+    // state out of subscription init.
+    rcutils_reset_error();
     subscription->impl->rmw_handle->is_cft_supported = false;
   } else {
     rcutils_reset_error();
