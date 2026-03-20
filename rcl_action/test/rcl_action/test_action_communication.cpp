@@ -1736,8 +1736,7 @@ TEST_F(TestActionIntrospection, test_action_client_valid_get_result_service_even
 TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_one_goal_id)
 {
   const char * rmw_implementation = rmw_get_implementation_identifier();
-  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription))
-  {
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription)) {
     GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
@@ -1834,8 +1833,7 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_one_goal_
 TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_two_goal_ids)
 {
   const char * rmw_implementation = rmw_get_implementation_identifier();
-  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription))
-  {
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription)) {
     GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
@@ -1944,8 +1942,7 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_two_goal_
 TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_goal_id)
 {
   const char * rmw_implementation = rmw_get_implementation_identifier();
-  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription))
-  {
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription)) {
     GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
@@ -2046,8 +2043,7 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_go
 TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_goal_id_from_two)
 {
   const char * rmw_implementation = rmw_get_implementation_identifier();
-  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription))
-  {
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription)) {
     GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
