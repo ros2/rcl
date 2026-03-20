@@ -45,7 +45,7 @@ ament_find_gtest()
 ament_add_gtest_executable(test_client
   rcl/test_client.cpp
 )
-target_link_libraries(test_client ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_client ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_timer
   rcl/test_timer.cpp
@@ -65,29 +65,29 @@ target_link_libraries(test_get_node_names ${PROJECT_NAME} osrf_testing_tools_cpp
 ament_add_gtest_executable(test_graph
   rcl/test_graph.cpp
 )
-target_link_libraries(test_graph ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_graph ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_info_by_topic
   rcl/test_info_by_topic.cpp
 )
-target_link_libraries(test_info_by_topic ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_info_by_topic ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_info_by_service
   rcl/test_info_by_service.cpp
 )
 target_link_libraries(test_info_by_service
-  ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
+  ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs
 )
 
 ament_add_gtest_executable(test_count_matched
   rcl/test_count_matched.cpp
 )
-target_link_libraries(test_count_matched ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_count_matched ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_get_actual_qos
   rcl/test_get_actual_qos.cpp
 )
-target_link_libraries(test_get_actual_qos ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_get_actual_qos ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 
 ament_add_gtest_executable(test_init
@@ -109,7 +109,7 @@ target_link_libraries(test_remap ${PROJECT_NAME} osrf_testing_tools_cpp::memory_
 ament_add_gtest_executable(test_remap_integration
   rcl/test_remap_integration.cpp
 )
-target_link_libraries(test_remap_integration ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_remap_integration ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_guard_condition
   rcl/test_guard_condition.cpp
@@ -120,19 +120,19 @@ ament_add_gtest_executable(test_publisher
   rcl/test_publisher.cpp
 )
 target_include_directories(test_publisher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
-target_link_libraries(test_publisher ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_publisher ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_publisher_wait_all_ack
   rcl/test_publisher_wait_all_ack.cpp
 )
 target_link_libraries(test_publisher_wait_all_ack ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools
-        rcutils::rcutils rosidl_runtime_c::rosidl_runtime_c ${test_msgs_TARGETS})
+        rcutils::rcutils rosidl_runtime_c::rosidl_runtime_c test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_events
   rcl/test_events.cpp
 )
 target_include_directories(test_events PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
-target_link_libraries(test_events ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_events ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_wait
   rcl/test_wait.cpp
@@ -147,7 +147,7 @@ target_link_libraries(test_logging_rosout ${PROJECT_NAME} osrf_testing_tools_cpp
 ament_add_gtest_executable(test_namespace
   rcl/test_namespace.cpp
 )
-target_link_libraries(test_namespace ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_namespace ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_rmw_impl_id_check_func
   rcl/test_rmw_impl_id_check_func.cpp
@@ -157,25 +157,25 @@ target_link_libraries(test_rmw_impl_id_check_func ${PROJECT_NAME} mimick)
 ament_add_gtest_executable(test_network_flow_endpoints
   rcl/test_network_flow_endpoints.cpp
 )
-target_link_libraries(test_network_flow_endpoints ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_network_flow_endpoints ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_service_event_publisher
   rcl/test_service_event_publisher.cpp
 )
 target_include_directories(test_service_event_publisher PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
 target_link_libraries(test_service_event_publisher
-  ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+  ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_type_description_conversions
   rcl/test_type_description_conversions.cpp
 )
 target_link_libraries(test_type_description_conversions
-  ${PROJECT_NAME} rosidl_runtime_c::rosidl_runtime_c ${test_msgs_TARGETS})
+  ${PROJECT_NAME} rosidl_runtime_c::rosidl_runtime_c test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_node_type_cache
   rcl/test_node_type_cache.cpp
 )
-target_link_libraries(test_node_type_cache ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS})
+target_link_libraries(test_node_type_cache ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs)
 
 ament_add_gtest_executable(test_get_type_description_service
   rcl/test_get_type_description_service.cpp
@@ -293,7 +293,7 @@ function(test_target)
     SRCS rcl/test_service.cpp
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
+    LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs
   )
   ament_add_test_label(test_service${target_suffix} mimick)
 
@@ -302,7 +302,7 @@ function(test_target)
     ENV ${rmw_implementation_env_var}
     APPEND_LIBRARY_DIRS ${extra_lib_dirs}
     LIBRARIES ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools rosidl_runtime_cpp::rosidl_runtime_cpp
-      ${test_msgs_TARGETS}
+      test_msgs::test_msgs
     TIMEOUT 120
   )
   ament_add_test_label(test_subscription${target_suffix} mimick)
@@ -432,12 +432,12 @@ target_link_libraries(wait_for_entity_helpers PRIVATE
 
 rcl_add_custom_executable(service_fixture
   SRCS rcl/service_fixture.cpp
-  LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS} rcutils::rcutils
+  LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs rcutils::rcutils
 )
 
 rcl_add_custom_executable(client_fixture
   SRCS rcl/client_fixture.cpp
-  LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
+  LIBRARIES ${PROJECT_NAME} wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs
 )
 
 call_for_each_rmw_implementation(test_target)
@@ -533,7 +533,7 @@ ament_add_test_label(test_log_level mimick)
 rcl_add_custom_gtest(test_subscription_content_filter_options
   SRCS rcl/test_subscription_content_filter_options.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${test_msgs_TARGETS}
+  LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs
 )
 
 rcl_add_custom_gtest(test_type_hash

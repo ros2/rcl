@@ -88,7 +88,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 target_link_libraries(${PROJECT_NAME} PUBLIC
   # TODO(clalancette): rcl_interfaces should be PRIVATE, but downstream depends on it for now
-  ${rcl_interfaces_TARGETS}
+  rcl_interfaces::rcl_interfaces
   # TODO(clalancette): rcl_logging_interface should be PRIVATE, but downstream depends on it for now
   rcl_logging_interface::rcl_logging_interface
   rcl_yaml_param_parser::rcl_yaml_param_parser
@@ -97,10 +97,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   # TODO(clalancette): rmw_implementation should be PRIVATE, but downstream depends on it for now
   rmw_implementation::rmw_implementation
   rosidl_runtime_c::rosidl_runtime_c
-  ${type_description_interfaces_TARGETS}
+  type_description_interfaces::type_description_interfaces
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  ${service_msgs_TARGETS}
+  service_msgs::service_msgs
   tracetools::tracetools
   yaml
 )
