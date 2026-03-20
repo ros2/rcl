@@ -108,7 +108,6 @@ _enqueue_check_expired_goals(
   int64_t last_call,
   const uintptr_t type_erased_event_callback)
 {
-  (void)timer;
   (void)last_call;
 
   rcl_ret_t ret = rcl_timer_cancel(timer);
