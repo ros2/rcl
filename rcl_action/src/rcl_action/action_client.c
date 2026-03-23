@@ -958,6 +958,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
   }
 
   if (!rcl_subscription_is_cft_supported(&action_client->impl->feedback_subscription)) {
+    RCL_SET_ERROR_MSG("RMW implementation does not support content filter.");
     return RCL_RET_UNSUPPORTED;
   }
 
@@ -1117,6 +1118,7 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
   }
 
   if (!rcl_subscription_is_cft_supported(&action_client->impl->feedback_subscription)) {
+    RCL_SET_ERROR_MSG("RMW implementation does not support content filter.");
     return RCL_RET_UNSUPPORTED;
   }
 
