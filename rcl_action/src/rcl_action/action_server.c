@@ -498,14 +498,16 @@ _recalculate_expire_timer(
       // Time jumped backwards
       minimum_period = 0;
     }
-    // Un-cancel timer
-    ret = rcl_timer_reset(expire_timer);
+    // Make timer fire when next goal expires
+    // this need to be called before reset, as reset computes
+    // the next time the timer fires
+    int64_t old_period;
+    ret = rcl_timer_exchange_period(expire_timer, minimum_period, &old_period);
     if (RCL_RET_OK != ret) {
       return ret;
     }
-    // Make timer fire when next goal expires
-    int64_t old_period;
-    ret = rcl_timer_exchange_period(expire_timer, minimum_period, &old_period);
+    // Un-cancel timer
+    ret = rcl_timer_reset(expire_timer);
     if (RCL_RET_OK != ret) {
       return ret;
     }
@@ -680,7 +682,7 @@ rcl_action_expire_goals(
       continue;
     }
 
-    if ((current_time - goal_terminal_timestamp) > timeout) {
+    if ((current_time - goal_terminal_timestamp) >= timeout) {
       // Deallocate space used to store pointer to goal handle
       allocator.deallocate(action_server->impl->goal_handles[i], allocator.state);
       action_server->impl->goal_handles[i] = NULL;
