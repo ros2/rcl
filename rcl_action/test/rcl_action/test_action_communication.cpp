@@ -1875,6 +1875,8 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_two_goal_
     sizeof(outgoing_feedback2.goal_id.uuid));
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
   // Publish feedback1 for uuid0
   ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback1);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
