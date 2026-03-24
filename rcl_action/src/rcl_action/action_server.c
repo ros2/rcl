@@ -112,8 +112,7 @@ _enqueue_check_expired_goals(
 
   rcl_ret_t ret = rcl_timer_cancel(timer);
   if(ret != RCL_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(
-      ROS_PACKAGE_NAME, "_enqueue_check_expired_goals cancel of timer failed !");
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "cancel of timer failed");
   }
 
   if ((uintptr_t)NULL != type_erased_event_callback) {
