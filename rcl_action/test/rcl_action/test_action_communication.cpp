@@ -1992,6 +1992,9 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_go
     sizeof(uuid1));
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
 
+  // Make sure the content filter update is processed before publishing feedback again
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
   // Publish feedback for uuid0, this time it should be received
   ret = rcl_action_publish_feedback(&this->action_server, &outgoing_feedback);
   ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
