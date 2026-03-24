@@ -1158,6 +1158,7 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
   }
 
   char * new_filter_expression = NULL;
+  char ** new_expression_params = NULL;
 
   // Check if goal ID is in expression_parameters in content_filter_options
   size_t expression_params_size = content_filter_options
@@ -1210,7 +1211,15 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
       // Create new expression parameters array without the removed goal ID
       // DDS spec requires less than 100 parameters in a filter expression, so
       // new_expression_params_size is guaranteed to be less than 100.
-      char * new_expression_params[new_expression_params_size];
+      new_expression_params =
+        (char **)action_client->impl->options.allocator.allocate(
+          sizeof(char *) * new_expression_params_size,
+          action_client->impl->options.allocator.state);
+      if (new_expression_params == NULL) {
+        RCL_SET_ERROR_MSG("Failed to allocate memory for expression parameters");
+        ret = RCL_RET_BAD_ALLOC;
+        goto err;
+      }
       size_t new_index = 0;
       for (size_t i = 0; i < expression_params_size; ++i) {
         if (i >= index_expression_params && i < (index_expression_params + array_size)) {
@@ -1259,6 +1268,11 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
   }
 
 err:
+  if (NULL != new_expression_params) {
+    action_client->impl->options.allocator.deallocate(
+      new_expression_params, action_client->impl->options.allocator.state);
+  }
+
   if (RCL_RET_OK != ret) {
     // Clear existing content filter and disable content filter for feedback subscription
     action_client->impl->disable_feedback_sub_cft = true;
