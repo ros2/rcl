@@ -537,6 +537,12 @@ rcl_add_custom_gtest(test_subscription_content_filter_options
   LIBRARIES ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools test_msgs::test_msgs
 )
 
+rcl_add_custom_gtest(test_subscription_buffer_backend_options
+  SRCS rcl/test_subscription_buffer_backend_options.cpp
+  APPEND_LIBRARY_DIRS ${extra_lib_dirs}
+  LIBRARIES ${PROJECT_NAME}
+)
+
 rcl_add_custom_gtest(test_type_hash
   SRCS rcl/test_type_hash.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}

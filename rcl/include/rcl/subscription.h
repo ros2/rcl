@@ -268,6 +268,30 @@ rcl_subscription_options_set_content_filter_options(
   const char * expression_parameter_argv[],
   rcl_subscription_options_t * options);
 
+/// Set the acceptable buffer backends for the given subscription options.
+/**
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | No
+ *
+ * \param[in] acceptable_buffer_backends Comma-separated list of acceptable buffer backend names.
+ *   NULL or empty string means CPU-only (default). "any" means all installed backends.
+ * \param[out] options The subscription options to be set.
+ * \return `RCL_RET_OK` if set options successfully, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if options is NULL, or
+ * \return `RCL_RET_BAD_ALLOC` if allocating memory fails.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_subscription_options_set_acceptable_buffer_backends(
+  const char * acceptable_buffer_backends,
+  rcl_subscription_options_t * options);
+
 /// Return the zero initialized subscription content filter options.
 RCL_PUBLIC
 RCL_WARN_UNUSED

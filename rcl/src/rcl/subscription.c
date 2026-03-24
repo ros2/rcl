@@ -273,6 +273,43 @@ rcl_subscription_options_fini(rcl_subscription_options_t * option)
       option->rmw_subscription_options.content_filter_options, allocator->state);
     option->rmw_subscription_options.content_filter_options = NULL;
   }
+
+  if (option->rmw_subscription_options.acceptable_buffer_backends) {
+    allocator->deallocate(
+      (char *)option->rmw_subscription_options.acceptable_buffer_backends, allocator->state);
+    option->rmw_subscription_options.acceptable_buffer_backends = NULL;
+  }
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_subscription_options_set_acceptable_buffer_backends(
+  const char * acceptable_buffer_backends,
+  rcl_subscription_options_t * options)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(options, RCL_RET_INVALID_ARGUMENT);
+  const rcl_allocator_t * allocator = &options->allocator;
+  RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
+
+  // Free any previously allocated value
+  if (options->rmw_subscription_options.acceptable_buffer_backends) {
+    allocator->deallocate(
+      (char *)options->rmw_subscription_options.acceptable_buffer_backends, allocator->state);
+    options->rmw_subscription_options.acceptable_buffer_backends = NULL;
+  }
+
+  if (NULL == acceptable_buffer_backends || '\0' == acceptable_buffer_backends[0]) {
+    return RCL_RET_OK;
+  }
+
+  char * dup = rcutils_strdup(acceptable_buffer_backends, *allocator);
+  if (NULL == dup) {
+    RCL_SET_ERROR_MSG("failed to allocate acceptable_buffer_backends string");
+    return RCL_RET_BAD_ALLOC;
+  }
+  options->rmw_subscription_options.acceptable_buffer_backends = dup;
+
   return RCL_RET_OK;
 }
 
