@@ -50,7 +50,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  ${lifecycle_msgs_TARGETS}
+  lifecycle_msgs::lifecycle_msgs
   rcl::rcl
 )
 
@@ -87,7 +87,7 @@ if(BUILD_TESTING)
   if(TARGET test_default_state_machine)
     target_link_libraries(test_default_state_machine
       ${PROJECT_NAME}
-      ${lifecycle_msgs_TARGETS}
+      lifecycle_msgs::lifecycle_msgs
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
       rcutils::rcutils
@@ -100,7 +100,9 @@ if(BUILD_TESTING)
     test/test_multiple_instances.cpp
   )
   if(TARGET test_multiple_instances)
-    target_link_libraries(test_multiple_instances ${PROJECT_NAME} ${lifecycle_msgs_TARGETS} osrf_testing_tools_cpp::memory_tools rcl::rcl)
+    target_link_libraries(test_multiple_instances ${PROJECT_NAME} lifecycle_msgs::lifecycle_msgs
+      osrf_testing_tools_cpp::memory_tools rcl::rcl
+    )
   endif()
   ament_add_ros_isolated_gtest(test_rcl_lifecycle
     test/test_rcl_lifecycle.cpp
@@ -108,7 +110,7 @@ if(BUILD_TESTING)
   if(TARGET test_rcl_lifecycle)
     target_link_libraries(test_rcl_lifecycle
       ${PROJECT_NAME}
-      ${lifecycle_msgs_TARGETS}
+      lifecycle_msgs::lifecycle_msgs
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
       rcutils::rcutils

@@ -142,7 +142,7 @@ target_link_libraries(test_wait ${PROJECT_NAME} mimick osrf_testing_tools_cpp::m
 ament_add_gtest_executable(test_logging_rosout
   rcl/test_logging_rosout.cpp
 )
-target_link_libraries(test_logging_rosout ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools ${rcl_interfaces_TARGETS})
+target_link_libraries(test_logging_rosout ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools rcl_interfaces::rcl_interfaces)
 
 ament_add_gtest_executable(test_namespace
   rcl/test_namespace.cpp
@@ -182,7 +182,8 @@ ament_add_gtest_executable(test_get_type_description_service
 )
 target_include_directories(test_get_type_description_service PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/rcl/)
 target_link_libraries(test_get_type_description_service
-  ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools ${type_description_interfaces_TARGETS})
+  ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools
+  type_description_interfaces::type_description_interfaces)
 
 function(test_target)
   message(STATUS "Creating tests for '${rmw_implementation}'")
@@ -491,7 +492,7 @@ ament_add_test_label(test_domain_id mimick)
 rcl_add_custom_gtest(test_logging
   SRCS rcl/test_logging.cpp
   APPEND_LIBRARY_DIRS ${extra_lib_dirs}
-  LIBRARIES ${PROJECT_NAME} mimick ${rcl_interfaces_TARGETS}
+  LIBRARIES ${PROJECT_NAME} mimick rcl_interfaces::rcl_interfaces
     rcl_logging_interface::rcl_logging_interface ${RCL_LOGGING_IMPL}::${RCL_LOGGING_IMPL} osrf_testing_tools_cpp::memory_tools
 )
 ament_add_test_label(test_logging mimick)

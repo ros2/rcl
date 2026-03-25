@@ -50,7 +50,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  ${action_msgs_TARGETS}
+  action_msgs::action_msgs
   rcl::rcl
   rmw::rmw
   rosidl_runtime_c::rosidl_runtime_c
@@ -97,7 +97,7 @@ if(BUILD_TESTING)
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
       rcutils::rcutils
-      ${test_msgs_TARGETS}
+      test_msgs::test_msgs
     )
     target_compile_definitions(test_action_client PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
@@ -106,31 +106,31 @@ if(BUILD_TESTING)
   target_include_directories(test_action_communication PUBLIC src)
   target_link_libraries(test_action_communication
     ${PROJECT_NAME}
-    ${action_msgs_TARGETS}
+    action_msgs::action_msgs
     osrf_testing_tools_cpp::memory_tools
     rcl::rcl
     rosidl_runtime_c::rosidl_runtime_c
-    ${test_msgs_TARGETS})
+    test_msgs::test_msgs)
 
   ament_add_gtest_executable(test_action_interaction test/rcl_action/test_action_interaction.cpp)
   target_link_libraries(test_action_interaction
     ${PROJECT_NAME}
-    ${action_msgs_TARGETS}
+    action_msgs::action_msgs
     osrf_testing_tools_cpp::memory_tools
     rcl::rcl
     rosidl_runtime_c::rosidl_runtime_c
-    ${test_msgs_TARGETS})
+    test_msgs::test_msgs)
 
   ament_add_gtest_executable(test_graph test/rcl_action/test_graph.cpp)
   target_compile_definitions(test_graph PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   target_link_libraries(test_graph
     ${PROJECT_NAME}
-    ${action_msgs_TARGETS}
+    action_msgs::action_msgs
     osrf_testing_tools_cpp::memory_tools
     rcl::rcl
     rcutils::rcutils
     rosidl_runtime_c::rosidl_runtime_c
-    ${test_msgs_TARGETS})
+    test_msgs::test_msgs)
 
   function(test_targets)
     message(STATUS "Creating tests for '${rmw_implementation}'")
@@ -173,10 +173,10 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test_action_server
       ${PROJECT_NAME}
-      ${action_msgs_TARGETS}
+      action_msgs::action_msgs
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
-      ${test_msgs_TARGETS}
+      test_msgs::test_msgs
     )
     target_compile_definitions(test_action_server PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
@@ -223,7 +223,7 @@ if(BUILD_TESTING)
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
-      ${test_msgs_TARGETS}
+      test_msgs::test_msgs
     )
     target_include_directories(test_wait PRIVATE
       src
@@ -237,7 +237,7 @@ if(BUILD_TESTING)
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
-      ${test_msgs_TARGETS}
+      test_msgs::test_msgs
     )
     target_include_directories(test_action_name_remapping PRIVATE
       src
