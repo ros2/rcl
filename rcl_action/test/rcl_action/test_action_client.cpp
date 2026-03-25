@@ -576,6 +576,21 @@ TEST_F(TestActionClientFixture, test_configure_feedback_subscription_filter_goal
 TEST_F(
   TestActionClientFixture, test_configure_feedback_subscription_filter_goal_id_reach_limitation)
 {
+  // Skip the test if content filter isn't supported.
+  if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription)) {
+    GTEST_SKIP() << "RMW implementation does not support content filter.";
+  }
+
+  // Skip the test if the RMW implementation is ConnextDDS.
+  // ConnextDDS has restrictions on the length of content filter expressions. Please refer to
+  // the definition of RMW_CONNEXT_CONTENTFILTER_PROPERTY_MAX_LENGTH. The current default value
+  // is 1024, which cannot support setting 6 goal IDs. So the test will be skipped for ConnextDDS
+  // to avoid failure. If the default value is increased in the future, this test can be enabled
+  // for ConnextDDS as well.
+  if (strcmp(rmw_get_implementation_identifier(), "rmw_connextdds") == 0) {
+    GTEST_SKIP() << "RMW implementation is ConnextDDS.";
+  }
+
   // A maximum of 6 goal IDs are supported. Configuring a 7th goal ID will exceed the content
   // filter's maximum limit of 100 parameters. An error should be returned.
   constexpr uint8_t MAX_SUPPORTED_GOAL_IDS = 6;

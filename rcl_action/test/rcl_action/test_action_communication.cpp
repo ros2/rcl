@@ -1837,6 +1837,16 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_add_two_goal_
     GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
   }
 
+  // Skip the test if the RMW implementation is ConnextDDS.
+  // ConnextDDS has restrictions on the length of content filter expressions. Please refer to
+  // the definition of RMW_CONNEXT_CONTENTFILTER_PROPERTY_MAX_LENGTH. The current default value
+  // is 1024, which cannot support setting 2 goal IDs. So the test will be skipped for ConnextDDS
+  // to avoid failure. If the default value is increased in the future, this test can be enabled
+  // for ConnextDDS as well.
+  if (strcmp(rmw_get_implementation_identifier(), "rmw_connextdds") == 0) {
+    GTEST_SKIP() << "RMW implementation is ConnextDDS.";
+  }
+
   test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback1;
   test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback2;
   test_msgs__action__Fibonacci_FeedbackMessage incoming_feedback1;
@@ -2050,6 +2060,16 @@ TEST_F(TestActionCommunication, test_valid_feedback_content_filter_remove_one_go
   const char * rmw_implementation = rmw_get_implementation_identifier();
   if (!rcl_subscription_is_cft_supported(&this->action_client.impl->feedback_subscription)) {
     GTEST_SKIP() << rmw_implementation << " does not support content filtering.";
+  }
+
+  // Skip the test if the RMW implementation is ConnextDDS.
+  // ConnextDDS has restrictions on the length of content filter expressions. Please refer to
+  // the definition of RMW_CONNEXT_CONTENTFILTER_PROPERTY_MAX_LENGTH. The current default value
+  // is 1024, which cannot support setting 2 goal IDs. So the test will be skipped for ConnextDDS
+  // to avoid failure. If the default value is increased in the future, this test can be enabled
+  // for ConnextDDS as well.
+  if (strcmp(rmw_get_implementation_identifier(), "rmw_connextdds") == 0) {
+    GTEST_SKIP() << "RMW implementation is ConnextDDS.";
   }
 
   test_msgs__action__Fibonacci_FeedbackMessage outgoing_feedback1;

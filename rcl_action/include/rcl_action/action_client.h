@@ -786,6 +786,15 @@ rcl_action_client_configure_action_introspection(
  *
  * If rmw middleware doesn't support content filtering feature, return RCL_RET_UNSUPPORTED.
  *
+ * According to the DDS spec, the content filter can have up to 100 parameters. Each goal ID uses
+ * 16 parameters, so if more than 6 goal IDs are configured at the same time, an RCL_RET_ERROR
+ * will be returned.
+ *
+ * Different RMW implementations may also have restrictions on the length of content filter
+ * expressions. If this default limit is exceeded, an RCL_RET_ERROR will be returned. For example,
+ * in ConnextDDS, the `contentfilter_property_max_length` setting affects the available length of
+ * content filter expressions.
+ *
  * <hr>
  * Attribute          | Adherence
  * ------------------ | -------------
