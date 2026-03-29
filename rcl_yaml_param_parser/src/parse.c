@@ -570,7 +570,7 @@ _validate_name(const char * name, rcutils_allocator_t allocator)
   }
 
   rcutils_ret_t ret = RCUTILS_RET_OK;
-  char * separator_pos = strrchr(name, '/');
+  const char * separator_pos = strrchr(name, '/');
   char * node_name = NULL;
   char * absolute_namespace = NULL;
   if (NULL == separator_pos) {
