@@ -136,25 +136,17 @@ if(BUILD_TESTING)
     message(STATUS "Creating tests for '${rmw_implementation}'")
     set(rmw_implementation_env_var RMW_IMPLEMENTATION=${rmw_implementation})
 
-    # If the rmw_implementation is rmw_zenoh_cpp, run the tests with multicast discovery enabled.
-    # Note: This is a temporary change that will be reverted before we branch into Kilted.
-    if(rmw_implementation STREQUAL "rmw_zenoh_cpp")
-      list(APPEND rmw_implementation_env_var
-        ZENOH_CONFIG_OVERRIDE=scouting/multicast/enabled=true
-      )
-    endif()
-
-    ament_add_gtest_test(test_action_communication
+    ament_add_ros_isolated_gtest_test(test_action_communication
       TEST_NAME test_action_communication${target_suffix}
       ENV ${rmw_implementation_env_var}
     )
 
-    ament_add_gtest_test(test_action_interaction
+    ament_add_ros_isolated_gtest_test(test_action_interaction
       TEST_NAME test_action_interaction${target_suffix}
       ENV ${rmw_implementation_env_var}
     )
 
-    ament_add_gtest_test(test_graph
+    ament_add_ros_isolated_gtest_test(test_graph
       TEST_NAME test_graph${target_suffix}
       ENV ${rmw_implementation_env_var}
       TIMEOUT 180
