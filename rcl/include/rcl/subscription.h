@@ -887,14 +887,15 @@ rcl_subscription_can_loan_messages(const rcl_subscription_t * subscription);
  * function.
  *
  * Since this callback is called from the middleware, you should
- * aim to make it fast and not blocking. This callback is intended to implement an event driven executor and
+ * aim to make it fast and not blocking. This callback
+ * is intended to implement an event driven executor and
  * not process data directly.
  *
  * Doing work in this callback can cause delays,
  * deadlocks, or latency due to cross thread waiting
  * as this process runs on middleware managed threads
  * and is meant only to notify the executor that new data
- * is available in the middleware queue
+ * is available in the middleware queue.
  *
  * <hr>
  * Attribute          | Adherence
