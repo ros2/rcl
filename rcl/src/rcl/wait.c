@@ -564,23 +564,29 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       }
 
       rcl_clock_t * clock;
-      if (rcl_timer_clock(wait_set->timers[t_idx], &clock) != RCL_RET_OK) {
+      rcl_ret_t ret = rcl_timer_clock(wait_set->timers[t_idx], &clock);
+      if (ret != RCL_RET_OK) {
         // should never happen
+        RCL_EXPECT_ERROR_IS_SET(ret);
         return RCL_RET_ERROR;
       }
 
       if (clock->type == RCL_ROS_TIME) {
         bool timer_override_active = false;
-        if (rcl_is_enabled_ros_time_override(clock, &timer_override_active) != RCL_RET_OK) {
+        ret = rcl_is_enabled_ros_time_override(clock, &timer_override_active);
+        if (ret != RCL_RET_OK) {
           // should never happen
+          RCL_EXPECT_ERROR_IS_SET(ret);
           return RCL_RET_ERROR;
         }
 
         if (timer_override_active) {
           // we need to check, it the timer is already ready
           bool override_timer_is_ready = false;
-          if (rcl_timer_is_ready(wait_set->timers[t_idx], &override_timer_is_ready) != RCL_RET_OK) {
+          ret = rcl_timer_is_ready(wait_set->timers[t_idx], &override_timer_is_ready);
+          if (ret != RCL_RET_OK) {
             // should never happen
+            RCL_EXPECT_ERROR_IS_SET(ret);
             return RCL_RET_ERROR;
           }
 
@@ -599,12 +605,13 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
 
       // get the time of the next call to the timer
       int64_t next_call_time = INT64_MAX;
-      rcl_ret_t ret = rcl_timer_get_next_call_time(wait_set->timers[t_idx], &next_call_time);
+      ret = rcl_timer_get_next_call_time(wait_set->timers[t_idx], &next_call_time);
       if (ret == RCL_RET_TIMER_CANCELED) {
         wait_set->timers[t_idx] = NULL;
         continue;
       }
       if (ret != RCL_RET_OK) {
+        RCL_EXPECT_ERROR_IS_SET(ret);
         return ret;  // The rcl error state should already be set.
       }
       if (next_call_time < min_next_call_time[clock->type]) {
@@ -631,6 +638,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
       int64_t cur_time;
       rmw_ret_t ret = rcl_clock_get_now(clocks[i], &cur_time);
       if (ret != RCL_RET_OK) {
+        RCL_EXPECT_ERROR_IS_SET(ret);
         return ret;  // The rcl error state should already be set.
       }
 
@@ -679,6 +687,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
     bool current_timer_is_ready = false;
     rcl_ret_t ret = rcl_timer_is_ready(wait_set->timers[i], &current_timer_is_ready);
     if (ret != RCL_RET_OK) {
+      RCL_EXPECT_ERROR_IS_SET(ret);
       return ret;  // The rcl error state should already be set.
     }
     if (!current_timer_is_ready) {

@@ -156,6 +156,7 @@ rcl_timer_init2(
   rcl_time_point_value_t now;
   rcl_ret_t now_ret = rcl_clock_get_now(clock, &now);
   if (now_ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(now_ret);
     return now_ret;  // rcl error state should already be set.
   }
   rcl_timer_impl_t impl;
@@ -283,6 +284,7 @@ rcl_timer_call_with_info(rcl_timer_t * timer, rcl_timer_call_info_t * call_info)
   rcl_time_point_value_t now;
   rcl_ret_t now_ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (now_ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(now_ret);
     return now_ret;  // rcl error state should already be set.
   }
   if (now < 0) {
@@ -337,6 +339,7 @@ rcl_timer_is_ready(const rcl_timer_t * timer, bool * is_ready)
     *is_ready = false;
     return RCL_RET_OK;
   } else if (ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(ret);
     return ret;  // rcl error state should already be set.
   }
   *is_ready = (time_until_next_call <= 0);
@@ -371,6 +374,7 @@ rcl_timer_get_time_until_next_call(const rcl_timer_t * timer, int64_t * time_unt
   rcl_time_point_value_t now;
   rcl_ret_t ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(ret);
     return ret;  // rcl error state should already be set.
   }
   *time_until_next_call =
@@ -389,6 +393,7 @@ rcl_timer_get_time_since_last_call(
   rcl_time_point_value_t now;
   rcl_ret_t ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(ret);
     return ret;  // rcl error state should already be set.
   }
   *time_since_last_call =
@@ -489,6 +494,7 @@ rcl_timer_reset(rcl_timer_t * timer)
   rcl_time_point_value_t now;
   rcl_ret_t now_ret = rcl_clock_get_now(timer->impl->clock, &now);
   if (now_ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(now_ret);
     return now_ret;  // rcl error state should already be set.
   }
   int64_t period = rcutils_atomic_load_int64_t(&timer->impl->period);

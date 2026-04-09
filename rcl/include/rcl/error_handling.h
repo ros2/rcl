@@ -40,6 +40,21 @@ typedef rcutils_error_string_t rcl_error_string_t;
 
 #define rcl_error_is_set rcutils_error_is_set
 
+// RCL_EXPECT_ERROR_IS_SET checks something has set the rcl error state.
+// Use when you want to propagate an error set by another function.
+// Typical usage:
+//   rcl_ret_t ret = rcl_some_function_that_can_fail()
+//   if (ret != RCL_RET_OK) {
+//    RCL_EXPECT_ERROR_IS_SET(ret);
+//    return ret;
+//   }
+#define RCL_EXPECT_ERROR_IS_SET(ret) \
+  do { \
+    if (!rcl_error_is_set()) { \
+      RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Expected error message, but none set: %d", ret); \
+    } \
+  } while (0)
+
 #define rcl_get_error_state rcutils_get_error_state
 
 #define rcl_get_error_string rcutils_get_error_string
