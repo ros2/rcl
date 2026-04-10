@@ -698,7 +698,7 @@ rcl_wait(rcl_wait_set_t * wait_set, int64_t timeout)
   }
   // Check for timeout, return RCL_RET_TIMEOUT only if it wasn't a timer.
   if (ret != RMW_RET_OK && ret != RMW_RET_TIMEOUT) {
-    RCL_SET_ERROR_MSG(rmw_get_error_string().str);
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING("Error from rmw_wait(): %d %s", ret, rmw_get_error_string().str);
     return RCL_RET_ERROR;
   }
   // Set corresponding rcl subscription handles NULL.
