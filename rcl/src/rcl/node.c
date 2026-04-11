@@ -246,13 +246,21 @@ rcl_node_init(
   node->impl->rmw_node_handle = rmw_create_node(
     &(node->context->impl->rmw_context),
     name, local_namespace_);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    node->impl->rmw_node_handle, rmw_get_error_string().str, ret = RCL_RET_ERROR; goto fail);
+  if (NULL == node->impl->rmw_node_handle) {
+    // Preserve the error set by rmw_create_node rather than overwriting it.
+    RCL_EXPECT_ERROR_IS_SET(RCL_RET_ERROR);
+    ret = RCL_RET_ERROR;
+    goto fail;
+  }
 
   // graph guard condition
   rmw_graph_guard_condition = rmw_node_get_graph_guard_condition(node->impl->rmw_node_handle);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    rmw_graph_guard_condition, rmw_get_error_string().str, ret = RCL_RET_ERROR; goto fail);
+  if (NULL == rmw_graph_guard_condition) {
+    // Preserve the error set by rmw_node_get_graph_guard_condition.
+    RCL_EXPECT_ERROR_IS_SET(RCL_RET_ERROR);
+    ret = RCL_RET_ERROR;
+    goto fail;
+  }
 
   node->impl->graph_guard_condition = (rcl_guard_condition_t *)allocator->allocate(
     sizeof(rcl_guard_condition_t), allocator->state);
