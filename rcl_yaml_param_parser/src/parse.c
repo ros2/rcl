@@ -806,7 +806,7 @@ BOOL CALLBACK init_c_locale(
 static locale_t c_locale = 0;
 static once_flag c_locale_once_flag = ONCE_FLAG_INIT;
 
-static void init_c_locale()
+static void init_c_locale(void)
 {
   c_locale = newlocale(LC_NUMERIC_MASK, "C", 0);
 }

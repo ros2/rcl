@@ -35,7 +35,7 @@ typedef struct rcl_event_callback_with_data_s
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_event_callback_with_data_t
-rcl_get_zero_initialized_event_callback_with_data();
+rcl_get_zero_initialized_event_callback_with_data(void);
 
 #ifdef __cplusplus
 }

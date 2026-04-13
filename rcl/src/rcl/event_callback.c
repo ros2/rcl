@@ -21,7 +21,7 @@ extern "C"
 
 
 rcl_event_callback_with_data_t
-rcl_get_zero_initialized_event_callback_with_data()
+rcl_get_zero_initialized_event_callback_with_data(void)
 {
   static rcl_event_callback_with_data_t event_callback;
   return event_callback;
