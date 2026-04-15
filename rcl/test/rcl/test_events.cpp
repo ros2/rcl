@@ -826,7 +826,7 @@ TEST_F(TestEventFixture, test_event_is_invalid) {
  */
 TEST_F(TestEventFixture, test_sub_message_lost_event)
 {
-  if (!rmw_event_type_is_supported(RMW_EVENT_MESSAGE_LOST)) {
+  if (!rcl_subscription_event_type_is_supported(RCL_SUBSCRIPTION_MESSAGE_LOST)) {
     GTEST_SKIP();
   }
 
@@ -1350,4 +1350,53 @@ TEST_F(TestEventFixture, test_sub_previous_matched_event)
   // This behavior isn't defined in DDS specification.
   // So check if event count >= 1.
   EXPECT_GE(*matched_data.event_count, 1);
+}
+
+/*
+ * Test rcl_publisher_event_type_is_supported
+ */
+TEST_F(TestEventFixture, test_publisher_event_type_is_supported)
+{
+  // Verify rcl results are consistent with the underlying rmw results
+  EXPECT_EQ(
+    rcl_publisher_event_type_is_supported(RCL_PUBLISHER_OFFERED_DEADLINE_MISSED),
+    rmw_event_type_is_supported(RMW_EVENT_OFFERED_DEADLINE_MISSED));
+  EXPECT_EQ(
+    rcl_publisher_event_type_is_supported(RCL_PUBLISHER_LIVELINESS_LOST),
+    rmw_event_type_is_supported(RMW_EVENT_LIVELINESS_LOST));
+  EXPECT_EQ(
+    rcl_publisher_event_type_is_supported(RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS),
+    rmw_event_type_is_supported(RMW_EVENT_OFFERED_QOS_INCOMPATIBLE));
+  EXPECT_EQ(
+    rcl_publisher_event_type_is_supported(RCL_PUBLISHER_INCOMPATIBLE_TYPE),
+    rmw_event_type_is_supported(RMW_EVENT_PUBLISHER_INCOMPATIBLE_TYPE));
+  EXPECT_EQ(
+    rcl_publisher_event_type_is_supported(RCL_PUBLISHER_MATCHED),
+    rmw_event_type_is_supported(RMW_EVENT_PUBLICATION_MATCHED));
+}
+
+/*
+ * Test rcl_subscription_event_type_is_supported
+ */
+TEST_F(TestEventFixture, test_subscription_event_type_is_supported)
+{
+  // Verify rcl results are consistent with the underlying rmw results
+  EXPECT_EQ(
+    rcl_subscription_event_type_is_supported(RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED),
+    rmw_event_type_is_supported(RMW_EVENT_REQUESTED_DEADLINE_MISSED));
+  EXPECT_EQ(
+    rcl_subscription_event_type_is_supported(RCL_SUBSCRIPTION_LIVELINESS_CHANGED),
+    rmw_event_type_is_supported(RMW_EVENT_LIVELINESS_CHANGED));
+  EXPECT_EQ(
+    rcl_subscription_event_type_is_supported(RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS),
+    rmw_event_type_is_supported(RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE));
+  EXPECT_EQ(
+    rcl_subscription_event_type_is_supported(RCL_SUBSCRIPTION_MESSAGE_LOST),
+    rmw_event_type_is_supported(RMW_EVENT_MESSAGE_LOST));
+  EXPECT_EQ(
+    rcl_subscription_event_type_is_supported(RCL_SUBSCRIPTION_INCOMPATIBLE_TYPE),
+    rmw_event_type_is_supported(RMW_EVENT_SUBSCRIPTION_INCOMPATIBLE_TYPE));
+  EXPECT_EQ(
+    rcl_subscription_event_type_is_supported(RCL_SUBSCRIPTION_MATCHED),
+    rmw_event_type_is_supported(RMW_EVENT_SUBSCRIPTION_MATCHED));
 }

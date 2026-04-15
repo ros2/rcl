@@ -233,6 +233,65 @@ rcl_event_is_valid(const rcl_event_t * event)
   return true;
 }
 
+bool
+rcl_publisher_event_type_is_supported(
+  const rcl_publisher_event_type_t event_type)
+{
+  rmw_event_type_t rmw_event_type = RMW_EVENT_INVALID;
+  switch (event_type) {
+    case RCL_PUBLISHER_OFFERED_DEADLINE_MISSED:
+      rmw_event_type = RMW_EVENT_OFFERED_DEADLINE_MISSED;
+      break;
+    case RCL_PUBLISHER_LIVELINESS_LOST:
+      rmw_event_type = RMW_EVENT_LIVELINESS_LOST;
+      break;
+    case RCL_PUBLISHER_OFFERED_INCOMPATIBLE_QOS:
+      rmw_event_type = RMW_EVENT_OFFERED_QOS_INCOMPATIBLE;
+      break;
+    case RCL_PUBLISHER_INCOMPATIBLE_TYPE:
+      rmw_event_type = RMW_EVENT_PUBLISHER_INCOMPATIBLE_TYPE;
+      break;
+    case RCL_PUBLISHER_MATCHED:
+      rmw_event_type = RMW_EVENT_PUBLICATION_MATCHED;
+      break;
+  }
+  if (rmw_event_type == RMW_EVENT_INVALID) {
+    return false;
+  }
+  return rmw_event_type_is_supported(rmw_event_type);
+}
+
+bool
+rcl_subscription_event_type_is_supported(
+  const rcl_subscription_event_type_t event_type)
+{
+  rmw_event_type_t rmw_event_type = RMW_EVENT_INVALID;
+  switch (event_type) {
+    case RCL_SUBSCRIPTION_REQUESTED_DEADLINE_MISSED:
+      rmw_event_type = RMW_EVENT_REQUESTED_DEADLINE_MISSED;
+      break;
+    case RCL_SUBSCRIPTION_LIVELINESS_CHANGED:
+      rmw_event_type = RMW_EVENT_LIVELINESS_CHANGED;
+      break;
+    case RCL_SUBSCRIPTION_REQUESTED_INCOMPATIBLE_QOS:
+      rmw_event_type = RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE;
+      break;
+    case RCL_SUBSCRIPTION_MESSAGE_LOST:
+      rmw_event_type = RMW_EVENT_MESSAGE_LOST;
+      break;
+    case RCL_SUBSCRIPTION_INCOMPATIBLE_TYPE:
+      rmw_event_type = RMW_EVENT_SUBSCRIPTION_INCOMPATIBLE_TYPE;
+      break;
+    case RCL_SUBSCRIPTION_MATCHED:
+      rmw_event_type = RMW_EVENT_SUBSCRIPTION_MATCHED;
+      break;
+  }
+  if (rmw_event_type == RMW_EVENT_INVALID) {
+    return false;
+  }
+  return rmw_event_type_is_supported(rmw_event_type);
+}
+
 rcl_ret_t
 rcl_event_set_callback(
   const rcl_event_t * event,
