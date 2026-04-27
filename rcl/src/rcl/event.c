@@ -19,11 +19,7 @@ extern "C"
 
 #include "rcl/event.h"
 
-#include <stdio.h>
-
 #include "rcl/error_handling.h"
-#include "rcl/expand_topic_name.h"
-#include "rcl/remap.h"
 #include "rcutils/allocator.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"

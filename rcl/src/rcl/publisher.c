@@ -19,9 +19,6 @@ extern "C"
 
 #include "rcl/publisher.h"
 
-#include <stdio.h>
-#include <string.h>
-
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"

@@ -19,7 +19,6 @@ extern "C"
 
 #include "com_interface.h"  // NOLINT
 
-#include <stdio.h>
 #include <string.h>
 #include <stddef.h>
 
@@ -29,8 +28,6 @@ extern "C"
 
 #include "rcutils/format_string.h"
 #include "rcutils/logging_macros.h"
-
-#include "rmw/validate_full_topic_name.h"
 
 #include "rosidl_runtime_c/message_type_support_struct.h"
 #include "rosidl_runtime_c/string_functions.h"
