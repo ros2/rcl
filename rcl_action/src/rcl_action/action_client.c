@@ -39,9 +39,7 @@ extern "C"
 #include "rmw/qos_profiles.h"
 #include "rmw/types.h"
 
-
-rcl_action_client_t
-rcl_action_get_zero_initialized_client(void)
+rcl_action_client_t rcl_action_get_zero_initialized_client(void)
 {
   static rcl_action_client_t null_action_client = {0};
   return null_action_client;
@@ -689,11 +687,132 @@ rcl_action_client_wait_set_get_entities_ready(
   return RCL_RET_OK;
 }
 
-rcl_ret_t
-rcl_action_client_set_goal_client_callback(
-  const rcl_action_client_t * action_client,
-  rcl_event_callback_t callback,
-  const void * user_data)
+rcl_ret_t rcl_action_wait_set_add_action_client_with_indices(
+  rcl_wait_set_t *wait_set, const rcl_action_client_t *action_client,
+  size_t *goal_client_index, size_t *cancel_client_index,
+  size_t *result_client_index, size_t *feedback_subscription_index,
+  size_t *status_subscription_index)
+{
+  rcl_ret_t ret;
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID; // error already set
+  }
+
+  // Wait on action goal service response messages.
+  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->goal_client,
+                                &action_client->impl->wait_set_goal_client_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Wait on action cancel service response messages.
+  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->cancel_client,
+                                &action_client->impl->wait_set_cancel_client_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Wait on action result service response messages.
+  ret = rcl_wait_set_add_client(wait_set, &action_client->impl->result_client,
+                                &action_client->impl->wait_set_result_client_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Wait on action feedback messages.
+  ret = rcl_wait_set_add_subscription(
+      wait_set, &action_client->impl->feedback_subscription,
+      &action_client->impl->wait_set_feedback_subscription_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Wait on action status messages.
+  ret = rcl_wait_set_add_subscription(
+      wait_set, &action_client->impl->status_subscription, &action_client->impl->wait_set_status_subscription_index);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+
+  // Return all indices to caller
+  if (NULL != goal_client_index) {
+    *goal_client_index = action_client->impl->wait_set_goal_client_index;
+  }
+  if (NULL != cancel_client_index) {
+    *cancel_client_index = action_client->impl->wait_set_cancel_client_index;
+  }
+  if (NULL != result_client_index) {
+    *result_client_index = action_client->impl->wait_set_result_client_index;
+  }
+  if (NULL != feedback_subscription_index) {
+    *feedback_subscription_index = action_client->impl->wait_set_feedback_subscription_index;
+  }
+  if (NULL != status_subscription_index) {
+    *status_subscription_index = action_client->impl->wait_set_status_subscription_index;
+  }
+  return RCL_RET_OK;
+}
+
+rcl_ret_t rcl_action_client_wait_set_get_entities_ready_with_indices(
+  const rcl_wait_set_t *wait_set, const rcl_action_client_t *action_client,
+  size_t feedback_subscription_index, size_t status_subscription_index,
+  size_t goal_client_index, size_t cancel_client_index,
+  size_t result_client_index, bool *is_feedback_ready, bool *is_status_ready,
+  bool *is_goal_response_ready, bool *is_cancel_response_ready,
+  bool *is_result_response_ready)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(wait_set, RCL_RET_WAIT_SET_INVALID);
+  if (!rcl_action_client_is_valid(action_client)) {
+    return RCL_RET_ACTION_CLIENT_INVALID; // error already set
+  }
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_feedback_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_status_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_goal_response_ready, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_cancel_response_ready,
+                              RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_ARGUMENT_FOR_NULL(is_result_response_ready,
+                              RCL_RET_INVALID_ARGUMENT);
+
+  // Bounds checking using provided indices
+  if (feedback_subscription_index >= wait_set->size_of_subscriptions) {
+    RCL_SET_ERROR_MSG(
+        "wait set index for feedback subscription is out of bounds");
+    return RCL_RET_ERROR;
+  }
+  if (status_subscription_index >= wait_set->size_of_subscriptions) {
+    RCL_SET_ERROR_MSG(
+        "wait set index for status subscription is out of bounds");
+    return RCL_RET_ERROR;
+  }
+  if (goal_client_index >= wait_set->size_of_clients) {
+    RCL_SET_ERROR_MSG("wait set index for goal client is out of bounds");
+    return RCL_RET_ERROR;
+  }
+  if (cancel_client_index >= wait_set->size_of_clients) {
+    RCL_SET_ERROR_MSG("wait set index for cancel client is out of bounds");
+    return RCL_RET_ERROR;
+  }
+  if (result_client_index >= wait_set->size_of_clients) {
+    RCL_SET_ERROR_MSG("wait set index for result client is out of bounds");
+    return RCL_RET_ERROR;
+  }
+
+  const rcl_action_client_impl_t *impl = action_client->impl;
+  const rcl_subscription_t *feedback_subscription =
+    wait_set->subscriptions[feedback_subscription_index];
+  const rcl_subscription_t *status_subscription =
+    wait_set->subscriptions[status_subscription_index];
+  const rcl_client_t *goal_client = wait_set->clients[goal_client_index];
+  const rcl_client_t *cancel_client = wait_set->clients[cancel_client_index];
+  const rcl_client_t *result_client = wait_set->clients[result_client_index];
+  *is_feedback_ready = (&impl->feedback_subscription == feedback_subscription);
+  *is_status_ready = (&impl->status_subscription == status_subscription);
+  *is_goal_response_ready = (&impl->goal_client == goal_client);
+  *is_cancel_response_ready = (&impl->cancel_client == cancel_client);
+  *is_result_response_ready = (&impl->result_client == result_client);
+  return RCL_RET_OK;
+}
+
+rcl_ret_t rcl_action_client_set_goal_client_callback(
+  const rcl_action_client_t *action_client, rcl_event_callback_t callback,
+  const void *user_data)
 {
   if (!rcl_action_client_is_valid(action_client)) {
     return RCL_RET_ACTION_CLIENT_INVALID;

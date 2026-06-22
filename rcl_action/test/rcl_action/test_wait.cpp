@@ -818,3 +818,290 @@ TEST_F(TestActionServerWait, test_server_wait_set_get_entities_ready) {
   EXPECT_TRUE(is_result_request_ready);
   EXPECT_TRUE(is_goal_expired);
 }
+
+// Tests for new thread-safe functions added to fix issue #1455
+
+TEST_F(TestActionClientWait, test_wait_set_add_action_client_with_indices) {
+  // Test null wait_set
+  size_t goal_client_index = 42;
+  size_t cancel_client_index = 42;
+  size_t result_client_index = 42;
+  size_t feedback_subscription_index = 42;
+  size_t status_subscription_index = 42;
+
+  rcl_ret_t ret = rcl_action_wait_set_add_action_client_with_indices(
+      nullptr, &action_client, &goal_client_index, &cancel_client_index,
+      &result_client_index, &feedback_subscription_index,
+      &status_subscription_index);
+  EXPECT_EQ(RCL_RET_WAIT_SET_INVALID, ret);
+  EXPECT_EQ(42u, goal_client_index);
+  EXPECT_EQ(42u, cancel_client_index);
+  EXPECT_EQ(42u, result_client_index);
+  EXPECT_EQ(42u, feedback_subscription_index);
+  EXPECT_EQ(42u, status_subscription_index);
+  rcl_reset_error();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set))
+        << rcl_get_error_string().str;
+  });
+
+  // Test null action_client
+  ret = rcl_action_wait_set_add_action_client_with_indices(
+      &wait_set, nullptr, &goal_client_index, &cancel_client_index,
+      &result_client_index, &feedback_subscription_index,
+      &status_subscription_index);
+  EXPECT_EQ(RCL_RET_ACTION_CLIENT_INVALID, ret);
+  EXPECT_EQ(42u, goal_client_index);
+  rcl_reset_error();
+
+  // Test with wait_set that's too small (no capacity)
+  ret = rcl_wait_set_init(&wait_set, 0, 0, 0, 0, 0, 0, &this->context,
+                          rcl_get_default_allocator());
+  EXPECT_EQ(RCL_RET_OK, ret);
+
+  ret = rcl_action_wait_set_add_action_client_with_indices(
+      &wait_set, &action_client, &goal_client_index, &cancel_client_index,
+      &result_client_index, &feedback_subscription_index,
+      &status_subscription_index);
+  EXPECT_EQ(RCL_RET_WAIT_SET_FULL, ret);
+  EXPECT_TRUE(rcl_error_is_set());
+  rcl_reset_error();
+
+  // Typical case - wait_set with enough capacity (2 subscriptions, 3 clients)
+  EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set))
+      << rcl_get_error_string().str;
+  ret = rcl_wait_set_init(&wait_set, 2, 0, 0, 3, 0, 0, &this->context,
+                          rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_client_with_indices(
+      &wait_set, &action_client, &goal_client_index, &cancel_client_index,
+      &result_client_index, &feedback_subscription_index,
+      &status_subscription_index);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Check that all indices were set (they should be 0, 1, 2 for clients, 0, 1
+  // for subscriptions)
+  EXPECT_EQ(0u, goal_client_index);
+  EXPECT_EQ(1u, cancel_client_index);
+  EXPECT_EQ(2u, result_client_index);
+  EXPECT_EQ(0u, feedback_subscription_index);
+  EXPECT_EQ(1u, status_subscription_index);
+
+  // Test with null index pointers (should still work)
+  EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set))
+      << rcl_get_error_string().str;
+  ret = rcl_wait_set_init(&wait_set, 2, 0, 0, 3, 0, 0, &this->context,
+                          rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_action_wait_set_add_action_client_with_indices(
+      &wait_set, &action_client, nullptr, nullptr, nullptr, nullptr, nullptr);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+}
+
+TEST_F(TestActionClientWait,
+       test_client_wait_set_get_entities_ready_with_indices) {
+  const char *action_name = "test_action_client_name";
+  const rosidl_action_type_support_t *action_typesupport =
+    ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+  const rcl_action_client_options_t action_client_options =
+    rcl_action_client_get_default_options();
+
+  rcl_action_client_t action_client = rcl_action_get_zero_initialized_client();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    rcl_ret_t fini_ret = rcl_action_client_fini(&action_client, &this->node);
+    EXPECT_EQ(RCL_RET_OK, fini_ret) << rcl_get_error_string().str;
+  });
+
+  rcl_ret_t ret =
+    rcl_action_client_init(&action_client, &this->node, action_typesupport,
+                             action_name, &action_client_options);
+  EXPECT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  rcl_reset_error();
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set))
+        << rcl_get_error_string().str;
+  });
+  ret = rcl_wait_set_init(&wait_set, 2, 1, 1, 3, 1, 1, &this->context,
+                          rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  bool is_feedback_ready = false;
+  bool is_status_ready = false;
+  bool is_goal_response_ready = false;
+  bool is_cancel_response_ready = false;
+  bool is_result_response_ready = false;
+
+  // Test null wait_set
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      nullptr, &action_client, 0, 1, 0, 1, 2, &is_feedback_ready,
+      &is_status_ready, &is_goal_response_ready, &is_cancel_response_ready,
+      &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_WAIT_SET_INVALID);
+  rcl_reset_error();
+
+  // Test null action_client
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, nullptr, 0, 1, 0, 1, 2, &is_feedback_ready, &is_status_ready,
+      &is_goal_response_ready, &is_cancel_response_ready,
+      &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_ACTION_CLIENT_INVALID);
+  rcl_reset_error();
+
+  // Test null output pointers
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 1, 0, 1, 2, nullptr, &is_status_ready,
+      &is_goal_response_ready, &is_cancel_response_ready,
+      &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 1, 0, 1, 2, &is_feedback_ready, nullptr,
+      &is_goal_response_ready, &is_cancel_response_ready,
+      &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 1, 0, 1, 2, &is_feedback_ready,
+      &is_status_ready, nullptr, &is_cancel_response_ready,
+      &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 1, 0, 1, 2, &is_feedback_ready,
+      &is_status_ready, &is_goal_response_ready, nullptr,
+      &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 1, 0, 1, 2, &is_feedback_ready,
+      &is_status_ready, &is_goal_response_ready, &is_cancel_response_ready,
+      nullptr);
+  EXPECT_EQ(ret, RCL_RET_INVALID_ARGUMENT);
+  rcl_reset_error();
+
+  // Test with out-of-bounds indices
+  wait_set.size_of_subscriptions = 1;
+  wait_set.size_of_clients = 1;
+
+  // feedback_subscription_index out of bounds
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 10, 0, 0, 0,
+      0, // feedback index 10 is out of bounds
+      &is_feedback_ready, &is_status_ready, &is_goal_response_ready,
+      &is_cancel_response_ready, &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcl_reset_error();
+
+  // status_subscription_index out of bounds
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 10, 0, 0,
+      0, // status index 10 is out of bounds
+      &is_feedback_ready, &is_status_ready, &is_goal_response_ready,
+      &is_cancel_response_ready, &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcl_reset_error();
+
+  // goal_client_index out of bounds
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 0, 10, 0,
+      0, // goal client index 10 is out of bounds
+      &is_feedback_ready, &is_status_ready, &is_goal_response_ready,
+      &is_cancel_response_ready, &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcl_reset_error();
+
+  // cancel_client_index out of bounds
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 0, 0, 10,
+      0, // cancel client index 10 is out of bounds
+      &is_feedback_ready, &is_status_ready, &is_goal_response_ready,
+      &is_cancel_response_ready, &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcl_reset_error();
+
+  // result_client_index out of bounds
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 0, 0, 0,
+      10, // result client index 10 is out of bounds
+      &is_feedback_ready, &is_status_ready, &is_goal_response_ready,
+      &is_cancel_response_ready, &is_result_response_ready);
+  EXPECT_EQ(ret, RCL_RET_ERROR);
+  rcl_reset_error();
+
+  // Successful case with valid indices
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, 0, 0, 0, 0,
+      0, // All indices are 0, which is valid for size 1
+      &is_feedback_ready, &is_status_ready, &is_goal_response_ready,
+      &is_cancel_response_ready, &is_result_response_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // All entities should be not ready since the wait_set wasn't actually waited
+  // on
+  EXPECT_FALSE(is_feedback_ready);
+  EXPECT_FALSE(is_status_ready);
+  EXPECT_FALSE(is_goal_response_ready);
+  EXPECT_FALSE(is_cancel_response_ready);
+  EXPECT_FALSE(is_result_response_ready);
+}
+
+TEST_F(TestActionClientWait,
+       test_add_and_get_entities_ready_with_indices_consistency) {
+  // This test verifies that indices returned by add_action_client_with_indices
+  // can be correctly used with get_entities_ready_with_indices
+
+  rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT({
+    EXPECT_EQ(RCL_RET_OK, rcl_wait_set_fini(&wait_set))
+        << rcl_get_error_string().str;
+  });
+
+  // Initialize wait_set with enough capacity
+  rcl_ret_t ret = rcl_wait_set_init(&wait_set, 2, 0, 0, 3, 0, 0, &this->context,
+                                    rcl_get_default_allocator());
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Add action client and get indices
+  size_t goal_client_index = 0;
+  size_t cancel_client_index = 0;
+  size_t result_client_index = 0;
+  size_t feedback_subscription_index = 0;
+  size_t status_subscription_index = 0;
+
+  ret = rcl_action_wait_set_add_action_client_with_indices(
+      &wait_set, &action_client, &goal_client_index, &cancel_client_index,
+      &result_client_index, &feedback_subscription_index,
+      &status_subscription_index);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Use those indices with get_entities_ready_with_indices
+  bool is_feedback_ready = false;
+  bool is_status_ready = false;
+  bool is_goal_response_ready = false;
+  bool is_cancel_response_ready = false;
+  bool is_result_response_ready = false;
+
+  ret = rcl_action_client_wait_set_get_entities_ready_with_indices(
+      &wait_set, &action_client, feedback_subscription_index,
+      status_subscription_index, goal_client_index, cancel_client_index,
+      result_client_index, &is_feedback_ready, &is_status_ready,
+      &is_goal_response_ready, &is_cancel_response_ready,
+      &is_result_response_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // All should be not ready (no data has been sent)
+  EXPECT_FALSE(is_feedback_ready);
+  EXPECT_FALSE(is_status_ready);
+  EXPECT_FALSE(is_goal_response_ready);
+  EXPECT_FALSE(is_cancel_response_ready);
+  EXPECT_FALSE(is_result_response_ready);
+}
