@@ -96,8 +96,12 @@ if(BUILD_TESTING)
     test/test_multiple_instances.cpp
   )
   if(TARGET test_multiple_instances)
-    target_link_libraries(test_multiple_instances ament_cmake_ros_core::ament_ros_cxx_standard ${PROJECT_NAME} lifecycle_msgs::lifecycle_msgs
-      osrf_testing_tools_cpp::memory_tools rcl::rcl
+    target_link_libraries(test_multiple_instances
+      ament_cmake_ros_core::ament_ros_cxx_standard
+      ${PROJECT_NAME}
+      lifecycle_msgs::lifecycle_msgs
+      osrf_testing_tools_cpp::memory_tools
+      rcl::rcl
     )
   endif()
   ament_add_ros_isolated_gtest(test_rcl_lifecycle
