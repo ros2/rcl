@@ -1,4 +1,5 @@
 find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake_ros_core REQUIRED)
 
 find_package(launch_testing_ament_cmake REQUIRED)
 find_package(mimick_vendor REQUIRED)
@@ -184,6 +185,19 @@ target_include_directories(test_get_type_description_service PRIVATE ${CMAKE_CUR
 target_link_libraries(test_get_type_description_service
   ${PROJECT_NAME} mimick wait_for_entity_helpers osrf_testing_tools_cpp::memory_tools
   type_description_interfaces::type_description_interfaces)
+
+# Build the C++ gtest executables above with the ROS default C++ standard
+foreach(_rcl_test_target
+    test_client test_timer test_context test_get_node_names test_graph
+    test_info_by_topic test_info_by_service test_count_matched test_get_actual_qos
+    test_init test_node test_remap test_remap_integration test_guard_condition
+    test_publisher test_publisher_wait_all_ack test_events test_wait
+    test_logging_rosout test_namespace test_rmw_impl_id_check_func
+    test_network_flow_endpoints test_service_event_publisher
+    test_type_description_conversions test_node_type_cache
+    test_get_type_description_service)
+  target_link_libraries(${_rcl_test_target} ament_cmake_ros_core::ament_ros_cxx_standard)
+endforeach()
 
 function(test_target)
   message(STATUS "Creating tests for '${rmw_implementation}'")
@@ -420,12 +434,13 @@ endfunction()
 # Build simple executable for using in the test_rmw_impl_id_check
 add_executable(test_rmw_impl_id_check_exe
   rcl/test_rmw_impl_id_check_exe.cpp)
-target_link_libraries(test_rmw_impl_id_check_exe ${PROJECT_NAME})
+target_link_libraries(test_rmw_impl_id_check_exe ament_cmake_ros_core::ament_ros_cxx_standard ${PROJECT_NAME})
 
 # This file is used by many tests, so build it just once
 add_library(wait_for_entity_helpers STATIC rcl/wait_for_entity_helpers.cpp)
 target_link_libraries(wait_for_entity_helpers PUBLIC ${PROJECT_NAME})
 target_link_libraries(wait_for_entity_helpers PRIVATE
+  ament_cmake_ros_core::ament_ros_cxx_standard
   osrf_testing_tools_cpp::memory_tools
   rcutils::rcutils)
 

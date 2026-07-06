@@ -92,6 +92,7 @@ macro(rcl_add_custom_gtest target)
       endif()
       target_link_libraries(${target} ${_ARG_LIBRARIES})
     endif()
+    target_link_libraries(${target} ament_cmake_ros_core::ament_ros_cxx_standard)
     target_compile_definitions(${target}
       PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
   endif()

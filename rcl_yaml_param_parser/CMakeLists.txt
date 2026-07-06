@@ -9,12 +9,6 @@ find_package(rmw REQUIRED)
 find_package(libyaml_vendor REQUIRED)
 find_package(yaml REQUIRED)
 
-# Default to C++20
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 20)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_compile_options(
     -Wall -Wextra -Wpedantic
@@ -63,6 +57,7 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_ros_core REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
@@ -79,6 +74,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_namespace)
     target_link_libraries(test_namespace
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcutils::rcutils
@@ -92,6 +88,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_node_params)
     target_link_libraries(test_node_params
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       rcutils::rcutils
     )
@@ -103,6 +100,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_parse_yaml)
     target_link_libraries(test_parse_yaml
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcutils::rcutils
@@ -118,6 +116,7 @@ if(BUILD_TESTING)
   ament_add_test_label(test_parse mimick)
   if(TARGET test_parse)
     target_link_libraries(test_parse
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       mimick
       osrf_testing_tools_cpp::memory_tools
@@ -133,6 +132,7 @@ if(BUILD_TESTING)
   ament_add_test_label(test_parser mimick)
   if(TARGET test_parser)
     target_link_libraries(test_parser
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       mimick
       osrf_testing_tools_cpp::memory_tools
@@ -150,6 +150,7 @@ if(BUILD_TESTING)
   ament_add_test_label(test_parser_multiple_nodes mimick)
   if(TARGET test_parser_multiple_nodes)
     target_link_libraries(test_parser_multiple_nodes
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       mimick
       osrf_testing_tools_cpp::memory_tools
@@ -165,6 +166,7 @@ if(BUILD_TESTING)
   ament_add_test_label(test_parser_multiple_params mimick)
   if(TARGET test_parser_multiple_params)
     target_link_libraries(test_parser_multiple_params
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       mimick
       osrf_testing_tools_cpp::memory_tools
@@ -179,6 +181,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_yaml_variant)
     target_link_libraries(test_yaml_variant
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcutils::rcutils
@@ -189,6 +192,7 @@ if(BUILD_TESTING)
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
   if(TARGET benchmark_parse_yaml)
     target_link_libraries(benchmark_parse_yaml
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       performance_test_fixture::performance_test_fixture
       rcutils::rcutils
@@ -198,6 +202,7 @@ if(BUILD_TESTING)
   add_performance_test(benchmark_variant test/benchmark/benchmark_variant.cpp)
   if(TARGET benchmark_variant)
     target_link_libraries(benchmark_variant
+      ament_cmake_ros_core::ament_ros_cxx_standard
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       performance_test_fixture::performance_test_fixture
