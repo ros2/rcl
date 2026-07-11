@@ -1980,6 +1980,8 @@ _rcl_parse_param_rule(
 
   ret = rcl_lexer_lookahead2_expect(&lex_lookahead, RCL_LEXEME_SEPARATOR, NULL, NULL);
   if (RCL_RET_WRONG_LEXEME == ret) {
+    rcl_reset_error();
+    RCL_SET_ERROR_MSG("Parameter override rule must have the format 'name:=value'");
     ret = RCL_RET_INVALID_PARAM_RULE;
     goto cleanup;
   }
