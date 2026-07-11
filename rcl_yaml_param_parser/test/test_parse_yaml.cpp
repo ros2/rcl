@@ -666,10 +666,15 @@ TEST(test_file_parser, special_float_point) {
   rcl_variant_t * param_value = rcl_yaml_node_struct_get("test_node", "isstring", params_hdl);
   ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
   ASSERT_TRUE(NULL != param_value->string_array_value);
+  ASSERT_EQ(11U, param_value->string_array_value->size);
   EXPECT_STREQ(".nananan", param_value->string_array_value->data[1]);
   EXPECT_STREQ(".nAN", param_value->string_array_value->data[2]);
   EXPECT_STREQ(".infinf", param_value->string_array_value->data[4]);
   EXPECT_STREQ(".INf", param_value->string_array_value->data[5]);
+  EXPECT_STREQ("nan", param_value->string_array_value->data[7]);
+  EXPECT_STREQ("inf", param_value->string_array_value->data[8]);
+  EXPECT_STREQ("+inf", param_value->string_array_value->data[9]);
+  EXPECT_STREQ("-inf", param_value->string_array_value->data[10]);
   param_value = rcl_yaml_node_struct_get(
     "test_node", "nan_inf", params_hdl);
   ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
@@ -681,6 +686,15 @@ TEST(test_file_parser, special_float_point) {
   EXPECT_TRUE(std::isinf(param_value->double_array_value->values[4]));
   EXPECT_TRUE(std::isinf(param_value->double_array_value->values[5]));
   EXPECT_TRUE(std::isinf(param_value->double_array_value->values[6]));
+  param_value = rcl_yaml_node_struct_get(
+    "test_node", "tagged_bare_nan_inf", params_hdl);
+  ASSERT_TRUE(NULL != param_value) << rcutils_get_error_string().str;
+  ASSERT_TRUE(NULL != param_value->double_array_value);
+  ASSERT_EQ(4U, param_value->double_array_value->size);
+  EXPECT_TRUE(std::isnan(param_value->double_array_value->values[0]));
+  EXPECT_TRUE(std::isinf(param_value->double_array_value->values[1]));
+  EXPECT_GT(param_value->double_array_value->values[2], 0.0);
+  EXPECT_LT(param_value->double_array_value->values[3], 0.0);
 }
 
 TEST(test_file_parser, empty_name_in_ns) {
