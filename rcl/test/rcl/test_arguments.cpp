@@ -305,6 +305,7 @@ TEST_F(TestArgumentsFixture, test_parameter_override_missing_assignment_error) {
   EXPECT_NE(
     std::string::npos,
     error_message.find("Parameter override rule must have the format 'name:=value'"));
+  EXPECT_NE(std::string::npos, error_message.find("Expected lexeme type"));
   rcl_reset_error();
 }
 
