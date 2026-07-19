@@ -356,6 +356,10 @@ rcl_action_endpoint_info_array_fini(
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(info_array, RCL_RET_INVALID_ARGUMENT);
+  if (info_array->size > 0u && NULL == info_array->info_array) {
+    RCL_SET_ERROR_MSG("info_array->info_array is NULL but size is non-zero");
+    return RCL_RET_INVALID_ARGUMENT;
+  }
 
   rcl_ret_t ret = RCL_RET_OK;
   for (size_t i = 0u; i < info_array->size; ++i) {
