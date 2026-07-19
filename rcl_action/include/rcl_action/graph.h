@@ -239,6 +239,183 @@ rcl_action_count_servers(
   const char * action_name,
   size_t * count);
 
+/// Endpoint information of an action client or an action server.
+/**
+ * An action is built on top of three services and two topics:
+ *
+ * - the goal service (`<action_name>/_action/send_goal`)
+ * - the cancel service (`<action_name>/_action/cancel_goal`)
+ * - the result service (`<action_name>/_action/get_result`)
+ * - the feedback topic (`<action_name>/_action/feedback`)
+ * - the status topic (`<action_name>/_action/status`)
+ *
+ * This structure aggregates the endpoint information of all the underlying
+ * entities of one action client or one action server.
+ * The goal service endpoint is used as the canonical identity of an action
+ * client or an action server, so `goal_service_info` is always populated.
+ * The remaining endpoint information is correlated to the goal service
+ * endpoint by the node name and node namespace.
+ * If an underlying entity has not been discovered (yet), or if the
+ * correlation is not possible, the corresponding member is left zero
+ * initialized (i.e. its `node_name` is `NULL`).
+ *
+ * The `service_type` and `topic_type` fields hold the types of the
+ * underlying entities (e.g. `test_msgs/action/Fibonacci_SendGoal`), not the
+ * action type.
+ * The action type can be derived by trimming the `_SendGoal` suffix from the
+ * goal service type.
+ */
+typedef struct rcl_action_endpoint_info_s
+{
+  /// Endpoint information of the goal service of the action client or server.
+  rcl_service_endpoint_info_t goal_service_info;
+  /// Endpoint information of the cancel service of the action client or server.
+  rcl_service_endpoint_info_t cancel_service_info;
+  /// Endpoint information of the result service of the action client or server.
+  rcl_service_endpoint_info_t result_service_info;
+  /// Endpoint information of the feedback topic of the action client or server.
+  rcl_topic_endpoint_info_t feedback_topic_info;
+  /// Endpoint information of the status topic of the action client or server.
+  rcl_topic_endpoint_info_t status_topic_info;
+} rcl_action_endpoint_info_t;
+
+/// Array of rcl_action_endpoint_info_t.
+typedef struct rcl_action_endpoint_info_array_s
+{
+  /// Size of the array.
+  size_t size;
+  /// Contiguous storage of the array.
+  rcl_action_endpoint_info_t * info_array;
+} rcl_action_endpoint_info_array_t;
+
+/// Return a rcl_action_endpoint_info_t with members set to `NULL` or zero.
+RCL_ACTION_PUBLIC
+rcl_action_endpoint_info_t
+rcl_action_get_zero_initialized_endpoint_info(void);
+
+/// Return a rcl_action_endpoint_info_array_t with members set to `NULL` or zero.
+RCL_ACTION_PUBLIC
+rcl_action_endpoint_info_array_t
+rcl_action_get_zero_initialized_endpoint_info_array(void);
+
+/// Finalize a rcl_action_endpoint_info_array_t.
+/**
+ * The info_array struct has its members deallocated and reset to `NULL` or
+ * zero using the given allocator.
+ *
+ * \param[inout] info_array object to be finalized
+ * \param[in] allocator the allocator used to allocate the array and its contents
+ * \return `RCL_RET_OK` if successful, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_endpoint_info_array_fini(
+  rcl_action_endpoint_info_array_t * info_array,
+  rcutils_allocator_t * allocator);
+
+/// Return a list of endpoint information for each action client of a given action.
+/**
+ * The `node` parameter must point to a valid node.
+ *
+ * The `action_name` parameter must not be `NULL` and must be a fully
+ * qualified action name.
+ * The action name is not automatically remapped by this function.
+ *
+ * Each entry of the returned list aggregates the endpoint information of all
+ * the underlying entities of one action client, i.e. the clients of the
+ * goal, cancel, and result services and the subscriptions on the feedback
+ * and status topics.
+ * See rcl_action_endpoint_info_t for the correlation semantics.
+ *
+ * The `clients_info` parameter must be allocated and zero initialized with
+ * rcl_action_get_zero_initialized_endpoint_info_array().
+ * This function allocates memory for the returned list of endpoint information
+ * and so it is the callers responsibility to pass `clients_info` to
+ * rcl_action_endpoint_info_array_fini() when it is no longer needed.
+ * Failing to do so will result in leaked memory.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator for allocating space for the returned information
+ * \param[in] action_name the fully qualified name of the action in question
+ * \param[out] clients_info list of action client endpoint information
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_NAME_INVALID` if the action name is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_get_clients_info_by_action(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * action_name,
+  rcl_action_endpoint_info_array_t * clients_info);
+
+/// Return a list of endpoint information for each action server of a given action.
+/**
+ * The `node` parameter must point to a valid node.
+ *
+ * The `action_name` parameter must not be `NULL` and must be a fully
+ * qualified action name.
+ * The action name is not automatically remapped by this function.
+ *
+ * Each entry of the returned list aggregates the endpoint information of all
+ * the underlying entities of one action server, i.e. the servers of the
+ * goal, cancel, and result services and the publishers on the feedback and
+ * status topics.
+ * See rcl_action_endpoint_info_t for the correlation semantics.
+ *
+ * The `servers_info` parameter must be allocated and zero initialized with
+ * rcl_action_get_zero_initialized_endpoint_info_array().
+ * This function allocates memory for the returned list of endpoint information
+ * and so it is the callers responsibility to pass `servers_info` to
+ * rcl_action_endpoint_info_array_fini() when it is no longer needed.
+ * Failing to do so will result in leaked memory.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Maybe [1]
+ * <i>[1] implementation may need to protect the data structure with a lock</i>
+ *
+ * \param[in] node the handle to the node being used to query the ROS graph
+ * \param[in] allocator allocator for allocating space for the returned information
+ * \param[in] action_name the fully qualified name of the action in question
+ * \param[out] servers_info list of action server endpoint information
+ * \return `RCL_RET_OK` if the query was successful, or
+ * \return `RCL_RET_NODE_INVALID` if the node is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_NAME_INVALID` if the action name is invalid, or
+ * \return `RCL_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_get_servers_info_by_action(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * action_name,
+  rcl_action_endpoint_info_array_t * servers_info);
+
 #ifdef __cplusplus
 }
 #endif

@@ -382,6 +382,50 @@ public:
       curr_time = std::chrono::system_clock::now();
     }
   }
+
+  using GetInfoByActionFunc = rcl_ret_t (*)(
+    const rcl_node_t *,
+    rcutils_allocator_t *,
+    const char *,
+    rcl_action_endpoint_info_array_t *);
+
+  static bool endpoint_info_is_complete(const rcl_action_endpoint_info_t * info)
+  {
+    return NULL != info->goal_service_info.node_name &&
+           NULL != info->cancel_service_info.node_name &&
+           NULL != info->result_service_info.node_name &&
+           NULL != info->feedback_topic_info.node_name &&
+           NULL != info->status_topic_info.node_name;
+  }
+
+  void wait_for_action_info_count(
+    GetInfoByActionFunc func,
+    size_t expected_count,
+    std::chrono::milliseconds duration)
+  {
+    auto start_time = std::chrono::system_clock::now();
+    auto curr_time = start_time;
+
+    rcl_ret_t ret;
+    while ((curr_time - start_time) < duration) {
+      rcl_action_endpoint_info_array_t info_array =
+        rcl_action_get_zero_initialized_endpoint_info_array();
+      ret = func(&this->node, &this->allocator, this->action_name, &info_array);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      size_t info_count = info_array.size;
+      bool complete = true;
+      for (size_t i = 0u; i < info_array.size; ++i) {
+        complete &= endpoint_info_is_complete(&info_array.info_array[i]);
+      }
+      EXPECT_EQ(
+        RCL_RET_OK, rcl_action_endpoint_info_array_fini(&info_array, &this->allocator));
+      if (info_count == expected_count && complete) {
+        return;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      curr_time = std::chrono::system_clock::now();
+    }
+  }
 };
 
 // Note, this test could be affected by other communication on the same ROS domain
@@ -856,4 +900,228 @@ TEST_F(TestActionGraphMultiNodeFixture, test_action_count_servers)
   ret = rcl_action_count_servers(&this->node, this->action_name, &count);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_EQ(1u, count);
+}
+
+TEST_F(TestActionGraphFixture, test_action_get_clients_servers_info_by_action)
+{
+  rcl_ret_t ret;
+  const char * test_action_name = "/test_action";
+  rcl_action_endpoint_info_array_t info_array =
+    rcl_action_get_zero_initialized_endpoint_info_array();
+
+  // Invalid node
+  ret = rcl_action_get_clients_info_by_action(
+    nullptr, &this->allocator, test_action_name, &info_array);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_action_get_clients_info_by_action(
+    &this->zero_node, &this->allocator, test_action_name, &info_array);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_action_get_servers_info_by_action(
+    &this->old_node, &this->allocator, test_action_name, &info_array);
+  EXPECT_EQ(RCL_RET_NODE_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid allocator
+  ret = rcl_action_get_clients_info_by_action(
+    &this->node, nullptr, test_action_name, &info_array);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_action_get_servers_info_by_action(
+    &this->node, &this->zero_allocator, test_action_name, &info_array);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid action name
+  ret = rcl_action_get_clients_info_by_action(
+    &this->node, &this->allocator, nullptr, &info_array);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  ret = rcl_action_get_servers_info_by_action(
+    &this->node, &this->allocator, "", &info_array);
+  EXPECT_EQ(RCL_RET_ACTION_NAME_INVALID, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  // Invalid info array
+  ret = rcl_action_get_clients_info_by_action(
+    &this->node, &this->allocator, test_action_name, nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  rcl_action_endpoint_info_t info = rcl_action_get_zero_initialized_endpoint_info();
+  info_array.size = 1u;
+  info_array.info_array = &info;
+  ret = rcl_action_get_servers_info_by_action(
+    &this->node, &this->allocator, test_action_name, &info_array);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret) << rcl_get_error_string().str;
+  rcl_reset_error();
+  info_array = rcl_action_get_zero_initialized_endpoint_info_array();
+
+  // Valid calls, no endpoints
+  ret = rcl_action_get_clients_info_by_action(
+    &this->node, &this->allocator, test_action_name, &info_array);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0u, info_array.size);
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_action_endpoint_info_array_fini(&info_array, &this->allocator));
+  info_array = rcl_action_get_zero_initialized_endpoint_info_array();
+  ret = rcl_action_get_servers_info_by_action(
+    &this->node, &this->allocator, test_action_name, &info_array);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0u, info_array.size);
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_action_endpoint_info_array_fini(&info_array, &this->allocator));
+}
+
+// Note, this test could be affected by other communication on the same ROS domain
+TEST_F(TestActionGraphMultiNodeFixture, test_action_get_clients_info_by_action)
+{
+  rcl_ret_t ret;
+  const rosidl_action_type_support_t * action_typesupport =
+    ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+  rcl_action_client_t action_client = rcl_action_get_zero_initialized_client();
+  rcl_action_client_options_t action_client_options = rcl_action_client_get_default_options();
+  ret = rcl_action_client_init(
+    &action_client,
+    &this->remote_node,
+    action_typesupport,
+    this->action_name,
+    &action_client_options);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_action_client_fini(&action_client, &this->remote_node)) <<
+      rcl_get_error_string().str;
+  });
+
+  // Wait for all the underlying entities of the action client to appear in the graph
+  wait_for_action_count(clients_by_node_func, 1u, std::chrono::seconds(1));
+  wait_for_action_info_count(
+    rcl_action_get_clients_info_by_action, 1u, std::chrono::seconds(5));
+
+  rcl_action_endpoint_info_array_t info_array =
+    rcl_action_get_zero_initialized_endpoint_info_array();
+  ret = rcl_action_get_clients_info_by_action(
+    &this->node, &this->allocator, this->action_name, &info_array);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(1u, info_array.size);
+  const rcl_action_endpoint_info_t * endpoint_info = &info_array.info_array[0];
+
+  // The goal service endpoint is the canonical identity of the action client
+  const rmw_service_endpoint_info_t * goal_info = &endpoint_info->goal_service_info;
+  EXPECT_STREQ(this->remote_node_name, goal_info->node_name);
+  EXPECT_STREQ("/", goal_info->node_namespace);
+  EXPECT_STREQ("test_msgs/action/Fibonacci_SendGoal", goal_info->service_type);
+  EXPECT_EQ(RMW_ENDPOINT_CLIENT, goal_info->endpoint_type);
+  EXPECT_TRUE(1u == goal_info->endpoint_count || 2u == goal_info->endpoint_count);
+
+  // The other underlying entities are correlated by node name and namespace
+  const rmw_service_endpoint_info_t * cancel_info = &endpoint_info->cancel_service_info;
+  EXPECT_STREQ(this->remote_node_name, cancel_info->node_name);
+  EXPECT_STREQ("action_msgs/srv/CancelGoal", cancel_info->service_type);
+  EXPECT_EQ(RMW_ENDPOINT_CLIENT, cancel_info->endpoint_type);
+  const rmw_service_endpoint_info_t * result_info = &endpoint_info->result_service_info;
+  EXPECT_STREQ(this->remote_node_name, result_info->node_name);
+  EXPECT_STREQ("test_msgs/action/Fibonacci_GetResult", result_info->service_type);
+  EXPECT_EQ(RMW_ENDPOINT_CLIENT, result_info->endpoint_type);
+  const rmw_topic_endpoint_info_t * feedback_info = &endpoint_info->feedback_topic_info;
+  EXPECT_STREQ(this->remote_node_name, feedback_info->node_name);
+  EXPECT_STREQ("test_msgs/action/Fibonacci_FeedbackMessage", feedback_info->topic_type);
+  EXPECT_EQ(RMW_ENDPOINT_SUBSCRIPTION, feedback_info->endpoint_type);
+  const rmw_topic_endpoint_info_t * status_info = &endpoint_info->status_topic_info;
+  EXPECT_STREQ(this->remote_node_name, status_info->node_name);
+  EXPECT_STREQ("action_msgs/msg/GoalStatusArray", status_info->topic_type);
+  EXPECT_EQ(RMW_ENDPOINT_SUBSCRIPTION, status_info->endpoint_type);
+
+  // There should be no action servers
+  rcl_action_endpoint_info_array_t server_info_array =
+    rcl_action_get_zero_initialized_endpoint_info_array();
+  ret = rcl_action_get_servers_info_by_action(
+    &this->node, &this->allocator, this->action_name, &server_info_array);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0u, server_info_array.size);
+
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_action_endpoint_info_array_fini(&info_array, &this->allocator));
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_action_endpoint_info_array_fini(&server_info_array, &this->allocator));
+}
+
+// Note, this test could be affected by other communication on the same ROS domain
+TEST_F(TestActionGraphMultiNodeFixture, test_action_get_servers_info_by_action)
+{
+  rcl_ret_t ret;
+  const rosidl_action_type_support_t * action_typesupport =
+    ROSIDL_GET_ACTION_TYPE_SUPPORT(test_msgs, Fibonacci);
+  rcl_action_server_t action_server = rcl_action_get_zero_initialized_server();
+  rcl_clock_t clock;
+  ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &this->allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string().str;
+  });
+  rcl_action_server_options_t action_server_options = rcl_action_server_get_default_options();
+  ret = rcl_action_server_init(
+    &action_server,
+    &this->remote_node,
+    &clock,
+    action_typesupport,
+    this->action_name,
+    &action_server_options);
+  ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_action_server_fini(&action_server, &this->remote_node)) <<
+      rcl_get_error_string().str;
+  });
+
+  // Wait for all the underlying entities of the action server to appear in the graph
+  wait_for_action_count(servers_by_node_func, 1u, std::chrono::seconds(1));
+  wait_for_action_info_count(
+    rcl_action_get_servers_info_by_action, 1u, std::chrono::seconds(5));
+
+  rcl_action_endpoint_info_array_t info_array =
+    rcl_action_get_zero_initialized_endpoint_info_array();
+  ret = rcl_action_get_servers_info_by_action(
+    &this->node, &this->allocator, this->action_name, &info_array);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  ASSERT_EQ(1u, info_array.size);
+  const rcl_action_endpoint_info_t * endpoint_info = &info_array.info_array[0];
+
+  // The goal service endpoint is the canonical identity of the action server
+  const rmw_service_endpoint_info_t * goal_info = &endpoint_info->goal_service_info;
+  EXPECT_STREQ(this->remote_node_name, goal_info->node_name);
+  EXPECT_STREQ("/", goal_info->node_namespace);
+  EXPECT_STREQ("test_msgs/action/Fibonacci_SendGoal", goal_info->service_type);
+  EXPECT_EQ(RMW_ENDPOINT_SERVER, goal_info->endpoint_type);
+  EXPECT_TRUE(1u == goal_info->endpoint_count || 2u == goal_info->endpoint_count);
+
+  // The other underlying entities are correlated by node name and namespace
+  const rmw_service_endpoint_info_t * cancel_info = &endpoint_info->cancel_service_info;
+  EXPECT_STREQ(this->remote_node_name, cancel_info->node_name);
+  EXPECT_STREQ("action_msgs/srv/CancelGoal", cancel_info->service_type);
+  EXPECT_EQ(RMW_ENDPOINT_SERVER, cancel_info->endpoint_type);
+  const rmw_service_endpoint_info_t * result_info = &endpoint_info->result_service_info;
+  EXPECT_STREQ(this->remote_node_name, result_info->node_name);
+  EXPECT_STREQ("test_msgs/action/Fibonacci_GetResult", result_info->service_type);
+  EXPECT_EQ(RMW_ENDPOINT_SERVER, result_info->endpoint_type);
+  const rmw_topic_endpoint_info_t * feedback_info = &endpoint_info->feedback_topic_info;
+  EXPECT_STREQ(this->remote_node_name, feedback_info->node_name);
+  EXPECT_STREQ("test_msgs/action/Fibonacci_FeedbackMessage", feedback_info->topic_type);
+  EXPECT_EQ(RMW_ENDPOINT_PUBLISHER, feedback_info->endpoint_type);
+  const rmw_topic_endpoint_info_t * status_info = &endpoint_info->status_topic_info;
+  EXPECT_STREQ(this->remote_node_name, status_info->node_name);
+  EXPECT_STREQ("action_msgs/msg/GoalStatusArray", status_info->topic_type);
+  EXPECT_EQ(RMW_ENDPOINT_PUBLISHER, status_info->endpoint_type);
+
+  // There should be no action clients
+  rcl_action_endpoint_info_array_t client_info_array =
+    rcl_action_get_zero_initialized_endpoint_info_array();
+  ret = rcl_action_get_clients_info_by_action(
+    &this->node, &this->allocator, this->action_name, &client_info_array);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(0u, client_info_array.size);
+
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_action_endpoint_info_array_fini(&info_array, &this->allocator));
+  EXPECT_EQ(
+    RCL_RET_OK, rcl_action_endpoint_info_array_fini(&client_info_array, &this->allocator));
 }
