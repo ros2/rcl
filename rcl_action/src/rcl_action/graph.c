@@ -434,6 +434,63 @@ _find_topic_endpoint_info_by_node(
   return NULL;
 }
 
+typedef rcl_ret_t (* rcl_action_get_name_func_t)(
+  const char * action_name,
+  rcl_allocator_t allocator,
+  char ** name);
+
+/// Resolve the name of an underlying action service and query its endpoint info.
+static rcl_ret_t
+_rcl_action_get_service_info(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * action_name,
+  rcl_action_get_name_func_t get_service_name,
+  int is_client,
+  rcl_service_endpoint_info_array_t * infos)
+{
+  char * service_name = NULL;
+  rcl_ret_t ret = get_service_name(action_name, *allocator, &service_name);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Action clients are clients of the underlying services,
+  // while action servers are servers of the underlying services.
+  if (is_client) {
+    ret = rcl_get_clients_info_by_service(node, allocator, service_name, false, infos);
+  } else {
+    ret = rcl_get_servers_info_by_service(node, allocator, service_name, false, infos);
+  }
+  allocator->deallocate(service_name, allocator->state);
+  return ret;
+}
+
+/// Resolve the name of an underlying action topic and query its endpoint info.
+static rcl_ret_t
+_rcl_action_get_topic_info(
+  const rcl_node_t * node,
+  rcutils_allocator_t * allocator,
+  const char * action_name,
+  rcl_action_get_name_func_t get_topic_name,
+  int is_client,
+  rcl_topic_endpoint_info_array_t * infos)
+{
+  char * topic_name = NULL;
+  rcl_ret_t ret = get_topic_name(action_name, *allocator, &topic_name);
+  if (RCL_RET_OK != ret) {
+    return ret;
+  }
+  // Action clients are subscriptions on the underlying topics,
+  // while action servers are publishers on the underlying topics.
+  if (is_client) {
+    ret = rcl_get_subscriptions_info_by_topic(node, allocator, topic_name, false, infos);
+  } else {
+    ret = rcl_get_publishers_info_by_topic(node, allocator, topic_name, false, infos);
+  }
+  allocator->deallocate(topic_name, allocator->state);
+  return ret;
+}
+
 static rcl_ret_t
 _rcl_action_get_info_by_action(
   const rcl_node_t * node,
@@ -455,12 +512,6 @@ _rcl_action_get_info_by_action(
     return RCL_RET_INVALID_ARGUMENT;
   }
 
-  char * goal_service_name = NULL;
-  char * cancel_service_name = NULL;
-  char * result_service_name = NULL;
-  char * feedback_topic_name = NULL;
-  char * status_topic_name = NULL;
-
   rcl_service_endpoint_info_array_t goal_infos =
     rcl_get_zero_initialized_service_endpoint_info_array();
   rcl_service_endpoint_info_array_t cancel_infos =
@@ -472,67 +523,29 @@ _rcl_action_get_info_by_action(
   rcl_topic_endpoint_info_array_t status_infos =
     rmw_get_zero_initialized_topic_endpoint_info_array();
 
-  rcl_ret_t ret = rcl_action_get_goal_service_name(action_name, *allocator, &goal_service_name);
-  if (RCL_RET_OK == ret) {
-    ret = rcl_action_get_cancel_service_name(action_name, *allocator, &cancel_service_name);
-  }
-  if (RCL_RET_OK == ret) {
-    ret = rcl_action_get_result_service_name(action_name, *allocator, &result_service_name);
-  }
-  if (RCL_RET_OK == ret) {
-    ret = rcl_action_get_feedback_topic_name(action_name, *allocator, &feedback_topic_name);
-  }
-  if (RCL_RET_OK == ret) {
-    ret = rcl_action_get_status_topic_name(action_name, *allocator, &status_topic_name);
-  }
-
   // Query the endpoint information of all the underlying entities of the action.
-  // Action clients are clients of the services and subscriptions on the topics,
-  // while action servers are servers of the services and publishers on the topics.
+  rcl_ret_t ret = _rcl_action_get_service_info(
+    node, allocator, action_name,
+    rcl_action_get_goal_service_name, is_client, &goal_infos);
   if (RCL_RET_OK == ret) {
-    if (is_client) {
-      ret = rcl_get_clients_info_by_service(
-        node, allocator, goal_service_name, false, &goal_infos);
-    } else {
-      ret = rcl_get_servers_info_by_service(
-        node, allocator, goal_service_name, false, &goal_infos);
-    }
+    ret = _rcl_action_get_service_info(
+      node, allocator, action_name,
+      rcl_action_get_cancel_service_name, is_client, &cancel_infos);
   }
   if (RCL_RET_OK == ret) {
-    if (is_client) {
-      ret = rcl_get_clients_info_by_service(
-        node, allocator, cancel_service_name, false, &cancel_infos);
-    } else {
-      ret = rcl_get_servers_info_by_service(
-        node, allocator, cancel_service_name, false, &cancel_infos);
-    }
+    ret = _rcl_action_get_service_info(
+      node, allocator, action_name,
+      rcl_action_get_result_service_name, is_client, &result_infos);
   }
   if (RCL_RET_OK == ret) {
-    if (is_client) {
-      ret = rcl_get_clients_info_by_service(
-        node, allocator, result_service_name, false, &result_infos);
-    } else {
-      ret = rcl_get_servers_info_by_service(
-        node, allocator, result_service_name, false, &result_infos);
-    }
+    ret = _rcl_action_get_topic_info(
+      node, allocator, action_name,
+      rcl_action_get_feedback_topic_name, is_client, &feedback_infos);
   }
   if (RCL_RET_OK == ret) {
-    if (is_client) {
-      ret = rcl_get_subscriptions_info_by_topic(
-        node, allocator, feedback_topic_name, false, &feedback_infos);
-    } else {
-      ret = rcl_get_publishers_info_by_topic(
-        node, allocator, feedback_topic_name, false, &feedback_infos);
-    }
-  }
-  if (RCL_RET_OK == ret) {
-    if (is_client) {
-      ret = rcl_get_subscriptions_info_by_topic(
-        node, allocator, status_topic_name, false, &status_infos);
-    } else {
-      ret = rcl_get_publishers_info_by_topic(
-        node, allocator, status_topic_name, false, &status_infos);
-    }
+    ret = _rcl_action_get_topic_info(
+      node, allocator, action_name,
+      rcl_action_get_status_topic_name, is_client, &status_infos);
   }
 
   // The goal service endpoint is the canonical identity of an action client
@@ -588,7 +601,7 @@ _rcl_action_get_info_by_action(
     }
   }
 
-  // Cleanup the intermediate arrays and names.
+  // Cleanup the intermediate arrays.
   // Entries claimed above were zero initialized in the source arrays, so
   // finalizing the source arrays only frees the unclaimed entries.
   if (RMW_RET_OK != rmw_service_endpoint_info_array_fini(&goal_infos, allocator) ||
@@ -601,22 +614,6 @@ _rcl_action_get_info_by_action(
       ret = RCL_RET_ERROR;
     }
   }
-  if (NULL != goal_service_name) {
-    allocator->deallocate(goal_service_name, allocator->state);
-  }
-  if (NULL != cancel_service_name) {
-    allocator->deallocate(cancel_service_name, allocator->state);
-  }
-  if (NULL != result_service_name) {
-    allocator->deallocate(result_service_name, allocator->state);
-  }
-  if (NULL != feedback_topic_name) {
-    allocator->deallocate(feedback_topic_name, allocator->state);
-  }
-  if (NULL != status_topic_name) {
-    allocator->deallocate(status_topic_name, allocator->state);
-  }
-
   if (RCL_RET_OK != ret) {
     rcl_ret_t fini_ret = rcl_action_endpoint_info_array_fini(info_array, allocator);
     if (RCL_RET_OK != fini_ret) {
