@@ -252,63 +252,26 @@ _rcl_action_count_entities(
 
   *count = 0u;
 
+  // Count entities on the action's goal service instead of walking the list
+  // of discovered nodes: every action client has exactly one goal service
+  // client and every action server has exactly one goal service.
+  // Name-based per-node queries double-count when the graph momentarily
+  // holds duplicate node names (e.g. a stale instance of a restarted node).
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  rcutils_string_array_t node_names = rcutils_get_zero_initialized_string_array();
-  rcutils_string_array_t node_namespaces = rcutils_get_zero_initialized_string_array();
-
-  rcl_ret_t ret = rcl_get_node_names(node, allocator, &node_names, &node_namespaces);
+  char * goal_service_name = NULL;
+  rcl_ret_t ret = rcl_action_get_goal_service_name(
+    action_name, allocator, &goal_service_name);
   if (RCL_RET_OK != ret) {
     return ret;
   }
 
-  for (size_t i = 0u; i < node_names.size && RCL_RET_OK == ret; ++i) {
-    rcl_names_and_types_t nat = rcl_get_zero_initialized_names_and_types();
-    rcl_ret_t get_ret;
-    if (is_client) {
-      get_ret = rcl_action_get_client_names_and_types_by_node(
-        node, &allocator, node_names.data[i], node_namespaces.data[i], &nat);
-    } else {
-      get_ret = rcl_action_get_server_names_and_types_by_node(
-        node, &allocator, node_names.data[i], node_namespaces.data[i], &nat);
-    }
-    if (RCL_RET_NODE_NAME_NON_EXISTENT == get_ret) {
-      // Node may have disappeared between listing and querying, skip it
-      rcl_reset_error();
-      continue;
-    }
-    if (RCL_RET_OK != get_ret) {
-      ret = get_ret;
-      break;
-    }
-
-    for (size_t j = 0u; j < nat.names.size; ++j) {
-      if (strcmp(nat.names.data[j], action_name) == 0) {
-        ++(*count);
-      }
-    }
-
-    rcl_ret_t fini_ret = rcl_names_and_types_fini(&nat);
-    if (RCL_RET_OK != fini_ret) {
-      RCUTILS_SAFE_FWRITE_TO_STDERR(
-        "Freeing action names and types failed while counting. Leaking memory!\n");
-    }
+  if (is_client) {
+    ret = rcl_count_clients(node, goal_service_name, count);
+  } else {
+    ret = rcl_count_services(node, goal_service_name, count);
   }
 
-  rcutils_ret_t rcutils_ret = rcutils_string_array_fini(&node_names);
-  if (RCUTILS_RET_OK != rcutils_ret) {
-    if (RCL_RET_OK == ret) {
-      RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-      ret = RCL_RET_ERROR;
-    }
-  }
-  rcutils_ret = rcutils_string_array_fini(&node_namespaces);
-  if (RCUTILS_RET_OK != rcutils_ret) {
-    if (RCL_RET_OK == ret) {
-      RCL_SET_ERROR_MSG(rcutils_get_error_string().str);
-      ret = RCL_RET_ERROR;
-    }
-  }
-
+  allocator.deallocate(goal_service_name, allocator.state);
   return ret;
 }
 
