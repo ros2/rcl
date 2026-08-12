@@ -1,4 +1,5 @@
 test_node:
     ros__parameters:
-        isstring: [string, .nananan, .nAN, .Nan, .infinf, .INf, .infinity]
+        isstring: [string, .nananan, .nAN, .Nan, .infinf, .INf, .infinity, nan, inf, +inf, -inf]
         nan_inf: [1.1, 2.2, .nan, .NAN, .inf, +.Inf, -.INF]
+        tagged_bare_nan_inf: [!!float nan, !!float inf, !!float +inf, !!float -inf]

@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <locale.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -143,6 +144,7 @@ _get_int_value(
 /// \param[in] value the float value to get
 /// \param[out] val_type the value type
 /// \param[out] ret_val the converted value when value is valid
+/// \param[in] allow_nonfinite_fallback whether generic non-finite forms are allowed
 /// \param[in] allocator the allocator to use
 /// \return RCUTILS_RET_OK if value is valid, or
 /// \return RCUTILS_RET_ERROR if value is not valid
@@ -152,6 +154,7 @@ _get_float_value(
   const char * const value,
   data_types_t * val_type,
   void ** ret_val,
+  const bool allow_nonfinite_fallback,
   const rcutils_allocator_t allocator);
 
 ///
@@ -218,7 +221,7 @@ void * get_value(
 
     /// Check for float tag
     if (strcmp(YAML_FLOAT_TAG, (char *)tag) == 0) {
-      if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+      if (_get_float_value(value, val_type, &ret_val, true, allocator) != RCUTILS_RET_ERROR) {
         return ret_val;
       } else {
         return NULL;
@@ -252,7 +255,7 @@ void * get_value(
     }
 
     /// Check for float
-    if (_get_float_value(value, val_type, &ret_val, allocator) != RCUTILS_RET_ERROR) {
+    if (_get_float_value(value, val_type, &ret_val, false, allocator) != RCUTILS_RET_ERROR) {
       return ret_val;
     }
   }
@@ -860,6 +863,7 @@ _get_float_value(
   const char * const value,
   data_types_t * val_type,
   void ** ret_val,
+  const bool allow_nonfinite_fallback,
   const rcutils_allocator_t allocator)
 {
   errno = 0;
@@ -889,6 +893,10 @@ _get_float_value(
     }
   } else {
     dval = strtod_locale_independent(value, &endptr);
+    // Implicit YAML floats require the dot-prefixed forms handled above.
+    if (!allow_nonfinite_fallback && (isnan(dval) || isinf(dval))) {
+      endptr = (char *)value;
+    }
   }
   if ((0 == errno) && (NULL != endptr)) {
     if ((NULL != endptr) && (endptr != value)) {
