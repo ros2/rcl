@@ -15,6 +15,9 @@
 #include <ctype.h>
 #include <errno.h>
 #include <locale.h>
+#ifdef __APPLE__
+#include <xlocale.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
