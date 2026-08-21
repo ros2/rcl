@@ -30,7 +30,9 @@ struct rcl_node_impl_s
   rcl_guard_condition_t * graph_guard_condition;
   const char * logger_name;
   const char * fq_name;
+#ifndef RCL_MICROROS
   rcutils_hash_map_t registered_types_by_type_hash;
+#endif  // RCL_MICROROS
 };
 
 #endif  // RCL__NODE_IMPL_H_

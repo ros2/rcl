@@ -17,7 +17,11 @@
 
 #include "rcl/arguments.h"
 #include "rcl/log_level.h"
+#ifndef RCL_MICROROS
 #include "rcl_yaml_param_parser/types.h"
+#else
+typedef bool rcl_params_t;
+#endif  // RCL_MICROROS
 #include "./remap_impl.h"
 
 #ifdef __cplusplus

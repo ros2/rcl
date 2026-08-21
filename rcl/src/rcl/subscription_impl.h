@@ -24,7 +24,9 @@ struct rcl_subscription_impl_s
   rcl_subscription_options_t options;
   rmw_qos_profile_t actual_qos;
   rmw_subscription_t * rmw_handle;
+#ifndef RCL_MICROROS
   rosidl_type_hash_t type_hash;
+#endif  // RCL_MICROROS
   bool in_use_by_waitset;
 };
 

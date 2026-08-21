@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.20)
 
 project(rcl)
 
+option(RCL_MICROROS "micro-ROS build mode" OFF)
+
 find_package(ament_cmake_ros REQUIRED)
 find_package(ament_cmake_gen_version_h REQUIRED)
 
-find_package(libyaml_vendor REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(rcl_logging_interface REQUIRED)
-find_package(rcl_yaml_param_parser REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_implementation REQUIRED)
@@ -16,14 +16,20 @@ find_package(rosidl_runtime_c REQUIRED)
 find_package(service_msgs REQUIRED)
 find_package(tracetools REQUIRED)
 find_package(type_description_interfaces REQUIRED)
-find_package(yaml REQUIRED)
+if(NOT RCL_MICROROS)
+  find_package(libyaml_vendor REQUIRED)
+  find_package(rcl_yaml_param_parser REQUIRED)
+  find_package(yaml REQUIRED)
+endif()
 
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 
-# Determine the logging implementation to use
-include(cmake/get_default_rcl_logging_implementation.cmake)
-get_default_rcl_logging_implementation(RCL_LOGGING_IMPL)
-message(STATUS "RCL_LOGGING_IMPLEMENTATION: ${RCL_LOGGING_IMPL}")
+if(NOT RCL_MICROROS)
+  # Determine the logging implementation to use
+  include(cmake/get_default_rcl_logging_implementation.cmake)
+  get_default_rcl_logging_implementation(RCL_LOGGING_IMPL)
+  message(STATUS "RCL_LOGGING_IMPLEMENTATION: ${RCL_LOGGING_IMPL}")
+endif()
 
 # Default to C11
 if(NOT CMAKE_C_STANDARD)
@@ -35,7 +41,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(${PROJECT_NAME}_sources
-  src/rcl/arguments.c
+  $<$<NOT:$<BOOL:${RCL_MICROROS}>>:src/rcl/arguments.c>
   src/rcl/client.c
   src/rcl/common.c
   src/rcl/context.c
@@ -51,13 +57,13 @@ set(${PROJECT_NAME}_sources
   src/rcl/init_options.c
   src/rcl/lexer.c
   src/rcl/lexer_lookahead.c
-  src/rcl/logging_rosout.c
-  src/rcl/logging.c
-  src/rcl/log_level.c
+  $<$<NOT:$<BOOL:${RCL_MICROROS}>>:src/rcl/logging_rosout.c>
+  $<$<NOT:$<BOOL:${RCL_MICROROS}>>:src/rcl/logging.c>
+  $<$<NOT:$<BOOL:${RCL_MICROROS}>>:src/rcl/log_level.c>
   src/rcl/network_flow_endpoints.c
   src/rcl/node.c
   src/rcl/node_options.c
-  src/rcl/node_type_cache.c
+  $<$<NOT:$<BOOL:${RCL_MICROROS}>>:src/rcl/node_type_cache.c>
   src/rcl/publisher.c
   src/rcl/remap.c
   src/rcl/node_resolve_name.c
@@ -69,13 +75,16 @@ set(${PROJECT_NAME}_sources
   src/rcl/time.c
   src/rcl/timer.c
   src/rcl/type_hash.c
-  src/rcl/type_description_conversions.c
+  $<$<NOT:$<BOOL:${RCL_MICROROS}>>:src/rcl/type_description_conversions.c>
   src/rcl/validate_enclave_name.c
   src/rcl/validate_topic_name.c
   src/rcl/wait.c
 )
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_sources})
+if(RCL_MICROROS)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC RCL_MICROROS)
+endif()
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
@@ -85,7 +94,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   rcl_interfaces::rcl_interfaces
   # TODO(clalancette): rcl_logging_interface should be PRIVATE, but downstream depends on it for now
   rcl_logging_interface::rcl_logging_interface
-  rcl_yaml_param_parser::rcl_yaml_param_parser
   rcutils::rcutils
   rmw::rmw
   # TODO(clalancette): rmw_implementation should be PRIVATE, but downstream depends on it for now
@@ -93,23 +101,35 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   rosidl_runtime_c::rosidl_runtime_c
   type_description_interfaces::type_description_interfaces
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE
-  service_msgs::service_msgs
-  tracetools::tracetools
-  yaml
-)
+if(NOT RCL_MICROROS)
+  target_link_libraries(${PROJECT_NAME} PUBLIC
+    rcl_yaml_param_parser::rcl_yaml_param_parser
+  )
+endif()
 
-# Link logging implementation based on configuration
-if(RCL_LOGGING_IMPL STREQUAL "rcl_logging_implementation")
-  # Dynamic loading: use rcl_logging_implementation abstraction
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  tracetools::tracetools
+)
+if(NOT RCL_MICROROS)
   target_link_libraries(${PROJECT_NAME} PRIVATE
-    rcl_logging_implementation::rcl_logging_implementation
+    service_msgs::service_msgs
+    yaml
   )
-else()
-  # Static linking: use specific logging implementation
-  target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${RCL_LOGGING_IMPL}::${RCL_LOGGING_IMPL}
-  )
+endif()
+
+if(NOT RCL_MICROROS)
+  # Link logging implementation based on configuration
+  if(RCL_LOGGING_IMPL STREQUAL "rcl_logging_implementation")
+    # Dynamic loading: use rcl_logging_implementation abstraction
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+      rcl_logging_implementation::rcl_logging_implementation
+    )
+  else()
+    # Static linking: use specific logging implementation
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+      ${RCL_LOGGING_IMPL}::${RCL_LOGGING_IMPL}
+    )
+  endif()
 endif()
 
 # Allow configuring the default discovery range
@@ -150,13 +170,16 @@ ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rcl_interfaces)
 # TODO(clalancette): rcl_logging_interface shouldn't be exported, but downstream depends on it for now
 ament_export_dependencies(rcl_logging_interface)
-ament_export_dependencies(rcl_yaml_param_parser)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 # TODO(clalancette): rmw_implementation shouldn't be exported, but downstream depends on it for now
 ament_export_dependencies(rmw_implementation)
 ament_export_dependencies(rosidl_runtime_c)
+ament_export_dependencies(tracetools)
 ament_export_dependencies(type_description_interfaces)
+if(NOT RCL_MICROROS)
+  ament_export_dependencies(rcl_yaml_param_parser)
+endif()
 ament_generate_version_header(${PROJECT_NAME})
 
 if(BUILD_TESTING)

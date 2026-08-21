@@ -28,7 +28,9 @@ extern "C"
 #include "rcl/client.h"
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
+#ifndef RCL_MICROROS
 #include "rcl/node_type_cache.h"
+#endif  // RCL_MICROROS
 #include "rcl/subscription.h"
 #include "rcl/types.h"
 #include "rcl/wait.h"
@@ -66,7 +68,9 @@ _rcl_action_get_zero_initialized_client_impl(void)
     0,
     0,
     0,
+#ifndef RCL_MICROROS
     rosidl_get_zero_initialized_type_hash(),
+#endif  // RCL_MICROROS
     false
   };
   return null_action_client;
@@ -95,12 +99,14 @@ _rcl_action_client_fini_impl(
   if (RCL_RET_OK != rcl_subscription_fini(&action_client->impl->status_subscription, node)) {
     ret = RCL_RET_ERROR;
   }
+#ifndef RCL_MICROROS
   if (
     ROSIDL_TYPE_HASH_VERSION_UNSET != action_client->impl->type_hash.version &&
     RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &action_client->impl->type_hash))
   {
     ret = RCL_RET_ERROR;
   }
+#endif  // RCL_MICROROS
   allocator.deallocate(action_client->impl->remapped_action_name, allocator.state);
   allocator.deallocate(action_client->impl, allocator.state);
   action_client->impl = NULL;
@@ -234,16 +240,18 @@ rcl_action_client_init(
   SUBSCRIPTION_INIT(feedback);
   SUBSCRIPTION_INIT(status);
 
+#ifndef RCL_MICROROS
   ret = rcl_node_type_cache_register_type(
-      node, type_support->get_type_hash_func(type_support),
-      type_support->get_type_description_func(type_support),
-      type_support->get_type_description_sources_func(type_support));
+    node, type_support->get_type_hash_func(type_support),
+    type_support->get_type_description_func(type_support),
+    type_support->get_type_description_sources_func(type_support));
   if (RCL_RET_OK != ret) {
     rcutils_reset_error();
     RCL_SET_ERROR_MSG("Failed to register type for action");
     goto fail;
   }
   action_client->impl->type_hash = *type_support->get_type_hash_func(type_support);
+#endif  // RCL_MICROROS
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action client initialized");
   return ret;
@@ -341,41 +349,41 @@ rcl_action_server_is_available(
 
 // \internal Sends an action client specific service request.
 #define SEND_SERVICE_REQUEST(Type, request, sequence_number) \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending action " #Type " request"); \
-  if (!rcl_action_client_is_valid(action_client)) { \
-    return RCL_RET_ACTION_CLIENT_INVALID;  /* error already set */ \
-  } \
-  RCL_CHECK_ARGUMENT_FOR_NULL(request, RCL_RET_INVALID_ARGUMENT); \
-  RCL_CHECK_ARGUMENT_FOR_NULL(sequence_number, RCL_RET_INVALID_ARGUMENT); \
-  rcl_ret_t ret = rcl_send_request( \
-    &action_client->impl->Type ## _client, request, sequence_number); \
-  if (RCL_RET_OK != ret) { \
-    return RCL_RET_ERROR;  /* error already set */ \
-  } \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action " #Type " request sent"); \
-  return RCL_RET_OK;
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending action " #Type " request"); \
+        if (!rcl_action_client_is_valid(action_client)) { \
+          return RCL_RET_ACTION_CLIENT_INVALID; /* error already set */ \
+        } \
+        RCL_CHECK_ARGUMENT_FOR_NULL(request, RCL_RET_INVALID_ARGUMENT); \
+        RCL_CHECK_ARGUMENT_FOR_NULL(sequence_number, RCL_RET_INVALID_ARGUMENT); \
+        rcl_ret_t ret = rcl_send_request( \
+          &action_client->impl->Type ## _client, request, sequence_number); \
+        if (RCL_RET_OK != ret) { \
+          return RCL_RET_ERROR; /* error already set */ \
+        } \
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action " #Type " request sent"); \
+        return RCL_RET_OK;
 
 // \internal Takes an action client specific service response.
 #define TAKE_SERVICE_RESPONSE(Type, response_header, response) \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action " #Type " response"); \
-  if (!rcl_action_client_is_valid(action_client)) { \
-    return RCL_RET_ACTION_CLIENT_INVALID;  /* error already set */ \
-  } \
-  RCL_CHECK_ARGUMENT_FOR_NULL(response_header, RCL_RET_INVALID_ARGUMENT); \
-  RCL_CHECK_ARGUMENT_FOR_NULL(response, RCL_RET_INVALID_ARGUMENT); \
-  rcl_ret_t ret = rcl_take_response( \
-    &action_client->impl->Type ## _client, response_header, response); \
-  if (RCL_RET_OK != ret) { \
-    if (RCL_RET_BAD_ALLOC == ret) { \
-      return RCL_RET_BAD_ALLOC;  /* error already set */ \
-    } \
-    if (RCL_RET_CLIENT_TAKE_FAILED == ret) { \
-      return RCL_RET_ACTION_CLIENT_TAKE_FAILED; \
-    } \
-    return RCL_RET_ERROR;  /* error already set */ \
-  } \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action " #Type " response taken"); \
-  return RCL_RET_OK;
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action " #Type " response"); \
+        if (!rcl_action_client_is_valid(action_client)) { \
+          return RCL_RET_ACTION_CLIENT_INVALID; /* error already set */ \
+        } \
+        RCL_CHECK_ARGUMENT_FOR_NULL(response_header, RCL_RET_INVALID_ARGUMENT); \
+        RCL_CHECK_ARGUMENT_FOR_NULL(response, RCL_RET_INVALID_ARGUMENT); \
+        rcl_ret_t ret = rcl_take_response( \
+          &action_client->impl->Type ## _client, response_header, response); \
+        if (RCL_RET_OK != ret) { \
+          if (RCL_RET_BAD_ALLOC == ret) { \
+            return RCL_RET_BAD_ALLOC; /* error already set */ \
+          } \
+          if (RCL_RET_CLIENT_TAKE_FAILED == ret) { \
+            return RCL_RET_ACTION_CLIENT_TAKE_FAILED; \
+          } \
+          return RCL_RET_ERROR; /* error already set */ \
+        } \
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action " #Type " response taken"); \
+        return RCL_RET_OK;
 
 
 rcl_ret_t
@@ -434,25 +442,25 @@ rcl_action_take_cancel_response(
 
 // \internal Takes an action client specific topic message.
 #define TAKE_MESSAGE(Type) \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action " #Type); \
-  if (!rcl_action_client_is_valid(action_client)) { \
-    return RCL_RET_ACTION_CLIENT_INVALID;  /* error already set */ \
-  } \
-  RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type, RCL_RET_INVALID_ARGUMENT); \
-  rmw_message_info_t message_info; /* ignored */ \
-  rcl_ret_t ret = rcl_take( \
-    &action_client->impl->Type ## _subscription, ros_ ## Type, &message_info, NULL); \
-  if (RCL_RET_OK != ret) { \
-    if (RCL_RET_SUBSCRIPTION_TAKE_FAILED == ret) { \
-      return RCL_RET_ACTION_CLIENT_TAKE_FAILED; \
-    } \
-    if (RCL_RET_BAD_ALLOC == ret) { \
-      return RCL_RET_BAD_ALLOC; \
-    } \
-    return RCL_RET_ERROR; \
-  } \
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action " #Type " taken"); \
-  return RCL_RET_OK;
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Taking action " #Type); \
+        if (!rcl_action_client_is_valid(action_client)) { \
+          return RCL_RET_ACTION_CLIENT_INVALID; /* error already set */ \
+        } \
+        RCL_CHECK_ARGUMENT_FOR_NULL(ros_ ## Type, RCL_RET_INVALID_ARGUMENT); \
+        rmw_message_info_t message_info; /* ignored */ \
+        rcl_ret_t ret = rcl_take( \
+          &action_client->impl->Type ## _subscription, ros_ ## Type, &message_info, NULL); \
+        if (RCL_RET_OK != ret) { \
+          if (RCL_RET_SUBSCRIPTION_TAKE_FAILED == ret) { \
+            return RCL_RET_ACTION_CLIENT_TAKE_FAILED; \
+          } \
+          if (RCL_RET_BAD_ALLOC == ret) { \
+            return RCL_RET_BAD_ALLOC; \
+          } \
+          return RCL_RET_ERROR; \
+        } \
+        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Action " #Type " taken"); \
+        return RCL_RET_OK;
 
 rcl_ret_t
 rcl_action_take_feedback(
@@ -754,16 +762,16 @@ rcl_action_client_set_status_subscription_callback(
 }
 
 #define CLIENT_CONFIGURE_SERVICE_INTROSPECTION(TYPE, STATE) \
-  if (rcl_client_configure_service_introspection( \
-      &action_client->impl->TYPE ## _client, \
-      node, \
-      clock, \
-      type_support->TYPE ## _service_type_support, \
-      publisher_options, \
-      STATE) != RCL_RET_OK) \
-  { \
-    return RCL_RET_ERROR; \
-  }
+        if (rcl_client_configure_service_introspection( \
+            &action_client->impl->TYPE ## _client, \
+            node, \
+            clock, \
+            type_support->TYPE ## _service_type_support, \
+            publisher_options, \
+            STATE) != RCL_RET_OK) \
+        { \
+          return RCL_RET_ERROR; \
+        }
 
 
 rcl_ret_t
@@ -862,16 +870,16 @@ _generate_goal_id_filter_expression(
 
   // Helper macro to append formatted string and check for errors
   #define APPEND_TO_EXPRESSION(...) \
-    do { \
-      int written = snprintf( \
-        expression_goal_id_arrays + pos, expression_capacity - pos, __VA_ARGS__); \
-      if (written < 0 || \
-        written >= expression_capacity - pos || pos + written >= expression_capacity) { \
-        allocator->deallocate(expression_goal_id_arrays, allocator->state); \
-        return RCL_RET_ERROR; \
-      } \
-      pos += written; \
-    } while (0)
+          do { \
+            int written = snprintf( \
+              expression_goal_id_arrays + pos, expression_capacity - pos, __VA_ARGS__); \
+            if (written < 0 || \
+              written >= expression_capacity - pos || pos + written >= expression_capacity) { \
+              allocator->deallocate(expression_goal_id_arrays, allocator->state); \
+              return RCL_RET_ERROR; \
+            } \
+            pos += written; \
+          } while (0)
 
   // Traverse each goal ID array
   for (size_t i = 0; i < num_arrays; i++) {
@@ -996,7 +1004,7 @@ rcl_action_client_configure_feedback_subscription_filter_add_goal_id(
   if (is_cft_enabled) {
     // Existing content filter and append new goal ID to it.
     ret = rcl_subscription_get_content_filter(
-        &action_client->impl->feedback_subscription, &content_filter_options);
+      &action_client->impl->feedback_subscription, &content_filter_options);
     if (RCL_RET_OK != ret) {
       RCL_SET_ERROR_MSG("Failed to get cft expression parameters");
       goto err;
@@ -1151,7 +1159,7 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
   rcl_subscription_content_filter_options_t content_filter_options =
     rcl_get_zero_initialized_subscription_content_filter_options();
   ret = rcl_subscription_get_content_filter(
-      &action_client->impl->feedback_subscription, &content_filter_options);
+    &action_client->impl->feedback_subscription, &content_filter_options);
   if (RCL_RET_OK != ret) {
     RCL_SET_ERROR_MSG("Failed to get cft expression parameters");
     return ret;
@@ -1213,8 +1221,8 @@ rcl_action_client_configure_feedback_subscription_filter_remove_goal_id(
       // new_expression_params_size is guaranteed to be less than 100.
       new_expression_params =
         (char **)action_client->impl->options.allocator.allocate(
-          sizeof(char *) * new_expression_params_size,
-          action_client->impl->options.allocator.state);
+        sizeof(char *) * new_expression_params_size,
+        action_client->impl->options.allocator.state);
       if (new_expression_params == NULL) {
         RCL_SET_ERROR_MSG("Failed to allocate memory for expression parameters");
         ret = RCL_RET_BAD_ALLOC;

@@ -22,7 +22,9 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#ifndef RCL_MICROROS
 #include "rcl/node_type_cache.h"
+#endif  // RCL_MICROROS
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rcl/time.h"
@@ -127,6 +129,7 @@ rcl_publisher_init(
   // options
   publisher->impl->options = *options;
 
+#ifndef RCL_MICROROS
   if (RCL_RET_OK != rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
       type_support->get_type_description_func(type_support),
@@ -137,6 +140,7 @@ rcl_publisher_init(
     goto fail;
   }
   publisher->impl->type_hash = *type_support->get_type_hash_func(type_support);
+#endif  // RCL_MICROROS
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Publisher initialized");
   // context
@@ -199,6 +203,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
       RCL_SET_ERROR_MSG(rmw_get_error_string().str);
       result = RCL_RET_ERROR;
     }
+#ifndef RCL_MICROROS
     if (
       ROSIDL_TYPE_HASH_VERSION_UNSET != publisher->impl->type_hash.version &&
       RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &publisher->impl->type_hash))
@@ -206,6 +211,7 @@ rcl_publisher_fini(rcl_publisher_t * publisher, rcl_node_t * node)
       RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
       result = RCL_RET_ERROR;
     }
+#endif  // RCL_MICROROS
     allocator.deallocate(publisher->impl, allocator.state);
     publisher->impl = NULL;
   }

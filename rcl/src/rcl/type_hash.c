@@ -14,7 +14,9 @@
 
 #include <stdio.h>
 
+#ifndef RCL_MICROROS
 #include <yaml.h>
+#endif  // RCL_MICROROS
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
@@ -25,6 +27,7 @@
 
 #include "./common.h"
 
+#ifndef RCL_MICROROS
 static int yaml_write_handler(void * ext, uint8_t * buffer, size_t size)
 {
   rcutils_char_array_t * repr = (rcutils_char_array_t *)ext;
@@ -193,12 +196,14 @@ static int emit_type_description(
   }
   return end_sequence(emitter) && end_mapping(emitter);
 }
+#endif  // RCL_MICROROS
 
 rcl_ret_t
 rcl_type_description_to_hashable_json(
   const type_description_interfaces__msg__TypeDescription * type_description,
   rcutils_char_array_t * output_repr)
 {
+#ifndef RCL_MICROROS
   RCL_CHECK_ARGUMENT_FOR_NULL(type_description, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_repr, RCL_RET_INVALID_ARGUMENT);
 
@@ -240,6 +245,11 @@ error:
   rcl_set_error_state(emitter.problem, __FILE__, __LINE__);
   yaml_emitter_delete(&emitter);
   return RCL_RET_ERROR;
+#else
+  (void)type_description;
+  (void)output_repr;
+  return RCL_RET_UNSUPPORTED;
+#endif  // RCL_MICROROS
 }
 
 rcl_ret_t
@@ -247,6 +257,7 @@ rcl_calculate_type_hash(
   const type_description_interfaces__msg__TypeDescription * type_description,
   rosidl_type_hash_t * output_hash)
 {
+#ifndef RCL_MICROROS
   RCL_CHECK_ARGUMENT_FOR_NULL(type_description, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(output_hash, RCL_RET_INVALID_ARGUMENT);
 
@@ -270,4 +281,9 @@ rcl_calculate_type_hash(
   }
   result = rcutils_char_array_fini(&msg_repr);
   return result;
+#else
+  (void)type_description;
+  (void)output_hash;
+  return RCL_RET_UNSUPPORTED;
+#endif  // RCL_MICROROS
 }

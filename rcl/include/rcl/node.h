@@ -25,7 +25,9 @@ extern "C"
 #include <stdint.h>
 
 #include "rcl/allocator.h"
+#ifndef RCL_MICROROS
 #include "rcl/arguments.h"
+#endif  // RCL_MICROROS
 #include "rcl/context.h"
 #include "rcl/guard_condition.h"
 #include "rcl/macros.h"

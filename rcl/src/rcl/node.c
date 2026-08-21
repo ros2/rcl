@@ -19,12 +19,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef RCL_MICROROS
 #include "rcl/arguments.h"
+#endif  // RCL_MICROROS
 #include "rcl/error_handling.h"
 #include "rcl/init_options.h"
+#ifndef RCL_MICROROS
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
 #include "rcl/node_type_cache.h"
+#endif  // RCL_MICROROS
 #include "rcl/rcl.h"
 #include "rcl/remap.h"
 #include "rcl/security.h"
@@ -190,7 +194,9 @@ rcl_node_init(
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto fail);
   node->impl->options = rcl_node_get_default_options();
+#ifndef RCL_MICROROS
   node->impl->registered_types_by_type_hash = rcutils_get_zero_initialized_hash_map();
+#endif  // RCL_MICROROS
   node->context = context;
   // Initialize node impl.
   ret = rcl_node_options_copy(options, &(node->impl->options));
@@ -198,6 +204,7 @@ rcl_node_init(
     goto fail;
   }
 
+#ifndef RCL_MICROROS
   // Remap the node name and namespace if remap rules are given
   rcl_arguments_t * global_args = NULL;
   if (node->impl->options.use_global_arguments) {
@@ -224,6 +231,7 @@ rcl_node_init(
     allocator->deallocate((char *)local_namespace_, allocator->state);
     local_namespace_ = remapped_namespace;
   }
+#endif  // RCL_MICROROS
 
   // compute fully qualfied name of the node.
   if ('/' == local_namespace_[strlen(local_namespace_) - 1]) {
@@ -236,9 +244,11 @@ rcl_node_init(
     ret = RCL_RET_BAD_ALLOC; goto fail);
 
   // node logger name
+#ifndef RCL_MICROROS
   node->impl->logger_name = rcl_create_node_logger_name(name, local_namespace_, allocator);
   RCL_CHECK_FOR_NULL_WITH_MSG(
     node->impl->logger_name, "creating logger name failed", ret = RCL_RET_ERROR; goto fail);
+#endif  // RCL_MICROROS
 
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Using domain ID of '%zu'", context->impl->rmw_context.actual_domain_id);
@@ -279,12 +289,14 @@ rcl_node_init(
     goto fail;
   }
 
+#ifndef RCL_MICROROS
   // To capture all types from builtin topics and services, the type cache needs to be initialized
   // before any publishers/subscriptions/services/etc can be created
   ret = rcl_node_type_cache_init(node);
   if (ret != RCL_RET_OK) {
     goto fail;
   }
+#endif  // RCL_MICROROS
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node initialized");
   TRACETOOLS_TRACEPOINT(
@@ -301,12 +313,14 @@ rcl_node_init(
 
 fail:
   if (node->impl) {
+#ifndef RCL_MICROROS
     if (NULL != node->impl->registered_types_by_type_hash.impl) {
       fail_ret = rcl_node_type_cache_fini(node);
       RCUTILS_LOG_ERROR_EXPRESSION_NAMED(
         (fail_ret != RCL_RET_OK),
         ROS_PACKAGE_NAME, "Failed to fini type cache for node: %s", rcl_get_error_string().str);
     }
+#endif  // RCL_MICROROS
 
     if (node->impl->graph_guard_condition) {
       fail_ret = rcl_guard_condition_fini(node->impl->graph_guard_condition);
@@ -357,11 +371,13 @@ rcl_node_fini(rcl_node_t * node)
   rcl_allocator_t allocator = node->impl->options.allocator;
   rcl_ret_t result = RCL_RET_OK;
   rcl_ret_t rcl_ret = RCL_RET_OK;
+#ifndef RCL_MICROROS
   rcl_ret = rcl_node_type_cache_fini(node);
   if (rcl_ret != RCL_RET_OK) {
     RCL_SET_ERROR_MSG("Unable to fini type cache for node.");
     result = RCL_RET_ERROR;
   }
+#endif  // RCL_MICROROS
   rmw_ret_t rmw_ret = rmw_destroy_node(node->impl->rmw_node_handle);
   if (rmw_ret != RMW_RET_OK) {
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
@@ -376,12 +392,14 @@ rcl_node_fini(rcl_node_t * node)
   // assuming that allocate and deallocate are ok since they are checked in init
   allocator.deallocate((char *)node->impl->logger_name, allocator.state);
   allocator.deallocate((char *)node->impl->fq_name, allocator.state);
+#ifndef RCL_MICROROS
   if (NULL != node->impl->options.arguments.impl) {
     rcl_ret_t ret = rcl_arguments_fini(&(node->impl->options.arguments));
     if (ret != RCL_RET_OK) {
       return ret;
     }
   }
+#endif  // RCL_MICROROS
   allocator.deallocate(node->impl, allocator.state);
   node->impl = NULL;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Node finalized");
@@ -524,6 +542,7 @@ void rcl_node_type_description_service_handle_request(
   const type_description_interfaces__srv__GetTypeDescription_Request * request,
   type_description_interfaces__srv__GetTypeDescription_Response * response)
 {
+#ifndef RCL_MICROROS
   rcl_type_info_t type_info;
   RCL_CHECK_FOR_NULL_WITH_MSG(node, "invalid node handle", return;);
   RCL_CHECK_FOR_NULL_WITH_MSG(node->impl, "invalid node", return;);
@@ -582,12 +601,14 @@ void rcl_node_type_description_service_handle_request(
   }
 
   response->successful = true;
+#endif  // RCL_MICROROS
 }
 
 rcl_ret_t rcl_node_type_description_service_init(
   rcl_service_t * service,
   const rcl_node_t * node)
 {
+#ifndef RCL_MICROROS
   RCL_CHECK_ARGUMENT_FOR_NULL(service, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node, RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(node->impl, RCL_RET_NODE_INVALID);
@@ -622,4 +643,8 @@ rcl_ret_t rcl_node_type_description_service_init(
   allocator.deallocate(service_name, allocator.state);
 
   return ret;
+#else
+  (void)node;
+  return RCL_RET_UNSUPPORTED;
+#endif  // RCL_MICROROS
 }

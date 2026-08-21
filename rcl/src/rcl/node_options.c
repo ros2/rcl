@@ -21,10 +21,14 @@ extern "C"
 
 #include "rcl/node_options.h"
 
+#ifndef RCL_MICROROS
 #include "rcl/arguments.h"
+#endif  // RCL_MICROROS
 #include "rcl/domain_id.h"
 #include "rcl/error_handling.h"
+#ifndef RCL_MICROROS
 #include "rcl/logging_rosout.h"
+#endif  // RCL_MICROROS
 
 #include "rmw/qos_profiles.h"
 
@@ -35,9 +39,13 @@ rcl_node_get_default_options(void)
   rcl_node_options_t default_options = {
     .allocator = rcl_get_default_allocator(),
     .use_global_arguments = true,
+  #ifndef RCL_MICROROS
     .arguments = rcl_get_zero_initialized_arguments(),
     .enable_rosout = true,
     .rosout_qos = rmw_qos_profile_rosout_default,
+  #else
+    .enable_rosout = false,
+  #endif  // RCL_MICROROS
   };
   return default_options;
 }
@@ -55,17 +63,21 @@ rcl_node_options_copy(
     RCL_SET_ERROR_MSG("Attempted to copy options into itself");
     return RCL_RET_INVALID_ARGUMENT;
   }
+#ifndef RCL_MICROROS
   if (NULL != options_out->arguments.impl) {
     RCL_SET_ERROR_MSG("Options out must be zero initialized");
     return RCL_RET_INVALID_ARGUMENT;
   }
+#endif  // RCL_MICROROS
   options_out->allocator = options->allocator;
   options_out->use_global_arguments = options->use_global_arguments;
   options_out->enable_rosout = options->enable_rosout;
   options_out->rosout_qos = options->rosout_qos;
+#ifndef RCL_MICROROS
   if (NULL != options->arguments.impl) {
     return rcl_arguments_copy(&(options->arguments), &(options_out->arguments));
   }
+#endif  // RCL_MICROROS
   return RCL_RET_OK;
 }
 
@@ -77,6 +89,7 @@ rcl_node_options_fini(
   rcl_allocator_t allocator = options->allocator;
   RCL_CHECK_ALLOCATOR(&allocator, return RCL_RET_INVALID_ARGUMENT);
 
+#ifndef RCL_MICROROS
   if (options->arguments.impl) {
     rcl_ret_t ret = rcl_arguments_fini(&options->arguments);
     if (RCL_RET_OK != ret) {
@@ -84,6 +97,7 @@ rcl_node_options_fini(
       return ret;
     }
   }
+#endif  // RCL_MICROROS
 
   return RCL_RET_OK;
 }

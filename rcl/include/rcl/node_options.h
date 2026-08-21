@@ -23,9 +23,11 @@ extern "C"
 #endif
 
 #include "rcl/allocator.h"
+#ifndef RCL_MICROROS
 #include "rcl/arguments.h"
-
+#endif  // RCL_MICROROS
 #include "rcl/domain_id.h"
+#include "rcl/macros.h"
 
 /// Constant which indicates that the default domain id should be used.
 #define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID RCL_DEFAULT_DOMAIN_ID
@@ -46,8 +48,10 @@ typedef struct rcl_node_options_s
   /// If false then only use arguments in this struct, otherwise use global arguments also.
   bool use_global_arguments;
 
+#ifndef RCL_MICROROS
   /// Command line arguments that apply only to this node.
   rcl_arguments_t arguments;
+#endif  // RCL_MICROROS
 
   /// Flag to enable rosout for this node
   bool enable_rosout;

@@ -23,8 +23,10 @@ extern "C"
 
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
+#ifndef RCL_MICROROS
 #include "rcl/node_type_cache.h"
 #include "rcutils/env.h"
+#endif  // RCL_MICROROS
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 #include "rcutils/types/string_array.h"
@@ -128,6 +130,7 @@ rcl_subscription_init(
   subscription->impl->actual_qos.avoid_ros_namespace_conventions =
     options->qos.avoid_ros_namespace_conventions;
 
+#ifndef RCL_MICROROS
   if (RCL_RET_OK != rcl_node_type_cache_register_type(
       node, type_support->get_type_hash_func(type_support),
       type_support->get_type_description_func(type_support),
@@ -138,6 +141,7 @@ rcl_subscription_init(
     goto fail;
   }
   subscription->impl->type_hash = *type_support->get_type_hash_func(type_support);
+#endif  // RCL_MICROROS
 
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Subscription initialized");
   ret = RCL_RET_OK;
@@ -210,6 +214,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       result = RCL_RET_ERROR;
     }
 
+#ifndef RCL_MICROROS
     if (
       ROSIDL_TYPE_HASH_VERSION_UNSET != subscription->impl->type_hash.version &&
       RCL_RET_OK != rcl_node_type_cache_unregister_type(node, &subscription->impl->type_hash))
@@ -218,6 +223,7 @@ rcl_subscription_fini(rcl_subscription_t * subscription, rcl_node_t * node)
       RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
       result = RCL_RET_ERROR;
     }
+#endif  // RCL_MICROROS
 
     allocator.deallocate(subscription->impl, allocator.state);
     subscription->impl = NULL;
@@ -236,6 +242,7 @@ rcl_subscription_get_default_options(void)
   default_options.allocator = rcl_get_default_allocator();
   default_options.rmw_subscription_options = rmw_get_default_subscription_options();
 
+#ifndef RCL_MICROROS
   // Load disable flag to LoanedMessage via environmental variable.
   // TODO(clalancette): This is kind of a copy of rcl_get_disable_loaned_message(), but we need
   // more information than that function provides.
@@ -251,6 +258,7 @@ rcl_subscription_get_default_options(void)
   } else {
     default_options.disable_loaned_message = !(strcmp(env_val, "0") == 0);
   }
+#endif  // RCL_MICROROS
 
   return default_options;
 }
