@@ -40,7 +40,11 @@ extern "C"
 #include "./context_impl.h"
 #include "./init_options_impl.h"
 
-static atomic_uint_least64_t __rcl_next_unique_id = ATOMIC_VAR_INIT(1);
+#if defined(_WIN32) && !defined(__MINGW64__)
+static atomic_uint_least64_t __rcl_next_unique_id = {1};
+#else
+static atomic_uint_least64_t __rcl_next_unique_id = 1;
+#endif
 
 rcl_ret_t
 rcl_init(
