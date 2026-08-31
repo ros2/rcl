@@ -49,6 +49,31 @@ rcl_get_automatic_discovery_range(rmw_discovery_options_t * discovery_options)
   RCUTILS_CAN_SET_MSG_AND_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
   RCL_CHECK_ARGUMENT_FOR_NULL(discovery_options, RCL_RET_INVALID_ARGUMENT);
 
+  // Warn if any deprecated/removed environment variables are set, so that
+  // users who still have them in their environment receive actionable feedback.
+  {
+    const char * deprecated_val = NULL;
+    if (NULL == rcutils_get_env("ROS_LOCALHOST_ONLY", &deprecated_val) &&
+      NULL != deprecated_val && strcmp(deprecated_val, "") != 0)
+    {
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME,
+        "Environment variable 'ROS_LOCALHOST_ONLY' is set but has been removed. "
+        "Use 'ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST' instead. "
+        "The value of 'ROS_LOCALHOST_ONLY' will be ignored.");
+    }
+    deprecated_val = NULL;
+    if (NULL == rcutils_get_env("LOCALHOST_ONLY", &deprecated_val) &&
+      NULL != deprecated_val && strcmp(deprecated_val, "") != 0)
+    {
+      RCUTILS_LOG_WARN_NAMED(
+        ROS_PACKAGE_NAME,
+        "Environment variable 'LOCALHOST_ONLY' is set but has been removed. "
+        "Use 'ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST' instead. "
+        "The value of 'LOCALHOST_ONLY' will be ignored.");
+    }
+  }
+
   get_env_error_str = rcutils_get_env(
     RCL_AUTOMATIC_DISCOVERY_RANGE_ENV_VAR,
     &ros_automatic_discovery_range_env_val);
