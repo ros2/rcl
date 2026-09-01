@@ -1971,16 +1971,18 @@ _rcl_parse_param_rule(
   // TODO(hidmic): switch to _rcl_parse_resource_match() when parameter names
   //               are standardized to use slashes in lieu of dots.
   ret = _rcl_parse_param_name(&lex_lookahead, params->allocator, &param_name);
-  if (RCL_RET_OK != ret) {
-    if (RCL_RET_WRONG_LEXEME == ret) {
-      ret = RCL_RET_INVALID_PARAM_RULE;
-    }
-    goto cleanup;
+  if (RCL_RET_OK == ret) {
+    ret = rcl_lexer_lookahead2_expect(&lex_lookahead, RCL_LEXEME_SEPARATOR, NULL, NULL);
   }
-
-  ret = rcl_lexer_lookahead2_expect(&lex_lookahead, RCL_LEXEME_SEPARATOR, NULL, NULL);
-  if (RCL_RET_WRONG_LEXEME == ret) {
+  if (RCL_RET_WRONG_LEXEME == ret || RCL_RET_INVALID_REMAP_RULE == ret) {
+    rcl_error_string_t prev_error_string = rcl_get_error_string();
+    rcl_reset_error();
+    RCL_SET_ERROR_MSG_WITH_FORMAT_STRING(
+      "Parameter override rule must have the format 'name:=value'. Error: %s",
+      prev_error_string.str);
     ret = RCL_RET_INVALID_PARAM_RULE;
+  }
+  if (RCL_RET_OK != ret) {
     goto cleanup;
   }
 

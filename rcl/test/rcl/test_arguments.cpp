@@ -293,6 +293,22 @@ TEST_F(TestArgumentsFixture, check_valid_vs_invalid_args) {
   EXPECT_FALSE(are_valid_ros_args({"--ros-args", "--log-file-name"}));
 }
 
+TEST_F(TestArgumentsFixture, test_parameter_override_missing_assignment_error) {
+  const char * const argv[] = {"process_name", "--ros-args", "-p", "bla"};
+  const int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ROS_ARGS,
+    rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args));
+  const std::string error_message = rcl_get_error_string().str;
+  EXPECT_NE(
+    std::string::npos,
+    error_message.find("Parameter override rule must have the format 'name:=value'"));
+  EXPECT_NE(std::string::npos, error_message.find("Expected lexeme type"));
+  rcl_reset_error();
+}
+
 TEST_F(TestArgumentsFixture, test_no_args) {
   rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
   rcl_ret_t ret = rcl_parse_arguments(0, NULL, rcl_get_default_allocator(), &parsed_args);
