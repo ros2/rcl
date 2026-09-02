@@ -113,6 +113,9 @@ rcl_lifecycle_com_interface_publisher_init(
 
   // initialize publisher
   rcl_publisher_options_t publisher_options = rcl_publisher_get_default_options();
+  // transition event topic needs to be latched for the subscription joins later.
+  publisher_options.qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  publisher_options.qos.depth = 1;
   rcl_ret_t ret = rcl_publisher_init(
     &com_interface->pub_transition_event, node_handle,
     ts_pub_notify, pub_transition_event_topic, &publisher_options);
