@@ -14,8 +14,7 @@
 
 #include "rcl/validate_enclave_name.h"
 
-#include <ctype.h>
-#include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 
 #include <rcutils/macros.h>
@@ -24,6 +23,9 @@
 #include "rmw/validate_namespace.h"
 
 #include "rcl/error_handling.h"
+#include "rcl/types.h"
+
+#include "rmw/ret_types.h"
 
 #include "./common.h"
 

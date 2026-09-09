@@ -15,6 +15,9 @@
 #ifndef RCL__ARGUMENTS_IMPL_H_
 #define RCL__ARGUMENTS_IMPL_H_
 
+#include <stdbool.h>
+
+#include "rcl/allocator.h"
 #include "rcl/arguments.h"
 #include "rcl/log_level.h"
 #include "rcl_yaml_param_parser/types.h"

@@ -19,14 +19,18 @@ extern "C"
 
 #include "com_interface.h"  // NOLINT
 
-#include <string.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "lifecycle_msgs/msg/transition_event.h"
 
 #include "rcl/error_handling.h"
+#include "rcl/node.h"
+#include "rcl/publisher.h"
+#include "rcl/service.h"
+#include "rcl/time.h"
+#include "rcl/types.h"
 
-#include "rcutils/format_string.h"
 #include "rcutils/logging_macros.h"
 
 #include "rosidl_runtime_c/message_type_support_struct.h"

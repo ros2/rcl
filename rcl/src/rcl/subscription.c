@@ -19,19 +19,29 @@ extern "C"
 
 #include "rcl/subscription.h"
 
-#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcl/node_type_cache.h"
+#include "rcl/types.h"
+
 #include "rcutils/env.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/macros.h"
 #include "rcutils/strdup.h"
-#include "rcutils/types/string_array.h"
-#include "rmw/error_handling.h"
+#include "rcutils/types/rcutils_ret.h"
 #include "rmw/dynamic_message_type_support.h"
+#include "rmw/error_handling.h"
+#include "rmw/message_sequence.h"
+#include "rmw/qos_profiles.h"
+#include "rmw/ret_types.h"
+#include "rmw/rmw.h"
 #include "rmw/subscription_content_filter_options.h"
-#include "rmw/validate_full_topic_name.h"
+#include "rmw/types.h"
 #include "rosidl_dynamic_typesupport/identifier.h"
 #include "tracetools/tracetools.h"
 

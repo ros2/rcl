@@ -25,6 +25,8 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
+#include "rmw/qos_profiles.h"
+
 class TestClientFixture : public ::testing::Test
 {
 public:

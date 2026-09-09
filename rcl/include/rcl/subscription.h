@@ -22,15 +22,23 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "rosidl_runtime_c/message_type_support_struct.h"
 
+#include "rcl/allocator.h"
 #include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
+#include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
 #include "rmw/dynamic_message_type_support.h"
 #include "rmw/message_sequence.h"
+#include "rmw/ret_types.h"
+#include "rmw/subscription_content_filter_options.h"
+#include "rmw/types.h"
 
 /// Internal rcl implementation struct.
 typedef struct rcl_subscription_impl_s rcl_subscription_impl_t;

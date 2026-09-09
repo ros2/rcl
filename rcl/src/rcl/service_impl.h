@@ -15,8 +15,11 @@
 #ifndef RCL__SERVICE_IMPL_H_
 #define RCL__SERVICE_IMPL_H_
 
-#include "rmw/rmw.h"
+#include <stdbool.h>
+
 #include "rcl/service.h"
+
+#include "rmw/types.h"
 #include "./service_event_publisher.h"
 
 struct rcl_service_impl_s

@@ -30,6 +30,8 @@
 #include "rcl/rcl.h"
 #include "rcl/service_introspection.h"
 
+#include "rmw/qos_profiles.h"
+
 #include "test_msgs/action/fibonacci.h"
 
 void * bad_malloc(size_t, void *)

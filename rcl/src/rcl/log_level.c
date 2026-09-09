@@ -14,8 +14,14 @@
 
 #include "rcl/log_level.h"
 
+#include <stddef.h>
+#include <string.h>
+
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rcutils/allocator.h"
+#include "rcl/types.h"
+
+#include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
 

@@ -22,6 +22,8 @@ extern "C"
 {
 #endif
 
+#include <stddef.h>
+
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 

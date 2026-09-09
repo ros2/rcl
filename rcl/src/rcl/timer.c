@@ -20,11 +20,16 @@ extern "C"
 #include "rcl/timer.h"
 
 #include <inttypes.h>
+#include <stdbool.h>
+#include <stddef.h>
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/time.h"
+#include "rcl/types.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/macros.h"
 #include "rcutils/stdatomic_helper.h"
-#include "rcutils/time.h"
 #include "tracetools/tracetools.h"
 #include "./timer_impl.h"
 

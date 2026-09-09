@@ -15,6 +15,8 @@
 #ifndef IMPL__NODE_PARAMS_H_
 #define IMPL__NODE_PARAMS_H_
 
+#include <stddef.h>
+
 #include "rcutils/allocator.h"
 #include "rcutils/macros.h"
 #include "rcutils/types/rcutils_ret.h"

@@ -19,10 +19,11 @@ extern "C"
 
 #include "./common.h"  // NOLINT
 
-#include <stdlib.h>
+#include "rcl/types.h"
 
-#include "rcl/allocator.h"
-#include "rcl/error_handling.h"
+#include "rcutils/types/rcutils_ret.h"
+
+#include "rmw/ret_types.h"
 
 rcl_ret_t
 rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret)

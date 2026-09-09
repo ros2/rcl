@@ -34,6 +34,8 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
 
+#include "rmw/rmw.h"
+
 /* This class is used for test_wait_for_all_acked
  */
 class TestPublisherFixtureSpecial : public ::testing::Test

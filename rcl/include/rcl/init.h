@@ -22,7 +22,6 @@ extern "C"
 {
 #endif
 
-#include "rcl/allocator.h"
 #include "rcl/context.h"
 #include "rcl/init_options.h"
 #include "rcl/macros.h"

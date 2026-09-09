@@ -15,9 +15,11 @@
 #ifndef RCL__CLIENT_IMPL_H_
 #define RCL__CLIENT_IMPL_H_
 
+#include <stdbool.h>
+
 #include "rcl/client.h"
 #include "rcutils/stdatomic_helper.h"
-#include "rmw/rmw.h"
+#include "rmw/types.h"
 #include "./service_event_publisher.h"
 
 struct rcl_client_impl_s

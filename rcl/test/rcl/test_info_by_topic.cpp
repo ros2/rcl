@@ -25,8 +25,9 @@
 #include "rcl/graph.h"
 #include "rcl/rcl.h"
 
-#include "rmw/topic_endpoint_info_array.h"
 #include "rmw/error_handling.h"
+#include "rmw/qos_profiles.h"
+#include "rmw/topic_endpoint_info_array.h"
 #include "wait_for_entity_helpers.hpp"
 
 #include "test_msgs/msg/strings.h"

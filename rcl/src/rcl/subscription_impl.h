@@ -15,9 +15,11 @@
 #ifndef RCL__SUBSCRIPTION_IMPL_H_
 #define RCL__SUBSCRIPTION_IMPL_H_
 
-#include "rmw/rmw.h"
+#include <stdbool.h>
 
 #include "rcl/subscription.h"
+
+#include "rmw/types.h"
 
 struct rcl_subscription_impl_s
 {

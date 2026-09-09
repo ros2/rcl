@@ -27,6 +27,8 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
+#include "rcutils/allocator.h"
+
 #include "rmw/security_options.h"
 
 #ifndef ROS_SECURITY_ENCLAVE_OVERRIDE

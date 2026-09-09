@@ -17,14 +17,16 @@
 #ifndef RCL__LOGGING_ROSOUT_H_
 #define RCL__LOGGING_ROSOUT_H_
 
+#include <stdarg.h>
+
 #include "rcl/allocator.h"
-#include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
-#include "rmw/qos_profiles.h"
+#include "rcutils/logging.h"
+#include "rcutils/time.h"
 
 #ifdef __cplusplus
 extern "C"

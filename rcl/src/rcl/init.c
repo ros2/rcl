@@ -19,20 +19,30 @@ extern "C"
 
 #include "rcl/init.h"
 
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "rcutils/logging_macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rcutils/strdup.h"
 
 #include "rmw/error_handling.h"
+#include "rmw/init.h"
+#include "rmw/ret_types.h"
+#include "rmw/rmw.h"
+#include "rmw/security_options.h"
 
 #include "tracetools/tracetools.h"
 
+#include "rcl/allocator.h"
 #include "rcl/arguments.h"
 #include "rcl/discovery_options.h"
 #include "rcl/domain_id.h"
 #include "rcl/error_handling.h"
 #include "rcl/logging.h"
 #include "rcl/security.h"
+#include "rcl/types.h"
 #include "rcl/validate_enclave_name.h"
 
 #include "./arguments_impl.h"

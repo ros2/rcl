@@ -16,9 +16,14 @@ extern "C"
 {
 #endif
 
+#include <stddef.h>
+
 #include "rcl_action/types.h"
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/types.h"
+
 #include "rcutils/macros.h"
 
 rcl_action_goal_info_t

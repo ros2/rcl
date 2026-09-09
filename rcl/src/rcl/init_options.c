@@ -19,12 +19,20 @@ extern "C"
 
 #include "rcl/init_options.h"
 
+#include <stddef.h>
+
 #include "./common.h"
 #include "./init_options_impl.h"
-#include "rcutils/macros.h"
+
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rmw/error_handling.h"
+#include "rcl/types.h"
+
 #include "rcutils/logging_macros.h"
+
+#include "rmw/error_handling.h"
+#include "rmw/init.h"
+#include "rmw/ret_types.h"
 
 rcl_init_options_t
 rcl_get_zero_initialized_init_options(void)

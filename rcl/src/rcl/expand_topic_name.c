@@ -19,10 +19,11 @@ extern "C"
 
 #include "rcl/expand_topic_name.h"
 
-#include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "./common.h"
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 #include "rcl/validate_topic_name.h"
@@ -30,8 +31,9 @@ extern "C"
 #include "rcutils/format_string.h"
 #include "rcutils/repl_str.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/string_map.h"
 #include "rmw/error_handling.h"
-#include "rmw/types.h"
+#include "rmw/ret_types.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 

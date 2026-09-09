@@ -18,12 +18,26 @@ extern "C"
 #endif
 
 #include <assert.h>
+#include <stdbool.h>
 #include <string.h>
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
 #include "rcl/node.h"
+#include "rcl/types.h"
+
+#include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/types/string_array.h"
+
+#include "rmw/ret_types.h"
+#include "rmw/service_endpoint_info.h"
+#include "rmw/service_endpoint_info_array.h"
+#include "rmw/topic_endpoint_info.h"
+#include "rmw/topic_endpoint_info_array.h"
 
 #include "rcl_action/graph.h"
 #include "rcl_action/names.h"

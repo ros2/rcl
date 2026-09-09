@@ -23,6 +23,8 @@ extern "C"
 #include "rcl_action/types.h"
 #include "rcl_action/visibility_control.h"
 
+#include "rcl/macros.h"
+
 
 /// Transition a goal from one state to the next.
 /**

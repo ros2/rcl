@@ -20,11 +20,15 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+
 #include "rcl_action/goal_state_machine.h"
 #include "rcl_action/types.h"
 #include "rcl_action/visibility_control.h"
 #include "rcl/allocator.h"
+#include "rcl/macros.h"
 #include "rcl/time.h"
+#include "rcl/types.h"
 
 
 /// Internal rcl action goal implementation struct.

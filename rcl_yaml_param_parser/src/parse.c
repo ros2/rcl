@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <locale.h>
 #ifdef __APPLE__
 #include <xlocale.h>
 #endif
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -44,6 +47,7 @@ typedef pthread_once_t once_flag;
 #include "rcutils/types/uint8_array.h"
 
 #include "rmw/error_handling.h"
+#include "rmw/ret_types.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 

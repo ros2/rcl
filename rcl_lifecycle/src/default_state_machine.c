@@ -14,15 +14,16 @@
 
 #include "rcl_lifecycle/default_state_machine.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <stddef.h>
 
 #include "lifecycle_msgs/msg/state.h"
 #include "lifecycle_msgs/msg/transition.h"
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rcl/rcl.h"
+#include "rcl/types.h"
+
+#include "rcutils/allocator.h"
 #include "rcutils/strdup.h"
 
 #include "rcl_lifecycle/transition_map.h"

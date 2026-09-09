@@ -14,6 +14,12 @@
 
 #include "rcl/logging_rosout.h"
 
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "rcl/allocator.h"
 #include "rcl/common.h"
 #include "rcl/error_handling.h"
@@ -21,12 +27,13 @@
 #include "rcl/publisher.h"
 #include "rcl/time.h"
 #include "rcl/types.h"
-#include "rcl/visibility_control.h"
 #include "rcl_interfaces/msg/log.h"
-#include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/format_string.h"
+#include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
-#include "rcutils/macros.h"
+#include "rcutils/time.h"
+#include "rcutils/types/char_array.h"
 #include "rcutils/types/hash_map.h"
 #include "rcutils/types/rcutils_ret.h"
 #include "rosidl_runtime_c/string_functions.h"

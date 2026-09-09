@@ -12,20 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
 #include "rcl/network_flow_endpoints.h"
 #include "rcl/publisher.h"
 #include "rcl/subscription.h"
+#include "rcl/types.h"
 
 #include "rcutils/allocator.h"
-#include "rcutils/macros.h"
 #include "rcutils/types.h"
 
 #include "rmw/error_handling.h"
 #include "rmw/get_network_flow_endpoints.h"
 #include "rmw/network_flow_endpoint_array.h"
-#include "rmw/types.h"
+#include "rmw/ret_types.h"
+#include "rmw/rmw.h"
 
 #include "./common.h"
 

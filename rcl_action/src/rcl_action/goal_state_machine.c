@@ -17,6 +17,9 @@ extern "C"
 {
 #endif
 
+#include <assert.h>
+#include <stddef.h>
+
 #include "rcl_action/goal_state_machine.h"
 
 typedef rcl_action_goal_state_t

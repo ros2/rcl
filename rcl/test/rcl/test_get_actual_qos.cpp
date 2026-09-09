@@ -28,6 +28,9 @@
 #include "test_msgs/msg/basic_types.h"
 #include "test_msgs/srv/basic_types.h"
 
+#include "rmw/qos_profiles.h"
+#include "rmw/rmw.h"
+
 /**
  * Parameterized test.
  * The first param are the NodeOptions used to create the nodes.

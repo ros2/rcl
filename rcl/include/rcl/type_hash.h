@@ -22,7 +22,7 @@ extern "C"
 
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
-#include "rcutils/sha256.h"
+#include "rcutils/types/char_array.h"
 #include "rosidl_runtime_c/type_hash.h"
 #include "type_description_interfaces/msg/type_description.h"
 

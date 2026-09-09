@@ -22,6 +22,8 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include "rcl/allocator.h"
@@ -32,6 +34,8 @@ extern "C"
 #include "rcl/node_options.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
+
+#include "rmw/types.h"
 
 #include "type_description_interfaces/srv/get_type_description.h"
 

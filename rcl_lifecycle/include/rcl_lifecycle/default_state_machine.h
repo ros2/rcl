@@ -15,6 +15,7 @@
 #ifndef RCL_LIFECYCLE__DEFAULT_STATE_MACHINE_H_
 #define RCL_LIFECYCLE__DEFAULT_STATE_MACHINE_H_
 
+#include "rcl/allocator.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 

@@ -16,7 +16,9 @@
 #ifndef RCL_LIFECYCLE__TRANSITION_MAP_H_
 #define RCL_LIFECYCLE__TRANSITION_MAP_H_
 
+#include "rcl/allocator.h"
 #include "rcl/macros.h"
+#include "rcl/types.h"
 
 #include "rcl_lifecycle/data_types.h"
 

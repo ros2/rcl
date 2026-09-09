@@ -24,6 +24,9 @@
 #include "rcl/rcl.h"
 #include "rcutils/testing/fault_injection.h"
 
+#include "rmw/qos_profiles.h"
+#include "rmw/rmw.h"
+
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "test_msgs/action/fibonacci.h"
 

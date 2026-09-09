@@ -19,10 +19,17 @@ extern "C"
 
 #include "rcl/guard_condition.h"
 
+#include <stdbool.h>
+#include <stddef.h>
+
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
-#include "rcl/rcl.h"
+#include "rcl/types.h"
+
 #include "rmw/error_handling.h"
+#include "rmw/ret_types.h"
 #include "rmw/rmw.h"
+#include "rmw/types.h"
 
 #include "./context_impl.h"
 #include "./guard_condition_impl.h"
