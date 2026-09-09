@@ -17,6 +17,7 @@
 #ifndef RCL__TYPES_H_
 #define RCL__TYPES_H_
 
+#include <rmw/ret_types.h>
 #include <rmw/types.h>
 #include <rcutils/types.h>
 

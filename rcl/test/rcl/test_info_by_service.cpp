@@ -26,8 +26,9 @@
 #include "rcl/graph.h"
 #include "rcl/rcl.h"
 
-#include "rmw/service_endpoint_info_array.h"
 #include "rmw/error_handling.h"
+#include "rmw/qos_profiles.h"
+#include "rmw/service_endpoint_info_array.h"
 #include "wait_for_entity_helpers.hpp"
 
 #include "test_msgs/srv/basic_types.h"

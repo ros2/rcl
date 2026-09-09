@@ -15,8 +15,19 @@
 #ifndef RCL_ACTION__ACTION_SERVER_IMPL_H_
 #define RCL_ACTION__ACTION_SERVER_IMPL_H_
 
-#include "rcl_action/types.h"
-#include "rcl/rcl.h"
+#include <stdbool.h>
+#include <stddef.h>
+
+#include "rcl_action/action_server.h"
+#include "rcl_action/goal_handle.h"
+
+#include "rcl/event_callback.h"
+#include "rcl/publisher.h"
+#include "rcl/service.h"
+#include "rcl/time.h"
+#include "rcl/timer.h"
+
+#include "rosidl_runtime_c/type_hash.h"
 
 /// Internal rcl_action implementation struct.
 typedef struct rcl_action_server_impl_s

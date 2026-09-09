@@ -21,7 +21,10 @@ extern "C"
 
 #include <string.h>
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/types.h"
+
 #include "rcutils/format_string.h"
 
 rcl_ret_t

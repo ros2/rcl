@@ -19,19 +19,24 @@ extern "C"
 
 #include "rcl/service.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <stdbool.h>
+#include <stddef.h>
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcl/node_type_cache.h"
 #include "rcl/publisher.h"
 #include "rcl/time.h"
 #include "rcl/types.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rmw/error_handling.h"
+#include "rmw/qos_profiles.h"
+#include "rmw/ret_types.h"
 #include "rmw/rmw.h"
+#include "rmw/types.h"
 #include "service_msgs/msg/service_event_info.h"
 #include "tracetools/tracetools.h"
 

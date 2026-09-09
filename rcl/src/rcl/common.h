@@ -22,6 +22,10 @@ extern "C"
 
 #include "rcl/types.h"
 
+#include "rcutils/types/rcutils_ret.h"
+
+#include "rmw/ret_types.h"
+
 /// Convenience function for converting common rmw_ret_t return codes to rcl.
 rcl_ret_t
 rcl_convert_rmw_ret_to_rcl_ret(rmw_ret_t rmw_ret);

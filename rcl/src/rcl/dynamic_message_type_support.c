@@ -17,11 +17,17 @@ extern "C"
 {
 #endif
 
-#include <rcutils/logging_macros.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+#include <rcutils/allocator.h>
+#include <rcutils/error_handling.h>
+#include <rcutils/types/rcutils_ret.h>
 #include <rosidl_runtime_c/message_type_support_struct.h>
 #include <rosidl_runtime_c/type_description/type_description__struct.h>
 
 #include "rmw/dynamic_message_type_support.h"
+#include "rmw/rmw.h"
 
 #include "rcl/allocator.h"
 #include "rcl/common.h"

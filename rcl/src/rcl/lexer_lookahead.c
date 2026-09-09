@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <stddef.h>
+
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/lexer_lookahead.h"
+#include "rcl/types.h"
 
 struct rcl_lexer_lookahead2_impl_s
 {

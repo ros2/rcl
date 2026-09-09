@@ -17,6 +17,9 @@
 #ifndef RCL__LOGGING_H_
 #define RCL__LOGGING_H_
 
+#include <stdarg.h>
+#include <stdbool.h>
+
 #include "rcl/allocator.h"
 #include "rcl/arguments.h"
 #include "rcl/macros.h"
@@ -24,6 +27,7 @@
 #include "rcl/visibility_control.h"
 
 #include "rcutils/logging.h"
+#include "rcutils/time.h"
 
 #ifdef __cplusplus
 extern "C"

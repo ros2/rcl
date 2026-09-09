@@ -27,7 +27,8 @@
 #ifndef RCL_YAML_PARAM_PARSER__PARSER_H_
 #define RCL_YAML_PARAM_PARSER__PARSER_H_
 
-#include <stdlib.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #include "rcl_yaml_param_parser/types.h"
 #include "rcl_yaml_param_parser/visibility_control.h"

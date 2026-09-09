@@ -15,6 +15,8 @@
 #ifndef IMPL__PARSE_H_
 #define IMPL__PARSE_H_
 
+#include <stdbool.h>
+#include <stddef.h>
 #include <yaml.h>
 
 #include "rcutils/allocator.h"

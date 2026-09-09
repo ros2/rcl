@@ -21,6 +21,8 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rcl/error_handling.h"
+#include "rmw/qos_profiles.h"
+#include "rmw/rmw.h"
 #include "rmw/validate_namespace.h"
 
 #include "wait_for_entity_helpers.hpp"

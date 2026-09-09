@@ -17,20 +17,23 @@ extern "C"
 {
 #endif
 
-#include <ctype.h>
-#include <inttypes.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "./arguments_impl.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/logging.h"
 #include "rcl/logging_rosout.h"
-#include "rcl/macros.h"
+#include "rcl/types.h"
 #include "rcl_logging_interface/rcl_logging_interface.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/logging.h"
 #include "rcutils/time.h"
+#include "rcutils/types/char_array.h"
+#include "rcutils/types/rcutils_ret.h"
 
 #define RCL_LOGGING_MAX_OUTPUT_FUNCS (4)
 

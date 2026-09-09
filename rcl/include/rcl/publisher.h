@@ -22,12 +22,19 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "rosidl_runtime_c/message_type_support_struct.h"
 
+#include "rcl/allocator.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
-#include "rcl/visibility_control.h"
 #include "rcl/time.h"
+#include "rcl/types.h"
+#include "rcl/visibility_control.h"
+
+#include "rmw/types.h"
 
 /// Internal rcl publisher implementation struct.
 typedef struct rcl_publisher_impl_s rcl_publisher_impl_t;

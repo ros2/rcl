@@ -39,6 +39,13 @@ extern "C"
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "rcl/allocator.h"
+#include "rcl/macros.h"
+#include "rcl/node.h"
+#include "rcl/time.h"
+#include "rcl/types.h"
 
 #include "rcl_lifecycle/data_types.h"
 #include "rcl_lifecycle/default_state_machine.h"

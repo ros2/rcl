@@ -17,10 +17,16 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+
 #include "rcl_action/goal_handle.h"
 
-#include "rcl/rcl.h"
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/time.h"
+#include "rcl/types.h"
+
+#include "rcutils/macros.h"
 
 typedef struct rcl_action_goal_handle_impl_s
 {

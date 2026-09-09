@@ -15,8 +15,10 @@
 #ifndef RCL__TIMER_IMPL_H_
 #define RCL__TIMER_IMPL_H_
 
-#include <inttypes.h>
+#include <stdbool.h>
 
+#include "rcl/allocator.h"
+#include "rcl/time.h"
 #include "rcl/timer.h"
 #include "rcutils/stdatomic_helper.h"
 

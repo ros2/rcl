@@ -24,7 +24,9 @@ extern "C"
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
+#include "rcl/allocator.h"
 #include "rcl/client.h"
 #include "rcl/guard_condition.h"
 #include "rcl/macros.h"
