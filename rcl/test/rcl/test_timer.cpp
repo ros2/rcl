@@ -169,7 +169,7 @@ TEST_F(TestTimerFixture, test_timer_init_with_invalid_arguments) {
   rcl_reset_error();
 }
 
-TEST_F(TestTimerFixture, test_timer_init3_with_invalid_arguments) {
+TEST_F(TestTimerFixture, test_timer_init_with_start_time_with_invalid_arguments) {
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
@@ -186,37 +186,37 @@ TEST_F(TestTimerFixture, test_timer_init3_with_invalid_arguments) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   rcl_time_point_value_t initial_call_time = now + RCL_MS_TO_NS(50);
 
-  ret = rcl_timer_init3(
+  ret = rcl_timer_init_with_start_time(
     nullptr, &clock, this->context_ptr, initial_call_time, RCL_MS_TO_NS(50), nullptr, allocator,
     true);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
 
-  ret = rcl_timer_init3(
+  ret = rcl_timer_init_with_start_time(
     &timer, nullptr, this->context_ptr, initial_call_time, RCL_MS_TO_NS(50), nullptr, allocator,
     true);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
 
-  ret = rcl_timer_init3(
+  ret = rcl_timer_init_with_start_time(
     &timer, &clock, nullptr, initial_call_time, RCL_MS_TO_NS(50), nullptr, allocator, true);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
 
-  ret = rcl_timer_init3(
+  ret = rcl_timer_init_with_start_time(
     &timer, &clock, this->context_ptr, initial_call_time, -1, nullptr, allocator, true);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
 
   rcl_allocator_t invalid_allocator = rcutils_get_zero_initialized_allocator();
-  ret = rcl_timer_init3(
+  ret = rcl_timer_init_with_start_time(
     &timer, &clock, this->context_ptr, initial_call_time, RCL_MS_TO_NS(50), nullptr,
     invalid_allocator, true);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
 }
 
-TEST_F(TestTimerFixture, test_timer_init3_honors_future_initial_call_time) {
+TEST_F(TestTimerFixture, test_timer_init_with_start_time_honors_future_initial_call_time) {
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
@@ -238,7 +238,7 @@ TEST_F(TestTimerFixture, test_timer_init3_honors_future_initial_call_time) {
   rcl_time_point_value_t initial_call_time = now + initial_delay;
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init3(
+  ret = rcl_timer_init_with_start_time(
     &timer, &clock, this->context_ptr, initial_call_time, period, nullptr,
     rcl_get_default_allocator(), true);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -261,7 +261,7 @@ TEST_F(TestTimerFixture, test_timer_init3_honors_future_initial_call_time) {
   EXPECT_LE(time_until_next_call, initial_delay);
 }
 
-TEST_F(TestTimerFixture, test_timer_init3_with_past_initial_call_time_is_ready) {
+TEST_F(TestTimerFixture, test_timer_init_with_start_time_with_past_initial_call_time_is_ready) {
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
@@ -278,7 +278,7 @@ TEST_F(TestTimerFixture, test_timer_init3_with_past_initial_call_time_is_ready) 
   rcl_time_point_value_t initial_call_time = now - RCL_S_TO_NS(1);
 
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init3(
+  ret = rcl_timer_init_with_start_time(
     &timer, &clock, this->context_ptr, initial_call_time, RCL_S_TO_NS(1), nullptr,
     rcl_get_default_allocator(), true);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -292,6 +292,161 @@ TEST_F(TestTimerFixture, test_timer_init3_with_past_initial_call_time_is_ready) 
   ret = rcl_timer_is_ready(&timer, &is_ready);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(is_ready);
+}
+
+TEST_F(TestTimerFixture, test_timer_resume_with_invalid_arguments) {
+  rcl_ret_t ret = rcl_timer_resume(nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  rcl_timer_t uninitialized_timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_resume(&uninitialized_timer);
+  EXPECT_EQ(RCL_RET_TIMER_INVALID, ret);
+  rcl_reset_error();
+}
+
+TEST_F(TestTimerFixture, test_timer_resume_does_not_advance_if_not_yet_due) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_time_point_value_t now = 0;
+  ret = rcl_clock_get_now(&clock, &now);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  const int64_t period = RCL_MS_TO_NS(50);
+  const int64_t initial_delay = RCL_S_TO_NS(10);
+  rcl_time_point_value_t initial_call_time = now + initial_delay;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, initial_call_time, period, nullptr,
+    rcl_get_default_allocator(), false);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  bool is_canceled = false;
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(is_canceled);
+
+  ret = rcl_timer_resume(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_canceled);
+
+  int64_t next_call_time = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // The original phase-anchored schedule should be preserved, not recomputed from now().
+  EXPECT_EQ(initial_call_time, next_call_time);
+}
+
+TEST_F(TestTimerFixture, test_timer_resume_catches_up_if_overdue) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_time_point_value_t now = 0;
+  ret = rcl_clock_get_now(&clock, &now);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Simulate a timer that was paused (canceled) for much longer than several periods.
+  const int64_t period = RCL_MS_TO_NS(100);
+  const int64_t overdue_by = RCL_MS_TO_NS(1050);  // 10.5 periods overdue
+  rcl_time_point_value_t initial_call_time = now - overdue_by;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, initial_call_time, period, nullptr,
+    rcl_get_default_allocator(), false);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  ret = rcl_timer_resume(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  bool is_canceled = true;
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_canceled);
+
+  int64_t time_until_next_call = 0;
+  ret = rcl_timer_get_time_until_next_call(&timer, &time_until_next_call);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // Should have caught up to the next period boundary after now, not restarted from now().
+  EXPECT_GT(time_until_next_call, 0);
+  EXPECT_LE(time_until_next_call, period);
+}
+
+TEST_F(TestTimerFixture, test_timer_resume_uncancels_a_canceled_timer) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(10), nullptr,
+    rcl_get_default_allocator(), true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  int64_t next_call_time_before = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time_before);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_timer_cancel(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  bool is_canceled = false;
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(is_canceled);
+
+  ret = rcl_timer_resume(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_canceled);
+
+  int64_t next_call_time_after = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time_after);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // A short cancel/resume cycle with a long period should not have shifted the phase.
+  EXPECT_EQ(next_call_time_before, next_call_time_after);
 }
 
 TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {

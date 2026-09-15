@@ -246,7 +246,7 @@ rcl_timer_init2(
  * rcl_timer_t timer = rcl_get_zero_initialized_timer();
  * rcl_time_point_value_t initial_call_time = now + RCL_MS_TO_NS(10);
  * int64_t period = RCL_MS_TO_NS(100);
- * ret = rcl_timer_init3(
+ * ret = rcl_timer_init_with_start_time(
  *   &timer, &clock, context, initial_call_time, period, my_timer_callback, allocator, true);
  * // ... error handling, use the timer with a wait set, or poll it manually, then cleanup
  * ret = rcl_timer_fini(&timer);
@@ -283,7 +283,7 @@ rcl_timer_init2(
 RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
-rcl_timer_init3(
+rcl_timer_init_with_start_time(
   rcl_timer_t * timer,
   rcl_clock_t * clock,
   rcl_context_t * context,
@@ -722,7 +722,8 @@ rcl_timer_exchange_callback_data(rcl_timer_t * timer, uintptr_t data);
  * When a timer is canceled, rcl_timer_is_ready() will return false for that
  * timer, and rcl_timer_call() will fail with RCL_RET_TIMER_CANCELED.
  *
- * A canceled timer can be reset with rcl_timer_reset(), and then used again.
+ * A canceled timer can be reset with rcl_timer_reset() or resumed with
+ * rcl_timer_resume(), and then used again.
  * Calling this function on an already canceled timer will succeed.
  *
  * <hr>
@@ -798,6 +799,45 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer);
+
+/// Resume a timer, preserving its existing schedule phase.
+/**
+ * This function can be called on a timer, canceled or not.
+ * Unlike rcl_timer_reset(), this does not unconditionally recompute the
+ * next call time from the current time; if the timer's next call time is
+ * still in the future, it is left unchanged.
+ * If the next call time is in the past (e.g. because the timer was
+ * canceled and is being resumed some time later), it is advanced by whole
+ * periods until it is in the future again, without shifting the phase
+ * established when the timer was initialized (or last had its next call
+ * time explicitly set).
+ * For canceled timers this additionally makes the timer not canceled.
+ *
+ * This makes it possible to initialize a timer with autostart false and
+ * an explicit initial call time (see rcl_timer_init_with_start_time()),
+ * and later resume it without losing the originally intended schedule,
+ * which is not possible with rcl_timer_reset() since it always
+ * recomputes the next call time as now() + period.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Yes
+ * Lock-Free          | Yes [1]
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
+ *
+ * \param[inout] timer the timer to be resumed
+ * \return #RCL_RET_OK if the timer was resumed successfully, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_TIMER_INVALID if the timer is invalid, or
+ * \return #RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_resume(rcl_timer_t * timer);
 
 /// Return the allocator for the timer.
 /**

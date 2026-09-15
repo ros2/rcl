@@ -121,13 +121,13 @@ rcl_timer_init2(
     return now_ret;  // rcl error state should already be set.
   }
   rcl_time_point_value_t initial_call_time = now + period;
-  return rcl_timer_init3(
+  return rcl_timer_init_with_start_time(
     timer, clock, context, initial_call_time, period,
     callback, allocator, autostart);
 }
 
 rcl_ret_t
-rcl_timer_init3(
+rcl_timer_init_with_start_time(
   rcl_timer_t * timer,
   rcl_clock_t * clock,
   rcl_context_t * context,
@@ -263,6 +263,30 @@ rcl_timer_clock(const rcl_timer_t * timer, rcl_clock_t ** clock)
   return RCL_RET_OK;
 }
 
+/// Advance next_call_time by whole periods, if necessary, until it is after now.
+/**
+ * If next_call_time is already after now, it is returned unchanged.
+ * A period of zero is considered always ready, and now is returned in that case
+ * if next_call_time is not already after now.
+ */
+static int64_t
+_rcl_timer_next_call_time_after(int64_t next_call_time, int64_t period, rcl_time_point_value_t now)
+{
+  if (next_call_time <= now) {
+    if (0 == period) {
+      // a timer with a period of zero is considered always ready
+      next_call_time = now;
+    } else {
+      // move the next call time forward by as many periods as necessary
+      int64_t now_ahead = now - next_call_time;
+      // rounding up without overflow
+      int64_t periods_ahead = 1 + now_ahead / period;
+      next_call_time += periods_ahead * period;
+    }
+  }
+  return next_call_time;
+}
+
 rcl_ret_t
 rcl_timer_call(rcl_timer_t * timer)
 {
@@ -304,19 +328,8 @@ rcl_timer_call_with_info(rcl_timer_t * timer, rcl_timer_call_info_t * call_info)
   // don't use now as the base to avoid extending each cycle by the time
   // between the timer being ready and the callback being triggered
   next_call_time += period;
-  // in case the timer has missed at least once cycle
-  if (next_call_time <= now) {
-    if (0 == period) {
-      // a timer with a period of zero is considered always ready
-      next_call_time = now;
-    } else {
-      // move the next call time forward by as many periods as necessary
-      int64_t now_ahead = now - next_call_time;
-      // rounding up without overflow
-      int64_t periods_ahead = 1 + now_ahead / period;
-      next_call_time += periods_ahead * period;
-    }
-  }
+  // in case the timer has missed at least once cycle, catch up to the next period boundary
+  next_call_time = _rcl_timer_next_call_time_after(next_call_time, period, now);
   rcutils_atomic_store(&timer->impl->next_call_time, next_call_time);
 
   if (typed_callback != NULL) {
@@ -514,6 +527,43 @@ rcl_timer_reset(rcl_timer_t * timer)
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset");
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_timer_resume(rcl_timer_t * timer)
+{
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
+  rcl_time_point_value_t now;
+  rcl_ret_t now_ret = rcl_clock_get_now(timer->impl->clock, &now);
+  if (now_ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(now_ret);
+    return now_ret;  // rcl error state should already be set.
+  }
+  int64_t next_call_time = rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
+  int64_t period = rcutils_atomic_load_int64_t(&timer->impl->period);
+  // unlike reset(), only catch up if the existing schedule is already overdue;
+  // otherwise leave next_call_time untouched, preserving the original phase
+  next_call_time = _rcl_timer_next_call_time_after(next_call_time, period, now);
+  rcutils_atomic_store(&timer->impl->next_call_time, next_call_time);
+  rcutils_atomic_store(&timer->impl->canceled, false);
+  rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
+
+  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->reset_callback_data;
+
+  if (cb_data->on_reset_callback) {
+    cb_data->on_reset_callback(cb_data->user_data, 1);
+  } else {
+    cb_data->reset_counter++;
+  }
+
+  if (ret != RCL_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
+  }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully resumed");
   return RCL_RET_OK;
 }
 
