@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 #include <chrono>
+#include <cstdint>
 #include <thread>
 
 #include "rcl/timer.h"
@@ -24,6 +25,7 @@
 #include "rcl/error_handling.h"
 
 #include "./allocator_testing_utils.h"
+#include "../mocking_utils/patch.hpp"
 
 class TestTimerFixture : public ::testing::Test
 {
@@ -447,6 +449,124 @@ TEST_F(TestTimerFixture, test_timer_resume_uncancels_a_canceled_timer) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   // A short cancel/resume cycle with a long period should not have shifted the phase.
   EXPECT_EQ(next_call_time_before, next_call_time_after);
+}
+
+// Regression test: rcl_timer_init2() used to read the clock once to compute
+// initial_call_time = now + period, then hand off to rcl_timer_init_with_start_time(), which
+// read the clock a *second*, independent time to set last_call_time. Between the two reads,
+// real time passes -- negligible for a monotonic clock, but unbounded for an RCL_ROS_TIME
+// clock if a sim-time jump lands between them. Confirms the clock is now read exactly once.
+TEST_F(TestTimerFixture, test_timer_init2_reads_clock_exactly_once) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  const int64_t period = RCL_MS_TO_NS(100);
+  int call_count = 0;
+  auto mock = mocking_utils::patch(
+    "lib:rcl", rcl_clock_get_now,
+    [&call_count](rcl_clock_t *, rcl_time_point_value_t * out) -> rcl_ret_t {
+      // A distinct value per call would reveal it if last_call_time and next_call_time ended
+      // up computed from two different reads instead of one shared one.
+      *out = RCL_S_TO_NS(1) * (++call_count);
+      return RCL_RET_OK;
+    });
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, period, nullptr, rcl_get_default_allocator(), true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  EXPECT_EQ(1, call_count);
+
+  int64_t next_call_time = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // Computed from the one and only mocked read (RCL_S_TO_NS(1)), plus period.
+  EXPECT_EQ(RCL_S_TO_NS(1) + period, next_call_time);
+}
+
+TEST_F(TestTimerFixture, test_timer_init_with_start_time_reads_clock_exactly_once) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  int call_count = 0;
+  auto mock = mocking_utils::patch(
+    "lib:rcl", rcl_clock_get_now,
+    [&call_count](rcl_clock_t *, rcl_time_point_value_t * out) -> rcl_ret_t {
+      *out = RCL_S_TO_NS(1) * (++call_count);
+      return RCL_RET_OK;
+    });
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(10), RCL_MS_TO_NS(100), nullptr,
+    rcl_get_default_allocator(), true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  EXPECT_EQ(1, call_count);
+}
+
+// Regression test: the arithmetic used to catch a timer's next_call_time up to the present
+// (shared by rcl_timer_call_with_info() and rcl_timer_resume()) could overflow int64_t --
+// undefined behavior -- for a sufficiently extreme next_call_time/period combination. Since
+// initial_call_time is caller-supplied, a caller can trigger this with an extreme value. It
+// should now saturate at INT64_MAX instead.
+TEST_F(TestTimerFixture, test_timer_resume_saturates_instead_of_overflowing) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // A next_call_time near INT64_MIN is always "overdue" relative to any real now(), forcing
+  // the catch-up arithmetic to run; combined with a large period, advancing it by whole
+  // periods would overflow int64_t well before catching up to now().
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, INT64_MIN + 1, INT64_MAX, nullptr,
+    rcl_get_default_allocator(), false);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  ret = rcl_timer_resume(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  int64_t next_call_time = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(INT64_MAX, next_call_time);
 }
 
 TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {
