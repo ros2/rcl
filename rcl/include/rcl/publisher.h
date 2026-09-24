@@ -654,6 +654,33 @@ rcl_publisher_get_subscription_count(
   const rcl_publisher_t * publisher,
   size_t * subscription_count);
 
+/// Get the number of non local subscriptions matched to a publisher.
+/**
+ * Used to get the internal count of non local subscriptions matched to a publisher.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Maybe [1]
+ * Lock-Free          | Maybe [1]
+ * <i>[1] only if the underlying rmw doesn't make use of this feature </i>
+ *
+ * \param[in] publisher pointer to the rcl publisher
+ * \param[out] non_local_subscription_count number of non local matched subscriptions
+ * \return #RCL_RET_OK if the count was retrieved, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_PUBLISHER_INVALID if the publisher is invalid, or
+ * \return #RCL_RET_ERROR if an unspecified error occurs.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_publisher_get_non_local_subscription_count(
+  const rcl_publisher_t * publisher,
+  size_t * non_local_subscription_count);
+
 /// Get the actual qos settings of the publisher.
 /**
  * Used to get the actual qos settings of the publisher.
