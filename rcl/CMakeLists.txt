@@ -139,9 +139,6 @@ install(
 # This is overwritten each loop, but which one it points to doesn't really matter.
 set(rcl_lib_dir "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 
-# Export old-style CMake variables
-ament_export_include_directories("include/${PROJECT_NAME}")
-ament_export_libraries(${PROJECT_NAME})
 # Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
 
