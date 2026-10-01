@@ -32,6 +32,8 @@
 
 #include "rcl/error_handling.h"
 
+#include "rmw/qos_profiles.h"
+
 class TestCountFixture : public ::testing::Test
 {
 public:

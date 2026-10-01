@@ -15,8 +15,14 @@
 #ifndef RCL__CONTEXT_IMPL_H_
 #define RCL__CONTEXT_IMPL_H_
 
+#include <stdint.h>
+
+#include "rcl/allocator.h"
 #include "rcl/context.h"
-#include "rcl/error_handling.h"
+#include "rcl/types.h"
+#include "rcl/visibility_control.h"
+
+#include "rmw/init.h"
 
 #include "./init_options_impl.h"
 

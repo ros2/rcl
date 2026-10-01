@@ -43,6 +43,8 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
+#include "rmw/rmw.h"
+
 bool is_connext =
   std::string(rmw_get_implementation_identifier()).find("rmw_connext") == 0;
 

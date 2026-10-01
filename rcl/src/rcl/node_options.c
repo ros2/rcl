@@ -17,14 +17,17 @@ extern "C"
 {
 #endif
 
-#include "rcutils/macros.h"
+#include <stdbool.h>
+#include <stddef.h>
 
 #include "rcl/node_options.h"
 
+#include "rcl/allocator.h"
 #include "rcl/arguments.h"
 #include "rcl/domain_id.h"
 #include "rcl/error_handling.h"
 #include "rcl/logging_rosout.h"
+#include "rcl/types.h"
 
 #include "rmw/qos_profiles.h"
 

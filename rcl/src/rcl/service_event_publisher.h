@@ -20,6 +20,9 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/publisher.h"

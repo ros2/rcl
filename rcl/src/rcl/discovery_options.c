@@ -14,20 +14,22 @@
 
 #include "rcl/discovery_options.h"
 
-#include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "rcutils/allocator.h"
 #include "rcutils/env.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
-#include "rcutils/snprintf.h"
 #include "rcutils/split.h"
+#include "rcutils/types/rcutils_ret.h"
 #include "rcutils/types/string_array.h"
 
 #include "rcl/error_handling.h"
 #include "rcl/types.h"
 
 #include "rmw/error_handling.h"
+#include "rmw/ret_types.h"
 
 #include "./common.h"
 

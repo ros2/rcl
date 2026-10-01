@@ -18,6 +18,8 @@
 
 #include <gtest/gtest.h>
 
+#include "rcl/init.h"
+
 #include "rcl_lifecycle/rcl_lifecycle.h"
 
 #include "osrf_testing_tools_cpp/memory_tools/memory_tools.hpp"

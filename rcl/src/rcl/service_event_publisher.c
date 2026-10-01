@@ -14,10 +14,12 @@
 
 #include "rcl/service_event_publisher.h"
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "rcl/allocator.h"
-#include "rcl/macros.h"
 #include "rcl/error_handling.h"
 #include "rcl/publisher.h"
 #include "rcl/node.h"
@@ -25,8 +27,10 @@
 #include "rcl/time.h"
 #include "rcl/types.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/macros.h"
 #include "rmw/error_handling.h"
+#include "rmw/ret_types.h"
 #include "service_msgs/msg/service_event_info.h"
 
 rcl_service_event_publisher_t rcl_get_zero_initialized_service_event_publisher(void)

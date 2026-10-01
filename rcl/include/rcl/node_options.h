@@ -22,10 +22,16 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+
 #include "rcl/allocator.h"
 #include "rcl/arguments.h"
-
 #include "rcl/domain_id.h"
+#include "rcl/macros.h"
+#include "rcl/types.h"
+#include "rcl/visibility_control.h"
+
+#include "rmw/types.h"
 
 /// Constant which indicates that the default domain id should be used.
 #define RCL_NODE_OPTIONS_DEFAULT_DOMAIN_ID RCL_DEFAULT_DOMAIN_ID

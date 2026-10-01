@@ -15,8 +15,15 @@
 #ifndef RCL_ACTION__ACTION_CLIENT_IMPL_H_
 #define RCL_ACTION__ACTION_CLIENT_IMPL_H_
 
-#include "rcl_action/types.h"
-#include "rcl/rcl.h"
+#include <stdbool.h>
+#include <stddef.h>
+
+#include "rcl_action/action_client.h"
+
+#include "rcl/client.h"
+#include "rcl/subscription.h"
+
+#include "rosidl_runtime_c/type_hash.h"
 
 typedef struct rcl_action_client_impl_s
 {

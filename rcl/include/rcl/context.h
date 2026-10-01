@@ -22,9 +22,12 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #include "rmw/init.h"
 
-#include "rcl/allocator.h"
 #include "rcl/arguments.h"
 #include "rcl/init_options.h"
 #include "rcl/macros.h"

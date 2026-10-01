@@ -15,7 +15,14 @@
 #ifndef RCL_LIFECYCLE__DATA_TYPES_H_
 #define RCL_LIFECYCLE__DATA_TYPES_H_
 
-#include "rcl/rcl.h"
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "rcl/allocator.h"
+#include "rcl/node.h"
+#include "rcl/publisher.h"
+#include "rcl/service.h"
+#include "rcl/time.h"
 
 #include "rcl_lifecycle/visibility_control.h"
 

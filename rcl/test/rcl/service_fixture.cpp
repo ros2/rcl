@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <chrono>
+#include <cstring>
 #include <thread>
 
 #include "rcutils/logging_macros.h"

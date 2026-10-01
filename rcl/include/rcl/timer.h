@@ -23,6 +23,8 @@ extern "C"
 #endif
 
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "rcl/allocator.h"
 #include "rcl/context.h"
@@ -31,8 +33,7 @@ extern "C"
 #include "rcl/macros.h"
 #include "rcl/time.h"
 #include "rcl/types.h"
-#include "rcutils/logging_macros.h"
-#include "rmw/rmw.h"
+#include "rcl/visibility_control.h"
 
 typedef struct rcl_timer_impl_s rcl_timer_impl_t;
 

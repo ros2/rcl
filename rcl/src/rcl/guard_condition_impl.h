@@ -15,7 +15,11 @@
 #ifndef RCL__GUARD_CONDITION_IMPL_H_
 #define RCL__GUARD_CONDITION_IMPL_H_
 
+#include <stdbool.h>
+
 #include "rcl/guard_condition.h"
+
+#include "rmw/types.h"
 
 struct rcl_guard_condition_impl_s
 {

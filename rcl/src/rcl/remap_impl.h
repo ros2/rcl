@@ -16,10 +16,11 @@
 #define RCL__REMAP_IMPL_H_
 
 #include "rcl/allocator.h"
-#include "rcl/macros.h"
 #include "rcl/remap.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
+
+#include "rcutils/types/string_map.h"
 
 #ifdef __cplusplus
 extern "C"

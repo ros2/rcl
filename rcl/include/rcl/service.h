@@ -22,6 +22,8 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+
 #include "rosidl_runtime_c/service_type_support_struct.h"
 
 #include "rcl/allocator.h"
@@ -31,6 +33,7 @@ extern "C"
 #include "rcl/publisher.h"
 #include "rcl/service_introspection.h"
 #include "rcl/time.h"
+#include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
 #include "rmw/types.h"

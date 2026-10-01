@@ -22,6 +22,8 @@ extern "C"
 {
 #endif
 
+#include <stddef.h>
+
 #include "rmw/init.h"
 
 #include "rcl/allocator.h"

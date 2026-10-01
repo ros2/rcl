@@ -19,17 +19,20 @@ extern "C"
 
 #include "rcl/wait.h"
 
-#include <assert.h>
-#include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/time.h"
+#include "rcl/types.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
+#include "rmw/ret_types.h"
 #include "rmw/rmw.h"
-#include "rmw/event.h"
+#include "rmw/time.h"
+#include "rmw/types.h"
 
 #include "./context_impl.h"
 #include "./client_impl.h"

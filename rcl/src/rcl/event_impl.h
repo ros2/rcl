@@ -15,9 +15,10 @@
 #ifndef RCL__EVENT_IMPL_H_
 #define RCL__EVENT_IMPL_H_
 
-#include "rmw/rmw.h"
-
+#include "rcl/allocator.h"
 #include "rcl/event.h"
+
+#include "rmw/event.h"
 
 struct rcl_event_impl_s
 {

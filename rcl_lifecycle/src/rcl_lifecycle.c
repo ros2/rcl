@@ -19,13 +19,17 @@ extern "C"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
-#include "rcl/rcl.h"
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/node.h"
+#include "rcl/time.h"
+#include "rcl/types.h"
 
+#include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/macros.h"
 #include "rcutils/strdup.h"

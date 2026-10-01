@@ -22,6 +22,7 @@ extern "C"
 {
 #endif
 
+#include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
 /// The environment variable name to control which RMW implementation is used.

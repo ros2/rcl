@@ -17,11 +17,15 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 
+#include "rcl/allocator.h"
 #include "rcl/graph.h"
 #include "rcl/error_handling.h"
 #include "rcl/guard_condition.h"
+#include "rcl/types.h"
 #include "rcl/wait.h"
 
 #include "rcutils/allocator.h"
@@ -37,9 +41,11 @@ extern "C"
 #include "rmw/get_topic_endpoint_info.h"
 #include "rmw/get_topic_names_and_types.h"
 #include "rmw/names_and_types.h"
+#include "rmw/ret_types.h"
 #include "rmw/rmw.h"
 #include "rmw/service_endpoint_info_array.h"
 #include "rmw/topic_endpoint_info_array.h"
+#include "rmw/types.h"
 #include "rmw/validate_namespace.h"
 #include "rmw/validate_node_name.h"
 

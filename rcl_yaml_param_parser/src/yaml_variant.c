@@ -12,9 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/rcutils_ret.h"
 #include "rcutils/types/string_array.h"
 
 #include "./impl/types.h"

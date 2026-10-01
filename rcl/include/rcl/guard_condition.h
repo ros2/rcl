@@ -28,6 +28,8 @@ extern "C"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
+#include "rmw/types.h"
+
 /// Internal rcl guard condition implementation struct.
 typedef struct rcl_guard_condition_impl_s rcl_guard_condition_impl_t;
 

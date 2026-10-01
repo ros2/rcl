@@ -15,9 +15,14 @@
 #include "rcl/security.h"
 
 #include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/types.h"
 
+#include "rcutils/allocator.h"
 #include "rcutils/env.h"
 #include "rcutils/filesystem.h"
 #include "rcutils/logging_macros.h"

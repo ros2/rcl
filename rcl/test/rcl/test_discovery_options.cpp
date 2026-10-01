@@ -17,6 +17,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 #include "rcl/discovery_options.h"
+#include "rcl/error_handling.h"
 #include "rcl/rcl.h"
 
 #include "rcutils/allocator.h"

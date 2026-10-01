@@ -15,8 +15,10 @@
 #ifndef RCL__INIT_OPTIONS_IMPL_H_
 #define RCL__INIT_OPTIONS_IMPL_H_
 
+#include "rcl/allocator.h"
 #include "rcl/init_options.h"
 
+#include "rmw/init.h"
 #include "rmw/init_options.h"
 
 #ifdef __cplusplus

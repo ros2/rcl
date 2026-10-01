@@ -20,9 +20,13 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "rcl_action/goal_handle.h"
 #include "rcl_action/types.h"
 #include "rcl_action/visibility_control.h"
+#include "rcl/allocator.h"
 #include "rcl/event_callback.h"
 #include "rcl/macros.h"
 #include "rcl/node.h"
@@ -30,6 +34,9 @@ extern "C"
 #include "rcl/service_introspection.h"
 #include "rcl/time.h"
 #include "rcl/timer.h"
+#include "rcl/types.h"
+
+#include "rmw/types.h"
 
 #include "rosidl_runtime_c/action_type_support_struct.h"
 

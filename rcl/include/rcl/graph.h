@@ -22,21 +22,26 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include <rmw/names_and_types.h>
 #include <rmw/get_topic_names_and_types.h>
 #include <rmw/service_endpoint_info_array.h>
+#include <rmw/topic_endpoint_info.h>
 #include <rmw/topic_endpoint_info_array.h>
 
+#include "rcutils/allocator.h"
 #include "rcutils/time.h"
 #include "rcutils/types.h"
 
 #include "rosidl_runtime_c/service_type_support_struct.h"
 
+#include "rcl/allocator.h"
 #include "rcl/macros.h"
 #include "rcl/client.h"
 #include "rcl/node.h"
+#include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
 /// A structure that contains topic names and types.

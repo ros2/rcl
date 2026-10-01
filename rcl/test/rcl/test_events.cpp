@@ -25,8 +25,10 @@
 #include "rcl/rcl.h"
 #include "rcl/subscription.h"
 #include "rcl/error_handling.h"
-#include "rmw/incompatible_qos_events_statuses.h"
 #include "rmw/event.h"
+#include "rmw/incompatible_qos_events_statuses.h"
+#include "rmw/qos_profiles.h"
+#include "rmw/rmw.h"
 
 #include "test_msgs/msg/strings.h"
 #include "rosidl_runtime_c/string_functions.h"

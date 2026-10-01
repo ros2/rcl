@@ -19,7 +19,6 @@
 
 #include <stddef.h>
 
-#include "rcl/allocator.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"

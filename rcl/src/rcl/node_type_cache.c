@@ -13,11 +13,18 @@
 // limitations under the License.
 
 #include "rcl/node_type_cache.h"
+
+#include <stddef.h>
+#include <string.h>
+
 #include "rcl/type_description_conversions.h"
 
 #include "rcl/error_handling.h"
-#include "rcutils/logging_macros.h"
+#include "rcl/types.h"
+
+#include "rcutils/error_handling.h"
 #include "rcutils/types/hash_map.h"
+#include "rcutils/types/rcutils_ret.h"
 
 #include "./context_impl.h"
 #include "./node_impl.h"

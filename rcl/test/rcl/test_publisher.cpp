@@ -26,6 +26,8 @@
 #include "rcl/error_handling.h"
 #include "rcl/node.h"
 #include "rcutils/env.h"
+#include "rmw/qos_profiles.h"
+#include "rmw/rmw.h"
 #include "rmw/validate_full_topic_name.h"
 #include "rmw/validate_node_name.h"
 

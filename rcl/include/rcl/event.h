@@ -22,6 +22,8 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+
 #include <rmw/event.h>
 
 #include "rcl/client.h"
@@ -30,6 +32,7 @@ extern "C"
 #include "rcl/publisher.h"
 #include "rcl/service.h"
 #include "rcl/subscription.h"
+#include "rcl/types.h"
 #include "rcl/visibility_control.h"
 
 /// Enumeration of all of the publisher events that may fire.
