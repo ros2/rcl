@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 #include <chrono>
+#include <cstdint>
 #include <thread>
 
 #include "rcl/timer.h"
@@ -24,6 +25,7 @@
 #include "rcl/error_handling.h"
 
 #include "./allocator_testing_utils.h"
+#include "../mocking_utils/patch.hpp"
 
 class TestTimerFixture : public ::testing::Test
 {
@@ -167,6 +169,404 @@ TEST_F(TestTimerFixture, test_timer_init_with_invalid_arguments) {
     &timer, &clock, this->context_ptr, RCL_MS_TO_NS(50), nullptr, invalid_allocator, true);
   EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
   rcl_reset_error();
+}
+
+TEST_F(TestTimerFixture, test_timer_init_with_start_time_with_invalid_arguments) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+
+  rcl_time_point_value_t now = 0;
+  ret = rcl_clock_get_now(&clock, &now);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_time_point_value_t initial_call_time = now + RCL_MS_TO_NS(50);
+
+  ret = rcl_timer_init_with_start_time(
+    nullptr, &clock, this->context_ptr, initial_call_time, RCL_MS_TO_NS(50), nullptr, allocator,
+    true);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  ret = rcl_timer_init_with_start_time(
+    &timer, nullptr, this->context_ptr, initial_call_time, RCL_MS_TO_NS(50), nullptr, allocator,
+    true);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, nullptr, initial_call_time, RCL_MS_TO_NS(50), nullptr, allocator, true);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, initial_call_time, -1, nullptr, allocator, true);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  rcl_allocator_t invalid_allocator = rcutils_get_zero_initialized_allocator();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, initial_call_time, RCL_MS_TO_NS(50), nullptr,
+    invalid_allocator, true);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+}
+
+TEST_F(TestTimerFixture, test_timer_init_with_start_time_honors_future_initial_call_time) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_time_point_value_t now = 0;
+  ret = rcl_clock_get_now(&clock, &now);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Pick an initial trigger time that is much further out than the period, so that
+  // a call to rcl_timer_init2 (which always uses now + period) could never produce it.
+  const int64_t period = RCL_MS_TO_NS(50);
+  const int64_t initial_delay = RCL_S_TO_NS(10);
+  rcl_time_point_value_t initial_call_time = now + initial_delay;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, initial_call_time, period, nullptr,
+    rcl_get_default_allocator(), true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  bool is_ready = false;
+  ret = rcl_timer_is_ready(&timer, &is_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_ready);
+
+  int64_t time_until_next_call = 0;
+  ret = rcl_timer_get_time_until_next_call(&timer, &time_until_next_call);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // The next call should be driven by initial_call_time, not by now + period.
+  EXPECT_GT(time_until_next_call, period);
+  EXPECT_LE(time_until_next_call, initial_delay);
+}
+
+TEST_F(TestTimerFixture, test_timer_init_with_start_time_with_past_initial_call_time_is_ready) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_time_point_value_t now = 0;
+  ret = rcl_clock_get_now(&clock, &now);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  rcl_time_point_value_t initial_call_time = now - RCL_S_TO_NS(1);
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, initial_call_time, RCL_S_TO_NS(1), nullptr,
+    rcl_get_default_allocator(), true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  bool is_ready = false;
+  ret = rcl_timer_is_ready(&timer, &is_ready);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(is_ready);
+}
+
+TEST_F(TestTimerFixture, test_timer_resume_with_invalid_arguments) {
+  rcl_ret_t ret = rcl_timer_resume(nullptr);
+  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
+  rcl_reset_error();
+
+  rcl_timer_t uninitialized_timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_resume(&uninitialized_timer);
+  EXPECT_EQ(RCL_RET_TIMER_INVALID, ret);
+  rcl_reset_error();
+}
+
+TEST_F(TestTimerFixture, test_timer_resume_does_not_advance_if_not_yet_due) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_time_point_value_t now = 0;
+  ret = rcl_clock_get_now(&clock, &now);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  const int64_t period = RCL_MS_TO_NS(50);
+  const int64_t initial_delay = RCL_S_TO_NS(10);
+  rcl_time_point_value_t initial_call_time = now + initial_delay;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, initial_call_time, period, nullptr,
+    rcl_get_default_allocator(), false);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  bool is_canceled = false;
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(is_canceled);
+
+  ret = rcl_timer_resume(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_canceled);
+
+  int64_t next_call_time = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // The original phase-anchored schedule should be preserved, not recomputed from now().
+  EXPECT_EQ(initial_call_time, next_call_time);
+}
+
+TEST_F(TestTimerFixture, test_timer_resume_catches_up_if_overdue) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_time_point_value_t now = 0;
+  ret = rcl_clock_get_now(&clock, &now);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  // Simulate a timer that was paused (canceled) for much longer than several periods.
+  const int64_t period = RCL_MS_TO_NS(100);
+  const int64_t overdue_by = RCL_MS_TO_NS(1050);  // 10.5 periods overdue
+  rcl_time_point_value_t initial_call_time = now - overdue_by;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, initial_call_time, period, nullptr,
+    rcl_get_default_allocator(), false);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  ret = rcl_timer_resume(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  bool is_canceled = true;
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_canceled);
+
+  int64_t time_until_next_call = 0;
+  ret = rcl_timer_get_time_until_next_call(&timer, &time_until_next_call);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // Should have caught up to the next period boundary after now, not restarted from now().
+  EXPECT_GT(time_until_next_call, 0);
+  EXPECT_LE(time_until_next_call, period);
+}
+
+TEST_F(TestTimerFixture, test_timer_resume_uncancels_a_canceled_timer) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(10), nullptr,
+    rcl_get_default_allocator(), true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  int64_t next_call_time_before = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time_before);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_timer_cancel(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  bool is_canceled = false;
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_TRUE(is_canceled);
+
+  ret = rcl_timer_resume(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  ret = rcl_timer_is_canceled(&timer, &is_canceled);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_FALSE(is_canceled);
+
+  int64_t next_call_time_after = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time_after);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // A short cancel/resume cycle with a long period should not have shifted the phase.
+  EXPECT_EQ(next_call_time_before, next_call_time_after);
+}
+
+// Regression test: rcl_timer_init2() used to read the clock once to compute
+// initial_call_time = now + period, then hand off to rcl_timer_init_with_start_time(), which
+// read the clock a *second*, independent time to set last_call_time. Between the two reads,
+// real time passes -- negligible for a monotonic clock, but unbounded for an RCL_ROS_TIME
+// clock if a sim-time jump lands between them. Confirms the clock is now read exactly once.
+TEST_F(TestTimerFixture, test_timer_init2_reads_clock_exactly_once) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  const int64_t period = RCL_MS_TO_NS(100);
+  int call_count = 0;
+  auto mock = mocking_utils::patch(
+    "lib:rcl", rcl_clock_get_now,
+    [&call_count](rcl_clock_t *, rcl_time_point_value_t * out) -> rcl_ret_t {
+      // A distinct value per call would reveal it if last_call_time and next_call_time ended
+      // up computed from two different reads instead of one shared one.
+      *out = RCL_S_TO_NS(1) * (++call_count);
+      return RCL_RET_OK;
+    });
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, period, nullptr, rcl_get_default_allocator(), true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  EXPECT_EQ(1, call_count);
+
+  int64_t next_call_time = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  // Computed from the one and only mocked read (RCL_S_TO_NS(1)), plus period.
+  EXPECT_EQ(RCL_S_TO_NS(1) + period, next_call_time);
+}
+
+TEST_F(TestTimerFixture, test_timer_init_with_start_time_reads_clock_exactly_once) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  int call_count = 0;
+  auto mock = mocking_utils::patch(
+    "lib:rcl", rcl_clock_get_now,
+    [&call_count](rcl_clock_t *, rcl_time_point_value_t * out) -> rcl_ret_t {
+      *out = RCL_S_TO_NS(1) * (++call_count);
+      return RCL_RET_OK;
+    });
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, RCL_S_TO_NS(10), RCL_MS_TO_NS(100), nullptr,
+    rcl_get_default_allocator(), true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  EXPECT_EQ(1, call_count);
+}
+
+// Regression test: the arithmetic used to catch a timer's next_call_time up to the present
+// (shared by rcl_timer_call_with_info() and rcl_timer_resume()) could overflow int64_t --
+// undefined behavior -- for a sufficiently extreme next_call_time/period combination. Since
+// initial_call_time is caller-supplied, a caller can trigger this with an extreme value. It
+// should now saturate at INT64_MAX instead.
+TEST_F(TestTimerFixture, test_timer_resume_saturates_instead_of_overflowing) {
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_clock_fini(&clock);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  // A next_call_time near INT64_MIN is always "overdue" relative to any real now(), forcing
+  // the catch-up arithmetic to run; combined with a large period, advancing it by whole
+  // periods would overflow int64_t well before catching up to now().
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, INT64_MIN + 1, INT64_MAX, nullptr,
+    rcl_get_default_allocator(), false);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    rcl_ret_t ret = rcl_timer_fini(&timer);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  });
+
+  ret = rcl_timer_resume(&timer);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  int64_t next_call_time = 0;
+  ret = rcl_timer_get_next_call_time(&timer, &next_call_time);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_EQ(INT64_MAX, next_call_time);
 }
 
 TEST_F(TestTimerFixture, test_timer_with_invalid_clock) {

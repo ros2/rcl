@@ -180,6 +180,118 @@ rcl_timer_init2(
   rcl_allocator_t allocator,
   bool autostart);
 
+/// Initialize a timer with an initial trigger time.
+/**
+ * A timer consists of a clock, a callback function, and initial trigger
+ * time, and a period.
+ * A timer can be added to a wait set and waited on, such that the wait set
+ * will wake up when a timer is ready to be executed.
+ *
+ * A timer simply holds state and does not automatically call callbacks.
+ * It does not create any threads, register interrupts, or consume signals.
+ * For blocking behavior it can be used in conjunction with a wait set and
+ * rcl_wait().
+ * When rcl_timer_is_ready() returns true, the timer must still be called
+ * explicitly using rcl_timer_call().
+ *
+ * The timer handle must be a pointer to an allocated and zero initialized
+ * rcl_timer_t struct.
+ * Calling this function on an already initialized timer will fail.
+ * Calling this function on a timer struct which has been allocated but not
+ * zero initialized is undefined behavior.
+ *
+ * The clock handle must be a pointer to an initialized rcl_clock_t struct.
+ * The life time of the clock must exceed the life time of the timer.
+ *
+ * The initial trigger time is an absolute time with respect to the time
+ * provided by the clock. An initial trigger time in the past will cause
+ * the timer to become ready immediately.
+ *
+ * The period is a non-negative duration (rather an absolute time in the
+ * future).
+ * If the period is `0` then it will always be ready.
+ *
+ * The callback is an optional argument.
+ * Valid inputs are either a pointer to the function callback, or `NULL` to
+ * indicate that no callback will be stored in rcl.
+ * If the callback is `NULL`, the caller client library is responsible for
+ * firing the timer callback.
+ * Else, it must be a function which returns void and takes two arguments,
+ * the first being a pointer to the associated timer, and the second a int64_t
+ * which is the time since the previous call, or since the timer was created
+ * if it is the first call to the callback.
+ *
+ * Expected usage:
+ *
+ * ```c
+ * #include <rcl/rcl.h>
+ *
+ * void my_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+ * {
+ *   // Do timer work...
+ *   // Optionally reconfigure, cancel, or reset the timer...
+ * }
+ *
+ * rcl_context_t * context;  // initialized previously by rcl_init()...
+ * rcl_clock_t clock;
+ * rcl_allocator_t allocator = rcl_get_default_allocator();
+ * rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
+ * // ... error handling
+ *
+ * rcl_time_point_value_t now;
+ * rcl_ret_t now_ret = rcl_clock_get_now(&clock, &now);
+ * // ... error handling
+ *
+ * rcl_timer_t timer = rcl_get_zero_initialized_timer();
+ * rcl_time_point_value_t initial_call_time = now + RCL_MS_TO_NS(10);
+ * int64_t period = RCL_MS_TO_NS(100);
+ * ret = rcl_timer_init_with_start_time(
+ *   &timer, &clock, context, initial_call_time, period, my_timer_callback, allocator, true);
+ * // ... error handling, use the timer with a wait set, or poll it manually, then cleanup
+ * ret = rcl_timer_fini(&timer);
+ * // ... error handling
+ * ```
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | Yes
+ * Lock-Free          | Yes [1][2][3]
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_uintptr_t`</i>
+ *
+ * <i>[2] if `atomic_is_lock_free()` returns true for `atomic_uint_least64_t`</i>
+ *
+ * <i>[3] if `atomic_is_lock_free()` returns true for `atomic_bool`</i>
+ *
+ * \param[inout] timer the timer handle to be initialized
+ * \param[in] clock the clock providing the current time
+ * \param[in] context the context that this timer is to be associated with
+ * \param[in] initial_call_time the initial trigger time of the callback
+ * \param[in] period the duration between calls to the callback in nanoseconds
+ * \param[in] callback the user defined function to be called every period
+ * \param[in] allocator the allocator to use for allocations
+ * \param[in] autostart the state of the timer at initialization
+ * \return #RCL_RET_OK if the timer was initialized successfully, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_ALREADY_INIT if the timer was already initialized, or
+ * \return #RCL_RET_BAD_ALLOC if allocating memory failed, or
+ * \return #RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_init_with_start_time(
+  rcl_timer_t * timer,
+  rcl_clock_t * clock,
+  rcl_context_t * context,
+  rcl_time_point_value_t initial_call_time,
+  int64_t period,
+  const rcl_timer_callback_t callback,
+  rcl_allocator_t allocator,
+  bool autostart);
+
 /// Finalize a timer.
 /**
  * This function will deallocate any memory and make the timer invalid.
@@ -594,7 +706,8 @@ rcl_timer_exchange_callback_data(rcl_timer_t * timer, uintptr_t data);
  * When a timer is canceled, rcl_timer_is_ready() will return false for that
  * timer, and rcl_timer_call() will fail with RCL_RET_TIMER_CANCELED.
  *
- * A canceled timer can be reset with rcl_timer_reset(), and then used again.
+ * A canceled timer can be reset with rcl_timer_reset() or resumed with
+ * rcl_timer_resume(), and then used again.
  * Calling this function on an already canceled timer will succeed.
  *
  * <hr>
@@ -670,6 +783,45 @@ RCL_PUBLIC
 RCL_WARN_UNUSED
 rcl_ret_t
 rcl_timer_reset(rcl_timer_t * timer);
+
+/// Resume a timer, preserving its existing schedule phase.
+/**
+ * This function can be called on a timer, canceled or not.
+ * Unlike rcl_timer_reset(), this does not unconditionally recompute the
+ * next call time from the current time; if the timer's next call time is
+ * still in the future, it is left unchanged.
+ * If the next call time is in the past (e.g. because the timer was
+ * canceled and is being resumed some time later), it is advanced by whole
+ * periods until it is in the future again, without shifting the phase
+ * established when the timer was initialized (or last had its next call
+ * time explicitly set).
+ * For canceled timers this additionally makes the timer not canceled.
+ *
+ * This makes it possible to initialize a timer with autostart false and
+ * an explicit initial call time (see rcl_timer_init_with_start_time()),
+ * and later resume it without losing the originally intended schedule,
+ * which is not possible with rcl_timer_reset() since it always
+ * recomputes the next call time as now() + period.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes
+ * Uses Atomics       | Yes
+ * Lock-Free          | Yes [1]
+ * <i>[1] if `atomic_is_lock_free()` returns true for `atomic_int_least64_t`</i>
+ *
+ * \param[inout] timer the timer to be resumed
+ * \return #RCL_RET_OK if the timer was resumed successfully, or
+ * \return #RCL_RET_INVALID_ARGUMENT if any arguments are invalid, or
+ * \return #RCL_RET_TIMER_INVALID if the timer is invalid, or
+ * \return #RCL_RET_ERROR an unspecified error occur.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_resume(rcl_timer_t * timer);
 
 /// Return the allocator for the timer.
 /**

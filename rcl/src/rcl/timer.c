@@ -20,6 +20,8 @@ extern "C"
 #include "rcl/timer.h"
 
 #include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "rcl/error_handling.h"
 #include "rcutils/logging_macros.h"
@@ -100,11 +102,23 @@ void _rcl_timer_time_jump(
   }
 }
 
-rcl_ret_t
-rcl_timer_init2(
+/// Shared implementation for rcl_timer_init2() and rcl_timer_init_with_start_time().
+/**
+ * Takes `now` as a parameter, read exactly once by whichever public entry point is called,
+ * rather than reading the clock again internally -- so that `last_call_time` (set here, from
+ * `now`) and `next_call_time` (set here, from `initial_call_time`) are always computed from a
+ * mutually consistent point in time. For rcl_timer_init2(), which derives initial_call_time
+ * as `now + period`, this matters most: two separate clock reads would let arbitrary skew
+ * (unbounded for an RCL_ROS_TIME clock, if a sim-time jump lands between them) creep in
+ * between the two fields.
+ */
+static rcl_ret_t
+_rcl_timer_init_impl(
   rcl_timer_t * timer,
   rcl_clock_t * clock,
   rcl_context_t * context,
+  rcl_time_point_value_t now,
+  rcl_time_point_value_t initial_call_time,
   int64_t period,
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator,
@@ -118,16 +132,12 @@ rcl_timer_init2(
     return RCL_RET_INVALID_ARGUMENT;
   }
   RCUTILS_LOG_DEBUG_NAMED(
-    ROS_PACKAGE_NAME, "Initializing timer with period: %" PRIu64 "ns", period);
+    ROS_PACKAGE_NAME,
+    "Initializing timer with initial_call_time: %" PRIu64 "ns, period: %" PRIu64 "ns",
+    initial_call_time, period);
   if (timer->impl) {
     RCL_SET_ERROR_MSG("timer already initialized, or memory was uninitialized");
     return RCL_RET_ALREADY_INIT;
-  }
-  rcl_time_point_value_t now;
-  rcl_ret_t now_ret = rcl_clock_get_now(clock, &now);
-  if (now_ret != RCL_RET_OK) {
-    RCL_EXPECT_ERROR_IS_SET(now_ret);
-    return now_ret;  // rcl error state should already be set.
   }
   rcl_timer_impl_t impl;
   impl.clock = clock;
@@ -144,7 +154,7 @@ rcl_timer_init2(
   atomic_init(&impl.period, period);
   atomic_init(&impl.time_credit, 0);
   atomic_init(&impl.last_call_time, now);
-  atomic_init(&impl.next_call_time, now + period);
+  atomic_init(&impl.next_call_time, initial_call_time);
   atomic_init(&impl.canceled, !autostart);
   impl.allocator = allocator;
 
@@ -197,6 +207,49 @@ rcl_timer_init2(
 }
 
 rcl_ret_t
+rcl_timer_init2(
+  rcl_timer_t * timer,
+  rcl_clock_t * clock,
+  rcl_context_t * context,
+  int64_t period,
+  const rcl_timer_callback_t callback,
+  rcl_allocator_t allocator,
+  bool autostart)
+{
+  rcl_time_point_value_t now;
+  rcl_ret_t now_ret = rcl_clock_get_now(clock, &now);
+  if (now_ret != RCL_RET_OK) {
+    return now_ret;  // rcl error state should already be set.
+  }
+  rcl_time_point_value_t initial_call_time = now + period;
+  return _rcl_timer_init_impl(
+    timer, clock, context, now, initial_call_time, period,
+    callback, allocator, autostart);
+}
+
+rcl_ret_t
+rcl_timer_init_with_start_time(
+  rcl_timer_t * timer,
+  rcl_clock_t * clock,
+  rcl_context_t * context,
+  rcl_time_point_value_t initial_call_time,
+  int64_t period,
+  const rcl_timer_callback_t callback,
+  rcl_allocator_t allocator,
+  bool autostart)
+{
+  rcl_time_point_value_t now;
+  rcl_ret_t now_ret = rcl_clock_get_now(clock, &now);
+  if (now_ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(now_ret);
+    return now_ret;  // rcl error state should already be set.
+  }
+  return _rcl_timer_init_impl(
+    timer, clock, context, now, initial_call_time, period,
+    callback, allocator, autostart);
+}
+
+rcl_ret_t
 rcl_timer_fini(rcl_timer_t * timer)
 {
   if (!timer || !timer->impl) {
@@ -232,6 +285,69 @@ rcl_timer_clock(const rcl_timer_t * timer, rcl_clock_t ** clock)
   RCL_CHECK_ARGUMENT_FOR_NULL(timer->impl, RCL_RET_TIMER_INVALID);
   *clock = timer->impl->clock;
   return RCL_RET_OK;
+}
+
+/// Return true if computing `a + b` would overflow int64_t.
+static bool
+_would_add_overflow_i64(int64_t a, int64_t b)
+{
+  return (b > 0 && a > INT64_MAX - b) || (b < 0 && a < INT64_MIN - b);
+}
+
+/// Return true if computing `a - b` would overflow int64_t.
+static bool
+_would_sub_overflow_i64(int64_t a, int64_t b)
+{
+  return (b < 0 && a > INT64_MAX + b) || (b > 0 && a < INT64_MIN + b);
+}
+
+/// Return true if computing `a * b` would overflow int64_t, for non-negative a and b.
+static bool
+_would_mul_overflow_i64_nonneg(int64_t a, int64_t b)
+{
+  return a != 0 && b != 0 && a > INT64_MAX / b;
+}
+
+/// Advance next_call_time by whole periods, if necessary, until it is after now.
+/**
+ * If next_call_time is already after now, it is returned unchanged.
+ * A period of zero is considered always ready, and now is returned in that case
+ * if next_call_time is not already after now.
+ * next_call_time, period, and now can in principle be any int64_t/non-negative values (e.g.
+ * initial_call_time is caller-supplied), so the arithmetic to advance next_call_time could
+ * overflow for a sufficiently extreme combination. Rather than risk the undefined behavior an
+ * unchecked overflow would cause, this detects it and saturates the result at INT64_MAX --
+ * which effectively (and safely) means such a timer will not become ready again.
+ */
+static int64_t
+_rcl_timer_next_call_time_after(int64_t next_call_time, int64_t period, rcl_time_point_value_t now)
+{
+  if (next_call_time > now) {
+    return next_call_time;
+  }
+  if (0 == period) {
+    // a timer with a period of zero is considered always ready
+    return now;
+  }
+  // move the next call time forward by as many periods as necessary
+  if (_would_sub_overflow_i64(now, next_call_time)) {
+    return INT64_MAX;
+  }
+  int64_t now_ahead = now - next_call_time;
+  // rounding up without overflow
+  int64_t periods_ahead_before_rounding = now_ahead / period;
+  if (_would_add_overflow_i64(periods_ahead_before_rounding, 1)) {
+    return INT64_MAX;
+  }
+  int64_t periods_ahead = periods_ahead_before_rounding + 1;
+  if (_would_mul_overflow_i64_nonneg(periods_ahead, period)) {
+    return INT64_MAX;
+  }
+  int64_t advance = periods_ahead * period;
+  if (_would_add_overflow_i64(next_call_time, advance)) {
+    return INT64_MAX;
+  }
+  return next_call_time + advance;
 }
 
 rcl_ret_t
@@ -274,20 +390,10 @@ rcl_timer_call_with_info(rcl_timer_t * timer, rcl_timer_call_info_t * call_info)
   // always move the next call time by exactly period forward
   // don't use now as the base to avoid extending each cycle by the time
   // between the timer being ready and the callback being triggered
-  next_call_time += period;
-  // in case the timer has missed at least once cycle
-  if (next_call_time <= now) {
-    if (0 == period) {
-      // a timer with a period of zero is considered always ready
-      next_call_time = now;
-    } else {
-      // move the next call time forward by as many periods as necessary
-      int64_t now_ahead = now - next_call_time;
-      // rounding up without overflow
-      int64_t periods_ahead = 1 + now_ahead / period;
-      next_call_time += periods_ahead * period;
-    }
-  }
+  next_call_time = _would_add_overflow_i64(next_call_time, period) ?
+    INT64_MAX : next_call_time + period;
+  // in case the timer has missed at least once cycle, catch up to the next period boundary
+  next_call_time = _rcl_timer_next_call_time_after(next_call_time, period, now);
   rcutils_atomic_store(&timer->impl->next_call_time, next_call_time);
 
   if (typed_callback != NULL) {
@@ -485,6 +591,43 @@ rcl_timer_reset(rcl_timer_t * timer)
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
   }
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset");
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_timer_resume(rcl_timer_t * timer)
+{
+  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
+
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
+  rcl_time_point_value_t now;
+  rcl_ret_t now_ret = rcl_clock_get_now(timer->impl->clock, &now);
+  if (now_ret != RCL_RET_OK) {
+    RCL_EXPECT_ERROR_IS_SET(now_ret);
+    return now_ret;  // rcl error state should already be set.
+  }
+  int64_t next_call_time = rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
+  int64_t period = rcutils_atomic_load_int64_t(&timer->impl->period);
+  // unlike reset(), only catch up if the existing schedule is already overdue;
+  // otherwise leave next_call_time untouched, preserving the original phase
+  next_call_time = _rcl_timer_next_call_time_after(next_call_time, period, now);
+  rcutils_atomic_store(&timer->impl->next_call_time, next_call_time);
+  rcutils_atomic_store(&timer->impl->canceled, false);
+  rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
+
+  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->reset_callback_data;
+
+  if (cb_data->on_reset_callback) {
+    cb_data->on_reset_callback(cb_data->user_data, 1);
+  } else {
+    cb_data->reset_counter++;
+  }
+
+  if (ret != RCL_RET_OK) {
+    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
+  }
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully resumed");
   return RCL_RET_OK;
 }
 
