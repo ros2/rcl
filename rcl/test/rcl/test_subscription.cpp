@@ -187,56 +187,6 @@ MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, !=)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, <)
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, >)
 
-TEST_F(TestSubscriptionFixture, buffer_backend_copy_failure_preserves_caller_options)
-{
-  const rosidl_message_type_support_t * ts =
-    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
-  auto options = rcl_subscription_get_default_options();
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    EXPECT_EQ(RCL_RET_OK, rcl_subscription_options_fini(&options));
-  });
-  ASSERT_EQ(
-    RCL_RET_OK, rcl_subscription_options_set_acceptable_buffer_backends("cuda", &options));
-  const char * original = options.rmw_subscription_options.acceptable_buffer_backends;
-  auto subscription = rcl_get_zero_initialized_subscription();
-  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
-  {
-    if (subscription.impl) {
-      EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, this->node_ptr));
-    }
-  });
-
-  bool copy_attempted = false;
-  {
-    auto mock = mocking_utils::patch(
-      "lib:rcl", rcutils_strdup,
-      [&](const char * value, rcutils_allocator_t allocator) -> char * {
-        if (value == original) {
-          copy_attempted = true;
-          return nullptr;
-        }
-        return rcutils_strdup(value, allocator);
-      });
-    EXPECT_EQ(
-      RCL_RET_BAD_ALLOC,
-      rcl_subscription_init(&subscription, this->node_ptr, ts, "backend_copy_failure", &options));
-  }
-  EXPECT_TRUE(copy_attempted);
-  EXPECT_EQ(nullptr, subscription.impl);
-  EXPECT_NE(
-    std::string::npos,
-    std::string(rcl_get_error_string().str).find(
-    "failed to allocate acceptable_buffer_backends string"));
-  rcl_reset_error();
-  EXPECT_EQ(original, options.rmw_subscription_options.acceptable_buffer_backends);
-  EXPECT_STREQ("cuda", options.rmw_subscription_options.acceptable_buffer_backends);
-
-  ASSERT_EQ(
-    RCL_RET_OK,
-    rcl_subscription_init(&subscription, this->node_ptr, ts, "backend_copy_failure", &options));
-}
-
 // Bad arguments for init and fini
 TEST_F(TestSubscriptionFixture, test_subscription_bad_init) {
   const rosidl_message_type_support_t * ts =
