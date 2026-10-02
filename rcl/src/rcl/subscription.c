@@ -103,6 +103,14 @@ rcl_subscription_init(
 
   // options
   subscription->impl->options = *options;
+  subscription->impl->options.rmw_subscription_options.acceptable_buffer_backends = NULL;
+  ret = rcl_subscription_options_set_acceptable_buffer_backends(
+    options->rmw_subscription_options.acceptable_buffer_backends,
+    &subscription->impl->options);
+  if (RCL_RET_OK != ret) {
+    fail_ret = ret;
+    goto fail;
+  }
   subscription->impl->in_use_by_waitset = false;
 
   // Fill out the implemenation struct.
