@@ -275,3 +275,39 @@ TEST(TestDiscoveryInfo, test_get_both) {
   EXPECT_EQ(0u, discovery_options_var.static_peers_count);
   EXPECT_EQ(RCL_RET_OK, rmw_discovery_options_fini(&discovery_options_var));
 }
+
+// Regression test for https://github.com/ros2/rcl/issues/1241:
+// Deprecated/removed env vars must be silently ignored with a warning rather than
+// causing incorrect configuration or a crash.
+TEST(TestDiscoveryInfo, test_deprecated_env_vars_ignored) {
+  // Ensure the canonical var is set to SUBNET so we can verify the deprecated
+  // vars do not alter the result.
+  ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", "SUBNET"));
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    ASSERT_TRUE(rcutils_set_env("ROS_AUTOMATIC_DISCOVERY_RANGE", ""));
+    ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", ""));
+    ASSERT_TRUE(rcutils_set_env("LOCALHOST_ONLY", ""));
+  });
+
+  // ROS_LOCALHOST_ONLY set but removed: function must still succeed and use the
+  // canonical ROS_AUTOMATIC_DISCOVERY_RANGE value.
+  ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", "1"));
+  rmw_discovery_options_t discovery_options_var = rmw_get_zero_initialized_discovery_options();
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
+  EXPECT_EQ(
+    RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET,
+    discovery_options_var.automatic_discovery_range)
+    << "ROS_LOCALHOST_ONLY must not override ROS_AUTOMATIC_DISCOVERY_RANGE";
+  ASSERT_TRUE(rcutils_set_env("ROS_LOCALHOST_ONLY", ""));
+
+  // LOCALHOST_ONLY set but removed: same requirement.
+  ASSERT_TRUE(rcutils_set_env("LOCALHOST_ONLY", "1"));
+  discovery_options_var = rmw_get_zero_initialized_discovery_options();
+  EXPECT_EQ(RCL_RET_OK, rcl_get_automatic_discovery_range(&discovery_options_var));
+  EXPECT_EQ(
+    RMW_AUTOMATIC_DISCOVERY_RANGE_SUBNET,
+    discovery_options_var.automatic_discovery_range)
+    << "LOCALHOST_ONLY must not override ROS_AUTOMATIC_DISCOVERY_RANGE";
+  ASSERT_TRUE(rcutils_set_env("LOCALHOST_ONLY", ""));
+}
