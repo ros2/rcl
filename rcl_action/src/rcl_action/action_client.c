@@ -665,11 +665,49 @@ rcl_action_client_wait_set_get_entities_ready(
   const rcl_client_t * goal_client = wait_set->clients[goal_index];
   const rcl_client_t * cancel_client = wait_set->clients[cancel_index];
   const rcl_client_t * result_client = wait_set->clients[result_index];
-  *is_feedback_ready = (&impl->feedback_subscription == feedback_subscription);
-  *is_status_ready = (&impl->status_subscription == status_subscription);
-  *is_goal_response_ready = (&impl->goal_client == goal_client);
-  *is_cancel_response_ready = (&impl->cancel_client == cancel_client);
-  *is_result_response_ready = (&impl->result_client == result_client);
+  bool goal_ready = (&impl->goal_client == goal_client);
+  bool cancel_ready = (&impl->cancel_client == cancel_client);
+  bool status_ready = (&impl->status_subscription == status_subscription);
+  bool feedback_ready = (&impl->feedback_subscription == feedback_subscription);
+  bool result_ready = (&impl->result_client == result_client);
+
+  if (goal_ready) {
+    *is_goal_response_ready = true;
+    *is_cancel_response_ready = false;
+    *is_status_ready = false;
+    *is_feedback_ready = false;
+    *is_result_response_ready = false;
+  } else if (cancel_ready) {
+    *is_goal_response_ready = false;
+    *is_cancel_response_ready = true;
+    *is_status_ready = false;
+    *is_feedback_ready = false;
+    *is_result_response_ready = false;
+  } else if (status_ready) {
+    *is_goal_response_ready = false;
+    *is_cancel_response_ready = false;
+    *is_status_ready = true;
+    *is_feedback_ready = false;
+    *is_result_response_ready = false;
+  } else if (feedback_ready) {
+    *is_goal_response_ready = false;
+    *is_cancel_response_ready = false;
+    *is_status_ready = false;
+    *is_feedback_ready = true;
+    *is_result_response_ready = false;
+  } else if (result_ready) {
+    *is_goal_response_ready = false;
+    *is_cancel_response_ready = false;
+    *is_status_ready = false;
+    *is_feedback_ready = false;
+    *is_result_response_ready = true;
+  } else {
+    *is_goal_response_ready = false;
+    *is_cancel_response_ready = false;
+    *is_status_ready = false;
+    *is_feedback_ready = false;
+    *is_result_response_ready = false;
+  }
   return RCL_RET_OK;
 }
 
