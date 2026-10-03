@@ -1,5 +1,4 @@
 find_package(ament_cmake_ros REQUIRED)
-find_package(ament_cmake_ros_core REQUIRED)
 
 find_package(launch_testing_ament_cmake REQUIRED)
 find_package(mimick_vendor REQUIRED)
@@ -196,7 +195,7 @@ foreach(_rcl_test_target
     test_network_flow_endpoints test_service_event_publisher
     test_type_description_conversions test_node_type_cache
     test_get_type_description_service)
-  target_link_libraries(${_rcl_test_target} ament_cmake_ros_core::ament_ros_cxx_standard)
+  target_link_libraries(${_rcl_test_target} ament_cmake_ros_core::ament_ros_defaults)
 endforeach()
 
 function(test_target)
@@ -434,13 +433,13 @@ endfunction()
 # Build simple executable for using in the test_rmw_impl_id_check
 add_executable(test_rmw_impl_id_check_exe
   rcl/test_rmw_impl_id_check_exe.cpp)
-target_link_libraries(test_rmw_impl_id_check_exe ament_cmake_ros_core::ament_ros_cxx_standard ${PROJECT_NAME})
+target_link_libraries(test_rmw_impl_id_check_exe ament_cmake_ros_core::ament_ros_defaults ${PROJECT_NAME})
 
 # This file is used by many tests, so build it just once
 add_library(wait_for_entity_helpers STATIC rcl/wait_for_entity_helpers.cpp)
 target_link_libraries(wait_for_entity_helpers PUBLIC ${PROJECT_NAME})
 target_link_libraries(wait_for_entity_helpers PRIVATE
-  ament_cmake_ros_core::ament_ros_cxx_standard
+  ament_cmake_ros_core::ament_ros_defaults
   osrf_testing_tools_cpp::memory_tools
   rcutils::rcutils)
 

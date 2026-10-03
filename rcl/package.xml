@@ -17,6 +17,9 @@
 
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
   <buildtool_depend>ament_cmake_gen_version_h</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros_core</buildtool_depend>
+
+  <buildtool_export_depend>ament_cmake_ros_core</buildtool_export_depend>
 
   <build_export_depend>rmw</build_export_depend>
 
@@ -37,7 +40,6 @@
   <depend condition="$DISABLE_GROUPS_WORKAROUND != 1">rcl_logging_spdlog</depend>
 
   <test_depend>ament_cmake_ros</test_depend>
-  <test_depend>ament_cmake_ros_core</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <test_depend>launch</test_depend>
