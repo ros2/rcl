@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(rcl_action)
 
 find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake_ros_core REQUIRED)
 find_package(ament_cmake_gen_version_h REQUIRED)
 
 find_package(action_msgs REQUIRED)
@@ -10,11 +11,6 @@ find_package(rcl REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
-
-# Default to C11
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 11)
-endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -44,6 +40,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
+  ament_cmake_ros_core::ament_ros_defaults
   action_msgs::action_msgs
   rcl::rcl
   rmw::rmw
@@ -72,7 +69,6 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  find_package(ament_cmake_ros_core REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   find_package(osrf_testing_tools_cpp REQUIRED)
   find_package(test_msgs REQUIRED)
@@ -88,7 +84,7 @@ if(BUILD_TESTING)
       src
     )
     target_link_libraries(test_action_client
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
@@ -101,7 +97,7 @@ if(BUILD_TESTING)
   ament_add_gtest_executable(test_action_communication test/rcl_action/test_action_communication.cpp)
   target_include_directories(test_action_communication PUBLIC src)
   target_link_libraries(test_action_communication
-    ament_cmake_ros_core::ament_ros_cxx_standard
+    ament_cmake_ros_core::ament_ros_defaults
     ${PROJECT_NAME}
     action_msgs::action_msgs
     osrf_testing_tools_cpp::memory_tools
@@ -111,7 +107,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest_executable(test_action_interaction test/rcl_action/test_action_interaction.cpp)
   target_link_libraries(test_action_interaction
-    ament_cmake_ros_core::ament_ros_cxx_standard
+    ament_cmake_ros_core::ament_ros_defaults
     ${PROJECT_NAME}
     action_msgs::action_msgs
     osrf_testing_tools_cpp::memory_tools
@@ -122,7 +118,7 @@ if(BUILD_TESTING)
   ament_add_gtest_executable(test_graph test/rcl_action/test_graph.cpp)
   target_compile_definitions(test_graph PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   target_link_libraries(test_graph
-    ament_cmake_ros_core::ament_ros_cxx_standard
+    ament_cmake_ros_core::ament_ros_defaults
     ${PROJECT_NAME}
     action_msgs::action_msgs
     osrf_testing_tools_cpp::memory_tools
@@ -163,7 +159,7 @@ if(BUILD_TESTING)
       src
     )
     target_link_libraries(test_action_server
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       action_msgs::action_msgs
       osrf_testing_tools_cpp::memory_tools
@@ -177,7 +173,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_goal_handle)
     target_link_libraries(test_goal_handle
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       rcl::rcl
     )
@@ -187,7 +183,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_goal_state_machine)
     target_link_libraries(test_goal_state_machine
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
     )
   endif()
@@ -196,7 +192,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_types)
     target_link_libraries(test_types
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       rcl::rcl
     )
@@ -206,7 +202,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_names)
     target_link_libraries(test_names
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       rcl::rcl
     )
@@ -216,7 +212,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_wait)
     target_link_libraries(test_wait
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
@@ -231,7 +227,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_action_name_remapping)
     target_link_libraries(test_action_name_remapping
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       osrf_testing_tools_cpp::memory_tools
       rcl::rcl
@@ -246,6 +242,7 @@ endif()
 # Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
 
+ament_export_dependencies(ament_cmake_ros_core)
 ament_export_dependencies(action_msgs)
 ament_export_dependencies(rcl)
 ament_export_dependencies(rmw)

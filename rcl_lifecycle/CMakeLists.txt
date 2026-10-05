@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(rcl_lifecycle)
 
 find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake_ros_core REQUIRED)
 find_package(ament_cmake_gen_version_h REQUIRED)
 
 find_package(lifecycle_msgs REQUIRED)
@@ -11,11 +12,6 @@ find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(tracetools REQUIRED)
-
-# Default to C11
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 11)
-endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(
@@ -44,6 +40,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
+  ament_cmake_ros_core::ament_ros_defaults
   lifecycle_msgs::lifecycle_msgs
   rcl::rcl
 )
@@ -70,7 +67,6 @@ install(TARGETS rcl_lifecycle EXPORT rcl_lifecycle
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
-  find_package(ament_cmake_ros_core REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
@@ -81,7 +77,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_default_state_machine)
     target_link_libraries(test_default_state_machine
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       lifecycle_msgs::lifecycle_msgs
       osrf_testing_tools_cpp::memory_tools
@@ -97,7 +93,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_multiple_instances)
     target_link_libraries(test_multiple_instances
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       lifecycle_msgs::lifecycle_msgs
       osrf_testing_tools_cpp::memory_tools
@@ -109,7 +105,7 @@ if(BUILD_TESTING)
   )
   if(TARGET test_rcl_lifecycle)
     target_link_libraries(test_rcl_lifecycle
-      ament_cmake_ros_core::ament_ros_cxx_standard
+      ament_cmake_ros_core::ament_ros_defaults
       ${PROJECT_NAME}
       lifecycle_msgs::lifecycle_msgs
       osrf_testing_tools_cpp::memory_tools
@@ -124,13 +120,14 @@ if(BUILD_TESTING)
     test/test_transition_map.cpp
   )
   if(TARGET test_transition_map)
-    target_link_libraries(test_transition_map ament_cmake_ros_core::ament_ros_cxx_standard ${PROJECT_NAME} rcl::rcl)
+    target_link_libraries(test_transition_map ament_cmake_ros_core::ament_ros_defaults ${PROJECT_NAME} rcl::rcl)
   endif()
 endif()
 
 # Export modern CMake targets
 ament_export_targets(${PROJECT_NAME})
 
+ament_export_dependencies(ament_cmake_ros_core)
 ament_export_dependencies(lifecycle_msgs)
 ament_export_dependencies(rcl)
 
