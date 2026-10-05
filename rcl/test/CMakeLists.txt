@@ -51,7 +51,7 @@ target_link_libraries(test_client ${PROJECT_NAME} osrf_testing_tools_cpp::memory
 ament_add_gtest_executable(test_timer
   rcl/test_timer.cpp
 )
-target_link_libraries(test_timer ${PROJECT_NAME} osrf_testing_tools_cpp::memory_tools)
+target_link_libraries(test_timer ${PROJECT_NAME} mimick osrf_testing_tools_cpp::memory_tools)
 
 ament_add_gtest_executable(test_context
   rcl/test_context.cpp
