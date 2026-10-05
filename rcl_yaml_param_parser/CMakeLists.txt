@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(rcl_yaml_param_parser)
 
-find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_gen_version_h REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)

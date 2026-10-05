@@ -14,7 +14,7 @@
   <author email="anup.pemmaiah@apex.ai">Anup Pemmaiah</author>
   <author email="jacob@openrobotics.org">Jacob Perron</author>
 
-  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_gen_version_h</buildtool_depend>
 
   <depend>libyaml_vendor</depend>
