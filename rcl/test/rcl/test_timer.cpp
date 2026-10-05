@@ -246,11 +246,6 @@ TEST_F(TestTimerFixture, test_two_timers) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   ret = rcl_wait_set_init(&wait_set, 0, 0, 2, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-  ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_timer(&wait_set, &timer2, NULL);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_ret_t ret = rcl_timer_fini(&timer);
@@ -264,9 +259,18 @@ TEST_F(TestTimerFixture, test_two_timers) {
   // awakes when timers are involved.
   // The loop can be removed if spurious awakes are fixed in the future.
   // This issue particularly happens on Windows.
+  // rcl_wait() sets the entries that are not ready to NULL, so the wait set
+  // must be cleared and filled again before each call.
   uint8_t nonnull_timers = 0;
   auto start = std::chrono::system_clock::now();
   do {
+    ret = rcl_wait_set_clear(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_timer(&wait_set, &timer2, NULL);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     for (uint8_t i = 0; i < wait_set.size_of_timers; i++) {
@@ -275,9 +279,9 @@ TEST_F(TestTimerFixture, test_two_timers) {
       }
     }
   } while (
-    nonnull_timers == 0u ||
+    nonnull_timers == 0u &&
     std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::system_clock::now() - start).count() > 100u);
+      std::chrono::system_clock::now() - start).count() < 100u);
   bool is_ready = false;
   ret = rcl_timer_is_ready(&timer, &is_ready);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
@@ -316,11 +320,6 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
   rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
   ret = rcl_wait_set_init(&wait_set, 0, 0, 2, 0, 0, 0, context_ptr, rcl_get_default_allocator());
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-
-  ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  ret = rcl_wait_set_add_timer(&wait_set, &timer2, NULL);
-  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
     rcl_ret_t ret = rcl_timer_fini(&timer);
@@ -334,9 +333,18 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
   // awakes when timers are involved.
   // The loop can be removed if spurious awakes are fixed in the future.
   // This issue particularly happens on Windows.
+  // rcl_wait() sets the entries that are not ready to NULL, so the wait set
+  // must be cleared and filled again before each call.
   uint8_t nonnull_timers = 0u;
   auto start = std::chrono::system_clock::now();
   do {
+    ret = rcl_wait_set_clear(&wait_set);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_timer(&wait_set, &timer, NULL);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+    ret = rcl_wait_set_add_timer(&wait_set, &timer2, NULL);
+    EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
     ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
     for (uint8_t i = 0; i < wait_set.size_of_timers; i++) {
@@ -345,9 +353,9 @@ TEST_F(TestTimerFixture, test_two_timers_ready_before_timeout) {
       }
     }
   } while (
-    nonnull_timers == 0u ||
+    nonnull_timers == 0u &&
     std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::system_clock::now() - start).count() > 100u);
+      std::chrono::system_clock::now() - start).count() < 100u);
   bool is_ready = false;
   ret = rcl_timer_is_ready(&timer, &is_ready);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
