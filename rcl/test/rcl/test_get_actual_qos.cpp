@@ -326,9 +326,7 @@ get_parameters(bool for_publisher)
   });
 
   std::string rmw_implementation_str = std::string(rmw_get_implementation_identifier());
-  if (rmw_implementation_str == "rmw_fastrtps_cpp" ||
-    rmw_implementation_str == "rmw_fastrtps_dynamic_cpp")
-  {
+  if (rmw_implementation_str == "rmw_fastrtps_cpp") {
     /*
      * Test with non-default settings.
      */
