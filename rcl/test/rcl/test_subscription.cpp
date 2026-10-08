@@ -143,6 +143,43 @@ TEST_F(TestSubscriptionFixture, test_subscription_init_fini_and_is_valid)
   rcl_reset_error();
 }
 
+TEST_F(TestSubscriptionFixture, subscription_owns_buffer_backend_options)
+{
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, BasicTypes);
+  auto options = rcl_subscription_get_default_options();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_subscription_options_fini(&options));
+  });
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_subscription_options_set_acceptable_buffer_backends("cuda", &options));
+  auto subscription = rcl_get_zero_initialized_subscription();
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    if (subscription.impl) {
+      EXPECT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, this->node_ptr));
+    }
+  });
+  ASSERT_EQ(
+    RCL_RET_OK,
+    rcl_subscription_init(&subscription, this->node_ptr, ts, "backend_ownership", &options));
+  const auto * stored = rcl_subscription_get_options(&subscription);
+  ASSERT_NE(nullptr, stored);
+  ASSERT_NE(
+    options.rmw_subscription_options.acceptable_buffer_backends,
+    stored->rmw_subscription_options.acceptable_buffer_backends);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_subscription_options_fini(&options));
+  EXPECT_STREQ("cuda", stored->rmw_subscription_options.acceptable_buffer_backends);
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_subscription_options_set_acceptable_buffer_backends("cpu", &options));
+  EXPECT_STREQ("cuda", stored->rmw_subscription_options.acceptable_buffer_backends);
+
+  ASSERT_EQ(RCL_RET_OK, rcl_subscription_fini(&subscription, this->node_ptr));
+  EXPECT_STREQ("cpu", options.rmw_subscription_options.acceptable_buffer_backends);
+}
+
 // Define dummy comparison operators for rcutils_allocator_t type
 // to use with the Mimick mocking library
 MOCKING_UTILS_BOOL_OPERATOR_RETURNS_FALSE(rcutils_allocator_t, ==)
