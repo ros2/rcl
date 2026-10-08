@@ -14,13 +14,21 @@
 
 #include "rcl/remap.h"
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
+
 #include "./arguments_impl.h"
 #include "./remap_impl.h"
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
+#include "rcl/types.h"
+#include "rcl/visibility_control.h"
+
 #include "rcutils/allocator.h"
-#include "rcutils/macros.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/rcutils_ret.h"
 #include "rcutils/types/string_map.h"
 
 #ifdef __cplusplus

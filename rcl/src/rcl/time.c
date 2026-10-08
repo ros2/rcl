@@ -15,11 +15,13 @@
 #include "rcl/time.h"
 
 #include <stdbool.h>
-#include <stdlib.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "./common.h"
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/types.h"
 #include "rcutils/macros.h"
 #include "rcutils/stdatomic_helper.h"
 #include "rcutils/time.h"

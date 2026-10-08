@@ -12,15 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <yaml.h>
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/type_hash.h"
-#include "rcutils/types/char_array.h"
+#include "rcl/types.h"
+
 #include "rcutils/sha256.h"
+#include "rcutils/types/char_array.h"
+#include "rcutils/types/rcutils_ret.h"
 #include "type_description_interfaces/msg/type_description.h"
 
 #include "./common.h"

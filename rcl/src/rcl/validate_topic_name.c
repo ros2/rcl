@@ -20,10 +20,11 @@ extern "C"
 #include "rcl/validate_topic_name.h"
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <string.h>
 
-#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/types.h"
 #include "rcutils/isalnum_no_locale.h"
 
 rcl_ret_t

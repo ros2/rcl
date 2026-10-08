@@ -28,6 +28,11 @@
 #include "rcl/rcl.h"
 #include "rcl/service_introspection.h"
 
+#include "rcutils/logging_macros.h"
+
+#include "rmw/qos_profiles.h"
+#include "rmw/rmw.h"
+
 #include "rosidl_runtime_c/primitives_sequence_functions.h"
 
 #include "action_msgs/srv/cancel_goal.h"

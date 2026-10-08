@@ -15,6 +15,8 @@
 #ifndef IMPL__YAML_VARIANT_H_
 #define IMPL__YAML_VARIANT_H_
 
+#include <stdbool.h>
+
 #include "rcutils/allocator.h"
 #include "rcutils/macros.h"
 

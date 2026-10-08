@@ -19,7 +19,6 @@
 #include "rcl/node_options.h"
 #include "rcl/node.h"
 #include "rcl/service.h"
-#include "rcl/types.h"
 #include "rcutils/types/hash_map.h"
 #include "rmw/types.h"
 

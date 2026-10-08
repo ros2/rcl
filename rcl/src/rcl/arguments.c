@@ -17,21 +17,25 @@
 #include "rcl/arguments.h"
 
 #include <assert.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "./arguments_impl.h"
 #include "./remap_impl.h"
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/lexer_lookahead.h"
+#include "rcl/types.h"
 #include "rcl/validate_topic_name.h"
+#include "rcl/visibility_control.h"
 #include "rcl_yaml_param_parser/parser.h"
 #include "rcl_yaml_param_parser/types.h"
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
-#include "rcutils/format_string.h"
 #include "rcutils/logging.h"
 #include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/rcutils_ret.h"
 
 /// Parse an argument that may or may not be a remap rule.
 /**

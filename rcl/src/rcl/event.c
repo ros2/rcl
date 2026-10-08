@@ -19,12 +19,19 @@ extern "C"
 
 #include "rcl/event.h"
 
+#include <stdbool.h>
+#include <stddef.h>
+
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
+#include "rcl/types.h"
 #include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
 #include "rmw/error_handling.h"
-#include "rmw/validate_full_topic_name.h"
 #include "rmw/event.h"
+#include "rmw/ret_types.h"
+#include "rmw/rmw.h"
 
 #include "./common.h"
 #include "./event_impl.h"

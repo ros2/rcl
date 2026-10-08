@@ -20,6 +20,8 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+
 #include "rmw/types.h"
 
 

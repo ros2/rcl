@@ -20,6 +20,10 @@ extern "C"
 {
 #endif
 
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "rcl_action/visibility_control.h"
 
 #include "action_msgs/msg/goal_info.h"
@@ -30,8 +34,6 @@ extern "C"
 #include "rcl/allocator.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"
-
-#include "rosidl_runtime_c/action_type_support_struct.h"
 
 // TODO(jacobperron): Move these to a common place for UUIDs
 #define UUID_SIZE 16

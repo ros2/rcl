@@ -17,6 +17,8 @@
 #ifndef RCL__LOG_LEVEL_H_
 #define RCL__LOG_LEVEL_H_
 
+#include <stddef.h>
+
 #include "rcl/allocator.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"

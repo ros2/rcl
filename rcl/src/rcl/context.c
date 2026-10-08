@@ -20,6 +20,18 @@ extern "C"
 #include "rcl/context.h"
 
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include "rcl/allocator.h"
+#include "rcl/error_handling.h"
+#include "rcl/types.h"
+
+#include "rcutils/error_handling.h"
+
+#include "rmw/init.h"
+#include "rmw/ret_types.h"
+#include "rmw/rmw.h"
 
 #include "./common.h"
 #include "./context_impl.h"

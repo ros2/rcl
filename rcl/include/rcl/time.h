@@ -22,6 +22,9 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "rcl/allocator.h"
 #include "rcl/macros.h"
 #include "rcl/types.h"

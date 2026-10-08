@@ -17,6 +17,11 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "rcl_action/action_client.h"
 #include "./action_client_impl.h"
 
@@ -25,19 +30,25 @@ extern "C"
 #include "rcl_action/types.h"
 #include "rcl_action/wait.h"
 
+#include "rcl/allocator.h"
 #include "rcl/client.h"
 #include "rcl/error_handling.h"
 #include "rcl/graph.h"
+#include "rcl/node.h"
 #include "rcl/node_type_cache.h"
 #include "rcl/subscription.h"
+#include "rcl/time.h"
 #include "rcl/types.h"
 #include "rcl/wait.h"
 
+#include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
-#include "rcutils/strdup.h"
 
 #include "rmw/qos_profiles.h"
 #include "rmw/types.h"
+
+#include "rosidl_runtime_c/action_type_support_struct.h"
+#include "rosidl_runtime_c/type_hash.h"
 
 
 rcl_action_client_t

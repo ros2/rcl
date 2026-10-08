@@ -15,6 +15,7 @@
 #ifndef RCL__NODE_TYPE_CACHE_H_
 #define RCL__NODE_TYPE_CACHE_H_
 
+#include "rcl/macros.h"
 #include "rcl/node.h"
 #include "rcl/types.h"
 #include "rcl/visibility_control.h"

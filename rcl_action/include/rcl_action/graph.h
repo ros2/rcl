@@ -20,8 +20,15 @@ extern "C"
 {
 #endif
 
+#include <stddef.h>
+
+#include "rcl/allocator.h"
 #include "rcl/graph.h"
+#include "rcl/macros.h"
 #include "rcl/node.h"
+#include "rcl/types.h"
+
+#include "rcutils/allocator.h"
 
 #include "rcl_action/visibility_control.h"
 

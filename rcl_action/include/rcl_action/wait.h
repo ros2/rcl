@@ -20,9 +20,14 @@ extern "C"
 {
 #endif
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "rcl_action/action_client.h"
 #include "rcl_action/action_server.h"
 #include "rcl_action/visibility_control.h"
+#include "rcl/macros.h"
+#include "rcl/types.h"
 #include "rcl/wait.h"
 
 /// Add a rcl_action_client_t to a wait set.

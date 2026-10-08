@@ -30,6 +30,8 @@
 
 #include "rcutils/logging_macros.h"
 
+#include "rmw/rmw.h"
+
 #include "./allocator_testing_utils.h"
 #include "../mocking_utils/patch.hpp"
 

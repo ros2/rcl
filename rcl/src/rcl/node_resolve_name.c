@@ -14,16 +14,23 @@
 
 #include "rcl/node.h"
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
+#include "rcutils/types/rcutils_ret.h"
 #include "rcutils/types/string_map.h"
 
 #include "rmw/error_handling.h"
+#include "rmw/ret_types.h"
 #include "rmw/validate_full_topic_name.h"
 
+#include "rcl/allocator.h"
 #include "rcl/error_handling.h"
 #include "rcl/expand_topic_name.h"
 #include "rcl/remap.h"
+#include "rcl/types.h"
 
 #include "./remap_impl.h"
 

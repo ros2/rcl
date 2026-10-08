@@ -22,6 +22,8 @@
 #include "rcl/rcl.h"
 #include "rcl/rmw_implementation_identifier_check.h"
 
+#include "rmw/rmw.h"
+
 #include "../mocking_utils/patch.hpp"
 
 TEST(TestRmwCheck, test_rmw_check_id_impl) {

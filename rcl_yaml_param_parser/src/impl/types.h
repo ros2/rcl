@@ -19,7 +19,6 @@
 #ifndef IMPL__TYPES_H_
 #define IMPL__TYPES_H_
 
-#include <inttypes.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
