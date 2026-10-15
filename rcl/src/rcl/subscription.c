@@ -100,7 +100,8 @@ rcl_subscription_init(
     } else if (ret != RCL_RET_BAD_ALLOC) {
       ret = RCL_RET_ERROR;
     }
-    goto cleanup;
+    fail_ret = ret;
+    goto fail;
   }
   RCUTILS_LOG_DEBUG_NAMED(
     ROS_PACKAGE_NAME, "Expanded and remapped topic name '%s'", remapped_topic_name);
@@ -109,7 +110,7 @@ rcl_subscription_init(
   subscription->impl = (rcl_subscription_impl_t *)allocator->zero_allocate(
     1, sizeof(rcl_subscription_impl_t), allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    subscription->impl, "allocating memory failed", ret = RCL_RET_BAD_ALLOC; goto cleanup);
+    subscription->impl, "allocating memory failed", fail_ret = RCL_RET_BAD_ALLOC; goto fail);
 
   // options
   subscription->impl->options = *options;
@@ -179,6 +180,15 @@ fail:
 
     allocator->deallocate(subscription->impl, allocator->state);
     subscription->impl = NULL;
+  } else {
+    // The implementation struct was never created, so the options were not copied into it.
+    // Release the resources owned by the options here, as it would happen otherwise.
+    rcl_subscription_options_t options_copy = *options;
+    ret = rcl_subscription_options_fini(&options_copy);
+    if (RCL_RET_OK != ret) {
+      RCUTILS_SAFE_FWRITE_TO_STDERR(rcl_get_error_string().str);
+      RCUTILS_SAFE_FWRITE_TO_STDERR("\n");
+    }
   }
   ret = fail_ret;
   // Fall through to cleanup
