@@ -18,6 +18,7 @@ extern "C"
 #endif
 
 #include <stddef.h>
+#include <string.h>
 
 #include "rcl/allocator.h"
 #include "rcl/error_handling.h"
@@ -27,6 +28,25 @@ extern "C"
 #include "rcutils/macros.h"
 
 #include "rcl_lifecycle/transition_map.h"
+
+// Point the start and goal of a transition that point into old_states at the same entries of
+// new_states. Pointers anywhere else are left as they are.
+static void
+_rcl_lifecycle_move_transition_states(
+  rcl_lifecycle_transition_t * transition,
+  const rcl_lifecycle_state_t * old_states,
+  rcl_lifecycle_state_t * new_states,
+  unsigned int states_size)
+{
+  for (unsigned int i = 0; i < states_size; ++i) {
+    if (transition->start == &old_states[i]) {
+      transition->start = &new_states[i];
+    }
+    if (transition->goal == &old_states[i]) {
+      transition->goal = &new_states[i];
+    }
+  }
+}
 
 rcl_lifecycle_transition_map_t
 rcl_lifecycle_get_zero_initialized_transition_map(void)
@@ -102,13 +122,30 @@ rcl_lifecycle_register_state(
   RCL_CHECK_ALLOCATOR_WITH_MSG(
     allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT)
   // add new primary state memory
+  // Registered transitions point into the states array, so the array is copied rather than
+  // reallocated: the transitions can only be moved over while the old array is still allocated.
   unsigned int new_states_size = transition_map->states_size + 1;
-  rcl_lifecycle_state_t * new_states = allocator->reallocate(
-    transition_map->states,
+  rcl_lifecycle_state_t * new_states = allocator->allocate(
     new_states_size * sizeof(rcl_lifecycle_state_t),
     allocator->state);
   RCL_CHECK_FOR_NULL_WITH_MSG(
-    new_states, "failed to reallocate memory for new states", return RCL_RET_BAD_ALLOC);
+    new_states, "failed to allocate memory for new states", return RCL_RET_BAD_ALLOC);
+  rcl_lifecycle_state_t * old_states = transition_map->states;
+  if (old_states) {
+    memcpy(new_states, old_states, transition_map->states_size * sizeof(rcl_lifecycle_state_t));
+    for (unsigned int i = 0; i < transition_map->transitions_size; ++i) {
+      _rcl_lifecycle_move_transition_states(
+        &transition_map->transitions[i], old_states, new_states, transition_map->states_size);
+    }
+    for (unsigned int i = 0; i < transition_map->states_size; ++i) {
+      for (unsigned int j = 0; j < new_states[i].valid_transition_size; ++j) {
+        _rcl_lifecycle_move_transition_states(
+          &new_states[i].valid_transitions[j], old_states, new_states,
+          transition_map->states_size);
+      }
+    }
+    allocator->deallocate(old_states, allocator->state);
+  }
   transition_map->states_size = new_states_size;
   transition_map->states = new_states;
   transition_map->states[transition_map->states_size - 1] = state;
