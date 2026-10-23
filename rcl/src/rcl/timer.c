@@ -126,7 +126,8 @@ _rcl_timer_init_impl(
   int64_t period,
   const rcl_timer_callback_t callback,
   rcl_allocator_t allocator,
-  bool autostart)
+  bool autostart,
+  bool aligned)
 {
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
   RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
@@ -160,6 +161,7 @@ _rcl_timer_init_impl(
   atomic_init(&impl.last_call_time, now);
   atomic_init(&impl.next_call_time, initial_call_time);
   atomic_init(&impl.canceled, !autostart);
+  impl.aligned = aligned;
   impl.allocator = allocator;
 
   // Empty init on reset callback data
@@ -228,7 +230,7 @@ rcl_timer_init2(
   rcl_time_point_value_t initial_call_time = now + period;
   return _rcl_timer_init_impl(
     timer, clock, context, now, initial_call_time, period,
-    callback, allocator, autostart);
+    callback, allocator, autostart, false);
 }
 
 rcl_ret_t
@@ -250,7 +252,7 @@ rcl_timer_init_with_start_time(
   }
   return _rcl_timer_init_impl(
     timer, clock, context, now, initial_call_time, period,
-    callback, allocator, autostart);
+    callback, allocator, autostart, true);
 }
 
 rcl_ret_t
@@ -579,43 +581,15 @@ rcl_timer_reset(rcl_timer_t * timer)
     return now_ret;  // rcl error state should already be set.
   }
   int64_t period = rcutils_atomic_load_int64_t(&timer->impl->period);
-  rcutils_atomic_store(&timer->impl->next_call_time, now + period);
-  rcutils_atomic_store(&timer->impl->canceled, false);
-  rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
-
-  rcl_timer_on_reset_callback_data_t * cb_data = &timer->impl->reset_callback_data;
-
-  if (cb_data->on_reset_callback) {
-    cb_data->on_reset_callback(cb_data->user_data, 1);
+  int64_t next_call_time;
+  if (timer->impl->aligned) {
+    // For aligned timers, only catch up if the existing schedule is already overdue;
+    // otherwise leave next_call_time untouched, preserving the original phase.
+    next_call_time = rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
+    next_call_time = _rcl_timer_next_call_time_after(next_call_time, period, now);
   } else {
-    cb_data->reset_counter++;
+    next_call_time = now + period;
   }
-
-  if (ret != RCL_RET_OK) {
-    RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
-  }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset");
-  return RCL_RET_OK;
-}
-
-rcl_ret_t
-rcl_timer_resume(rcl_timer_t * timer)
-{
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_INVALID_ARGUMENT);
-
-  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
-  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
-  rcl_time_point_value_t now;
-  rcl_ret_t now_ret = rcl_clock_get_now(timer->impl->clock, &now);
-  if (now_ret != RCL_RET_OK) {
-    RCL_EXPECT_ERROR_IS_SET(now_ret);
-    return now_ret;  // rcl error state should already be set.
-  }
-  int64_t next_call_time = rcutils_atomic_load_int64_t(&timer->impl->next_call_time);
-  int64_t period = rcutils_atomic_load_int64_t(&timer->impl->period);
-  // unlike reset(), only catch up if the existing schedule is already overdue;
-  // otherwise leave next_call_time untouched, preserving the original phase
-  next_call_time = _rcl_timer_next_call_time_after(next_call_time, period, now);
   rcutils_atomic_store(&timer->impl->next_call_time, next_call_time);
   rcutils_atomic_store(&timer->impl->canceled, false);
   rcl_ret_t ret = rcl_trigger_guard_condition(&timer->impl->guard_condition);
@@ -631,7 +605,7 @@ rcl_timer_resume(rcl_timer_t * timer)
   if (ret != RCL_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(ROS_PACKAGE_NAME, "Failed to trigger timer guard condition");
   }
-  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully resumed");
+  RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Timer successfully reset");
   return RCL_RET_OK;
 }
 

@@ -296,18 +296,7 @@ TEST_F(TestTimerFixture, test_timer_init_with_start_time_with_past_initial_call_
   EXPECT_TRUE(is_ready);
 }
 
-TEST_F(TestTimerFixture, test_timer_resume_with_invalid_arguments) {
-  rcl_ret_t ret = rcl_timer_resume(nullptr);
-  EXPECT_EQ(RCL_RET_INVALID_ARGUMENT, ret);
-  rcl_reset_error();
-
-  rcl_timer_t uninitialized_timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_resume(&uninitialized_timer);
-  EXPECT_EQ(RCL_RET_TIMER_INVALID, ret);
-  rcl_reset_error();
-}
-
-TEST_F(TestTimerFixture, test_timer_resume_does_not_advance_if_not_yet_due) {
+TEST_F(TestTimerFixture, test_aligned_timer_reset_does_not_advance_if_not_yet_due) {
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
@@ -342,7 +331,7 @@ TEST_F(TestTimerFixture, test_timer_resume_does_not_advance_if_not_yet_due) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(is_canceled);
 
-  ret = rcl_timer_resume(&timer);
+  ret = rcl_timer_reset(&timer);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_timer_is_canceled(&timer, &is_canceled);
@@ -356,7 +345,7 @@ TEST_F(TestTimerFixture, test_timer_resume_does_not_advance_if_not_yet_due) {
   EXPECT_EQ(initial_call_time, next_call_time);
 }
 
-TEST_F(TestTimerFixture, test_timer_resume_catches_up_if_overdue) {
+TEST_F(TestTimerFixture, test_aligned_timer_reset_catches_up_if_overdue) {
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
@@ -387,7 +376,7 @@ TEST_F(TestTimerFixture, test_timer_resume_catches_up_if_overdue) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
-  ret = rcl_timer_resume(&timer);
+  ret = rcl_timer_reset(&timer);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   bool is_canceled = true;
@@ -403,7 +392,7 @@ TEST_F(TestTimerFixture, test_timer_resume_catches_up_if_overdue) {
   EXPECT_LE(time_until_next_call, period);
 }
 
-TEST_F(TestTimerFixture, test_timer_resume_uncancels_a_canceled_timer) {
+TEST_F(TestTimerFixture, test_aligned_timer_reset_uncancels_and_preserves_phase) {
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
@@ -414,9 +403,14 @@ TEST_F(TestTimerFixture, test_timer_resume_uncancels_a_canceled_timer) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
+  rcl_time_point_value_t now = 0;
+  ret = rcl_clock_get_now(&clock, &now);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+
+  const int64_t period = RCL_S_TO_NS(10);
   rcl_timer_t timer = rcl_get_zero_initialized_timer();
-  ret = rcl_timer_init2(
-    &timer, &clock, this->context_ptr, RCL_S_TO_NS(10), nullptr,
+  ret = rcl_timer_init_with_start_time(
+    &timer, &clock, this->context_ptr, now + period, period, nullptr,
     rcl_get_default_allocator(), true);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
@@ -437,7 +431,7 @@ TEST_F(TestTimerFixture, test_timer_resume_uncancels_a_canceled_timer) {
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   EXPECT_TRUE(is_canceled);
 
-  ret = rcl_timer_resume(&timer);
+  ret = rcl_timer_reset(&timer);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   ret = rcl_timer_is_canceled(&timer, &is_canceled);
@@ -447,7 +441,7 @@ TEST_F(TestTimerFixture, test_timer_resume_uncancels_a_canceled_timer) {
   int64_t next_call_time_after = 0;
   ret = rcl_timer_get_next_call_time(&timer, &next_call_time_after);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
-  // A short cancel/resume cycle with a long period should not have shifted the phase.
+  // A short cancel/reset cycle with a long period should not have shifted the phase.
   EXPECT_EQ(next_call_time_before, next_call_time_after);
 }
 
@@ -531,11 +525,11 @@ TEST_F(TestTimerFixture, test_timer_init_with_start_time_reads_clock_exactly_onc
 }
 
 // Regression test: the arithmetic used to catch a timer's next_call_time up to the present
-// (shared by rcl_timer_call_with_info() and rcl_timer_resume()) could overflow int64_t --
-// undefined behavior -- for a sufficiently extreme next_call_time/period combination. Since
-// initial_call_time is caller-supplied, a caller can trigger this with an extreme value. It
+// (shared by rcl_timer_call_with_info() and rcl_timer_reset() for aligned timers) could overflow
+// int64_t -- undefined behavior -- for a sufficiently extreme next_call_time/period combination.
+// Since initial_call_time is caller-supplied, a caller can trigger this with an extreme value. It
 // should now saturate at INT64_MAX instead.
-TEST_F(TestTimerFixture, test_timer_resume_saturates_instead_of_overflowing) {
+TEST_F(TestTimerFixture, test_aligned_timer_reset_saturates_instead_of_overflowing) {
   rcl_clock_t clock;
   rcl_allocator_t allocator = rcl_get_default_allocator();
   rcl_ret_t ret = rcl_clock_init(RCL_STEADY_TIME, &clock, &allocator);
@@ -560,7 +554,7 @@ TEST_F(TestTimerFixture, test_timer_resume_saturates_instead_of_overflowing) {
     EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   });
 
-  ret = rcl_timer_resume(&timer);
+  ret = rcl_timer_reset(&timer);
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
   int64_t next_call_time = 0;
