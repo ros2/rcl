@@ -13,6 +13,9 @@
 // limitations under the License.
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <thread>
+
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 #include "rcl_action/action_client.h"
@@ -116,6 +119,21 @@ protected:
       &context,
       rcl_get_default_allocator());
     ASSERT_EQ(ret, RCL_RET_OK) << rcl_get_error_string().str;
+
+    // Make sure the action client has discovered the action server before any
+    // test sends a request.  Requests are reliable but volatile, so a request
+    // sent before the client and server have matched is silently dropped.
+    bool is_available = false;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+    while (!is_available && std::chrono::steady_clock::now() < deadline) {
+      ret = rcl_action_server_is_available(
+        &this->node, &this->action_client, &is_available);
+      ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+      if (!is_available) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    }
+    ASSERT_TRUE(is_available);
   }
 
   void TearDown() override
