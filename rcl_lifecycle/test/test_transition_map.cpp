@@ -18,6 +18,11 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+
 #include "rcl/error_handling.h"
 
 #include "rcl_lifecycle/rcl_lifecycle.h"
@@ -43,6 +48,48 @@ static void * bad_malloc(size_t, void *)
 static void * bad_realloc(void *, size_t, void *)
 {
   return nullptr;
+}
+
+// An allocator whose reallocate() always moves the block, as any allocator may. Each block
+// keeps its size in a header so that the old contents can be copied and then overwritten.
+static constexpr size_t kHeaderSize = sizeof(std::max_align_t);
+
+static void * moving_malloc(size_t size, void *)
+{
+  char * block = static_cast<char *>(std::malloc(kHeaderSize + size));
+  if (!block) {
+    return nullptr;
+  }
+  *reinterpret_cast<size_t *>(block) = size;
+  return block + kHeaderSize;
+}
+
+static void moving_free(void * pointer, void *)
+{
+  if (pointer) {
+    std::free(static_cast<char *>(pointer) - kHeaderSize);
+  }
+}
+
+static void * moving_realloc(void * pointer, size_t size, void * state)
+{
+  void * moved = moving_malloc(size, state);
+  if (moved && pointer) {
+    size_t old_size = *reinterpret_cast<size_t *>(static_cast<char *>(pointer) - kHeaderSize);
+    std::memcpy(moved, pointer, std::min(old_size, size));
+    std::memset(pointer, 0xff, old_size);
+    moving_free(pointer, state);
+  }
+  return moved;
+}
+
+static void * moving_calloc(size_t count, size_t size, void * state)
+{
+  void * block = moving_malloc(count * size, state);
+  if (block) {
+    std::memset(block, 0, count * size);
+  }
+  return block;
 }
 
 TEST_F(TestTransitionMap, zero_initialized) {
@@ -202,6 +249,44 @@ TEST_F(TestTransitionMap, get_label_by_id) {
 
   EXPECT_STREQ("from0to1", rcl_lifecycle_get_transition_label_by_id(&transition_map, 0));
   EXPECT_STREQ("from1to0", rcl_lifecycle_get_transition_label_by_id(&transition_map, 1));
+
+  EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_fini(&transition_map, &allocator));
+}
+
+TEST_F(TestTransitionMap, register_state_after_transitions) {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  allocator.allocate = moving_malloc;
+  allocator.deallocate = moving_free;
+  allocator.reallocate = moving_realloc;
+  allocator.zero_allocate = moving_calloc;
+
+  rcl_lifecycle_transition_map_t transition_map =
+    rcl_lifecycle_get_zero_initialized_transition_map();
+
+  rcl_lifecycle_state_t state0 = {"my_state_0", 0, NULL, 0};
+  rcl_lifecycle_state_t state1 = {"my_state_1", 1, NULL, 0};
+  ASSERT_EQ(RCL_RET_OK, rcl_lifecycle_register_state(&transition_map, state0, &allocator));
+  ASSERT_EQ(RCL_RET_OK, rcl_lifecycle_register_state(&transition_map, state1, &allocator));
+
+  rcl_lifecycle_transition_t transition01 = {"from0to1", 0,
+    rcl_lifecycle_get_state(&transition_map, state0.id),
+    rcl_lifecycle_get_state(&transition_map, state1.id)};
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_lifecycle_register_transition(&transition_map, transition01, &allocator));
+
+  // Registering another state moves transition_map.states; the transition registered
+  // before must follow it instead of pointing at the freed block.
+  rcl_lifecycle_state_t state2 = {"my_state_2", 2, NULL, 0};
+  ASSERT_EQ(RCL_RET_OK, rcl_lifecycle_register_state(&transition_map, state2, &allocator));
+
+  rcl_lifecycle_state_t * start_state = rcl_lifecycle_get_state(&transition_map, state0.id);
+  rcl_lifecycle_state_t * goal_state = rcl_lifecycle_get_state(&transition_map, state1.id);
+  ASSERT_EQ(1u, transition_map.transitions_size);
+  EXPECT_EQ(start_state, transition_map.transitions[0].start);
+  EXPECT_EQ(goal_state, transition_map.transitions[0].goal);
+  ASSERT_EQ(1u, start_state->valid_transition_size);
+  EXPECT_EQ(start_state, start_state->valid_transitions[0].start);
+  EXPECT_EQ(goal_state, start_state->valid_transitions[0].goal);
 
   EXPECT_EQ(RCL_RET_OK, rcl_lifecycle_transition_map_fini(&transition_map, &allocator));
 }
