@@ -41,6 +41,14 @@ rcl_get_zero_initialized_timer(void)
   return null_timer;
 }
 
+static void
+_rcl_timer_call_on_schedule_change(rcl_timer_impl_t * impl)
+{
+  if (impl->on_schedule_change_callback) {
+    impl->on_schedule_change_callback(impl->on_schedule_change_user_data, 1);
+  }
+}
+
 void _rcl_timer_time_jump(
   const rcl_time_jump_t * time_jump,
   bool before_jump,
@@ -88,6 +96,7 @@ void _rcl_timer_time_jump(
         // set times in new epoch so timer only waits the remainder of the period
         rcutils_atomic_store(&impl->next_call_time, now - time_credit + period);
         rcutils_atomic_store(&impl->last_call_time, now - time_credit);
+        _rcl_timer_call_on_schedule_change(impl);
       }
     } else if (next_call_time <= now) {
       // Post Forward jump and timer is ready
@@ -100,6 +109,7 @@ void _rcl_timer_time_jump(
       // next callback should happen after 1 period
       rcutils_atomic_store(&impl->next_call_time, now + period);
       rcutils_atomic_store(&impl->last_call_time, now);
+      _rcl_timer_call_on_schedule_change(impl);
       return;
     }
   }
@@ -157,6 +167,8 @@ rcl_timer_init2(
   impl.reset_callback_data.on_reset_callback = NULL;
   impl.reset_callback_data.user_data = NULL;
   impl.reset_callback_data.reset_counter = 0;
+  impl.on_schedule_change_callback = NULL;
+  impl.on_schedule_change_user_data = NULL;
   impl.in_use_by_waitset = false;
 
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
@@ -530,6 +542,26 @@ rcl_timer_set_on_reset_callback(
   } else {
     cb_data->on_reset_callback = NULL;
     cb_data->user_data = NULL;
+  }
+
+  return RCL_RET_OK;
+}
+
+rcl_ret_t
+rcl_timer_set_on_schedule_change_callback(
+  const rcl_timer_t * timer,
+  rcl_event_callback_t on_schedule_change_callback,
+  const void * user_data)
+{
+  RCL_CHECK_ARGUMENT_FOR_NULL(timer, RCL_RET_INVALID_ARGUMENT);
+  RCL_CHECK_FOR_NULL_WITH_MSG(timer->impl, "timer is invalid", return RCL_RET_TIMER_INVALID);
+
+  if (on_schedule_change_callback) {
+    timer->impl->on_schedule_change_user_data = user_data;
+    timer->impl->on_schedule_change_callback = on_schedule_change_callback;
+  } else {
+    timer->impl->on_schedule_change_callback = NULL;
+    timer->impl->on_schedule_change_user_data = NULL;
   }
 
   return RCL_RET_OK;

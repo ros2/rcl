@@ -51,6 +51,9 @@ struct rcl_timer_impl_s
   rcl_allocator_t allocator;
   // The user supplied on reset callback data.
   rcl_timer_on_reset_callback_data_t reset_callback_data;
+  // The user supplied callback for schedule changes made by a time jump.
+  rcl_event_callback_t on_schedule_change_callback;
+  const void * on_schedule_change_user_data;
   bool in_use_by_waitset;
 };
 #endif  // RCL__TIMER_IMPL_H_
