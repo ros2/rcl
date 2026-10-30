@@ -63,9 +63,6 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   find_package(performance_test_fixture REQUIRED)
-  # Give cppcheck hints about macro definitions coming from outside this package
-  get_target_property(ament_cmake_cppcheck_ADDITIONAL_INCLUDE_DIRS
-    performance_test_fixture::performance_test_fixture INTERFACE_INCLUDE_DIRECTORIES)
 
   # Gtests
   ament_add_gtest(test_namespace
