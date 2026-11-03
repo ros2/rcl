@@ -37,8 +37,15 @@
 
 #ifndef _WIN32
 #define TOLERANCE RCL_MS_TO_NS(6)
+// How much earlier than the requested timeout a wait is allowed to return.  Waits on
+// condition variables do not return early, so this only covers clock rounding.
+#define EARLY_RETURN_TOLERANCE RCL_MS_TO_NS(1)
 #else
 #define TOLERANCE RCL_MS_TO_NS(25)
+// On Windows a relative wait is measured in system timer ticks (15.625 ms by default) and
+// may expire up to one tick before the requested time, see
+// https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/timer-accuracy
+#define EARLY_RETURN_TOLERANCE RCL_MS_TO_NS(16)
 #endif
 
 class WaitSetTestFixture : public ::testing::Test
@@ -365,10 +372,14 @@ TEST_F(WaitSetTestFixture, no_wakeup_on_override_timer) {
   std::chrono::steady_clock::time_point before_sc = std::chrono::steady_clock::now();
   ret = rcl_wait(&wait_set, RCL_MS_TO_NS(100));
   std::chrono::steady_clock::time_point after_sc = std::chrono::steady_clock::now();
-  // We don't expect a timeout here (since the guard condition had already been triggered)
+  // We expect a timeout here, since the timer is on an overridden ROS clock and never fires.
   ASSERT_EQ(RCL_RET_TIMEOUT, ret) << rcl_get_error_string().str;
   int64_t diff = std::chrono::duration_cast<std::chrono::nanoseconds>(after_sc - before_sc).count();
-  EXPECT_GE(diff, RCL_MS_TO_NS(100));
+  // The wait must not have been cut short by the timer.  A wakeup from the timer would
+  // happen around its 10 ms period, so anything close to the full timeout proves that it
+  // did not wake us.  The OS wait may return slightly before the steady_clock deadline,
+  // which is why the full timeout is not required exactly.
+  EXPECT_GE(diff, RCL_MS_TO_NS(100) - EARLY_RETURN_TOLERANCE);
 }
 
 // Test rcl_wait with a timeout value and an overrun timer
