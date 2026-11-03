@@ -2,6 +2,15 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+10.5.3 (2026-11-03)
+-------------------
+* Make sure to wait for the rcl_action server. (`#1354 <https://github.com/ros2/rcl//issues/1354>`_)
+* Include what you use (`#1334 <https://github.com/ros2/rcl//issues/1334>`_)
+* Use ament_ros_defaults for language standards (`#1347 <https://github.com/ros2/rcl//issues/1347>`_)
+* Delete old-style ament_export_include_directories() and ament_export_libraries() calls (`#1342 <https://github.com/ros2/rcl//issues/1342>`_)
+* Use the SPDX identifier Apache-2.0 in package.xml license tags (`#1339 <https://github.com/ros2/rcl//issues/1339>`_)
+* Contributors: Alejandro Hernández Cordero, Chris Lalancette, Dennis Lanov, Francois Gonothi Toure, Michael Carroll
+
 10.5.2 (2026-08-31)
 -------------------
 * introduce rcl_action_endpoint_info_array_t. (`#1326 <https://github.com/ros2/rcl/issues/1326>`_)

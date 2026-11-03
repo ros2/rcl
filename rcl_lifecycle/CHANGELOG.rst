@@ -2,6 +2,14 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+10.5.3 (2026-11-03)
+-------------------
+* Include what you use (`#1334 <https://github.com/ros2/rcl//issues/1334>`_)
+* Use ament_ros_defaults for language standards (`#1347 <https://github.com/ros2/rcl//issues/1347>`_)
+* Delete old-style ament_export_include_directories() and ament_export_libraries() calls (`#1342 <https://github.com/ros2/rcl//issues/1342>`_)
+* Use the SPDX identifier Apache-2.0 in package.xml license tags (`#1339 <https://github.com/ros2/rcl//issues/1339>`_)
+* Contributors: Alejandro Hernández Cordero, Dennis Lanov, Francois Gonothi Toure, Michael Carroll
+
 10.5.2 (2026-08-31)
 -------------------
 * use C++ 20 in default. (`#1322 <https://github.com/ros2/rcl/issues/1322>`_)
