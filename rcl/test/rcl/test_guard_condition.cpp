@@ -54,7 +54,7 @@ public:
 /* Tests the guard condition accessors, i.e. rcl_guard_condition_get_* functions.
  */
 TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
-  osrf_testing_tools_cpp::memory_tools::enable_monitoring_in_all_threads();
+  osrf_testing_tools_cpp::memory_tools::enable_monitoring();
 
   rcl_ret_t ret;
 
@@ -64,7 +64,7 @@ TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
     ASSERT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
@@ -73,7 +73,7 @@ TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
   // Setup automatic rcl_shutdown()
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
@@ -89,7 +89,7 @@ TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
   // Setup automatic finalization of guard condition.
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
     rcl_ret_t ret = rcl_guard_condition_fini(&guard_condition);
     EXPECT_EQ(RCL_RET_OK, ret);
   });
