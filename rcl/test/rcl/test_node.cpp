@@ -102,7 +102,7 @@ public:
 /* Tests the node accessors, i.e. rcl_node_get_* functions.
  */
 TEST_F(TestNodeFixture, test_rcl_node_accessors) {
-  osrf_testing_tools_cpp::memory_tools::enable_monitoring();
+  osrf_testing_tools_cpp::memory_tools::enable_monitoring_in_all_threads();
   rcl_ret_t ret;
   // Initialize rcl with rcl_init().
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -126,7 +126,7 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     rcl_ret_t ret = rcl_node_fini(&invalid_node);
     EXPECT_EQ(RCL_RET_OK, rcl_context_fini(&invalid_context)) << rcl_get_error_string().str;
     EXPECT_EQ(RCL_RET_OK, ret);
@@ -138,7 +138,7 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   ASSERT_EQ(RCL_RET_OK, ret);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
@@ -150,7 +150,7 @@ TEST_F(TestNodeFixture, test_rcl_node_accessors) {
   ASSERT_EQ(RCL_RET_OK, ret);
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     rcl_ret_t ret = rcl_node_fini(&node);
     EXPECT_EQ(RCL_RET_OK, ret);
   });

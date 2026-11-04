@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include <regex>
 #include <string>
 
 #include "rcl/rcl.h"
@@ -38,11 +39,27 @@ class TestGuardConditionFixture : public ::testing::Test
 public:
   void SetUp()
   {
+    auto common =
+      [](auto service, const char * name) {
+        // only fail if call originated in our library, librcl.<something>
+        std::regex pattern("/?librcl\\.");
+        auto st = service.get_stack_trace();  // nullptr if stack trace not available
+        if (st && st->matches_any_object_filename(pattern)) {
+          // Implicitly this means if one of the rmw implementations uses threads
+          // and does memory allocations in them, but the calls didn't originate
+          // from an rcl call, we will ignore it.
+          // The goal here is ensure that no rcl function or thread is using memory.
+          // Separate tests will be needed to ensure the rmw implementation does
+          // not allocate memory or cause it to be allocated.
+          service.print_backtrace();
+          ADD_FAILURE() << "Unexpected call to " << name << " originating from within librcl.";
+        }
+      };
     osrf_testing_tools_cpp::memory_tools::initialize();
-    on_unexpected_malloc([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    on_unexpected_realloc([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    on_unexpected_calloc([]() {ASSERT_FALSE(true) << "UNEXPECTED CALLOC";});
-    on_unexpected_free([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
+    on_unexpected_malloc([common](auto service) {common(service, "malloc");});
+    on_unexpected_realloc([common](auto service) {common(service, "realloc");});
+    on_unexpected_calloc([common](auto service) {common(service, "calloc");});
+    on_unexpected_free([common](auto service) {common(service, "free");});
   }
 
   void TearDown()
@@ -54,7 +71,7 @@ public:
 /* Tests the guard condition accessors, i.e. rcl_guard_condition_get_* functions.
  */
 TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
-  osrf_testing_tools_cpp::memory_tools::enable_monitoring();
+  osrf_testing_tools_cpp::memory_tools::enable_monitoring_in_all_threads();
 
   rcl_ret_t ret;
 
@@ -64,7 +81,7 @@ TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
   ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     ASSERT_EQ(RCL_RET_OK, rcl_init_options_fini(&init_options));
   });
   rcl_context_t context = rcl_get_zero_initialized_context();
@@ -73,7 +90,7 @@ TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
   // Setup automatic rcl_shutdown()
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     ASSERT_EQ(RCL_RET_OK, rcl_shutdown(&context));
     ASSERT_EQ(RCL_RET_OK, rcl_context_fini(&context));
   });
@@ -89,7 +106,7 @@ TEST_F(TestGuardConditionFixture, test_rcl_guard_condition_accessors) {
   // Setup automatic finalization of guard condition.
   OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
   {
-    osrf_testing_tools_cpp::memory_tools::disable_monitoring();
+    osrf_testing_tools_cpp::memory_tools::disable_monitoring_in_all_threads();
     rcl_ret_t ret = rcl_guard_condition_fini(&guard_condition);
     EXPECT_EQ(RCL_RET_OK, ret);
   });
