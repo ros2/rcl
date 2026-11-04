@@ -41,16 +41,11 @@ public:
   {
     auto common =
       [](auto service, const char * name) {
-        // only fail if call originated in our library, librcl.<something>
+        // Only fail if the call originated in librcl; allocations made by
+        // rmw implementation threads are ignored (same as TestNodeFixture).
         std::regex pattern("/?librcl\\.");
         auto st = service.get_stack_trace();  // nullptr if stack trace not available
         if (st && st->matches_any_object_filename(pattern)) {
-          // Implicitly this means if one of the rmw implementations uses threads
-          // and does memory allocations in them, but the calls didn't originate
-          // from an rcl call, we will ignore it.
-          // The goal here is ensure that no rcl function or thread is using memory.
-          // Separate tests will be needed to ensure the rmw implementation does
-          // not allocate memory or cause it to be allocated.
           service.print_backtrace();
           ADD_FAILURE() << "Unexpected call to " << name << " originating from within librcl.";
         }
