@@ -450,7 +450,7 @@ rcl_ret_t
 rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
   rmw_request_id_t * response_header,
-  void * ros_goal_response)
+  const void * ros_goal_response)
 {
   SEND_SERVICE_RESPONSE(goal, response_header, ros_goal_response);
 }
@@ -700,7 +700,7 @@ rcl_ret_t
 rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
   rmw_request_id_t * response_header,
-  void * ros_result_response)
+  const void * ros_result_response)
 {
   SEND_SERVICE_RESPONSE(result, response_header, ros_result_response);
 }
@@ -1000,7 +1000,7 @@ rcl_ret_t
 rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
   rmw_request_id_t * response_header,
-  void * ros_cancel_response)
+  const void * ros_cancel_response)
 {
   SEND_SERVICE_RESPONSE(cancel, response_header, ros_cancel_response);
 }
