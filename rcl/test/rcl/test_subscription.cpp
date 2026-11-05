@@ -259,6 +259,113 @@ TEST_F(TestSubscriptionFixture, test_subscription_bad_init) {
   ASSERT_EQ(NULL, subscription.impl);
 }
 
+namespace
+{
+struct AllocationCounter
+{
+  rcl_allocator_t base = rcl_get_default_allocator();
+  size_t allocations = 0;
+  size_t deallocations = 0;
+};
+
+void * counting_allocate(size_t size, void * state)
+{
+  auto counter = static_cast<AllocationCounter *>(state);
+  void * ptr = counter->base.allocate(size, counter->base.state);
+  if (nullptr != ptr) {
+    ++counter->allocations;
+  }
+  return ptr;
+}
+
+void counting_deallocate(void * pointer, void * state)
+{
+  auto counter = static_cast<AllocationCounter *>(state);
+  if (nullptr != pointer) {
+    ++counter->deallocations;
+  }
+  counter->base.deallocate(pointer, counter->base.state);
+}
+
+void * counting_reallocate(void * pointer, size_t size, void * state)
+{
+  auto counter = static_cast<AllocationCounter *>(state);
+  void * ptr = counter->base.reallocate(pointer, size, counter->base.state);
+  if (nullptr == pointer && nullptr != ptr) {
+    ++counter->allocations;
+  }
+  return ptr;
+}
+
+void * counting_zero_allocate(size_t number_of_elements, size_t size_of_element, void * state)
+{
+  auto counter = static_cast<AllocationCounter *>(state);
+  void * ptr = counter->base.zero_allocate(
+    number_of_elements, size_of_element, counter->base.state);
+  if (nullptr != ptr) {
+    ++counter->allocations;
+  }
+  return ptr;
+}
+}  // namespace
+
+/* Check that the subscription options are released when the init fails.
+ */
+TEST_F(TestSubscriptionFixture, test_subscription_bad_init_releases_options) {
+  const rosidl_message_type_support_t * ts =
+    ROSIDL_GET_MSG_TYPE_SUPPORT(test_msgs, msg, Strings);
+  const char * expression_parameters[] = {"'FilteredData'"};
+
+  AllocationCounter counter;
+  rcl_allocator_t allocator = rcutils_get_zero_initialized_allocator();
+  allocator.allocate = counting_allocate;
+  allocator.deallocate = counting_deallocate;
+  allocator.reallocate = counting_reallocate;
+  allocator.zero_allocate = counting_zero_allocate;
+  allocator.state = &counter;
+
+  auto make_options = [&]() {
+      rcl_subscription_options_t options = rcl_subscription_get_default_options();
+      options.allocator = allocator;
+      EXPECT_EQ(
+        RCL_RET_OK,
+        rcl_subscription_options_set_content_filter_options(
+          "string_value = %0", 1, expression_parameters, &options));
+      EXPECT_EQ(
+        RCL_RET_OK,
+        rcl_subscription_options_set_acceptable_buffer_backends("cuda", &options));
+      return options;
+    };
+
+  // Fails early, while resolving the topic name.
+  {
+    rcl_subscription_options_t options = make_options();
+    EXPECT_LT(counter.deallocations, counter.allocations);
+    rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+    rcl_ret_t ret = rcl_subscription_init(
+      &subscription, this->node_ptr, ts, "spaced name", &options);
+    EXPECT_EQ(RCL_RET_TOPIC_NAME_INVALID, ret);
+    rcl_reset_error();
+    EXPECT_EQ(nullptr, subscription.impl);
+    EXPECT_EQ(counter.allocations, counter.deallocations);
+  }
+
+  // Fails in rmw, after the implementation struct was allocated.
+  {
+    rcl_subscription_options_t options = make_options();
+    EXPECT_LT(counter.deallocations, counter.allocations);
+    rcl_subscription_t subscription = rcl_get_zero_initialized_subscription();
+    auto mock =
+      mocking_utils::patch_and_return("lib:rcl", rmw_create_subscription, nullptr);
+    rcl_ret_t ret = rcl_subscription_init(
+      &subscription, this->node_ptr, ts, "/chatter", &options);
+    EXPECT_EQ(RCL_RET_ERROR, ret);
+    rcl_reset_error();
+    EXPECT_EQ(nullptr, subscription.impl);
+    EXPECT_EQ(counter.allocations, counter.deallocations);
+  }
+}
+
 /* Basic nominal test of a subscription
  */
 TEST_F(TestSubscriptionFixture, test_subscription_nominal) {
