@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include <regex>
 #include <string>
 
 #include "rcl/rcl.h"
@@ -38,11 +39,22 @@ class TestGuardConditionFixture : public ::testing::Test
 public:
   void SetUp()
   {
+    auto common =
+      [](auto service, const char * name) {
+        // Only fail if the call originated in librcl; allocations made by
+        // rmw implementation threads are ignored (same as TestNodeFixture).
+        std::regex pattern("/?librcl\\.");
+        auto st = service.get_stack_trace();  // nullptr if stack trace not available
+        if (st && st->matches_any_object_filename(pattern)) {
+          service.print_backtrace();
+          ADD_FAILURE() << "Unexpected call to " << name << " originating from within librcl.";
+        }
+      };
     osrf_testing_tools_cpp::memory_tools::initialize();
-    on_unexpected_malloc([]() {ASSERT_FALSE(true) << "UNEXPECTED MALLOC";});
-    on_unexpected_realloc([]() {ASSERT_FALSE(true) << "UNEXPECTED REALLOC";});
-    on_unexpected_calloc([]() {ASSERT_FALSE(true) << "UNEXPECTED CALLOC";});
-    on_unexpected_free([]() {ASSERT_FALSE(true) << "UNEXPECTED FREE";});
+    on_unexpected_malloc([common](auto service) {common(service, "malloc");});
+    on_unexpected_realloc([common](auto service) {common(service, "realloc");});
+    on_unexpected_calloc([common](auto service) {common(service, "calloc");});
+    on_unexpected_free([common](auto service) {common(service, "free");});
   }
 
   void TearDown()
