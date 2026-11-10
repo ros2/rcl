@@ -2,6 +2,9 @@
 Changelog for package rcl_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 10.5.3 (2026-11-03)
 -------------------
 * Make sure to wait for the rcl_action server. (`#1354 <https://github.com/ros2/rcl//issues/1354>`_)

@@ -2,6 +2,9 @@
 Changelog for package rcl_lifecycle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 10.5.3 (2026-11-03)
 -------------------
 * Include what you use (`#1334 <https://github.com/ros2/rcl//issues/1334>`_)

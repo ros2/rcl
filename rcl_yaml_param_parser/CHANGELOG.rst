@@ -2,6 +2,9 @@
 Changelog for package rcl_yaml_param_parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 10.5.3 (2026-11-03)
 -------------------
 * Remove custom ament_cppcheck usage. (`#1355 <https://github.com/ros2/rcl//issues/1355>`_)

@@ -2,6 +2,13 @@
 Changelog for package rcl
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add rcl_timer_set_on_schedule_change_callback (`#1352 <https://github.com/ros2/rcl/issues/1352>`_)
+* Filter test_guard_condition memory checks to librcl, like test_node (`#1357 <https://github.com/ros2/rcl/issues/1357>`_)
+* Allow the OS wait to return slightly early in no_wakeup_on_override_timer. (`#1356 <https://github.com/ros2/rcl/issues/1356>`_)
+* Contributors: Chris Lalancette, Michael Carroll, yadunund
+
 10.5.3 (2026-11-03)
 -------------------
 * Fixed warning (`#1350 <https://github.com/ros2/rcl//issues/1350>`_)
