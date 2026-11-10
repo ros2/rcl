@@ -53,6 +53,9 @@ struct rcl_timer_impl_s
   rcl_allocator_t allocator;
   // The user supplied on reset callback data.
   rcl_timer_on_reset_callback_data_t callback_data;
+  // The user supplied callback for schedule changes made by a time jump.
+  rcl_event_callback_t on_schedule_change_callback;
+  const void * on_schedule_change_user_data;
 };
 
 rcl_timer_t
@@ -184,18 +187,11 @@ rcl_timer_init2(
   impl.allocator = allocator;
 
   // Empty init on reset callback data
-<<<<<<< HEAD
   impl.callback_data.on_reset_callback = NULL;
   impl.callback_data.user_data = NULL;
   impl.callback_data.reset_counter = 0;
-=======
-  impl.reset_callback_data.on_reset_callback = NULL;
-  impl.reset_callback_data.user_data = NULL;
-  impl.reset_callback_data.reset_counter = 0;
   impl.on_schedule_change_callback = NULL;
   impl.on_schedule_change_user_data = NULL;
-  impl.in_use_by_waitset = false;
->>>>>>> 0224ede (Add rcl_timer_set_on_schedule_change_callback (#1352))
 
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
   if (NULL == timer->impl) {
