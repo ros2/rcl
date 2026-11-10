@@ -53,6 +53,9 @@ struct rcl_timer_impl_s
   rcl_allocator_t allocator;
   // The user supplied on reset callback data.
   rcl_timer_on_reset_callback_data_t callback_data;
+  // The user supplied callback for schedule changes made by a time jump.
+  rcl_event_callback_t on_schedule_change_callback;
+  const void * on_schedule_change_user_data;
 };
 
 rcl_timer_t
@@ -115,14 +118,9 @@ void _rcl_timer_time_jump(
       int64_t time_credit = rcutils_atomic_exchange_int64_t(&timer->impl->time_credit, 0);
       if (time_credit) {
         // set times in new epoch so timer only waits the remainder of the period
-<<<<<<< HEAD
         rcutils_atomic_store(&timer->impl->next_call_time, now - time_credit + period);
         rcutils_atomic_store(&timer->impl->last_call_time, now - time_credit);
-=======
-        rcutils_atomic_store(&impl->next_call_time, now - time_credit + period);
-        rcutils_atomic_store(&impl->last_call_time, now - time_credit);
-        _rcl_timer_call_on_schedule_change(impl);
->>>>>>> 0224ede (Add rcl_timer_set_on_schedule_change_callback (#1352))
+        _rcl_timer_call_on_schedule_change(timer->impl);
       }
     } else if (next_call_time <= now) {
       // Post Forward jump and timer is ready
@@ -133,14 +131,9 @@ void _rcl_timer_time_jump(
     } else if (now < last_call_time) {
       // Post backwards time jump that went further back than 1 period
       // next callback should happen after 1 period
-<<<<<<< HEAD
       rcutils_atomic_store(&timer->impl->next_call_time, now + period);
       rcutils_atomic_store(&timer->impl->last_call_time, now);
-=======
-      rcutils_atomic_store(&impl->next_call_time, now + period);
-      rcutils_atomic_store(&impl->last_call_time, now);
-      _rcl_timer_call_on_schedule_change(impl);
->>>>>>> 0224ede (Add rcl_timer_set_on_schedule_change_callback (#1352))
+      _rcl_timer_call_on_schedule_change(timer->impl);
       return;
     }
   }
@@ -221,18 +214,11 @@ rcl_timer_init2(
   impl.allocator = allocator;
 
   // Empty init on reset callback data
-<<<<<<< HEAD
   impl.callback_data.on_reset_callback = NULL;
   impl.callback_data.user_data = NULL;
   impl.callback_data.reset_counter = 0;
-=======
-  impl.reset_callback_data.on_reset_callback = NULL;
-  impl.reset_callback_data.user_data = NULL;
-  impl.reset_callback_data.reset_counter = 0;
   impl.on_schedule_change_callback = NULL;
   impl.on_schedule_change_user_data = NULL;
-  impl.in_use_by_waitset = false;
->>>>>>> 0224ede (Add rcl_timer_set_on_schedule_change_callback (#1352))
 
   timer->impl = (rcl_timer_impl_t *)allocator.allocate(sizeof(rcl_timer_impl_t), allocator.state);
   if (NULL == timer->impl) {
