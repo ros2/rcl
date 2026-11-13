@@ -342,7 +342,7 @@ rcl_ret_t
 rcl_send_response(
   const rcl_service_t * service,
   rmw_request_id_t * response_header,
-  void * ros_response);
+  const void * ros_response);
 
 /// Get the topic name for the service.
 /**
