@@ -704,6 +704,43 @@ rcl_timer_set_on_reset_callback(
   rcl_event_callback_t on_reset_callback,
   const void * user_data);
 
+/// Set the callback function called when a time jump reschedules the timer.
+/**
+ * A timer on a `RCL_ROS_TIME` clock moves its next call time when the clock
+ * jumps backward past its last call time, and when ROS time is activated or
+ * deactivated. rcl_timer_get_next_call_time() reflects the change, but the
+ * on reset callback is not called. This callback is called in exactly those
+ * cases, after the new next call time was stored, so that an executor which
+ * keeps its own copy of the next call time can refresh it.
+ *
+ * The callback runs inside the clock's time jump callback, i.e. on the thread
+ * and under any locks of the caller of rcl_set_ros_time_override(),
+ * rcl_enable_ros_time_override() or rcl_disable_ros_time_override(), and must
+ * not block. Schedule changes before the callback is set are not reported.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] timer The handle to the timer on which to set the callback
+ * \param[in] on_schedule_change_callback The callback, or `NULL` to clear it
+ * \param[in] user_data Given to the callback when called later, may be `NULL`
+ * \return #RCL_RET_OK if successful, or
+ * \return #RCL_RET_INVALID_ARGUMENT if `timer` is `NULL`, or
+ * \return #RCL_RET_TIMER_INVALID if the timer is invalid.
+ */
+RCL_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_timer_set_on_schedule_change_callback(
+  const rcl_timer_t * timer,
+  rcl_event_callback_t on_schedule_change_callback,
+  const void * user_data);
+
 #ifdef __cplusplus
 }
 #endif

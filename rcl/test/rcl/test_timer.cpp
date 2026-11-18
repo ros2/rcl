@@ -93,6 +93,13 @@ static void on_reset_callback_function_changed(const void * timer, size_t n)
   times_reset -= n;
 }
 
+static size_t times_rescheduled = 0;
+static void on_schedule_change_callback_function(const void * user_data, size_t n)
+{
+  (void) user_data;
+  times_rescheduled += n;
+}
+
 class TestPreInitTimer : public TestTimerFixture
 {
 public:
@@ -771,6 +778,112 @@ TEST_F(TestTimerFixture, test_ros_time_backwards_jump) {
       rcl_get_error_string().str;
     EXPECT_EQ(sec_5, time_until);
   }
+}
+
+TEST_F(TestTimerFixture, test_on_schedule_change_callback_backwards_jump) {
+  rcl_ret_t ret;
+  const int64_t sec_5 = RCL_S_TO_NS(5);
+  const int64_t sec_3 = RCL_S_TO_NS(3);
+  const int64_t sec_2 = RCL_S_TO_NS(2);
+  const int64_t sec_1 = RCL_S_TO_NS(1);
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string().str;
+  });
+
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_2)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&clock)) << rcl_get_error_string().str;
+
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, sec_5, nullptr, rcl_get_default_allocator(),
+    true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string().str;
+  });
+
+  EXPECT_EQ(
+    RCL_RET_INVALID_ARGUMENT,
+    rcl_timer_set_on_schedule_change_callback(nullptr, nullptr, nullptr));
+  rcl_reset_error();
+  times_rescheduled = 0;
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_timer_set_on_schedule_change_callback(
+      &timer, on_schedule_change_callback_function, nullptr)) << rcl_get_error_string().str;
+
+  // Forward jump, the schedule is unchanged
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_3)) << rcl_get_error_string().str;
+  EXPECT_EQ(static_cast<size_t>(0), times_rescheduled);
+
+  // Backward jump past the last call time, the timer is rescheduled
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_1)) << rcl_get_error_string().str;
+  EXPECT_EQ(static_cast<size_t>(1), times_rescheduled);
+  int64_t next_call_time = 0;
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_next_call_time(&timer, &next_call_time)) <<
+    rcl_get_error_string().str;
+  EXPECT_EQ(sec_1 + sec_5, next_call_time);
+
+  // Backward jump that stays after the last call time, no reschedule
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_2)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, sec_1 + 1)) <<
+    rcl_get_error_string().str;
+  EXPECT_EQ(static_cast<size_t>(1), times_rescheduled);
+
+  // Cleared callback, the reschedule happens silently
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_timer_set_on_schedule_change_callback(
+      &timer, nullptr, nullptr)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, 1)) << rcl_get_error_string().str;
+  EXPECT_EQ(static_cast<size_t>(1), times_rescheduled);
+  ASSERT_EQ(RCL_RET_OK, rcl_timer_get_next_call_time(&timer, &next_call_time)) <<
+    rcl_get_error_string().str;
+  EXPECT_EQ(1 + sec_5, next_call_time);
+}
+
+TEST_F(TestTimerFixture, test_on_schedule_change_callback_clock_change) {
+  rcl_ret_t ret;
+  const int64_t sec_5 = RCL_S_TO_NS(5);
+
+  rcl_clock_t clock;
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  ret = rcl_clock_init(RCL_ROS_TIME, &clock, &allocator);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_clock_fini(&clock)) << rcl_get_error_string().str;
+  });
+
+  // The timer is created while the clock runs on system time
+  rcl_timer_t timer = rcl_get_zero_initialized_timer();
+  ret = rcl_timer_init2(
+    &timer, &clock, this->context_ptr, sec_5, nullptr, rcl_get_default_allocator(),
+    true);
+  ASSERT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(RCL_RET_OK, rcl_timer_fini(&timer)) << rcl_get_error_string().str;
+  });
+
+  times_rescheduled = 0;
+  ASSERT_EQ(
+    RCL_RET_OK, rcl_timer_set_on_schedule_change_callback(
+      &timer, on_schedule_change_callback_function, nullptr)) << rcl_get_error_string().str;
+
+  // Activating ROS time applies the time credit, which reschedules the timer
+  ASSERT_EQ(RCL_RET_OK, rcl_set_ros_time_override(&clock, 1)) << rcl_get_error_string().str;
+  ASSERT_EQ(RCL_RET_OK, rcl_enable_ros_time_override(&clock)) << rcl_get_error_string().str;
+  EXPECT_EQ(static_cast<size_t>(1), times_rescheduled);
+
+  // Deactivating it does the same in the other direction
+  ASSERT_EQ(RCL_RET_OK, rcl_disable_ros_time_override(&clock)) << rcl_get_error_string().str;
+  EXPECT_EQ(static_cast<size_t>(2), times_rescheduled);
 }
 
 TEST_F(TestTimerFixture, test_ros_time_wakes_wait) {
