@@ -73,6 +73,53 @@ rcl_action_wait_set_add_action_client(
   size_t * client_index,
   size_t * subscription_index);
 
+/// Add a rcl_action_client_t to a wait set and get all entity indices.
+/**
+ * This function is similar to rcl_action_wait_set_add_action_client() but
+ * returns all five entity indices (3 clients + 2 subscriptions) instead of just
+ * the starting indices. This is useful when using
+ * rcl_action_client_wait_set_get_entities_ready_with_indices() to avoid race
+ * conditions in multi-threaded scenarios.
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | Yes
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[inout] wait_set struct where action client service client and
+ * subscription are to be stored
+ * \param[in] action_client the action client to be added to the wait set
+ * \param[out] goal_client_index index of the goal client in the wait set.
+ * Optionally NULL.
+ * \param[out] cancel_client_index index of the cancel client in the wait set.
+ * Optionally NULL.
+ * \param[out] result_client_index index of the result client in the wait set.
+ * Optionally NULL.
+ * \param[out] feedback_subscription_index index of the feedback subscription.
+ * Optionally NULL.
+ * \param[out] status_subscription_index index of the status subscription.
+ * Optionally NULL.
+ * \return `RCL_RET_OK` if added successfully, or
+ * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is zero initialized, or
+ * \return `RCL_RET_WAIT_SET_FULL` if the subscription set is full, or
+ * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_wait_set_add_action_client_with_indices(
+  rcl_wait_set_t * wait_set,
+  const rcl_action_client_t * action_client,
+  size_t * goal_client_index,
+  size_t * cancel_client_index,
+  size_t * result_client_index,
+  size_t * feedback_subscription_index,
+  size_t * status_subscription_index);
+
 /// Add a rcl_action_server_t to a wait set.
 /**
  * This function will add the underlying services to the wait set.
@@ -232,6 +279,69 @@ rcl_ret_t
 rcl_action_client_wait_set_get_entities_ready(
   const rcl_wait_set_t * wait_set,
   const rcl_action_client_t * action_client,
+  bool * is_feedback_ready,
+  bool * is_status_ready,
+  bool * is_goal_response_ready,
+  bool * is_cancel_response_ready,
+  bool * is_result_response_ready);
+
+/// Get the wait set entities that are ready for a rcl_action_client_t using
+/// explicit indices.
+/**
+ * This is a thread-safe variant of
+ * rcl_action_client_wait_set_get_entities_ready() that accepts explicit wait
+ * set indices rather than reading them from the action client's internal state.
+ * This is useful when multiple threads use different wait sets with the same
+ * action client, avoiding the race condition where indices from one wait set
+ * could be used with a different wait set.
+ *
+ * The caller should obtain the indices from
+ * rcl_action_wait_set_add_action_client().
+ *
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | Yes (when used with per-wait_set indices)
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ *
+ * \param[in] wait_set struct where action server services are to be stored
+ * \param[in] action_client an action client to query
+ * \param[in] feedback_subscription_index index of the feedback subscription in
+ * the wait set
+ * \param[in] status_subscription_index index of the status subscription in the
+ * wait set
+ * \param[in] goal_client_index index of the goal client in the wait set
+ * \param[in] cancel_client_index index of the cancel client in the wait set
+ * \param[in] result_client_index index of the result client in the wait set
+ * \param[out] is_feedback_ready `true` if there is a feedback message ready to
+ * take, `false` otherwise
+ * \param[out] is_status_ready `true` if there is a status message ready to
+ * take, `false` otherwise
+ * \param[out] is_goal_response_ready `true` if there is a goal response message
+ * ready to take, `false` otherwise
+ * \param[out] is_cancel_response_ready `true` if there is a cancel response
+ * message ready to take, `false` otherwise
+ * \param[out] is_result_response_ready `true` if there is a result response
+ * message ready to take, `false` otherwise
+ * \return `RCL_RET_OK` if call is successful, or
+ * \return `RCL_RET_WAIT_SET_INVALID` if the wait set is invalid, or
+ * \return `RCL_RET_INVALID_ARGUMENT` if any arguments are invalid, or
+ * \return `RCL_RET_ACTION_CLIENT_INVALID` if the action client is invalid, or
+ * \return `RCL_RET_ERROR` if an unspecified error occurs.
+ */
+RCL_ACTION_PUBLIC
+RCL_WARN_UNUSED
+rcl_ret_t
+rcl_action_client_wait_set_get_entities_ready_with_indices(
+  const rcl_wait_set_t * wait_set,
+  const rcl_action_client_t * action_client,
+  size_t feedback_subscription_index,
+  size_t status_subscription_index,
+  size_t goal_client_index,
+  size_t cancel_client_index,
+  size_t result_client_index,
   bool * is_feedback_ready,
   bool * is_status_ready,
   bool * is_goal_response_ready,
