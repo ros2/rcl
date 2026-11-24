@@ -351,7 +351,7 @@ rcl_ret_t
 rcl_action_send_goal_response(
   const rcl_action_server_t * action_server,
   rmw_request_id_t * response_header,
-  void * ros_goal_response);
+  const void * ros_goal_response);
 
 /// Accept a new goal using an action server.
 /**
@@ -596,7 +596,7 @@ rcl_ret_t
 rcl_action_send_result_response(
   const rcl_action_server_t * action_server,
   rmw_request_id_t * response_header,
-  void * ros_result_response);
+  const void * ros_result_response);
 
 /// Expires goals associated with an action server.
 /**
@@ -786,7 +786,7 @@ rcl_ret_t
 rcl_action_send_cancel_response(
   const rcl_action_server_t * action_server,
   rmw_request_id_t * response_header,
-  void * ros_cancel_response);
+  const void * ros_cancel_response);
 
 /// Get the action name for an action server.
 /**

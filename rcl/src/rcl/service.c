@@ -380,7 +380,7 @@ rcl_ret_t
 rcl_send_response(
   const rcl_service_t * service,
   rmw_request_id_t * request_header,
-  void * ros_response)
+  const void * ros_response)
 {
   rcl_ret_t ret;
   RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Sending service response");
