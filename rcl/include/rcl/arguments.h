@@ -101,8 +101,8 @@ rcl_get_zero_initialized_arguments(void);
  *
  * Remap rule parsing is supported via `-r/--remap` flags e.g. `--remap from:=to` or `-r from:=to`.
  * Successfully parsed remap rules are stored in the order they were given in `argv`.
- * If given arguments `{"__ns:=/foo", "__ns:=/bar"}` then the namespace used by nodes in this
- * process will be `/foo` and not `/bar`.
+ * If given arguments `{"--ros-args", "-r", "__ns:=/foo", "-r", "__ns:=/bar"}` then the
+ * namespace used by nodes in this process will be `/foo` and not `/bar`.
  *
  * \sa rcl_remap_topic_name()
  * \sa rcl_remap_service_name()

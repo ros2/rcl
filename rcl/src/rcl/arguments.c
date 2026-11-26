@@ -619,24 +619,6 @@ rcl_parse_arguments(
         continue;
       }
 
-      // Attempt to parse argument as remap rule in its deprecated form
-      rcl_remap_t * rule = &(args_impl->remap_rules[args_impl->num_remap_rules]);
-      *rule = rcl_get_zero_initialized_remap();
-      if (RCL_RET_OK == _rcl_parse_remap_rule(argv[i], allocator, rule)) {
-        RCUTILS_LOG_WARN_NAMED(
-          ROS_PACKAGE_NAME,
-          "Found remap rule '%s'. This syntax is deprecated. Use '%s %s %s' instead.",
-          argv[i], RCL_ROS_ARGS_FLAG, RCL_REMAP_FLAG, argv[i]);
-        RCUTILS_LOG_DEBUG_NAMED(ROS_PACKAGE_NAME, "Got remap rule : %s\n", argv[i + 1]);
-        ++(args_impl->num_remap_rules);
-        continue;
-      }
-      RCUTILS_LOG_DEBUG_NAMED(
-        ROS_PACKAGE_NAME,
-        "Couldn't parse arg %d (%s) as a remap rule in its deprecated form. Error: %s",
-        i, argv[i], rcl_get_error_string().str);
-      rcl_reset_error();
-
       // Argument is not a ROS specific argument
       args_impl->unparsed_args[args_impl->num_unparsed_args] = i;
       ++(args_impl->num_unparsed_args);

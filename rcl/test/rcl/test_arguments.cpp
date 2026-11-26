@@ -409,6 +409,17 @@ TEST_F(TestArgumentsFixture, test_no_ros_args) {
   EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
 }
 
+TEST_F(TestArgumentsFixture, test_remap_rule_without_ros_args) {
+  const char * const argv[] = {"process_name", "foo:=bar"};
+  const int argc = sizeof(argv) / sizeof(const char *);
+  rcl_arguments_t parsed_args = rcl_get_zero_initialized_arguments();
+  rcl_ret_t ret = rcl_parse_arguments(argc, argv, rcl_get_default_allocator(), &parsed_args);
+  EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
+  EXPECT_UNPARSED(parsed_args, 0, 1);
+  EXPECT_EQ(0, rcl_arguments_get_count_unparsed_ros(&parsed_args));
+  EXPECT_EQ(RCL_RET_OK, rcl_arguments_fini(&parsed_args));
+}
+
 TEST_F(TestArgumentsFixture, test_zero_ros_args) {
   const char * const argv[] = {"process_name", "--ros-args"};
   const int argc = sizeof(argv) / sizeof(const char *);
