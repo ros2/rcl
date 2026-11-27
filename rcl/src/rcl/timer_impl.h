@@ -47,6 +47,8 @@ struct rcl_timer_impl_s
   atomic_int_least64_t time_credit;
   // A flag which indicates if the timer is canceled.
   atomic_bool canceled;
+  // A flag which indicates if the timer is phase-aligned (initialized with a start time).
+  bool aligned;
   // The user supplied allocator.
   rcl_allocator_t allocator;
   // The user supplied on reset callback data.
